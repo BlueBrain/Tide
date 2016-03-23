@@ -1,0 +1,14 @@
+<!DOCTYPE state>
+<state>
+ <version>1</version>
+ <ContentWindow>
+  <URI>wall.png</URI>
+  <x>0.25</x>
+  <y>0.25</y>
+  <w>0.5</w>
+  <h>0.5</h>
+  <centerX>0.5</centerX>
+  <centerY>0.5</centerY>
+  <zoom>1</zoom>
+ </ContentWindow>
+</state>

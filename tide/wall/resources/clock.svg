@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!-- Generator: Adobe Illustrator 18.1.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 104 120" style="enable-background:new 0 0 104 120;" xml:space="preserve">
+<g id="clock_1_">
+	<polygon id="clock" points="51.886,0 104,30.09 104,90.102 51.886,120 0,90.102 0,30.09 	"/>
+</g>
+<g id="hour_2_" style="display:none;">
+	<g id="hour_1_" style="display:inline;">
+		<polygon id="hour" style="fill:#FFFFFF;" points="56,60 52.676,34 51.324,34 48,60 		"/>
+		<circle id="center_offset_1_" style="fill:#FFFFFF;" cx="52" cy="60" r="6"/>
+	</g>
+</g>
+<g id="minute_2_" style="display:none;">
+	<g id="minute_1_" style="display:inline;">
+		<g id="minute">
+			<polygon style="fill:#FFFFFF;" points="56,60 52.676,17 51.324,17 48,60 			"/>
+			<path d="M52.838,17L56,60h-8l3.324-43H53 M53.602,16h-0.926h-1.353h-0.926l-0.071,0.923l-3.324,43L46.92,61H48h8h1.08
+				l-0.083-1.077l-3.324-43L53.602,16L53.602,16z"/>
+		</g>
+		<circle id="center_offset" style="fill:#FFFFFF;" cx="52" cy="60" r="6"/>
+		<circle id="center" cx="52" cy="60" r="4"/>
+	</g>
+</g>
+<g id="second_1_" style="display:none;">
+	<polygon id="second" style="display:inline;fill:#FFFFFF;" points="50,8 51.662,14 52.338,14 54,8 	"/>
+</g>
+</svg>

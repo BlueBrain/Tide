@@ -1,0 +1,15 @@
+<RCC>
+    <qresource prefix="/"/>
+    <qresource prefix="/qml/master">
+        <file>MasterContentWindow.qml</file>
+        <file>ContentWindowButton.qml</file>
+        <file>MasterDisplayGroup.qml</file>
+        <file>DisplayGroupBackground.qml</file>
+        <file>Wall.qml</file>
+    </qresource>
+    <qresource prefix="/img/master">
+        <file>close.svg</file>
+        <file>maximize.svg</file>
+        <file>resize.svg</file>
+    </qresource>
+</RCC>

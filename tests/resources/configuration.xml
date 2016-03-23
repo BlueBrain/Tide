@@ -1,0 +1,29 @@
+<configuration>
+    <dimensions mullionHeight="12" fullscreen="1" numTilesWidth="2" screenHeight="1080" mullionWidth="14" screenWidth="3840" numTilesHeight="3"/>
+    <dock directory="/nfs4/bbp.epfl.ch/visualization/DisplayWall/media"/>
+    <sessions directory="/nfs4/bbp.epfl.ch/visualization/DisplayWall/sessions"/>
+    <webservice port="10000" />
+    <webbrowser defaultURL="http://bbp.epfl.ch" />
+    <applauncher qml="/some/path/to/launcher.qml" />
+    <masterProcess display=":1" host="bbplxviz03i" />
+    <content maxScale="4.0" maxScaleVectorial="8.0" />
+    <process display=":0.2" host="bbplxviz03i">
+        <screen x="0" y="0" i="0" j="0"/>
+    </process>
+    <process display=":0.0" host="bbplxviz03i">
+        <screen x="0" y="1080" i="0" j="1"/>
+    </process>
+    <process display=":0.1" host="bbplxviz03i">
+        <screen x="0" y="2160" i="0" j="2"/>
+    </process>
+    <process display=":0.2" host="bbplxviz04i">
+        <screen x="0" y="0" i="1" j="0"/>
+    </process>
+    <process display=":0.0" host="bbplxviz04i">
+        <screen x="0" y="1080" i="1" j="1"/>
+    </process>
+    <process display=":0.1" host="bbplxviz04i">
+        <screen x="0" y="2160" i="1" j="2"/>
+    </process>
+    <background uri="/nfs4/bbp.epfl.ch/visualization/DisplayWall/media/background.png" color="#242424"/>
+</configuration>

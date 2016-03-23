@@ -1,0 +1,230 @@
+#!/usr/bin/python
+"""
+Launcher for Tide
+Usage: ./tide --help
+"""
+
+import os
+import sys
+import xml.etree.ElementTree as ET
+import subprocess
+import shlex
+import distutils.spawn
+import argparse
+
+# rtneuron vglrun env detection
+def using_virtualGL():
+    return ('VGL_DISPLAY' in os.environ or \
+            'VGL_CLIENT' in os.environ) and \
+            'SSH_CLIENT' in os.environ
+
+# http://nullege.com/codes/search/distutils.spawn.find_executable
+def find_executable( executable, path=None ):
+    """Tries to find 'executable' in the directories listed in 'path'.
+
+    A string listing directories separated by 'os.pathsep'; defaults to
+    os.environ['PATH'].  Returns the complete filename or None if not found.
+    """
+    if path is None:
+        path = os.environ['PATH']
+    paths = path.split(os.pathsep)
+    base, ext = os.path.splitext(executable)
+
+    if(sys.platform == 'win32' or os.name == 'os2') and (ext != '.exe'):
+        executable = executable + '.exe'
+
+    if not os.path.isfile(executable):
+        for p in paths:
+            f = os.path.join(p, executable)
+            if os.path.isfile(f):
+                # the file exists, we have a shot at spawn working
+                return f
+        return None
+    else:
+        return executable
+
+def locate_binary(exec_name):
+    binary = find_executable(exec_name, TIDE_PATH + "/bin/")
+    if binary is None:
+        binary = find_executable(exec_name)
+    if binary is None:
+        print exec_name + " executable not found"
+        exit(-4)
+    return binary
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--config", help="The configuration file to load")
+parser.add_argument("--mpiargs", help="Extra arguments for the mpiexec command")
+parser.add_argument("--session", help="The session to load")
+parser.add_argument("--printcmd", help="Print the command without executing it",
+                    action="store_true")
+parser.add_argument("--vglrun", help="Run the main application using vglrun (override VirtualGL detection)",
+                    action="store_true")
+args = parser.parse_args()
+
+# Tide directory; this is the parent directory of this script
+TIDE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+TIDEMASTER_BIN = locate_binary("tideMaster")
+TIDEWALL_BIN = locate_binary("tideWall")
+TIDEFORKER_BIN = locate_binary("tideForker")
+
+if args.config:
+    TIDE_CONFIG_FILE = args.config
+else:
+    TIDE_CONFIG_FILE = TIDE_PATH + '/share/Tide/examples/configuration_1x3.xml'
+
+# for example scripts
+os.environ['PYTHONPATH'] = os.pathsep + TIDE_PATH + '/examples'
+
+# add in the default Python path provided by the Python interpreter since it
+# is not provided in our GUI Python console
+os.environ['PYTHONPATH'] += os.pathsep + os.pathsep.join(sys.path)
+
+# add our own lib folder
+if 'LD_LIBRARY_PATH' not in os.environ:
+    os.environ['LD_LIBRARY_PATH'] = TIDE_PATH + '/lib'
+else:
+    os.environ['LD_LIBRARY_PATH'] += os.pathsep + TIDE_PATH + '/lib'
+
+# find full path to mpiexec; if MPI is installed in a non-standard location the
+# full path may be necessary to launch correctly across the cluster.
+MPIRUN_CMD = distutils.spawn.find_executable('mpiexec')
+
+if MPIRUN_CMD is None:
+    print('Error, could not find mpiexec executable in PATH')
+    exit(-3)
+
+if args.mpiargs:
+    mpi_args = args.mpiargs + ' '
+else:
+    mpi_args = ''
+
+# mpiexec has a different commandline syntax for MVAPICH, MPICH2, and OpenMPI
+IS_MVAPICH = distutils.spawn.find_executable('mpiname')
+IS_MPICH2 = distutils.spawn.find_executable('mpich2version')
+IS_MPICH3 = distutils.spawn.find_executable('mpichversion')
+if IS_MVAPICH:
+    MPI_SPECIAL_FLAGS = '-env MV2_ENABLE_AFFINITY 0 -env IPATH_NO_CPUAFFINITY 1'
+    MPI_PER_NODE_HOST = None
+    EXPORT_DISPLAY = '-env DISPLAY '
+    mpi_args += '-genvlist MPIEXEC_SIGNAL_PROPAGATION,LD_LIBRARY_PATH -hosts'
+elif IS_MPICH2:
+    MPI_SPECIAL_FLAGS = '-env MV2_ENABLE_AFFINITY 0 -env IPATH_NO_CPUAFFINITY 1'
+    MPI_PER_NODE_HOST = '-host'
+    EXPORT_DISPLAY = '-env DISPLAY '
+    mpi_args += '-genvlist LD_LIBRARY_PATH'
+elif IS_MPICH3:
+    MPI_SPECIAL_FLAGS = '-env MV2_ENABLE_AFFINITY 0 -env IPATH_NO_CPUAFFINITY 1'
+    MPI_PER_NODE_HOST = None
+    EXPORT_DISPLAY = '-env DISPLAY '
+    mpi_args += '-genvlist LD_LIBRARY_PATH -hosts'
+else:
+    MPI_SPECIAL_FLAGS = '-x IPATH_NO_CPUAFFINITY=1'
+    MPI_PER_NODE_HOST = None
+    EXPORT_DISPLAY = '-x DISPLAY='
+    mpi_args += '--mca hwloc_base_binding_policy none -x LD_LIBRARY_PATH -host'
+    # "hwloc_base_binding_policy none" is equivalent to the new "--bind-to none"
+    # option in OpenMPI >= 1.8, while being accepted by older versions as well.
+    # It does nothing in that case, but the (now deprecated) "--bind-to-none"
+    # was the default anyways.
+
+# Form the application parameters list
+TIDE_PARAMS = '--config ' + TIDE_CONFIG_FILE
+# Note that the "session" arg is reserved by Qt so "sessionfile" is used instead
+if args.session:
+    TIDE_PARAMS += ' --sessionfile ' + args.session
+
+# form the MPI host list
+hostlist = []
+
+# Form the list of commands to execute
+runcommands = []
+
+# Execute master process with vglrun
+if args.vglrun:
+    VGLRUN_BIN = 'vglrun '
+else:
+    VGLRUN_BIN = ''
+
+# Override VirtualGL detection
+using_vgl = not args.vglrun and using_virtualGL()
+
+# configuration.xml gives the rest of the hosts and the displays
+try:
+    XML_CONFIG = ET.parse(TIDE_CONFIG_FILE)
+
+    # parse the masterProcess element
+    master_elem = XML_CONFIG.find('masterProcess')
+    if master_elem is None:
+        print("masterProcess not found, using defaults: 'localhost' ':0'")
+    else:
+        host = master_elem.get("host")
+        if using_vgl:
+            display = os.environ["DISPLAY"]
+        else:
+            display = master_elem.get('display')
+
+    if host is None:
+        host = 'localhost'
+
+    if using_vgl:
+        display = os.environ["DISPLAY"]
+
+    if display is None:
+        display = ":0"
+
+    if MPI_PER_NODE_HOST:
+        node_host = '%s %s' % (MPI_PER_NODE_HOST, host)
+    else:
+        node_host = ''
+        hostlist.append(host)
+
+    rcmd = '%s %s%s %s -np 1 %s%s %s' % (MPI_SPECIAL_FLAGS, EXPORT_DISPLAY, display, node_host, VGLRUN_BIN, TIDEMASTER_BIN, TIDE_PARAMS)
+    runcommands.append(rcmd)
+
+    # add a separate 'forker' process on the same host as the master process
+    forkercmd = '%s %s%s %s -np 1 %s %s' % (MPI_SPECIAL_FLAGS, EXPORT_DISPLAY, display, node_host, TIDEFORKER_BIN, TIDE_PARAMS)
+
+    # parse the wall process elements
+    for elem in XML_CONFIG.findall('.//process'):
+        host = elem.get("host")
+
+        if host is None:
+            print('Error, no host attribute in <process> tag.')
+            exit(-1)
+
+        if using_vgl:
+            display = os.environ["DISPLAY"]
+        else:
+            display = elem.get('display')
+
+        if display == None:
+            display = ':0'
+
+        if MPI_PER_NODE_HOST:
+            node_host = '%s %s' % (MPI_PER_NODE_HOST, host)
+        else:
+            node_host = ''
+            hostlist.append(host)
+
+        rcmd = '%s %s%s %s -np 1 %s %s' % (MPI_SPECIAL_FLAGS, EXPORT_DISPLAY, display, node_host, TIDEWALL_BIN, TIDE_PARAMS)
+        runcommands.append(rcmd)
+
+    # the 'forker' process is the last one
+    runcommands.append(forkercmd)
+
+except Exception as e:
+    print("Error processing xml configuration '%s'. (%s)" % (TIDE_CONFIG_FILE, e))
+    exit(-2)
+
+HOST_LIST = ",".join(hostlist)
+RUN_COMMANDS = ' : '.join(runcommands)
+
+START_CMD = '%s %s %s %s' % (MPIRUN_CMD, mpi_args, HOST_LIST, RUN_COMMANDS)
+
+if args.printcmd:
+    print(START_CMD)
+else:
+    print('launching with command: ', START_CMD)
+    subprocess.call(shlex.split(START_CMD))

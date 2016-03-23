@@ -1,0 +1,3 @@
+# -*- mode: cmake -*-
+git_subproject(Deflect https://github.com/BlueBrain/Deflect.git 6ba9920)
+git_subproject(TUIO https://github.com/BlueBrain/TUIO.git b002886)

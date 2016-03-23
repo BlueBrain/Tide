@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<!DOCTYPE boost_serialization>
+<boost_serialization signature="serialization::archive" version="10">
+<state class_id="0" tracking_level="0" version="0">
+	<contentWindows class_id="1" tracking_level="0" version="0">
+		<count>1</count>
+		<item_version>1</item_version>
+		<item class_id="2" tracking_level="0" version="1">
+			<px class_id="3" tracking_level="1" version="0" object_id="_0">
+				<content class_id="4" tracking_level="0" version="1">
+					<px class_id="5" class_name="TextureContent" tracking_level="1" version="0" object_id="_1">
+						<Content class_id="6" tracking_level="0" version="0">
+							<uri class_id="7" tracking_level="0" version="0">
+								<value>wall.png</value>
+							</uri>
+							<width>256</width>
+							<height>128</height>
+							<block_advance>0</block_advance>
+						</Content>
+					</px>
+				</content>
+				<contentWidth>256</contentWidth>
+				<contentHeight>128</contentHeight>
+				<coordinates class_id="8" tracking_level="0" version="0">
+					<x>0.25</x>
+					<y>0.25</y>
+					<w>0.5</w>
+					<h>0.5</h>
+				</coordinates>
+				<coordinatesBackup>
+					<x>0</x>
+					<y>0</y>
+					<w>0</w>
+					<h>0</h>
+				</coordinatesBackup>
+				<centerX>0.5</centerX>
+				<centerY>0.5</centerY>
+				<zoom>1.5</zoom>
+				<controlState>2</controlState>
+				<windowState>0</windowState>
+			</px>
+		</item>
+	</contentWindows>
+</state>
+</boost_serialization>
+

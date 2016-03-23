@@ -1,0 +1,19 @@
+<RCC>
+    <qresource prefix="/img">
+        <file>error.png</file>
+    </qresource>
+    <qresource prefix="/qml/wall">
+        <file>Background.qml</file>
+        <file>TouchPointMarker.qml</file>
+        <file>WallContentWindow.qml</file>
+        <file>WallDisplayGroup.qml</file>
+        <file>ZoomContext.qml</file>
+    </qresource>
+    <qresource prefix="/clock">
+        <file>Clock.qml</file>
+        <file>clock.svg</file>
+        <file>hour.svg</file>
+        <file>minute.svg</file>
+        <file>second.svg</file>
+    </qresource>
+</RCC>

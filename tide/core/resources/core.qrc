@@ -1,0 +1,46 @@
+<RCC>
+    <qresource prefix="/html">
+        <file>login-form.htm</file>
+        <file>login-form.css</file>
+    </qresource>
+    <qresource prefix="/img">
+        <file>error.png</file>
+        <file>browser-icon.png</file>
+        <file>clearall-icon.png</file>
+        <file>close.svg</file>
+        <file>maximize.svg</file>
+        <file>pause.svg</file>
+        <file>play.svg</file>
+        <file>oneToOne.svg</file>
+        <file>focus.svg</file>
+        <file>add.svg</file>
+        <file>launch.svg</file>
+        <file>load.svg</file>
+        <file>tick.svg</file>
+    </qresource>
+    <qresource prefix="/fonts">
+        <file>Gotham-Book.otf</file>
+    </qresource>
+    <qresource prefix="/">
+        <file>selectboxit/jquery-ui.min.js</file>
+        <file>selectboxit/jquery.min.js</file>
+        <file>selectboxit/jquery.selectBoxIt.min.js</file>
+        <file>selectboxit/selectboxit.css</file>
+    </qresource>
+    <qresource prefix="/qml/core">
+        <file>BaseContentWindow.qml</file>
+        <file>CloseControlButton.qml</file>
+        <file>ControlButton.qml</file>
+        <file>ControlPanelDelegate.qml</file>
+        <file>ControlPanel.qml</file>
+        <file>DisplayGroup.qml</file>
+        <file>FocusControlButton.qml</file>
+        <file>FullscreenControlButton.qml</file>
+        <file>OneToOneControlButton.qml</file>
+        <file>ResizeCircle.qml</file>
+        <file>ResizeCircles.qml</file>
+        <file>style.js</file>
+        <file>WindowControlsDelegate.qml</file>
+        <file>WindowControls.qml</file>
+    </qresource>
+</RCC>

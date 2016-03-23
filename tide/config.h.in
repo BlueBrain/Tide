@@ -1,0 +1,13 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+#cmakedefine01 ENABLE_TUIO_TOUCH_LISTENER
+#cmakedefine01 ENABLE_PDF_SUPPORT
+
+#ifdef __cplusplus
+#  ifndef CXX_FINAL_OVERRIDE_SUPPORTED
+#    define override
+#  endif
+#endif
+
+#endif
