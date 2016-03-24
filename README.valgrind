@@ -1,5 +1,4 @@
-in tide.py:
-startCommand = 'valgrind --tool=memcheck --track-origins=yes --leak-check=full --show-reachable=yes --partial-loads-ok=yes --log-file=/tmp/valgrind.out ' + tidePath + '/bin/tide'
+valgrind --tool=memcheck --track-origins=yes --leak-check=full --show-reachable=yes --partial-loads-ok=yes --log-file=/tmp/valgrind.out
 
 config using 1 process and 1 screen, valgrind on wall process:
 ==11234==    definitely lost: 25,910 bytes in 132 blocks

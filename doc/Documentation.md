@@ -1,22 +1,38 @@
 Documentation {#documentation}
 ============
 
-This document describes the basic structure and provides pointers to
-auxilary documentation.
+This document describes the basic structure of the source code and provides
+pointers to auxilary documentation.
 
 ## Directory Layout
 
 * [CMake](https://github.com/Eyescale/CMake#readme): subdirectory
   included using git externals. See below for details.
 * tide: Contains the main libraries of the project:
-  * core: The core library.
-  * master: The master library.
-  * wall: The wall library
-* apps: Applications delivered with the project.
-  * Tide: The main application.
-  * LocalStreamer: Used by Tideto generate content from separate processes
-    (sandboxing).
-* tests: Unit tests
+  * core: The core library contains utilities, helpers and shared classes that
+          are used by the master and wall applications.
+  * master: The master library contains the control GUI and other
+            application-control logics.
+  * wall: The wall library contains the QML2 rendering engine for the supported
+          content types and their synchronization between other wall processes.
+* apps: Applications delivered with the project:
+  * tide: The main application which launches the master and wall processes
+          according to the provided configuration file.
+  * TideMaster: The master application launched by tide which provides a control
+                user interface to open contents and sessions, change options etc.
+  * TideWall: The wall application launched for each wall segment launched by
+              tide which presents all opened contents.
+  * TideForker: An auxilary process launched by tide which forks new processes
+                like LocalStreamer.
+  * LocalStreamer: An application that generates content according to launch
+                   parameters and streams that content to the local tide
+                   instance. The webbrowser content for instance is one
+                   exisiting implementation.
+  * PyramidMaker: An application that generates an image pyramid for a big
+                  image which can be loaded and rendered by tide more
+                  efficently.
+
+* tests: Unit tests.
 * doc: Doxygen and other documentation.
 * examples: Example xml configuration files, installed under share/Tide.
 

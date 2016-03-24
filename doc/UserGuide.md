@@ -1,11 +1,11 @@
-User Guide {#userguide}
+User Guide {#UserGuide}
 ============
 
 This document is a short how-to to start running Tide.
 
 # Usage {#usage}
 
-Run tide from the bin folder to launch the application.
+Run 'tide' from the bin folder to launch the application.
 
 Some useful command line options:
 

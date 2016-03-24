@@ -169,8 +169,8 @@ void StateSerializationHelper::_validateContents( DisplayGroup& group ) const
                 contentWindow->getID().toString().toLocal8Bit().constData( ));
             continue;
         }
-        // PixelStreams are not supported yet, don't restore them.
-        // This feature will be implemented in DISCL-6
+
+        // PixelStreams are not supported, don't restore them.
         if( content->getType() == CONTENT_TYPE_PIXEL_STREAM )
             continue;
 

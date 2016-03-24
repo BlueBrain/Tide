@@ -14,7 +14,7 @@ set(VERSION_PATCH 0)
 set(VERSION_ABI 1)
 
 set(TIDE_INCLUDE_NAME tide)
-set(TIDE_DESCRIPTION "The Tiled Interactive DisplayWall Environment")
+set(TIDE_DESCRIPTION "A Tiled Interactive DisplayWall Environment")
 set(TIDE_MAINTAINER "Blue Brain Project <bbp-open-source@googlegroups.com>")
 set(TIDE_LICENSE BSD)
 
