@@ -50,7 +50,6 @@ BOOST_GLOBAL_FIXTURE( MinimalGlobalQtApp );
 
 namespace
 {
-const QSize wallSize( 1000, 1000 );
 const int WIDTH = 512;
 const int HEIGHT = 512;
 }

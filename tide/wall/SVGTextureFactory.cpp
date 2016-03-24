@@ -43,8 +43,10 @@
 #include "log.h"
 #include "types.h" // for make_unique()
 
-#include <QOpenGLPaintDevice>
+#include <QOpenGLContext>
+#include <QOpenGLFunctions>
 #include <QOpenGLFramebufferObject>
+#include <QOpenGLPaintDevice>
 #include <QPainter>
 #include <QFile>
 
@@ -78,20 +80,24 @@ QSize SVGTextureFactory::getMaxSize() const
 
 void _saveGLState()
 {
+#ifndef __APPLE__
     glPushAttrib( GL_ALL_ATTRIB_BITS );
     glMatrixMode( GL_PROJECTION );
     glPushMatrix();
     glMatrixMode( GL_MODELVIEW );
     glPushMatrix();
+#endif
 }
 
 void _restoreGLState()
 {
+#ifndef __APPLE__
     glMatrixMode( GL_PROJECTION );
     glPopMatrix();
     glMatrixMode( GL_MODELVIEW );
     glPopMatrix();
     glPopAttrib();
+#endif
 }
 
 std::unique_ptr<QOpenGLFramebufferObject>
@@ -103,11 +109,12 @@ _createMultisampledFBO( const QSize& size )
 
     auto fbo = make_unique<QOpenGLFramebufferObject>( size, format );
     fbo->bind();
-    glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
-    glClear( GL_COLOR_BUFFER_BIT );
+    auto gl = QOpenGLContext::currentContext()->functions();
+    gl->glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
+    gl->glClear( GL_COLOR_BUFFER_BIT );
     fbo->release();
 
-    return std::move( fbo );
+    return fbo;
 }
 
 QRectF _getViewBox( const QRectF& zoomRect, const QRectF& svgExtents )
