@@ -47,7 +47,7 @@
 
 FFMPEGVideoFrameConverter::FFMPEGVideoFrameConverter( const AVCodecContext&
                                                       videoCodecContext,
-                                                      PixelFormat targetFormat )
+                                                      AVPixelFormat targetFormat )
     : _swsContext( 0 )
     , _targetFormat( targetFormat )
 {

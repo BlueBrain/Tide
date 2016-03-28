@@ -75,7 +75,7 @@ public:
      * @param targetFormat The desired data output format (e.g. PIX_FMT_RGBA)
      */
     FFMPEGVideoFrameConverter( const AVCodecContext& videoCodecContext,
-                               PixelFormat targetFormat );
+                               AVPixelFormat targetFormat );
     /** Desturctor */
     ~FFMPEGVideoFrameConverter();
 
@@ -88,7 +88,7 @@ public:
 
 private:
     SwsContext* _swsContext;           // Scaling context
-    const PixelFormat _targetFormat;
+    const AVPixelFormat _targetFormat;
 };
 
 #endif // FFMPEGVIDEOFRAMECONVERTER_H

@@ -61,7 +61,7 @@ FFMPEGVideoStream::FFMPEGVideoStream( AVFormatContext& avFormatContext )
 
     _frame.reset( new FFMPEGFrame );
     _frameConverter.reset( new FFMPEGVideoFrameConverter( *_videoCodecContext,
-                                                                PIX_FMT_RGBA ));
+                                                          AV_PIX_FMT_RGBA ));
 }
 
 FFMPEGVideoStream::~FFMPEGVideoStream()

@@ -39,9 +39,12 @@
 
 #include "FFMPEGPicture.h"
 
+#pragma clang diagnostic ignored "-Wdeprecated"
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
 FFMPEGPicture::FFMPEGPicture( const unsigned int width,
                               const unsigned int height,
-                              const PixelFormat format,
+                              const AVPixelFormat format,
                               const int64_t timestamp )
 {
     if( avpicture_alloc( (AVPicture*)_avFrame, format, width, height ) != 0 )

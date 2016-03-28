@@ -39,6 +39,8 @@
 
 #include "TextureNode.h"
 
+#include <QOpenGLContext>
+#include <QOpenGLFunctions>
 #include <QQuickWindow>
 
 TextureNode::TextureNode( const QSize& size, QQuickWindow* window )
@@ -85,12 +87,13 @@ TextureNode::QSGTexturePtr
 TextureNode::_createTexture( const QSize& size ) const
 {
     uint textureID;
-    glActiveTexture( GL_TEXTURE0 );
-    glGenTextures( 1, &textureID );
-    glBindTexture( GL_TEXTURE_2D, textureID );
-    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, size.width(), size.height(),
-                  0, GL_RGBA, GL_UNSIGNED_BYTE, 0 );
-    glBindTexture( GL_TEXTURE_2D, 0 );
+    auto gl = QOpenGLContext::currentContext()->functions();
+    gl->glActiveTexture( GL_TEXTURE0 );
+    gl->glGenTextures( 1, &textureID );
+    gl->glBindTexture( GL_TEXTURE_2D, textureID );
+    gl->glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, size.width(), size.height(),
+                      0, GL_RGBA, GL_UNSIGNED_BYTE, 0 );
+    gl->glBindTexture( GL_TEXTURE_2D, 0 );
 
     return _createWrapper( textureID, size );
 }

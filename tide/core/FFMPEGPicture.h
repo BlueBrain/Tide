@@ -51,7 +51,7 @@ class FFMPEGPicture : public FFMPEGFrame
 public:
     /** Constructor. */
     FFMPEGPicture( unsigned int width, unsigned int height,
-                   PixelFormat format, int64_t timestamp );
+                   AVPixelFormat format, int64_t timestamp );
 
     /** Destructor. */
     ~FFMPEGPicture();
