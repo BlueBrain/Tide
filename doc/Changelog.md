@@ -1,6 +1,11 @@
 Changelog {#Changelog}
 ============
 
+# git master (1.1.0)
+
+* [12](https://github.com/BlueBrain/Tide/pull/12):
+  Added a basic REST interface with support for open/load/save commands.
+
 # Release 1.0.0 (07-04-2016)
 
 * Initial version, based on

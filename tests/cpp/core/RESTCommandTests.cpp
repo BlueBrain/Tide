@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,82 +37,30 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef MASTERAPPLICATION_H
-#define MASTERAPPLICATION_H
+#define BOOST_TEST_MODULE RESTCommand
+#include <boost/test/unit_test.hpp>
+namespace ut = boost::unit_test;
 
-#include "config.h"
-#include "types.h"
+#include "rest/RestCommand.h"
 
-#include <QApplication>
-#include <QThread>
-#include <boost/scoped_ptr.hpp>
-
-class MasterToWallChannel;
-class MasterToForkerChannel;
-class MasterFromWallChannel;
-class MasterWindow;
-class PixelStreamerLauncher;
-class PixelStreamWindowManager;
-class MasterConfiguration;
-class MultiTouchListener;
-class RestInterface;
-
-/**
- * The main application for the Master process.
- */
-class MasterApplication : public QApplication
+BOOST_AUTO_TEST_CASE( test_receive_json_command )
 {
-    Q_OBJECT
+    RestCommand command( "tide::open" );
 
-public:
-    /**
-     * Constructor
-     * @param argc Command line argument count (required by QApplication)
-     * @param argv Command line arguments (required by QApplication)
-     * @param worldChannel The world MPI channel
-     * @param forkChannel The MPI channel for forking processes
-     * @throw std::runtime_error if an error occured during initialization
-     */
-    MasterApplication( int &argc, char **argv, MPIChannelPtr worldChannel,
-                       MPIChannelPtr forkChannel );
+    QString receivedUri;
+    QObject::connect( &command, &RestCommand::received, [&]( const QString uri )
+    {
+        receivedUri = uri;
+    });
 
-    /** Destructor */
-    virtual ~MasterApplication();
+    BOOST_CHECK_EQUAL( command.getTypeName(), "tide::open" );
 
-private:
-    boost::scoped_ptr<MasterToForkerChannel> masterToForkerChannel_;
-    boost::scoped_ptr<MasterToWallChannel> masterToWallChannel_;
-    boost::scoped_ptr<MasterFromWallChannel> masterFromWallChannel_;
-    boost::scoped_ptr<MasterWindow> masterWindow_;
-    boost::scoped_ptr<MasterConfiguration> config_;
-    boost::scoped_ptr<deflect::Server> deflectServer_;
-    boost::scoped_ptr<PixelStreamerLauncher> pixelStreamerLauncher_;
-    boost::scoped_ptr<PixelStreamWindowManager> pixelStreamWindowManager_;
-#if TIDE_ENABLE_TUIO_TOUCH_LISTENER
-    boost::scoped_ptr<MultiTouchListener> touchListener_;
-#endif
+    BOOST_CHECK( !command.fromJSON( "I am not a json string" ));
+    BOOST_REQUIRE( receivedUri.isEmpty( ));
 
-    DisplayGroupPtr displayGroup_;
-    MarkersPtr markers_;
+    BOOST_CHECK( !command.fromJSON( "{\"invalid_key\":\"image.png\"}" ));
+    BOOST_REQUIRE( receivedUri.isEmpty( ));
 
-    QThread mpiSendThread_;
-    QThread mpiReceiveThread_;
-
-    void init();
-    bool createConfig( const QString& filename );
-    void startDeflectServer();
-    void restoreBackground();
-    void initPixelStreamLauncher();
-    void initMPIConnection();
-
-#if TIDE_ENABLE_TUIO_TOUCH_LISTENER
-    void initTouchListener();
-#endif
-
-#if TIDE_ENABLE_REST_INTERFACE
-    std::unique_ptr<RestInterface> _restInterface;
-    void _initRestInterface();
-#endif
-};
-
-#endif // MASTERAPPLICATION_H
+    BOOST_CHECK( command.fromJSON( "{\"uri\":\"image.png\"}" ));
+    BOOST_CHECK_EQUAL( receivedUri.toStdString(), "image.png" );
+}
