@@ -4,7 +4,7 @@
 
 include_directories(${PROJECT_SOURCE_DIR}/tide/master)
 
-set(LOCALSTREAMER_MOC_HEADERS
+set(LOCALSTREAMER_HEADERS
   Application.h
 )
 

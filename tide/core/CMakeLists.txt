@@ -19,8 +19,8 @@ set(TIDECORE_LINK_LIBRARIES
     Qt5::Svg
 )
 
-if(ENABLE_PDF_SUPPORT)
-  list(APPEND TIDECORE_MOC_PUBLIC_HEADERS
+if(TIDE_ENABLE_PDF_SUPPORT)
+  list(APPEND TIDECORE_PUBLIC_HEADERS
     PDFContent.h
   )
   list(APPEND TIDECORE_SOURCES
@@ -36,9 +36,17 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   CachedDataSource.h
   CommandLineParameters.h
   Configuration.h
+  ContentAction.h
+  ContentActionsModel.h
   ContentFactory.h
+  Content.h
+  ContentInteractionDelegate.h
   ContentType.h
+  ContentWindowController.h
+  ContentWindow.h
+  Coordinates.h
   DataSource.h
+  DisplayGroup.h
   DynamicTextureContent.h
   DynamicTexture.h
   FFMPEGFrame.h
@@ -50,13 +58,21 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   LayoutEngine.h
   LodTools.h
   log.h
+  Markers.h
+  MasterFromWallChannel.h
+  MasterToWallChannel.h
+  MovieContent.h
   MPIChannel.h
   MPIContext.h
   MPINospin.h
+  Options.h
   PixelStreamContent.h
+  PixelStreamInteractionDelegate.h
+  QmlControlPanel.h
   QmlTypeRegistration.h
   QtImage.h
   StatePreview.h
+  SVGContent.h
   TextureContent.h
   thumbnail/DefaultThumbnailGenerator.h
   thumbnail/FolderThumbnailGenerator.h
@@ -67,30 +83,11 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   thumbnail/ThumbnailGeneratorFactory.h
   thumbnail/ThumbnailGenerator.h
   types.h
-  ZoomHelper.h
-  ZoomInteractionDelegate.h
-)
-
-list(APPEND TIDECORE_MOC_PUBLIC_HEADERS
-  ContentAction.h
-  ContentActionsModel.h
-  Content.h
-  ContentInteractionDelegate.h
-  ContentWindowController.h
-  ContentWindow.h
-  Coordinates.h
-  DisplayGroup.h
-  Markers.h
-  MasterFromWallChannel.h
-  MasterToWallChannel.h
-  MovieContent.h
-  Options.h
-  PixelStreamInteractionDelegate.h
-  QmlControlPanel.h
-  SVGContent.h
   VectorialContent.h
   WallFromMasterChannel.h
   WallToMasterChannel.h
+  ZoomHelper.h
+  ZoomInteractionDelegate.h
 )
 
 list(APPEND TIDECORE_SOURCES
@@ -146,9 +143,8 @@ list(APPEND TIDECORE_SOURCES
   WallToMasterChannel.cpp
   ZoomHelper.cpp
   ZoomInteractionDelegate.cpp
+  resources/core.qrc
 )
-
-set(TIDECORE_RESOURCES resources/core.qrc)
 
 set(TIDECORE_INCLUDE_NAME tide/core)
 common_library(TideCore)

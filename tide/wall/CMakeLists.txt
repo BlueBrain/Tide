@@ -12,12 +12,10 @@ set(TIDEWALL_LINK_LIBRARIES
     Qt5::Svg
 )
 
-if(ENABLE_PDF_SUPPORT)
+if(TIDE_ENABLE_PDF_SUPPORT)
   list(APPEND TIDEWALL_PUBLIC_HEADERS
-    PDFTiler.h
-  )
-  list(APPEND TIDEWALL_MOC_PUBLIC_HEADERS
     PDFSynchronizer.h
+    PDFTiler.h
   )
   list(APPEND TIDEWALL_SOURCES
     PDFSynchronizer.cpp
@@ -26,39 +24,36 @@ if(ENABLE_PDF_SUPPORT)
 endif()
 
 list(APPEND TIDEWALL_PUBLIC_HEADERS
-  ElapsedTimer.h
-  FpsCounter.h
-  LodTiler.h
-  MovieSynchronizer.h
-  MovieUpdater.h
-  QuadLineNode.h
-  StreamImage.h
-  SVGTextureFactory.h
-  SVGTiler.h
-  TestPattern.h
-  TextureNode.h
-  VisibilityHelper.h
-  WallConfiguration.h
-)
-
-list(APPEND TIDEWALL_MOC_PUBLIC_HEADERS
   BasicSynchronizer.h
   ContentSynchronizer.h
   DataProvider.h
   DisplayGroupRenderer.h
   DynamicTextureSynchronizer.h
+  ElapsedTimer.h
+  FpsCounter.h
   ImageSynchronizer.h
   LodSynchronizer.h
+  LodTiler.h
+  MovieSynchronizer.h
+  MovieUpdater.h
   PixelStreamSynchronizer.h
   PixelStreamUpdater.h
   QmlWindowRenderer.h
+  QuadLineNode.h
   QuickRenderer.h
   RenderController.h
+  StreamImage.h
   SVGSynchronizer.h
+  SVGTextureFactory.h
+  SVGTiler.h
+  TestPattern.h
+  TextureNode.h
   TextureUploader.h
   TiledSynchronizer.h
   Tile.h
+  VisibilityHelper.h
   WallApplication.h
+  WallConfiguration.h
   WallToWallChannel.h
   WallWindow.h
 )
@@ -97,9 +92,8 @@ list(APPEND TIDEWALL_SOURCES
   WallConfiguration.cpp
   WallToWallChannel.cpp
   WallWindow.cpp
+  resources/wall.qrc
 )
-
-set(TIDEWALL_RESOURCES resources/wall.qrc)
 
 set(TIDEWALL_INCLUDE_NAME tide/wall)
 common_library(TideWall)
