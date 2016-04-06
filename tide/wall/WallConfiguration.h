@@ -58,7 +58,7 @@ public:
      * @param processIndex MPI index in the range [1;n] of the process
      * @throw std::runtime_error if the file could not be read
      */
-    WallConfiguration(const QString &filename, const int processIndex);
+    WallConfiguration( const QString &filename, int processIndex );
 
     /** Get the name of the host on which this process is running. */
     const QString& getHost() const;
@@ -82,14 +82,14 @@ public:
     int getProcessIndex() const;
 
 private:
-    QString host_;
-    QString display_;
+    QString _host;
+    QString _display;
 
-    const int processIndex_;
-    QPoint screenPosition_;
-    QPoint screenGlobalIndex_;
+    const int _processIndex;
+    QPoint _screenPosition;
+    QPoint _screenGlobalIndex;
 
-    void loadWallSettings(const int processIndex);
+    void _loadWallSettings( int processIndex );
 };
 
 #endif // WALLCONFIGURATION_H

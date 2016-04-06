@@ -94,6 +94,10 @@ BOOST_AUTO_TEST_CASE( test_configuration )
     BOOST_REQUIRE_NE( Content::getMaxScale(), 4.0 );
     BOOST_REQUIRE_NE( VectorialContent::getMaxScale(), 8.0 );
 
+    // Make sure the values are strictly positive
+    BOOST_REQUIRE_GT( Content::getMaxScale(), 0.0 );
+    BOOST_REQUIRE_GT( VectorialContent::getMaxScale(), 0.0 );
+
     Configuration config( CONFIG_TEST_FILENAME );
 
     testBaseParameters( config );

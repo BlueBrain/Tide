@@ -65,6 +65,8 @@
  * xml configuration files and have the same meaning.
  */
 
+class QXmlQuery;
+
 class Configuration
 {
 public:
@@ -73,7 +75,7 @@ public:
      * @param filename path to the xml configuration file
      * @throw std::runtime_error if the file could not be read
      */
-    Configuration(const QString& filename);
+    Configuration( const QString& filename );
 
     /** Destructor. */
     virtual ~Configuration() {}
@@ -136,18 +138,22 @@ public:
 
 protected:
     /** The path to the xml configuration file. */
-    QString filename_;
+    QString _filename;
+
+    /** Evaluate the querry and set the result to value on success. */
+    bool getDouble( const QXmlQuery& query, double& value ) const;
+    bool getInt( const QXmlQuery& query, int& value ) const;
 
 private:
-    int totalScreenCountX_;
-    int totalScreenCountY_;
-    int screenWidth_;
-    int screenHeight_;
-    int mullionWidth_;
-    int mullionHeight_;
-    bool fullscreen_;
+    int _totalScreenCountX;
+    int _totalScreenCountY;
+    int _screenWidth;
+    int _screenHeight;
+    int _mullionWidth;
+    int _mullionHeight;
+    bool _fullscreen;
 
-    void load();
+    void _load();
 };
 
 #endif

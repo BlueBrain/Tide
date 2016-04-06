@@ -42,80 +42,85 @@
 #include <QtXmlPatterns>
 #include <stdexcept>
 
-WallConfiguration::WallConfiguration(const QString &filename, const int processIndex)
-    : Configuration(filename)
-    , processIndex_( processIndex )
+WallConfiguration::WallConfiguration( const QString& filename,
+                                      const int processIndex )
+    : Configuration( filename )
+    , _processIndex( processIndex )
 {
-    loadWallSettings(processIndex);
+    _loadWallSettings( processIndex );
 }
 
-void WallConfiguration::loadWallSettings(const int processIndex)
+void WallConfiguration::_loadWallSettings( const int processIndex )
 {
-    assert(processIndex > 0 && "WallConfiguration::loadWallSettings is only valid for processes of rank > 0");
+    assert( processIndex > 0 && "WallConfiguration::loadWallSettings is only"
+                                "valid for processes of rank > 0" );
 
     const int xpathIndex = processIndex; // xpath index also starts from 1
 
     QXmlQuery query;
-    if(!query.setFocus(QUrl(filename_)))
-        throw std::runtime_error("Invalid configuration file: " + filename_.toStdString());
+    if( !query.setFocus( QUrl( _filename )))
+        throw std::runtime_error( "Invalid configuration file: " +
+                                  _filename.toStdString( ));
 
     QString queryResult;
 
     // get host
-    query.setQuery( QString("string(//process[%1]/@host)").arg(xpathIndex) );
-    if (query.evaluateTo(&queryResult))
-        host_ = queryResult.remove(QRegExp("[\\n\\t\\r]"));
+    query.setQuery( QString( "string(//process[%1]/@host)").arg( xpathIndex ));
+    if( query.evaluateTo( &queryResult ))
+        _host = queryResult.remove( QRegExp("[\\n\\t\\r]" ));
 
     // get display (optional attribute)
-    query.setQuery( QString("string(//process[%1]/@display)").arg(xpathIndex) );
-    if(query.evaluateTo(&queryResult))
-        display_ = queryResult.remove(QRegExp("[\\n\\t\\r]"));
+    query.setQuery( QString( "string(//process[%1]/@display)" ).arg( xpathIndex ));
+    if( query.evaluateTo( &queryResult ))
+        _display = queryResult.remove( QRegExp( "[\\n\\t\\r]" ));
     else
-        display_ = QString("default (:0)"); // the default
+        _display = QString( "default (:0)" ); // the default
 
     // get number of tiles for my process
-    query.setQuery( QString("string(count(//process[%1]/screen))").arg(xpathIndex) );
+    query.setQuery( QString( "string(count(//process[%1]/screen))" ).arg( xpathIndex ));
     if( !query.evaluateTo( &queryResult ) || queryResult.toInt() != 1 )
         throw std::runtime_error( "Expect exactly one screen per process" );
 
-    query.setQuery( QString("string(//process[%1]/screen/@x)").arg(xpathIndex));
-    if(query.evaluateTo(&queryResult))
-        screenPosition_.setX(queryResult.toInt());
+    int value = 0;
 
-    query.setQuery( QString("string(//process[%1]/screen/@y)").arg(xpathIndex));
-    if(query.evaluateTo(&queryResult))
-        screenPosition_.setY(queryResult.toInt());
+    query.setQuery( QString( "string(//process[%1]/screen/@x)" ).arg( xpathIndex ));
+    if( getInt( query, value ))
+        _screenPosition.setX( value );
 
-    query.setQuery( QString("string(//process[%1]/screen/@i)").arg(xpathIndex));
-    if(query.evaluateTo(&queryResult))
-        screenGlobalIndex_.setX(queryResult.toInt());
+    query.setQuery( QString( "string(//process[%1]/screen/@y)" ).arg( xpathIndex ));
+    if( getInt( query, value ))
+        _screenPosition.setY( value );
 
-    query.setQuery( QString("string(//process[%1]/screen/@j)").arg(xpathIndex));
-    if(query.evaluateTo(&queryResult))
-        screenGlobalIndex_.setY(queryResult.toInt());
+    query.setQuery( QString( "string(//process[%1]/screen/@i)" ).arg(xpathIndex));
+    if( getInt( query, value ))
+        _screenGlobalIndex.setX( value );
+
+    query.setQuery( QString( "string(//process[%1]/screen/@j)" ).arg( xpathIndex ));
+    if( getInt( query, value ))
+        _screenGlobalIndex.setY( value );
 }
 
 const QString& WallConfiguration::getHost() const
 {
-    return host_;
+    return _host;
 }
 
 const QString& WallConfiguration::getDisplay() const
 {
-    return display_;
+    return _display;
 }
 
 const QPoint& WallConfiguration::getGlobalScreenIndex() const
 {
-    return screenGlobalIndex_;
+    return _screenGlobalIndex;
 }
 
 const QPoint& WallConfiguration::getWindowPos() const
 {
-    return screenPosition_;
+    return _screenPosition;
 }
 
 int WallConfiguration::getProcessIndex() const
 {
-    return processIndex_;
+    return _processIndex;
 }

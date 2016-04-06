@@ -63,9 +63,9 @@ MasterConfiguration::MasterConfiguration( const QString& filename )
 void MasterConfiguration::loadMasterSettings()
 {
     QXmlQuery query;
-    if( !query.setFocus( QUrl( filename_ )))
+    if( !query.setFocus( QUrl( _filename )))
         throw std::runtime_error( "Invalid configuration file: " +
-                                  filename_.toStdString( ));
+                                  _filename.toStdString( ));
 
     loadDockStartDirectory( query );
     loadSessionsDirectory( query );
@@ -191,13 +191,13 @@ void MasterConfiguration::setBackgroundUri( const QString& uri )
 
 bool MasterConfiguration::save() const
 {
-    return save( filename_ );
+    return save( _filename );
 }
 
 bool MasterConfiguration::save( const QString& filename ) const
 {
     QDomDocument doc( "XmlDoc" );
-    QFile infile( filename_ );
+    QFile infile( _filename );
     if( !infile.open( QIODevice::ReadOnly ))
     {
         put_flog( LOG_ERROR, "could not open configuration file: '%s'",

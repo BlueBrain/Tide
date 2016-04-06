@@ -47,105 +47,98 @@
 
 #include <stdexcept>
 
-Configuration::Configuration(const QString &filename)
-    : filename_(filename)
-    , totalScreenCountX_(0)
-    , totalScreenCountY_(0)
-    , screenWidth_(0)
-    , screenHeight_(0)
-    , mullionWidth_(0)
-    , mullionHeight_(0)
-    , fullscreen_(false)
+Configuration::Configuration( const QString& filename )
+    : _filename( filename )
+    , _totalScreenCountX( 0 )
+    , _totalScreenCountY( 0 )
+    , _screenWidth( 0 )
+    , _screenHeight( 0 )
+    , _mullionWidth( 0 )
+    , _mullionHeight( 0 )
+    , _fullscreen( false )
 {
-    load();
+    _load();
 }
 
-void Configuration::load()
+void Configuration::_load()
 {
     QXmlQuery query;
-    if(!query.setFocus(QUrl(filename_)))
-        throw std::runtime_error("Invalid configuration file: " + filename_.toStdString());
+    if( !query.setFocus( QUrl( _filename )))
+        throw std::runtime_error( "Invalid configuration file: " + _filename.toStdString( ));
 
-    QString queryResult;
+    query.setQuery( "string(/configuration/dimensions/@numTilesWidth)" );
+    getInt( query, _totalScreenCountX );
 
-    // get screen / mullion dimensions
-    query.setQuery("string(/configuration/dimensions/@numTilesWidth)");
-    if(query.evaluateTo(&queryResult))
-        totalScreenCountX_ = queryResult.toInt();
+    query.setQuery("string(/configuration/dimensions/@numTilesHeight)" );
+    getInt( query, _totalScreenCountY );
 
-    query.setQuery("string(/configuration/dimensions/@numTilesHeight)");
-    if(query.evaluateTo(&queryResult))
-        totalScreenCountY_ = queryResult.toInt();
+    query.setQuery("string(/configuration/dimensions/@screenWidth)" );
+    getInt( query, _screenWidth );
 
-    query.setQuery("string(/configuration/dimensions/@screenWidth)");
-    if(query.evaluateTo(&queryResult))
-        screenWidth_ = queryResult.toInt();
+    query.setQuery("string(/configuration/dimensions/@screenHeight)" );
+    getInt( query, _screenHeight );
 
-    query.setQuery("string(/configuration/dimensions/@screenHeight)");
-    if(query.evaluateTo(&queryResult))
-        screenHeight_ = queryResult.toInt();
+    query.setQuery("string(/configuration/dimensions/@mullionWidth)" );
+    getInt( query, _mullionWidth );
 
-    query.setQuery("string(/configuration/dimensions/@mullionWidth)");
-    if(query.evaluateTo(&queryResult))
-        mullionWidth_ = queryResult.toInt();
+    query.setQuery("string(/configuration/dimensions/@mullionHeight)" );
+    getInt( query, _mullionHeight );
 
-    query.setQuery("string(/configuration/dimensions/@mullionHeight)");
-    if(query.evaluateTo(&queryResult))
-        mullionHeight_ = queryResult.toInt();
+    int fullscreen = 0;
+    query.setQuery( "string(/configuration/dimensions/@fullscreen)" );
+    getInt( query, fullscreen );
+    _fullscreen = fullscreen != 0;
 
-    query.setQuery("string(/configuration/dimensions/@fullscreen)");
-    if(query.evaluateTo(&queryResult))
-        fullscreen_ = queryResult.toInt() != 0;
+    double value = 0.0;
+    query.setQuery( "string(/configuration/content/@maxScale)" );
+    if( getDouble( query, value ))
+        Content::setMaxScale( value );
 
-    query.setQuery("string(/configuration/content/@maxScale)");
-    if(query.evaluateTo(&queryResult))
-        Content::setMaxScale( queryResult.toDouble( ));
-
-    query.setQuery("string(/configuration/content/@maxScaleVectorial)");
-    if(query.evaluateTo(&queryResult))
-        VectorialContent::setMaxScale( queryResult.toDouble( ));
+    query.setQuery( "string(/configuration/content/@maxScaleVectorial)" );
+    if( getDouble( query, value ))
+        VectorialContent::setMaxScale( value );
 }
 
 int Configuration::getTotalScreenCountX() const
 {
-    return totalScreenCountX_;
+    return _totalScreenCountX;
 }
 
 int Configuration::getTotalScreenCountY() const
 {
-    return totalScreenCountY_;
+    return _totalScreenCountY;
 }
 
 int Configuration::getScreenWidth() const
 {
-    return screenWidth_;
+    return _screenWidth;
 }
 
 int Configuration::getScreenHeight() const
 {
-    return screenHeight_;
+    return _screenHeight;
 }
 
 int Configuration::getMullionWidth() const
 {
-    return mullionWidth_;
+    return _mullionWidth;
 }
 
 int Configuration::getMullionHeight() const
 {
-    return mullionHeight_;
+    return _mullionHeight;
 }
 
 int Configuration::getTotalWidth() const
 {
-    return totalScreenCountX_ * screenWidth_ +
-           (totalScreenCountX_ - 1) * getMullionWidth();
+    return _totalScreenCountX * _screenWidth +
+           (_totalScreenCountX - 1) * getMullionWidth();
 }
 
 int Configuration::getTotalHeight() const
 {
-    return totalScreenCountY_ * screenHeight_ +
-            (totalScreenCountY_ - 1) * getMullionHeight();
+    return _totalScreenCountY * _screenHeight +
+            (_totalScreenCountY - 1) * getMullionHeight();
 }
 
 QSize Configuration::getTotalSize() const
@@ -160,16 +153,40 @@ double Configuration::getAspectRatio() const
 
 QRect Configuration::getScreenRect( const QPoint& tileIndex ) const
 {
-    assert( tileIndex.x() < totalScreenCountX_ );
-    assert( tileIndex.y() < totalScreenCountY_ );
+    assert( tileIndex.x() < _totalScreenCountX );
+    assert( tileIndex.y() < _totalScreenCountY );
 
-    const int xPos = tileIndex.x() * ( screenWidth_ + mullionWidth_ );
-    const int yPos = tileIndex.y() * ( screenHeight_ + mullionHeight_ );
+    const int xPos = tileIndex.x() * ( _screenWidth + _mullionWidth );
+    const int yPos = tileIndex.y() * ( _screenHeight + _mullionHeight );
 
-    return QRect( xPos, yPos, screenWidth_, screenHeight_ );
+    return QRect( xPos, yPos, _screenWidth, _screenHeight );
 }
 
 bool Configuration::getFullscreen() const
 {
-    return fullscreen_;
+    return _fullscreen;
+}
+
+bool Configuration::getDouble( const QXmlQuery &query, double& value ) const
+{
+    bool ok = false;
+    QString queryResult;
+    double tmp = 0.0;
+    if( query.evaluateTo( &queryResult ))
+        tmp = queryResult.toDouble( &ok );
+    if( ok )
+        value = tmp;
+    return ok;
+}
+
+bool Configuration::getInt( const QXmlQuery& query, int& value ) const
+{
+    bool ok = false;
+    QString queryResult;
+    int tmp = 0;
+    if( query.evaluateTo( &queryResult ))
+        tmp = queryResult.toInt( &ok );
+    if( ok )
+        value = tmp;
+    return ok;
 }
