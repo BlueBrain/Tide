@@ -24,7 +24,7 @@ Tide provides the following features:
 A copy of this documentation can be found at
 [bluebrain.github.io](http://bluebrain.github.io/).
 
-Please also take a look at the latest @ref ReleaseNotes.
+Please also take a look at the latest @ref Changelog.
 
 - - -
 
