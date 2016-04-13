@@ -17,6 +17,8 @@
         <file>launch.svg</file>
         <file>load.svg</file>
         <file>tick.svg</file>
+        <file>folder.png</file>
+        <file>unknownfile.png</file>
     </qresource>
     <qresource prefix="/fonts">
         <file>Gotham-Book.otf</file>

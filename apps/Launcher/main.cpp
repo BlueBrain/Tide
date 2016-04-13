@@ -37,32 +37,23 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "MasterToForkerChannel.h"
+#include "Launcher.h"
 
-#include "MPIChannel.h"
-#include "SerializeBuffer.h"
-#include "serializationHelpers.h"
+#include "tide/core/log.h"
 
-namespace
+int main( int argc, char** argv )
 {
-const int forkerProcess = 1;
-const QString sep( '#' );
-}
+    logger_id = "launcher";
 
-MasterToForkerChannel::MasterToForkerChannel( MPIChannelPtr mpiChannel )
-    : _mpiChannel( mpiChannel )
-{}
-
-void MasterToForkerChannel::sendStart( const QString command,
-                                       const QString workingDir,
-                                       const QStringList env )
-{
-    const QString string = command + sep + workingDir + sep + env.join( ';' );
-    const std::string& data = SerializeBuffer::serialize( string );
-    _mpiChannel->send( MPI_MESSAGE_TYPE_START_PROCESS, data, forkerProcess );
-}
-
-void MasterToForkerChannel::sendQuit()
-{
-    _mpiChannel->send( MPI_MESSAGE_TYPE_QUIT, "", forkerProcess );
+    std::unique_ptr<Launcher> launcher;
+    try
+    {
+        launcher.reset( new Launcher( argc, argv ));
+    }
+    catch( const std::runtime_error& exception )
+    {
+        put_flog( LOG_ERROR, "failed to start: %s", exception.what( ));
+        return EXIT_FAILURE;
+    }
+    return launcher->exec();
 }

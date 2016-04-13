@@ -58,25 +58,4 @@ BaseContentWindow {
         font.pointSize: Style.statisticsFontSize
         color: Style.statisticsFontColor
     }
-
-    ParallelAnimation {
-        id: openingAnimation
-        NumberAnimation {
-            target: windowRect
-            property: "x"
-            from: -contentwindow.width
-            to: contentwindow.x
-            duration: Style.panelsAnimationTime
-            easing.type: Easing.InOutQuad
-        }
-        NumberAnimation {
-            target: windowRect
-            property: "opacity"
-            from: 0
-            to: 1
-            duration: Style.panelsAnimationTime
-            easing.type: Easing.InOutQuad
-        }
-    }
-    Component.onCompleted: if(contentwindow.isPanel) {openingAnimation.start()}
 }

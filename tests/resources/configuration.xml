@@ -2,6 +2,7 @@
     <dimensions mullionHeight="12" fullscreen="1" numTilesWidth="2" screenHeight="1080" mullionWidth="14" screenWidth="3840" numTilesHeight="3"/>
     <dock directory="/nfs4/bbp.epfl.ch/visualization/DisplayWall/media"/>
     <sessions directory="/nfs4/bbp.epfl.ch/visualization/DisplayWall/sessions"/>
+    <launcher display=":0" demoServiceUrl="https://visualization-dev.humanbrainproject.eu/viz/rendering-resource-manager/v1" demoServiceImageFolder="/nfs4/bbp.epfl.ch/visualization/resources/software/displaywall/demo_previews" />
     <webservice port="10000" />
     <webbrowser defaultURL="http://bbp.epfl.ch" />
     <applauncher qml="/some/path/to/launcher.qml" />

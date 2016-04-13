@@ -72,6 +72,7 @@ public:
     static const QString appLauncherUri;
     static const QString contentLoaderUri;
     static const QString sessionLoaderUri;
+    static const QString launcherUri;
 
 public slots:
     /**
@@ -116,9 +117,15 @@ public slots:
      */
     bool openAppLauncher( QPointF pos );
 
+    /** Open the Qml launcher. */
+    void openLauncher();
+
+    /** Hide the Qml Launcher. */
+    void hideLauncher();
+
 signals:
-    /** Request the launch of a command in a working directory. */
-    void start( QString command, QString workingDir );
+    /** Request the launch of a command in a working directory and given ENV. */
+    void start( QString command, QString workingDir, QStringList env );
 
 private slots:
     void _dereferenceLocalStreamer( QString uri );
@@ -136,6 +143,7 @@ private:
                       const QString& rootDir );
     QString _getLocalStreamerBin() const;
     QString _getQmlStreamerBin() const;
+    QString _getLauncherBin() const;
 };
 
 #endif // PIXELSTREAMERLAUNCHER_H

@@ -95,6 +95,12 @@ signals:
     /** Emitted when users want to open an application. */
     void openAppLauncher( QPointF pos );
 
+    /** Emitted when users want to open the launcher. */
+    void openLauncher();
+
+    /** Emitted when users want to hide the launcher. */
+    void hideLauncher();
+
 protected:
     /** @name Drag events re-implemented from QMainWindow */
     //@{

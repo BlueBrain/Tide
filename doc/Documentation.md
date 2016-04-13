@@ -24,6 +24,8 @@ pointers to auxilary documentation.
               tide which presents all opened contents.
   * TideForker: An auxilary process launched by tide which forks new processes
                 like LocalStreamer.
+  * Launcher: The application which streams the Qml control panel for browsing
+              documents, sessions and launching applications.
   * LocalStreamer: An application that generates content according to launch
                    parameters and streams that content to the local tide
                    instance. The webbrowser content for instance is one

@@ -1,6 +1,7 @@
 /*********************************************************************/
 /* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/*                     Ahmet Bilgili <ahmet.bilgili@epfl.ch>         */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,32 +38,57 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "MasterToForkerChannel.h"
+#include "Launcher.h"
 
-#include "MPIChannel.h"
-#include "SerializeBuffer.h"
-#include "serializationHelpers.h"
+#include "tide/core/ContentFactory.h"
+#include "tide/core/thumbnail/ThumbnailProvider.h"
+
+#include "tide/master/localstreamer/CommandLineOptions.h"
+#include "tide/master/MasterConfiguration.h"
 
 namespace
 {
-const int forkerProcess = 1;
-const QString sep( '#' );
+const std::string deflectHost( "localhost" );
+const QString deflectQmlFile( "qrc:/qml/qml/main.qml" );
+const QString thumbnailProviderId( "thumbnail" );
 }
 
-MasterToForkerChannel::MasterToForkerChannel( MPIChannelPtr mpiChannel )
-    : _mpiChannel( mpiChannel )
-{}
-
-void MasterToForkerChannel::sendStart( const QString command,
-                                       const QString workingDir,
-                                       const QStringList env )
+Launcher::Launcher( int& argc, char* argv[] )
+    : QGuiApplication( argc, argv )
 {
-    const QString string = command + sep + workingDir + sep + env.join( ';' );
-    const std::string& data = SerializeBuffer::serialize( string );
-    _mpiChannel->send( MPI_MESSAGE_TYPE_START_PROCESS, data, forkerProcess );
+    const CommandLineOptions options( argc, argv );
+    const MasterConfiguration config( options.getConfiguration( ));
+
+    const auto deflectStreamname = options.getStreamname().toStdString();
+    _qmlStreamer.reset( new deflect::qt::QmlStreamer( deflectQmlFile,
+                                                      deflectHost,
+                                                      deflectStreamname ));
+    auto item = _qmlStreamer->getRootItem();
+
+    // General setup
+    item->setProperty( "restPort", config.getWebServicePort( ));
+    if( options.getWidth( ))
+        item->setProperty( "width", options.getWidth( ));
+    if( options.getHeight( ))
+        item->setProperty( "height", options.getHeight( ));
+
+    // FileBrowser setup
+    const auto filters = ContentFactory::getSupportedFilesFilter();
+    item->setProperty( "filesFilter", filters );
+    item->setProperty( "rootFilesFolder", config.getDockStartDir( ));
+    item->setProperty( "rootSessionsFolder", config.getSessionsDir( ));
+
+    QQmlEngine* engine = _qmlStreamer->getQmlEngine();
+    engine->addImageProvider( thumbnailProviderId, new ThumbnailProvider );
+
+    // DemoLauncher setup
+    item->setProperty( "demoServiceUrl", config.getDemoServiceUrl( ));
+    item->setProperty( "demoServiceImageFolder",
+                       config.getDemoServiceImageFolder( ));
 }
 
-void MasterToForkerChannel::sendQuit()
+Launcher::~Launcher()
 {
-    _mpiChannel->send( MPI_MESSAGE_TYPE_QUIT, "", forkerProcess );
+    QQmlEngine* engine = _qmlStreamer->getQmlEngine();
+    engine->removeImageProvider( thumbnailProviderId );
 }

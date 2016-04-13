@@ -75,10 +75,13 @@ public:
      * @param filename path to the xml configuration file
      * @throw std::runtime_error if the file could not be read
      */
-    Configuration( const QString& filename );
+    explicit Configuration( const QString& filename );
 
     /** Destructor. */
     virtual ~Configuration() {}
+
+    /** Get the filename passed to the constructor. */
+    const QString& getFilename() const;
 
     /** Get the total number of screens along the x axis. */
     int getTotalScreenCountX() const;

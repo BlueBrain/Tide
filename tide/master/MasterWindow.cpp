@@ -317,9 +317,9 @@ void MasterWindow::_setupMasterWindowUI()
 
     // Forward background touch events
     connect( _displayGroupView, &DisplayGroupView::backgroundTap,
-             this, &MasterWindow::hideDock );
+             this, &MasterWindow::hideLauncher );
     connect( _displayGroupView, &DisplayGroupView::backgroundTapAndHold,
-             this, &MasterWindow::openDock );
+             this, &MasterWindow::openLauncher );
 
     // Forward control panel actions
     connect( &_displayGroupView->getControlPanel(), &QmlControlPanel::openContentPanel,

@@ -244,6 +244,11 @@ void MasterApplication::initPixelStreamLauncher()
     connect( masterWindow_.get(), &MasterWindow::openSessionLoader,
              pixelStreamerLauncher_.get(),
              &PixelStreamerLauncher::openSessionLoader );
+
+    connect( masterWindow_.get(), &MasterWindow::openLauncher,
+             pixelStreamerLauncher_.get(), &PixelStreamerLauncher::openLauncher );
+    connect( masterWindow_.get(), &MasterWindow::hideLauncher,
+             pixelStreamerLauncher_.get(), &PixelStreamerLauncher::hideLauncher );
 }
 
 void MasterApplication::initMPIConnection()
@@ -337,6 +342,12 @@ void MasterApplication::_initRestInterface()
 {
     _restInterface = make_unique<RestInterface>( config_->getWebServicePort( ));
 
+    connect( _restInterface.get(), &RestInterface::browse, [this]( QString uri )
+    {
+        if( uri.isEmpty( ))
+            uri = config_->getWebBrowserDefaultURL();
+        pixelStreamerLauncher_->openWebBrowser( QPointF(), QSize(), uri );
+    });
     connect( _restInterface.get(), &RestInterface::open, [this]( QString uri ) {
         ContentLoader( displayGroup_ ).load( uri );
     });

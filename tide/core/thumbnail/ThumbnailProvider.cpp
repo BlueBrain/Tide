@@ -1,5 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/*                     Ahmet Bilgili <ahmet.bilgili@epfl.ch>         */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,32 +38,56 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "MasterToForkerChannel.h"
+#include "ThumbnailProvider.h"
 
-#include "MPIChannel.h"
-#include "SerializeBuffer.h"
-#include "serializationHelpers.h"
+#include "ThumbnailGenerator.h"
+#include "ThumbnailGeneratorFactory.h"
+
+#include <QFileInfo>
+#include <QImageReader>
 
 namespace
 {
-const int forkerProcess = 1;
-const QString sep( '#' );
+const char* folderImg = "qrc:/img/folder.png";
+const char* unknownFileImg = "qrc:/img/unknownfile.png";
 }
 
-MasterToForkerChannel::MasterToForkerChannel( MPIChannelPtr mpiChannel )
-    : _mpiChannel( mpiChannel )
+ThumbnailProvider::ThumbnailProvider( const QSize defaultSize )
+    : QQuickImageProvider( QQuickImageProvider::Image,
+                           QQuickImageProvider::ForceAsynchronousImageLoading )
+    , _defaultSize( defaultSize )
 {}
 
-void MasterToForkerChannel::sendStart( const QString command,
-                                       const QString workingDir,
-                                       const QStringList env )
+QImage ThumbnailProvider::requestImage( const QString& filename, QSize* size,
+                                        const QSize& requestedSize )
 {
-    const QString string = command + sep + workingDir + sep + env.join( ';' );
-    const std::string& data = SerializeBuffer::serialize( string );
-    _mpiChannel->send( MPI_MESSAGE_TYPE_START_PROCESS, data, forkerProcess );
-}
+    const QSize newSize( requestedSize.height() > 0 ?
+                             requestedSize.height() : _defaultSize.height(),
+                         requestedSize.width() > 0 ?
+                             requestedSize.width() : _defaultSize.width( ));
+    if( size )
+        *size = newSize;
 
-void MasterToForkerChannel::sendQuit()
-{
-    _mpiChannel->send( MPI_MESSAGE_TYPE_QUIT, "", forkerProcess );
+    auto generator = ThumbnailGeneratorFactory::getGenerator( filename,
+                                                              newSize );
+    const QImage image = generator->generate( filename );
+    if( !image.isNull( ))
+        return image;
+
+    const QFileInfo fileInfo( filename );
+    if( fileInfo.isFile( ))
+    {
+        static QImage im( unknownFileImg );
+        assert( !im.isNull( ));
+        return im;
+    }
+
+    if( fileInfo.isDir( ))
+    {
+        static QImage im( folderImg );
+        assert( !im.isNull( ));
+        return im;
+    }
+
+    return image; // Silence compiler warning
 }

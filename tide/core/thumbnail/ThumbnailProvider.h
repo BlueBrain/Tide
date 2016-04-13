@@ -1,5 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/*                     Ahmet Bilgili <ahmet.bilgili@epfl.ch>         */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,32 +38,24 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "MasterToForkerChannel.h"
+#ifndef THUMBNAILPROVIDER_H
+#define THUMBNAILPROVIDER_H
 
-#include "MPIChannel.h"
-#include "SerializeBuffer.h"
-#include "serializationHelpers.h"
+#include <QtQuick/QQuickImageProvider>
 
-namespace
+/**
+ * Provide thumbnails for files and folders to the Qml FileBrowser.
+ */
+class ThumbnailProvider : public QQuickImageProvider
 {
-const int forkerProcess = 1;
-const QString sep( '#' );
-}
+public:
+    ThumbnailProvider( const QSize defaultSize = QSize( 512, 512 ));
 
-MasterToForkerChannel::MasterToForkerChannel( MPIChannelPtr mpiChannel )
-    : _mpiChannel( mpiChannel )
-{}
+    QImage requestImage( const QString& filename, QSize* size,
+                         const QSize& requestedSize ) final;
 
-void MasterToForkerChannel::sendStart( const QString command,
-                                       const QString workingDir,
-                                       const QStringList env )
-{
-    const QString string = command + sep + workingDir + sep + env.join( ';' );
-    const std::string& data = SerializeBuffer::serialize( string );
-    _mpiChannel->send( MPI_MESSAGE_TYPE_START_PROCESS, data, forkerProcess );
-}
+private:
+    const QSize _defaultSize;
+};
 
-void MasterToForkerChannel::sendQuit()
-{
-    _mpiChannel->send( MPI_MESSAGE_TYPE_QUIT, "", forkerProcess );
-}
+#endif

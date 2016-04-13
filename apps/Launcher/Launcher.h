@@ -1,6 +1,7 @@
 /*********************************************************************/
 /* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/*                     Ahmet Bilgili <ahmet.bilgili@epfl.ch>         */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,32 +38,28 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "MasterToForkerChannel.h"
+#ifndef LAUNCHER_H
+#define LAUNCHER_H
 
-#include "MPIChannel.h"
-#include "SerializeBuffer.h"
-#include "serializationHelpers.h"
+#include <deflect/qt/QmlStreamer.h>
 
-namespace
+#include <memory>
+
+#include <QGuiApplication>
+
+/**
+ * Separate application which streams the Qml launcher using deflect::Qt API.
+ */
+class Launcher : public QGuiApplication
 {
-const int forkerProcess = 1;
-const QString sep( '#' );
-}
+    Q_OBJECT
 
-MasterToForkerChannel::MasterToForkerChannel( MPIChannelPtr mpiChannel )
-    : _mpiChannel( mpiChannel )
-{}
+public:
+    Launcher( int& argc, char* argv[] );
+    ~Launcher();
 
-void MasterToForkerChannel::sendStart( const QString command,
-                                       const QString workingDir,
-                                       const QStringList env )
-{
-    const QString string = command + sep + workingDir + sep + env.join( ';' );
-    const std::string& data = SerializeBuffer::serialize( string );
-    _mpiChannel->send( MPI_MESSAGE_TYPE_START_PROCESS, data, forkerProcess );
-}
+private:
+    std::unique_ptr<deflect::qt::QmlStreamer> _qmlStreamer;
+};
 
-void MasterToForkerChannel::sendQuit()
-{
-    _mpiChannel->send( MPI_MESSAGE_TYPE_QUIT, "", forkerProcess );
-}
+#endif

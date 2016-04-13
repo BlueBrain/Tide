@@ -83,6 +83,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   thumbnail/StateThumbnailGenerator.h
   thumbnail/ThumbnailGeneratorFactory.h
   thumbnail/ThumbnailGenerator.h
+  thumbnail/ThumbnailProvider.h
   types.h
   VectorialContent.h
   WallFromMasterChannel.h
@@ -140,6 +141,7 @@ list(APPEND TIDECORE_SOURCES
   thumbnail/StateThumbnailGenerator.cpp
   thumbnail/ThumbnailGenerator.cpp
   thumbnail/ThumbnailGeneratorFactory.cpp
+  thumbnail/ThumbnailProvider.cpp
   VectorialContent.cpp
   WallFromMasterChannel.cpp
   WallToMasterChannel.cpp

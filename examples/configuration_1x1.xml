@@ -1,7 +1,5 @@
 <configuration>
     <dimensions fullscreen="0" mullionWidth="0" numTilesHeight="1" screenWidth="1200" mullionHeight="0" screenHeight="600" numTilesWidth="1"/>
-    <applauncher qml="/nfs4/bbp.epfl.ch/visualization/resources/software/displaywall/demoLauncher/demoLauncher.qml"/>
-    <sessions directory="/home/dumusc/Desktop"/>
     <masterProcess host="localhost" display=":0"/>
     <process host="localhost" display=":0">
         <screen x="0" y="0" i="0" j="0"/>

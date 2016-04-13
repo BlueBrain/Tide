@@ -43,6 +43,7 @@
 #include "types.h"
 
 #include <QObject>
+#include <QStringList>
 
 /**
  * Sending channel from the master application to the forker process.
@@ -60,8 +61,10 @@ public slots:
      * Send a request to execute a command as new process
      * @param command The command to execute
      * @param workingDir The working directory for the new process
+     * @param env An optional list of ENV variables to override
      */
-    void sendStart( QString command, QString workingDir );
+    void sendStart( QString command, QString workingDir,
+                    QStringList env = QStringList( ));
 
     /**
      * Send quit message to the forker application

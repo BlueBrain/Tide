@@ -1,0 +1,19 @@
+<RCC>
+    <qresource prefix="/qml">
+        <file>qml/main.qml</file>
+        <file>qml/FileBrowser.qml</file>
+        <file>qml/style.js</file>
+        <file>qml/Menu.qml</file>
+        <file>qml/DemoLauncher/DemoLauncher.qml</file>
+        <file>qml/DemoLauncher/RenderingResourcesManager.js</file>
+        <file>qml/DefaultPanel.qml</file>
+    </qresource>
+    <qresource prefix="/">
+        <file>images/browser-icon.png</file>
+        <file>images/clear-icon.png</file>
+        <file>images/file.svg</file>
+        <file>images/folder.svg</file>
+        <file>images/book.svg</file>
+        <file>images/left.svg</file>
+    </qresource>
+</RCC>

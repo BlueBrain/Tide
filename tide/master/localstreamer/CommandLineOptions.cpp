@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -40,175 +40,194 @@
 #include "CommandLineOptions.h"
 
 #include <iostream>
-#include <boost/program_options.hpp>
 #include <QStringList>
+#include <boost/program_options.hpp>
+
+namespace po = boost::program_options;
 
 CommandLineOptions::CommandLineOptions()
-    : getHelp_(false)
-    , streamerType_(PS_UNKNOWN)
-    , width_(0)
-    , height_(0)
-    , desc_("Allowed options")
+    : _getHelp( false )
+    , _streamerType( PS_UNKNOWN )
+    , _width( 0 )
+    , _height( 0 )
+    , _desc( "Allowed options" )
 {
-    initDesc();
+    _initDesc();
 }
 
-CommandLineOptions::CommandLineOptions(int &argc, char **argv)
-    : getHelp_(false)
-    , streamerType_(PS_UNKNOWN)
-    , width_(0)
-    , height_(0)
-    , desc_("Allowed options")
+CommandLineOptions::CommandLineOptions( int& argc, char** argv )
+    : _getHelp( false )
+    , _streamerType( PS_UNKNOWN )
+    , _width( 0 )
+    , _height( 0 )
+    , _desc( "Allowed options" )
 {
-    initDesc();
-    parseCommandLineArguments(argc, argv);
+    _initDesc();
+    _parseCommandLineArguments( argc, argv );
 }
 
-void CommandLineOptions::initDesc()
+void CommandLineOptions::_initDesc()
 {
-    desc_.add_options()
+    _desc.add_options()
         ("help", "produce help message")
-        ("name", boost::program_options::value<std::string>()->default_value(""),
-                 "unique identifier for this stream")
-        ("type", boost::program_options::value<std::string>()->default_value(""),
-                 "streamer type [webkit | dock]")
-        ("width", boost::program_options::value<unsigned int>()->default_value(0),
-                 "width of the stream in pixel")
-        ("height", boost::program_options::value<unsigned int>()->default_value(0),
-                 "height of the stream in pixel")
-        ("url", boost::program_options::value<std::string>()->default_value(""), "webkit only: url")
-        ("rootdir", boost::program_options::value<std::string>()->default_value(""), "dock only: root directory")
+        ("streamname", po::value<std::string>()->default_value( "" ),
+         "unique identifier for this stream")
+        ("type", po::value<std::string>()->default_value( "" ),
+         "streamer type [webkit | dock]")
+        ("width", po::value<unsigned int>()->default_value( 0 ),
+         "width of the stream in pixel")
+        ("height", po::value<unsigned int>()->default_value( 0 ),
+         "height of the stream in pixel")
+        ("url", po::value<std::string>()->default_value( "" ),
+         "webkit only: url")
+        ("rootdir", po::value<std::string>()->default_value( "" ),
+         "Dock only: root files directory")
+        ("config", po::value<std::string>()->default_value( "" ),
+         "Launcher only: Tide xml configuation file")
     ;
 }
 
 bool CommandLineOptions::getHelp() const
 {
-    return getHelp_;
+    return _getHelp;
 }
 
 PixelStreamerType CommandLineOptions::getPixelStreamerType() const
 {
-    return streamerType_;
+    return _streamerType;
 }
 
 const QString& CommandLineOptions::getUrl() const
 {
-    return url_;
+    return _url;
 }
 
 const QString& CommandLineOptions::getRootDir() const
 {
-    return rootDir_;
+    return _rootDir;
 }
 
-const QString& CommandLineOptions::getName() const
+const QString& CommandLineOptions::getStreamname() const
 {
-    return name_;
+    return _streamname;
 }
 
 unsigned int CommandLineOptions::getWidth() const
 {
-    return width_;
+    return _width;
 }
 
 unsigned int CommandLineOptions::getHeight() const
 {
-    return height_;
+    return _height;
 }
 
-void CommandLineOptions::setHelp(const bool set)
+const QString& CommandLineOptions::getConfiguration() const
 {
-    getHelp_ = set;
+    return _configuration;
 }
 
-void CommandLineOptions::setPixelStreamerType(const PixelStreamerType type)
+void CommandLineOptions::setHelp( const bool set )
 {
-    streamerType_ = type;
+    _getHelp = set;
 }
 
-void CommandLineOptions::setUrl(const QString& url)
+void CommandLineOptions::setPixelStreamerType( const PixelStreamerType type )
 {
-    url_ = url;
+    _streamerType = type;
 }
 
-void CommandLineOptions::setRootDir(const QString& dir)
+void CommandLineOptions::setUrl( const QString& url )
 {
-    rootDir_ = dir;
+    _url = url;
 }
 
-void CommandLineOptions::setName(const QString& name)
+void CommandLineOptions::setRootDir( const QString& dir )
 {
-    name_ = name;
+    _rootDir = dir;
 }
 
-void CommandLineOptions::setWidth(const unsigned int width)
+void CommandLineOptions::setStreamname( const QString& name )
 {
-    width_ = width;
+    _streamname = name;
 }
 
-void CommandLineOptions::setHeight(const unsigned int height)
+void CommandLineOptions::setConfiguration( const QString& file )
 {
-    height_ = height;
+    _configuration = file;
+}
+
+void CommandLineOptions::setWidth( const unsigned int width )
+{
+    _width = width;
+}
+
+void CommandLineOptions::setHeight( const unsigned int height )
+{
+    _height = height;
 }
 
 QString CommandLineOptions::getCommandLine() const
 {
-    return getCommandLineArguments().join(" ");
+    return getCommandLineArguments().join( ' ' );
 }
 
 QStringList CommandLineOptions::getCommandLineArguments() const
 {
     QStringList arguments;
 
-    if (streamerType_ != PS_UNKNOWN)
-        arguments << "--type" << getStreamerTypeString(streamerType_);
+    if( _streamerType != PS_UNKNOWN )
+        arguments << "--type" << getStreamerTypeString( _streamerType );
 
-    if (width_ > 0)
-        arguments << "--width" << QString::number(width_);
+    if( _width > 0 )
+        arguments << "--width" << QString::number( _width );
 
-    if (height_ > 0)
-        arguments << "--height" << QString::number(height_);
+    if( _height > 0 )
+        arguments << "--height" << QString::number( _height );
 
-    if (getHelp_)
+    if( _getHelp )
         arguments << "--help";
 
-    if (!name_.isEmpty())
-        arguments << "--name" << name_;
+    if( !_streamname.isEmpty( ))
+        arguments << "--streamname" << _streamname;
 
-    if (!url_.isEmpty())
-        arguments << "--url" << url_;
+    if( !_url.isEmpty( ))
+        arguments << "--url" << _url;
 
-    if (!rootDir_.isEmpty())
-        arguments << "--rootdir" << rootDir_;
+    if( !_rootDir.isEmpty( ))
+        arguments << "--rootdir" << _rootDir;
+
+    if( !_configuration.isEmpty( ))
+        arguments << "--config" << _configuration;
 
     return arguments;
 }
 
-void CommandLineOptions::parseCommandLineArguments(int &argc, char **argv)
+void CommandLineOptions::_parseCommandLineArguments( int& argc, char** argv )
 {
-    boost::program_options::variables_map vm;
+    po::variables_map vm;
     try
     {
-        boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc_), vm);
-        boost::program_options::notify(vm);
+        po::store( po::parse_command_line( argc, argv, _desc ), vm );
+        po::notify( vm );
     }
-    catch (const std::exception& e)
+    catch( const std::exception& e )
     {
         std::cerr << e.what() << std::endl;
         return;
     }
 
-    getHelp_ = vm.count("help");
-    name_ = vm["name"].as<std::string>().c_str();
-    streamerType_ = getStreamerType(vm["type"].as<std::string>().c_str());
-    url_ = vm["url"].as<std::string>().c_str();
-    width_ = vm["width"].as<unsigned int>();
-    height_ = vm["height"].as<unsigned int>();
-    rootDir_ = vm["rootdir"].as<std::string>().c_str();
+    _getHelp = vm.count( "help" );
+    _streamname = vm["streamname"].as<std::string>().c_str();
+    _streamerType = getStreamerType(vm["type"].as<std::string>().c_str());
+    _url = vm["url"].as<std::string>().c_str();
+    _width = vm["width"].as<unsigned int>();
+    _height = vm["height"].as<unsigned int>();
+    _rootDir = vm["rootdir"].as<std::string>().c_str();
+    _configuration = vm["config"].as<std::string>().c_str();
 }
 
 void CommandLineOptions::showSyntax() const
 {
-    std::cout << desc_;
+    std::cout << _desc;
 }
-
