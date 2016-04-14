@@ -13,39 +13,36 @@ set(TIDEMASTER_LINK_LIBRARIES
 )
 
 list(APPEND TIDEMASTER_PUBLIC_HEADERS
+  BackgroundWidget.h
   ContentLoader.h
   DisplayGroupController.h
+  DisplayGroupListWidget.h
+  DisplayGroupView.h
   FileCommandHandler.h
+  localstreamer/AsyncImageLoader.h
   localstreamer/CommandLineOptions.h
+  localstreamer/DockPixelStreamer.h
   localstreamer/DockToolbar.h
+  localstreamer/Pictureflow.h
   localstreamer/PixelStreamerFactory.h
+  localstreamer/PixelStreamer.h
+  localstreamer/PixelStreamerLauncher.h
   localstreamer/PixelStreamerType.h
+  localstreamer/WebkitAuthenticationHelper.h
+  localstreamer/WebkitHtmlSelectReplacer.h
+  localstreamer/WebkitPixelStreamer.h
+  MasterApplication.h
   MasterConfiguration.h
+  MasterToForkerChannel.h
+  MasterWindow.h
+  MultitouchArea.h
+  PixelStreamWindowManager.h
   ProcessForker.h
   QmlTypeRegistration.h
   qmlUtils.h
   SessionCommandHandler.h
   State.h
   StateSerializationHelper.h
-)
-
-list(APPEND TIDEMASTER_MOC_PUBLIC_HEADERS
-  BackgroundWidget.h
-  DisplayGroupListWidget.h
-  DisplayGroupView.h
-  localstreamer/AsyncImageLoader.h
-  localstreamer/DockPixelStreamer.h
-  localstreamer/Pictureflow.h
-  localstreamer/PixelStreamer.h
-  localstreamer/PixelStreamerLauncher.h
-  localstreamer/WebkitAuthenticationHelper.h
-  localstreamer/WebkitHtmlSelectReplacer.h
-  localstreamer/WebkitPixelStreamer.h
-  MasterApplication.h
-  MasterToForkerChannel.h
-  MasterWindow.h
-  MultitouchArea.h
-  PixelStreamWindowManager.h
   WebbrowserCommandHandler.h
   WebbrowserWidget.h
 )
@@ -82,15 +79,14 @@ list(APPEND TIDEMASTER_SOURCES
   StateSerializationHelper.cpp
   WebbrowserCommandHandler.cpp
   WebbrowserWidget.cpp
+  resources/master.qrc
 )
 
-if(ENABLE_TUIO_TOUCH_LISTENER)
-  list(APPEND TIDEMASTER_MOC_HEADERS MultiTouchListener.h)
+if(TIDE_ENABLE_TUIO_TOUCH_LISTENER)
+  list(APPEND TIDEMASTER_HEADERS MultiTouchListener.h)
   list(APPEND TIDEMASTER_SOURCES MultiTouchListener.cpp)
   list(APPEND TIDEMASTER_LINK_LIBRARIES TUIO ${X11_LIBRARIES})
 endif()
-
-set(TIDEMASTER_RESOURCES resources/master.qrc)
 
 set(TIDEMASTER_INCLUDE_NAME tide/master)
 common_library(TideMaster)
