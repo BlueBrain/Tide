@@ -14,12 +14,12 @@ DisplayGroup {
         z: controlPanel.z - 1
 
         property bool blockTap: true
-        onTapStarted: blockTap = false
+        onTouchStarted: blockTap = false
         onTapAndHold: {
             view.backgroundTapAndHold(pos)
             blockTap = true;
         }
-        onTapEnded: {
+        onTap: {
             if( !blockTap )
                 view.backgroundTap(pos)
         }
@@ -32,7 +32,7 @@ DisplayGroup {
                 anchors.fill: parent
                 referenceItem: dispGroup
 
-                onTapEnded: {
+                onTap: {
                     var action = touchControlPanel.ListView.view.model.get(index).action
                     var absPos = mapToItem(dispGroup, controlPanel.width
                                  + Style.panelsLeftOffset, 0)

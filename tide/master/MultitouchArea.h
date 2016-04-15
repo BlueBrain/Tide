@@ -60,36 +60,76 @@ class MultitouchArea : public QQuickItem
                 NOTIFY panThresholdChanged )
 
 public:
+    /** Constructor. */
     MultitouchArea( QQuickItem* parent = 0 );
 
+    /** @name Q_PROPERTY getters. */
+    //@{
     QQuickItem* getReferenceItem() const;
     qreal getPanThreshold() const;
+    //@}
 
 public slots:
+    /** @name Q_PROPERTY setters. */
+    //@{
     void setReferenceItem( QQuickItem* arg );
     void setPanThreshold( qreal arg );
+    //@}
 
 signals:
+    /** @name Q_PROPERTY notifiers. */
+    //@{
     void referenceItemChanged( QQuickItem* arg );
     void panThresholdChanged( qreal arg );
+    //@}
 
-    void tapStarted( QPointF pos );
-    void tapEnded( QPointF pos );
+    /** @name Basic touch events. */
+    //@{
+    /** Always emitted for the first finger that touches the area. */
+    void touchStarted( QPointF pos );
 
+    /** Always emitted for the last finger that is removed from the area. */
+    void touchEnded( QPointF pos );
+    //@}
+
+    /** @name Basic one-finger tap events. */
+    //@{
+    /** Emitted for a one-finger touch and release in-place (i.e. not a pan). */
+    void tap( QPointF pos );
+
+    /** Emitted when two taps occur in a fast sequence. */
     void doubleTap( QPointF pos );
 
+    /** Emitted after a prolonged non-moving one finger touch. */
     void tapAndHold( QPointF pos );
+    //@}
 
+    /** @name One-finger move gesture. */
+    //@{
+    /** Emitted when a pan starts (i.e. a single finger starts moving). */
     void panStarted( QPointF pos );
-    void pan( QPointF pos, QPointF delta );
-    void panEnded();
 
+    /** Emitted for each step of a 1-finger move between panStarted-panEnded. */
+    void pan( QPointF pos, QPointF delta );
+
+    /** Emitted when a pan ends (finger released or 2nd finger detected). */
+    void panEnded();
+    //@}
+
+    /** @name Two-fingers gestures. */
+    //@{
+    /** Emitted for each step of a two-fingers pinch gesture. */
     void pinch( QPointF pos, qreal pixelDelta );
 
+    /** Two-fingers swipe to the left. */
     void swipeLeft();
+    /** Two-fingers swipe to the right. */
     void swipeRight();
+    /** Two-fingers swipe up. */
     void swipeUp();
+    /** Two-fingers swipe down. */
     void swipeDown();
+    //@}
 
 private:
     void mousePressEvent( QMouseEvent* event ) override;

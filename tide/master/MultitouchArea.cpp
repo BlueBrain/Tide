@@ -124,7 +124,7 @@ void MultitouchArea::mousePressEvent( QMouseEvent* mouse )
     const auto pos = _getScenePos( mouse );
 
      _mousePrevPos = pos;
-     emit tapStarted( pos );
+     emit touchStarted( pos );
 }
 
 void MultitouchArea::mouseMoveEvent( QMouseEvent* mouse )
@@ -140,9 +140,12 @@ void MultitouchArea::mouseMoveEvent( QMouseEvent* mouse )
 
 void MultitouchArea::mouseReleaseEvent( QMouseEvent* mouse )
 {
+    const auto pos = _getScenePos( mouse );
     if( !_panning )
-         emit tapEnded( _getScenePos( mouse ));
+         emit tap( pos );
+
     _cancelPanGesture();
+     emit touchEnded( pos );
 }
 
 void MultitouchArea::mouseDoubleClickEvent( QMouseEvent* mouse )
@@ -179,7 +182,7 @@ void MultitouchArea::_handleSinglePoint( const QTouchEvent::TouchPoint& point )
     switch( point.state( ))
     {
     case Qt::TouchPointPressed:
-        emit tapStarted( pos );
+        emit touchStarted( pos );
 
         if( _tapCounter == 0 )
             _startDoubleTapGesture();
@@ -213,9 +216,11 @@ void MultitouchArea::_handleSinglePoint( const QTouchEvent::TouchPoint& point )
 
     case Qt::TouchPointReleased:
         if( !_panning )
-             emit tapEnded( pos );
+             emit tap( pos );
+
         _cancelPanGesture();
         _cancelTapAndHoldGesture();
+        emit touchEnded( pos );
         break;
     }
 }

@@ -3,6 +3,8 @@ Changelog {#Changelog}
 
 # git master (1.1.0)
 
+* [15](https://github.com/BlueBrain/Tide/pull/15):
+  Fix several issues with the touch events, including for Deflect streamers.
 * [14](https://github.com/BlueBrain/Tide/pull/14):
   Detect two-fingers swipe gestures [DISCL-356]. Swipe left and right to
   navigate through PDF pages and Webbrowser history.

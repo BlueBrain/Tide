@@ -138,7 +138,7 @@ void WebkitPixelStreamer::processEvent(deflect::Event event_)
 
 void WebkitPixelStreamer::processClickEvent(const deflect::Event& clickEvent)
 {
-    // TODO History navigation (until swipe gestures are fixed)
+    // TODO remove legacy history navigation after [DISCL-315]
     if (clickEvent.mouseX < 0.02)
     {
         webView_.back();
@@ -150,9 +150,7 @@ void WebkitPixelStreamer::processClickEvent(const deflect::Event& clickEvent)
         return;
     }
 
-    processPressEvent(clickEvent);
-    processReleaseEvent(clickEvent);
-
+    // TODO check if this workaround for links is still needed
     const QWebHitTestResult& hitResult = performHitTest( clickEvent );
     if( !hitResult.isNull() && !hitResult.linkUrl().isEmpty( ))
         webView_.load( hitResult.linkUrl( ));
