@@ -8,8 +8,6 @@ set(TIDEMASTER_LINK_LIBRARIES
   PUBLIC
     TideCore
     Qt5::Widgets
-  PRIVATE
-    Qt5::WebKitWidgets
 )
 
 list(APPEND TIDEMASTER_PUBLIC_HEADERS
@@ -28,9 +26,6 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   localstreamer/PixelStreamer.h
   localstreamer/PixelStreamerLauncher.h
   localstreamer/PixelStreamerType.h
-  localstreamer/WebkitAuthenticationHelper.h
-  localstreamer/WebkitHtmlSelectReplacer.h
-  localstreamer/WebkitPixelStreamer.h
   MasterApplication.h
   MasterConfiguration.h
   MasterToForkerChannel.h
@@ -43,8 +38,6 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   SessionCommandHandler.h
   State.h
   StateSerializationHelper.h
-  WebbrowserCommandHandler.h
-  WebbrowserWidget.h
 )
 
 list(APPEND TIDEMASTER_SOURCES
@@ -64,9 +57,6 @@ list(APPEND TIDEMASTER_SOURCES
   localstreamer/PixelStreamerFactory.cpp
   localstreamer/PixelStreamerLauncher.cpp
   localstreamer/PixelStreamerType.cpp
-  localstreamer/WebkitAuthenticationHelper.cpp
-  localstreamer/WebkitHtmlSelectReplacer.cpp
-  localstreamer/WebkitPixelStreamer.cpp
   MasterApplication.cpp
   MasterConfiguration.cpp
   MasterToForkerChannel.cpp
@@ -77,10 +67,28 @@ list(APPEND TIDEMASTER_SOURCES
   SessionCommandHandler.cpp
   State.cpp
   StateSerializationHelper.cpp
-  WebbrowserCommandHandler.cpp
-  WebbrowserWidget.cpp
   resources/master.qrc
 )
+
+if(TARGET Qt5::WebKitWidgets)
+  list(APPEND TIDEMASTER_PUBLIC_HEADERS
+    localstreamer/WebkitAuthenticationHelper.h
+    localstreamer/WebkitHtmlSelectReplacer.h
+    localstreamer/WebkitPixelStreamer.h
+    WebbrowserCommandHandler.h
+    WebbrowserWidget.h
+  )
+
+  list(APPEND TIDEMASTER_SOURCES
+    localstreamer/WebkitAuthenticationHelper.cpp
+    localstreamer/WebkitHtmlSelectReplacer.cpp
+    localstreamer/WebkitPixelStreamer.cpp
+    WebbrowserCommandHandler.cpp
+    WebbrowserWidget.cpp
+  )
+
+  list(APPEND TIDEMASTER_LINK_LIBRARIES PRIVATE Qt5::WebKitWidgets)
+endif()
 
 if(TIDE_ENABLE_TUIO_TOUCH_LISTENER)
   list(APPEND TIDEMASTER_HEADERS MultiTouchListener.h)

@@ -64,7 +64,9 @@
 
 #include "SessionCommandHandler.h"
 #include "FileCommandHandler.h"
-#include "WebbrowserCommandHandler.h"
+#ifdef TIDE_USE_QT5WEBKITWIDGETS
+#  include "WebbrowserCommandHandler.h"
+#endif
 
 #include <deflect/CommandHandler.h>
 #include <deflect/EventReceiver.h>
@@ -187,10 +189,12 @@ void MasterApplication::startDeflectServer()
     handler.registerCommandHandler(
                 new SessionCommandHandler( *displayGroup_ ));
 
+#ifdef TIDE_USE_QT5WEBKITWIDGETS
     const QString& url = config_->getWebBrowserDefaultURL();
     handler.registerCommandHandler(
                 new WebbrowserCommandHandler( *pixelStreamWindowManager_,
                                               *pixelStreamerLauncher_, url ));
+#endif
 }
 
 void MasterApplication::restoreBackground()
