@@ -55,7 +55,9 @@
 #include "DisplayGroupView.h"
 #include "DisplayGroupListWidget.h"
 #include "BackgroundWidget.h"
-#include "WebbrowserWidget.h"
+#ifdef TIDE_USE_QT5WEBKITWIDGETS
+#  include "WebbrowserWidget.h"
+#endif
 
 #include <tide/core/version.h>
 
@@ -74,7 +76,9 @@ MasterWindow::MasterWindow( DisplayGroupPtr displayGroup,
     , _displayGroup( displayGroup )
     , _options( new Options )
     , _backgroundWidget( new BackgroundWidget( config, this ))
+#ifdef TIDE_USE_QT5WEBKITWIDGETS
     , _webbrowserWidget( new WebbrowserWidget( config, this ))
+#endif
     , _displayGroupView( new DisplayGroupView( _options, config ))
     , _autoFocusPixelStreamsAction( 0 )
     , _contentFolder( config.getDockStartDir( ))
@@ -87,9 +91,11 @@ MasterWindow::MasterWindow( DisplayGroupPtr displayGroup,
     connect( _backgroundWidget, SIGNAL( backgroundContentChanged( ContentPtr )),
              _options.get(), SLOT( setBackgroundContent( ContentPtr )));
 
+#ifdef TIDE_USE_QT5WEBKITWIDGETS
     connect( _webbrowserWidget,
              SIGNAL( openWebBrowser( QPointF, QSize, QString )),
              this, SIGNAL( openWebBrowser( QPointF, QSize, QString )));
+#endif
 
     resize( DEFAULT_WINDOW_SIZE );
     setAcceptDrops( true );
@@ -163,10 +169,12 @@ void MasterWindow::_setupMasterWindowUI()
     backgroundAction->setStatusTip("Select the background color and content");
     connect(backgroundAction, SIGNAL(triggered()), _backgroundWidget, SLOT(show()));
 
+#ifdef TIDE_USE_QT5WEBKITWIDGETS
     // Open webbrowser action
     QAction* webbrowserAction = new QAction("Web Browser", this);
     webbrowserAction->setStatusTip("Open a web browser");
     connect(webbrowserAction, SIGNAL(triggered()), _webbrowserWidget, SLOT(show()));
+#endif
 
     // quit action
     QAction* quitAction = new QAction("Quit", this);
@@ -265,7 +273,9 @@ void MasterWindow::_setupMasterWindowUI()
     fileMenu->addAction( openContentsDirectoryAction );
     fileMenu->addAction( loadStateAction );
     fileMenu->addAction( saveStateAction );
+#ifdef TIDE_USE_QT5WEBKITWIDGETS
     fileMenu->addAction( webbrowserAction );
+#endif
     fileMenu->addAction( clearContentsAction );
     fileMenu->addAction( quitAction );
     editMenu->addAction( backgroundAction );
@@ -289,7 +299,9 @@ void MasterWindow::_setupMasterWindowUI()
     toolbar->addAction(openContentsDirectoryAction);
     toolbar->addAction(loadStateAction);
     toolbar->addAction(saveStateAction);
+#ifdef TIDE_USE_QT5WEBKITWIDGETS
     toolbar->addAction(webbrowserAction);
+#endif
     toolbar->addAction(clearContentsAction);
     toolbar->addAction(backgroundAction);
 

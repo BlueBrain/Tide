@@ -14,13 +14,12 @@ set(TEST_LIBRARIES
   TideWall
   ${Boost_LIBRARIES}
   Qt5::OpenGL
-  Qt5::WebKitWidgets
 )
 
-if(X11_FOUND)
-  list(APPEND TEST_LIBRARIES ${X11_LIBRARIES})
+if(X11_FOUND AND TARGET Qt5::WebKitWidgets)
+  list(APPEND TEST_LIBRARIES ${X11_LIBRARIES} Qt5::WebKitWidgets)
 else()
-  list(APPEND EXCLUDE_FROM_TESTS core/WebbrowserTests.cpp)
+  list(APPEND EXCLUDE_FROM_TESTS core/WebbrowserTests.cpp core/WebkitHtmlSelectReplacementTests.cpp)
 endif()
 
 # Recursively compile unit tests for *.cpp files in the current folder,

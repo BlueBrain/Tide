@@ -45,7 +45,9 @@ namespace ut = boost::unit_test;
 #include "localstreamer/PixelStreamerType.h"
 #include "localstreamer/PixelStreamerFactory.h"
 #include "localstreamer/PixelStreamer.h"
-#include "localstreamer/WebkitPixelStreamer.h"
+#ifdef TIDE_USE_QT5WEBKITWIDGETS
+#  include "localstreamer/WebkitPixelStreamer.h"
+#endif
 #include "localstreamer/DockPixelStreamer.h"
 
 #include "GlobalQtApp.h"
@@ -55,12 +57,16 @@ BOOST_GLOBAL_FIXTURE( GlobalQtApp );
 BOOST_AUTO_TEST_CASE( test_local_pixel_streamer_type )
 {
     BOOST_CHECK_EQUAL( getStreamerTypeString(PS_UNKNOWN).toStdString(), "unknown" );
+#ifdef TIDE_USE_QT5WEBKITWIDGETS
     BOOST_CHECK_EQUAL( getStreamerTypeString(PS_WEBKIT).toStdString(), "webkit" );
+#endif
     BOOST_CHECK_EQUAL( getStreamerTypeString(PS_DOCK).toStdString(), "dock" );
 
     BOOST_CHECK_EQUAL( getStreamerType(""), PS_UNKNOWN );
     BOOST_CHECK_EQUAL( getStreamerType("zorglump"), PS_UNKNOWN );
+#ifdef TIDE_USE_QT5WEBKITWIDGETS
     BOOST_CHECK_EQUAL( getStreamerType("webkit"), PS_WEBKIT );
+#endif
     BOOST_CHECK_EQUAL( getStreamerType("dock"), PS_DOCK );
 }
 
@@ -71,6 +77,7 @@ BOOST_AUTO_TEST_CASE( test_local_pixel_streamer_factory_unknown_type )
     BOOST_CHECK( !PixelStreamerFactory::create( options ));
 }
 
+#ifdef TIDE_USE_QT5WEBKITWIDGETS
 BOOST_AUTO_TEST_CASE( test_local_pixel_streamer_factory_webkit_type )
 {
     if( !hasGLXDisplay( ))
@@ -87,6 +94,7 @@ BOOST_AUTO_TEST_CASE( test_local_pixel_streamer_factory_webkit_type )
 
     delete streamer;
 }
+#endif
 
 BOOST_AUTO_TEST_CASE( test_local_pixel_streamer_factory_dock_type )
 {
