@@ -87,7 +87,7 @@ private:
     boost::scoped_ptr<deflect::Server> deflectServer_;
     boost::scoped_ptr<PixelStreamerLauncher> pixelStreamerLauncher_;
     boost::scoped_ptr<PixelStreamWindowManager> pixelStreamWindowManager_;
-#if ENABLE_TUIO_TOUCH_LISTENER
+#if TIDE_ENABLE_TUIO_TOUCH_LISTENER
     boost::scoped_ptr<MultiTouchListener> touchListener_;
 #endif
 
@@ -104,7 +104,7 @@ private:
     void initPixelStreamLauncher();
     void initMPIConnection();
 
-#if ENABLE_TUIO_TOUCH_LISTENER
+#if TIDE_ENABLE_TUIO_TOUCH_LISTENER
     void initTouchListener();
 #endif
 };

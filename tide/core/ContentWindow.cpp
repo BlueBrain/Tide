@@ -49,7 +49,7 @@
 
 #include "PixelStreamInteractionDelegate.h"
 #include "ZoomInteractionDelegate.h"
-#if ENABLE_PDF_SUPPORT
+#if TIDE_ENABLE_PDF_SUPPORT
 #  include "PDFInteractionDelegate.h"
 #endif
 
@@ -286,7 +286,7 @@ void ContentWindow::createInteractionDelegate()
     case CONTENT_TYPE_MOVIE:
         interactionDelegate_.reset( new ContentInteractionDelegate( *this ));
         break;
-#if ENABLE_PDF_SUPPORT
+#if TIDE_ENABLE_PDF_SUPPORT
     case CONTENT_TYPE_PDF:
         interactionDelegate_.reset( new PDFInteractionDelegate( *this ));
         break;
