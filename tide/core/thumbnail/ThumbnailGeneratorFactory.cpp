@@ -40,7 +40,7 @@
 #include "ThumbnailGeneratorFactory.h"
 
 #include "config.h"
-#if ENABLE_PDF_SUPPORT
+#if TIDE_ENABLE_PDF_SUPPORT
 #  include "PDFThumbnailGenerator.h"
 #  include "../PDFContent.h"
 #endif
@@ -92,7 +92,7 @@ ThumbnailGeneratorPtr ThumbnailGeneratorFactory::getGenerator(const QString &fil
         return ThumbnailGeneratorPtr(new PyramidThumbnailGenerator(size));
     }
 
-#if ENABLE_PDF_SUPPORT
+#if TIDE_ENABLE_PDF_SUPPORT
     if( PDFContent::getSupportedExtensions().contains( extension ))
     {
         return ThumbnailGeneratorPtr(new PDFThumbnailGenerator(size));

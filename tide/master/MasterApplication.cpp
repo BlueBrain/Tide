@@ -54,7 +54,7 @@
 #include "Markers.h"
 #include "QmlTypeRegistration.h"
 
-#if ENABLE_TUIO_TOUCH_LISTENER
+#if TIDE_ENABLE_TUIO_TOUCH_LISTENER
 #  include "MultiTouchListener.h"
 #endif
 
@@ -137,7 +137,7 @@ void MasterApplication::init()
 
     restoreBackground();
 
-#if ENABLE_TUIO_TOUCH_LISTENER
+#if TIDE_ENABLE_TUIO_TOUCH_LISTENER
     initTouchListener();
 #endif
 }
@@ -308,7 +308,7 @@ void MasterApplication::initMPIConnection()
     mpiReceiveThread_.start();
 }
 
-#if ENABLE_TUIO_TOUCH_LISTENER
+#if TIDE_ENABLE_TUIO_TOUCH_LISTENER
 void MasterApplication::initTouchListener()
 {
     DisplayGroupView* view = masterWindow_->getDisplayGroupView();

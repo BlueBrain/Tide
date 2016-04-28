@@ -47,7 +47,7 @@
 #include "DynamicTextureContent.h"
 #include "SVGContent.h"
 #include "MovieContent.h"
-#if ENABLE_PDF_SUPPORT
+#if TIDE_ENABLE_PDF_SUPPORT
 #  include "PDFContent.h"
 #endif
 #include "PixelStreamContent.h"
@@ -77,7 +77,7 @@ CONTENT_TYPE ContentFactory::getContentTypeForFile( const QString& uri )
     if( MovieContent::getSupportedExtensions().contains( extension ))
         return CONTENT_TYPE_MOVIE;
 
-#if ENABLE_PDF_SUPPORT
+#if TIDE_ENABLE_PDF_SUPPORT
     if( PDFContent::getSupportedExtensions().contains( extension ))
         return CONTENT_TYPE_PDF;
 #endif
@@ -115,7 +115,7 @@ ContentPtr ContentFactory::getContent( const QString& uri )
     case CONTENT_TYPE_MOVIE:
         content = boost::make_shared<MovieContent>( uri );
         break;
-#if ENABLE_PDF_SUPPORT
+#if TIDE_ENABLE_PDF_SUPPORT
     case CONTENT_TYPE_PDF:
         content = boost::make_shared<PDFContent>( uri );
         break;
@@ -158,7 +158,7 @@ const QStringList& ContentFactory::getSupportedExtensions()
 
     if (extensions.empty())
     {
-#if ENABLE_PDF_SUPPORT
+#if TIDE_ENABLE_PDF_SUPPORT
         extensions.append(PDFContent::getSupportedExtensions());
 #endif
         extensions.append(SVGContent::getSupportedExtensions());

@@ -47,7 +47,7 @@
 #include "ImageSynchronizer.h"
 #include "MovieSynchronizer.h"
 #include "PixelStreamSynchronizer.h"
-#if ENABLE_PDF_SUPPORT
+#if TIDE_ENABLE_PDF_SUPPORT
 #include "PDFSynchronizer.h"
 #endif
 #include "SVGSynchronizer.h"
@@ -65,7 +65,7 @@ ContentSynchronizerPtr ContentSynchronizer::create( ContentPtr content )
         return make_unique<MovieSynchronizer>( uri );
     case CONTENT_TYPE_PIXEL_STREAM:
         return make_unique<PixelStreamSynchronizer>();
-#if ENABLE_PDF_SUPPORT
+#if TIDE_ENABLE_PDF_SUPPORT
     case CONTENT_TYPE_PDF:
         return make_unique<PDFSynchronizer>( uri );
 #endif
