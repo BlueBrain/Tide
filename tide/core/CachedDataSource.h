@@ -52,7 +52,7 @@
 class CachedDataSource : public DataSource
 {
 public:
-    /** @copydoc DataSource::getTileImage. threadsafe */
+    /** @copydoc DataSource::getTileImage threadsafe */
     ImagePtr getTileImage( uint tileId ) const final;
 
     /** Check if the cache contains an image for a tile. */

@@ -56,7 +56,7 @@ public:
     /** Constructor. */
     PDFSynchronizer( const QString& uri );
 
-    /** @copydoc ContentSynchronizer::updateTiles */
+    /** @copydoc ContentSynchronizer::update */
     void update( const ContentWindow& window,
                  const QRectF& visibleArea ) final;
 
