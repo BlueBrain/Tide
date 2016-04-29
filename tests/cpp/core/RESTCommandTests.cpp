@@ -42,6 +42,7 @@
 namespace ut = boost::unit_test;
 
 #include "rest/RestCommand.h"
+#include "rest/StaticContent.h"
 
 BOOST_AUTO_TEST_CASE( test_receive_json_command )
 {
@@ -63,4 +64,12 @@ BOOST_AUTO_TEST_CASE( test_receive_json_command )
 
     BOOST_CHECK( command.fromJSON( "{\"uri\":\"image.png\"}" ));
     BOOST_CHECK_EQUAL( receivedUri.toStdString(), "image.png" );
+}
+
+BOOST_AUTO_TEST_CASE( test_static_content )
+{
+    const StaticContent content( "tide::info", "Welcome to Tide!" );
+
+    BOOST_CHECK_EQUAL( content.getTypeName(), "tide::info" );
+    BOOST_CHECK_EQUAL( content.toJSON(), "Welcome to Tide!" );
 }

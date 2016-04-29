@@ -102,10 +102,12 @@ if(TIDE_ENABLE_REST_INTERFACE)
   list(APPEND TIDEMASTER_PUBLIC_HEADERS
     rest/RestCommand.h
     rest/RestInterface.h
+    rest/StaticContent.h
   )
   list(APPEND TIDEMASTER_SOURCES
     rest/RestCommand.cpp
     rest/RestInterface.cpp
+    rest/StaticContent.cpp
   )
   # Servus PUBLIC because servus::Serializable is a base class of public headers
   list(APPEND TIDEMASTER_LINK_LIBRARIES PUBLIC Servus PRIVATE ZeroEQ)

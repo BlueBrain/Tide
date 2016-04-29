@@ -51,6 +51,8 @@
  *
  * Example command:
  * curl -i -X PUT -d '{"uri": "image.png"}' http://localhost:8888/tide/open
+ *
+ * It also exposes a simple html index page on 'http://hostname:port/tide'.
  */
 class RestInterface : public QObject
 {

@@ -34,91 +34,35 @@
 /* The views and conclusions contained in the software and           */
 /* documentation are those of the authors and should not be          */
 /* interpreted as representing official policies, either expressed   */
-/* or implied, of The University of Texas at Austin.                 */
+/* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "RestInterface.h"
+#ifndef STATICCONTENT_H
+#define STATICCONTENT_H
 
-#include "RestCommand.h"
-#include "StaticContent.h"
+#include <servus/serializable.h> // base class
 
-#include <tide/master/version.h>
-#include <QDateTime>
-
-#include <zeroeq/http/server.h>
-#include <zeroeq/uri.h>
-
-#include <QSocketNotifier>
-#include <QHostInfo>
-
-namespace
-{
-const uint32_t RECEIVE_TIMEOUT = 0; // non-blocking receive
-
-const QString indexpage = QString(
-"\
-<!DOCTYPE html> \
-<html> \
-<head> \
-<meta charset='UTF-8'> \
-<title>Tide</title> \
-</head> \
-<body> \
-<h1>Tide %1</h1> \
-<p>Revision: %3</p> \
-<p>Running on: %2</p> \
-<p>Up since: %4</p> \
-</body> \
-</html> \
-") \
-.arg( QString::fromStdString( tide::Version::getString( ))) \
-.arg( QHostInfo::localHostName( )) \
-.arg( tide::Version::getRevision( )) \
-.arg( QDateTime::currentDateTime().toString( ));
-}
-
-class RestInterface::Impl
+/**
+ * Expose a static content to the REST interface.
+ */
+class StaticContent : public servus::Serializable
 {
 public:
-    Impl( const int port )
-        : httpServer{ zeroeq::URI { QString(":%1").arg( port ).toStdString( )}}
-    {
-        httpServer.register_( indexPage );
-        httpServer.subscribe( openCmd );
-        httpServer.subscribe( loadCmd );
-        httpServer.subscribe( saveCmd );
-    }
+    /**
+     * Construct a static content which can be exposed by a ZeroEQ http server.
+     *
+     * @param name The name of the content exposed through the REST interface,
+     *        separated by '::' instead of '/' (e.g. "restapi::index").
+     */
+    StaticContent( const std::string& name, const std::string& content );
 
-    zeroeq::http::Server httpServer;
-    QSocketNotifier socketNotifier{ httpServer.getSocketDescriptor(),
-                                    QSocketNotifier::Read };
-    StaticContent indexPage{ "tide", indexpage.toStdString( )};
-    RestCommand openCmd{ "tide::open" };
-    RestCommand loadCmd{ "tide::load" };
-    RestCommand saveCmd{ "tide::save" };
+    /** @retrun the name of the command passed in the constructor. */
+    std::string getTypeName() const final;
+
+private:
+    std::string _name;
+    std::string _content;
+    std::string _toJSON() const final;
 };
 
-RestInterface::RestInterface( const int port )
-    : _impl( new Impl( port ))
-{
-    connect( &_impl->socketNotifier, &QSocketNotifier::activated, [this]()
-    {
-        _impl->httpServer.receive( RECEIVE_TIMEOUT );
-    });
-
-    connect( &_impl->openCmd, &RestCommand::received,
-             this, &RestInterface::open );
-
-    connect( &_impl->loadCmd, &RestCommand::received, [this](const QString uri)
-    {
-        if( uri.isEmpty( ))
-            emit clear();
-        else
-            emit load( uri );
-    });
-
-    connect( &_impl->saveCmd, &RestCommand::received,
-             this, &RestInterface::save );
-}
-
-RestInterface::~RestInterface() {}
+#endif
