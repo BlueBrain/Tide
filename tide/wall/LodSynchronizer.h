@@ -54,7 +54,7 @@ public:
     /** Constructor. */
     LodSynchronizer( TileSwapPolicy policy );
 
-    /** @copydoc ContentSynchronizer::updateTiles */
+    /** @copydoc ContentSynchronizer::update */
     void update( const ContentWindow& window,
                  const QRectF& visibleArea ) override;
 
