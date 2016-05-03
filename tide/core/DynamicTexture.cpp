@@ -50,49 +50,48 @@
 
 #include <QDir>
 #include <QImageReader>
+#include <QtConcurrent>
 
 #define TEXTURE_SIZE 512
 
 namespace
 {
 const QString PYRAMID_METADATA_FILE_NAME( "pyramid.pyr" );
+QRectF imageBounds[] = { QRectF( 0.0, 0.0, 0.5, 0.5 ),
+                         QRectF( 0.5, 0.0, 0.5, 0.5 ),
+                         QRectF( 0.5, 0.5, 0.5, 0.5 ),
+                         QRectF( 0.0, 0.5, 0.5, 0.5 ) };
 }
 
 const QString DynamicTexture::pyramidFileExtension = QString( "pyr" );
 const QString DynamicTexture::pyramidFolderSuffix = QString( ".pyramid/" );
 
-DynamicTexture::DynamicTexture(const QString& uri, DynamicTexturePtr parent_,
-                               const QRectF& parentCoordinates, const int childIndex)
-    : _uri(uri)
-    , _useImagePyramid(false)
-    , _parent(parent_)
-    , _imageCoordsInParentImage(parentCoordinates)
-    , _depth(0)
+DynamicTexture::DynamicTexture( const QString& uri )
+    : _uri( uri )
+    , _useImagePyramid( false )
+    , _depth( 0 )
 {
-    // if we're a child...
-    if(parent_)
-    {
-        _depth = parent_->_depth + 1;
+    // this is the top-level object, so its path is 0
+    _treePath.push_back( 0 );
 
-        // append childIndex to parent's path to form this object's path
-        _treePath = parent_->_treePath;
-        _treePath.push_back(childIndex);
+    const QString extension = QString( "." ).append( pyramidFileExtension );
+    if( _uri.endsWith( extension ))
+        readPyramidMetadataFromFile( _uri );
+    else
+        readFullImageMetadata( _uri );
+}
 
-        _imageExtension = parent_->_imageExtension;
-    }
-
-    // if we're the top-level object
-    if(isRoot())
-    {
-        // this is the top-level object, so its path is 0
-        _treePath.push_back(0);
-
-        const QString extension = QString(".").append(pyramidFileExtension);
-        if(_uri.endsWith(extension))
-            readPyramidMetadataFromFile(_uri);
-        else
-            readFullImageMetadata(_uri);
-    }
+DynamicTexture::DynamicTexture( DynamicTexturePtr parent_,
+                                const int childIndex )
+    : _imageExtension( parent_->_imageExtension )
+    , _useImagePyramid( false )
+    , _parent( parent_ )
+    , _imageCoordsInParentImage( imageBounds[childIndex] )
+    , _treePath( parent_->_treePath )
+    , _depth( parent_->_depth + 1 )
+{
+    // append childIndex to parent's path to form this object's path
+    _treePath.push_back( childIndex );
 }
 
 bool DynamicTexture::isRoot() const
@@ -235,19 +234,14 @@ bool DynamicTexture::writePyramidImagesRecursive( const QString& pyramidFolder )
     // recursively generate and save children images
     if( _canHaveChildren( ))
     {
-        QRectF imageBounds[4];
-        imageBounds[0] = QRectF( 0.0, 0.0, 0.5, 0.5 );
-        imageBounds[1] = QRectF( 0.5, 0.0, 0.5, 0.5 );
-        imageBounds[2] = QRectF( 0.5, 0.5, 0.5, 0.5 );
-        imageBounds[3] = QRectF( 0.0, 0.5, 0.5, 0.5 );
-
-#pragma omp parallel for
+        QList<DynamicTexturePtr> children;
         for( unsigned int i=0; i<4; ++i )
-        {
-            DynamicTexturePtr child( new DynamicTexture( "", shared_from_this(),
-                                                         imageBounds[i], i ));
+            children.push_back( DynamicTexturePtr(
+                                  new DynamicTexture( shared_from_this(), i )));
+
+        QtConcurrent::blockingMap( children, [&]( DynamicTexturePtr child ) {
             child->writePyramidImagesRecursive( pyramidFolder );
-        }
+        });
     }
     return true;
 }
@@ -554,4 +548,3 @@ LodTools::TileInfos DynamicTexture::_gatherAllTiles( const uint lod ) const
 
     return tiles;
 }
-
