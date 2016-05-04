@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,82 +37,32 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef MASTERAPPLICATION_H
-#define MASTERAPPLICATION_H
+#ifndef STATICCONTENT_H
+#define STATICCONTENT_H
 
-#include "config.h"
-#include "types.h"
-
-#include <QApplication>
-#include <QThread>
-#include <boost/scoped_ptr.hpp>
-
-class MasterToWallChannel;
-class MasterToForkerChannel;
-class MasterFromWallChannel;
-class MasterWindow;
-class PixelStreamerLauncher;
-class PixelStreamWindowManager;
-class MasterConfiguration;
-class MultiTouchListener;
-class RestInterface;
+#include <servus/serializable.h> // base class
 
 /**
- * The main application for the Master process.
+ * Expose a static content to the REST interface.
  */
-class MasterApplication : public QApplication
+class StaticContent : public servus::Serializable
 {
-    Q_OBJECT
-
 public:
     /**
-     * Constructor
-     * @param argc Command line argument count (required by QApplication)
-     * @param argv Command line arguments (required by QApplication)
-     * @param worldChannel The world MPI channel
-     * @param forkChannel The MPI channel for forking processes
-     * @throw std::runtime_error if an error occured during initialization
+     * Construct a static content which can be exposed by a ZeroEQ http server.
+     *
+     * @param name The name of the content exposed through the REST interface,
+     *        separated by '::' instead of '/' (e.g. "restapi::index").
      */
-    MasterApplication( int &argc, char **argv, MPIChannelPtr worldChannel,
-                       MPIChannelPtr forkChannel );
+    StaticContent( const std::string& name, const std::string& content );
 
-    /** Destructor */
-    virtual ~MasterApplication();
+    /** @retrun the name of the command passed in the constructor. */
+    std::string getTypeName() const final;
 
 private:
-    boost::scoped_ptr<MasterToForkerChannel> masterToForkerChannel_;
-    boost::scoped_ptr<MasterToWallChannel> masterToWallChannel_;
-    boost::scoped_ptr<MasterFromWallChannel> masterFromWallChannel_;
-    boost::scoped_ptr<MasterWindow> masterWindow_;
-    boost::scoped_ptr<MasterConfiguration> config_;
-    boost::scoped_ptr<deflect::Server> deflectServer_;
-    boost::scoped_ptr<PixelStreamerLauncher> pixelStreamerLauncher_;
-    boost::scoped_ptr<PixelStreamWindowManager> pixelStreamWindowManager_;
-#if TIDE_ENABLE_TUIO_TOUCH_LISTENER
-    boost::scoped_ptr<MultiTouchListener> touchListener_;
-#endif
-
-    DisplayGroupPtr displayGroup_;
-    MarkersPtr markers_;
-
-    QThread mpiSendThread_;
-    QThread mpiReceiveThread_;
-
-    void init();
-    bool createConfig( const QString& filename );
-    void startDeflectServer();
-    void restoreBackground();
-    void initPixelStreamLauncher();
-    void initMPIConnection();
-
-#if TIDE_ENABLE_TUIO_TOUCH_LISTENER
-    void initTouchListener();
-#endif
-
-#if TIDE_ENABLE_REST_INTERFACE
-    std::unique_ptr<RestInterface> _restInterface;
-    void _initRestInterface();
-#endif
+    std::string _name;
+    std::string _content;
+    std::string _toJSON() const final;
 };
 
-#endif // MASTERAPPLICATION_H
+#endif

@@ -2,7 +2,7 @@
 #                     Raphael Dumusc <raphael.dumusc@epfl.ch>
 
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
-project(Tide VERSION 1.0.0)
+project(Tide VERSION 1.1.0)
 set(Tide_VERSION_ABI 1)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake
@@ -41,6 +41,11 @@ common_find_package(Qt5WebKitWidgets SYSTEM)
 common_find_package(Qt5Widgets REQUIRED)
 common_find_package(Qt5XmlPatterns REQUIRED)
 common_find_package(Qt5Xml REQUIRED)
+common_find_package(ZeroEQ)
+
+if(ZeroEQ_FOUND)
+  option(TIDE_ENABLE_REST_INTERFACE "Enable Tide's REST interface using ZeroEQ" ON)
+endif()
 
 # WAR for Ubuntu 14.04 in CI super-project conditions
 common_find_package(Qt5Quick 5.4)

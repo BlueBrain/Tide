@@ -16,10 +16,16 @@ set(TEST_LIBRARIES
   Qt5::OpenGL
 )
 
+if(NOT TIDE_ENABLE_REST_INTERFACE OR TRUE)
+  set(EXCLUDE_FROM_TESTS core/RESTCommandTests.cpp)
+endif()
+
 if(X11_FOUND AND TARGET Qt5::WebKitWidgets)
   list(APPEND TEST_LIBRARIES ${X11_LIBRARIES} Qt5::WebKitWidgets)
 else()
-  list(APPEND EXCLUDE_FROM_TESTS core/WebbrowserTests.cpp core/WebkitHtmlSelectReplacementTests.cpp)
+  list(APPEND EXCLUDE_FROM_TESTS
+    core/WebbrowserTests.cpp
+    core/WebkitHtmlSelectReplacementTests.cpp)
 endif()
 
 # Recursively compile unit tests for *.cpp files in the current folder,

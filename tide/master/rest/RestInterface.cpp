@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -34,85 +34,91 @@
 /* The views and conclusions contained in the software and           */
 /* documentation are those of the authors and should not be          */
 /* interpreted as representing official policies, either expressed   */
-/* or implied, of Ecole polytechnique federale de Lausanne.          */
+/* or implied, of The University of Texas at Austin.                 */
 /*********************************************************************/
 
-#ifndef MASTERAPPLICATION_H
-#define MASTERAPPLICATION_H
+#include "RestInterface.h"
 
-#include "config.h"
-#include "types.h"
+#include "RestCommand.h"
+#include "StaticContent.h"
 
-#include <QApplication>
-#include <QThread>
-#include <boost/scoped_ptr.hpp>
+#include <tide/master/version.h>
+#include <QDateTime>
 
-class MasterToWallChannel;
-class MasterToForkerChannel;
-class MasterFromWallChannel;
-class MasterWindow;
-class PixelStreamerLauncher;
-class PixelStreamWindowManager;
-class MasterConfiguration;
-class MultiTouchListener;
-class RestInterface;
+#include <zeroeq/http/server.h>
+#include <zeroeq/uri.h>
 
-/**
- * The main application for the Master process.
- */
-class MasterApplication : public QApplication
+#include <QSocketNotifier>
+#include <QHostInfo>
+
+namespace
 {
-    Q_OBJECT
+const uint32_t RECEIVE_TIMEOUT = 0; // non-blocking receive
 
+const QString indexpage = QString(
+"\
+<!DOCTYPE html> \
+<html> \
+<head> \
+<meta charset='UTF-8'> \
+<title>Tide</title> \
+</head> \
+<body> \
+<h1>Tide %1</h1> \
+<p>Revision: %3</p> \
+<p>Running on: %2</p> \
+<p>Up since: %4</p> \
+</body> \
+</html> \
+") \
+.arg( QString::fromStdString( tide::Version::getString( ))) \
+.arg( QHostInfo::localHostName( )) \
+.arg( tide::Version::getRevision( )) \
+.arg( QDateTime::currentDateTime().toString( ));
+}
+
+class RestInterface::Impl
+{
 public:
-    /**
-     * Constructor
-     * @param argc Command line argument count (required by QApplication)
-     * @param argv Command line arguments (required by QApplication)
-     * @param worldChannel The world MPI channel
-     * @param forkChannel The MPI channel for forking processes
-     * @throw std::runtime_error if an error occured during initialization
-     */
-    MasterApplication( int &argc, char **argv, MPIChannelPtr worldChannel,
-                       MPIChannelPtr forkChannel );
+    Impl( const int port )
+        : httpServer{ zeroeq::URI { QString(":%1").arg( port ).toStdString( )}}
+    {
+        httpServer.register_( indexPage );
+        httpServer.subscribe( openCmd );
+        httpServer.subscribe( loadCmd );
+        httpServer.subscribe( saveCmd );
+    }
 
-    /** Destructor */
-    virtual ~MasterApplication();
-
-private:
-    boost::scoped_ptr<MasterToForkerChannel> masterToForkerChannel_;
-    boost::scoped_ptr<MasterToWallChannel> masterToWallChannel_;
-    boost::scoped_ptr<MasterFromWallChannel> masterFromWallChannel_;
-    boost::scoped_ptr<MasterWindow> masterWindow_;
-    boost::scoped_ptr<MasterConfiguration> config_;
-    boost::scoped_ptr<deflect::Server> deflectServer_;
-    boost::scoped_ptr<PixelStreamerLauncher> pixelStreamerLauncher_;
-    boost::scoped_ptr<PixelStreamWindowManager> pixelStreamWindowManager_;
-#if TIDE_ENABLE_TUIO_TOUCH_LISTENER
-    boost::scoped_ptr<MultiTouchListener> touchListener_;
-#endif
-
-    DisplayGroupPtr displayGroup_;
-    MarkersPtr markers_;
-
-    QThread mpiSendThread_;
-    QThread mpiReceiveThread_;
-
-    void init();
-    bool createConfig( const QString& filename );
-    void startDeflectServer();
-    void restoreBackground();
-    void initPixelStreamLauncher();
-    void initMPIConnection();
-
-#if TIDE_ENABLE_TUIO_TOUCH_LISTENER
-    void initTouchListener();
-#endif
-
-#if TIDE_ENABLE_REST_INTERFACE
-    std::unique_ptr<RestInterface> _restInterface;
-    void _initRestInterface();
-#endif
+    zeroeq::http::Server httpServer;
+    QSocketNotifier socketNotifier{ httpServer.getSocketDescriptor(),
+                                    QSocketNotifier::Read };
+    StaticContent indexPage{ "tide", indexpage.toStdString( )};
+    RestCommand openCmd{ "tide::open" };
+    RestCommand loadCmd{ "tide::load" };
+    RestCommand saveCmd{ "tide::save" };
 };
 
-#endif // MASTERAPPLICATION_H
+RestInterface::RestInterface( const int port )
+    : _impl( new Impl( port ))
+{
+    connect( &_impl->socketNotifier, &QSocketNotifier::activated, [this]()
+    {
+        _impl->httpServer.receive( RECEIVE_TIMEOUT );
+    });
+
+    connect( &_impl->openCmd, &RestCommand::received,
+             this, &RestInterface::open );
+
+    connect( &_impl->loadCmd, &RestCommand::received, [this](const QString uri)
+    {
+        if( uri.isEmpty( ))
+            emit clear();
+        else
+            emit load( uri );
+    });
+
+    connect( &_impl->saveCmd, &RestCommand::received,
+             this, &RestInterface::save );
+}
+
+RestInterface::~RestInterface() {}

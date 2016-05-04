@@ -99,13 +99,8 @@ void MasterConfiguration::loadSessionsDirectory( QXmlQuery& query )
 
 void MasterConfiguration::loadWebService( QXmlQuery& query )
 {
-    QString queryResult;
     query.setQuery( "string(/configuration/webservice/@port)" );
-    if( query.evaluateTo( &queryResult ))
-    {
-        if( !queryResult.isEmpty( ))
-            _webServicePort = queryResult.toInt();
-    }
+    getInt( query, _webServicePort );
 }
 
 void MasterConfiguration::loadAppLauncher( QXmlQuery& query )

@@ -30,6 +30,8 @@ Tide listens on the following ports:
 
 * TCP port 1701 - incoming Deflect connections.
 * UDP port 3333 - TUIO messages (if compiled with TUIO multitouch support).
+* TCP port 8888 - REST interface (if compiled with ZeroEQ support),
+                  configurable.
 
 ## OSX notes {#osxnotes}
 

@@ -60,6 +60,7 @@ namespace ut = boost::unit_test;
 #define CONFIG_EXPECTED_HOST_NAME "bbplxviz03i"
 
 #define CONFIG_EXPECTED_WEBSERVICE_PORT 10000
+#define CONFIG_EXPECTED_DEFAULT_WEBSERVICE_PORT 8888
 #define CONFIG_EXPECTED_URL "http://bbp.epfl.ch"
 #define CONFIG_EXPECTED_DEFAULT_URL "http://www.google.com"
 
@@ -133,6 +134,7 @@ BOOST_AUTO_TEST_CASE( test_master_configuration_default_values )
 
     BOOST_CHECK_EQUAL( config.getDockStartDir().toStdString(), QDir::homePath().toStdString() );
     BOOST_CHECK_EQUAL( config.getSessionsDir().toStdString(), QDir::homePath().toStdString() );
+    BOOST_CHECK_EQUAL( config.getWebServicePort(), CONFIG_EXPECTED_DEFAULT_WEBSERVICE_PORT );
     BOOST_CHECK_EQUAL( config.getWebBrowserDefaultURL().toStdString(), CONFIG_EXPECTED_DEFAULT_URL );
     BOOST_CHECK_EQUAL( config.getAppLauncherFile().toStdString(), CONFIG_EXPECTED_DEFAULT_APPLAUNCHER );
 }

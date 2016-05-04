@@ -97,4 +97,20 @@ if(TIDE_ENABLE_TUIO_TOUCH_LISTENER)
 endif()
 
 set(TIDEMASTER_INCLUDE_NAME tide/master)
+
+if(TIDE_ENABLE_REST_INTERFACE)
+  list(APPEND TIDEMASTER_PUBLIC_HEADERS
+    rest/RestCommand.h
+    rest/RestInterface.h
+    rest/StaticContent.h
+  )
+  list(APPEND TIDEMASTER_SOURCES
+    rest/RestCommand.cpp
+    rest/RestInterface.cpp
+    rest/StaticContent.cpp
+  )
+  # Servus PUBLIC because servus::Serializable is a base class of public headers
+  list(APPEND TIDEMASTER_LINK_LIBRARIES PUBLIC Servus PRIVATE ZeroEQ)
+endif()
+
 common_library(TideMaster)

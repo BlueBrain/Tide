@@ -68,6 +68,11 @@
 #  include "WebbrowserCommandHandler.h"
 #endif
 
+#ifdef TIDE_ENABLE_REST_INTERFACE
+#  include "ContentLoader.h"
+#  include "rest/RestInterface.h"
+#endif
+
 #include <deflect/CommandHandler.h>
 #include <deflect/EventReceiver.h>
 #include <deflect/FrameDispatcher.h>
@@ -139,6 +144,10 @@ void MasterApplication::init()
 
 #if TIDE_ENABLE_TUIO_TOUCH_LISTENER
     initTouchListener();
+#endif
+
+#if TIDE_ENABLE_REST_INTERFACE
+    _initRestInterface();
 #endif
 }
 
@@ -320,5 +329,25 @@ void MasterApplication::initTouchListener()
              markers_.get(), &Markers::updateMarker );
     connect( touchListener_.get(), &MultiTouchListener::touchPointRemoved,
              markers_.get(), &Markers::removeMarker );
+}
+#endif
+
+#if TIDE_ENABLE_REST_INTERFACE
+void MasterApplication::_initRestInterface()
+{
+    _restInterface = make_unique<RestInterface>( config_->getWebServicePort( ));
+
+    connect( _restInterface.get(), &RestInterface::open, [this]( QString uri ) {
+        ContentLoader( displayGroup_ ).load( uri );
+    });
+    connect( _restInterface.get(), &RestInterface::load, [this]( QString uri ) {
+        StateSerializationHelper( displayGroup_ ).load( uri );
+    });
+    connect( _restInterface.get(), &RestInterface::save, [this]( QString uri ) {
+        StateSerializationHelper( displayGroup_ ).save( uri );
+    });
+    connect( _restInterface.get(), &RestInterface::clear, [this]() {
+        displayGroup_->clear();
+    });
 }
 #endif
