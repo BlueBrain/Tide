@@ -64,16 +64,8 @@ public:
     /**
      * Constructor
      * @param uri The uri of an image or of a Pyramid metadata file
-     * @param parent Internal use: child objects need to keep a weak pointer to
-     *        their parent
-     * @param parentCoordinates Internal use: texture coordinates in the parent
-     *        texture
-     * @param childIndex Internal use: index of the child object
      */
-    DynamicTexture( const QString& uri = "",
-                    DynamicTexturePtr parent = DynamicTexturePtr(),
-                    const QRectF& parentCoordinates = QRectF(),
-                    const int childIndex = 0 );
+    explicit DynamicTexture( const QString& uri );
 
     /** The exension of pyramid metadata files */
     static const QString pyramidFileExtension;
@@ -129,6 +121,8 @@ public:
     bool generateImagePyramid( const QString& outputFolder );
 
 private:
+    DynamicTexture( DynamicTexturePtr parent, int childIndex );
+
     typedef std::map<size_t, LodTools::TileInfos> LodTilesMap;
     mutable LodTilesMap _lodTilesMapCache;
 

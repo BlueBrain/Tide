@@ -16,6 +16,7 @@ set(TIDECORE_LINK_LIBRARIES
     ${MPI_CXX_LIBRARIES}
   PRIVATE
     ${FFMPEG_LIBRARIES}
+    Qt5::Concurrent
     Qt5::Svg
 )
 
