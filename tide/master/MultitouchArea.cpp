@@ -45,9 +45,11 @@
 namespace
 {
 const qreal wheelFactor = 0.3;
-const qreal defaultPanThreshold = 20;
-const qreal pinchThreshold = 10;
-const qreal doubleTapThreshold = 40;
+const qreal defaultPanThresholdPx = 20;
+const qreal pinchThresholdPx = 10;
+const qreal swipeMaxFingersIntervalPx = 75;
+const qreal swipeThresholdPx = 120;
+const qreal doubleTapThresholdPx = 40;
 const uint tapAndHoldTimeout = 1000;
 const uint doubleTapTimeout = 750;
 }
@@ -55,9 +57,10 @@ const uint doubleTapTimeout = 750;
 MultitouchArea::MultitouchArea( QQuickItem* parent_ )
     : QQuickItem( parent_ )
     , _referenceItem( nullptr )
-    , _panThreshold( defaultPanThreshold )
+    , _panThreshold( defaultPanThresholdPx )
     , _panning( false )
-    , _pinchDetectionStarted( false )
+    , _twoFingersDetectionStarted( false )
+    , _canBeSwipe( false )
     , _pinching( false )
     , _lastPinchDist( 0.0 )
     , _tapCounter( 0 )
@@ -182,7 +185,7 @@ void MultitouchArea::_handleSinglePoint( const QTouchEvent::TouchPoint& point )
             _startDoubleTapGesture();
         if( ++_tapCounter == 2 )
         {
-            if( (pos - _tapStartPos).manhattanLength() < doubleTapThreshold )
+            if( (pos - _tapStartPos).manhattanLength() < doubleTapThresholdPx )
                 emit doubleTap( pos );
             _tapCounter = 0;
         }
@@ -195,7 +198,7 @@ void MultitouchArea::_handleSinglePoint( const QTouchEvent::TouchPoint& point )
         break;
 
     case Qt::TouchPointMoved:
-        if( !_panning && (pos - _tapStartPos).manhattanLength() > _panThreshold )
+        if( !_panning && (pos - _tapStartPos).manhattanLength() > _panThreshold)
         {
             _startPanGesture( pos );
             _lastPanPos = pos;
@@ -268,27 +271,37 @@ qreal MultitouchArea::_getPinchDistance( const QTouchEvent::TouchPoint& p0,
     return _getDist(_getScenePos( p0 ), _getScenePos( p1 )) - _initialPinchDist;
 }
 
+QPointF MultitouchArea::_getCenter( const QTouchEvent::TouchPoint& p0,
+                                    const QTouchEvent::TouchPoint& p1 )
+{
+    return ( _getScenePos( p0 ) + _getScenePos( p1 )) / 2;
+}
+
 void MultitouchArea::_handleTwoPoints( const QTouchEvent::TouchPoint& p0,
                                        const QTouchEvent::TouchPoint& p1 )
 {
     if( p0.state() == Qt::TouchPointReleased ||
-            p1.state() == Qt::TouchPointReleased )
+        p1.state() == Qt::TouchPointReleased )
     {
-        _pinchDetectionStarted = false;
+        _canBeSwipe = false;
         _pinching = false;
+        _twoFingersDetectionStarted = false;
         return;
     }
 
-    if( !_pinchDetectionStarted )
+    if( !_twoFingersDetectionStarted )
     {
-        _pinchDetectionStarted = true;
+        _twoFingersDetectionStarted = true;
         _initialPinchDist = _getDist( _getScenePos( p0 ), _getScenePos( p1 ));
         _cancelPanGesture();
         _cancelTapAndHoldGesture();
         _cancelDoubleTapGesture();
+
+        _canBeSwipe = _initialPinchDist < swipeMaxFingersIntervalPx;
+        _twoFingersStartPos = _getCenter( p0, p1 );
     }
 
-    if( !_pinching && std::abs( _getPinchDistance( p0, p1 )) > pinchThreshold )
+    if( !_pinching && std::abs( _getPinchDistance( p0, p1 )) > pinchThresholdPx)
     {
         _pinching = true;
         _lastPinchDist = _getPinchDistance( p0, p1 );
@@ -299,7 +312,42 @@ void MultitouchArea::_handleTwoPoints( const QTouchEvent::TouchPoint& p0,
         const auto pinchDist = _getPinchDistance( p0, p1 );
         const auto pinchDelta = pinchDist - _lastPinchDist;
         _lastPinchDist = pinchDist;
-        const auto pinchCenter = ( _getScenePos( p0 ) + _getScenePos( p1 )) / 2;
-        emit pinch( pinchCenter, pinchDelta );
+        emit pinch( _getCenter( p0, p1 ), pinchDelta );
+    }
+
+    if( _canBeSwipe )
+    {
+        const qreal fingersInterval = _getDist( _getScenePos( p0 ),
+                                                _getScenePos( p1 ));
+        if( fingersInterval > swipeMaxFingersIntervalPx )
+            _canBeSwipe = false;
+        else
+        {
+            const QPointF twoFingersPos = _getCenter( p0, p1 );
+            const qreal dist = _getDist( _twoFingersStartPos, twoFingersPos );
+            if( dist > swipeThresholdPx )
+            {
+                const qreal dx = twoFingersPos.x() - _twoFingersStartPos.x();
+                const qreal dy = twoFingersPos.y() - _twoFingersStartPos.y();
+
+                if( std::abs( dx ) > std::abs( dy ))
+                {
+                    // Horizontal swipe
+                    if( dx > 0.0 )
+                        emit swipeRight();
+                    else
+                        emit swipeLeft();
+                }
+                else
+                {
+                    // Vertical swipe
+                    if( dy > 0.0 )
+                        emit swipeDown();
+                    else
+                        emit swipeUp();
+                }
+                _canBeSwipe = false; // Only allow one swipe
+            }
+        }
     }
 }
