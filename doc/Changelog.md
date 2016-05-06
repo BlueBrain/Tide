@@ -3,6 +3,9 @@ Changelog {#Changelog}
 
 # git master (1.1.0)
 
+* [14](https://github.com/BlueBrain/Tide/pull/14):
+  Detect two-fingers swipe gestures [DISCL-356]. Swipe left and right to
+  navigate through PDF pages and Webbrowser history.
 * [12](https://github.com/BlueBrain/Tide/pull/12):
   Added a basic REST interface with support for open/load/save commands.
 

@@ -86,6 +86,11 @@ signals:
 
     void pinch( QPointF pos, qreal pixelDelta );
 
+    void swipeLeft();
+    void swipeRight();
+    void swipeUp();
+    void swipeDown();
+
 private:
     void mousePressEvent( QMouseEvent* event ) override;
     void mouseMoveEvent( QMouseEvent* event ) override;
@@ -100,6 +105,8 @@ private:
 
     qreal _getPinchDistance( const QTouchEvent::TouchPoint& p0,
                              const QTouchEvent::TouchPoint& p1 );
+    QPointF _getCenter( const QTouchEvent::TouchPoint& p0,
+                        const QTouchEvent::TouchPoint& p1 );
 
     void _handleSinglePoint( const QTouchEvent::TouchPoint& point );
 
@@ -123,9 +130,11 @@ private:
     bool _panning;
     QPointF _lastPanPos;
 
-    bool _pinchDetectionStarted;
+    bool _twoFingersDetectionStarted;
+    bool _canBeSwipe;
     bool _pinching;
     qreal _lastPinchDist;
+    QPointF _twoFingersStartPos;
 
     QPointF _tapStartPos;
     uint _tapCounter;

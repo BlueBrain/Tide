@@ -85,6 +85,10 @@ BaseContentWindow {
         onTapAndHold: contentwindow.delegate.tapAndHold(pos)
         onPan: contentwindow.delegate.pan(pos, Qt.point(delta.x, delta.y))
         onPinch: contentwindow.delegate.pinch(pos, pixelDelta)
+        onSwipeLeft: contentwindow.delegate.swipeLeft()
+        onSwipeRight: contentwindow.delegate.swipeRight()
+        onSwipeUp: contentwindow.delegate.swipeUp()
+        onSwipeDown: contentwindow.delegate.swipeDown()
     }
 
     ContentWindowButton {
