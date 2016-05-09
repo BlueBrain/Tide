@@ -47,18 +47,16 @@ BaseContentWindow {
         visible: contentwindow.state !== ContentWindow.SELECTED &&
                  contentwindow.border === ContentWindow.NOBORDER
 
-        onTapStarted: displaygroup.moveContentWindowToFront(contentwindow.id)
-        onTapEnded: {
-            contentwindow.state = ContentWindow.NONE
-            toggleControlsVisibility()
-        }
+        onTouchStarted: displaygroup.moveContentWindowToFront(contentwindow.id)
+        onTouchEnded: contentwindow.state = ContentWindow.NONE
+
+        onTap: toggleControlsVisibility()
+        onDoubleTap: toggleFocusMode()
 
         onPanStarted: contentwindow.state = ContentWindow.MOVING
         onPan: contentwindow.controller.moveTo(Qt.point(contentwindow.x + delta.x,
                                                         contentwindow.y + delta.y))
         onPanEnded: contentwindow.state = ContentWindow.NONE
-
-        onDoubleTap: toggleFocusMode()
 
         onPinch: {
             contentwindow.state = ContentWindow.RESIZING
@@ -80,8 +78,12 @@ BaseContentWindow {
         referenceItem: windowRect.parent
 
         onDoubleTap: toggleFocusMode()
-        onTapStarted: displaygroup.moveContentWindowToFront(contentwindow.id)
-        onTapEnded: contentwindow.delegate.tap(pos)
+        onTouchStarted: {
+            displaygroup.moveContentWindowToFront(contentwindow.id)
+            contentwindow.delegate.touchBegin(pos)
+        }
+        onTouchEnded: contentwindow.delegate.touchEnd(pos)
+        onTap: contentwindow.delegate.tap(pos)
         onTapAndHold: contentwindow.delegate.tapAndHold(pos)
         onPan: contentwindow.delegate.pan(pos, Qt.point(delta.x, delta.y))
         onPinch: contentwindow.delegate.pinch(pos, pixelDelta)
@@ -167,21 +169,21 @@ BaseContentWindow {
                     MultitouchArea
                     {
                         anchors.fill: parent
-                        onTapEnded: closeWindow()
+                        onTap: closeWindow()
                     }
                 }
                 OneToOneControlButton {
                     MultitouchArea
                     {
                         anchors.fill: parent
-                        onTapEnded: contentwindow.controller.adjustSizeOneToOne()
+                        onTap: contentwindow.controller.adjustSizeOneToOne()
                     }
                 }
                 FocusControlButton {
                     MultitouchArea
                     {
                         anchors.fill: parent
-                        onTapEnded: toggleFocusMode()
+                        onTap: toggleFocusMode()
                     }
                 }
             }
@@ -193,7 +195,7 @@ BaseContentWindow {
                 MultitouchArea
                 {
                     anchors.fill: parent
-                    onTapEnded: action.trigger()
+                    onTap: action.trigger()
                 }
             }
         }
