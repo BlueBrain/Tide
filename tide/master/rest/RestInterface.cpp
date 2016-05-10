@@ -65,7 +65,7 @@ const QString indexpage = QString(
 </head> \
 <body> \
 <h1>Tide %1</h1> \
-<p>Revision: %3</p> \
+<p>Revision: <a href='https://github.com/BlueBrain/Tide/commit/%3'>%3</a></p> \
 <p>Running on: %2</p> \
 <p>Up since: %4</p> \
 </body> \
@@ -73,7 +73,7 @@ const QString indexpage = QString(
 ") \
 .arg( QString::fromStdString( tide::Version::getString( ))) \
 .arg( QHostInfo::localHostName( )) \
-.arg( tide::Version::getRevision( )) \
+.arg( QString::number( tide::Version::getRevision(), 16 )) \
 .arg( QDateTime::currentDateTime().toString( ));
 }
 
