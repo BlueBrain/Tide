@@ -6,7 +6,7 @@ Rectangle {
     anchors.fill: parent
     color: "transparent"
 
-    property alias resizeCirclesDelegate: repeater.delegate
+    property alias delegate: repeater.delegate
 
     visible: !contentwindow.isPanel
              && contentwindow.controlsVisible

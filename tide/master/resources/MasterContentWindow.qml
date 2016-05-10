@@ -37,8 +37,7 @@ BaseContentWindow {
         event.accepted = true;
     }
 
-    MultitouchArea
-    {
+    backgroundComponent: MultitouchArea {
         id: windowMoveAndResizeArea
 
         anchors.fill: parent
@@ -64,17 +63,12 @@ BaseContentWindow {
         }
     }
 
-    MultitouchArea {
+    contentComponent: MultitouchArea {
         id: contentInteractionArea
         visible: contentwindow.state === ContentWindow.SELECTED &&
                  contentwindow.border === ContentWindow.NOBORDER
 
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: windowRect.border.width
-        anchors.horizontalCenter: parent.horizontalCenter
-        width: parent.width - windowRect.widthOffset
-        height: parent.height - windowRect.heightOffset
-
+        anchors.fill: parent
         referenceItem: windowRect.parent
 
         onDoubleTap: toggleFocusMode()
@@ -91,6 +85,67 @@ BaseContentWindow {
         onSwipeRight: contentwindow.delegate.swipeRight()
         onSwipeUp: contentwindow.delegate.swipeUp()
         onSwipeDown: contentwindow.delegate.swipeDown()
+    }
+
+    previousButton.delegate: Triangle {
+        MultitouchArea {
+            anchors.fill: parent
+            onTap: contentwindow.delegate.swipeLeft()
+        }
+    }
+    nextButton.delegate: Triangle {
+        MultitouchArea {
+            anchors.fill: parent
+            onTap: contentwindow.delegate.swipeRight()
+        }
+    }
+
+    windowControlsList.header: Column {
+        CloseControlButton {
+            MultitouchArea {
+                anchors.fill: parent
+                onTap: closeWindow()
+            }
+        }
+        OneToOneControlButton {
+            MultitouchArea {
+                anchors.fill: parent
+                onTap: contentwindow.controller.adjustSizeOneToOne()
+            }
+        }
+        FocusControlButton {
+            MultitouchArea {
+                anchors.fill: parent
+                onTap: toggleFocusMode()
+            }
+        }
+    }
+
+    windowControlsList.delegate: WindowControlsDelegate {
+        MultitouchArea {
+            anchors.fill: parent
+            onTap: action.trigger()
+        }
+    }
+
+    resizeCirclesDelegate: ResizeCircle {
+        MultitouchArea {
+            anchors.fill: parent
+            referenceItem: windowRect.parent
+            panThreshold: 0
+
+            onPanStarted: {
+                contentwindow.border = parent.border
+                contentwindow.state = ContentWindow.RESIZING
+            }
+
+            onPan: contentwindow.controller.resizeRelative(delta)
+
+            onPanEnded: {
+                contentwindow.border = ContentWindow.NOBORDER
+                contentwindow.state = ContentWindow.NONE
+            }
+        }
     }
 
     ContentWindowButton {
@@ -129,76 +184,6 @@ BaseContentWindow {
             contentwindow.controller.resize(newSize)
         }
         mousearea.onReleased: contentwindow.state = ContentWindow.NONE
-    }
-
-    ResizeCircles {
-        resizeCirclesDelegate: touchBorderDelegate
-        Component {
-            id: touchBorderDelegate
-            ResizeCircle {
-                MultitouchArea
-                {
-                    anchors.fill: parent
-                    referenceItem: windowRect.parent
-                    panThreshold: 0
-
-                    onPanStarted: {
-                        contentwindow.border = parent.border
-                        contentwindow.state = ContentWindow.RESIZING
-                    }
-
-                    onPan: contentwindow.controller.resizeRelative(delta)
-
-                    onPanEnded: {
-                        contentwindow.border = ContentWindow.NOBORDER
-                        contentwindow.state = ContentWindow.NONE
-                    }
-                }
-            }
-        }
-    }
-
-    WindowControls {
-        listview.delegate: buttonDelegate
-        listview.header: fixedButtonsDelegate
-
-        Component {
-            id: fixedButtonsDelegate
-            Column {
-                CloseControlButton {
-                    MultitouchArea
-                    {
-                        anchors.fill: parent
-                        onTap: closeWindow()
-                    }
-                }
-                OneToOneControlButton {
-                    MultitouchArea
-                    {
-                        anchors.fill: parent
-                        onTap: contentwindow.controller.adjustSizeOneToOne()
-                    }
-                }
-                FocusControlButton {
-                    MultitouchArea
-                    {
-                        anchors.fill: parent
-                        onTap: toggleFocusMode()
-                    }
-                }
-            }
-        }
-
-        Component {
-            id: buttonDelegate
-            WindowControlsDelegate {
-                MultitouchArea
-                {
-                    anchors.fill: parent
-                    onTap: action.trigger()
-                }
-            }
-        }
     }
 
     Text {

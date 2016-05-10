@@ -3,6 +3,8 @@ Changelog {#Changelog}
 
 # git master (1.1.0)
 
+* [18](https://github.com/BlueBrain/Tide/pull/18):
+  Added side buttons to change PDF pages and navigate browser history
 * [15](https://github.com/BlueBrain/Tide/pull/15):
   Fix several issues with the touch events, including for Deflect streamers.
 * [14](https://github.com/BlueBrain/Tide/pull/14):

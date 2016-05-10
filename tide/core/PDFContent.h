@@ -41,11 +41,15 @@
 #define PDFCONTENT_H
 
 #include "VectorialContent.h"
+
 #include <boost/serialization/base_object.hpp>
+#include <boost/serialization/export.hpp>
 
 class PDFContent : public VectorialContent
 {
     Q_OBJECT
+    Q_PROPERTY( int page READ getPage NOTIFY pageChanged )
+    Q_PROPERTY( int pageCount READ getPageCount CONSTANT )
 
 public:
     /**
@@ -74,6 +78,9 @@ public:
     /** Get the current page number. */
     int getPage() const;
 
+    /** Get the total number of pages. */
+    int getPageCount() const;
+
 signals:
     /** Emitted when the page number is changed **/
     void pageChanged();
@@ -85,16 +92,43 @@ private:
     PDFContent();
     void _init();
 
-    template<class Archive>
-    void serialize( Archive & ar, const unsigned int )
+    /** Serialize for sending to Wall applications. */
+    template< class Archive >
+    void serialize( Archive & ar, const unsigned int /*version*/ )
     {
-        // serialize base class information (with NVP for xml archives)
+        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP( Content );
+        ar & _pageNumber;
+        ar & _pageCount;
+    }
+
+    /** Serialize for saving to an xml file */
+    template< class Archive >
+    void serialize_members_xml( Archive & ar, const unsigned int /*version*/ )
+    {
         ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP( Content );
         ar & boost::serialization::make_nvp( "pageNumber", _pageNumber );
+    }
+
+    /** Loading from xml. */
+    void serialize_for_xml( boost::archive::xml_iarchive& ar,
+                            const unsigned int version )
+    {
+        serialize_members_xml( ar, version );
+    }
+
+    /** Saving to xml. */
+    void serialize_for_xml( boost::archive::xml_oarchive& ar,
+                            const unsigned int version )
+    {
+        serialize_members_xml( ar, version );
     }
 
     int _pageNumber;
     int _pageCount;
 };
+
+DECLARE_SERIALIZE_FOR_XML( PDFContent )
+
+BOOST_CLASS_EXPORT_KEY( PDFContent )
 
 #endif // PDFCONTENT_H

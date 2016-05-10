@@ -41,10 +41,9 @@
 
 #include "PDF.h"
 
-#include "serializationHelpers.h"
-#include <boost/serialization/export.hpp>
+BOOST_CLASS_EXPORT_IMPLEMENT( PDFContent )
 
-BOOST_CLASS_EXPORT_GUID( PDFContent, "PDFContent" )
+IMPLEMENT_SERIALIZE_FOR_XML( PDFContent )
 
 PDFContent::PDFContent( const QString& uri )
     : VectorialContent( uri )
@@ -113,4 +112,9 @@ void PDFContent::previousPage()
 int PDFContent::getPage() const
 {
     return _pageNumber;
+}
+
+int PDFContent::getPageCount() const
+{
+    return _pageCount;
 }
