@@ -137,9 +137,11 @@ ContentPtr ContentFactory::getContent( const QString& uri )
     return ContentPtr();
 }
 
-ContentPtr ContentFactory::getPixelStreamContent(const QString& uri)
+ContentPtr
+ContentFactory::getPixelStreamContent( const QString& uri,
+                                       const bool showPreviousNextButtons )
 {
-    return ContentPtr(new PixelStreamContent(uri));
+    return ContentPtr( new PixelStreamContent( uri, showPreviousNextButtons ));
 }
 
 ContentPtr ContentFactory::getErrorContent( const QSize& size )

@@ -52,7 +52,6 @@ class PDFInteractionDelegate : public ZoomInteractionDelegate
 public:
     PDFInteractionDelegate( ContentWindow& contentWindow );
 
-    void tap( QPointF position ) override;
     void swipeLeft() override;
     void swipeRight() override;
 

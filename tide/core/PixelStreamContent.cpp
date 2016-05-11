@@ -46,8 +46,10 @@
 
 BOOST_CLASS_EXPORT_GUID( PixelStreamContent, "PixelStreamContent" )
 
-PixelStreamContent::PixelStreamContent( const QString& uri )
+PixelStreamContent::PixelStreamContent( const QString& uri,
+                                        const bool showPreviousNextButtons )
     : Content( uri )
+    , _showPreviousNextButtons( showPreviousNextButtons )
 {}
 
 CONTENT_TYPE PixelStreamContent::getType() const
@@ -63,4 +65,14 @@ bool PixelStreamContent::readMetadata()
 bool PixelStreamContent::hasFixedAspectRatio() const
 {
     return _uri == "dock";
+}
+
+int PixelStreamContent::getPage() const
+{
+    return _showPreviousNextButtons ? 1 : 0;
+}
+
+int PixelStreamContent::getPageCount() const
+{
+    return _showPreviousNextButtons ? 3 : 0;
 }

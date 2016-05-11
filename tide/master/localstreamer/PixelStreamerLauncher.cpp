@@ -84,7 +84,7 @@ void PixelStreamerLauncher::openWebBrowser( const QPointF pos, const QSize size,
     const QString& uri = QString( "WebBrowser_%1" ).arg( webbrowserCounter++ );
 
     const QSize viewportSize = !size.isEmpty() ? size : WEBBROWSER_DEFAULT_SIZE;
-    _windowManager.openWindow( uri, pos, viewportSize );
+    _windowManager.openWindow( uri, pos, viewportSize, true );
 
     CommandLineOptions options;
     options.setPixelStreamerType( PS_WEBKIT );

@@ -94,8 +94,11 @@ public:
      * @param pos the desired position for the center of the window in pixels.
      *        If pos.isNull(), the window is centered on the DisplayGroup.
      * @param size the desired size of the window in pixels.
+     * @param showPreviousNextButtons display the previous-next buttons, for
+     *        example for a webbrowser.
      */
-    void openWindow( const QString& uri, const QPointF& pos, const QSize& size);
+    void openWindow( const QString& uri, const QPointF& pos, const QSize& size,
+                     bool showPreviousNextButtons = false );
 
     /** Check if new windows open in focus mode. */
     bool getAutoFocusNewWindows() const;
