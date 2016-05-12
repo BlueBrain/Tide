@@ -43,7 +43,7 @@ common_find_package(Qt5XmlPatterns REQUIRED)
 common_find_package(Qt5Xml REQUIRED)
 common_find_package(ZeroEQ)
 
-if(ZeroEQ_FOUND)
+if(TARGET ZeroEQ)
   option(TIDE_ENABLE_REST_INTERFACE "Enable Tide's REST interface using ZeroEQ" ON)
 endif()
 
