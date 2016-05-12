@@ -99,7 +99,8 @@ void PixelStreamWindowManager::showWindow( const QString& uri )
 
 void PixelStreamWindowManager::openWindow( const QString& uri,
                                            const QPointF& pos,
-                                           const QSize& size )
+                                           const QSize& size,
+                                           const bool showPreviousNextButtons )
 {
     if( getContentWindow( uri ))
     {
@@ -118,7 +119,8 @@ void PixelStreamWindowManager::openWindow( const QString& uri,
     const auto type = _isPanel( uri ) ? ContentWindow::PANEL :
                                         ContentWindow::DEFAULT;
 
-    ContentPtr content = ContentFactory::getPixelStreamContent( uri );
+    ContentPtr content =
+          ContentFactory::getPixelStreamContent( uri, showPreviousNextButtons );
     if( size.isValid( ))
         content->setDimensions( size );
     ContentWindowPtr window( new ContentWindow( content, type ));

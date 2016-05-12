@@ -15,6 +15,14 @@ Rectangle {
     property real xOffset: border.width
     property real yOffset: titleBar.visible ? titleBar.height : border.width
 
+    property alias backgroundComponent: backgroundLoader.sourceComponent
+    property alias contentComponent: contentBackgroundLoader.sourceComponent
+    property alias contentArea: contentArea
+    property alias windowControlsList: windowControls.listview
+    property alias resizeCirclesDelegate: resizeCircles.delegate
+    property alias previousButton: previousButton
+    property alias nextButton: nextButton
+
     border.color: Style.windowBorderDefaultColor
     border.width: options.showWindowBorders && !isBackground ? Style.windowBorderWidth : 0
 
@@ -44,6 +52,57 @@ Rectangle {
             text: contentwindow.label
             font { family: "qrc::gotham-book"; pixelSize: Style.windowTitleFontSize }
         }
+    }
+
+    Loader {
+        id: backgroundLoader
+        anchors.fill: parent
+    }
+
+    Item {
+        id: contentArea
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: windowRect.border.width
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: parent.width - windowRect.widthOffset
+        height: parent.height - windowRect.heightOffset
+        clip: true
+
+        Loader {
+            id: contentBackgroundLoader
+            anchors.fill: parent
+        }
+
+        SideButton {
+            id: previousButton
+            color: windowRect.border.color
+            delegate: Triangle {
+            }
+            delegateOverflow: windowRect.border.width
+            visible: (contentwindow.controlsVisible || contentwindow.focused) &&
+                     contentwindow.content.page !== undefined &&
+                     contentwindow.content.page > 0
+        }
+
+        SideButton {
+            id: nextButton
+            color: windowRect.border.color
+            delegate: Triangle {
+            }
+            delegateOverflow: windowRect.border.width
+            flipRight: true
+            visible: (contentwindow.controlsVisible || contentwindow.focused) &&
+                     contentwindow.content.page !== undefined &&
+                     contentwindow.content.page < contentwindow.content.pageCount - 1
+        }
+    }
+
+    WindowControls {
+        id: windowControls
+    }
+
+    ResizeCircles {
+        id: resizeCircles
     }
 
     states: [

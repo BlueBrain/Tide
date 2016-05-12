@@ -26,6 +26,7 @@ Rectangle {
         anchors.centerIn: parent
         orientation: ListView.Vertical
         header: fixedButtonsDelegate
+        interactive: false // disable flickable behaviour
 
         Component {
             id: fixedButtonsDelegate

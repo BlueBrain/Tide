@@ -42,5 +42,7 @@
         <file>style.js</file>
         <file>WindowControlsDelegate.qml</file>
         <file>WindowControls.qml</file>
+        <file>Triangle.qml</file>
+        <file>SideButton.qml</file>
     </qresource>
 </RCC>

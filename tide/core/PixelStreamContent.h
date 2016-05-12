@@ -47,12 +47,16 @@
 
 class PixelStreamContent : public Content
 {
+    Q_OBJECT
+    Q_PROPERTY( int page READ getPage CONSTANT )
+    Q_PROPERTY( int pageCount READ getPageCount CONSTANT )
+
 public:
     /**
      * Constructor.
      * @param uri The unique stream identifier.
      */
-    explicit PixelStreamContent( const QString& uri );
+    PixelStreamContent( const QString& uri, bool showPreviousNextButtons );
 
     /** Get the content type **/
     CONTENT_TYPE getType() const override;
@@ -66,6 +70,12 @@ public:
     /** @return true if the streamer can handle aspect ratio changes. */
     bool hasFixedAspectRatio() const override;
 
+    /** Get the current page number. */
+    int getPage() const;
+
+    /** Get the total number of pages. */
+    int getPageCount() const;
+
 private:
     friend class boost::serialization::access;
 
@@ -77,7 +87,11 @@ private:
     {
         // serialize base class information (with NVP for xml archives)
         ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP( Content );
+        ar & boost::serialization::make_nvp( "showPreviousNextButtons",
+                                             _showPreviousNextButtons );
     }
+
+    bool _showPreviousNextButtons = false;
 };
 
 #endif

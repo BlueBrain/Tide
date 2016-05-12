@@ -55,7 +55,8 @@ public:
     static ContentPtr getContent( const QString& uri );
 
     /** Special case: PixelStreamContent type cannot be derived from its uri. */
-    static ContentPtr getPixelStreamContent( const QString& uri );
+    static ContentPtr getPixelStreamContent( const QString& uri,
+                                             bool showPreviousNextButtons );
 
     /** Get a Content object representing a loading error. */
     static ContentPtr getErrorContent( const QSize& size = QSize( ));

@@ -36,6 +36,11 @@ var windowBorderSelectedColor = "#FCEE21";
 var windowBorderMovingColor= "#F2F2F2";
 var windowBorderResizingColor = "#F2F2F2";
 
+var windowSideButtonWidth = 64;
+var windowSideButtonTriangleHeight = 135;
+var windowSideButtonNarrowHeight = 90;
+var windowSideButtonArrowColor = "black";
+
 var zoomContextBorderColor = "white";
 var zoomContextBackgroundColor = "black"
 var zoomContextBorderWidth = 5;
