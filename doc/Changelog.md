@@ -3,6 +3,8 @@ Changelog {#Changelog}
 
 # git master (1.1.0)
 
+* [22](https://github.com/BlueBrain/Tide/pull/22):
+  Detect TapAndHold with the mouse
 * [21](https://github.com/BlueBrain/Tide/pull/21):
   Bugfix: avoid setting ContentSize to zero on empty deflect::SizeHints event
 * [18](https://github.com/BlueBrain/Tide/pull/18):
