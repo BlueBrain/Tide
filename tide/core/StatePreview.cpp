@@ -105,7 +105,8 @@ void StatePreview::generateImage( const QSize& wallDimensions,
     // Paint all Contents at their correct location
     BOOST_FOREACH( ContentWindowPtr window, contentWindows )
     {
-        if( window->getContent()->getType() == CONTENT_TYPE_PIXEL_STREAM )
+        if( window->getContent()->getType() == CONTENT_TYPE_PIXEL_STREAM ||
+            window->getContent()->getType() == CONTENT_TYPE_WEBBROWSER )
             continue;
 
         const QRectF& winCoord = window->getCoordinates();

@@ -1,6 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>     */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -38,26 +37,28 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef CONTENTTYPE_H
-#define CONTENTTYPE_H
+#include "WebbrowserContent.h"
 
-#include <QString>
+#include <boost/serialization/export.hpp>
+#include "serializationHelpers.h"
 
-enum CONTENT_TYPE
+BOOST_CLASS_EXPORT_GUID( WebbrowserContent, "WebbrowserContent" )
+
+WebbrowserContent::WebbrowserContent( const QString& uri )
+    : PixelStreamContent( uri )
+{}
+
+CONTENT_TYPE WebbrowserContent::getType() const
 {
-    CONTENT_TYPE_ANY,
-    CONTENT_TYPE_DYNAMIC_TEXTURE,
-    CONTENT_TYPE_MOVIE,
-    CONTENT_TYPE_PIXEL_STREAM,
-    CONTENT_TYPE_SVG,
-    CONTENT_TYPE_TEXTURE,
-    CONTENT_TYPE_PDF,
-    CONTENT_TYPE_WEBBROWSER
-};
+    return CONTENT_TYPE_WEBBROWSER;
+}
 
-QString getContentTypeString( const CONTENT_TYPE type );
+int WebbrowserContent::getPage() const
+{
+    return 1;
+}
 
-CONTENT_TYPE getContentType( const QString& typeString );
-
-
-#endif
+int WebbrowserContent::getPageCount() const
+{
+    return 3;
+}

@@ -100,7 +100,7 @@ void PixelStreamWindowManager::showWindow( const QString& uri )
 void PixelStreamWindowManager::openWindow( const QString& uri,
                                            const QPointF& pos,
                                            const QSize& size,
-                                           const bool showPreviousNextButtons )
+                                           const bool webbrowser )
 {
     if( getContentWindow( uri ))
     {
@@ -119,8 +119,10 @@ void PixelStreamWindowManager::openWindow( const QString& uri,
     const auto type = _isPanel( uri ) ? ContentWindow::PANEL :
                                         ContentWindow::DEFAULT;
 
-    ContentPtr content =
-          ContentFactory::getPixelStreamContent( uri, showPreviousNextButtons );
+    ContentPtr content = webbrowser ?
+                ContentFactory::getWebbrowserContent( uri ) :
+                ContentFactory::getPixelStreamContent( uri );
+
     if( size.isValid( ))
         content->setDimensions( size );
     ContentWindowPtr window( new ContentWindow( content, type ));
@@ -184,7 +186,8 @@ void PixelStreamWindowManager::registerEventReceiver( const QString uri,
 
 void PixelStreamWindowManager::onContentWindowRemoved( ContentWindowPtr window )
 {
-    if( window->getContent()->getType() != CONTENT_TYPE_PIXEL_STREAM )
+    const auto type = window->getContent()->getType();
+    if( type != CONTENT_TYPE_PIXEL_STREAM && type != CONTENT_TYPE_WEBBROWSER )
         return;
 
     const QString& uri = window->getContent()->getURI();

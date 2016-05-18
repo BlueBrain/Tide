@@ -281,6 +281,7 @@ void ContentWindow::createInteractionDelegate()
     switch ( content_->getType( ))
     {
     case CONTENT_TYPE_PIXEL_STREAM:
+    case CONTENT_TYPE_WEBBROWSER:
         interactionDelegate_.reset( new PixelStreamInteractionDelegate( *this ));
         break;
     case CONTENT_TYPE_MOVIE:

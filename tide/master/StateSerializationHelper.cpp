@@ -170,8 +170,12 @@ void StateSerializationHelper::_validateContents( DisplayGroup& group ) const
             continue;
         }
 
-        // PixelStreams are not supported, don't restore them.
+        // PixelStreams are external applications and can't be restored.
         if( content->getType() == CONTENT_TYPE_PIXEL_STREAM )
+            continue;
+
+        // Webbrowsers are not supported yet, don't restore them.
+        if( content->getType() == CONTENT_TYPE_WEBBROWSER )
             continue;
 
         // Some regular textures were saved as DynamicTexture type before the

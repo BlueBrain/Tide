@@ -1,6 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>     */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -38,26 +37,49 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef CONTENTTYPE_H
-#define CONTENTTYPE_H
+#ifndef WEBBROWSER_CONTENT_H
+#define WEBBROWSER_CONTENT_H
 
-#include <QString>
+#include "PixelStreamContent.h"
+#include <boost/serialization/base_object.hpp>
 
-enum CONTENT_TYPE
+/**
+ * The Webbrowser is a PixelStream extended with history navigation.
+ */
+class WebbrowserContent : public PixelStreamContent
 {
-    CONTENT_TYPE_ANY,
-    CONTENT_TYPE_DYNAMIC_TEXTURE,
-    CONTENT_TYPE_MOVIE,
-    CONTENT_TYPE_PIXEL_STREAM,
-    CONTENT_TYPE_SVG,
-    CONTENT_TYPE_TEXTURE,
-    CONTENT_TYPE_PDF,
-    CONTENT_TYPE_WEBBROWSER
+    Q_OBJECT
+    Q_PROPERTY( int page READ getPage CONSTANT )
+    Q_PROPERTY( int pageCount READ getPageCount CONSTANT )
+
+public:
+    /**
+     * Constructor.
+     * @param uri The unique stream identifier.
+     */
+    explicit WebbrowserContent( const QString& uri );
+
+    /** Get the content type **/
+    CONTENT_TYPE getType() const override;
+
+    /** Get the index of the page navigation history (currently fixed). */
+    int getPage() const;
+
+    /** Get the number of pages in the navigation history (currently fixed). */
+    int getPageCount() const;
+
+private:
+    friend class boost::serialization::access;
+
+    // Default constructor required for boost::serialization
+    WebbrowserContent() {}
+
+    template<class Archive>
+    void serialize( Archive & ar, const unsigned int )
+    {
+        // serialize base class information (with NVP for xml archives)
+        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP( PixelStreamContent );
+    }
 };
-
-QString getContentTypeString( const CONTENT_TYPE type );
-
-CONTENT_TYPE getContentType( const QString& typeString );
-
 
 #endif
