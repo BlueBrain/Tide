@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -44,19 +44,20 @@
 #include "ContentType.h"
 
 #include <QStringList>
-#include <boost/shared_ptr.hpp>
 
 class Content;
 
 class ContentFactory
 {
 public:
-    /** Get a Content object of the appropriate derived type based on the URI given. */
+    /** Get a Content of the appropriate type based on the given URI. */
     static ContentPtr getContent( const QString& uri );
 
     /** Special case: PixelStreamContent type cannot be derived from its uri. */
-    static ContentPtr getPixelStreamContent( const QString& uri,
-                                             bool showPreviousNextButtons );
+    static ContentPtr getPixelStreamContent( const QString& uri );
+
+    /** Create a Webbrowser Content (special type of PixelStream). */
+    static ContentPtr getWebbrowserContent( const QString& uri );
 
     /** Get a Content object representing a loading error. */
     static ContentPtr getErrorContent( const QSize& size = QSize( ));

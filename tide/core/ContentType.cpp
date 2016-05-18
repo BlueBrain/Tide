@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>     */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -50,7 +51,8 @@ static TypeMap typemap = boost::assign::list_of< TypeMap::relation >
         (CONTENT_TYPE_PIXEL_STREAM, QString("CONTENT_TYPE_PIXEL_STREAM"))
         (CONTENT_TYPE_SVG, QString("CONTENT_TYPE_SVG"))
         (CONTENT_TYPE_TEXTURE, QString("CONTENT_TYPE_TEXTURE"))
-        (CONTENT_TYPE_PDF, QString("CONTENT_TYPE_PDF"));
+        (CONTENT_TYPE_PDF, QString("CONTENT_TYPE_PDF"))
+        (CONTENT_TYPE_WEBBROWSER, QString("CONTENT_TYPE_WEBBROWSER"));
 
 QString getContentTypeString( const CONTENT_TYPE type )
 {

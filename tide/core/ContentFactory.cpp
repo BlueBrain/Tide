@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -51,6 +51,7 @@
 #  include "PDFContent.h"
 #endif
 #include "PixelStreamContent.h"
+#include "WebbrowserContent.h"
 
 #include <QFile>
 #include <QFileInfo>
@@ -137,11 +138,14 @@ ContentPtr ContentFactory::getContent( const QString& uri )
     return ContentPtr();
 }
 
-ContentPtr
-ContentFactory::getPixelStreamContent( const QString& uri,
-                                       const bool showPreviousNextButtons )
+ContentPtr ContentFactory::getPixelStreamContent( const QString& uri )
 {
-    return ContentPtr( new PixelStreamContent( uri, showPreviousNextButtons ));
+    return ContentPtr( new PixelStreamContent( uri ));
+}
+
+ContentPtr ContentFactory::getWebbrowserContent( const QString& uri )
+{
+    return ContentPtr( new WebbrowserContent( uri ));
 }
 
 ContentPtr ContentFactory::getErrorContent( const QSize& size )

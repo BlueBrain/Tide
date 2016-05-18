@@ -64,6 +64,7 @@ ContentSynchronizerPtr ContentSynchronizer::create( ContentPtr content )
     case CONTENT_TYPE_MOVIE:
         return make_unique<MovieSynchronizer>( uri );
     case CONTENT_TYPE_PIXEL_STREAM:
+    case CONTENT_TYPE_WEBBROWSER:
         return make_unique<PixelStreamSynchronizer>();
 #if TIDE_ENABLE_PDF_SUPPORT
     case CONTENT_TYPE_PDF:

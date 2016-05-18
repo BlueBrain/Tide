@@ -87,6 +87,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   VectorialContent.h
   WallFromMasterChannel.h
   WallToMasterChannel.h
+  WebbrowserContent.h
   ZoomHelper.h
   ZoomInteractionDelegate.h
 )
@@ -142,6 +143,7 @@ list(APPEND TIDECORE_SOURCES
   VectorialContent.cpp
   WallFromMasterChannel.cpp
   WallToMasterChannel.cpp
+  WebbrowserContent.cpp
   ZoomHelper.cpp
   ZoomInteractionDelegate.cpp
   resources/core.qrc
