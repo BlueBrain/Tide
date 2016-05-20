@@ -229,13 +229,16 @@ void PixelStreamWindowManager::updateSizeHints( const QString uri,
     if( !contentWindow )
         return;
 
+    contentWindow->getContent()->setSizeHints( hints );
+
     const QSize size( hints.preferredWidth, hints.preferredHeight );
+    if( size.isEmpty( ))
+        return;
 
    // External streamers might not have reported an initial size yet
     if( contentWindow->getContent()->getDimensions().isEmpty( ))
         contentWindow->getContent()->setDimensions( size );
 
-    contentWindow->getContent()->setSizeHints( hints );
     ContentWindowController controller( *contentWindow, _displayGroup );
     controller.adjustSize( SIZE_1TO1 );
 }

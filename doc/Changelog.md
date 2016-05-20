@@ -3,6 +3,8 @@ Changelog {#Changelog}
 
 # git master (1.1.0)
 
+* [21](https://github.com/BlueBrain/Tide/pull/21):
+  Bugfix: avoid setting ContentSize to zero on empty deflect::SizeHints event
 * [18](https://github.com/BlueBrain/Tide/pull/18):
   Added side buttons to change PDF pages and navigate browser history
 * [15](https://github.com/BlueBrain/Tide/pull/15):
