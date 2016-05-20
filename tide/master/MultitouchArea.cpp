@@ -125,6 +125,8 @@ void MultitouchArea::mousePressEvent( QMouseEvent* mouse )
 
      _mousePrevPos = pos;
      emit touchStarted( pos );
+
+     _startTapAndHoldGesture();
 }
 
 void MultitouchArea::mouseMoveEvent( QMouseEvent* mouse )
@@ -133,6 +135,8 @@ void MultitouchArea::mouseMoveEvent( QMouseEvent* mouse )
 
     const QPointF delta = pos - _mousePrevPos;
     _mousePrevPos = pos;
+
+    _cancelTapAndHoldGesture();
 
     _startPanGesture( pos );
     emit pan( pos, delta );
@@ -145,6 +149,8 @@ void MultitouchArea::mouseReleaseEvent( QMouseEvent* mouse )
          emit tap( pos );
 
     _cancelPanGesture();
+    _cancelTapAndHoldGesture();
+
      emit touchEnded( pos );
 }
 
