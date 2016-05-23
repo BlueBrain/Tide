@@ -119,6 +119,7 @@ void Options::setShowClock( const bool set )
         return;
 
     showClock_ = set;
+    emit showClockChanged( set );
     emit( updated( shared_from_this( )));
 }
 

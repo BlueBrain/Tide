@@ -106,6 +106,11 @@ void DisplayGroupView::setDataModel( DisplayGroupPtr displayGroup )
     auto wallObject = rootObject()->findChild<QQuickItem*>( WALL_OBJECT_NAME );
     displayGroupItem_->setParentItem( wallObject );
 
+    connect( displayGroupItem_, SIGNAL( launcherControlPressed( )),
+             this, SIGNAL( launcherControlPressed( )));
+    connect( displayGroupItem_, SIGNAL( settingsControlsPressed( )),
+             this, SIGNAL( settingsControlsPressed( )));
+
     ContentWindowPtrs contentWindows = displayGroup_->getContentWindows();
     for( ContentWindowPtr contentWindow : contentWindows )
         add( contentWindow );

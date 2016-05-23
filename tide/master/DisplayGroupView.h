@@ -83,6 +83,12 @@ signals:
     /** Emitted when a user taps and holds the background. */
     void backgroundTapAndHold( QPointF pos );
 
+    /** Emitted when a user taps the launcher control. */
+    void launcherControlPressed();
+
+    /** Emitted when a user taps the settings control. */
+    void settingsControlsPressed();
+
 protected:
     /** Re-implement QWindow event to capture tab key. */
     bool event( QEvent* event ) override;

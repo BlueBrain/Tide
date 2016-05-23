@@ -188,6 +188,8 @@ void MasterWindow::_setupMasterWindowUI()
     showClockAction->setChecked( _options->getShowClock( ));
     connect( showClockAction, &QAction::toggled, _options.get(),
              &Options::setShowClock );
+    connect( _options.get(), &Options::showClockChanged,
+             showClockAction, &QAction::setChecked );
 
     // show window borders action
     QAction* showWindowBordersAction = new QAction("Show Window Borders", this);
@@ -320,6 +322,26 @@ void MasterWindow::_setupMasterWindowUI()
              this, &MasterWindow::hideLauncher );
     connect( _displayGroupView, &DisplayGroupView::backgroundTapAndHold,
              this, &MasterWindow::openLauncher );
+
+    // Forward controls touch events
+    connect( _displayGroupView, &DisplayGroupView::launcherControlPressed,
+             [this]()
+    {
+        for( auto win : _displayGroup->getContentWindows( ))
+        {
+            if( win->isPanel() && !win->isHidden( ))
+            {
+                emit hideLauncher();
+                return;
+            }
+        }
+        emit openLauncher();
+    });
+    connect( _displayGroupView, &DisplayGroupView::settingsControlsPressed,
+             [this]()
+    {
+        _options->setShowClock( !_options->getShowClock( ));
+    });
 
     // Forward control panel actions
     connect( &_displayGroupView->getControlPanel(), &QmlControlPanel::openContentPanel,
