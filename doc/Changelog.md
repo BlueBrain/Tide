@@ -3,6 +3,8 @@ Changelog {#Changelog}
 
 # git master (1.1.0)
 
+* [24](https://github.com/BlueBrain/Tide/pull/24):
+  Bugfix: Correctly setup Webbrowser proxy from 'http_proxy' ENV VAR
 * [23](https://github.com/BlueBrain/Tide/pull/23):
   Replaced the Dock with a new Qml Launcher and a side control panel to open it
   [DISCL-313] and [DISCL-316]. The Launcher improves the user experience and

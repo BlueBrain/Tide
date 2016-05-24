@@ -45,6 +45,8 @@
 #include "localstreamer/CommandLineOptions.h"
 
 #include <QTimer>
+#include <QNetworkProxy>
+
 #include <iostream>
 
 #define TIDE_STREAM_HOST_ADDRESS "localhost"
@@ -55,6 +57,13 @@ Application::Application(int &argc_, char **argv_)
     , _pixelStreamer(0)
     , _deflectStream(0)
 {
+    // Correctly setup the proxy from the 'http_proxy' environment variable
+    const QUrl url( qgetenv( "http_proxy" ).constData( ));
+    if( url.scheme() == "http" )
+    {
+        QNetworkProxy proxy( QNetworkProxy::HttpProxy, url.host(), url.port( ));
+        QNetworkProxy::setApplicationProxy( proxy );
+    }
 }
 
 Application::~Application()
