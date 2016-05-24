@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -55,7 +55,6 @@ BOOST_AUTO_TEST_CASE( testCommandLineDefaults )
     BOOST_CHECK( !options.getHelp() );
     BOOST_CHECK_EQUAL( options.getStreamname().toStdString(), "" );
     BOOST_CHECK_EQUAL( options.getPixelStreamerType(), PS_UNKNOWN );
-    BOOST_CHECK_EQUAL( options.getRootDir().toStdString(), "" );
     BOOST_CHECK_EQUAL( options.getUrl().toStdString(), "" );
     BOOST_CHECK_EQUAL( options.getConfiguration().toStdString(), "" );
 
@@ -71,7 +70,6 @@ void setOptionParameters( CommandLineOptions& options )
     options.setHelp( true );
     options.setStreamname( "MyStreamer" );
     options.setPixelStreamerType( PS_WEBKIT );
-    options.setRootDir( "/home/me/my_folder" );
     options.setUrl( "http://www.perdu.com" );
     options.setHeight( 640 );
     options.setWidth( 480 );
@@ -83,7 +81,6 @@ void checkOptionParameters( const CommandLineOptions& options )
     BOOST_CHECK( options.getHelp() );
     BOOST_CHECK_EQUAL( options.getStreamname().toStdString(), "MyStreamer" );
     BOOST_CHECK_EQUAL( options.getPixelStreamerType(), PS_WEBKIT );
-    BOOST_CHECK_EQUAL( options.getRootDir().toStdString(), "/home/me/my_folder" );
     BOOST_CHECK_EQUAL( options.getUrl().toStdString(), "http://www.perdu.com" );
     BOOST_CHECK_EQUAL( options.getHeight(), 640 );
     BOOST_CHECK_EQUAL( options.getWidth(), 480 );
@@ -93,7 +90,6 @@ void checkOptionParameters( const CommandLineOptions& options )
     BOOST_CHECK_EQUAL( options.getCommandLine().toStdString(),
                        "--type webkit --width 480 --height 640 --help "
                        "--streamname MyStreamer --url http://www.perdu.com "
-                       "--rootdir /home/me/my_folder "
                        "--config /path/to/configuration.xml" );
 }
 

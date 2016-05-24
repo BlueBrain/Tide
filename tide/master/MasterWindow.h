@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -77,23 +77,8 @@ public:
     QAction* getAutoFocusPixelStreamsAction();
 
 signals:
-    /** Emitted when users want to open a dock. */
-    void openDock( QPointF pos );
-
-    /** Emitted when users want to hide the dock. */
-    void hideDock();
-
-    /** Emitted when users want to open a content. */
-    void openContentLoader( QPointF pos );
-
-    /** Emitted when users want to open a session. */
-    void openSessionLoader( QPointF pos );
-
     /** Emitted when users want to open a webbrowser. */
     void openWebBrowser( QPointF pos, QSize size, QString url );
-
-    /** Emitted when users want to open an application. */
-    void openAppLauncher( QPointF pos );
 
     /** Emitted when users want to open the launcher. */
     void openLauncher();
@@ -123,11 +108,11 @@ private:
     void _setupMasterWindowUI();
 
     void _addContentDirectory( const QString& directoryName,
-                              unsigned int gridX = 0, unsigned int gridY = 0 );
+                               unsigned int gridX = 0, unsigned int gridY = 0 );
     void _loadState( const QString &filename );
 
     void _estimateGridSize( unsigned int numElem, unsigned int& gridX,
-                           unsigned int& gridY );
+                            unsigned int& gridY );
 
     QStringList _extractValidContentUrls( const QMimeData* mimeData );
     QStringList _extractFolderUrls( const QMimeData* mimeData );

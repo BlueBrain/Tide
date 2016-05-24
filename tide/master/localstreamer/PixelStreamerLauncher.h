@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2015, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -69,9 +69,6 @@ public:
     PixelStreamerLauncher( PixelStreamWindowManager& windowManager,
                            const MasterConfiguration& config );
 
-    static const QString appLauncherUri;
-    static const QString contentLoaderUri;
-    static const QString sessionLoaderUri;
     static const QString launcherUri;
 
 public slots:
@@ -84,38 +81,6 @@ public slots:
      * @param url The webpage to open.
      */
     void openWebBrowser( QPointF pos, QSize size, QString url );
-
-    /**
-     * Open the Dock using default parameters.
-     *
-     * A new dock instance is created if it was closed, otherwise the existing
-     * Dock instance is moved to the given position.
-     * @param pos The position of the center of the Dock
-     */
-    void openDock( QPointF pos );
-
-    /** Hide the Dock. */
-    void hideDock();
-
-    /**
-     * Open the Content loader.
-     * @param pos The position of the top-left corner of the panel
-     */
-    void openContentLoader( QPointF pos );
-
-    /**
-     * Open the Session loader.
-     * @param pos The position of the top-left corner of the panel
-     */
-    void openSessionLoader( QPointF pos );
-
-    /**
-     * Open the Applications launcher.
-     * @param pos The position of the top-left corner of the panel
-     * @return true on success, false on error or if the path to the AppLauncher
-     *         QML file is not defined in the configuration
-     */
-    bool openAppLauncher( QPointF pos );
 
     /** Open the Qml launcher. */
     void openLauncher();
@@ -139,10 +104,7 @@ private:
     PixelStreamWindowManager& _windowManager;
     const MasterConfiguration& _config;
 
-    bool _createDock( const QString& uri, const QSize& size,
-                      const QString& rootDir );
     QString _getLocalStreamerBin() const;
-    QString _getQmlStreamerBin() const;
     QString _getLauncherBin() const;
 };
 

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2015, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /*                     Daniel.Nachbaur@epfl.ch                       */
 /* All rights reserved.                                              */
@@ -62,18 +62,11 @@
 #include "StateSerializationHelper.h"
 #include "PixelStreamWindowManager.h"
 
-#include "SessionCommandHandler.h"
-#include "FileCommandHandler.h"
-#ifdef TIDE_USE_QT5WEBKITWIDGETS
-#  include "WebbrowserCommandHandler.h"
-#endif
-
 #ifdef TIDE_ENABLE_REST_INTERFACE
 #  include "ContentLoader.h"
 #  include "rest/RestInterface.h"
 #endif
 
-#include <deflect/CommandHandler.h>
 #include <deflect/EventReceiver.h>
 #include <deflect/FrameDispatcher.h>
 #include <deflect/Server.h>
@@ -191,19 +184,6 @@ void MasterApplication::startDeflectServer()
     connect( pixelStreamWindowManager_.get(),
              &PixelStreamWindowManager::pixelStreamWindowClosed,
              &dispatcher, &deflect::FrameDispatcher::deleteStream );
-
-    deflect::CommandHandler& handler = deflectServer_->getCommandHandler();
-    handler.registerCommandHandler(
-            new FileCommandHandler( displayGroup_, *pixelStreamWindowManager_));
-    handler.registerCommandHandler(
-                new SessionCommandHandler( *displayGroup_ ));
-
-#ifdef TIDE_USE_QT5WEBKITWIDGETS
-    const QString& url = config_->getWebBrowserDefaultURL();
-    handler.registerCommandHandler(
-                new WebbrowserCommandHandler( *pixelStreamWindowManager_,
-                                              *pixelStreamerLauncher_, url ));
-#endif
 }
 
 void MasterApplication::restoreBackground()
@@ -230,25 +210,12 @@ void MasterApplication::initPixelStreamLauncher()
              &MasterWindow::openWebBrowser,
              pixelStreamerLauncher_.get(),
              &PixelStreamerLauncher::openWebBrowser );
-    connect( masterWindow_.get(), &MasterWindow::openDock,
-             pixelStreamerLauncher_.get(), &PixelStreamerLauncher::openDock );
-    connect( masterWindow_.get(), &MasterWindow::hideDock,
-             pixelStreamerLauncher_.get(), &PixelStreamerLauncher::hideDock );
-
-    connect( masterWindow_.get(), &MasterWindow::openAppLauncher,
-             pixelStreamerLauncher_.get(),
-             &PixelStreamerLauncher::openAppLauncher );
-    connect( masterWindow_.get(), &MasterWindow::openContentLoader,
-             pixelStreamerLauncher_.get(),
-             &PixelStreamerLauncher::openContentLoader );
-    connect( masterWindow_.get(), &MasterWindow::openSessionLoader,
-             pixelStreamerLauncher_.get(),
-             &PixelStreamerLauncher::openSessionLoader );
-
     connect( masterWindow_.get(), &MasterWindow::openLauncher,
-             pixelStreamerLauncher_.get(), &PixelStreamerLauncher::openLauncher );
+             pixelStreamerLauncher_.get(),
+             &PixelStreamerLauncher::openLauncher );
     connect( masterWindow_.get(), &MasterWindow::hideLauncher,
-             pixelStreamerLauncher_.get(), &PixelStreamerLauncher::hideLauncher );
+             pixelStreamerLauncher_.get(),
+             &PixelStreamerLauncher::hideLauncher );
 }
 
 void MasterApplication::initMPIConnection()

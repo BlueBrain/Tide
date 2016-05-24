@@ -69,7 +69,6 @@ DisplayGroupView::DisplayGroupView( OptionsPtr options,
 
     rootContext()->setContextProperty( "options", options.get( ));
     rootContext()->setContextProperty( "view", this );
-    rootContext()->setContextProperty( "cppcontrolpanel", &controlPanel_ );
 
     setSource( QML_BACKGROUND_URL );
 
@@ -124,11 +123,6 @@ void DisplayGroupView::setDataModel( DisplayGroupPtr displayGroup )
     connect( displayGroup_.get(),
              SIGNAL( contentWindowMovedToFront( ContentWindowPtr )),
              this, SLOT( moveToFront( ContentWindowPtr )));
-}
-
-QmlControlPanel& DisplayGroupView::getControlPanel()
-{
-    return controlPanel_;
 }
 
 QPointF DisplayGroupView::mapToWallPos( const QPointF& normalizedPos ) const

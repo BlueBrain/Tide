@@ -1,5 +1,5 @@
 
-# Copyright (c) 2013-2015, EPFL/Blue Brain Project
+# Copyright (c) 2013-2016, EPFL/Blue Brain Project
 #                     Raphael Dumusc <raphael.dumusc@epfl.ch>
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
@@ -69,7 +69,6 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   Options.h
   PixelStreamContent.h
   PixelStreamInteractionDelegate.h
-  QmlControlPanel.h
   QmlTypeRegistration.h
   QtImage.h
   StatePreview.h
@@ -128,7 +127,6 @@ list(APPEND TIDECORE_SOURCES
   Options.cpp
   PixelStreamContent.cpp
   PixelStreamInteractionDelegate.cpp
-  QmlControlPanel.cpp
   QtImage.cpp
   StatePreview.cpp
   SVGContent.cpp

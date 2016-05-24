@@ -6,7 +6,6 @@ Item {
     id: displaygroupitem
 
     property alias showFocusContext: focuscontext.visible
-    property alias controlPanel: controlPanel
     property alias sideControl: sideControl
 
     width: displaygroup.width
@@ -40,13 +39,9 @@ Item {
         }
     }
 
-    ControlPanel {
-        id: controlPanel
-        property alias buttonDelegate: controlPanel.buttonDelegate
-    }
-
     SideControl {
         id: sideControl
         z: Style.sideControlZorder
+        visible: options.showControlArea
     }
 }

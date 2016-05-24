@@ -48,7 +48,7 @@ BackgroundWidget::BackgroundWidget( MasterConfiguration& configuration,
                                     QWidget* parent_ )
     : QDialog( parent_ )
     , configuration_( configuration )
-    , backgroundFolder_( configuration.getDockStartDir( ))
+    , backgroundFolder_( configuration.getContentDir( ))
 {
     setWindowTitle( tr( "Background settings" ));
 

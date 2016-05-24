@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2106, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -45,17 +45,16 @@
 typedef boost::bimap< PixelStreamerType, QString > TypeMap;
 static TypeMap typemap = boost::assign::list_of< TypeMap::relation >
         (PS_UNKNOWN, QString("unknown"))
-        (PS_WEBKIT, QString("webkit"))
-        (PS_DOCK, QString("dock"));
+        (PS_WEBKIT, QString("webkit"));
 
-QString getStreamerTypeString(const PixelStreamerType type)
+QString getStreamerTypeString( const PixelStreamerType type )
 {
     return typemap.left.find( type )->second;
 }
 
-PixelStreamerType getStreamerType(const QString &typeString)
+PixelStreamerType getStreamerType( const QString& typeString )
 {
-    if (typemap.right.count( typeString ) )
+    if( typemap.right.count( typeString ))
         return typemap.right.find( typeString )->second;
 
     return PS_UNKNOWN;

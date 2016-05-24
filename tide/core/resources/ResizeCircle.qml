@@ -46,7 +46,7 @@ Item {
         radius: Style.resizeCircleRadius
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
-        color: isActive ? Style.activeResizeCircleColor
-                        : Style.inactiveResizeCircleColor
+        color: isActive ? Style.resizeCircleActiveColor
+                        : Style.resizeCircleInactiveColor
     }
 }

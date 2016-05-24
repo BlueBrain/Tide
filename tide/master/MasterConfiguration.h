@@ -59,13 +59,13 @@ public:
     MasterConfiguration( const QString& filename );
 
     /**
-     * Get the Dock startup directory
+     * Get the root directory for opening contents.
      * @return directory path
      */
-    const QString& getDockStartDir() const;
+    const QString& getContentDir() const;
 
     /**
-     * Get the Dock startup directory
+     * Get the sessions directory
      * @return directory path
      */
     const QString& getSessionsDir() const;
@@ -146,7 +146,7 @@ public:
 
 private:
     void loadMasterSettings();
-    void loadDockStartDirectory( QXmlQuery& query );
+    void loadContentDirectory( QXmlQuery& query );
     void loadLauncherSettings( QXmlQuery& query );
     void loadSessionsDirectory( QXmlQuery& query );
     void loadWebService( QXmlQuery& query );
@@ -154,7 +154,7 @@ private:
     void loadWebBrowserStartURL( QXmlQuery& query );
     void loadBackgroundProperties( QXmlQuery& query );
 
-    QString _dockStartDir;
+    QString _contentDir;
     QString _sessionsDir;
     QString _appLauncherFile;
 

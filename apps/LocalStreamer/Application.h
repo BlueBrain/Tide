@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -62,7 +62,7 @@ public:
      * @param argc Command line argument count (required by QApplication)
      * @param argv Command line arguments (required by QApplication)
      */
-    Application(int &argc, char **argv);
+    Application( int &argc, char** argv );
 
     /** Destruct an Application. */
     virtual ~Application();
@@ -73,16 +73,15 @@ public:
      * @param options The parsed Command line options.
      * @return true on success, false on failure.
      */
-    bool initialize(const CommandLineOptions &options);
+    bool initialize( const CommandLineOptions& options );
 
 private slots:
-    void sendImage(QImage image);
+    void sendImage( QImage image );
     void processPendingEvents();
-    void sendCommand(QString command);
 
 private:
     PixelStreamer* _pixelStreamer;
     deflect::Stream* _deflectStream;
 };
 
-#endif // APPLICATION_H
+#endif

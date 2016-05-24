@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -48,7 +48,6 @@ namespace ut = boost::unit_test;
 #ifdef TIDE_USE_QT5WEBKITWIDGETS
 #  include "localstreamer/WebkitPixelStreamer.h"
 #endif
-#include "localstreamer/DockPixelStreamer.h"
 
 #include "GlobalQtApp.h"
 
@@ -60,14 +59,12 @@ BOOST_AUTO_TEST_CASE( test_local_pixel_streamer_type )
 #ifdef TIDE_USE_QT5WEBKITWIDGETS
     BOOST_CHECK_EQUAL( getStreamerTypeString(PS_WEBKIT).toStdString(), "webkit" );
 #endif
-    BOOST_CHECK_EQUAL( getStreamerTypeString(PS_DOCK).toStdString(), "dock" );
 
     BOOST_CHECK_EQUAL( getStreamerType(""), PS_UNKNOWN );
     BOOST_CHECK_EQUAL( getStreamerType("zorglump"), PS_UNKNOWN );
 #ifdef TIDE_USE_QT5WEBKITWIDGETS
     BOOST_CHECK_EQUAL( getStreamerType("webkit"), PS_WEBKIT );
 #endif
-    BOOST_CHECK_EQUAL( getStreamerType("dock"), PS_DOCK );
 }
 
 BOOST_AUTO_TEST_CASE( test_local_pixel_streamer_factory_unknown_type )
@@ -95,21 +92,3 @@ BOOST_AUTO_TEST_CASE( test_local_pixel_streamer_factory_webkit_type )
     delete streamer;
 }
 #endif
-
-BOOST_AUTO_TEST_CASE( test_local_pixel_streamer_factory_dock_type )
-{
-    if( !hasGLXDisplay( ))
-      return;
-
-    CommandLineOptions options;
-    options.setPixelStreamerType(PS_DOCK);
-    PixelStreamer* streamer = PixelStreamerFactory::create( options );
-
-    BOOST_CHECK( streamer );
-
-    DockPixelStreamer* dock = dynamic_cast<DockPixelStreamer*>(streamer);
-    BOOST_CHECK( dock );
-
-    delete streamer;
-}
-

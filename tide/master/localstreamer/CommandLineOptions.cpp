@@ -73,15 +73,13 @@ void CommandLineOptions::_initDesc()
         ("streamname", po::value<std::string>()->default_value( "" ),
          "unique identifier for this stream")
         ("type", po::value<std::string>()->default_value( "" ),
-         "streamer type [webkit | dock]")
+         "streamer type [webkit]")
         ("width", po::value<unsigned int>()->default_value( 0 ),
          "width of the stream in pixel")
         ("height", po::value<unsigned int>()->default_value( 0 ),
          "height of the stream in pixel")
         ("url", po::value<std::string>()->default_value( "" ),
          "webkit only: url")
-        ("rootdir", po::value<std::string>()->default_value( "" ),
-         "Dock only: root files directory")
         ("config", po::value<std::string>()->default_value( "" ),
          "Launcher only: Tide xml configuation file")
     ;
@@ -100,11 +98,6 @@ PixelStreamerType CommandLineOptions::getPixelStreamerType() const
 const QString& CommandLineOptions::getUrl() const
 {
     return _url;
-}
-
-const QString& CommandLineOptions::getRootDir() const
-{
-    return _rootDir;
 }
 
 const QString& CommandLineOptions::getStreamname() const
@@ -140,11 +133,6 @@ void CommandLineOptions::setPixelStreamerType( const PixelStreamerType type )
 void CommandLineOptions::setUrl( const QString& url )
 {
     _url = url;
-}
-
-void CommandLineOptions::setRootDir( const QString& dir )
-{
-    _rootDir = dir;
 }
 
 void CommandLineOptions::setStreamname( const QString& name )
@@ -194,9 +182,6 @@ QStringList CommandLineOptions::getCommandLineArguments() const
     if( !_url.isEmpty( ))
         arguments << "--url" << _url;
 
-    if( !_rootDir.isEmpty( ))
-        arguments << "--rootdir" << _rootDir;
-
     if( !_configuration.isEmpty( ))
         arguments << "--config" << _configuration;
 
@@ -223,7 +208,6 @@ void CommandLineOptions::_parseCommandLineArguments( int& argc, char** argv )
     _url = vm["url"].as<std::string>().c_str();
     _width = vm["width"].as<unsigned int>();
     _height = vm["height"].as<unsigned int>();
-    _rootDir = vm["rootdir"].as<std::string>().c_str();
     _configuration = vm["config"].as<std::string>().c_str();
 }
 

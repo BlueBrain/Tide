@@ -28,24 +28,6 @@ DisplayGroup {
         }
     }
 
-    controlPanel.buttonDelegate: Component {
-        ControlPanelDelegate {
-            id: touchControlPanel
-            MultitouchArea {
-                anchors.fill: parent
-                referenceItem: dispGroup
-
-                onTap: {
-                    var action = touchControlPanel.ListView.view.model.get(index).action
-                    var absPos = mapToItem(dispGroup, controlPanel.width
-                                 + Style.panelsLeftOffset, 0)
-                    var position = Qt.point(absPos.x, absPos.y)
-                    cppcontrolpanel.processAction(action, position)
-                }
-            }
-        }
-    }
-
     sideControl.buttonDelegate: MultitouchArea {
         onTap: {
             if(buttonIndex == 0)
