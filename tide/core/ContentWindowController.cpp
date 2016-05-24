@@ -51,6 +51,7 @@ namespace
 const qreal MIN_SIZE = 0.05;
 const qreal MIN_VISIBLE_AREA_PX = 300.0;
 const qreal LARGE_SIZE_SCALE = 0.75;
+const qreal FITTING_SIZE_SCALE = 0.9;
 const qreal ONE_PERCENT = 0.01;
 }
 
@@ -91,9 +92,8 @@ void ContentWindowController::resizeRelative( const QPointF& delta )
 
     QPointF fixedPoint;
     QSizeF newSize = coord.size();
-    bool isCorner = false;
 
-    switch( _contentWindow->getBorder( ))
+    switch( _contentWindow->getActiveHandle( ))
     {
     case ContentWindow::TOP:
         fixedPoint = QPointF( coord.left() + coord.width() * 0.5,
@@ -118,24 +118,20 @@ void ContentWindowController::resizeRelative( const QPointF& delta )
     case ContentWindow::TOP_LEFT:
         fixedPoint = coord.bottomRight();
         newSize += QSizeF( -delta.x(), -delta.y( ));
-        isCorner = true;
         break;
     case ContentWindow::BOTTOM_LEFT:
         fixedPoint = coord.topRight();
         newSize += QSizeF( -delta.x(), delta.y( ));
-        isCorner = true;
         break;
     case ContentWindow::TOP_RIGHT:
         fixedPoint = coord.bottomLeft();
         newSize += QSizeF( delta.x(), -delta.y( ));
-        isCorner = true;
         break;
     case ContentWindow::BOTTOM_RIGHT:
         fixedPoint = coord.topLeft();
         newSize += QSizeF( delta.x(), delta.y( ));
-        isCorner = true;
         break;
-    case ContentWindow::NOBORDER:
+    case ContentWindow::NOHANDLE:
     default:
         return;
     }
@@ -143,7 +139,7 @@ void ContentWindowController::resizeRelative( const QPointF& delta )
     // Resizing from one of the corners modifies the aspect ratio.
     // Resizing from one of the sides borders tend to let the window snap back
     // to its content's aspect ratio.
-    if( !isCorner && _contentWindow->getContent()->hasFixedAspectRatio( ))
+    if( _contentWindow->getResizePolicy() == ContentWindow::KEEP_ASPECT_RATIO )
     {
         if( _contentWindow->getContent()->getZoomRect() == UNIT_RECTF )
             _constrainAspectRatio( newSize );
@@ -172,6 +168,18 @@ void ContentWindowController::adjustSize( const SizeState state )
     case SIZE_1TO1:
         resize( _contentWindow->getContent()->getPreferredDimensions(), CENTER);
         break;
+
+    case SIZE_1TO1_FITTING:
+    {
+        const QSizeF max = _displayGroup->getCoordinates().size() *
+                           FITTING_SIZE_SCALE;
+        const QSize oneToOne =
+                _contentWindow->getContent()->getPreferredDimensions();
+        if( oneToOne.width() > max.width() || oneToOne.height() > max.height( ))
+            resize( max, CENTER );
+        else
+            resize( oneToOne, CENTER );
+    } break;
 
     case SIZE_LARGE:
     {

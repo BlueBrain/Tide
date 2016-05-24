@@ -55,7 +55,7 @@ DisplayGroup::DisplayGroup()
 DisplayGroup::DisplayGroup( const QSizeF& size )
     : _showWindowTitles( true )
 {
-    coordinates_.setSize( size );
+    _coordinates.setSize( size );
 }
 
 DisplayGroup::~DisplayGroup() {}

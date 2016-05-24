@@ -8,6 +8,12 @@ BaseContentWindow {
     id: windowRect
     color: "#80000000"
 
+    focusEffectEnabled: false // Not useful on the master window
+
+    property bool contentActive: contentwindow.content.captureInteraction &&
+                                 contentwindow.state === ContentWindow.NONE
+    property bool windowActive: !contentwindow.focused
+
     function closeWindow() {
         displaygroup.removeWindowLater(contentwindow.id)
     }
@@ -27,7 +33,16 @@ BaseContentWindow {
             displaygroup.focus(contentwindow.id)
     }
 
-    focus: contentwindow.state === ContentWindow.SELECTED
+    function moveWindow(delta) {
+        contentwindow.controller.moveTo(Qt.point(contentwindow.x + delta.x,
+                                                 contentwindow.y + delta.y))
+    }
+
+    function scaleWindow(center, pixelDelta) {
+        contentwindow.controller.scale(center, pixelDelta)
+    }
+
+    focus: contentwindow.content.captureInteraction
     Keys.onPressed: {
         contentwindow.delegate.keyPress(event.key, event.modifiers, event.text)
         event.accepted = true;
@@ -43,44 +58,89 @@ BaseContentWindow {
         anchors.fill: parent
         referenceItem: windowRect.parent
 
-        visible: contentwindow.state !== ContentWindow.SELECTED &&
-                 contentwindow.border === ContentWindow.NOBORDER
-
         onTouchStarted: displaygroup.moveContentWindowToFront(contentwindow.id)
-        onTouchEnded: contentwindow.state = ContentWindow.NONE
-
-        onTap: toggleControlsVisibility()
+        onTap: if(windowActive) { toggleControlsVisibility() }
+        onTapAndHold: {
+            if(contentwindow.isPanel) // force toggle
+                contentwindow.controlsVisible = !contentwindow.controlsVisible
+        }
         onDoubleTap: toggleFocusMode()
 
-        onPanStarted: contentwindow.state = ContentWindow.MOVING
-        onPan: contentwindow.controller.moveTo(Qt.point(contentwindow.x + delta.x,
-                                                        contentwindow.y + delta.y))
-        onPanEnded: contentwindow.state = ContentWindow.NONE
+        onPanStarted: if(windowActive) { contentwindow.state = ContentWindow.MOVING }
+        onPan: if(windowActive) { moveWindow(delta) }
+        onPanEnded: if(windowActive) { contentwindow.state = ContentWindow.NONE }
 
-        onPinch: {
-            contentwindow.state = ContentWindow.RESIZING
-            contentwindow.controller.scale(pos, pixelDelta)
-        }
+        onPinchStarted: if(windowActive) { contentwindow.state = ContentWindow.RESIZING }
+        onPinch: if(windowActive) { scaleWindow(pos, pixelDelta) }
+        onPinchEnded: if(windowActive) { contentwindow.state = ContentWindow.NONE }
     }
 
     contentComponent: MultitouchArea {
         id: contentInteractionArea
-        visible: contentwindow.state === ContentWindow.SELECTED &&
-                 contentwindow.border === ContentWindow.NOBORDER
 
         anchors.fill: parent
         referenceItem: windowRect.parent
 
-        onDoubleTap: toggleFocusMode()
+        /** Tap, pan and pinch gestures are used by either content or window. */
         onTouchStarted: {
-            displaygroup.moveContentWindowToFront(contentwindow.id)
-            contentwindow.delegate.touchBegin(pos)
+            if(contentActive)
+                contentwindow.delegate.touchBegin(pos)
+            else if(windowActive)
+                displaygroup.moveContentWindowToFront(contentwindow.id)
         }
-        onTouchEnded: contentwindow.delegate.touchEnd(pos)
-        onTap: contentwindow.delegate.tap(pos)
-        onTapAndHold: contentwindow.delegate.tapAndHold(pos)
-        onPan: contentwindow.delegate.pan(pos, Qt.point(delta.x, delta.y))
-        onPinch: contentwindow.delegate.pinch(pos, pixelDelta)
+        onTouchEnded: {
+            if(contentActive)
+                contentwindow.delegate.touchEnd(pos)
+            contentwindow.content.captureInteraction = false
+        }
+        onTap: {
+            if(contentActive)
+               contentwindow.delegate.tap(pos)
+            else if(windowActive)
+                toggleControlsVisibility()
+        }
+        onDoubleTap: {
+            if(!contentActive)
+                toggleFocusMode()
+        }
+        onTapAndHold: {
+            if(contentActive)
+                contentwindow.delegate.tapAndHold(pos)
+            else
+                contentwindow.content.captureInteraction = true
+        }
+
+        onPanStarted: {
+            if(!contentActive && windowActive)
+                contentwindow.state = ContentWindow.MOVING
+        }
+        onPan: {
+            if(contentActive)
+                contentwindow.delegate.pan(pos, Qt.point(delta.x, delta.y))
+            else if(windowActive)
+                moveWindow(delta)
+        }
+        onPanEnded: {
+            if(!contentActive && windowActive)
+                contentwindow.state = ContentWindow.NONE
+        }
+
+        onPinchStarted: {
+            if(!contentActive && windowActive)
+                contentwindow.state = ContentWindow.RESIZING
+        }
+        onPinch: {
+            if(contentActive)
+                contentwindow.delegate.pinch(pos, pixelDelta)
+            else if(windowActive)
+                scaleWindow(pos, pixelDelta)
+        }
+        onPinchEnded: {
+            if(!contentActive && windowActive)
+                contentwindow.state = ContentWindow.NONE
+        }
+        /** END shared gestures. */
+
         onSwipeLeft: contentwindow.delegate.swipeLeft()
         onSwipeRight: contentwindow.delegate.swipeRight()
         onSwipeUp: contentwindow.delegate.swipeUp()
@@ -110,7 +170,10 @@ BaseContentWindow {
         OneToOneControlButton {
             MultitouchArea {
                 anchors.fill: parent
-                onTap: contentwindow.controller.adjustSizeOneToOne()
+                onTap: {
+                    contentwindow.controller.adjustSizeOneToOne()
+                    contentwindow.content.resetZoom()
+                }
             }
         }
         FocusControlButton {
@@ -132,18 +195,27 @@ BaseContentWindow {
         MultitouchArea {
             anchors.fill: parent
             referenceItem: windowRect.parent
-            panThreshold: 0
+            panThreshold: 10
 
-            onPanStarted: {
-                contentwindow.border = parent.border
+            onTouchStarted: {
+                contentwindow.activeHandle = parent.handle
                 contentwindow.state = ContentWindow.RESIZING
             }
-
+            onTapAndHold: {
+                if(contentwindow.content.hasFixedAspectRatio)
+                    contentwindow.resizePolicy = ContentWindow.ADJUST_CONTENT
+                else
+                    contentwindow.resizePolicy = ContentWindow.KEEP_ASPECT_RATIO
+            }
             onPan: contentwindow.controller.resizeRelative(delta)
-
-            onPanEnded: {
-                contentwindow.border = ContentWindow.NOBORDER
+            onTouchEnded: {
                 contentwindow.state = ContentWindow.NONE
+                contentwindow.activeHandle = ContentWindow.NOHANDLE
+
+                if(contentwindow.content.hasFixedAspectRatio)
+                    contentwindow.resizePolicy = ContentWindow.KEEP_ASPECT_RATIO
+                else
+                    contentwindow.resizePolicy = ContentWindow.ADJUST_CONTENT
             }
         }
     }

@@ -118,8 +118,14 @@ signals:
 
     /** @name Two-fingers gestures. */
     //@{
+    /** Emitted when a pinch starts (i.e. two fingers start moving apart). */
+    void pinchStarted();
+
     /** Emitted for each step of a two-fingers pinch gesture. */
     void pinch( QPointF pos, qreal pixelDelta );
+
+    /** Emitted when a pinch ends (i.e. one of the two fingers is released). */
+    void pinchEnded();
 
     /** Two-fingers swipe to the left. */
     void swipeLeft();
@@ -161,6 +167,9 @@ private:
 
     void _handleTwoPoints( const QTouchEvent::TouchPoint& p0,
                            const QTouchEvent::TouchPoint& p1 );
+
+    void _startPinchGesture();
+    void _cancelPinchGesture();
 
     QQuickItem* _referenceItem;
     qreal _panThreshold;

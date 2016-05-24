@@ -72,4 +72,4 @@ private:
     QSizeF _getMinZoom() const;
 };
 
-#endif // ZOOMINTERACTIONDELEGATE_H
+#endif

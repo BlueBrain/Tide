@@ -62,6 +62,9 @@ public:
     /** Get the content type **/
     CONTENT_TYPE getType() const override;
 
+    /** @return false, webbrowsers can adjust their aspect ratio. */
+    bool hasFixedAspectRatio() const final;
+
     /** Get the index of the page navigation history (currently fixed). */
     int getPage() const;
 

@@ -50,68 +50,68 @@ Coordinates::~Coordinates()
 // false-positive on qt signals
 // cppcheck-suppress uninitMemberVar
 Coordinates::Coordinates( const QRectF& coordinates )
-    : coordinates_( coordinates )
+    : _coordinates( coordinates )
 {
 }
 
 const QRectF& Coordinates::getCoordinates() const
 {
-    return coordinates_;
+    return _coordinates;
 }
 
 qreal Coordinates::x() const
 {
-    return coordinates_.x();
+    return _coordinates.x();
 }
 
 qreal Coordinates::y() const
 {
-    return coordinates_.y();
+    return _coordinates.y();
 }
 
 qreal Coordinates::width() const
 {
-    return coordinates_.width();
+    return _coordinates.width();
 }
 
 qreal Coordinates::height() const
 {
-    return coordinates_.height();
+    return _coordinates.height();
 }
 
 void Coordinates::setX( const qreal x_ )
 {
-    if( x_ == coordinates_.x( ))
+    if( x_ == _coordinates.x( ))
         return;
 
-    coordinates_.setX( x_ );
+    _coordinates.setX( x_ );
     emit xChanged();
 }
 
 void Coordinates::setY( const qreal y_ )
 {
-    if( y_ == coordinates_.y( ))
+    if( y_ == _coordinates.y( ))
         return;
 
-    coordinates_.setY( y_ );
+    _coordinates.setY( y_ );
     emit yChanged();
 }
 
 void Coordinates::setWidth( const qreal w )
 {
-    if( w == coordinates_.width( ))
+    if( w == _coordinates.width( ))
         return;
 
-    coordinates_.setWidth( w );
+    _coordinates.setWidth( w );
     emit widthChanged();
 }
 
 void Coordinates::setHeight( const qreal h )
 {
-    if( h == coordinates_.height( ))
+    if( h == _coordinates.height( ))
         return;
 
-    coordinates_.setHeight( h );
+    _coordinates.setHeight( h );
     emit heightChanged();
 }
 

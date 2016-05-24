@@ -48,26 +48,21 @@ Rectangle {
         State {
             name: "focus_mode"
             when: contentwindow.focused
-            extend: "selected"
-            PropertyChanges {
-                target: buttons
-                fixed_buttons_count: 1
-            }
-        },
-        State {
-            name: "selected"
-            when: contentwindow.state === ContentWindow.SELECTED
             extend: "opaque"
             PropertyChanges {
                 target: windowControls
                 color: Style.controlsFocusedColor
                 border.color: Style.controlsFocusedColor
             }
+            PropertyChanges {
+                target: buttons
+                fixed_buttons_count: 1
+            }
         },
         State {
             name: "opaque"
-            when: contentwindow.controlsVisible
-                  && contentwindow.border === ContentWindow.NOBORDER
+            when: contentwindow.controlsVisible &&
+                  contentwindow.state !== ContentWindow.RESIZING
             PropertyChanges {
                 target: windowControls
                 opacity: 1

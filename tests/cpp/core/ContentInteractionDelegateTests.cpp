@@ -1,8 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael.Dumusc@epfl.ch                        */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,44 +37,49 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "PixelStreamContent.h"
+#define BOOST_TEST_MODULE ContentInteractionDelegateTests
+#include <boost/test/unit_test.hpp>
+namespace ut = boost::unit_test;
 
-#include <boost/serialization/export.hpp>
-#include "serializationHelpers.h"
+#include "ContentWindow.h"
+#include "ContentInteractionDelegate.h"
+#include "PDFInteractionDelegate.h"
+#include "PixelStreamInteractionDelegate.h"
+#include "ZoomInteractionDelegate.h"
 
-BOOST_CLASS_EXPORT_GUID( PixelStreamContent, "PixelStreamContent" )
+#include "DummyContent.h"
 
-PixelStreamContent::PixelStreamContent( const QString& uri )
-    : Content( uri )
-    , _eventReceiversCount( 0 )
-{}
-
-CONTENT_TYPE PixelStreamContent::getType() const
+namespace
 {
-    return CONTENT_TYPE_PIXEL_STREAM;
+const int WIDTH = 512;
+const int HEIGHT = 256;
 }
 
-bool PixelStreamContent::readMetadata()
+class TestDelegate : public ContentInteractionDelegate
 {
-    return true;
-}
+public:
+    explicit TestDelegate( ContentWindow& window )
+        : ContentInteractionDelegate( window )
+    {}
 
-Content::Interaction PixelStreamContent::getInteractionPolicy() const
-{
-    return hasEventReceivers() ? Content::Interaction::ON :
-                                 Content::Interaction::OFF;
-}
-
-bool PixelStreamContent::hasEventReceivers() const
-{
-    return _eventReceiversCount > 0;
-}
-
-void PixelStreamContent::incrementEventReceiverCount()
-{
-    if( ++_eventReceiversCount == 1 )
+    QPointF normalize( const QPointF& point ) const
     {
-        emit interactionPolicyChanged();
-        emit modified();
+        return getNormalizedPoint( point );
     }
+};
+
+BOOST_AUTO_TEST_CASE( testNormalizedPosition )
+{
+    ContentPtr content( new DummyContent );
+    content->setDimensions( QSize( WIDTH, HEIGHT ));
+    ContentWindow window( content );
+
+    TestDelegate delegate( window );
+    const QPointF point( WIDTH * 0.5, HEIGHT * 0.25 );
+    const QPointF zero( 0.0, 0.0 );
+    const QPointF one( WIDTH, HEIGHT );
+
+    BOOST_CHECK_EQUAL( delegate.normalize( point ), QPointF( 0.5, 0.25 ));
+    BOOST_CHECK_EQUAL( delegate.normalize( zero ), QPointF( 0.0, 0.0 ));
+    BOOST_CHECK_EQUAL( delegate.normalize( one ), QPointF( 1.0, 1.0 ));
 }

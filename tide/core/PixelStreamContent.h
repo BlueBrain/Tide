@@ -65,8 +65,14 @@ public:
     **/
     bool readMetadata() override;
 
-    /** @return true if the streamer can handle aspect ratio changes. */
-    bool hasFixedAspectRatio() const override;
+    /** Does this content already have registered EventReceiver(s) */
+    bool hasEventReceivers() const;
+
+    /** Register to receive events on this content. */
+    void incrementEventReceiverCount();
+
+    /** @return ON when hasEventReceivers() is true, otherwise OFF. */
+    Interaction getInteractionPolicy() const final;
 
 protected:
     // Default constructor required for boost::serialization
@@ -80,7 +86,10 @@ private:
     {
         // serialize base class information (with NVP for xml archives)
         ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP( Content );
+        ar & BOOST_SERIALIZATION_NVP( _eventReceiversCount );
     }
+
+    unsigned int _eventReceiversCount = 0;
 };
 
 #endif

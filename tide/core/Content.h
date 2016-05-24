@@ -74,8 +74,22 @@ class Content : public QObject
     Q_PROPERTY( qreal aspectRatio READ getAspectRatio CONSTANT )
     Q_PROPERTY( QRectF zoomRect READ getZoomRect CONSTANT )
     Q_PROPERTY( QSize size READ getDimensions CONSTANT )
+    Q_PROPERTY( Interaction interactionPolicy READ getInteractionPolicy
+                NOTIFY interactionPolicyChanged )
+    Q_PROPERTY( bool hasFixedAspectRatio READ hasFixedAspectRatio CONSTANT )
+    Q_PROPERTY( bool captureInteraction READ getCaptureInteraction
+                WRITE setCaptureInteraction NOTIFY captureInteractionChanged )
 
 public:
+    /** The different types of interaction. */
+    enum Interaction
+    {
+        AUTO,       // interaction is enabled automatically (default)
+        ON,         // force interaction with content
+        OFF         // never interact with content
+    };
+    Q_ENUMS( Interaction )
+
     /** Constructor **/
     Content( const QString& uri );
 
@@ -119,11 +133,20 @@ public:
     /** Set the zoom rectangle in normalized coordinates. */
     void setZoomRect( const QRectF& zoomRect );
 
+    /** Resets the zoom to [0,0,1,1]. */
+    Q_INVOKABLE void resetZoom();
+
     /** Get the actions from QML. */
     ContentActionsModel* getActions();
 
     /** Set optional size hints to constrain resize/scale and 1:1 size. */
     void setSizeHints( const deflect::SizeHints& sizeHints );
+
+    /** @return true if the content captures interaction. */
+    bool getCaptureInteraction() const;
+
+    /** Tell the content to capture interaction (only for Policy::AUTO). */
+    void setCaptureInteraction( bool enable );
 
     /** Set the maximum factor for zoom and resize; value times content size */
     static void setMaxScale( qreal value );
@@ -131,7 +154,16 @@ public:
     /** @return the maxium scale factor for zoom and resize */
     static qreal getMaxScale();
 
+    /** Get the interaction policy (default: AUTO). */
+    virtual Interaction getInteractionPolicy() const;
+
 signals:
+    /** @name QProperty notifiers */
+    //@{
+    void interactionPolicyChanged();
+    void captureInteractionChanged();
+    //@}
+
     /** Emitted by any Content subclass when its state has been modified */
     void modified();
 
@@ -153,6 +185,7 @@ protected:
         ar & _zoomRect;
         ar & _actions;
         _actions.setParent( this );
+        ar & _captureInteraction;
     }
 
     /** Serialize for saving to an xml file */
@@ -184,11 +217,15 @@ protected:
         serialize_members_xml( ar, version );
     }
 
+    void _init();
+
     QString _uri;
     QSize _size;
     QRectF _zoomRect;
     ContentActionsModel _actions;
     deflect::SizeHints _sizeHints;
+    bool _captureInteraction;
+
     static qreal _maxScale;
 };
 

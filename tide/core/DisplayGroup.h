@@ -208,7 +208,7 @@ private:
         ar & _showWindowTitles;
         ar & _contentWindows;
         ar & _focusedWindows;
-        ar & coordinates_;
+        ar & _coordinates;
     }
 
     /** Serialize for saving to an xml file */
@@ -219,7 +219,7 @@ private:
                                              _showWindowTitles );
         ar & boost::serialization::make_nvp( "contentWindows",
                                              _contentWindows );
-        ar & boost::serialization::make_nvp( "coordinates", coordinates_ );
+        ar & boost::serialization::make_nvp( "coordinates", _coordinates );
     }
 
     /** Loading from xml. */
@@ -231,12 +231,9 @@ private:
         {
             _assignController( *window );
             if( window->isFocused( ))
-            {
-                window->setState( ContentWindow::SELECTED );
                 _focusedWindows.insert( window );
-            }
-            else
-                window->setState( ContentWindow::NONE );
+            // Make sure windows are not in an undefined state
+            window->setState( ContentWindow::NONE );
         }
     }
 

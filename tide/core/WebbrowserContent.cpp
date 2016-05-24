@@ -53,6 +53,11 @@ CONTENT_TYPE WebbrowserContent::getType() const
     return CONTENT_TYPE_WEBBROWSER;
 }
 
+bool WebbrowserContent::hasFixedAspectRatio() const
+{
+    return false;
+}
+
 int WebbrowserContent::getPage() const
 {
     return 1;

@@ -48,12 +48,15 @@
 class DummyContent : public Content
 {
 public:
-    DummyContent(const QString& uri = "") : Content(uri), dummyParam_(0) {}
+    DummyContent( const QString& uri = QString( )) : Content( uri ) {}
 
-    virtual CONTENT_TYPE getType() const { return CONTENT_TYPE_ANY; }
-    virtual bool readMetadata() { return true; }
+    CONTENT_TYPE getType() const final { return type; }
+    bool readMetadata() final { return true; }
+    bool hasFixedAspectRatio() const final { return fixedAspectRatio; }
 
-    int dummyParam_;
+    int dummyParam_ = 0;
+    CONTENT_TYPE type = CONTENT_TYPE_ANY;
+    bool fixedAspectRatio = true;
 
 private:
     friend class boost::serialization::access;
@@ -62,11 +65,11 @@ private:
     void serialize(Archive & ar, const unsigned int)
     {
         // serialize base class information (with NVP for xml archives)
-        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Content);
-        ar & BOOST_SERIALIZATION_NVP(dummyParam_);
+        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP( Content );
+        ar & BOOST_SERIALIZATION_NVP( dummyParam_ );
     }
 };
 
 BOOST_CLASS_EXPORT_GUID(DummyContent, "DummyContent")
 
-#endif // DUMMYCONTENT_H
+#endif

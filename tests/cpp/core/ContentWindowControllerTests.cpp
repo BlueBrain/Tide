@@ -129,6 +129,26 @@ BOOST_AUTO_TEST_CASE( testOneToOneSize )
     BOOST_CHECK_EQUAL( coords.center(), QPointF( 625, 240 ));
 }
 
+BOOST_AUTO_TEST_CASE( testOneToOneFittingSize )
+{
+    ContentWindowPtr window = makeDummyWindow();
+    DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
+    ContentWindowController controller( *window, *displayGroup );
+    const QRectF& coords = window->getCoordinates();
+
+    controller.adjustSize( SIZE_1TO1_FITTING );
+
+    // 1:1 size restored around existing window center
+    BOOST_CHECK_EQUAL( coords.size(), CONTENT_SIZE );
+    BOOST_CHECK_EQUAL( coords.center(), QPointF( 625, 240 ));
+
+    // Big content constrained to 0.9 * wallSize
+    window->getContent()->setDimensions( 2 * wallSize.toSize( ));
+    controller.adjustSize( SIZE_1TO1_FITTING );
+    BOOST_CHECK_EQUAL( coords.size(), 0.9 * wallSize );
+    BOOST_CHECK_EQUAL( coords.center(), QPointF( 625, 240 ));
+}
+
 BOOST_AUTO_TEST_CASE( testSizeLimitsBigContent )
 {
     ContentWindowPtr window = makeDummyWindow();
@@ -263,13 +283,13 @@ BOOST_AUTO_TEST_CASE( testResizeRelativeToBorder )
     BOOST_CHECK( window.getCoordinates() == originalCoords );
 
     // These border resize conserve the window aspect ratio
-    window.setBorder( ContentWindow::TOP );
+    window.setActiveHandle( ContentWindow::TOP );
     controller.resizeRelative( QPointF( 5, 5 ));
     BOOST_CHECK_EQUAL( window.getCoordinates().top() - 5, originalCoords.top());
     BOOST_CHECK_EQUAL( window.getCoordinates().width() + 5.0 * CONTENT_AR,
                        originalCoords.width());
 
-    window.setBorder( ContentWindow::BOTTOM );
+    window.setActiveHandle( ContentWindow::BOTTOM );
     controller.resizeRelative( QPointF( 2, 2 ));
     BOOST_CHECK_EQUAL( window.getCoordinates().bottom() - 2,
                        originalCoords.bottom( ));
@@ -289,7 +309,9 @@ BOOST_AUTO_TEST_CASE( testResizeRelativeToCorner )
     const QRectF originalCoords = window.getCoordinates();
 
     // These corner resize alters the window aspect ratio
-    window.setBorder( ContentWindow::TOP_RIGHT );
+    static_cast<DummyContent*>( content.get( ))->fixedAspectRatio = false;
+    BOOST_REQUIRE( window.setResizePolicy( ContentWindow::ADJUST_CONTENT ));
+    window.setActiveHandle( ContentWindow::TOP_RIGHT );
     controller.resizeRelative( QPointF( 2, 10 ));
     BOOST_CHECK_EQUAL( window.getCoordinates().top() - 10,
                        originalCoords.top());
@@ -302,7 +324,7 @@ BOOST_AUTO_TEST_CASE( testResizeRelativeToCorner )
 
     const QRectF prevCoords = window.getCoordinates();
 
-    window.setBorder( ContentWindow::BOTTOM_LEFT );
+    window.setActiveHandle( ContentWindow::BOTTOM_LEFT );
     controller.resizeRelative( QPointF( 1, 2 ));
     BOOST_CHECK_EQUAL( window.getCoordinates().bottom() - 2,
                        prevCoords.bottom());

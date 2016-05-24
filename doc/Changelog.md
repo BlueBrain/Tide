@@ -3,6 +3,19 @@ Changelog {#Changelog}
 
 # git master (1.1.0)
 
+* [28](https://github.com/BlueBrain/Tide/pull/28):
+  Simplify window interaction [DISCL-320].
+  This change makes interacting with contents more natural and intuitive:
+  - No differences between windows in presentation mode vs. regular mode
+  - A glow effect highlights windows which have the focus (capture touch
+    events).
+  - Regular windows always move by default; tapAndHold to get focus and zoom in.
+  - Webbrowsers and interactive streamers always have focus; move using borders.
+  - Resizing always preserves aspect ratio by default; tapAndHold any resize
+    handle to change the aspect ratio of compatible contents (images
+    and webbbrowsers).
+  - The one-to-one button (1:1) also resets the zoom level.
+  - Other minor improvements.
 * [24](https://github.com/BlueBrain/Tide/pull/24):
   Bugfix: Correctly setup Webbrowser proxy from 'http_proxy' ENV VAR
 * [23](https://github.com/BlueBrain/Tide/pull/23):

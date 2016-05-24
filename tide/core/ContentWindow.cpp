@@ -1,7 +1,7 @@
 /*********************************************************************/
 /* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2015, EPFL/Blue Brain Project                  */
-/*                     Raphael.Dumusc@epfl.ch                        */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /*                     Daniel.Nachbaur@epfl.ch                       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -41,7 +41,6 @@
 
 #include "ContentWindow.h"
 
-#include "ContentInteractionDelegate.h"
 #include "ContentWindowController.h"
 
 #include "config.h"
@@ -56,28 +55,30 @@
 IMPLEMENT_SERIALIZE_FOR_XML( ContentWindow )
 
 ContentWindow::ContentWindow( ContentPtr content, const WindowType type )
-    : uuid_( QUuid::createUuid( ))
-    , type_( type )
-    , content_( content )
-    , controller_( 0 )
-    , windowBorder_( NOBORDER )
-    , focused_( false )
-    , windowState_( NONE )
-    , controlsVisible_( false )
+    : _uuid( QUuid::createUuid( ))
+    , _type( type )
+    , _content( content )
+    , _controller( nullptr )
+    , _activeHandle( NOHANDLE )
+    , _resizePolicy( KEEP_ASPECT_RATIO )
+    , _focused( false )
+    , _windowState( NONE )
+    , _controlsVisible( false )
 {
     assert( content );
-    init();
-    coordinates_.setSize( content_->getDimensions( ));
+    _init();
+    _coordinates.setSize( content->getDimensions( ));
 }
 
 ContentWindow::ContentWindow()
-    : uuid_( QUuid::createUuid( ))
-    , type_( WindowType::DEFAULT )
-    , controller_( 0 )
-    , windowBorder_( NOBORDER )
-    , focused_( false )
-    , windowState_( NONE )
-    , controlsVisible_( false )
+    : _uuid( QUuid::createUuid( ))
+    , _type( WindowType::DEFAULT )
+    , _controller( nullptr )
+    , _activeHandle( NOHANDLE )
+    , _resizePolicy( KEEP_ASPECT_RATIO )
+    , _focused( false )
+    , _windowState( NONE )
+    , _controlsVisible( false )
 {}
 
 ContentWindow::~ContentWindow()
@@ -86,54 +87,57 @@ ContentWindow::~ContentWindow()
 
 const QUuid& ContentWindow::getID() const
 {
-    return uuid_;
+    return _uuid;
 }
 
 bool ContentWindow::isPanel() const
 {
-    return type_ == WindowType::PANEL;
+    return _type == WindowType::PANEL;
 }
 
 Content* ContentWindow::getContentPtr() const
 {
-    return content_.get();
+    return _content.get();
 }
 
 ContentPtr ContentWindow::getContent() const
 {
-    return content_;
+    return _content;
 }
 
 void ContentWindow::setContent( ContentPtr content )
 {
     assert( content );
 
-    if( content_ )
-        content_->disconnect( this, SIGNAL( contentModified( )));
+    if( _content )
+        _content->disconnect( this, SIGNAL( contentModified( )));
 
-    content_ = content;
-    init();
+    _content = content;
+    _init();
 }
 
 ContentWindowController* ContentWindow::getController()
 {
-    return controller_;
+    return _controller;
 }
 
 const ContentWindowController* ContentWindow::getController() const
 {
-    return controller_;
+    return _controller;
 }
 
 void ContentWindow::setController( ContentWindowControllerPtr controller )
 {
-    controller_ = controller.release();
-    controller_->setParent( this );
+    if( _controller )
+        delete _controller;
+
+    controller->setParent( this );
+    _controller = controller.release();
 }
 
 void ContentWindow::setCoordinates( const QRectF& coordinates )
 {
-    if( coordinates == coordinates_ )
+    if( coordinates == _coordinates )
         return;
 
     setX( coordinates.x( ));
@@ -146,41 +150,64 @@ void ContentWindow::setCoordinates( const QRectF& coordinates )
     emit modified();
 }
 
-ContentWindow::WindowBorder ContentWindow::getBorder() const
+ContentWindow::ResizeHandle ContentWindow::getActiveHandle() const
 {
-    return windowBorder_;
+    return _activeHandle;
+}
+
+void ContentWindow::setActiveHandle( const ContentWindow::ResizeHandle handle )
+{
+    if( _activeHandle == handle )
+        return;
+
+    _activeHandle = handle;
+    emit activeHandleChanged();
+    emit modified();
+}
+
+ContentWindow::ResizePolicy ContentWindow::getResizePolicy() const
+{
+    return _resizePolicy;
+}
+
+bool ContentWindow::setResizePolicy( const ContentWindow::ResizePolicy policy )
+{
+    if( policy == _resizePolicy )
+        return true;
+
+    if( policy == ADJUST_CONTENT && _content->hasFixedAspectRatio() &&
+            !dynamic_cast<ZoomInteractionDelegate*>( getInteractionDelegate( )))
+    {
+        return false;
+    }
+
+    _resizePolicy = policy;
+    emit resizePolicyChanged();
+    emit modified();
+    return true;
 }
 
 ContentWindow::WindowState ContentWindow::getState() const
 {
-    return windowState_;
-}
-
-void ContentWindow::setBorder( const ContentWindow::WindowBorder border )
-{
-    if( windowBorder_ == border )
-        return;
-    windowBorder_ = border;
-    emit borderChanged();
-    emit modified();
+    return _windowState;
 }
 
 bool ContentWindow::isFocused() const
 {
-    return focused_;
+    return _focused;
 }
 
 const QRectF& ContentWindow::getFocusedCoordinates() const
 {
-    return focusedCoordinates_;
+    return _focusedCoordinates;
 }
 
 void ContentWindow::setFocusedCoordinates( const QRectF& coordinates )
 {
-    if( coordinates == focusedCoordinates_ )
+    if( coordinates == _focusedCoordinates )
         return;
 
-    focusedCoordinates_ = coordinates;
+    _focusedCoordinates = coordinates;
     emit focusedCoordinatesChanged();
 }
 
@@ -191,109 +218,97 @@ const QRectF& ContentWindow::getDisplayCoordinates() const
 
 void ContentWindow::setFocused( const bool value )
 {
-    if( focused_ == value )
+    if( _focused == value )
         return;
 
-    focused_ = value;
-
+    _focused = value;
     emit focusedChanged();
-
-    // Only emit modified once, in setState() or here
-    if( !setState( focused_ ? SELECTED : NONE ))
-        emit modified();
 }
 
 bool ContentWindow::setState( const ContentWindow::WindowState state )
 {
-    if( windowState_ == state )
+    if( _windowState == state )
         return false;
 
-    windowState_ = state;
+    _windowState = state;
 
     emit stateChanged();
     emit modified();
     return true;
 }
 
-void ContentWindow::toggleSelectedState()
-{
-    if ( windowState_ == ContentWindow::NONE )
-        setState( ContentWindow::SELECTED );
-    else if ( windowState_ == ContentWindow::SELECTED )
-        setState( ContentWindow::NONE );
-}
-
-bool ContentWindow::isSelected() const
-{
-    return windowState_ == SELECTED;
-}
-
 bool ContentWindow::isMoving() const
 {
-    return windowState_ == MOVING;
+    return _windowState == MOVING;
 }
 
 bool ContentWindow::isResizing() const
 {
-    return windowState_ == RESIZING;
+    return _windowState == RESIZING;
 }
 
 bool ContentWindow::isHidden() const
 {
-    return windowState_ == HIDDEN;
+    return _windowState == HIDDEN;
 }
 
 ContentInteractionDelegate* ContentWindow::getInteractionDelegate()
 {
-    return interactionDelegate_.get();
+    return _interactionDelegate.get();
 }
 
 QString ContentWindow::getLabel() const
 {
-    return content_->getURI().section( "/", -1, -1 );
+    return _content->getURI().section( "/", -1, -1 );
 }
 
 bool ContentWindow::getControlsVisible() const
 {
-    return controlsVisible_;
+    return _controlsVisible;
 }
 
 void ContentWindow::setControlsVisible( const bool value )
 {
-    if( value == controlsVisible_ )
+    if( value == _controlsVisible )
         return;
 
-    controlsVisible_ = value;
+    _controlsVisible = value;
     emit controlsVisibleChanged();
     emit modified();
 }
 
-void ContentWindow::init()
+void ContentWindow::_init()
 {
-    connect( content_.get(), SIGNAL( modified( )), SIGNAL( contentModified( )));
-    createInteractionDelegate();
+    setResizePolicy( _content->hasFixedAspectRatio() ? KEEP_ASPECT_RATIO :
+                                                       ADJUST_CONTENT );
+    connect( _content.get(), SIGNAL( modified( )), SIGNAL( contentModified( )));
+    _createInteractionDelegate();
 }
 
-void ContentWindow::createInteractionDelegate()
+void ContentWindow::_createInteractionDelegate()
 {
-    assert( content_ );
+    assert( _content );
 
-    switch ( content_->getType( ))
+    switch ( _content->getType( ))
     {
     case CONTENT_TYPE_PIXEL_STREAM:
     case CONTENT_TYPE_WEBBROWSER:
-        interactionDelegate_.reset( new PixelStreamInteractionDelegate( *this ));
-        break;
-    case CONTENT_TYPE_MOVIE:
-        interactionDelegate_.reset( new ContentInteractionDelegate( *this ));
+        _interactionDelegate.reset( new PixelStreamInteractionDelegate( *this ));
         break;
 #if TIDE_ENABLE_PDF_SUPPORT
     case CONTENT_TYPE_PDF:
-        interactionDelegate_.reset( new PDFInteractionDelegate( *this ));
+        _interactionDelegate.reset( new PDFInteractionDelegate( *this ));
         break;
 #endif
+    case CONTENT_TYPE_DYNAMIC_TEXTURE:
+    case CONTENT_TYPE_TEXTURE:
+    case CONTENT_TYPE_SVG:
+        _interactionDelegate.reset( new ZoomInteractionDelegate( *this ));
+        break;
+    case CONTENT_TYPE_MOVIE:
+    case CONTENT_TYPE_ANY:
     default:
-        interactionDelegate_.reset( new ZoomInteractionDelegate( *this ));
+        _interactionDelegate.reset( new ContentInteractionDelegate( *this ));
         break;
     }
 }

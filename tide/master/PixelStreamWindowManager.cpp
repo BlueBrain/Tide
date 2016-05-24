@@ -42,12 +42,14 @@
 
 #include "log.h"
 #include "ContentFactory.h"
+#include "ContentInteractionDelegate.h"
 #include "ContentWindow.h"
 #include "ContentWindowController.h"
 #include "DisplayGroup.h"
-#include "PixelStreamInteractionDelegate.h"
+#include "PixelStreamContent.h"
 #include "localstreamer/PixelStreamerLauncher.h"
 
+#include <deflect/EventReceiver.h>
 #include <deflect/Frame.h>
 
 namespace
@@ -73,12 +75,6 @@ PixelStreamWindowManager::getContentWindow( const QString& uri ) const
                      ContentWindowPtr();
 }
 
-PixelStreamInteractionDelegate* _getPixelStreamDelegate( ContentWindow& window )
-{
-    return static_cast<PixelStreamInteractionDelegate*>(
-                window.getInteractionDelegate( ));
-}
-
 void PixelStreamWindowManager::hideWindow( const QString& uri )
 {
     ContentWindowPtr contentWindow = getContentWindow( uri );
@@ -92,9 +88,7 @@ void PixelStreamWindowManager::showWindow( const QString& uri )
     if( !window )
         return;
 
-    const bool select = window->isPanel() &&
-                        _getPixelStreamDelegate( *window )->hasEventReceivers();
-    window->setState( select ? ContentWindow::SELECTED : ContentWindow::NONE );
+    window->setState( ContentWindow::NONE );
     _displayGroup.moveContentWindowToFront( window );
 }
 
@@ -124,13 +118,11 @@ void PixelStreamWindowManager::openWindow( const QString& uri,
     controller.resize( size.isValid() ? size : EMPTY_STREAM_SIZE );
     controller.moveCenterTo( !pos.isNull() ? pos :
                                       _displayGroup.getCoordinates().center( ));
-    if( window->isPanel( ))
-        window->setControlsVisible( true );
 
     _streamerWindows[ uri ] = window->getID();
     _displayGroup.addContentWindow( window );
 
-    if( _autoFocusNewWindows )
+    if( _autoFocusNewWindows && !webbrowser )
         _displayGroup.focus( window->getID( ));
 }
 
@@ -154,8 +146,6 @@ void PixelStreamWindowManager::registerEventReceiver( const QString uri,
                                                       deflect::EventReceiver*
                                                       receiver )
 {
-    bool success = false;
-
     ContentWindowPtr window = getContentWindow( uri );
     if( !window )
     {
@@ -167,12 +157,18 @@ void PixelStreamWindowManager::registerEventReceiver( const QString uri,
 
     // If a receiver is already registered, don't register this one if
     // "exclusive" was requested
-    auto delegate = _getPixelStreamDelegate( *window );
-    if( !exclusive || !delegate->hasEventReceivers( ))
-        success = delegate->registerEventReceiver( receiver );
-
-    if( window->isPanel( ))
-        window->setState( ContentWindow::SELECTED );
+    bool success = false;
+    auto& content = dynamic_cast<PixelStreamContent&>( *window->getContent( ));
+    if( !exclusive || !content.hasEventReceivers( ))
+    {
+        success = connect( window->getInteractionDelegate(),
+                           SIGNAL( notify( deflect::Event )),
+                           receiver, SLOT( processEvent( deflect::Event )));
+        if( success )
+            content.incrementEventReceiverCount();
+        else
+            put_flog( LOG_ERROR, "QObject connection failed" );
+    }
 
     emit eventRegistrationReply( uri, success );
 }

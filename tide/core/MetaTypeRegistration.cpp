@@ -53,7 +53,7 @@ struct MetaTypeRegistration
     MetaTypeRegistration()
     {
         qRegisterMetaType< ContentWindowPtr >( "ContentWindowPtr" );
-        qRegisterMetaType< ContentWindow::WindowBorder >( "ContentWindow::WindowBorder" );
+        qRegisterMetaType< ContentWindow::ResizeHandle >( "ContentWindow::ResizeHandle" );
         qRegisterMetaType< ContentWindow::WindowState >( "ContentWindow::WindowState" );
         qRegisterMetaType< ContentSynchronizerSharedPtr >( "ContentSynchronizerSharedPtr" );
         qRegisterMetaType< DisplayGroupPtr >( "DisplayGroupPtr" );

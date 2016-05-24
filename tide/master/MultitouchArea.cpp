@@ -161,8 +161,10 @@ void MultitouchArea::mouseDoubleClickEvent( QMouseEvent* mouse )
 
 void MultitouchArea::wheelEvent( QWheelEvent* wheel )
 {
+    emit pinchStarted();
     emit pinch( _getScenePos( wheel->posF( )),
                 wheel->angleDelta().y() * wheelFactor );
+    emit pinchEnded();
 }
 
 void MultitouchArea::touchEvent( QTouchEvent* touch )
@@ -295,8 +297,8 @@ void MultitouchArea::_handleTwoPoints( const QTouchEvent::TouchPoint& p0,
         p1.state() == Qt::TouchPointReleased )
     {
         _canBeSwipe = false;
-        _pinching = false;
         _twoFingersDetectionStarted = false;
+        _cancelPinchGesture();
         return;
     }
 
@@ -314,8 +316,8 @@ void MultitouchArea::_handleTwoPoints( const QTouchEvent::TouchPoint& p0,
 
     if( !_pinching && std::abs( _getPinchDistance( p0, p1 )) > pinchThresholdPx)
     {
-        _pinching = true;
         _lastPinchDist = _getPinchDistance( p0, p1 );
+        _startPinchGesture();
     }
 
     if( _pinching )
@@ -361,4 +363,22 @@ void MultitouchArea::_handleTwoPoints( const QTouchEvent::TouchPoint& p0,
             }
         }
     }
+}
+
+void MultitouchArea::_startPinchGesture()
+{
+    if( _pinching )
+        return;
+
+    _pinching = true;
+    emit pinchStarted();
+}
+
+void MultitouchArea::_cancelPinchGesture()
+{
+    if( !_pinching )
+        return;
+
+    _pinching = false;
+    emit pinchEnded();
 }
