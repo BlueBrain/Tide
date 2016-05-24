@@ -72,13 +72,13 @@ void ProcessForker::run()
             QString string;
             _buffer.deserialize( string );
             QStringList args = string.split( '#' );
-            if( args.length() != 2 )
+            if( args.length() != 3 )
             {
                 put_flog( LOG_WARN, "Invalid command: '%d'",
                           string.toLocal8Bit().constData( ));
                 break;
             }
-            _launch( args[0], args[1] );
+            _launch( args[0], args[1], args[2].split( ';' ));
             break;
         }
         case MPI_MESSAGE_TYPE_QUIT:
@@ -91,8 +91,22 @@ void ProcessForker::run()
     }
 }
 
-void ProcessForker::_launch( const QString& command, const QString& workingDir )
+void ProcessForker::_launch( const QString& command, const QString& workingDir,
+                             const QStringList& env )
 {
+    for( const QString& var : env )
+    {
+        // Know Qt bug: QProcess::setProcessEnvironment() does not work with
+        // startDetached(). Calling qputenv() directly as a workaround.
+        const QStringList kv = var.split( "=" );
+        if( kv.length() == 2 && !qputenv( kv[0].toLocal8Bit().constData(),
+                                          kv[1].toLocal8Bit( )))
+        {
+            put_flog( LOG_ERROR, "Setting %s ENV variable failed.",
+                      var.toLocal8Bit().constData( ));
+        }
+    }
+
     QProcess* process = new QProcess();
     process->setWorkingDirectory( workingDir );
     process->startDetached( command );

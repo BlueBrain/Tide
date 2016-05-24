@@ -8,6 +8,9 @@ DisplayGroup {
     id: dispGroup
     showFocusContext: false
 
+    signal launcherControlPressed()
+    signal settingsControlsPressed()
+
     MultitouchArea {
         anchors.fill: parent
         referenceItem: dispGroup
@@ -40,6 +43,15 @@ DisplayGroup {
                     cppcontrolpanel.processAction(action, position)
                 }
             }
+        }
+    }
+
+    sideControl.buttonDelegate: MultitouchArea {
+        onTap: {
+            if(buttonIndex == 0)
+                launcherControlPressed();
+            else if(buttonIndex == 1)
+                settingsControlsPressed();
         }
     }
 }

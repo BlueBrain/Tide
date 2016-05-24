@@ -7,6 +7,7 @@ var focusContextOpacity = 0.7;
 var focusBackgroundZorder = 98;
 var unfocusZorder = 99;
 var focusZorder = 100;
+var sideControlZorder = 200;
 
 var resizeCircleRadius = 50
 var activeResizeCircleColor = "#FCEE21";
@@ -37,9 +38,12 @@ var windowBorderMovingColor= "#F2F2F2";
 var windowBorderResizingColor = "#F2F2F2";
 
 var windowSideButtonWidth = 64;
-var windowSideButtonTriangleHeight = 135;
+var windowSideButtonHeight = 360;
 var windowSideButtonNarrowHeight = 90;
 var windowSideButtonArrowColor = "black";
+
+var sideButtonColor = "yellow"
+var sideButtonRelHeight = 0.3
 
 var zoomContextBorderColor = "white";
 var zoomContextBackgroundColor = "black"

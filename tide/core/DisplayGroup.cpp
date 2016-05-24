@@ -244,10 +244,20 @@ void DisplayGroup::clear()
     if( _contentWindows.empty( ))
         return;
 
-    put_flog( LOG_INFO, "removing %i windows", _contentWindows.size( ));
+    // Close regular windows but hide panels (instead of removing them)
+    ContentWindowPtrs removeSet;
+    for( auto window : _contentWindows )
+    {
+        if( window->isPanel( ))
+            window->setState( ContentWindow::HIDDEN );
+        else
+            removeSet.push_back( window );
+    }
 
-    while( !_contentWindows.empty( ))
-        removeContentWindow( _contentWindows[0] );
+    put_flog( LOG_INFO, "removing %i windows", removeSet.size( ));
+
+    for( auto window : removeSet )
+        removeContentWindow( window );
 }
 
 void DisplayGroup::setShowWindowTitles( const bool set )

@@ -78,6 +78,9 @@ signals:
     /** Clear all contents. */
     void clear();
 
+    /** Browse a website. */
+    void browse( QString uri );
+
 private:
     class Impl;
     std::unique_ptr<Impl> _impl;

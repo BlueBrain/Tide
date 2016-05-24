@@ -145,10 +145,15 @@ Rectangle {
         },
         State {
             name: "hidden"
-            when: contentwindow.state === ContentWindow.HIDDEN
+            when: contentwindow.state === ContentWindow.HIDDEN ||
+                  (contentwindow.isPanel && !completed())
             PropertyChanges {
                 target: windowRect
-                visible: false
+                opacity: 0
+                x: -contentwindow.width
+                y: 0.5 * displaygroup.height
+                width: 0
+                height: 0
             }
         }
     ]
@@ -157,14 +162,7 @@ Rectangle {
         Transition {
             from: "focused"
             id: unfocusTransition
-            // Add "running" property which is missing in QtQuick1
-            property bool running: false
             SequentialAnimation {
-                PropertyAction {
-                    target: unfocusTransition
-                    property: "running"
-                    value: true
-                }
                 // Slide behind other focused windows for the transition
                 PropertyAction {
                     target: windowRect
@@ -180,11 +178,17 @@ Rectangle {
                         easing.type: Easing.InOutQuad
                     }
                 }
-                PropertyAction {
-                    target: unfocusTransition
-                    property: "running"
-                    value: false
-                }
+            }
+        },
+        Transition {
+            to: "hidden"
+            id: panelAppearTransition
+            reversible: true
+            NumberAnimation {
+                target: windowRect
+                properties: "x,y,height,width"
+                duration: Style.panelsAnimationTime
+                easing.type: Easing.InOutQuad
             }
         }
     ]
@@ -219,6 +223,13 @@ Rectangle {
         NumberAnimation {
             id: heightAnimation
             duration: Style.focusTransitionTime
+            easing.type: Easing.InOutQuad
+        }
+    }
+    Behavior on opacity {
+        NumberAnimation {
+            id: opacityAnimation
+            duration: Style.panelsAnimationTime
             easing.type: Easing.InOutQuad
         }
     }

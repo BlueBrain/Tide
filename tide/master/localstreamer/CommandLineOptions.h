@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -40,13 +40,13 @@
 #ifndef COMMANDLINEOPTIONS_H
 #define COMMANDLINEOPTIONS_H
 
+#include "PixelStreamerType.h"
+
 #include <QString>
 #include <boost/program_options/options_description.hpp>
 
-#include "PixelStreamerType.h"
-
 /**
- * Command line options to pass startup parameters to a localstreamer application.
+ * Command line options to pass startup parameters to a local application.
  */
 class CommandLineOptions
 {
@@ -55,10 +55,16 @@ public:
     CommandLineOptions();
 
     /** Construct from command line parameters */
-    CommandLineOptions(int &argc, char **argv);
+    CommandLineOptions( int& argc, char** argv );
 
     /** Print syntax to std::out */
     void showSyntax() const;
+
+    /** Get the arguments joined in command line format. */
+    QString getCommandLine() const;
+
+    /** Get the command line arguments in list format. */
+    QStringList getCommandLineArguments() const;
 
     /** @name Getters */
     //@{
@@ -66,40 +72,37 @@ public:
     PixelStreamerType getPixelStreamerType() const;
     const QString& getUrl() const;
     const QString& getRootDir() const;
-    const QString& getName() const;
+    const QString& getStreamname() const;
     unsigned int getWidth() const;
     unsigned int getHeight() const;
+    const QString& getConfiguration() const;
     //@}
-
-    /** Get the command line arguments corresponding to this object */
-    QStringList getCommandLineArguments() const;
-
-    /** Get the command line arguments joined in a single line (convenience function) */
-    QString getCommandLine() const;
 
     /** @name Setters */
     //@{
-    void setHelp(const bool set);
-    void setPixelStreamerType(const PixelStreamerType type);
-    void setUrl(const QString& url);
-    void setRootDir(const QString& dir);
-    void setName(const QString& name);
-    void setWidth(const unsigned int width);
-    void setHeight(const unsigned int height);
+    void setHelp( bool set );
+    void setPixelStreamerType( PixelStreamerType type );
+    void setUrl( const QString& url );
+    void setRootDir( const QString& dir );
+    void setStreamname( const QString& name );
+    void setWidth( unsigned int width );
+    void setHeight( unsigned int height );
+    void setConfiguration( const QString& file );
     //@}
 
 private:
-    void initDesc();
-    void parseCommandLineArguments(int &argc, char **argv);
+    void _initDesc();
+    void _parseCommandLineArguments( int& argc, char** argv );
 
-    bool getHelp_;
-    PixelStreamerType streamerType_;
-    QString url_;
-    QString rootDir_;
-    QString name_;
-    unsigned int width_, height_;
+    bool _getHelp;
+    PixelStreamerType _streamerType;
+    QString _url;
+    QString _rootDir;
+    QString _streamname;
+    unsigned int _width, _height;
+    QString _configuration;
 
-    boost::program_options::options_description desc_;
+    boost::program_options::options_description _desc;
 };
 
-#endif // COMMANDLINEOPTIONS_H
+#endif

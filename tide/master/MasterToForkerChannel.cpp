@@ -46,6 +46,7 @@
 namespace
 {
 const int forkerProcess = 1;
+const QString sep( '#' );
 }
 
 MasterToForkerChannel::MasterToForkerChannel( MPIChannelPtr mpiChannel )
@@ -53,9 +54,10 @@ MasterToForkerChannel::MasterToForkerChannel( MPIChannelPtr mpiChannel )
 {}
 
 void MasterToForkerChannel::sendStart( const QString command,
-                                       const QString workingDir )
+                                       const QString workingDir,
+                                       const QStringList env )
 {
-    const QString string = command + QString( '#' ) + workingDir;
+    const QString string = command + sep + workingDir + sep + env.join( ';' );
     const std::string& data = SerializeBuffer::serialize( string );
     _mpiChannel->send( MPI_MESSAGE_TYPE_START_PROCESS, data, forkerProcess );
 }

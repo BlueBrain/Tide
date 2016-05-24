@@ -7,6 +7,7 @@ Item {
 
     property alias showFocusContext: focuscontext.visible
     property alias controlPanel: controlPanel
+    property alias sideControl: sideControl
 
     width: displaygroup.width
     height: displaygroup.height
@@ -42,5 +43,10 @@ Item {
     ControlPanel {
         id: controlPanel
         property alias buttonDelegate: controlPanel.buttonDelegate
+    }
+
+    SideControl {
+        id: sideControl
+        z: Style.sideControlZorder
     }
 }

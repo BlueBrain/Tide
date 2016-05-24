@@ -56,6 +56,9 @@ namespace ut = boost::unit_test;
 #define CONFIG_EXPECTED_BACKGROUND_COLOR "#242424"
 #define CONFIG_EXPECTED_DOCK_DIR "/nfs4/bbp.epfl.ch/visualization/DisplayWall/media"
 #define CONFIG_EXPECTED_SESSIONS_DIR "/nfs4/bbp.epfl.ch/visualization/DisplayWall/sessions"
+#define CONFIG_EXPECTED_LAUNCHER_DISPLAY ":0"
+#define CONFIG_EXPECTED_DEMO_SERVICE_URL "https://visualization-dev.humanbrainproject.eu/viz/rendering-resource-manager/v1"
+#define CONFIG_EXPECTED_DEMO_SERVICE_IMAGE_DIR "/nfs4/bbp.epfl.ch/visualization/resources/software/displaywall/demo_previews"
 #define CONFIG_EXPECTED_DISPLAY ":0.2"
 #define CONFIG_EXPECTED_HOST_NAME "bbplxviz03i"
 
@@ -118,6 +121,10 @@ BOOST_AUTO_TEST_CASE( test_master_configuration )
 
     BOOST_CHECK_EQUAL( config.getDockStartDir().toStdString(), CONFIG_EXPECTED_DOCK_DIR );
     BOOST_CHECK_EQUAL( config.getSessionsDir().toStdString(), CONFIG_EXPECTED_SESSIONS_DIR );
+
+    BOOST_CHECK_EQUAL( config.getLauncherDisplay().toStdString(), CONFIG_EXPECTED_LAUNCHER_DISPLAY );
+    BOOST_CHECK_EQUAL( config.getDemoServiceUrl().toStdString(), CONFIG_EXPECTED_DEMO_SERVICE_URL );
+    BOOST_CHECK_EQUAL( config.getDemoServiceImageFolder().toStdString(), CONFIG_EXPECTED_DEMO_SERVICE_IMAGE_DIR );
 
     BOOST_CHECK_EQUAL( config.getWebServicePort(), CONFIG_EXPECTED_WEBSERVICE_PORT );
     BOOST_CHECK_EQUAL( config.getWebBrowserDefaultURL().toStdString(), CONFIG_EXPECTED_URL );

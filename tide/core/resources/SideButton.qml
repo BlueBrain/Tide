@@ -3,8 +3,8 @@ import "qrc:/qml/core/style.js" as Style
 
 Canvas {
     id: sideButton
-    width: Style.windowSideButtonWidth
-    height: Style.windowSideButtonNarrowHeight + 2 * Style.windowSideButtonTriangleHeight
+    width: height / Style.windowSideButtonHeight * Style.windowSideButtonWidth
+    height: Style.windowSideButtonHeight
 
     property color color: "lightgray"
     onColorChanged: requestPaint()
@@ -17,6 +17,7 @@ Canvas {
 
     default property alias delegate : iconDelegate.sourceComponent
     property real delegateOverflow: 0.0 // The icon can overlap the window border
+    property real delegateHeight: 0.0 // The icon can be non-square
 
     onPaint: {
         var ctx = getContext("2d");
@@ -24,7 +25,8 @@ Canvas {
         ctx.clearRect(0, 0, width, height)
 
         var verticalCenter = 0.5 * height
-        var delta = 0.5 * Style.windowSideButtonNarrowHeight
+        var narrowHeight = height / Style.windowSideButtonHeight * Style.windowSideButtonNarrowHeight
+        var delta = 0.5 * narrowHeight
 
         ctx.fillStyle = color;
         ctx.beginPath();
@@ -44,6 +46,6 @@ Canvas {
        anchors.left: parent.left
        anchors.leftMargin: -delegateOverflow
        width: parent.width + delegateOverflow
-       height: width
+       height: delegateHeight ? delegateHeight : width
     }
 }

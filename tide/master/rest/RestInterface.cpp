@@ -84,6 +84,7 @@ public:
         : httpServer{ zeroeq::URI { QString(":%1").arg( port ).toStdString( )}}
     {
         httpServer.register_( indexPage );
+        httpServer.subscribe( browseCmd );
         httpServer.subscribe( openCmd );
         httpServer.subscribe( loadCmd );
         httpServer.subscribe( saveCmd );
@@ -93,6 +94,7 @@ public:
     QSocketNotifier socketNotifier{ httpServer.getSocketDescriptor(),
                                     QSocketNotifier::Read };
     StaticContent indexPage{ "tide", indexpage.toStdString( )};
+    RestCommand browseCmd{ "tide::browse" };
     RestCommand openCmd{ "tide::open" };
     RestCommand loadCmd{ "tide::load" };
     RestCommand saveCmd{ "tide::save" };
@@ -105,6 +107,9 @@ RestInterface::RestInterface( const int port )
     {
         _impl->httpServer.receive( RECEIVE_TIMEOUT );
     });
+
+    connect( &_impl->browseCmd, &RestCommand::received,
+             this, &RestInterface::browse );
 
     connect( &_impl->openCmd, &RestCommand::received,
              this, &RestInterface::open );

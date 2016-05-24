@@ -17,6 +17,9 @@
         <file>launch.svg</file>
         <file>load.svg</file>
         <file>tick.svg</file>
+        <file>folder.png</file>
+        <file>unknownfile.png</file>
+        <file>gear.svg</file>
     </qresource>
     <qresource prefix="/fonts">
         <file>Gotham-Book.otf</file>
@@ -44,5 +47,6 @@
         <file>WindowControls.qml</file>
         <file>Triangle.qml</file>
         <file>SideButton.qml</file>
+        <file>SideControl.qml</file>
     </qresource>
 </RCC>

@@ -71,6 +71,23 @@ public:
     const QString& getSessionsDir() const;
 
     /**
+     * Get the DISPLAY identifier in string format for starting the Launcher.
+     */
+    const QString& getLauncherDisplay() const;
+
+    /**
+     * Get the url for the demo service
+     * @return base url of Rendering Resources Manager's API
+     */
+    const QString& getDemoServiceUrl() const;
+
+    /**
+     * Get the image folder for the demo service
+     * @return directory with the images
+     */
+    const QString& getDemoServiceImageFolder() const;
+
+    /**
      * Get the Application Launcher QML file
      * @return file path
      */
@@ -130,6 +147,7 @@ public:
 private:
     void loadMasterSettings();
     void loadDockStartDirectory( QXmlQuery& query );
+    void loadLauncherSettings( QXmlQuery& query );
     void loadSessionsDirectory( QXmlQuery& query );
     void loadWebService( QXmlQuery& query );
     void loadAppLauncher( QXmlQuery& query );
@@ -139,6 +157,10 @@ private:
     QString _dockStartDir;
     QString _sessionsDir;
     QString _appLauncherFile;
+
+    QString _launcherDisplay;
+    QString _demoServiceUrl;
+    QString _demoServiceImageFolder;
 
     int _webServicePort;
     QString _webBrowserDefaultURL;

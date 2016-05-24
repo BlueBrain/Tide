@@ -95,6 +95,7 @@ void PixelStreamWindowManager::showWindow( const QString& uri )
     const bool select = window->isPanel() &&
                         _getPixelStreamDelegate( *window )->hasEventReceivers();
     window->setState( select ? ContentWindow::SELECTED : ContentWindow::NONE );
+    _displayGroup.moveContentWindowToFront( window );
 }
 
 void PixelStreamWindowManager::openWindow( const QString& uri,
@@ -248,5 +249,6 @@ bool PixelStreamWindowManager::_isPanel( const QString& uri ) const
     return uri == DockPixelStreamer::getUniqueURI() ||
             uri == PixelStreamerLauncher::appLauncherUri ||
             uri == PixelStreamerLauncher::contentLoaderUri ||
-            uri == PixelStreamerLauncher::sessionLoaderUri;
+            uri == PixelStreamerLauncher::sessionLoaderUri ||
+            uri == PixelStreamerLauncher::launcherUri;
 }

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2015, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -54,9 +54,11 @@ namespace
 #ifdef _WIN32
 const QString LOCALSTREAMER_BIN( "localstreamer.exe" );
 const QString QMLSTREAMER_BIN( "qmlstreamer.exe" );
+const QString LAUNCHER_BIN( "tideLauncher.exe" );
 #else
 const QString LOCALSTREAMER_BIN( "localstreamer" );
 const QString QMLSTREAMER_BIN( "qmlstreamer" );
+const QString LAUNCHER_BIN( "tideLauncher" );
 #endif
 
 const qreal DOCK_WIDTH_RELATIVE_TO_WALL = 0.175;
@@ -66,6 +68,7 @@ const QSize WEBBROWSER_DEFAULT_SIZE( 1280, 1024 );
 const QString PixelStreamerLauncher::appLauncherUri = QString( "AppLauncher" );
 const QString PixelStreamerLauncher::contentLoaderUri = QString( "ContentLoader" );
 const QString PixelStreamerLauncher::sessionLoaderUri = QString( "SessionsPanel" );
+const QString PixelStreamerLauncher::launcherUri = QString( "Launcher" );
 
 PixelStreamerLauncher::PixelStreamerLauncher( PixelStreamWindowManager& windowManager,
                                               const MasterConfiguration& config )
@@ -88,15 +91,15 @@ void PixelStreamerLauncher::openWebBrowser( const QPointF pos, const QSize size,
 
     CommandLineOptions options;
     options.setPixelStreamerType( PS_WEBKIT );
-    options.setName( uri );
+    options.setStreamname( uri );
     options.setUrl( url );
     options.setWidth( viewportSize.width( ));
     options.setHeight( viewportSize.height( ));
 
     _processes.insert( uri );
     const QString command = _getLocalStreamerBin() + QString( ' ' ) +
-                            options.getCommandLineArguments().join( ' ' );
-    emit start( command, QDir::currentPath( ));
+                            options.getCommandLine();
+    emit start( command, QDir::currentPath(), QStringList( ));
 }
 
 QSize computeDockSize( const int wallWidth )
@@ -193,8 +196,46 @@ bool PixelStreamerLauncher::openAppLauncher( const QPointF pos )
 
     const QString command = _getQmlStreamerBin() + QString( ' ' ) +
                             args.join( ' ' );
-    emit start( command, QDir::currentPath( ));
+    emit start( command, QDir::currentPath(), QStringList( ));
     return true;
+}
+
+void PixelStreamerLauncher::openLauncher()
+{
+    const QString& uri = launcherUri;
+    if( _processes.count( uri ))
+    {
+        _windowManager.showWindow( uri );
+        return;
+    }
+
+    const qreal width = 0.25 * _config.getTotalWidth();
+    const QSize launcherSize( width, 0.75 * width );
+    const qreal x = 0.25 * _config.getTotalWidth();
+    const qreal y = 0.35 * _config.getTotalHeight();
+    const QPointF centerPos( x, y );
+
+    _windowManager.openWindow( uri, centerPos, launcherSize );
+    _processes.insert( uri );
+
+    CommandLineOptions options;
+    options.setStreamname( launcherUri );
+    options.setConfiguration( _config.getFilename( ));
+    options.setWidth( launcherSize.width( ));
+    options.setHeight( launcherSize.height( ));
+
+    QStringList env;
+    if( !_config.getLauncherDisplay().isEmpty( ))
+        env.append( QString("DISPLAY=%1").arg( _config.getLauncherDisplay( )));
+
+    const QString command = _getLauncherBin() + QString( ' ' ) +
+                            options.getCommandLine();
+    emit start( command, QDir::currentPath(), env );
+}
+
+void PixelStreamerLauncher::hideLauncher()
+{
+    _windowManager.hideWindow( launcherUri );
 }
 
 void PixelStreamerLauncher::_dereferenceLocalStreamer( const QString uri )
@@ -211,15 +252,15 @@ bool PixelStreamerLauncher::_createDock( const QString& uri,
 
     CommandLineOptions options;
     options.setPixelStreamerType( PS_DOCK );
-    options.setName( uri );
+    options.setStreamname( uri );
     options.setRootDir( rootDir );
     options.setWidth( size.width( ));
     options.setHeight( size.height( ));
 
     _processes.insert( uri );
     const QString command = _getLocalStreamerBin() + QString( ' ' ) +
-                            options.getCommandLineArguments().join( ' ' );
-    emit start( command, QDir::currentPath( ));
+                            options.getCommandLine();
+    emit start( command, QDir::currentPath(), QStringList( ));
     return true;
 }
 
@@ -233,4 +274,10 @@ QString PixelStreamerLauncher::_getQmlStreamerBin() const
 {
     const QString& appDir = QCoreApplication::applicationDirPath();
     return QString( "%1/%2" ).arg( appDir, QMLSTREAMER_BIN );
+}
+
+QString PixelStreamerLauncher::_getLauncherBin() const
+{
+    const QString& appDir = QCoreApplication::applicationDirPath();
+    return QString( "%1/%2" ).arg( appDir, LAUNCHER_BIN );
 }

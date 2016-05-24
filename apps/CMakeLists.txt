@@ -1,5 +1,5 @@
 
-# Copyright (c) 2013-2015, EPFL/Blue Brain Project
+# Copyright (c) 2013-2016, EPFL/Blue Brain Project
 #                     Raphael Dumusc <raphael.dumusc@epfl.ch>
 
 include_directories(${PROJECT_SOURCE_DIR}/tide/core)
@@ -7,6 +7,7 @@ include_directories(${PROJECT_SOURCE_DIR}/tide/core)
 add_subdirectory(TideForker)
 add_subdirectory(TideMaster)
 add_subdirectory(TideWall)
+add_subdirectory(Launcher)
 add_subdirectory(LocalStreamer)
 add_subdirectory(PyramidMaker)
 

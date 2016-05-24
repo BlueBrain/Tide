@@ -60,6 +60,11 @@ Configuration::Configuration( const QString& filename )
     _load();
 }
 
+const QString& Configuration::getFilename() const
+{
+    return _filename;
+}
+
 void Configuration::_load()
 {
     QXmlQuery query;

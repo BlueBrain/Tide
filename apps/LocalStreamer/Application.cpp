@@ -75,7 +75,7 @@ bool Application::initialize(const CommandLineOptions& options)
             this, SLOT(sendCommand(QString)));
 
     // Connect to Tide
-    _deflectStream = new deflect::Stream( options.getName().toStdString(),
+    _deflectStream = new deflect::Stream( options.getStreamname().toStdString(),
                                      TIDE_STREAM_HOST_ADDRESS );
     if( !_deflectStream->isConnected( ))
     {

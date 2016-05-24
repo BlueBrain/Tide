@@ -44,6 +44,7 @@
 #include "SerializeBuffer.h"
 
 #include <map>
+#include <QStringList>
 
 class QProcess;
 
@@ -86,7 +87,8 @@ private:
     typedef std::map< QString, QProcess* > Processes;
     Processes _processes;
 
-    void _launch( const QString& command, const QString& workingDir );
+    void _launch( const QString& command, const QString& workingDir,
+                  const QStringList& env );
 };
 
 #endif

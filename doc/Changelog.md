@@ -3,6 +3,10 @@ Changelog {#Changelog}
 
 # git master (1.1.0)
 
+* [23](https://github.com/BlueBrain/Tide/pull/23):
+  Replaced the Dock with a new Qml Launcher and a side control panel to open it
+  [DISCL-313] and [DISCL-316]. The Launcher improves the user experience and
+  navigation with a grid view for files and sessions.
 * [22](https://github.com/BlueBrain/Tide/pull/22):
   Detect TapAndHold with the mouse
 * [21](https://github.com/BlueBrain/Tide/pull/21):

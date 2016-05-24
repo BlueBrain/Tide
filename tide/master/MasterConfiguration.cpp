@@ -69,6 +69,7 @@ void MasterConfiguration::loadMasterSettings()
 
     loadDockStartDirectory( query );
     loadSessionsDirectory( query );
+    loadLauncherSettings( query );
     loadWebService( query );
     loadAppLauncher( query );
     loadWebBrowserStartURL( query );
@@ -95,6 +96,21 @@ void MasterConfiguration::loadSessionsDirectory( QXmlQuery& query )
         _sessionsDir = queryResult.remove( QRegExp( TRIM_REGEX ));
     if( _sessionsDir.isEmpty( ))
         _sessionsDir = QDir::homePath();
+}
+
+void MasterConfiguration::loadLauncherSettings( QXmlQuery& query )
+{
+    QString queryResult;
+
+    query.setQuery( "string(/configuration/launcher/@display)" );
+    if( query.evaluateTo( &queryResult ))
+        _launcherDisplay = queryResult.remove( QRegExp( TRIM_REGEX ));
+    query.setQuery( "string(/configuration/launcher/@demoServiceUrl)" );
+    if( query.evaluateTo( &queryResult ))
+        _demoServiceUrl = queryResult.remove( QRegExp( TRIM_REGEX ));
+    query.setQuery( "string(/configuration/launcher/@demoServiceImageFolder)" );
+    if( query.evaluateTo( &queryResult ))
+        _demoServiceImageFolder = queryResult.remove( QRegExp( TRIM_REGEX ));
 }
 
 void MasterConfiguration::loadWebService( QXmlQuery& query )
@@ -147,6 +163,21 @@ const QString& MasterConfiguration::getDockStartDir() const
 const QString& MasterConfiguration::getSessionsDir() const
 {
     return _sessionsDir;
+}
+
+const QString& MasterConfiguration::getLauncherDisplay() const
+{
+    return _launcherDisplay;
+}
+
+const QString& MasterConfiguration::getDemoServiceUrl() const
+{
+    return _demoServiceUrl;
+}
+
+const QString& MasterConfiguration::getDemoServiceImageFolder() const
+{
+    return _demoServiceImageFolder;
 }
 
 const QString& MasterConfiguration::getAppLauncherFile() const
