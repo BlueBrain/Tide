@@ -1,7 +1,8 @@
 # Tide
 
 Welcome to Tide, a software for Tiled Interactive DisplayWall Environments
-providing multi-user touch interaction for collaborations.
+providing multi-user touch interaction for collaborations. 
+[See Tide in action](https://www.youtube.com/watch?v=wATHwvRFGz0)
 
 ## Features
 
