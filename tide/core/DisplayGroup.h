@@ -79,6 +79,8 @@ class DisplayGroup : public Coordinates,
                 WRITE setShowWindowTitles NOTIFY showWindowTitlesChanged )
     Q_PROPERTY( bool hasFocusedWindows READ hasFocusedWindows
                 NOTIFY hasFocusedWindowsChanged )
+    Q_PROPERTY( bool hasFullscreenWindows READ hasFullscreenWindows
+                NOTIFY hasFullscreenWindowsChanged )
 
 public:
     /** Constructor */
@@ -132,14 +134,32 @@ public:
     /** Are there focused windows. */
     bool hasFocusedWindows() const;
 
+    /** Is there a fullscreen window. */
+    bool hasFullscreenWindows() const;
+
     /** Focus a window. */
     Q_INVOKABLE void focus( const QUuid& id );
 
     /** Unfocus a window. */
     Q_INVOKABLE void unfocus( const QUuid& id );
 
+    /** Unfocus all focused windows. */
+    Q_INVOKABLE void unfocusAll();
+
     /** Get the set of focused windows. */
     const ContentWindowSet& getFocusedWindows() const;
+
+    /**
+     * Show a window in fullscreen.
+     *
+     * Only one window can be fullscreen at a time. If another window was
+     * already fullscreen it will be restored to its previous state.
+     * @param id window identifier
+     */
+    Q_INVOKABLE void showFullscreen( const QUuid& id );
+
+    /** Leave fullscreen mode, restoring the window to its previous state. */
+    Q_INVOKABLE void exitFullscreen();
 
     /**
      * Move this object and its member QObjects to the given QThread.
@@ -191,6 +211,9 @@ signals:
     /** Notifier for the hasFocusedWindows property. */
     void hasFocusedWindowsChanged();
 
+    /** Notifier for the hasFullscreenWindows property. */
+    void hasFullscreenWindowsChanged();
+
 private slots:
     void _sendDisplayGroup();
 
@@ -205,10 +228,11 @@ private:
     template< class Archive >
     void serialize( Archive & ar, const unsigned int )
     {
+        ar & _coordinates;
         ar & _showWindowTitles;
         ar & _contentWindows;
         ar & _focusedWindows;
-        ar & _coordinates;
+        ar & _fullscreenWindow;
     }
 
     /** Serialize for saving to an xml file */
@@ -252,6 +276,9 @@ private:
     bool _showWindowTitles;
     ContentWindowPtrs _contentWindows;
     ContentWindowSet _focusedWindows;
+    ContentWindowPtr _fullscreenWindow;
+    ContentWindow::WindowMode _fullscreenWindowPrevMode;
+    QRectF _fullscreenWindowPrevZoom;
 };
 
 BOOST_CLASS_VERSION( DisplayGroup, FIRST_DISPLAYGROUP_VERSION )

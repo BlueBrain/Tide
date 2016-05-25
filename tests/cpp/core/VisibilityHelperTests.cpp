@@ -138,9 +138,9 @@ BOOST_FIXTURE_TEST_CASE( testOverlappingWindow, Fixture )
 
     // Focused
     window->setFocusedCoordinates( coord );
-    window->setFocused( true );
+    window->setMode( ContentWindow::WindowMode::FOCUSED );
     BOOST_CHECK_EQUAL( helper.getVisibleArea( *window ), coord );
-    window->setFocused( false );
+    window->setMode( ContentWindow::WindowMode::STANDARD );
 
     // Half-above horizonally
     otherWindow->setCoordinates( QRectF( QPointF( 100, 0 ), size ));
@@ -190,4 +190,28 @@ BOOST_FIXTURE_TEST_CASE( testViewCutCombinedWithOverlappingWindow, Fixture )
     // Full corner overlap
     otherWindow->setCoordinates( QRectF( QPointF( 200, 400 ), size ));
     BOOST_CHECK_EQUAL( helper.getVisibleArea( *window ), QRectF( ));
+}
+
+BOOST_FIXTURE_TEST_CASE( testFullscreenWindowOverlapEverything, Fixture )
+{
+    const QRectF& coord = window->getCoordinates();
+
+    ContentWindowPtr otherWindow = boost::make_shared<ContentWindow>( content );
+    group->addContentWindow( otherWindow );
+    BOOST_REQUIRE_EQUAL( helper.getVisibleArea( *window ), QRectF( ));
+    BOOST_REQUIRE_EQUAL( helper.getVisibleArea( *otherWindow ), coord );
+
+    // Even a "small" fullscreen window should overlap everything...
+    group->showFullscreen( window->getID( ));
+    const QRectF fullscreen( QPointF(), window->getCoordinates().size() / 2 );
+    window->setFullscreenCoordinates( fullscreen );
+    BOOST_CHECK_EQUAL( helper.getVisibleArea( *otherWindow ), QRectF( ));
+    BOOST_CHECK_EQUAL( helper.getVisibleArea( *window ), fullscreen );
+
+    // ...including focused windows
+    ContentWindowPtr focusWindow = boost::make_shared<ContentWindow>( content );
+    group->addContentWindow( focusWindow );
+    group->focus( focusWindow->getID( ));
+    BOOST_CHECK_EQUAL( helper.getVisibleArea( *focusWindow ), QRectF( ));
+    BOOST_CHECK_EQUAL( helper.getVisibleArea( *window ), fullscreen );
 }

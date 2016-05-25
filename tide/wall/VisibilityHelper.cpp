@@ -82,16 +82,26 @@ QRectF _cutOverlap( const QRectF& window, const QRectF& other )
     return window;
 }
 
+QRectF _globalToWindowCoordinates( const QRectF& area, const QRectF& window )
+{
+    return area.translated( -window.x(), -window.y( ));
+}
+
 QRectF VisibilityHelper::getVisibleArea( const ContentWindow& window ) const
 {
     const QRectF& windowCoords = window.getDisplayCoordinates();
 
     QRectF area = windowCoords.intersected( _visibleArea );
     if( area.isEmpty( ))
-        return area;
+        return QRectF();
+
+    if( window.isFullscreen( ))
+        return _globalToWindowCoordinates( area, windowCoords );
+    else if( _displayGroup.hasFullscreenWindows( ))
+        return QRectF();
 
     if( window.isFocused( ))
-        return area.translated( -windowCoords.x(), -windowCoords.y( ));
+        return _globalToWindowCoordinates( area, windowCoords );
 
     bool isAbove = false;
     for( auto win : _displayGroup.getContentWindows( ))
@@ -105,8 +115,8 @@ QRectF VisibilityHelper::getVisibleArea( const ContentWindow& window ) const
             area = _cutOverlap( area, win->getDisplayCoordinates( ));
 
         if( area.isEmpty( ))
-            return area;
+            return QRectF();
     }
 
-    return area.translated( -windowCoords.x(), -windowCoords.y( ));
+    return _globalToWindowCoordinates( area, windowCoords );
 }

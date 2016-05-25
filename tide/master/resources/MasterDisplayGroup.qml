@@ -22,9 +22,17 @@ DisplayGroup {
             blockTap = true;
         }
         onTap: {
-            if( !blockTap )
+            if(!blockTap)
                 view.backgroundTap(pos)
         }
+    }
+
+    MultitouchArea {
+        id: touchBarrier
+        anchors.fill: parent
+        visible: displaygroup.hasFullscreenWindows
+        z: Style.fullscreenBackgroundZorder
+        onTap: displaygroup.exitFullscreen()
     }
 
     sideControl.buttonDelegate: MultitouchArea {
@@ -32,6 +40,10 @@ DisplayGroup {
             if(buttonIndex == 0)
                 launcherControlPressed();
             else if(buttonIndex == 1)
+                displaygroup.unfocusAll();
+            else if(buttonIndex == 2)
+                displaygroup.exitFullscreen();
+            else if(buttonIndex == 3)
                 settingsControlsPressed();
         }
     }

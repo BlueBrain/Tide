@@ -97,7 +97,8 @@ Rectangle {
         delegate: Triangle {
         }
         delegateOverflow: windowRect.border.width
-        visible: (contentwindow.controlsVisible || contentwindow.focused) &&
+        visible: (contentwindow.controlsVisible || contentwindow.focused ||
+                  contentwindow.fullscreen) &&
                  contentwindow.content.page !== undefined &&
                  contentwindow.content.page > 0
     }
@@ -111,7 +112,8 @@ Rectangle {
         }
         delegateOverflow: windowRect.border.width
         flipRight: true
-        visible: (contentwindow.controlsVisible || contentwindow.focused) &&
+        visible: (contentwindow.controlsVisible || contentwindow.focused ||
+                  contentwindow.fullscreen) &&
                  contentwindow.content.page !== undefined &&
                  contentwindow.content.page < contentwindow.content.pageCount - 1
     }
@@ -125,6 +127,23 @@ Rectangle {
     }
 
     states: [
+        State {
+            name: "fullscreen"
+            when: contentwindow.fullscreen
+            PropertyChanges {
+                target: windowRect
+                x: contentwindow.fullscreenCoordinates.x
+                y: contentwindow.fullscreenCoordinates.y
+                width: contentwindow.fullscreenCoordinates.width
+                height: contentwindow.fullscreenCoordinates.height
+                border.width: 0
+                z: Style.fullscreenZorder
+            }
+            PropertyChanges {
+                target: titleBar
+                visible: false
+            }
+        },
         State {
             name: "focused"
             when: contentwindow.focused
@@ -171,6 +190,7 @@ Rectangle {
     transitions: [
         Transition {
             from: "focused"
+            to: ""
             id: unfocusTransition
             SequentialAnimation {
                 // Slide behind other focused windows for the transition
@@ -199,6 +219,21 @@ Rectangle {
                 properties: "x,y,height,width"
                 duration: Style.panelsAnimationTime
                 easing.type: Easing.InOutQuad
+            }
+        },
+        Transition {
+            from: "*"
+            to: "fullscreen"
+            reversible: true
+            NumberAnimation {
+                properties: "x,y,width,height"
+                duration: Style.focusTransitionTime
+                easing.type: Easing.OutQuad
+            }
+            PropertyAction {
+                target: windowRect
+                property: "z"
+                value: Style.fullscreenZorder
             }
         }
     ]

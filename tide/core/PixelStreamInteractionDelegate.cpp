@@ -45,10 +45,10 @@ PixelStreamInteractionDelegate::PixelStreamInteractionDelegate( ContentWindow&
                                                                 contentWindow )
     : ContentInteractionDelegate( contentWindow )
 {
-    connect( &contentWindow, SIGNAL( coordinatesChanged( )),
-             this, SLOT( _sendSizeChangedEvent( )));
-    connect( &contentWindow, SIGNAL( focusedChanged( )),
-             this, SLOT( _sendSizeChangedEvent( )));
+    connect( &contentWindow, &ContentWindow::coordinatesChanged,
+             this, &PixelStreamInteractionDelegate::_sendSizeChangedEvent );
+    connect( &contentWindow, &ContentWindow::modeChanged,
+             this, &PixelStreamInteractionDelegate::_sendSizeChangedEvent );
 }
 
 void PixelStreamInteractionDelegate::touchBegin( const QPointF position )

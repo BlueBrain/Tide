@@ -10,7 +10,7 @@ Rectangle {
 
     visible: !contentwindow.isPanel
              && contentwindow.controlsVisible
-             && !contentwindow.focused
+             && contentwindow.mode === ContentWindow.STANDARD
     opacity: Style.resizeCircleOpacity
 
     Repeater {

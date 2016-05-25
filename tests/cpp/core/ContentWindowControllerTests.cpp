@@ -253,19 +253,23 @@ BOOST_AUTO_TEST_CASE( testFullScreenSize )
 {
     ContentPtr content( new DummyContent );
     content->setDimensions( CONTENT_SIZE );
+    content->setZoomRect( QRectF( 0.25, 0.25, 0.5, 0.5 ));
     ContentWindow window( content );
 
     DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
     ContentWindowController controller( window, *displayGroup );
 
     controller.adjustSize( SIZE_FULLSCREEN );
-    const QRectF& coords = window.getCoordinates();
+    const QRectF& coords = window.getFullscreenCoordinates();
 
     // full screen, center on wall
     BOOST_CHECK_EQUAL( coords.x(), 0.0 );
     BOOST_CHECK_EQUAL( coords.y(),  125 );
     BOOST_CHECK_EQUAL( coords.width(), wallSize.width( ));
     BOOST_CHECK_EQUAL( coords.height(), wallSize.width() / CONTENT_AR );
+
+    // zoom reset
+    BOOST_CHECK_EQUAL( content->getZoomRect(), UNIT_RECTF );
 }
 
 BOOST_AUTO_TEST_CASE( testResizeRelativeToBorder )

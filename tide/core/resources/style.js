@@ -10,11 +10,14 @@ var backgroundZOrder = -1;
 var focusBackgroundZorder = 98;
 var unfocusZorder = 99;
 var focusZorder = 100;
+var fullscreenBackgroundZorder = 198;
+var fullscreenZorder = 199;
 var sideControlZorder = 200;
 var overlayZorder = 1000;
 
 var focusContextColor = "black"
 var focusContextOpacity = 0.7;
+var focusContextFullscreenOpacity = 0.99;
 var focusTransitionTime = 500;
 var panelsAnimationTime = 300
 

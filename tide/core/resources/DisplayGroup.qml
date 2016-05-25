@@ -19,16 +19,6 @@ Item {
         opacity: 0
         visible: opacity > 0
         z: Style.focusBackgroundZorder
-        states: [
-            State {
-                name: "focused"
-                when: displaygroup.hasFocusedWindows
-                PropertyChanges {
-                    target: focuscontext
-                    opacity: Style.focusContextOpacity
-                }
-            }
-        ]
         Behavior on opacity {
             NumberAnimation {
                 target: focuscontext
@@ -44,4 +34,24 @@ Item {
         z: Style.sideControlZorder
         visible: options.showControlArea
     }
+
+    states: [
+        State {
+            name: "fullscreen"
+            when: displaygroup.hasFullscreenWindows
+            PropertyChanges {
+                target: focuscontext
+                opacity: Style.focusContextFullscreenOpacity
+                z: Style.fullscreenBackgroundZorder
+            }
+        },
+        State {
+            name: "focused"
+            when: displaygroup.hasFocusedWindows
+            PropertyChanges {
+                target: focuscontext
+                opacity: Style.focusContextOpacity
+            }
+        }
+    ]
 }
