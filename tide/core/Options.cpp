@@ -53,7 +53,7 @@ Options::Options()
     , showZoomContext_(true)
     , showContentTiles_(false)
     , showStreamingStatistics_(false)
-    , showControlArea_(false)
+    , showControlArea_(true)
     , alphaBlendingEnabled_(false)
 {
 }

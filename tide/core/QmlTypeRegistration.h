@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2015-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -45,7 +45,6 @@
 #include "ContentWindowController.h"
 #include "ContentWindow.h"
 #include "Markers.h"
-#include "QmlControlPanel.h"
 
 #include <QtQml>
 
@@ -77,9 +76,6 @@ void registerQmlTypes()
                 QML_MODULE, 1, 0, "ContentInteractionDelegate",
                 "ContentInteractionDelegate is linked to a ContentWindow "
                 "and read-only in QML");
-    qmlRegisterUncreatableType<QmlControlPanel>(
-                QML_MODULE, 1, 0, "QmlControlPanel",
-                "This exports enums to QML");
 }
 
 }

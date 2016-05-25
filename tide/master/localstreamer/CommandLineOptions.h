@@ -71,7 +71,6 @@ public:
     bool getHelp() const;
     PixelStreamerType getPixelStreamerType() const;
     const QString& getUrl() const;
-    const QString& getRootDir() const;
     const QString& getStreamname() const;
     unsigned int getWidth() const;
     unsigned int getHeight() const;
@@ -83,7 +82,6 @@ public:
     void setHelp( bool set );
     void setPixelStreamerType( PixelStreamerType type );
     void setUrl( const QString& url );
-    void setRootDir( const QString& dir );
     void setStreamname( const QString& name );
     void setWidth( unsigned int width );
     void setHeight( unsigned int height );
@@ -97,7 +95,6 @@ private:
     bool _getHelp;
     PixelStreamerType _streamerType;
     QString _url;
-    QString _rootDir;
     QString _streamname;
     unsigned int _width, _height;
     QString _configuration;

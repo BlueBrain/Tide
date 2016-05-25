@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -46,8 +46,7 @@
 enum PixelStreamerType
 {
     PS_UNKNOWN, /**< Unknown type */
-    PS_WEBKIT,  /**< WebkitPixelStreamer */
-    PS_DOCK     /**< DockPixelStreamer */
+    PS_WEBKIT   /**< WebkitPixelStreamer */
 };
 
 /** Get the String representation for a PixelStreamerType. */
@@ -56,4 +55,4 @@ QString getStreamerTypeString( const PixelStreamerType type );
 /** Get the PixelStreamerType from its String representation. */
 PixelStreamerType getStreamerType( const QString& typeString );
 
-#endif // PIXELSTREAMERTYPE_H
+#endif

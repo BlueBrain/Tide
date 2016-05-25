@@ -75,7 +75,7 @@ Launcher::Launcher( int& argc, char* argv[] )
     // FileBrowser setup
     const auto filters = ContentFactory::getSupportedFilesFilter();
     item->setProperty( "filesFilter", filters );
-    item->setProperty( "rootFilesFolder", config.getDockStartDir( ));
+    item->setProperty( "rootFilesFolder", config.getContentDir( ));
     item->setProperty( "rootSessionsFolder", config.getSessionsDir( ));
 
     QQmlEngine* engine = _qmlStreamer->getQmlEngine();

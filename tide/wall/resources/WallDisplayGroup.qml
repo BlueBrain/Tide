@@ -38,7 +38,7 @@ DisplayGroup {
         anchors.left: parent.left
         anchors.leftMargin: Style.fpsX
         anchors.topMargin: -parent.y + Style.fpsY
-        z: Style.overlayZ
+        z: Style.overlayZorder
     }
 
     Repeater {

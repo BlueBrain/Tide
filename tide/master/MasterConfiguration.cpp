@@ -67,7 +67,7 @@ void MasterConfiguration::loadMasterSettings()
         throw std::runtime_error( "Invalid configuration file: " +
                                   _filename.toStdString( ));
 
-    loadDockStartDirectory( query );
+    loadContentDirectory( query );
     loadSessionsDirectory( query );
     loadLauncherSettings( query );
     loadWebService( query );
@@ -76,15 +76,15 @@ void MasterConfiguration::loadMasterSettings()
     loadBackgroundProperties( query );
 }
 
-void MasterConfiguration::loadDockStartDirectory( QXmlQuery& query )
+void MasterConfiguration::loadContentDirectory( QXmlQuery& query )
 {
     QString queryResult;
 
     query.setQuery( "string(/configuration/dock/@directory)" );
     if( query.evaluateTo( &queryResult ))
-        _dockStartDir = queryResult.remove( QRegExp( TRIM_REGEX ));
-    if( _dockStartDir.isEmpty( ))
-        _dockStartDir = QDir::homePath();
+        _contentDir = queryResult.remove( QRegExp( TRIM_REGEX ));
+    if( _contentDir.isEmpty( ))
+        _contentDir = QDir::homePath();
 }
 
 void MasterConfiguration::loadSessionsDirectory( QXmlQuery& query )
@@ -155,9 +155,9 @@ void MasterConfiguration::loadBackgroundProperties( QXmlQuery& query )
     }
 }
 
-const QString& MasterConfiguration::getDockStartDir() const
+const QString& MasterConfiguration::getContentDir() const
 {
-    return _dockStartDir;
+    return _contentDir;
 }
 
 const QString& MasterConfiguration::getSessionsDir() const

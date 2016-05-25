@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -81,8 +81,8 @@ MasterWindow::MasterWindow( DisplayGroupPtr displayGroup,
 #endif
     , _displayGroupView( new DisplayGroupView( _options, config ))
     , _autoFocusPixelStreamsAction( 0 )
-    , _contentFolder( config.getDockStartDir( ))
-    , _sessionFolder( config.getDockStartDir( ))
+    , _contentFolder( config.getContentDir( ))
+    , _sessionFolder( config.getSessionsDir( ))
 {
     _backgroundWidget->setModal( true );
 
@@ -342,16 +342,6 @@ void MasterWindow::_setupMasterWindowUI()
     {
         _options->setShowClock( !_options->getShowClock( ));
     });
-
-    // Forward control panel actions
-    connect( &_displayGroupView->getControlPanel(), &QmlControlPanel::openContentPanel,
-             this, &MasterWindow::openContentLoader );
-    connect( &_displayGroupView->getControlPanel(), &QmlControlPanel::openApplicationsPanel,
-             this, &MasterWindow::openAppLauncher );
-    connect( &_displayGroupView->getControlPanel(), &QmlControlPanel::clearSession,
-             _displayGroup.get(), &DisplayGroup::clear );
-    connect( &_displayGroupView->getControlPanel(), &QmlControlPanel::openLoadSessionPanel,
-             this, &MasterWindow::openSessionLoader );
 
     // create contents dock widget
     QDockWidget* contentsDockWidget = new QDockWidget("Contents", this);

@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2015, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>     */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,14 +40,13 @@
 
 #include "PixelStreamWindowManager.h"
 
+#include "log.h"
+#include "ContentFactory.h"
 #include "ContentWindow.h"
 #include "ContentWindowController.h"
-#include "ContentFactory.h"
 #include "DisplayGroup.h"
-#include "localstreamer/DockPixelStreamer.h"
-#include "localstreamer/PixelStreamerLauncher.h"
-#include "log.h"
 #include "PixelStreamInteractionDelegate.h"
+#include "localstreamer/PixelStreamerLauncher.h"
 
 #include <deflect/Frame.h>
 
@@ -104,15 +104,7 @@ void PixelStreamWindowManager::openWindow( const QString& uri,
                                            const bool webbrowser )
 {
     if( getContentWindow( uri ))
-    {
-        if( uri == DockPixelStreamer::getUniqueURI() && !pos.isNull( ))
-        {
-            ContentWindowPtr window = getContentWindow( uri );
-            ContentWindowController controller( *window, _displayGroup );
-            controller.moveCenterTo( pos );
-        }
         return;
-    }
 
     put_flog( LOG_INFO, "opening pixel stream window: '%s'",
               uri.toLocal8Bit().constData( ));
@@ -246,9 +238,5 @@ void PixelStreamWindowManager::updateSizeHints( const QString uri,
 
 bool PixelStreamWindowManager::_isPanel( const QString& uri ) const
 {
-    return uri == DockPixelStreamer::getUniqueURI() ||
-            uri == PixelStreamerLauncher::appLauncherUri ||
-            uri == PixelStreamerLauncher::contentLoaderUri ||
-            uri == PixelStreamerLauncher::sessionLoaderUri ||
-            uri == PixelStreamerLauncher::launcherUri;
+    return uri == PixelStreamerLauncher::launcherUri;
 }

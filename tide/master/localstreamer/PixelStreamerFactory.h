@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -56,7 +56,7 @@ public:
      * @return Pointer to a new PixelStreamer instance. The caller is
      *         responsible for the deletion of the returned object.
      */
-    static PixelStreamer* create(const CommandLineOptions& options);
+    static PixelStreamer* create( const CommandLineOptions& options );
 };
 
-#endif // PIXELSTREAMERFACTORY_H
+#endif

@@ -31,22 +31,20 @@
         <file>selectboxit/selectboxit.css</file>
     </qresource>
     <qresource prefix="/qml/core">
+        <file>style.js</file>
         <file>BaseContentWindow.qml</file>
         <file>CloseControlButton.qml</file>
         <file>ControlButton.qml</file>
-        <file>ControlPanelDelegate.qml</file>
-        <file>ControlPanel.qml</file>
         <file>DisplayGroup.qml</file>
         <file>FocusControlButton.qml</file>
         <file>FullscreenControlButton.qml</file>
         <file>OneToOneControlButton.qml</file>
         <file>ResizeCircle.qml</file>
         <file>ResizeCircles.qml</file>
-        <file>style.js</file>
-        <file>WindowControlsDelegate.qml</file>
-        <file>WindowControls.qml</file>
-        <file>Triangle.qml</file>
         <file>SideButton.qml</file>
         <file>SideControl.qml</file>
+        <file>Triangle.qml</file>
+        <file>WindowControlsDelegate.qml</file>
+        <file>WindowControls.qml</file>
     </qresource>
 </RCC>

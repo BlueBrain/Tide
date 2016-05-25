@@ -52,12 +52,12 @@ PDFInteractionDelegate::PDFInteractionDelegate( ContentWindow& contentWindow )
 
 void PDFInteractionDelegate::swipeLeft()
 {
-    _getPDFContent().previousPage();
+    _getPDFContent().nextPage();
 }
 
 void PDFInteractionDelegate::swipeRight()
 {
-    _getPDFContent().nextPage();
+    _getPDFContent().previousPage();
 }
 
 PDFContent& PDFInteractionDelegate::_getPDFContent()

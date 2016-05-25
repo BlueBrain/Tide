@@ -5,7 +5,7 @@ import "qrc:/qml/core/style.js" as Style
 Rectangle {
     x: xposition - Style.touchPointMarkerSize / 2.0
     y: yposition - Style.touchPointMarkerSize / 2.0
-    z: Style.overlayZ
+    z: Style.overlayZorder
     width: Style.touchPointMarkerSize
     height: Style.touchPointMarkerSize
     radius: Style.touchPointMarkerSize

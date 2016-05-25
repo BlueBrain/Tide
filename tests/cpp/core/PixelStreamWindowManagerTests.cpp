@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2015, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
 /*                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>     */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -56,7 +57,7 @@ BOOST_GLOBAL_FIXTURE( MinimalGlobalQtApp );
 namespace
 {
 const QString CONTENT_URI( "bla" );
-const QString PANEL_URI( "Dock" );
+const QString PANEL_URI( "Launcher" );
 const QSize wallSize( 1000, 1000 );
 const QSize defaultPixelStreamWindowSize( 640, 480 );
 const QSize testWindowSize( 500, 400 );

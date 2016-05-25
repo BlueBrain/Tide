@@ -44,8 +44,6 @@
 
 #include "types.h"
 
-#include "QmlControlPanel.h"
-
 #include <QUuid>
 
 #include <QGesture>
@@ -69,9 +67,6 @@ public:
 
     /** Set the DisplayGroup model that this view should present. */
     void setDataModel( DisplayGroupPtr displayGroup );
-
-    /** Get the control panel in this view. */
-    QmlControlPanel& getControlPanel();
 
     /** Map a normalized touch event on the wall to this view's coordinates. */
     QPointF mapToWallPos( const QPointF& normalizedPos ) const;
@@ -106,7 +101,6 @@ private:
 
     QQuickItem* displayGroupItem_;
     QObject* wallObject_;
-    QmlControlPanel controlPanel_;
 
     typedef QMap<QUuid, QQuickItem*> UuidToWindowMap;
     UuidToWindowMap uuidToWindowMap_;

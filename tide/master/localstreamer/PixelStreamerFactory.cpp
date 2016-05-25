@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -39,25 +39,23 @@
 
 #include "PixelStreamerFactory.h"
 
+#include "CommandLineOptions.h"
+#include "PixelStreamerType.h"
 #ifdef TIDE_USE_QT5WEBKITWIDGETS
 #  include "WebkitPixelStreamer.h"
 #endif
-#include "DockPixelStreamer.h"
 
-#include "PixelStreamerType.h"
-#include "CommandLineOptions.h"
+#include <QSize>
 
-PixelStreamer* PixelStreamerFactory::create(const CommandLineOptions& options)
+PixelStreamer* PixelStreamerFactory::create( const CommandLineOptions& options )
 {
-    QSize size(options.getWidth(), options.getHeight());
-    switch(options.getPixelStreamerType())
+    const QSize size( options.getWidth(), options.getHeight( ));
+    switch( options.getPixelStreamerType( ))
     {
 #ifdef TIDE_USE_QT5WEBKITWIDGETS
     case PS_WEBKIT:
-        return new WebkitPixelStreamer(size, options.getUrl());
+        return new WebkitPixelStreamer( size, options.getUrl( ));
 #endif
-    case PS_DOCK:
-        return new DockPixelStreamer(size, options.getRootDir());
     case PS_UNKNOWN:
     default:
         return 0;
