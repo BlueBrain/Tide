@@ -145,6 +145,16 @@ void PixelStreamInteractionDelegate::swipeDown()
     emit notify( swipeEvent( deflect::Event::EVT_SWIPE_DOWN ));
 }
 
+void PixelStreamInteractionDelegate::prevPage()
+{
+    swipeLeft();
+}
+
+void PixelStreamInteractionDelegate::nextPage()
+{
+    swipeRight();
+}
+
 void PixelStreamInteractionDelegate::keyPress( const int key,
                                                const int modifiers,
                                                const QString text )

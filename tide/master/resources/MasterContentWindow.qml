@@ -90,13 +90,13 @@ BaseContentWindow {
     previousButton.delegate: Triangle {
         MultitouchArea {
             anchors.fill: parent
-            onTap: contentwindow.delegate.swipeLeft()
+            onTap: contentwindow.delegate.prevPage()
         }
     }
     nextButton.delegate: Triangle {
         MultitouchArea {
             anchors.fill: parent
-            onTap: contentwindow.delegate.swipeRight()
+            onTap: contentwindow.delegate.nextPage()
         }
     }
 
