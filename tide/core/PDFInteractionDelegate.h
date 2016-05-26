@@ -55,6 +55,9 @@ public:
     void swipeLeft() override;
     void swipeRight() override;
 
+    void prevPage() override;
+    void nextPage() override;
+
 private:
     PDFContent& _getPDFContent();
 };

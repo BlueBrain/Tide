@@ -76,6 +76,12 @@ public:
     void keyRelease( int key, int modifiers, QString text ) override;
     //@}
 
+    /** @name UI event handlers. */
+    //@{
+    void prevPage() override;
+    void nextPage() override;
+    //@}
+
     /** Register to receive events on this content. */
     bool registerEventReceiver( deflect::EventReceiver* receiver );
 

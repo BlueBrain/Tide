@@ -87,6 +87,12 @@ public:
     { Q_UNUSED( key ) Q_UNUSED( modifiers ) Q_UNUSED( text ) }
     //@}
 
+    /** @name UI event handlers. */
+    //@{
+    Q_INVOKABLE virtual void prevPage() {}
+    Q_INVOKABLE virtual void nextPage() {}
+    //@}
+
 protected:
     ContentWindow& _contentWindow;
 
