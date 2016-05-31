@@ -39,34 +39,39 @@ Rectangle {
         id: appList
         // ListElement can't store function pointers so use eval(appAction)
         ListElement {
-            appAction: "clearSession"
-            appName: "Close all contents"
-            appImage: "qrc:/images/clear-icon.png"
-            appCategory: "Actions"
+            appAction: "showFilesPanel"
+            appName: "Open"
+            appImage: "qrc:/images/file.svg"
+            appCategory: "Content"
+            appIsPanel: true
         }
         ListElement {
-            appAction: "showFilesPanel"
-            appName: "Open content"
-            appImage: "qrc:/images/file.svg"
-            appCategory: "Actions"
+            appAction: "clearSession"
+            appName: "Close all"
+            appImage: "qrc:/images/clearall.png"
+            appCategory: "Content"
+            appIsPanel: false
         }
         ListElement {
             appAction: "showSessionsPanel"
-            appName: "Load session"
+            appName: "Load"
             appImage: "qrc:/images/folder.svg"
-            appCategory: "Actions"
+            appCategory: "Session"
+            appIsPanel: true
         }
         ListElement {
             appAction: "startWebbrowser"
             appName: "Webbrowser"
-            appImage: "qrc:/images/browser-icon.png"
+            appImage: "qrc:/images/cloud.svg"
             appCategory: "Applications"
+            appIsPanel: false
         }
         ListElement {
             appAction: "showDemosPanel"
             appName: "Visualization"
             appImage: "qrc:/images/book.svg"
             appCategory: "Demos"
+            appIsPanel: true
         }
     }
 
@@ -117,7 +122,7 @@ Rectangle {
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
-                            if(appCategory === "Actions" || appCategory === "Demos")
+                            if(appIsPanel)
                                 appListView.currentIndex = index;
                             eval(appAction)();
                         }

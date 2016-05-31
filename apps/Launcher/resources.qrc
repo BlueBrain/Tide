@@ -9,11 +9,11 @@
         <file>qml/DefaultPanel.qml</file>
     </qresource>
     <qresource prefix="/">
-        <file>images/browser-icon.png</file>
-        <file>images/clear-icon.png</file>
+        <file>images/book.svg</file>
+        <file>images/clearall.png</file>
+        <file>images/cloud.svg</file>
         <file>images/file.svg</file>
         <file>images/folder.svg</file>
-        <file>images/book.svg</file>
         <file>images/left.svg</file>
     </qresource>
 </RCC>

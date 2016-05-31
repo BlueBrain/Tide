@@ -22,7 +22,7 @@ Rectangle {
         anchors.top: bigText.bottom
         anchors.horizontalCenter: parent.horizontalCenter
         font.pixelSize: 0.3 * bigText.font.pixelSize
-        text: "A Tiled Interactive DisplayWall Environment"
+        text: "Tiled Interactive DisplayWall Environment"
         color: Style.defaultPanelTextColor
     }
 }
