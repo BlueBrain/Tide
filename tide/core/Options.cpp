@@ -46,163 +46,194 @@
 // false-positive on qt signals for Q_PROPERTY notifiers
 // cppcheck-suppress uninitMemberVar
 Options::Options()
-    : showClock_(false)
-    , showWindowBorders_(true)
-    , showTouchPoints_(true)
-    , showTestPattern_(false)
-    , showZoomContext_(true)
-    , showContentTiles_(false)
-    , showStreamingStatistics_(false)
-    , showControlArea_(true)
-    , alphaBlendingEnabled_(false)
+    : _alphaBlendingEnabled( false )
+    , _autoFocusPixelStreams( true )
+    , _showClock( false )
+    , _showContentTiles( false )
+    , _showControlArea( true )
+    , _showStreamingStatistics( false )
+    , _showTestPattern( false )
+    , _showTouchPoints( true )
+    , _showWindowBorders( true )
+    , _showZoomContext( true )
+{}
+
+bool Options::isAlphaBlendingEnabled() const
 {
+    return _alphaBlendingEnabled;
+}
+
+bool Options::getAutoFocusPixelStreams() const
+{
+    return _autoFocusPixelStreams;
 }
 
 bool Options::getShowClock() const
 {
-    return showClock_;
-}
-
-bool Options::getShowWindowBorders() const
-{
-    return showWindowBorders_;
-}
-
-bool Options::getShowTouchPoints() const
-{
-    return showTouchPoints_;
-}
-
-bool Options::getShowTestPattern() const
-{
-    return showTestPattern_;
-}
-
-bool Options::getShowZoomContext() const
-{
-    return showZoomContext_;
+    return _showClock;
 }
 
 bool Options::getShowContentTiles() const
 {
-    return showContentTiles_;
-}
-
-bool Options::getShowStatistics() const
-{
-    return showStreamingStatistics_;
+    return _showContentTiles;
 }
 
 bool Options::getShowControlArea() const
 {
-    return showControlArea_;
+    return _showControlArea;
 }
 
-bool Options::isAlphaBlendingEnabled() const
+bool Options::getShowStatistics() const
 {
-    return alphaBlendingEnabled_;
+    return _showStreamingStatistics;
+}
+
+bool Options::getShowTestPattern() const
+{
+    return _showTestPattern;
+}
+
+bool Options::getShowTouchPoints() const
+{
+    return _showTouchPoints;
+}
+
+bool Options::getShowWindowBorders() const
+{
+    return _showWindowBorders;
+}
+
+bool Options::getShowZoomContext() const
+{
+    return _showZoomContext;
 }
 
 QColor Options::getBackgroundColor() const
 {
-    return backgroundColor_;
+    return _backgroundColor;
 }
 
 ContentPtr Options::getBackgroundContent() const
 {
-    return backgroundContent_;
-}
-
-void Options::setShowClock( const bool set )
-{
-    if( showClock_ == set )
-        return;
-
-    showClock_ = set;
-    emit showClockChanged( set );
-    emit( updated( shared_from_this( )));
-}
-
-void Options::setShowWindowBorders( const bool set )
-{
-    if( showWindowBorders_ == set )
-        return;
-
-    showWindowBorders_ = set;
-    emit( showWindowBordersChanged( ));
-    emit( updated( shared_from_this( )));
-}
-
-void Options::setShowTouchPoints(bool set)
-{
-    showTouchPoints_ = set;
-
-    emit(updated(shared_from_this()));
-}
-
-void Options::setShowTestPattern(bool set)
-{
-    showTestPattern_ = set;
-
-    emit(updated(shared_from_this()));
-}
-
-void Options::setShowZoomContext(bool set)
-{
-    showZoomContext_ = set;
-
-    emit(updated(shared_from_this()));
-}
-
-void Options::setShowContentTiles(bool set)
-{
-    showContentTiles_ = set;
-
-    emit(updated(shared_from_this()));
-}
-
-void Options::setShowStatistics(bool set)
-{
-    showStreamingStatistics_ = set;
-
-    emit(updated(shared_from_this()));
-}
-
-void Options::setShowControlArea( const bool set )
-{
-    if( showControlArea_ == set )
-        return;
-
-    showControlArea_ = set;
-    emit( showControlAreaChanged( ));
-    emit( updated( shared_from_this( )));
+    return _backgroundContent;
 }
 
 void Options::enableAlphaBlending( const bool set )
 {
-    if( alphaBlendingEnabled_ == set )
+    if( _alphaBlendingEnabled == set )
         return;
-    alphaBlendingEnabled_ = set;
 
-    emit(updated(shared_from_this()));
+    _alphaBlendingEnabled = set;
+    emit alphaBlendingEnabledChanged( set );
+    emit updated( shared_from_this( ));
 }
 
-void Options::setBackgroundColor(QColor color)
+void Options::setAutoFocusPixelStreams( const bool set )
 {
-    if(color == backgroundColor_)
+    if( _autoFocusPixelStreams == set )
         return;
-    backgroundColor_ = color;
 
-    emit(updated(shared_from_this()));
+    _autoFocusPixelStreams = set;
+    emit autoFocusPixelStreamsChanged( set );
+    emit updated( shared_from_this( ));
+}
+
+void Options::setShowClock( const bool set )
+{
+    if( _showClock == set )
+        return;
+
+    _showClock = set;
+    emit showClockChanged( set );
+    emit updated( shared_from_this( ));
+}
+
+void Options::setShowContentTiles( const bool set )
+{
+    if( _showContentTiles == set )
+        return;
+
+    _showContentTiles = set;
+    emit showContentTilesChanged( set );
+    emit updated( shared_from_this( ));
+}
+
+void Options::setShowControlArea( const bool set )
+{
+    if( _showControlArea == set )
+        return;
+
+    _showControlArea = set;
+    emit showControlAreaChanged( );
+    emit updated( shared_from_this( ));
+}
+
+void Options::setShowStatistics( const bool set )
+{
+    if( _showStreamingStatistics == set )
+        return;
+
+    _showStreamingStatistics = set;
+    emit showStatisticsChanged( set );
+    emit updated( shared_from_this( ));
+}
+
+void Options::setShowTestPattern( const bool set )
+{
+    if( _showTestPattern == set )
+        return;
+
+    _showTestPattern = set;
+    emit showTestPatternChanged( set );
+    emit updated( shared_from_this( ));
+}
+
+void Options::setShowTouchPoints( const bool set )
+{
+    if( _showTouchPoints == set )
+        return;
+
+    _showTouchPoints = set;
+    emit showTouchPointsChanged( set );
+    emit updated( shared_from_this( ));
+}
+
+void Options::setShowWindowBorders( const bool set )
+{
+    if( _showWindowBorders == set )
+        return;
+
+    _showWindowBorders = set;
+    emit showWindowBordersChanged( set );
+    emit updated( shared_from_this( ));
+}
+
+void Options::setShowZoomContext( const bool set )
+{
+    if( _showZoomContext == set )
+        return;
+
+    _showZoomContext = set;
+    emit showZoomContextChanged( set );
+    emit updated( shared_from_this( ));
+}
+
+void Options::setBackgroundColor( const QColor color )
+{
+    if( color == _backgroundColor )
+        return;
+
+    _backgroundColor = color;
+    emit updated( shared_from_this( ));
 }
 
 void Options::setBackgroundContent( ContentPtr content )
 {
-    if( backgroundContent_ == content )
+    if( _backgroundContent == content )
         return;
-    backgroundContent_ = content;
 
-    emit(updated(shared_from_this()));
+    _backgroundContent = content;
+    emit updated( shared_from_this( ));
 }
 
 #pragma GCC diagnostic push
@@ -211,8 +242,8 @@ void Options::setBackgroundContent( ContentPtr content )
 #pragma clang diagnostic ignored "-Wshadow"
 void Options::moveToThread( QThread* thread )
 {
-    if( backgroundContent_ )
-        backgroundContent_->moveToThread( thread );
+    if( _backgroundContent )
+        _backgroundContent->moveToThread( thread );
     QObject::moveToThread( thread );
 }
 #pragma GCC diagnostic pop

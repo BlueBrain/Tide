@@ -44,7 +44,6 @@
 
 #include <QMainWindow>
 #include <QMimeData>
-#include <QAction>
 
 class BackgroundWidget;
 class MasterConfiguration;
@@ -73,9 +72,6 @@ public:
     /** Get the display options that change during runtime. */
     OptionsPtr getOptions() const;
 
-    /** Get the action that controls the auto-focus of PixelStream windows. */
-    QAction* getAutoFocusPixelStreamsAction();
-
 signals:
     /** Emitted when users want to open a webbrowser. */
     void openWebBrowser( QPointF pos, QSize size, QString url );
@@ -94,22 +90,22 @@ protected:
     //@}
 
 private slots:
-    void openContent();
-    void openContentsDirectory();
+    void _openContent();
+    void _openContentsDirectory();
 
-    void saveState();
-    void loadState();
+    void _saveState();
+    void _openSessionDialog();
 
-    void computeImagePyramid();
+    void _computeImagePyramid();
 
-    void openAboutWidget();
+    void _openAboutWidget();
 
 private:
     void _setupMasterWindowUI();
 
     void _addContentDirectory( const QString& directoryName,
                                unsigned int gridX = 0, unsigned int gridY = 0 );
-    void _loadState( const QString &filename );
+    void _loadState( const QString& filename );
 
     void _estimateGridSize( unsigned int numElem, unsigned int& gridX,
                             unsigned int& gridY );
@@ -124,10 +120,8 @@ private:
     WebbrowserWidget* _webbrowserWidget;
     DisplayGroupView* _displayGroupView;
 
-    QAction* _autoFocusPixelStreamsAction;
-
     QString _contentFolder;
     QString _sessionFolder;
 };
 
-#endif // MASTERWINDOW_H
+#endif
