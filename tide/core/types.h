@@ -50,6 +50,7 @@
 
 class Configuration;
 class Content;
+class ContentInteractionDelegate;
 class ContentSynchronizer;
 class ContentWindow;
 class ContentWindowController;

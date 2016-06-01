@@ -70,7 +70,7 @@ bool ContentLoader::load( const QString& filename,
     if( windowSize.isValid( ))
         controller.resize( windowSize );
     else
-        controller.adjustSize( SIZE_LARGE );
+        controller.adjustSize( SIZE_1TO1_FITTING );
 
     if( windowCenterPosition.isNull( ))
         controller.moveCenterTo( displayGroup_->getCoordinates().center( ));

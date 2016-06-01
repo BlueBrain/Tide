@@ -41,10 +41,9 @@
 
 #include "ContentWindow.h"
 
-ContentInteractionDelegate::ContentInteractionDelegate( ContentWindow& contentWindow )
-    : _contentWindow( contentWindow )
-{
-}
+ContentInteractionDelegate::ContentInteractionDelegate( ContentWindow& window )
+    : _contentWindow( window )
+{}
 
 ContentInteractionDelegate::~ContentInteractionDelegate() {}
 

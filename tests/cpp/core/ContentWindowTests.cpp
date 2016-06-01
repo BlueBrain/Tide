@@ -42,6 +42,7 @@
 namespace ut = boost::unit_test;
 
 #include "ContentWindow.h"
+#include "ZoomInteractionDelegate.h"
 
 #include "MinimalGlobalQtApp.h"
 BOOST_GLOBAL_FIXTURE( MinimalGlobalQtApp );
@@ -64,7 +65,7 @@ BOOST_AUTO_TEST_CASE( testInitialSize )
 
     // default 1:1 size, left-corner at the origin
     BOOST_CHECK_EQUAL( coords, QRectF( 0.0, 0.0, WIDTH, HEIGHT ));
-    BOOST_CHECK_EQUAL( window.getBorder(), ContentWindow::NOBORDER );
+    BOOST_CHECK_EQUAL( window.getActiveHandle(), ContentWindow::NOHANDLE );
 }
 
 BOOST_AUTO_TEST_CASE( testValidID )
@@ -117,14 +118,17 @@ BOOST_AUTO_TEST_CASE( testZoom )
     content->setDimensions( QSize( WIDTH, HEIGHT ));
     ContentWindow window( content );
 
-    BOOST_REQUIRE( content->getZoomRect() == UNIT_RECTF );
+    BOOST_REQUIRE_EQUAL( content->getZoomRect(), UNIT_RECTF );
 
     content->setZoomRect( QRectF( 0.2, 0.2, 0.7, 0.7 ));
-    BOOST_CHECK( content->getZoomRect() == QRectF( 0.2, 0.2, 0.7, 0.7 ));
+    BOOST_CHECK_EQUAL( content->getZoomRect(), QRectF( 0.2, 0.2, 0.7, 0.7 ));
     content->setZoomRect( QRectF( -0.1, 0.2, 0.7, 0.7 ));
-    BOOST_CHECK( content->getZoomRect() == QRectF( -0.1, 0.2, 0.7, 0.7 ));
+    BOOST_CHECK_EQUAL( content->getZoomRect(), QRectF( -0.1, 0.2, 0.7, 0.7 ));
     content->setZoomRect( QRectF( 0.1, 0.5, 2.0, 2.0 ));
-    BOOST_CHECK( content->getZoomRect() == QRectF( 0.1, 0.5, 2.0, 2.0 ));
+    BOOST_CHECK_EQUAL( content->getZoomRect(), QRectF( 0.1, 0.5, 2.0, 2.0 ));
+
+    content->resetZoom();
+    BOOST_CHECK_EQUAL( content->getZoomRect(), UNIT_RECTF );
 }
 
 BOOST_AUTO_TEST_CASE( testWindowState )
@@ -137,11 +141,6 @@ BOOST_AUTO_TEST_CASE( testWindowState )
     BOOST_REQUIRE( !window.isHidden( ));
     BOOST_REQUIRE( !window.isMoving( ));
     BOOST_REQUIRE( !window.isResizing( ));
-    BOOST_REQUIRE( !window.isSelected( ));
-
-    window.setState( ContentWindow::SELECTED );
-    BOOST_CHECK_EQUAL( window.getState(), ContentWindow::SELECTED );
-    BOOST_CHECK( window.isSelected( ));
 
     window.setState( ContentWindow::MOVING );
     BOOST_CHECK_EQUAL( window.getState(), ContentWindow::MOVING );
@@ -156,33 +155,6 @@ BOOST_AUTO_TEST_CASE( testWindowState )
     BOOST_CHECK( window.isHidden( ));
 }
 
-BOOST_AUTO_TEST_CASE( testToggleSelectedState )
-{
-    ContentPtr content( new DummyContent );
-    content->setDimensions( QSize( WIDTH, HEIGHT ));
-    ContentWindow window( content );
-
-    BOOST_REQUIRE_EQUAL( window.getState(), ContentWindow::NONE );
-
-    window.toggleSelectedState();
-    BOOST_CHECK_EQUAL( window.getState(), ContentWindow::SELECTED );
-
-    window.toggleSelectedState();
-    BOOST_CHECK_EQUAL( window.getState(), ContentWindow::NONE );
-
-    window.setState( ContentWindow::MOVING );
-    window.toggleSelectedState();
-    BOOST_CHECK_EQUAL( window.getState(), ContentWindow::MOVING );
-
-    window.setState( ContentWindow::RESIZING );
-    window.toggleSelectedState();
-    BOOST_CHECK_EQUAL( window.getState(), ContentWindow::RESIZING );
-
-    window.setState( ContentWindow::HIDDEN );
-    window.toggleSelectedState();
-    BOOST_CHECK_EQUAL( window.getState(), ContentWindow::HIDDEN );
-}
-
 BOOST_AUTO_TEST_CASE( testWindowType )
 {
     ContentPtr content( new DummyContent );
@@ -194,4 +166,53 @@ BOOST_AUTO_TEST_CASE( testWindowType )
     BOOST_CHECK_EQUAL( defaultWindow.isPanel(), false );
     BOOST_CHECK_EQUAL( window.isPanel(), false );
     BOOST_CHECK_EQUAL( panel.isPanel(), true );
+}
+
+BOOST_AUTO_TEST_CASE( testWindowResizePolicyNonZoomableContent )
+{
+    ContentPtr content( new DummyContent );
+    content->setDimensions( QSize( WIDTH, HEIGHT ));
+    ContentWindow window( content );
+
+    // Default state
+    BOOST_CHECK_EQUAL( window.getResizePolicy(),
+                       ContentWindow::ResizePolicy::KEEP_ASPECT_RATIO );
+
+    // Non-zoomable, fixed aspect ratio contents can't be adjusted
+    BOOST_REQUIRE( content->hasFixedAspectRatio( ));
+    auto delegate = window.getInteractionDelegate();
+    BOOST_REQUIRE( !dynamic_cast<ZoomInteractionDelegate*>( delegate ));
+    BOOST_CHECK( !window.setResizePolicy(
+                     ContentWindow::ResizePolicy::ADJUST_CONTENT ));
+    BOOST_CHECK_EQUAL( window.getResizePolicy(),
+                       ContentWindow::ResizePolicy::KEEP_ASPECT_RATIO );
+
+    // Non-fixed aspect ratio contents can be adjusted
+    static_cast<DummyContent*>( content.get( ))->fixedAspectRatio = false;
+    BOOST_REQUIRE( !content->hasFixedAspectRatio( ));
+    BOOST_CHECK( window.setResizePolicy(
+                     ContentWindow::ResizePolicy::ADJUST_CONTENT ));
+    BOOST_CHECK_EQUAL( window.getResizePolicy(),
+                       ContentWindow::ResizePolicy::ADJUST_CONTENT );
+}
+
+BOOST_AUTO_TEST_CASE( testWindowResizePolicyZoomableContent )
+{
+    ContentPtr content( new DummyContent );
+    content->setDimensions( QSize( WIDTH, HEIGHT ));
+    static_cast<DummyContent*>( content.get( ))->type = CONTENT_TYPE_TEXTURE;
+    ContentWindow window( content );
+
+    // Default state
+    BOOST_REQUIRE_EQUAL( window.getResizePolicy(),
+                         ContentWindow::ResizePolicy::KEEP_ASPECT_RATIO );
+
+    // Zoomable, fixed aspect ratio contents can be adjusted
+    BOOST_REQUIRE( content->hasFixedAspectRatio( ));
+    auto delegate = window.getInteractionDelegate();
+    BOOST_REQUIRE( dynamic_cast<ZoomInteractionDelegate*>( delegate ));
+    BOOST_CHECK( window.setResizePolicy(
+                     ContentWindow::ResizePolicy::ADJUST_CONTENT ));
+    BOOST_CHECK_EQUAL( window.getResizePolicy(),
+                       ContentWindow::ResizePolicy::ADJUST_CONTENT );
 }

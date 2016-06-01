@@ -41,12 +41,9 @@
 
 #include "ContentWindow.h"
 
-#include <deflect/EventReceiver.h>
-
 PixelStreamInteractionDelegate::PixelStreamInteractionDelegate( ContentWindow&
                                                                 contentWindow )
     : ContentInteractionDelegate( contentWindow )
-    , _eventReceiversCount( 0 )
 {
     connect( &contentWindow, SIGNAL( coordinatesChanged( )),
              this, SLOT( _sendSizeChangedEvent( )));
@@ -181,23 +178,6 @@ void PixelStreamInteractionDelegate::keyRelease( const int key,
              sizeof( deflectEvent.text ));
 
     emit notify( deflectEvent );
-}
-
-bool PixelStreamInteractionDelegate::registerEventReceiver(
-                                              deflect::EventReceiver* receiver )
-{
-    const bool success = connect( this, SIGNAL( notify( deflect::Event )),
-                                  receiver,
-                                  SLOT( processEvent( deflect::Event )));
-    if( success )
-        ++_eventReceiversCount;
-
-    return success;
-}
-
-bool PixelStreamInteractionDelegate::hasEventReceivers() const
-{
-    return _eventReceiversCount > 0;
 }
 
 void PixelStreamInteractionDelegate::_sendSizeChangedEvent()

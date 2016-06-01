@@ -49,13 +49,24 @@ Content::Content( const QString& uri )
     : _uri( uri )
     , _zoomRect( UNIT_RECTF )
     , _actions( this )
+    , _captureInteraction( false )
 {
+    _init();
 }
 
 Content::Content()
     : _zoomRect( UNIT_RECTF )
     , _actions( this )
-{}
+    , _captureInteraction( false )
+{
+    _init();
+}
+
+void Content::_init()
+{
+    connect( this, &Content::interactionPolicyChanged,
+             this, &Content::captureInteractionChanged );
+}
 
 const QString& Content::getURI() const
 {
@@ -117,6 +128,38 @@ qreal Content::getMaxScale()
     return _maxScale;
 }
 
+Content::Interaction Content::getInteractionPolicy() const
+{
+    return Content::Interaction::AUTO;
+}
+
+bool Content::getCaptureInteraction() const
+{
+    switch( getInteractionPolicy( ))
+    {
+    case Content::Interaction::OFF:
+        return false;
+    case Content::Interaction::ON:
+        return true;
+    case Content::Interaction::AUTO:
+    default:
+        return _captureInteraction;
+    }
+}
+
+void Content::setCaptureInteraction( const bool enable )
+{
+    if( _captureInteraction == enable ||
+        getInteractionPolicy() != Content::Interaction::AUTO )
+    {
+        return;
+    }
+
+    _captureInteraction = enable;
+    emit captureInteractionChanged();
+    emit modified();
+}
+
 void Content::setDimensions( const QSize& dimensions )
 {
     if( _size == dimensions )
@@ -151,6 +194,11 @@ void Content::setZoomRect( const QRectF& zoomRect )
 
     _zoomRect = zoomRect;
     emit modified();
+}
+
+void Content::resetZoom()
+{
+    setZoomRect( UNIT_RECTF );
 }
 
 ContentActionsModel* Content::getActions()

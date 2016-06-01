@@ -82,14 +82,8 @@ public:
     void nextPage() override;
     //@}
 
-    /** Register to receive events on this content. */
-    bool registerEventReceiver( deflect::EventReceiver* receiver );
-
-    /** Does this delegate already have registered EventReceiver(s) */
-    bool hasEventReceivers() const;
-
 signals:
-    /** @internal Notify registered EventReceivers that an Event occured. */
+    /** Emitted when an Event occured. */
     void notify( deflect::Event event );
 
 private slots:
@@ -97,8 +91,6 @@ private slots:
 
 private:
     deflect::Event _getNormEvent( const QPointF& position ) const;
-
-    unsigned int _eventReceiversCount;
 };
 
-#endif // PIXELSTREAMINTERACTIONDELEGATE_H
+#endif

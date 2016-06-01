@@ -62,4 +62,4 @@ private:
     PDFContent& _getPDFContent();
 };
 
-#endif // PDFINTERACTIONDELEGATE_H
+#endif

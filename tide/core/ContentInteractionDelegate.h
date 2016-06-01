@@ -41,6 +41,7 @@
 #define CONTENTINTERACTIONDELEGATE_H
 
 #include "types.h"
+
 #include <QObject>
 
 /**
@@ -54,7 +55,10 @@ class ContentInteractionDelegate : public QObject
     Q_OBJECT
 
 public:
-    ContentInteractionDelegate( ContentWindow& contentWindow );
+    /** Construct a default interaction delegate that does nothing. */
+    explicit ContentInteractionDelegate( ContentWindow& window );
+
+    /** Virtual destructor. */
     virtual ~ContentInteractionDelegate();
 
     /** @name Touch gesture handlers. */
@@ -102,4 +106,4 @@ private:
     Q_DISABLE_COPY( ContentInteractionDelegate )
 };
 
-#endif // CONTENTINTERACTIONDELEGATE_H
+#endif

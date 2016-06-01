@@ -137,7 +137,7 @@ void ZoomInteractionDelegate::_constraintPosition( QRectF& zoomRect ) const
         zoomRect.moveBottom( 1.0 );
 }
 
-QSizeF getMaxContentSize( ContentWindow& window )
+QSizeF getMaxContentSize( const ContentWindow& window )
 {
     if( window.getController( ))
         return window.getController()->getMaxContentSize();

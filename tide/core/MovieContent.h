@@ -70,6 +70,9 @@ public:
     **/
     bool readMetadata() final;
 
+    /** @return OFF. */
+    Interaction getInteractionPolicy() const final;
+
     static const QStringList& getSupportedExtensions();
 
     ControlState getControlState() const;

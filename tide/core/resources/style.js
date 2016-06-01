@@ -1,8 +1,9 @@
 .pragma library
 
 // Color palette
-var baseColor = "#F2F2F2"   // grey
-var activeColor = "#FCEE21" // yellow
+var baseColor = "#F2F2F2";   // grey
+var activeColor = "#FCEE21"; // yellow
+var highlightColor = "cyan"; // cyan
 
 // General
 var backgroundZOrder = -1;
@@ -39,8 +40,9 @@ var controlsBorderWidth = 3;
 var controlsRadius = 0;
 var controlsLeftMargin = 28;
 
-var resizeCircleRadius = 50
+var resizeCircleRadius = 50;
 var resizeCircleActiveColor = activeColor;
+var resizeCircleFreeResizeColor = highlightColor;
 var resizeCircleInactiveColor = baseColor;
 var resizeCircleOpacity = 0.6;
 
@@ -48,11 +50,16 @@ var statisticsBorderMargin = 10;
 var statisticsFontSize = 24;
 var statisticsFontColor = "red";
 
-var windowBorderWidth = 12;
+var windowBorderWidth = 24;
 var windowBorderDefaultColor = baseColor;
-var windowBorderSelectedColor = activeColor;
+var windowBorderSelectedColor = baseColor;
+var windowBorderFocusedColor = activeColor;
 var windowBorderMovingColor= baseColor;
 var windowBorderResizingColor = baseColor;
+
+var windowFocusGlowColor = highlightColor;
+var windowFocusGlowRadius = 15;
+var windowFocusGlowSpread = 0.2;
 
 var windowSideButtonWidth = 64;
 var windowSideButtonHeight = 360;

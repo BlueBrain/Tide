@@ -1,7 +1,7 @@
 /*********************************************************************/
 /* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2015, EPFL/Blue Brain Project                  */
-/*                     Raphael.Dumusc@epfl.ch                        */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /*                     Daniel.Nachbaur@epfl.ch                       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -60,8 +60,6 @@
 #  include <boost/serialization/scoped_ptr.hpp>
 #endif
 
-class ContentInteractionDelegate;
-
 /**
  * A window for displaying Content on the Wall.
  *
@@ -73,19 +71,27 @@ class ContentWindow : public Coordinates
     Q_PROPERTY( QUuid id READ getID )
     Q_PROPERTY( bool isPanel READ isPanel CONSTANT )
     Q_PROPERTY( Content* content READ getContentPtr CONSTANT )
-    Q_PROPERTY( WindowState state READ getState WRITE setState NOTIFY stateChanged )
-    Q_PROPERTY( WindowBorder border READ getBorder WRITE setBorder NOTIFY borderChanged )
-    Q_PROPERTY( bool focused READ isFocused WRITE setFocused NOTIFY focusedChanged )
+    Q_PROPERTY( WindowState state READ getState WRITE setState
+                NOTIFY stateChanged )
+    Q_PROPERTY( ResizeHandle activeHandle READ getActiveHandle
+                WRITE setActiveHandle NOTIFY activeHandleChanged )
+    Q_PROPERTY( ResizePolicy resizePolicy READ getResizePolicy
+                WRITE setResizePolicy NOTIFY resizePolicyChanged )
+    Q_PROPERTY( bool focused READ isFocused WRITE setFocused
+                NOTIFY focusedChanged )
     Q_PROPERTY( QString label READ getLabel NOTIFY labelChanged )
-    Q_PROPERTY( bool controlsVisible READ getControlsVisible WRITE setControlsVisible NOTIFY controlsVisibleChanged )
-    Q_PROPERTY( ContentInteractionDelegate* delegate READ getInteractionDelegate CONSTANT )
-    Q_PROPERTY( ContentWindowController* controller READ getController CONSTANT )
+    Q_PROPERTY( bool controlsVisible READ getControlsVisible
+                WRITE setControlsVisible NOTIFY controlsVisibleChanged )
+    Q_PROPERTY( ContentInteractionDelegate* delegate READ getInteractionDelegate
+                CONSTANT )
+    Q_PROPERTY( ContentWindowController* controller READ getController
+                CONSTANT )
     Q_PROPERTY( QRectF focusedCoordinates READ getFocusedCoordinates
                 WRITE setFocusedCoordinates NOTIFY focusedCoordinatesChanged )
 
 public:
-    /** The current active window border used for resizing */
-    enum WindowBorder
+    /** The current active resize handle. */
+    enum ResizeHandle
     {
         TOP_LEFT,
         TOP,
@@ -95,15 +101,22 @@ public:
         BOTTOM,
         BOTTOM_LEFT,
         LEFT,
-        NOBORDER
+        NOHANDLE
     };
-    Q_ENUMS( WindowBorder )
+    Q_ENUMS( ResizeHandle )
+
+    /** The policy for the active resize operation. */
+    enum ResizePolicy
+    {
+        KEEP_ASPECT_RATIO,   // adjust the window aspect ratio to the content's
+        ADJUST_CONTENT       // only for compatible contents
+    };
+    Q_ENUMS( ResizePolicy )
 
     /** The possible states of a window. */
     enum WindowState
     {
         NONE,       // not selected, interaction modifies position/size
-        SELECTED,   // selected, interaction goes to ContentInteractionDelegate
         MOVING,     // the window is being moved
         RESIZING,   // the window is being resized
         HIDDEN      // the window is hidden (invisible, not interacting)
@@ -163,14 +176,14 @@ public:
     /** Set the coordinates in pixel units. */
     void setCoordinates( const QRectF& coordinates );
 
-    /** @return the current active resize border. */
-    ContentWindow::WindowBorder getBorder() const;
+    /** @return the current active resize handle. */
+    ContentWindow::ResizeHandle getActiveHandle() const;
+
+    /** Get the current resize policy. */
+    ContentWindow::ResizePolicy getResizePolicy() const;
 
     /** Get the current state. */
     ContentWindow::WindowState getState() const;
-
-    /** Set the current active resize border. */
-    void setBorder( const ContentWindow::WindowBorder border );
 
     /** Is the window focused. */
     bool isFocused() const;
@@ -191,12 +204,6 @@ public:
 
     /** Set the current state. */
     bool setState( const ContentWindow::WindowState state );
-
-    /** Toggle the state (selected / unselected). */
-    Q_INVOKABLE void toggleSelectedState();
-
-    /** Check if selected. */
-    bool isSelected() const;
 
     /** Check if moving. */
     bool isMoving() const;
@@ -223,6 +230,13 @@ public:
     /** Set the visibility of the window control buttons. */
     void setControlsVisible( bool value );
 
+public slots:
+    /** Set the current active resize handle. */
+    void setActiveHandle( ContentWindow::ResizeHandle handle );
+
+    /** Set the resize policy. */
+    bool setResizePolicy( ContentWindow::ResizePolicy policy );
+
 signals:
     /** Emitted when the Content signals that it has been modified. */
     void contentModified();
@@ -238,7 +252,8 @@ signals:
 
     /** @name QProperty notifiers */
     //@{
-    void borderChanged();
+    void activeHandleChanged();
+    void resizePolicyChanged();
     void focusedChanged();
     void focusedCoordinatesChanged();
     void stateChanged();
@@ -256,52 +271,53 @@ private:
     template< class Archive >
     void serialize( Archive & ar, const unsigned int )
     {
-        ar & coordinates_;
-        ar & type_;
-        ar & uuid_;
-        ar & content_;
-        ar & controller_;
-        ar & windowBorder_;
-        ar & focused_;
-        ar & focusedCoordinates_;
-        ar & windowState_;
-        ar & controlsVisible_;
+        ar & _coordinates;
+        ar & _type;
+        ar & _uuid;
+        ar & _content;
+        ar & _controller;
+        ar & _activeHandle;
+        ar & _resizePolicy;
+        ar & _focused;
+        ar & _focusedCoordinates;
+        ar & _windowState;
+        ar & _controlsVisible;
     }
 
     /** Serialize members to and from xml. */
     template< class Archive >
     void serialize_members_xml( Archive & ar, const unsigned int version )
     {
-        ar & boost::serialization::make_nvp( "content", content_ );
+        ar & boost::serialization::make_nvp( "content", _content );
         if( version < 1 )
         {
             int contentWidth = 0, contentHeight = 0;
             ar & boost::serialization::make_nvp( "contentWidth", contentWidth );
             ar & boost::serialization::make_nvp( "contentHeight", contentHeight );
         }
-        ar & boost::serialization::make_nvp( "coordinates", coordinates_ );
+        ar & boost::serialization::make_nvp( "coordinates", _coordinates );
         if( version < 3 )
         {
             QRectF backup;
             ar & boost::serialization::make_nvp( "coordinatesBackup", backup );
         }
-        QPointF zoomCenter = content_->getZoomRect().center();
-        qreal zoom = 1.0 / content_->getZoomRect().width();
+        QPointF zoomCenter = _content->getZoomRect().center();
+        qreal zoom = 1.0 / _content->getZoomRect().width();
         ar & boost::serialization::make_nvp( "centerX", zoomCenter.rx( ));
         ar & boost::serialization::make_nvp( "centerY", zoomCenter.ry( ));
         ar & boost::serialization::make_nvp( "zoom", zoom );
         if( version >= 3 )
-            ar & boost::serialization::make_nvp( "focused", focused_ );
+            ar & boost::serialization::make_nvp( "focused", _focused );
         QRectF zoomRect;
         zoomRect.setSize( QSizeF( 1.0/zoom, 1.0/zoom ));
         zoomRect.moveCenter( zoomCenter );
-        content_->setZoomRect( zoomRect );
+        _content->setZoomRect( zoomRect );
         if( version < 1 )
         {
             int controlState = 0;
             ar & boost::serialization::make_nvp( "controlState", controlState );
         }
-        ar & boost::serialization::make_nvp( "windowState", windowState_ );
+        ar & boost::serialization::make_nvp( "windowState", _windowState );
     }
 
     /** Loading from xml. */
@@ -309,7 +325,7 @@ private:
                             const unsigned int version )
     {
         serialize_members_xml( ar, version );
-        init();
+        _init();
     }
 
     /** Saving to xml. */
@@ -319,20 +335,21 @@ private:
         serialize_members_xml( ar, version );
     }
 
-    void init();
-    void createInteractionDelegate();
+    void _init();
+    void _createInteractionDelegate();
 
-    QUuid uuid_;
-    WindowType type_;
-    ContentPtr content_;
-    ContentWindowController* controller_; // child QObject, don't delete
-    ContentWindow::WindowBorder windowBorder_;
-    bool focused_;
-    QRectF focusedCoordinates_;
-    ContentWindow::WindowState windowState_;
-    bool controlsVisible_;
+    QUuid _uuid;
+    WindowType _type;
+    ContentPtr _content;
+    ContentWindowController* _controller; // child QObject, don't delete
+    ContentWindow::ResizeHandle _activeHandle;
+    ContentWindow::ResizePolicy _resizePolicy;
+    bool _focused;
+    QRectF _focusedCoordinates;
+    ContentWindow::WindowState _windowState;
+    bool _controlsVisible;
 
-    boost::scoped_ptr<ContentInteractionDelegate> interactionDelegate_;
+    boost::scoped_ptr<ContentInteractionDelegate> _interactionDelegate;
 };
 
 BOOST_CLASS_VERSION( ContentWindow, 3 )

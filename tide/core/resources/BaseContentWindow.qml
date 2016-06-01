@@ -1,4 +1,5 @@
 import QtQuick 2.0
+import QtGraphicalEffects 1.0
 import Tide 1.0
 import "style.js" as Style
 
@@ -22,6 +23,7 @@ Rectangle {
     property alias resizeCirclesDelegate: resizeCircles.delegate
     property alias previousButton: previousButton
     property alias nextButton: nextButton
+    property alias focusEffectEnabled: focusEffect.visible
 
     border.color: Style.windowBorderDefaultColor
     border.width: options.showWindowBorders && !isBackground ? Style.windowBorderWidth : 0
@@ -59,7 +61,18 @@ Rectangle {
         anchors.fill: parent
     }
 
-    Item {
+    RectangularGlow {
+        id: focusEffect
+        anchors.fill: contentArea
+        cornerRadius: contentArea.radius + glowRadius
+        color: Style.windowFocusGlowColor
+        glowRadius: Style.windowFocusGlowRadius
+        spread: Style.windowFocusGlowSpread
+        visible: contentwindow.content.captureInteraction &&
+                 contentwindow.state === ContentWindow.NONE
+    }
+
+    Rectangle {
         id: contentArea
         anchors.bottom: parent.bottom
         anchors.bottomMargin: windowRect.border.width
@@ -67,34 +80,39 @@ Rectangle {
         width: parent.width - windowRect.widthOffset
         height: parent.height - windowRect.heightOffset
         clip: true
+        color: "transparent"
 
         Loader {
             id: contentBackgroundLoader
             anchors.fill: parent
         }
+    }
 
-        SideButton {
-            id: previousButton
-            color: windowRect.border.color
-            delegate: Triangle {
-            }
-            delegateOverflow: windowRect.border.width
-            visible: (contentwindow.controlsVisible || contentwindow.focused) &&
-                     contentwindow.content.page !== undefined &&
-                     contentwindow.content.page > 0
+    SideButton {
+        id: previousButton
+        anchors.verticalCenter: contentArea.verticalCenter
+        anchors.left: contentArea.left
+        color: windowRect.border.color
+        delegate: Triangle {
         }
+        delegateOverflow: windowRect.border.width
+        visible: (contentwindow.controlsVisible || contentwindow.focused) &&
+                 contentwindow.content.page !== undefined &&
+                 contentwindow.content.page > 0
+    }
 
-        SideButton {
-            id: nextButton
-            color: windowRect.border.color
-            delegate: Triangle {
-            }
-            delegateOverflow: windowRect.border.width
-            flipRight: true
-            visible: (contentwindow.controlsVisible || contentwindow.focused) &&
-                     contentwindow.content.page !== undefined &&
-                     contentwindow.content.page < contentwindow.content.pageCount - 1
+    SideButton {
+        id: nextButton
+        color: windowRect.border.color
+        anchors.verticalCenter: contentArea.verticalCenter
+        anchors.right: contentArea.right
+        delegate: Triangle {
         }
+        delegateOverflow: windowRect.border.width
+        flipRight: true
+        visible: (contentwindow.controlsVisible || contentwindow.focused) &&
+                 contentwindow.content.page !== undefined &&
+                 contentwindow.content.page < contentwindow.content.pageCount - 1
     }
 
     WindowControls {
@@ -115,16 +133,8 @@ Rectangle {
                 y: contentwindow.focusedCoordinates.y - yOffset
                 width: contentwindow.focusedCoordinates.width + widthOffset
                 height: contentwindow.focusedCoordinates.height + heightOffset
-                border.color: Style.windowBorderSelectedColor
+                border.color: Style.windowBorderFocusedColor
                 z: Style.focusZorder
-            }
-        },
-        State {
-            name: "selected"
-            when: contentwindow.state === ContentWindow.SELECTED
-            PropertyChanges {
-                target: windowRect
-                border.color: Style.windowBorderSelectedColor
             }
         },
         State {
@@ -145,8 +155,7 @@ Rectangle {
         },
         State {
             name: "hidden"
-            when: contentwindow.state === ContentWindow.HIDDEN ||
-                  (contentwindow.isPanel && !completed())
+            when: contentwindow.state === ContentWindow.HIDDEN
             PropertyChanges {
                 target: windowRect
                 opacity: 0

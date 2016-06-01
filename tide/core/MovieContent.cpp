@@ -86,6 +86,11 @@ bool MovieContent::readMetadata()
     return true;
 }
 
+Content::Interaction MovieContent::getInteractionPolicy() const
+{
+    return Content::Interaction::OFF;
+}
+
 const QStringList& MovieContent::getSupportedExtensions()
 {
     static QStringList extensions;

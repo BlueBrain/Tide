@@ -48,8 +48,9 @@ namespace ut = boost::unit_test;
 #include "ContentWindow.h"
 #include "DisplayGroup.h"
 #include "Options.h"
-#include "PixelStreamWindowManager.h"
+#include "PixelStreamContent.h"
 #include "PixelStreamInteractionDelegate.h"
+#include "PixelStreamWindowManager.h"
 
 #include "MinimalGlobalQtApp.h"
 BOOST_GLOBAL_FIXTURE( MinimalGlobalQtApp );
@@ -80,12 +81,12 @@ deflect::FramePtr createTestFrame( const QSize& size )
 class DummyEventReceiver : public deflect::EventReceiver
 {
 public:
-    DummyEventReceiver() : success_( false ) {}
+    DummyEventReceiver() : success( false ) {}
     virtual void processEvent( deflect::Event /*event*/ )
     {
-        success_ = true;
+        success = true;
     }
-    bool success_;
+    bool success;
 };
 
 BOOST_AUTO_TEST_CASE( testNoStreamerWindowCreation )
@@ -119,24 +120,42 @@ BOOST_AUTO_TEST_CASE( testEventReceiver )
     ContentWindowPtr window = windowManager.getContentWindow( CONTENT_URI );
     BOOST_REQUIRE( window );
 
+    auto content = dynamic_cast<PixelStreamContent*>( window->getContentPtr( ));
+    BOOST_REQUIRE( content );
+    BOOST_REQUIRE( !content->hasEventReceivers( ));
+    BOOST_REQUIRE_EQUAL( content->getInteractionPolicy(),
+                         Content::Interaction::OFF );
+
+    DummyEventReceiver receiver;
+    BOOST_REQUIRE( !receiver.success );
+
     PixelStreamInteractionDelegate* delegate =
             dynamic_cast<PixelStreamInteractionDelegate*>(
                 window->getInteractionDelegate( ));
     BOOST_REQUIRE( delegate );
+    delegate->notify( deflect::Event( ));
+    BOOST_CHECK( !receiver.success );
 
-    BOOST_REQUIRE( !delegate->hasEventReceivers() );
+    QString registeredUri;
+    bool registerSuccess = false;
 
-    DummyEventReceiver receiver;
-    BOOST_REQUIRE( !receiver.success_ );
+    windowManager.connect( &windowManager,
+                           &PixelStreamWindowManager::eventRegistrationReply,
+                           [&](QString uri, bool success )
+    {
+        registeredUri = uri;
+        registerSuccess = success;
+    });
+    windowManager.registerEventReceiver( content->getURI(), false, &receiver );
+    BOOST_CHECK( registerSuccess );
+    BOOST_CHECK( registeredUri == content->getURI( ));
+    BOOST_CHECK( content->hasEventReceivers( ));
+    BOOST_CHECK_EQUAL( content->getInteractionPolicy(),
+                       Content::Interaction::ON );
+    BOOST_CHECK( !receiver.success );
 
     delegate->notify( deflect::Event( ));
-    BOOST_CHECK( !receiver.success_ );
-
-    BOOST_CHECK( delegate->registerEventReceiver( &receiver ));
-    BOOST_CHECK( delegate->hasEventReceivers() );
-    BOOST_CHECK( !receiver.success_ );
-    delegate->notify( deflect::Event( ));
-    BOOST_CHECK( receiver.success_ );
+    BOOST_CHECK( receiver.success );
 }
 
 BOOST_AUTO_TEST_CASE( testExplicitWindowCreation )
@@ -271,7 +290,6 @@ BOOST_AUTO_TEST_CASE( hideAndShowWindow )
 
     windowManager.showWindow( uri );
     BOOST_CHECK( !window->isHidden( ));
-    BOOST_CHECK( !window->isSelected( ));
 }
 
 BOOST_AUTO_TEST_CASE( hideAndShowPanel )
@@ -285,21 +303,19 @@ BOOST_AUTO_TEST_CASE( hideAndShowPanel )
 
     BOOST_REQUIRE( panel->isPanel( ));
     BOOST_REQUIRE( !panel->isHidden( ));
-    BOOST_REQUIRE( !panel->isSelected( ));
 
     windowManager.hideWindow( uri );
     BOOST_CHECK( panel->isHidden( ));
     windowManager.showWindow( uri );
     BOOST_CHECK( !panel->isHidden( ));
-    BOOST_CHECK( !panel->isSelected( ));
 
     DummyEventReceiver receiver;
     windowManager.registerEventReceiver( uri, false, &receiver );
-    BOOST_CHECK( panel->isSelected( ));
+
     windowManager.hideWindow( uri );
     BOOST_CHECK( panel->isHidden( ));
+
     windowManager.showWindow( uri );
     BOOST_CHECK( !panel->isHidden( ));
-    BOOST_CHECK( panel->isSelected( ));
 }
 

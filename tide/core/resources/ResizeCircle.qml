@@ -3,29 +3,27 @@ import Tide 1.0
 import "style.js" as Style
 
 Item {
-    property int border: modelData
-    visible: isActive || contentwindow.border === ContentWindow.NOBORDER
+    property int handle: modelData
 
-    property bool isRight: border === ContentWindow.RIGHT
-                           || border == ContentWindow.BOTTOM_RIGHT
-                           || border === ContentWindow.TOP_RIGHT
-    property bool isLeft: border === ContentWindow.LEFT
-                          || border === ContentWindow.BOTTOM_LEFT
-                          || border === ContentWindow.TOP_LEFT
-    property bool isTop: border === ContentWindow.TOP
-                         || border == ContentWindow.TOP_RIGHT
-                         || border === ContentWindow.TOP_LEFT
-    property bool isBottom: border === ContentWindow.BOTTOM
-                            || border === ContentWindow.BOTTOM_LEFT
-                            || border === ContentWindow.BOTTOM_RIGHT
-    property bool isActive: contentwindow.border === border
+    property bool isRight: handle === ContentWindow.RIGHT
+                           || handle == ContentWindow.BOTTOM_RIGHT
+                           || handle === ContentWindow.TOP_RIGHT
+    property bool isLeft: handle === ContentWindow.LEFT
+                          || handle === ContentWindow.BOTTOM_LEFT
+                          || handle === ContentWindow.TOP_LEFT
+    property bool isTop: handle === ContentWindow.TOP
+                         || handle == ContentWindow.TOP_RIGHT
+                         || handle === ContentWindow.TOP_LEFT
+    property bool isBottom: handle === ContentWindow.BOTTOM
+                            || handle === ContentWindow.BOTTOM_LEFT
+                            || handle === ContentWindow.BOTTOM_RIGHT
 
-    width: border === ContentWindow.TOP
-           || border === ContentWindow.BOTTOM ? parent.width - Style.resizeCircleRadius
-                                              : Style.resizeCircleRadius
-    height: border === ContentWindow.RIGHT
-            || border === ContentWindow.LEFT ? parent.height - Style.resizeCircleRadius
-                                             : Style.resizeCircleRadius
+    property bool isActive: contentwindow.activeHandle === handle
+
+    visible: isActive || contentwindow.activeHandle === ContentWindow.NOHANDLE
+
+    width: Style.resizeCircleRadius
+    height: Style.resizeCircleRadius
 
     anchors.horizontalCenter: isRight ? parent.right
                                       : isLeft ? parent.left
@@ -34,11 +32,6 @@ Item {
                                   : isBottom ? parent.bottom
                                              : parent.verticalCenter
 
-    anchors.horizontalCenterOffset: isLeft ? Style.windowBorderWidth / 2.0
-                                           : isRight ? -Style.windowBorderWidth / 2.0 : 0
-    anchors.verticalCenterOffset: isTop ? Style.windowBorderWidth / 2.0
-                                        : isBottom ? -Style.windowBorderWidth / 2.0 : 0
-
     Rectangle {
         id: controlCircle
         width: Style.resizeCircleRadius
@@ -46,7 +39,10 @@ Item {
         radius: Style.resizeCircleRadius
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
-        color: isActive ? Style.resizeCircleActiveColor
-                        : Style.resizeCircleInactiveColor
+        color: isActive ?
+                   contentwindow.resizePolicy === ContentWindow.ADJUST_CONTENT ?
+                       Style.resizeCircleFreeResizeColor :
+                       Style.resizeCircleActiveColor :
+                       Style.resizeCircleInactiveColor
     }
 }

@@ -14,7 +14,6 @@ DisplayGroup {
     MultitouchArea {
         anchors.fill: parent
         referenceItem: dispGroup
-        z: controlPanel.z - 1
 
         property bool blockTap: true
         onTouchStarted: blockTap = false

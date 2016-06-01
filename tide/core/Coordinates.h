@@ -80,7 +80,7 @@ signals:
     void heightChanged();
 
 protected:
-    QRectF coordinates_;
+    QRectF _coordinates;
 
 private:
     Q_DISABLE_COPY( Coordinates )
