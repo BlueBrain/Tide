@@ -78,7 +78,11 @@ BaseContentWindow {
     contentComponent: MultitouchArea {
         id: contentInteractionArea
 
-        anchors.fill: parent
+        // Explicit dimensions needed here. The item can't fill its parent
+        // because the Loader has no size in this case (see BaseContentWindow).
+        width: contentArea.width
+        height: contentArea.height
+
         referenceItem: windowRect.parent
 
         /** Tap, pan and pinch gestures are used by either content or window. */

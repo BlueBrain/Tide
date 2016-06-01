@@ -84,7 +84,8 @@ Rectangle {
 
         Loader {
             id: contentBackgroundLoader
-            anchors.fill: parent
+            // Note: this loader can't have a size, otherwise it breaks the
+            // width/height bindings of loaded content in WallContentWindow.
         }
     }
 
