@@ -51,7 +51,7 @@
 #include <boost/enable_shared_from_this.hpp>
 
 /**
- * Stores global display Options which can change during runtime.
+ * Rendering options which can be changed during runtime.
  *
  * Can be serialized and distributed to the Wall applications, and also set as
  * a Qml context object.
@@ -59,30 +59,42 @@
 class Options : public QObject, public boost::enable_shared_from_this<Options>
 {
     Q_OBJECT
+    Q_PROPERTY( bool alphaBlending READ isAlphaBlendingEnabled
+                NOTIFY alphaBlendingEnabledChanged )
     Q_PROPERTY( bool showClock READ getShowClock NOTIFY showClockChanged )
-    Q_PROPERTY( bool showTouchPoints READ getShowTouchPoints CONSTANT )
-    Q_PROPERTY( bool showStatistics READ getShowStatistics CONSTANT )
-    Q_PROPERTY( bool showContentTiles READ getShowContentTiles CONSTANT )
-    Q_PROPERTY( bool showWindowBorders READ getShowWindowBorders NOTIFY showWindowBordersChanged )
-    Q_PROPERTY( bool showZoomContext READ getShowZoomContext CONSTANT )
-    Q_PROPERTY( bool showControlArea READ getShowControlArea NOTIFY showControlAreaChanged )
-    Q_PROPERTY( bool alphaBlending READ isAlphaBlendingEnabled CONSTANT )
+    Q_PROPERTY( bool showContentTiles READ getShowContentTiles
+                NOTIFY showContentTilesChanged )
+    Q_PROPERTY( bool showControlArea READ getShowControlArea
+                NOTIFY showControlAreaChanged )
+    Q_PROPERTY( bool showStatistics READ getShowStatistics
+                NOTIFY showStatisticsChanged )
+    Q_PROPERTY( bool showTouchPoints READ getShowTouchPoints
+                NOTIFY showTouchPointsChanged )
+    Q_PROPERTY( bool showWindowBorders READ getShowWindowBorders
+                NOTIFY showWindowBordersChanged )
+    Q_PROPERTY( bool showZoomContext READ getShowZoomContext
+                NOTIFY showZoomContextChanged )
 
 public:
-    /** Constructor */
+    /** Default constructor */
     Options();
 
-    /** @name Public getters */
+    /** @name QProperty getters */
     //@{
-    bool getShowClock() const;
-    bool getShowWindowBorders() const;
-    bool getShowTouchPoints() const;
-    bool getShowTestPattern() const;
-    bool getShowZoomContext() const;
-    bool getShowContentTiles() const;
-    bool getShowStatistics() const;
-    bool getShowControlArea() const;
     bool isAlphaBlendingEnabled() const;
+    bool getAutoFocusPixelStreams() const;
+    bool getShowClock() const;
+    bool getShowContentTiles() const;
+    bool getShowControlArea() const;
+    bool getShowStatistics() const;
+    bool getShowTestPattern() const;
+    bool getShowTouchPoints() const;
+    bool getShowWindowBorders() const;
+    bool getShowZoomContext() const;
+    //@}
+
+    /** @name Background settings */
+    //@{
     QColor getBackgroundColor() const;
     ContentPtr getBackgroundContent() const;
     //@}
@@ -98,17 +110,23 @@ public:
     void moveToThread( QThread* thread );
 
 public slots:
-    /** @name Public setters. @see updated() */
+    /** @name QProperty setters. @see updated() */
     //@{
-    void setShowClock( bool set );
-    void setShowWindowBorders( bool set );
-    void setShowTouchPoints( bool set );
-    void setShowTestPattern( bool set );
-    void setShowZoomContext( bool set );
-    void setShowContentTiles( bool set );
-    void setShowStatistics( bool set );
-    void setShowControlArea( bool set );
     void enableAlphaBlending( bool set );
+    void setAutoFocusPixelStreams( bool set );
+    void setShowClock( bool set );
+    void setShowContentTiles( bool set );
+    void setShowControlArea( bool set );
+    void setShowStatistics( bool set );
+    void setShowTestPattern( bool set );
+    void setShowTouchPoints( bool set );
+    void setShowWindowBorders( bool set );
+    void setShowZoomContext( bool set );
+    //@}
+
+    /** @name Background settings. @see updated(). */
+    //@{
+    /** Set the color of the background. */
     void setBackgroundColor( QColor color );
 
     /**
@@ -120,15 +138,22 @@ public slots:
     //@}
 
 signals:
-    /** Emitted when a value is changed by one of the setters. */
-    void updated( OptionsPtr );
-
     /** @name QProperty notifiers */
     //@{
-    void showClockChanged( bool value );
-    void showWindowBordersChanged();
+    void alphaBlendingEnabledChanged( bool set );
+    void autoFocusPixelStreamsChanged( bool set );
+    void showContentTilesChanged( bool set );
+    void showClockChanged( bool set );
     void showControlAreaChanged();
+    void showStatisticsChanged( bool set );
+    void showTestPatternChanged( bool set );
+    void showTouchPointsChanged( bool set );
+    void showWindowBordersChanged( bool set );
+    void showZoomContextChanged( bool set );
     //@}
+
+    /** Emitted when any value is changed by one of the setters. */
+    void updated( OptionsPtr );
 
 private:
     Q_DISABLE_COPY( Options )
@@ -138,30 +163,32 @@ private:
     template<class Archive>
     void serialize( Archive & ar, const unsigned int )
     {
-        ar & showClock_;
-        ar & showWindowBorders_;
-        ar & showTouchPoints_;
-        ar & showTestPattern_;
-        ar & showZoomContext_;
-        ar & showContentTiles_;
-        ar & showStreamingStatistics_;
-        ar & showControlArea_;
-        ar & alphaBlendingEnabled_;
-        ar & backgroundColor_;
-        ar & backgroundContent_;
+        ar & _alphaBlendingEnabled;
+        ar & _autoFocusPixelStreams;
+        ar & _showClock;
+        ar & _showContentTiles;
+        ar & _showControlArea;
+        ar & _showStreamingStatistics;
+        ar & _showTouchPoints;
+        ar & _showTestPattern;
+        ar & _showWindowBorders;
+        ar & _showZoomContext;
+        ar & _backgroundColor;
+        ar & _backgroundContent;
     }
 
-    bool showClock_;
-    bool showWindowBorders_;
-    bool showTouchPoints_;
-    bool showTestPattern_;
-    bool showZoomContext_;
-    bool showContentTiles_;
-    bool showStreamingStatistics_;
-    bool showControlArea_;
-    bool alphaBlendingEnabled_;
-    QColor backgroundColor_;
-    ContentPtr backgroundContent_;
+    bool _alphaBlendingEnabled;
+    bool _autoFocusPixelStreams;
+    bool _showClock;
+    bool _showContentTiles;
+    bool _showControlArea;
+    bool _showStreamingStatistics;
+    bool _showTestPattern;
+    bool _showTouchPoints;
+    bool _showWindowBorders;
+    bool _showZoomContext;
+    QColor _backgroundColor;
+    ContentPtr _backgroundContent;
 };
 
 #endif
