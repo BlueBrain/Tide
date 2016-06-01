@@ -12,7 +12,7 @@ BaseContentWindow {
 
     property bool contentActive: contentwindow.content.captureInteraction &&
                                  contentwindow.state === ContentWindow.NONE
-    property bool windowActive: !contentwindow.focused
+    property bool windowActive: contentwindow.mode === ContentWindow.STANDARD
 
     function closeWindow() {
         displaygroup.removeWindowLater(contentwindow.id)
@@ -31,6 +31,21 @@ BaseContentWindow {
             displaygroup.unfocus(contentwindow.id)
         else
             displaygroup.focus(contentwindow.id)
+    }
+
+    function toggleFullscreenMode() {
+        if(contentwindow.isPanel)
+            return
+        if(contentwindow.fullscreen)
+            displaygroup.exitFullscreen()
+        else
+            displaygroup.showFullscreen(contentwindow.id)
+    }
+
+    function toggleMode() {
+        if(contentwindow.focused)
+            displaygroup.unfocus(contentwindow.id)
+        toggleFullscreenMode()
     }
 
     function moveWindow(delta) {
@@ -104,8 +119,8 @@ BaseContentWindow {
                 toggleControlsVisibility()
         }
         onDoubleTap: {
-            if(!contentActive)
-                toggleFocusMode()
+            if(!contentActive && !contentwindow.fullscreen)
+                onDoubleTap: toggleFocusMode()
         }
         onTapAndHold: {
             if(contentActive)
@@ -180,6 +195,12 @@ BaseContentWindow {
                 }
             }
         }
+        FullscreenControlButton {
+            MultitouchArea {
+                anchors.fill: parent
+                onTap: toggleFullscreenMode()
+            }
+        }
         FocusControlButton {
             MultitouchArea {
                 anchors.fill: parent
@@ -235,7 +256,7 @@ BaseContentWindow {
         source: "qrc:///img/master/maximize.svg"
         anchors.bottom: parent.bottom
         anchors.left: parent.left
-        mousearea.onClicked: toggleFocusMode()
+        mousearea.onClicked: toggleMode()
         visible: !contentwindow.isPanel
     }
 
@@ -243,7 +264,8 @@ BaseContentWindow {
         source: "qrc:///img/master/resize.svg"
         anchors.bottom: parent.bottom
         anchors.right: parent.right
-        visible: !contentwindow.isPanel && !contentwindow.focused
+        visible: !contentwindow.isPanel &&
+                 contentwindow.mode === ContentWindow.STANDARD
 
         property variant startMousePos
         property variant startSize

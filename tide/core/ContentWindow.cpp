@@ -61,7 +61,7 @@ ContentWindow::ContentWindow( ContentPtr content, const WindowType type )
     , _controller( nullptr )
     , _activeHandle( NOHANDLE )
     , _resizePolicy( KEEP_ASPECT_RATIO )
-    , _focused( false )
+    , _mode( WindowMode::STANDARD )
     , _windowState( NONE )
     , _controlsVisible( false )
 {
@@ -76,14 +76,12 @@ ContentWindow::ContentWindow()
     , _controller( nullptr )
     , _activeHandle( NOHANDLE )
     , _resizePolicy( KEEP_ASPECT_RATIO )
-    , _focused( false )
+    , _mode( WindowMode::STANDARD )
     , _windowState( NONE )
     , _controlsVisible( false )
 {}
 
-ContentWindow::~ContentWindow()
-{
-}
+ContentWindow::~ContentWindow() {}
 
 const QUuid& ContentWindow::getID() const
 {
@@ -192,9 +190,29 @@ ContentWindow::WindowState ContentWindow::getState() const
     return _windowState;
 }
 
+ContentWindow::WindowMode ContentWindow::getMode() const
+{
+    return _mode;
+}
+
+void ContentWindow::setMode( const ContentWindow::WindowMode mode )
+{
+    if( mode == _mode )
+        return;
+
+    _mode = mode;
+    emit modeChanged();
+    emit modified();
+}
+
 bool ContentWindow::isFocused() const
 {
-    return _focused;
+    return _mode == WindowMode::FOCUSED;
+}
+
+bool ContentWindow::isFullscreen() const
+{
+    return _mode == WindowMode::FULLSCREEN;
 }
 
 const QRectF& ContentWindow::getFocusedCoordinates() const
@@ -211,18 +229,32 @@ void ContentWindow::setFocusedCoordinates( const QRectF& coordinates )
     emit focusedCoordinatesChanged();
 }
 
-const QRectF& ContentWindow::getDisplayCoordinates() const
+const QRectF& ContentWindow::getFullscreenCoordinates() const
 {
-    return isFocused() ? getFocusedCoordinates() : getCoordinates();
+    return _fullscreenCoordinates;
 }
 
-void ContentWindow::setFocused( const bool value )
+void ContentWindow::setFullscreenCoordinates( const QRectF& coordinates )
 {
-    if( _focused == value )
+    if( coordinates == _fullscreenCoordinates )
         return;
 
-    _focused = value;
-    emit focusedChanged();
+    _fullscreenCoordinates = coordinates;
+    emit fullscreenCoordinatesChanged();
+}
+
+const QRectF& ContentWindow::getDisplayCoordinates() const
+{
+    switch( getMode( ))
+    {
+    case WindowMode::FULLSCREEN:
+        return getFullscreenCoordinates();
+    case WindowMode::FOCUSED:
+        return getFocusedCoordinates();
+    case WindowMode::STANDARD:
+    default:
+        return getCoordinates();
+    }
 }
 
 bool ContentWindow::setState( const ContentWindow::WindowState state )

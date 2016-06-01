@@ -49,11 +49,14 @@
 IMPLEMENT_SERIALIZE_FOR_XML( DisplayGroup )
 
 DisplayGroup::DisplayGroup()
+    : _showWindowTitles( true )
+    , _fullscreenWindowPrevMode( ContentWindow::WindowMode::STANDARD )
 {
 }
 
 DisplayGroup::DisplayGroup( const QSizeF& size )
     : _showWindowTitles( true )
+    , _fullscreenWindowPrevMode( ContentWindow::WindowMode::STANDARD )
 {
     _coordinates.setSize( size );
 }
@@ -94,6 +97,9 @@ void DisplayGroup::removeContentWindow( ContentWindowPtr contentWindow )
                                            contentWindow );
     if( it == _contentWindows.end( ))
         return;
+
+    if( *it == _fullscreenWindow )
+        exitFullscreen();
 
     _removeFocusedWindow( *it );
     _contentWindows.erase( it );
@@ -141,7 +147,7 @@ bool DisplayGroup::isEmpty() const
 
 ContentWindowPtr DisplayGroup::getActiveWindow() const
 {
-    if ( isEmpty( ))
+    if( isEmpty( ))
         return ContentWindowPtr();
 
     return _contentWindows.back();
@@ -188,6 +194,11 @@ bool DisplayGroup::hasFocusedWindows() const
     return !_focusedWindows.empty();
 }
 
+bool DisplayGroup::hasFullscreenWindows() const
+{
+    return static_cast<bool>( _fullscreenWindow );
+}
+
 void DisplayGroup::focus( const QUuid& id )
 {
     ContentWindowPtr window = getContentWindow( id );
@@ -196,7 +207,7 @@ void DisplayGroup::focus( const QUuid& id )
 
     _focusedWindows.insert( window );
     _updateFocusedWindowsCoordinates();
-    window->setFocused( true );
+    window->setMode( ContentWindow::WindowMode::FOCUSED );
 
     if( _focusedWindows.size() == 1 )
         emit hasFocusedWindowsChanged();
@@ -207,10 +218,10 @@ void DisplayGroup::focus( const QUuid& id )
 void DisplayGroup::unfocus( const QUuid& id )
 {
     ContentWindowPtr window = getContentWindow( id );
-    if( !window )
+    if( !window || !_focusedWindows.count( window ))
         return;
 
-    window->setFocused( false );
+    window->setMode( ContentWindow::WindowMode::STANDARD );
     _removeFocusedWindow( window );
     // Make sure the window dimensions are re-adjusted to the new zoom level
     window->getController()->scale( window->getCoordinates().center(), 0.0 );
@@ -218,9 +229,49 @@ void DisplayGroup::unfocus( const QUuid& id )
     _sendDisplayGroup();
 }
 
+void DisplayGroup::unfocusAll()
+{
+    while( !_focusedWindows.empty( ))
+        unfocus( (*_focusedWindows.begin())->getID( ));
+}
+
 const ContentWindowSet& DisplayGroup::getFocusedWindows() const
 {
     return _focusedWindows;
+}
+
+void DisplayGroup::showFullscreen( const QUuid& id )
+{
+    ContentWindowPtr window = getContentWindow( id );
+    if( !window )
+        return;
+
+    exitFullscreen();
+    _fullscreenWindow = window;
+
+    // backup window state
+    _fullscreenWindowPrevMode = window->getMode();
+    _fullscreenWindowPrevZoom = window->getContent()->getZoomRect();
+
+    window->getController()->adjustSize( SizeState::SIZE_FULLSCREEN );
+    window->setMode( ContentWindow::WindowMode::FULLSCREEN );
+
+    emit hasFullscreenWindowsChanged();
+    _sendDisplayGroup();
+}
+
+void DisplayGroup::exitFullscreen()
+{
+    if( !_fullscreenWindow )
+        return;
+
+    // restore window state
+    _fullscreenWindow->setMode( _fullscreenWindowPrevMode );
+    _fullscreenWindow->getContent()->setZoomRect( _fullscreenWindowPrevZoom );
+
+    _fullscreenWindow.reset();
+    emit hasFullscreenWindowsChanged();
+    _sendDisplayGroup();
 }
 
 #pragma GCC diagnostic push

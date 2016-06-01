@@ -152,7 +152,8 @@ void DisplayGroupRenderer::setDisplayGroup( DisplayGroupPtr displayGroup )
     // Work around a bug in animation in Qt, where the opacity property
     // of the focus context may not always be restored to its original value.
     // See JIRA issue: DISCL-305
-    if( !displayGroup->hasFocusedWindows( ))
+    if( !displayGroup->hasFocusedWindows() &&
+            !displayGroup->hasFullscreenWindows( ))
     {
         for( QQuickItem* child : _displayGroupItem->childItems( ))
         {

@@ -3,6 +3,8 @@ Changelog {#Changelog}
 
 # git master (1.1.0)
 
+* [30](https://github.com/BlueBrain/Tide/pull/30):
+  The contents can now be shown in fullscreen mode
 * [28](https://github.com/BlueBrain/Tide/pull/28):
   Simplify window interaction [DISCL-320].
   This change makes interacting with contents more natural and intuitive:

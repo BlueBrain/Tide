@@ -15,12 +15,15 @@ SideButton {
         anchors.fill: parent
         anchors.margins: sideControl.innerMargin * parent.width
         Image {
-            source: "qrc:/img/launch.svg"
+            source: displaygroup.hasFullscreenWindows ? "qrc:/img/exit.svg" :
+                    displaygroup.hasFocusedWindows ? "qrc:/img/focus.svg" :
+                                                     "qrc:/img/launch.svg"
             width: parent.width
             height: width
             anchors.horizontalCenter: parent.horizontalCenter
             Loader {
-                property int buttonIndex: 0
+                property int buttonIndex: displaygroup.hasFullscreenWindows ? 2 :
+                                          displaygroup.hasFocusedWindows ? 1 : 0
                 anchors.fill: parent
                 sourceComponent: buttonDelegate
             }
@@ -42,7 +45,7 @@ SideButton {
             height: width
             anchors.horizontalCenter: parent.horizontalCenter
             Loader {
-                property int buttonIndex: 1
+                property int buttonIndex: 3
                 anchors.fill: parent
                 sourceComponent: buttonDelegate
             }

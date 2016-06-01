@@ -68,26 +68,30 @@
 class ContentWindow : public Coordinates
 {
     Q_OBJECT
-    Q_PROPERTY( QUuid id READ getID )
+    Q_PROPERTY( QUuid id READ getID CONSTANT )
     Q_PROPERTY( bool isPanel READ isPanel CONSTANT )
     Q_PROPERTY( Content* content READ getContentPtr CONSTANT )
+    Q_PROPERTY( ContentInteractionDelegate* delegate READ getInteractionDelegate
+                CONSTANT )
+    Q_PROPERTY( ContentWindowController* controller READ getController
+                CONSTANT )
+    Q_PROPERTY( WindowMode mode READ getMode WRITE setMode
+                NOTIFY modeChanged )
+    Q_PROPERTY( bool focused READ isFocused NOTIFY modeChanged )
+    Q_PROPERTY( QRectF focusedCoordinates READ getFocusedCoordinates
+                NOTIFY focusedCoordinatesChanged )
+    Q_PROPERTY( bool fullscreen READ isFullscreen NOTIFY modeChanged )
+    Q_PROPERTY( QRectF fullscreenCoordinates READ getFullscreenCoordinates
+                NOTIFY fullscreenCoordinatesChanged )
     Q_PROPERTY( WindowState state READ getState WRITE setState
                 NOTIFY stateChanged )
     Q_PROPERTY( ResizeHandle activeHandle READ getActiveHandle
                 WRITE setActiveHandle NOTIFY activeHandleChanged )
     Q_PROPERTY( ResizePolicy resizePolicy READ getResizePolicy
                 WRITE setResizePolicy NOTIFY resizePolicyChanged )
-    Q_PROPERTY( bool focused READ isFocused WRITE setFocused
-                NOTIFY focusedChanged )
     Q_PROPERTY( QString label READ getLabel NOTIFY labelChanged )
     Q_PROPERTY( bool controlsVisible READ getControlsVisible
                 WRITE setControlsVisible NOTIFY controlsVisibleChanged )
-    Q_PROPERTY( ContentInteractionDelegate* delegate READ getInteractionDelegate
-                CONSTANT )
-    Q_PROPERTY( ContentWindowController* controller READ getController
-                CONSTANT )
-    Q_PROPERTY( QRectF focusedCoordinates READ getFocusedCoordinates
-                WRITE setFocusedCoordinates NOTIFY focusedCoordinatesChanged )
 
 public:
     /** The current active resize handle. */
@@ -112,6 +116,15 @@ public:
         ADJUST_CONTENT       // only for compatible contents
     };
     Q_ENUMS( ResizePolicy )
+
+    /** The possible rendering modes of a window. */
+    enum WindowMode
+    {
+        STANDARD,    // standard window mode on the desktop
+        FOCUSED,     // window focused for presentation
+        FULLSCREEN   // fullscreen
+    };
+    Q_ENUMS( WindowMode )
 
     /** The possible states of a window. */
     enum WindowState
@@ -182,14 +195,16 @@ public:
     /** Get the current resize policy. */
     ContentWindow::ResizePolicy getResizePolicy() const;
 
+
     /** Get the current state. */
-    ContentWindow::WindowState getState() const;
+    ContentWindow::WindowMode getMode() const;
 
     /** Is the window focused. */
     bool isFocused() const;
 
-    /** Set the window in focused mode. */
-    void setFocused( bool value );
+    /** Is the window fullscreen. */
+    bool isFullscreen() const;
+
 
     /** @return the focused coordinates of this window. */
     const QRectF& getFocusedCoordinates() const;
@@ -197,13 +212,18 @@ public:
     /** Set the focused coordinates of this window. */
     void setFocusedCoordinates( const QRectF& coordinates );
 
+    /** @return the fullscreen coordinates of this window. */
+    const QRectF& getFullscreenCoordinates() const;
 
-    /** @return the actual coordinates of this window (normal or focused). */
+    /** Set the fullscreen coordinates of this window. */
+    void setFullscreenCoordinates( const QRectF& coordinates );
+
+    /** @return the actual display coordinates of (depending on the mode). */
     const QRectF& getDisplayCoordinates() const;
 
 
-    /** Set the current state. */
-    bool setState( const ContentWindow::WindowState state );
+    /** Get the current state. */
+    ContentWindow::WindowState getState() const;
 
     /** Check if moving. */
     bool isMoving() const;
@@ -231,11 +251,17 @@ public:
     void setControlsVisible( bool value );
 
 public slots:
+    /** Set the current state. */
+    void setMode( const ContentWindow::WindowMode mode );
+
     /** Set the current active resize handle. */
     void setActiveHandle( ContentWindow::ResizeHandle handle );
 
     /** Set the resize policy. */
     bool setResizePolicy( ContentWindow::ResizePolicy policy );
+
+    /** Set the current state. */
+    bool setState( const ContentWindow::WindowState state );
 
 signals:
     /** Emitted when the Content signals that it has been modified. */
@@ -254,8 +280,9 @@ signals:
     //@{
     void activeHandleChanged();
     void resizePolicyChanged();
-    void focusedChanged();
+    void modeChanged();
     void focusedCoordinatesChanged();
+    void fullscreenCoordinatesChanged();
     void stateChanged();
     void labelChanged();
     void controlsVisibleChanged();
@@ -278,8 +305,9 @@ private:
         ar & _controller;
         ar & _activeHandle;
         ar & _resizePolicy;
-        ar & _focused;
+        ar & _mode;
         ar & _focusedCoordinates;
+        ar & _fullscreenCoordinates;
         ar & _windowState;
         ar & _controlsVisible;
     }
@@ -307,7 +335,12 @@ private:
         ar & boost::serialization::make_nvp( "centerY", zoomCenter.ry( ));
         ar & boost::serialization::make_nvp( "zoom", zoom );
         if( version >= 3 )
-            ar & boost::serialization::make_nvp( "focused", _focused );
+        {
+            bool focused = isFocused();
+            ar & boost::serialization::make_nvp( "focused", focused );
+            if( focused )
+                setMode( WindowMode::FOCUSED );
+        }
         QRectF zoomRect;
         zoomRect.setSize( QSizeF( 1.0/zoom, 1.0/zoom ));
         zoomRect.moveCenter( zoomCenter );
@@ -344,8 +377,9 @@ private:
     ContentWindowController* _controller; // child QObject, don't delete
     ContentWindow::ResizeHandle _activeHandle;
     ContentWindow::ResizePolicy _resizePolicy;
-    bool _focused;
+    ContentWindow::WindowMode _mode;
     QRectF _focusedCoordinates;
+    QRectF _fullscreenCoordinates;
     ContentWindow::WindowState _windowState;
     bool _controlsVisible;
 

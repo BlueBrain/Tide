@@ -189,11 +189,13 @@ void ContentWindowController::adjustSize( const SizeState state )
 
     case SIZE_FULLSCREEN:
     {
+        _contentWindow->getContent()->resetZoom();
         QSizeF size = _contentWindow->getContent()->getDimensions();
         size.scale( _displayGroup->getCoordinates().size(),
                     Qt::KeepAspectRatio );
         constrainSize( size );
-        _contentWindow->setCoordinates( _getCenteredCoordinates( size ));
+        const auto fullscreenCoordinates = _getCenteredCoordinates( size );
+        _contentWindow->setFullscreenCoordinates( fullscreenCoordinates );
     } break;
 
     default:
