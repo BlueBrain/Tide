@@ -66,7 +66,8 @@
 
 namespace
 {
-const QString STATE_FILES_FILTER( "State files (*.dcx)" );
+const QString SESSION_FILE_EXTENSION( ".dcx" );
+const QString SESSION_FILES_FILTER( "Session files (*.dcx)" );
 const QSize DEFAULT_WINDOW_SIZE( 800, 600 );
 }
 
@@ -144,21 +145,21 @@ void MasterWindow::_setupMasterWindowUI()
 
     // clear contents action
     QAction* clearContentsAction = new QAction( "Clear", this );
-    clearContentsAction->setStatusTip( "Clear" );
+    clearContentsAction->setStatusTip( "Clear all contents" );
     connect( clearContentsAction, &QAction::triggered,
              _displayGroup.get(), &DisplayGroup::clear );
 
-    // save state action
-    QAction* saveStateAction = new QAction( "Save State", this );
-    saveStateAction->setStatusTip( "Save state" );
-    connect( saveStateAction, &QAction::triggered,
-             this, &MasterWindow::_saveState );
+    // save session action
+    QAction* saveSessionAction = new QAction( "Save Session", this );
+    saveSessionAction->setStatusTip( "Save current session" );
+    connect( saveSessionAction, &QAction::triggered,
+             this, &MasterWindow::_saveSession );
 
-    // load state action
-    QAction* loadStateAction = new QAction( "Load State", this );
-    loadStateAction->setStatusTip( "Load state" );
-    connect( loadStateAction, &QAction::triggered,
-             this, &MasterWindow::_openSessionDialog );
+    // load session action
+    QAction* loadSessionAction = new QAction( "Load Session", this );
+    loadSessionAction->setStatusTip( "Load a session" );
+    connect( loadSessionAction, &QAction::triggered,
+             this, &MasterWindow::_openSession );
 
 #ifdef TIDE_USE_QT5WEBKITWIDGETS
     // Open webbrowser action
@@ -297,8 +298,8 @@ void MasterWindow::_setupMasterWindowUI()
     // add actions to menus
     fileMenu->addAction( openContentAction );
     fileMenu->addAction( openContentsDirectoryAction );
-    fileMenu->addAction( loadStateAction );
-    fileMenu->addAction( saveStateAction );
+    fileMenu->addAction( loadSessionAction );
+    fileMenu->addAction( saveSessionAction );
 #ifdef TIDE_USE_QT5WEBKITWIDGETS
     fileMenu->addAction( webbrowserAction );
 #endif
@@ -322,8 +323,8 @@ void MasterWindow::_setupMasterWindowUI()
     // add actions to toolbar
     toolbar->addAction( openContentAction );
     toolbar->addAction( openContentsDirectoryAction );
-    toolbar->addAction( loadStateAction );
-    toolbar->addAction( saveStateAction );
+    toolbar->addAction( loadSessionAction );
+    toolbar->addAction( saveSessionAction );
 #ifdef TIDE_USE_QT5WEBKITWIDGETS
     toolbar->addAction( webbrowserAction );
 #endif
@@ -402,8 +403,8 @@ void MasterWindow::_openContent()
 }
 
 void MasterWindow::_addContentDirectory( const QString& directoryName,
-                                        unsigned int gridX,
-                                        unsigned int gridY )
+                                         unsigned int gridX,
+                                         unsigned int gridY )
 {
     QDir directory( directoryName );
     directory.setFilter( QDir::Files );
@@ -471,60 +472,49 @@ void MasterWindow::_openContentsDirectory()
     _addContentDirectory( dirName, gridX, gridY );
 }
 
-void MasterWindow::_openAboutWidget()
+void MasterWindow::_openSession()
 {
-    const int revision = tide::Version::getRevision();
-
-    std::ostringstream aboutMsg;
-    aboutMsg << "Current version: " << tide::Version::getString();
-    aboutMsg << std::endl;
-    aboutMsg << "SCM revision: " << std::hex << revision << std::dec;
-
-    QMessageBox::about( this, "About Tide", aboutMsg.str().c_str( ));
-}
-
-void MasterWindow::_saveState()
-{
-    QString filename = QFileDialog::getSaveFileName( this, "Save State",
-                                                     _sessionFolder,
-                                                     STATE_FILES_FILTER );
+    const QString filename =
+            QFileDialog::getOpenFileName( this, "Load Session", _sessionFolder,
+                                          SESSION_FILES_FILTER );
     if( filename.isEmpty( ))
         return;
 
     _sessionFolder = QFileInfo( filename ).absoluteDir().path();
 
-    // make sure filename has .dcx extension
-    if( !filename.endsWith( ".dcx" ))
+    _loadSession( filename );
+}
+
+void MasterWindow::_saveSession()
+{
+    QString filename = QFileDialog::getSaveFileName( this, "Save Session",
+                                                     _sessionFolder,
+                                                     SESSION_FILES_FILTER );
+    if( filename.isEmpty( ))
+        return;
+
+    _sessionFolder = QFileInfo( filename ).absoluteDir().path();
+
+    // make sure filename has correct extension
+    if( !filename.endsWith( SESSION_FILE_EXTENSION ))
     {
-        put_flog( LOG_VERBOSE, "appended .dcx filename extension" );
-        filename.append( ".dcx" );
+        put_flog( LOG_VERBOSE, "appended %s filename extension",
+                  SESSION_FILE_EXTENSION.toLocal8Bit().constData( ));
+        filename.append( SESSION_FILE_EXTENSION );
     }
 
     if( !StateSerializationHelper( _displayGroup ).save( filename ))
     {
-        QMessageBox::warning( this, "Error", "Could not save state file.",
+        QMessageBox::warning( this, "Error", "Could not save session file.",
                               QMessageBox::Ok, QMessageBox::Ok );
     }
 }
 
-void MasterWindow::_openSessionDialog()
-{
-    const QString filename = QFileDialog::getOpenFileName( this, "Load State",
-                                                           _sessionFolder,
-                                                           STATE_FILES_FILTER );
-    if( filename.isEmpty( ))
-        return;
-
-    _sessionFolder = QFileInfo( filename ).absoluteDir().path();
-
-    _loadState( filename );
-}
-
-void MasterWindow::_loadState( const QString& filename )
+void MasterWindow::_loadSession( const QString& filename )
 {
     if( !StateSerializationHelper( _displayGroup ).load( filename ))
     {
-        QMessageBox::warning( this, "Error", "Could not load state file.",
+        QMessageBox::warning( this, "Error", "Could not load session file.",
                               QMessageBox::Ok, QMessageBox::Ok );
     }
 }
@@ -552,6 +542,18 @@ void MasterWindow::_computeImagePyramid()
     }
 
     put_flog( LOG_DEBUG, "done generating pyramid" );
+}
+
+void MasterWindow::_openAboutWidget()
+{
+    const int revision = tide::Version::getRevision();
+
+    std::ostringstream aboutMsg;
+    aboutMsg << "Current version: " << tide::Version::getString();
+    aboutMsg << std::endl;
+    aboutMsg << "SCM revision: " << std::hex << revision << std::dec;
+
+    QMessageBox::about( this, "About Tide", aboutMsg.str().c_str( ));
 }
 
 void MasterWindow::_estimateGridSize( unsigned int numElem, unsigned int& gridX,
@@ -601,7 +603,7 @@ QStringList MasterWindow::_extractFolderUrls( const QMimeData* mimeData )
     return pathList;
 }
 
-QString MasterWindow::_extractStateFile( const QMimeData* mimeData )
+QString MasterWindow::_extractSessionFile( const QMimeData* mimeData )
 {
     QList<QUrl> urlList = mimeData->urls();
     if( urlList.size() == 1 )
@@ -620,9 +622,9 @@ void MasterWindow::dragEnterEvent( QDragEnterEvent* dragEvent )
     const QMimeData* mimeData = dragEvent->mimeData();
     const QStringList& pathList = _extractValidContentUrls( mimeData );
     const QStringList& dirList = _extractFolderUrls( mimeData );
-    const QString& stateFile = _extractStateFile( mimeData );
+    const QString& sessionFile = _extractSessionFile( mimeData );
 
-    if( !pathList.empty() || !dirList.empty() || !stateFile.isNull( ))
+    if( !pathList.empty() || !dirList.empty() || !sessionFile.isNull( ))
         dragEvent->acceptProposedAction();
 }
 
@@ -637,9 +639,9 @@ void MasterWindow::dropEvent( QDropEvent* dropEvt )
     if( !folders.isEmpty( ))
         _addContentDirectory( folders[0] ); // Only one directory at a time
 
-    const QString& stateFile = _extractStateFile( dropEvt->mimeData( ));
-    if( !stateFile.isNull( ))
-        _loadState( stateFile );
+    const QString& sessionFile = _extractSessionFile( dropEvt->mimeData( ));
+    if( !sessionFile.isNull( ))
+        _loadSession( sessionFile );
 
     dropEvt->acceptProposedAction();
 }

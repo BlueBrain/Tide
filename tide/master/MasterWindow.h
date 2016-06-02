@@ -93,8 +93,8 @@ private slots:
     void _openContent();
     void _openContentsDirectory();
 
-    void _saveState();
-    void _openSessionDialog();
+    void _openSession();
+    void _saveSession();
 
     void _computeImagePyramid();
 
@@ -105,14 +105,14 @@ private:
 
     void _addContentDirectory( const QString& directoryName,
                                unsigned int gridX = 0, unsigned int gridY = 0 );
-    void _loadState( const QString& filename );
+    void _loadSession( const QString& filename );
 
     void _estimateGridSize( unsigned int numElem, unsigned int& gridX,
                             unsigned int& gridY );
 
     QStringList _extractValidContentUrls( const QMimeData* mimeData );
     QStringList _extractFolderUrls( const QMimeData* mimeData );
-    QString _extractStateFile( const QMimeData* mimeData );
+    QString _extractSessionFile( const QMimeData* mimeData );
 
     DisplayGroupPtr _displayGroup;
     OptionsPtr _options;
