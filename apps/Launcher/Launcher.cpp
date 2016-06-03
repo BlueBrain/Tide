@@ -63,6 +63,10 @@ Launcher::Launcher( int& argc, char* argv[] )
     _qmlStreamer.reset( new deflect::qt::QmlStreamer( deflectQmlFile,
                                                       deflectHost,
                                                       deflectStreamname ));
+
+    connect( _qmlStreamer.get(), &deflect::qt::QmlStreamer::streamClosed,
+             this, &QCoreApplication::quit );
+
     auto item = _qmlStreamer->getRootItem();
 
     // General setup
