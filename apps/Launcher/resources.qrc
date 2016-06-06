@@ -1,12 +1,13 @@
 <RCC>
     <qresource prefix="/qml">
-        <file>qml/main.qml</file>
-        <file>qml/FileBrowser.qml</file>
         <file>qml/style.js</file>
-        <file>qml/Menu.qml</file>
+        <file>qml/main.qml</file>
+        <file>qml/DefaultPanel.qml</file>
         <file>qml/DemoLauncher/DemoLauncher.qml</file>
         <file>qml/DemoLauncher/RenderingResourcesManager.js</file>
-        <file>qml/DefaultPanel.qml</file>
+        <file>qml/FileBrowser.qml</file>
+        <file>qml/Menu.qml</file>
+        <file>qml/OptionsPanel.qml</file>
     </qresource>
     <qresource prefix="/">
         <file>images/book.svg</file>
@@ -15,5 +16,6 @@
         <file>images/file.svg</file>
         <file>images/folder.svg</file>
         <file>images/left.svg</file>
+        <file>images/settings.svg</file>
     </qresource>
 </RCC>

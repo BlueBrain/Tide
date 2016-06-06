@@ -10,6 +10,7 @@ Rectangle {
     signal clearSession()
     signal showFilesPanel()
     signal showSessionsPanel()
+    signal showOptionsPanel()
     signal showDemosPanel()
     signal startWebbrowser()
 
@@ -60,6 +61,13 @@ Rectangle {
             appIsPanel: true
         }
         ListElement {
+            appAction: "showOptionsPanel"
+            appName: "Settings"
+            appImage: "qrc:/images/settings.svg"
+            appCategory: "Options"
+            appIsPanel: true
+        }
+        ListElement {
             appAction: "startWebbrowser"
             appName: "Webbrowser"
             appImage: "qrc:/images/cloud.svg"
@@ -89,16 +97,23 @@ Rectangle {
 
     Component {
         id: sectionHeading
-        Rectangle {
-            width: appListView.width
-            height: 1.3 * sectionHeadingText.height
-            color: Style.menuSectionHeadingColor
-            Text {
-                id: sectionHeadingText
-                text: section
-                font.bold: true
-                font.pixelSize: menu.textSize
-                anchors.centerIn: parent
+        Column {
+            Rectangle {
+                width: appListView.width
+                height: 1.3 * sectionHeadingText.height
+                color: Style.menuSectionHeadingColor
+                Text {
+                    id: sectionHeadingText
+                    text: section
+                    font.bold: true
+                    font.pixelSize: menu.textSize
+                    anchors.centerIn: parent
+                }
+            }
+            Item {
+                id: spacer
+                width: appListView.width
+                height: width * 0.1
             }
         }
     }
@@ -112,11 +127,12 @@ Rectangle {
             anchors.horizontalCenter: parent.horizontalCenter
             Column {
                 spacing: 0.05 * width
+                anchors.horizontalCenter: parent.horizontalCenter
                 Image {
                     id: image
                     anchors.horizontalCenter: parent.horizontalCenter
-                    width: button.width
-                    height: button.width
+                    width: button.width * 0.7
+                    height: width
                     source: appImage
                     fillMode: Image.PreserveAspectFit
                     MouseArea {
