@@ -42,6 +42,7 @@
 #include "Options.h"
 
 #include "Content.h"
+#include "ContentFactory.h"
 
 // false-positive on qt signals for Q_PROPERTY notifiers
 // cppcheck-suppress uninitMemberVar
@@ -118,6 +119,11 @@ ContentPtr Options::getBackgroundContent() const
     return _backgroundContent;
 }
 
+QString Options::getBackgroundUri() const
+{
+    return _backgroundContent ? _backgroundContent->getURI() : QString();
+}
+
 void Options::enableAlphaBlending( const bool set )
 {
     if( _alphaBlendingEnabled == set )
@@ -164,7 +170,7 @@ void Options::setShowControlArea( const bool set )
         return;
 
     _showControlArea = set;
-    emit showControlAreaChanged( );
+    emit showControlAreaChanged( set );
     emit updated( shared_from_this( ));
 }
 
@@ -220,7 +226,7 @@ void Options::setShowZoomContext( const bool set )
 
 void Options::setBackgroundColor( const QColor color )
 {
-    if( color == _backgroundColor )
+    if( color == _backgroundColor || !color.isValid( ))
         return;
 
     _backgroundColor = color;
@@ -234,6 +240,22 @@ void Options::setBackgroundContent( ContentPtr content )
 
     _backgroundContent = content;
     emit updated( shared_from_this( ));
+}
+
+void Options::setBackgroundUri( const QString& uri )
+{
+    if( uri == getBackgroundUri( ))
+        return;
+
+    if( uri.isEmpty( ))
+    {
+        setBackgroundContent( ContentPtr( ));
+        return;
+    }
+
+    ContentPtr content = ContentFactory::getContent( uri );
+    if( content )
+        setBackgroundContent( content );
 }
 
 #pragma GCC diagnostic push

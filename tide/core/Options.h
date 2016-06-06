@@ -97,6 +97,7 @@ public:
     //@{
     QColor getBackgroundColor() const;
     ContentPtr getBackgroundContent() const;
+    QString getBackgroundUri() const;
     //@}
 
     /**
@@ -135,6 +136,13 @@ public slots:
      *        A null pointer removes the current background.
      */
     void setBackgroundContent( ContentPtr content );
+
+    /**
+     * Set the background content from a uri.
+     * @param uri The uri of the content to set. If the uri is invalid, the
+     *        content is not modified. An empty uri removes the content.
+     */
+    void setBackgroundUri( const QString& uri );
     //@}
 
 signals:
@@ -144,7 +152,7 @@ signals:
     void autoFocusPixelStreamsChanged( bool set );
     void showContentTilesChanged( bool set );
     void showClockChanged( bool set );
-    void showControlAreaChanged();
+    void showControlAreaChanged( bool set );
     void showStatisticsChanged( bool set );
     void showTestPatternChanged( bool set );
     void showTouchPointsChanged( bool set );

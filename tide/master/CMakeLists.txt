@@ -85,11 +85,13 @@ set(TIDEMASTER_INCLUDE_NAME tide/master)
 
 if(TIDE_ENABLE_REST_INTERFACE)
   list(APPEND TIDEMASTER_PUBLIC_HEADERS
+    rest/JsonOptions.h
     rest/RestCommand.h
     rest/RestInterface.h
     rest/StaticContent.h
   )
   list(APPEND TIDEMASTER_SOURCES
+    rest/JsonOptions.cpp
     rest/RestCommand.cpp
     rest/RestInterface.cpp
     rest/StaticContent.cpp
