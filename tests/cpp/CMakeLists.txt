@@ -17,7 +17,10 @@ set(TEST_LIBRARIES
 )
 
 if(NOT TIDE_ENABLE_REST_INTERFACE)
-  set(EXCLUDE_FROM_TESTS core/RESTCommandTests.cpp)
+  set(EXCLUDE_FROM_TESTS
+    core/JsonOptionsTests.cpp
+    core/RESTCommandTests.cpp
+  )
 endif()
 
 if(X11_FOUND AND TARGET Qt5::WebKitWidgets)
