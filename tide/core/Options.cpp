@@ -56,6 +56,7 @@ Options::Options()
     , _showTestPattern( false )
     , _showTouchPoints( true )
     , _showWindowBorders( true )
+    , _showWindowTitles( true )
     , _showZoomContext( true )
 {}
 
@@ -102,6 +103,11 @@ bool Options::getShowTouchPoints() const
 bool Options::getShowWindowBorders() const
 {
     return _showWindowBorders;
+}
+
+bool Options::getShowWindowTitles() const
+{
+    return _showWindowTitles;
 }
 
 bool Options::getShowZoomContext() const
@@ -211,6 +217,16 @@ void Options::setShowWindowBorders( const bool set )
 
     _showWindowBorders = set;
     emit showWindowBordersChanged( set );
+    emit updated( shared_from_this( ));
+}
+
+void Options::setShowWindowTitles( const bool set )
+{
+    if( _showWindowTitles == set )
+        return;
+
+    _showWindowTitles = set;
+    emit showWindowTitlesChanged( set );
     emit updated( shared_from_this( ));
 }
 

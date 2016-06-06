@@ -72,6 +72,8 @@ class Options : public QObject, public boost::enable_shared_from_this<Options>
                 NOTIFY showTouchPointsChanged )
     Q_PROPERTY( bool showWindowBorders READ getShowWindowBorders
                 NOTIFY showWindowBordersChanged )
+    Q_PROPERTY( bool showWindowTitles READ getShowWindowTitles
+                WRITE setShowWindowTitles NOTIFY showWindowTitlesChanged )
     Q_PROPERTY( bool showZoomContext READ getShowZoomContext
                 NOTIFY showZoomContextChanged )
 
@@ -90,6 +92,7 @@ public:
     bool getShowTestPattern() const;
     bool getShowTouchPoints() const;
     bool getShowWindowBorders() const;
+    bool getShowWindowTitles() const;
     bool getShowZoomContext() const;
     //@}
 
@@ -122,6 +125,7 @@ public slots:
     void setShowTestPattern( bool set );
     void setShowTouchPoints( bool set );
     void setShowWindowBorders( bool set );
+    void setShowWindowTitles( bool set );
     void setShowZoomContext( bool set );
     //@}
 
@@ -157,6 +161,7 @@ signals:
     void showTestPatternChanged( bool set );
     void showTouchPointsChanged( bool set );
     void showWindowBordersChanged( bool set );
+    void showWindowTitlesChanged( bool set );
     void showZoomContextChanged( bool set );
     //@}
 
@@ -180,6 +185,7 @@ private:
         ar & _showTouchPoints;
         ar & _showTestPattern;
         ar & _showWindowBorders;
+        ar & _showWindowTitles;
         ar & _showZoomContext;
         ar & _backgroundColor;
         ar & _backgroundContent;
@@ -194,6 +200,7 @@ private:
     bool _showTestPattern;
     bool _showTouchPoints;
     bool _showWindowBorders;
+    bool _showWindowTitles;
     bool _showZoomContext;
     QColor _backgroundColor;
     ContentPtr _backgroundContent;
