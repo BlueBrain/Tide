@@ -3,6 +3,8 @@ Changelog {#Changelog}
 
 # git master (1.1.0)
 
+* [36](https://github.com/BlueBrain/Tide/pull/36):
+  The options can be modified from the Launcher panel.
 * [34](https://github.com/BlueBrain/Tide/pull/34):
   The options can be retrieved and modified through the REST interface.
 * [30](https://github.com/BlueBrain/Tide/pull/30):

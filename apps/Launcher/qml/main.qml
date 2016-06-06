@@ -34,6 +34,7 @@ Rectangle {
             onShowFilesPanel: centralWidget.sourceComponent = fileBrowser
             onShowSessionsPanel: centralWidget.sourceComponent = sessionsBrowser
             onShowDemosPanel: centralWidget.sourceComponent = demoLauncher
+            onShowOptionsPanel: centralWidget.sourceComponent = optionsPanel
         }
         Loader {
             id: centralWidget
@@ -68,6 +69,14 @@ Rectangle {
     }
 
     Component {
+        id: optionsPanel
+        OptionsPanel {
+            onButtonClicked: sendRestOption(optionName, value)
+            onRefreshOptions: getRestOptions(updateCheckboxes)
+        }
+    }
+
+    Component {
         id: demoLauncher
         DemoLauncher {
             serviceUrl: demoServiceUrl
@@ -76,17 +85,36 @@ Rectangle {
     }
 
     function sendRestCommand(action, file) {
-        var xmlhttp = new XMLHttpRequest();
+        sendRestData(action, "uri", file);
+    }
+
+    function sendRestOption(optionName, value) {
+        sendRestData("options", optionName, value);
+    }
+
+    function sendRestData(action, key, value) {
+        var request = new XMLHttpRequest();
+        var url = "http://"+restHost+":"+restPort+"/tide/"+action;
+        var payload = typeof(value) === 'string' ? '{ "'+key+'" : "'+value+'" }'
+                                                 : '{ "'+key+'" : '+value+' }';
+        request.open("PUT", url, true);
+        request.send(payload);
+    }
+
+    function getRestOptions(callback) {
+        sendRestQuery("options", callback);
+    }
+
+    function sendRestQuery(action, callback) {
+        var request = new XMLHttpRequest()
         var url = "http://"+restHost+":"+restPort+"/tide/"+action;
 
-        xmlhttp.onreadystatechange = function() {
-            if (xmlhttp.readyState === XMLHttpRequest.DONE) {
-                if (xmlhttp.status == 200) {
-                    //var arr = JSON.parse(xmlhttp.responseText);
-                }
+        request.onreadystatechange = function() {
+            if (request.readyState === XMLHttpRequest.DONE && request.status == 200) {
+                callback(JSON.parse(request.responseText))
             }
         }
-        xmlhttp.open("PUT", url, true);
-        xmlhttp.send('{ "uri" : "'+file+'" }');
+        request.open("GET", url, true)
+        request.send()
     }
 }
