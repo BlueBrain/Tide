@@ -42,6 +42,7 @@
 #include "Options.h"
 
 #include "Content.h"
+#include "ContentFactory.h"
 
 // false-positive on qt signals for Q_PROPERTY notifiers
 // cppcheck-suppress uninitMemberVar
@@ -55,6 +56,7 @@ Options::Options()
     , _showTestPattern( false )
     , _showTouchPoints( true )
     , _showWindowBorders( true )
+    , _showWindowTitles( true )
     , _showZoomContext( true )
 {}
 
@@ -103,6 +105,11 @@ bool Options::getShowWindowBorders() const
     return _showWindowBorders;
 }
 
+bool Options::getShowWindowTitles() const
+{
+    return _showWindowTitles;
+}
+
 bool Options::getShowZoomContext() const
 {
     return _showZoomContext;
@@ -116,6 +123,11 @@ QColor Options::getBackgroundColor() const
 ContentPtr Options::getBackgroundContent() const
 {
     return _backgroundContent;
+}
+
+QString Options::getBackgroundUri() const
+{
+    return _backgroundContent ? _backgroundContent->getURI() : QString();
 }
 
 void Options::enableAlphaBlending( const bool set )
@@ -164,7 +176,7 @@ void Options::setShowControlArea( const bool set )
         return;
 
     _showControlArea = set;
-    emit showControlAreaChanged( );
+    emit showControlAreaChanged( set );
     emit updated( shared_from_this( ));
 }
 
@@ -208,6 +220,16 @@ void Options::setShowWindowBorders( const bool set )
     emit updated( shared_from_this( ));
 }
 
+void Options::setShowWindowTitles( const bool set )
+{
+    if( _showWindowTitles == set )
+        return;
+
+    _showWindowTitles = set;
+    emit showWindowTitlesChanged( set );
+    emit updated( shared_from_this( ));
+}
+
 void Options::setShowZoomContext( const bool set )
 {
     if( _showZoomContext == set )
@@ -220,7 +242,7 @@ void Options::setShowZoomContext( const bool set )
 
 void Options::setBackgroundColor( const QColor color )
 {
-    if( color == _backgroundColor )
+    if( color == _backgroundColor || !color.isValid( ))
         return;
 
     _backgroundColor = color;
@@ -234,6 +256,22 @@ void Options::setBackgroundContent( ContentPtr content )
 
     _backgroundContent = content;
     emit updated( shared_from_this( ));
+}
+
+void Options::setBackgroundUri( const QString& uri )
+{
+    if( uri == getBackgroundUri( ))
+        return;
+
+    if( uri.isEmpty( ))
+    {
+        setBackgroundContent( ContentPtr( ));
+        return;
+    }
+
+    ContentPtr content = ContentFactory::getContent( uri );
+    if( content )
+        setBackgroundContent( content );
 }
 
 #pragma GCC diagnostic push

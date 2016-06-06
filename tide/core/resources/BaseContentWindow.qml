@@ -36,7 +36,7 @@ Rectangle {
 
     Rectangle {
         id: titleBar
-        visible: displaygroup.showWindowTitles && !windowRect.isBackground
+        visible: options.showWindowTitles && !windowRect.isBackground
                  && !contentwindow.isPanel
         width: parent.width
         height: Style.windowTitleHeight

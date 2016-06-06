@@ -49,13 +49,13 @@
 IMPLEMENT_SERIALIZE_FOR_XML( DisplayGroup )
 
 DisplayGroup::DisplayGroup()
-    : _showWindowTitles( true )
+    : _showWindowTitlesInSavedSession( true )
     , _fullscreenWindowPrevMode( ContentWindow::WindowMode::STANDARD )
 {
 }
 
 DisplayGroup::DisplayGroup( const QSizeF& size )
-    : _showWindowTitles( true )
+    : _showWindowTitlesInSavedSession( true )
     , _fullscreenWindowPrevMode( ContentWindow::WindowMode::STANDARD )
 {
     _coordinates.setSize( size );
@@ -133,11 +133,6 @@ void DisplayGroup::moveContentWindowToFront( ContentWindowPtr contentWindow )
 
     emit( contentWindowMovedToFront( contentWindow ));
     _sendDisplayGroup();
-}
-
-bool DisplayGroup::getShowWindowTitles() const
-{
-    return _showWindowTitles;
 }
 
 bool DisplayGroup::isEmpty() const
@@ -290,6 +285,19 @@ void DisplayGroup::moveToThread( QThread* thread )
 #pragma GCC diagnostic pop
 #pragma clang diagnostic pop
 
+bool DisplayGroup::getShowWindowTitles() const
+{
+    return _showWindowTitlesInSavedSession;
+}
+
+void DisplayGroup::setShowWindowTitles( const bool set )
+{
+    if( _showWindowTitlesInSavedSession == set )
+        return;
+
+    _showWindowTitlesInSavedSession = set;
+}
+
 void DisplayGroup::clear()
 {
     if( _contentWindows.empty( ))
@@ -309,17 +317,6 @@ void DisplayGroup::clear()
 
     for( auto window : removeSet )
         removeContentWindow( window );
-}
-
-void DisplayGroup::setShowWindowTitles( const bool set )
-{
-    if( _showWindowTitles == set )
-        return;
-
-    _showWindowTitles = set;
-
-    emit showWindowTitlesChanged( set );
-    _sendDisplayGroup();
 }
 
 void DisplayGroup::_sendDisplayGroup()

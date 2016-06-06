@@ -192,6 +192,8 @@ void MasterWindow::_setupMasterWindowUI()
     enableAlphaBlendingAction->setChecked( _options->isAlphaBlendingEnabled( ));
     connect( enableAlphaBlendingAction, &QAction::toggled,
              _options.get(), &Options::enableAlphaBlending );
+    connect( _options.get(), &Options::alphaBlendingEnabledChanged,
+             enableAlphaBlendingAction, &QAction::setChecked );
 
     // auto focus pixel streams
     QAction* autoFocusStreamersAction =
@@ -202,6 +204,8 @@ void MasterWindow::_setupMasterWindowUI()
     autoFocusStreamersAction->setChecked( _options->getAutoFocusPixelStreams());
     connect( autoFocusStreamersAction, &QAction::toggled,
              _options.get(), &Options::setAutoFocusPixelStreams );
+    connect( _options.get(), &Options::autoFocusPixelStreamsChanged,
+             autoFocusStreamersAction, &QAction::setChecked );
 
     // show clock action
     QAction* showClockAction = new QAction( "Clock", this );
@@ -220,6 +224,8 @@ void MasterWindow::_setupMasterWindowUI()
     showContentTilesAction->setChecked( _options->getShowContentTiles( ));
     connect( showContentTilesAction, &QAction::toggled,
              _options.get(), &Options::setShowContentTiles );
+    connect( _options.get(), &Options::showContentTilesChanged,
+             showContentTilesAction, &QAction::setChecked );
 
     // show control area action
     QAction* showControlAreaAction = new QAction( "Control Area", this );
@@ -228,6 +234,8 @@ void MasterWindow::_setupMasterWindowUI()
     showControlAreaAction->setChecked( _options->getShowControlArea( ));
     connect( showControlAreaAction, &QAction::toggled,
              _options.get(), &Options::setShowControlArea );
+    connect( _options.get(), &Options::showControlAreaChanged,
+             showControlAreaAction, &QAction::setChecked );
 
     // show streaming statistics action
     QAction* showStatisticsAction = new QAction( "Statistics", this );
@@ -236,6 +244,8 @@ void MasterWindow::_setupMasterWindowUI()
     showStatisticsAction->setChecked( _options->getShowStatistics( ));
     connect( showStatisticsAction, &QAction::toggled,
              _options.get(), &Options::setShowStatistics );
+    connect( _options.get(), &Options::showStatisticsChanged,
+             showStatisticsAction, &QAction::setChecked );
 
     // show test pattern action
     QAction* showTestPatternAction = new QAction( "Test Pattern", this );
@@ -244,6 +254,8 @@ void MasterWindow::_setupMasterWindowUI()
     showTestPatternAction->setChecked( _options->getShowTestPattern( ));
     connect( showTestPatternAction, &QAction::toggled,
              _options.get(), &Options::setShowTestPattern );
+    connect( _options.get(), &Options::showTestPatternChanged,
+             showTestPatternAction, &QAction::setChecked );
 
     // show touch points action
     QAction* showTouchPoints = new QAction( "Touch Points", this );
@@ -252,6 +264,8 @@ void MasterWindow::_setupMasterWindowUI()
     showTouchPoints->setChecked( _options->getShowTouchPoints( ));
     connect( showTouchPoints, &QAction::toggled,
              _options.get(), &Options::setShowTouchPoints );
+    connect( _options.get(), &Options::showTouchPointsChanged,
+             showTouchPoints, &QAction::setChecked );
 
     // show window borders action
     QAction* showWindowBordersAction = new QAction( "Window Borders", this );
@@ -260,15 +274,17 @@ void MasterWindow::_setupMasterWindowUI()
     showWindowBordersAction->setChecked( _options->getShowWindowBorders( ));
     connect( showWindowBordersAction, &QAction::toggled,
              _options.get(), &Options::setShowWindowBorders );
+    connect( _options.get(), &Options::showWindowBordersChanged,
+             showWindowBordersAction, &QAction::setChecked );
 
     // show window title action
     QAction* showWindowTitlesAction = new QAction( "Window Titles", this );
     showWindowTitlesAction->setStatusTip( "Show window titles" );
     showWindowTitlesAction->setCheckable( true );
-    showWindowTitlesAction->setChecked( _displayGroup->getShowWindowTitles( ));
+    showWindowTitlesAction->setChecked( _options->getShowWindowTitles( ));
     connect( showWindowTitlesAction, &QAction::toggled,
-             _displayGroup.get(), &DisplayGroup::setShowWindowTitles );
-    connect( _displayGroup.get(), &DisplayGroup::showWindowTitlesChanged,
+             _options.get(), &Options::setShowWindowTitles );
+    connect( _options.get(), &Options::showWindowTitlesChanged,
              showWindowTitlesAction, &QAction::setChecked );
 
     // show zoom context action
@@ -278,6 +294,8 @@ void MasterWindow::_setupMasterWindowUI()
     showZoomContextAction->setChecked( _options->getShowZoomContext( ));
     connect( showZoomContextAction, &QAction::toggled,
              _options.get(), &Options::setShowZoomContext );
+    connect( _options.get(), &Options::showZoomContextChanged,
+             showZoomContextAction, &QAction::setChecked );
 
     /** TOOLS menu */
 
@@ -503,6 +521,8 @@ void MasterWindow::_saveSession()
         filename.append( SESSION_FILE_EXTENSION );
     }
 
+    _displayGroup->setShowWindowTitles( getOptions()->getShowWindowTitles( ));
+
     if( !StateSerializationHelper( _displayGroup ).save( filename ))
     {
         QMessageBox::warning( this, "Error", "Could not save session file.",
@@ -516,7 +536,9 @@ void MasterWindow::_loadSession( const QString& filename )
     {
         QMessageBox::warning( this, "Error", "Could not load session file.",
                               QMessageBox::Ok, QMessageBox::Ok );
+        return;
     }
+    getOptions()->setShowWindowTitles( _displayGroup->getShowWindowTitles( ));
 }
 
 void MasterWindow::_computeImagePyramid()
