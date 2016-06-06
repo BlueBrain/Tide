@@ -40,6 +40,8 @@
 #ifndef RESTINTERFACE_H
 #define RESTINTERFACE_H
 
+#include "types.h"
+
 #include <QObject>
 #include <memory>
 
@@ -59,8 +61,12 @@ class RestInterface : public QObject
     Q_OBJECT
 
 public:
-    /** Construct a REST interface listening on the given port. */
-    explicit RestInterface( int port );
+    /**
+     * Construct a REST interface.
+     * @param port the port for listening to REST requests
+     * @param options the application's options to expose in the interface
+     */
+    RestInterface( int port, OptionsPtr options );
 
     /** Out-of-line destructor. */
     ~RestInterface();

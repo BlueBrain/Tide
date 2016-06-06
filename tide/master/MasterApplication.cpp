@@ -307,7 +307,8 @@ void MasterApplication::initTouchListener()
 #if TIDE_ENABLE_REST_INTERFACE
 void MasterApplication::_initRestInterface()
 {
-    _restInterface = make_unique<RestInterface>( config_->getWebServicePort( ));
+    _restInterface = make_unique<RestInterface>( config_->getWebServicePort(),
+                                                 masterWindow_->getOptions( ));
 
     connect( _restInterface.get(), &RestInterface::browse, [this]( QString uri )
     {

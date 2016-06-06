@@ -34,100 +34,33 @@
 /* The views and conclusions contained in the software and           */
 /* documentation are those of the authors and should not be          */
 /* interpreted as representing official policies, either expressed   */
-/* or implied, of The University of Texas at Austin.                 */
+/* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "RestInterface.h"
+#ifndef JSONOPTIONS_H
+#define JSONOPTIONS_H
 
-#include "JsonOptions.h"
-#include "RestCommand.h"
-#include "StaticContent.h"
+#include "types.h"
 
-#include <tide/master/version.h>
-#include <QDateTime>
+#include <servus/serializable.h>
 
-#include <zeroeq/http/server.h>
-#include <zeroeq/uri.h>
-
-#include <QSocketNotifier>
-#include <QHostInfo>
-
-namespace
-{
-const uint32_t RECEIVE_TIMEOUT = 0; // non-blocking receive
-
-const QString indexpage = QString(
-"\
-<!DOCTYPE html> \
-<html> \
-<head> \
-<meta charset='UTF-8'> \
-<title>Tide</title> \
-</head> \
-<body> \
-<h1>Tide %1</h1> \
-<p>Revision: <a href='https://github.com/BlueBrain/Tide/commit/%3'>%3</a></p> \
-<p>Running on: %2</p> \
-<p>Up since: %4</p> \
-</body> \
-</html> \
-") \
-.arg( QString::fromStdString( tide::Version::getString( ))) \
-.arg( QHostInfo::localHostName( )) \
-.arg( QString::number( tide::Version::getRevision(), 16 )) \
-.arg( QDateTime::currentDateTime().toString( ));
-}
-
-class RestInterface::Impl
+/**
+ * Exposes the application's Options in JSON format through the REST interface.
+ */
+class JsonOptions : public servus::Serializable
 {
 public:
-    Impl( const int port, OptionsPtr options_ )
-        : httpServer{ zeroeq::URI { QString(":%1").arg( port ).toStdString( )}}
-        , options( options_ )
-    {
-        httpServer.register_( indexPage );
-        httpServer.subscribe( browseCmd );
-        httpServer.subscribe( openCmd );
-        httpServer.subscribe( loadCmd );
-        httpServer.subscribe( saveCmd );
-        httpServer.add( options );
-    }
+    /** Constructor. */
+    explicit JsonOptions( OptionsPtr options );
+    ~JsonOptions() = default;
 
-    zeroeq::http::Server httpServer;
-    QSocketNotifier socketNotifier{ httpServer.getSocketDescriptor(),
-                                    QSocketNotifier::Read };
-    StaticContent indexPage{ "tide", indexpage.toStdString( )};
-    RestCommand browseCmd{ "tide::browse" };
-    RestCommand openCmd{ "tide::open" };
-    RestCommand loadCmd{ "tide::load" };
-    RestCommand saveCmd{ "tide::save" };
-    JsonOptions options;
+    std::string getTypeName() const final;
+
+private:
+    std::string _toJSON() const final;
+    bool _fromJSON( const std::string& json ) final;
+
+    OptionsPtr _options;
 };
 
-RestInterface::RestInterface( const int port, OptionsPtr options )
-    : _impl( new Impl( port, options ))
-{
-    connect( &_impl->socketNotifier, &QSocketNotifier::activated, [this]()
-    {
-        _impl->httpServer.receive( RECEIVE_TIMEOUT );
-    });
-
-    connect( &_impl->browseCmd, &RestCommand::received,
-             this, &RestInterface::browse );
-
-    connect( &_impl->openCmd, &RestCommand::received,
-             this, &RestInterface::open );
-
-    connect( &_impl->loadCmd, &RestCommand::received, [this](const QString uri)
-    {
-        if( uri.isEmpty( ))
-            emit clear();
-        else
-            emit load( uri );
-    });
-
-    connect( &_impl->saveCmd, &RestCommand::received,
-             this, &RestInterface::save );
-}
-
-RestInterface::~RestInterface() {}
+#endif
