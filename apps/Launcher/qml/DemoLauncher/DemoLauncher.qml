@@ -16,6 +16,7 @@ Rectangle {
 
     property string serviceUrl: ""
     property string imagesFolder: ""
+    property string deflectStreamHost: ""
     property var demosComm: ({})
 
     property int itemSize: height / 5
@@ -64,7 +65,11 @@ Rectangle {
                     asynchronous: true
                     MouseArea {
                         anchors.fill: parent
-                        onClicked: demosComm.launch(demoName)
+                        onClicked: {
+                            infoRect.demo = demoId
+                            infoRect.open = true
+                            demosComm.launch(demoId)
+                        }
                     }
                 }
                 Text {
@@ -81,19 +86,81 @@ Rectangle {
 
     Rectangle {
         id: infoRect
-        color: "darkgrey"
-        anchors.bottom: parent.bottom
+        color: "black"
+        opacity: 0.7
         width: parent.width
-        height: 0.1 * parent.height
-        Text {
-            id: infoText
-            font.pixelSize: textPixelSize
+        height: parent.height
+        x: 0
+        y: parent.height
+
+        property bool open: false
+        property string demo: ""
+
+        MouseArea {
+            id: touchBarrier
+            anchors.fill: parent
         }
-        function displayStatusCallback(status) {
-           infoText.text = status
+
+        Column {
+            anchors.centerIn: parent
+            spacing: textPixelSize
+            Text {
+                id: title
+                color: "white"
+                text: "Starting demo '" + infoRect.demo + "' - please wait..."
+                font.pixelSize: textPixelSize
+                anchors.horizontalCenter: parent.horizontalCenter
+            }
+            Text {
+                id: infoText
+                color: "white"
+                font.pixelSize: textPixelSize
+                anchors.horizontalCenter: parent.horizontalCenter
+            }
+            Rectangle {
+                id: closeButton
+                color: "darkgray"
+                border.color: "white"
+                border.width: 0.05 * width
+                width: infoRect.width * 0.10
+                height: width * 0.4
+                radius: height * 0.25
+                anchors.horizontalCenter: parent.horizontalCenter
+                Text {
+                    anchors.centerIn: parent
+                    text: "cancel"
+                    font.pixelSize: textPixelSize
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        demosComm.closeCurrentSession()
+                        infoRect.open = false
+                        infoRect.demo = ""
+                    }
+                }
+            }
         }
+
         Timer {
-            onTriggered: demosComm.querySessionStatus(displayStatusCallback)
+            repeat: true
+            running: infoRect.open
+            onTriggered: demosComm.queryStatus( function (status) { infoText.text = status })
+        }
+        states: [
+            State {
+                name: "open"
+                when: infoRect.open
+                PropertyChanges {
+                    target: infoRect
+                    y: 0
+                }
+            }
+        ]
+        Behavior on y {
+            NumberAnimation {
+                easing.type: Easing.InOutQuad
+            }
         }
     }
 
@@ -102,13 +169,18 @@ Rectangle {
         {
             demoList.append(
             {
+                demoId: demos[i].id,
                 demoName: demos[i].command_line,
                 demoImage: "file://" + imagesFolder + "/" + demos[i].id + ".png"
             });
         }
     }
     Component.onCompleted : {
-        demosComm = new RRM.Communicator(serviceUrl);
+        demosComm = new RRM.Communicator(serviceUrl, deflectStreamHost);
         demosComm.queryDemos(fillDemoList);
+    }
+    Component.onDestruction: {
+        if (!demosComm.isRunning())
+            demosComm.closeCurrentSession();
     }
 }

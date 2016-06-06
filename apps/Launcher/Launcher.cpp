@@ -46,6 +46,8 @@
 #include "tide/master/localstreamer/CommandLineOptions.h"
 #include "tide/master/MasterConfiguration.h"
 
+#include <QHostInfo>
+
 namespace
 {
 const std::string deflectHost( "localhost" );
@@ -89,6 +91,7 @@ Launcher::Launcher( int& argc, char* argv[] )
     item->setProperty( "demoServiceUrl", config.getDemoServiceUrl( ));
     item->setProperty( "demoServiceImageFolder",
                        config.getDemoServiceImageFolder( ));
+    item->setProperty( "demoServiceDeflectHost", QHostInfo::localHostName( ));
 }
 
 Launcher::~Launcher()

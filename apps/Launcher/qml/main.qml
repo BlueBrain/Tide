@@ -18,6 +18,7 @@ Rectangle {
 
     property string demoServiceUrl: ""
     property string demoServiceImageFolder: ""
+    property string demoServiceDeflectHost: ""
 
     width: Style.windowDefaultSize.width
     height: Style.windowDefaultSize.height
@@ -81,6 +82,7 @@ Rectangle {
         DemoLauncher {
             serviceUrl: demoServiceUrl
             imagesFolder: demoServiceImageFolder
+            deflectStreamHost: demoServiceDeflectHost
         }
     }
 
