@@ -75,8 +75,6 @@ class DisplayGroup : public Coordinates,
         public boost::enable_shared_from_this<DisplayGroup>
 {
     Q_OBJECT
-    Q_PROPERTY( bool showWindowTitles READ getShowWindowTitles
-                WRITE setShowWindowTitles NOTIFY showWindowTitlesChanged )
     Q_PROPERTY( bool hasFocusedWindows READ hasFocusedWindows
                 NOTIFY hasFocusedWindowsChanged )
     Q_PROPERTY( bool hasFullscreenWindows READ hasFullscreenWindows
@@ -91,9 +89,6 @@ public:
 
     /** Add a content window. */
     void addContentWindow( ContentWindowPtr contentWindow );
-
-    /** @return true if window titles are visible. */
-    bool getShowWindowTitles() const;
 
     /**
      * Is the DisplayGroup empty.
@@ -171,12 +166,18 @@ public:
      */
     void moveToThread( QThread* thread );
 
+    /** @name For session serialization, on Master application only */
+    //@{
+    /** @return true if window titles were visible when session was saved. */
+    bool getShowWindowTitles() const;
+
+    /** Enable/Disable visibility of window titles when saving the session. */
+    void setShowWindowTitles( bool set );
+    //@}
+
 public slots:
     /** Clear all ContentWindows. */
     void clear();
-
-    /** Enable/Disable the visibility of window titles. */
-    void setShowWindowTitles( bool set );
 
     /** Remove a content window later (using a Qt::QueuedConnection). */
     void removeWindowLater( QUuid windowId );
@@ -191,11 +192,6 @@ public slots:
     void moveContentWindowToFront( ContentWindowPtr contentWindow );
 
 signals:
-    /** @name QProperty notifiers */
-    //@{
-    void showWindowTitlesChanged( bool set );
-    //@}
-
     /** Emitted whenever the DisplayGroup is modified */
     void modified( DisplayGroupPtr displayGroup );
 
@@ -208,11 +204,14 @@ signals:
     /** Emitted when a content window is moved to the front. */
     void contentWindowMovedToFront( ContentWindowPtr contentWindow );
 
+    /** @name QProperty notifiers */
+    //@{
     /** Notifier for the hasFocusedWindows property. */
     void hasFocusedWindowsChanged();
 
     /** Notifier for the hasFullscreenWindows property. */
     void hasFullscreenWindowsChanged();
+    //@}
 
 private slots:
     void _sendDisplayGroup();
@@ -229,7 +228,6 @@ private:
     void serialize( Archive & ar, const unsigned int )
     {
         ar & _coordinates;
-        ar & _showWindowTitles;
         ar & _contentWindows;
         ar & _focusedWindows;
         ar & _fullscreenWindow;
@@ -240,7 +238,7 @@ private:
     void serialize_members_xml( Archive & ar, const unsigned int )
     {
         ar & boost::serialization::make_nvp( "showWindowTitles",
-                                             _showWindowTitles );
+                                             _showWindowTitlesInSavedSession );
         ar & boost::serialization::make_nvp( "contentWindows",
                                              _contentWindows );
         ar & boost::serialization::make_nvp( "coordinates", _coordinates );
@@ -273,7 +271,7 @@ private:
     void _removeFocusedWindow( ContentWindowPtr window );
     void _updateFocusedWindowsCoordinates();
 
-    bool _showWindowTitles;
+    bool _showWindowTitlesInSavedSession;
     ContentWindowPtrs _contentWindows;
     ContentWindowSet _focusedWindows;
     ContentWindowPtr _fullscreenWindow;

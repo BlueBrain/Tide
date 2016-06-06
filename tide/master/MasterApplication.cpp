@@ -101,7 +101,11 @@ MasterApplication::MasterApplication( int& argc_, char** argv_,
 
     const QString& session = options.getSessionFilename();
     if( !session.isEmpty( ))
+    {
         StateSerializationHelper( displayGroup_ ).load( session );
+        masterWindow_->getOptions()->setShowWindowTitles(
+                    displayGroup_->getShowWindowTitles( ));
+    }
 }
 
 MasterApplication::~MasterApplication()
@@ -318,11 +322,15 @@ void MasterApplication::_initRestInterface()
     });
     connect( _restInterface.get(), &RestInterface::open, [this]( QString uri ) {
         ContentLoader( displayGroup_ ).load( uri );
+        masterWindow_->getOptions()->setShowWindowTitles(
+                    displayGroup_->getShowWindowTitles( ));
     });
     connect( _restInterface.get(), &RestInterface::load, [this]( QString uri ) {
         StateSerializationHelper( displayGroup_ ).load( uri );
     });
     connect( _restInterface.get(), &RestInterface::save, [this]( QString uri ) {
+        displayGroup_->setShowWindowTitles(
+                    masterWindow_->getOptions()->getShowWindowTitles( ));
         StateSerializationHelper( displayGroup_ ).save( uri );
     });
     connect( _restInterface.get(), &RestInterface::clear, [this]() {

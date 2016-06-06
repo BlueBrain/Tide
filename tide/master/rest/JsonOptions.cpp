@@ -71,6 +71,7 @@ std::string JsonOptions::_toJSON() const
     obj.insert( "testPattern", _options->getShowTestPattern( ));
     obj.insert( "touchPoints", _options->getShowTouchPoints( ));
     obj.insert( "windowBorders", _options->getShowWindowBorders( ));
+    obj.insert( "windowTitles", _options->getShowWindowTitles( ));
     obj.insert( "zoomContext", _options->getShowZoomContext( ));
 
     const QJsonDocument doc( obj );
@@ -116,6 +117,8 @@ bool JsonOptions::_fromJSON( const std::string& string )
     _options->setShowTouchPoints( value.toBool( _options->getShowTouchPoints( )));
     value = obj["windowBorders"];
     _options->setShowWindowBorders( value.toBool( _options->getShowWindowBorders( )));
+    value = obj["windowTitles"];
+    _options->setShowWindowTitles( value.toBool( _options->getShowWindowTitles( )));
     value = obj["zoomContext"];
     _options->setShowZoomContext( value.toBool( _options->getShowZoomContext( )));
 

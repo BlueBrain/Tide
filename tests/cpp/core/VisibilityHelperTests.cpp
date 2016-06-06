@@ -66,8 +66,6 @@ struct Fixture {
     {
         content->setDimensions( size );
         window = boost::make_shared<ContentWindow>( content );
-
-        group->setShowWindowTitles( false );
         group->addContentWindow( window );
 
         BOOST_REQUIRE_EQUAL( window->getCoordinates(),

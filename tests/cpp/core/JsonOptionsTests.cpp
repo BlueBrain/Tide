@@ -62,6 +62,7 @@ R"V0G0N({
     "testPattern": false,
     "touchPoints": true,
     "windowBorders": true,
+    "windowTitles": true,
     "zoomContext": true
 }
 )V0G0N"
@@ -97,6 +98,7 @@ R"V0G0N({
     "testPattern": true,
     "touchPoints": false,
     "windowBorders": false,
+    "windowTitles": false,
     "zoomContext": false
 }
 )V0G0N"

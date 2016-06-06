@@ -281,10 +281,10 @@ void MasterWindow::_setupMasterWindowUI()
     QAction* showWindowTitlesAction = new QAction( "Window Titles", this );
     showWindowTitlesAction->setStatusTip( "Show window titles" );
     showWindowTitlesAction->setCheckable( true );
-    showWindowTitlesAction->setChecked( _displayGroup->getShowWindowTitles( ));
+    showWindowTitlesAction->setChecked( _options->getShowWindowTitles( ));
     connect( showWindowTitlesAction, &QAction::toggled,
-             _displayGroup.get(), &DisplayGroup::setShowWindowTitles );
-    connect( _displayGroup.get(), &DisplayGroup::showWindowTitlesChanged,
+             _options.get(), &Options::setShowWindowTitles );
+    connect( _options.get(), &Options::showWindowTitlesChanged,
              showWindowTitlesAction, &QAction::setChecked );
 
     // show zoom context action
@@ -521,6 +521,8 @@ void MasterWindow::_saveSession()
         filename.append( SESSION_FILE_EXTENSION );
     }
 
+    _displayGroup->setShowWindowTitles( getOptions()->getShowWindowTitles( ));
+
     if( !StateSerializationHelper( _displayGroup ).save( filename ))
     {
         QMessageBox::warning( this, "Error", "Could not save session file.",
@@ -534,7 +536,9 @@ void MasterWindow::_loadSession( const QString& filename )
     {
         QMessageBox::warning( this, "Error", "Could not load session file.",
                               QMessageBox::Ok, QMessageBox::Ok );
+        return;
     }
+    getOptions()->setShowWindowTitles( _displayGroup->getShowWindowTitles( ));
 }
 
 void MasterWindow::_computeImagePyramid()
