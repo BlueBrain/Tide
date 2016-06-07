@@ -19,6 +19,7 @@ Rectangle {
         color: Style.defaultPanelTextColor
     }
     Text {
+        id: smallText
         anchors.top: bigText.bottom
         anchors.horizontalCenter: parent.horizontalCenter
         font.pixelSize: 0.3 * bigText.font.pixelSize
