@@ -66,7 +66,10 @@ ImagePtr ImageSynchronizer::getTileImage( const uint tileIndex ) const
 {
     Q_UNUSED( tileIndex );
 
-    const QImage image( _uri );
+    QImage image( _uri );
+    // Make sure image format is 32-bits per pixel as required by the GL texture
+    if( !QtImage::is32Bits( image ))
+        image = image.convertToFormat( QImage::Format_ARGB32 );
     if( image.isNull( ))
         return ImagePtr();
     return std::make_shared<QtImage>( image );

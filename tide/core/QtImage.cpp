@@ -43,7 +43,10 @@
 
 QtImage::QtImage( const QImage& image )
     : _image( image )
-{}
+{
+    if( !is32Bits( _image ))
+        throw std::runtime_error( "QtImage() - invalid image format" );
+}
 
 int QtImage::getWidth() const
 {

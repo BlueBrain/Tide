@@ -3,6 +3,8 @@ Changelog {#Changelog}
 
 # git master (1.1.0)
 
+* [38](https://github.com/BlueBrain/Tide/pull/38):
+  Fix a segfault that occured when opening grayscale images.
 * [36](https://github.com/BlueBrain/Tide/pull/36):
   The options can be modified from the Launcher panel.
 * [34](https://github.com/BlueBrain/Tide/pull/34):
