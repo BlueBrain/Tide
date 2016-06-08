@@ -1,6 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,47 +37,56 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef IMAGE_H
-#define IMAGE_H
+#include "ImageSource.h"
 
-#include "types.h"
+#include "QtImage.h"
 
-/**
- * An interface to provide necessary image information for the texture upload
- * and swap in TextureUploader.
- *
- * Currently, the only valid image format is 32 bits per pixel. Derived
- * classes must make sure to comply with this requirement.
- */
-class Image
+#include <QImageReader>
+
+ImageSource::ImageSource( const QString& uri )
+    : _uri( uri )
+    , _imageSize( QImageReader( _uri ).size( ))
+{}
+
+QRect ImageSource::getTileRect( const uint tileIndex ) const
 {
-public:
-    virtual ~Image() {}
+    Q_UNUSED( tileIndex );
+    return QRect( QPoint( 0, 0 ), _imageSize );
+}
 
-    /** @return the width of the image. */
-    virtual int getWidth() const = 0;
+QSize ImageSource::getTilesArea( const uint lod ) const
+{
+    Q_UNUSED( lod );
+    return _imageSize;
+}
 
-    /** @return the height of the image. */
-    virtual int getHeight() const = 0;
+QImage ImageSource::getCachableTileImage( const uint tileIndex ) const
+{
+    Q_UNUSED( tileIndex );
 
-    /** @return the size of the image in bytes */
-    size_t getSize() const { return getWidth() * getHeight() * 4; }
+    // Make sure image format is 32-bits per pixel as required by the GL texture
+    QImage image( _uri );
+    if( !QtImage::is32Bits( image ))
+        image = image.convertToFormat( QImage::Format_ARGB32 );
 
-    /** @return the pointer to the pixels. */
-    virtual const uint8_t* getData() const = 0;
+    return image;
+}
 
-    /** @return the OpenGL pixel format of the image data. */
-    virtual uint getFormat() const = 0;
+Indices ImageSource::computeVisibleSet( const QRectF& visibleTilesArea,
+                                        const uint lod ) const
+{
+    Q_UNUSED( lod );
 
-    /** @return true if the image is a GPU image and need special processing. */
-    virtual bool isGpuImage() const { return false; }
+    Indices visibleSet;
 
-    /**
-     * Generate the GPU image.
-     * This method will be called on a thread with an active OpenGL context if
-     * isGpuImage() is true;
-     */
-    virtual bool generateGpuImage() { return false; }
-};
+    if( visibleTilesArea.isEmpty( ))
+        return visibleSet;
 
-#endif
+    visibleSet.insert( 0 );
+    return visibleSet;
+}
+
+uint ImageSource::getMaxLod() const
+{
+    return 0;
+}

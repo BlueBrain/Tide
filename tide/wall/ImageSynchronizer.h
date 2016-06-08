@@ -40,7 +40,8 @@
 #ifndef IMAGESYNCHRONIZER_H
 #define IMAGESYNCHRONIZER_H
 
-#include "BasicSynchronizer.h"
+#include "BasicSynchronizer.h" // base class
+#include "ImageSource.h"       // member
 
 /**
  * Synchronizer for simple images.
@@ -65,7 +66,7 @@ public:
     TilePtr getZoomContextTile() const final;
 
 private:
-    QString _uri;
+    ImageSource _dataSource;
 };
 
 #endif

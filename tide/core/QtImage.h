@@ -50,7 +50,12 @@
 class QtImage : public Image
 {
 public:
-    /** Constructor, stores the given QImage. */
+    /**
+     * Constructor, stores the given QImage.
+     * @param image an image in 32 bits format
+     * @throw std::runtime_error if image is invalid or not in 32 bits format
+     * @sa is32Bits
+     */
     explicit QtImage( const QImage& image );
 
     /** @copydoc Image::getWidth */
@@ -64,6 +69,12 @@ public:
 
     /** @copydoc Image::getFormat */
     uint getFormat() const override;
+
+    /** @return true if the image format is 32 bits per pixel. */
+    static bool is32Bits( const QImage& image )
+    {
+        return !image.isNull() && image.bytesPerLine() / image.width() == 4;
+    }
 
 private:
     const QImage _image;

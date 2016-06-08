@@ -31,6 +31,7 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   DynamicTextureSynchronizer.h
   ElapsedTimer.h
   FpsCounter.h
+  ImageSource.h
   ImageSynchronizer.h
   LodSynchronizer.h
   LodTiler.h
@@ -66,6 +67,7 @@ list(APPEND TIDEWALL_SOURCES
   DynamicTextureSynchronizer.cpp
   ElapsedTimer.cpp
   FpsCounter.cpp
+  ImageSource.cpp
   ImageSynchronizer.cpp
   LodSynchronizer.cpp
   LodTiler.cpp

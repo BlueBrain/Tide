@@ -39,14 +39,10 @@
 
 #include "ImageSynchronizer.h"
 
-#include "QtImage.h"
 #include "Tile.h"
 
-#include <QImage>
-#include <QImageReader>
-
 ImageSynchronizer::ImageSynchronizer( const QString& uri )
-    : _uri( uri )
+    : _dataSource( uri )
 {}
 
 void ImageSynchronizer::update( const ContentWindow& window,
@@ -54,26 +50,21 @@ void ImageSynchronizer::update( const ContentWindow& window,
 {
     Q_UNUSED( window );
 
+    // Override BasicSynchronizer::update behaviour.
     // The error content stores the size of the original content, which is
     // generally different than the error image's size. But the tile must
     // always have the same size as the texture, otherwise the texture upload
     // fails.
     if( !visibleArea.isEmpty( ))
-        createTile( QImageReader( _uri ).size( ));
+        createTile( _dataSource.getTilesArea( 0 ));
 }
 
 ImagePtr ImageSynchronizer::getTileImage( const uint tileIndex ) const
 {
-    Q_UNUSED( tileIndex );
-
-    const QImage image( _uri );
-    if( image.isNull( ))
-        return ImagePtr();
-    return std::make_shared<QtImage>( image );
+    return _dataSource.getTileImage( tileIndex );
 }
 
 TilePtr ImageSynchronizer::getZoomContextTile() const
 {
-    const QRect rect( QPoint( 0, 0 ), QImageReader( _uri ).size( ));
-    return std::make_shared<Tile>( 0, rect );
+    return std::make_shared<Tile>( 0, _dataSource.getTileRect( 0 ));
 }

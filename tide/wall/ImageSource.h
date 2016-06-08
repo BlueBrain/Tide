@@ -1,6 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,47 +37,46 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef IMAGE_H
-#define IMAGE_H
+#ifndef IMAGESOURCE_H
+#define IMAGESOURCE_H
 
 #include "types.h"
 
+#include "CachedDataSource.h"
+
 /**
- * An interface to provide necessary image information for the texture upload
- * and swap in TextureUploader.
+ * Cached data source for regular images.
  *
- * Currently, the only valid image format is 32 bits per pixel. Derived
- * classes must make sure to comply with this requirement.
+ * Used by ImageSynchronizer.
  */
-class Image
+class ImageSource : public CachedDataSource
 {
 public:
-    virtual ~Image() {}
-
-    /** @return the width of the image. */
-    virtual int getWidth() const = 0;
-
-    /** @return the height of the image. */
-    virtual int getHeight() const = 0;
-
-    /** @return the size of the image in bytes */
-    size_t getSize() const { return getWidth() * getHeight() * 4; }
-
-    /** @return the pointer to the pixels. */
-    virtual const uint8_t* getData() const = 0;
-
-    /** @return the OpenGL pixel format of the image data. */
-    virtual uint getFormat() const = 0;
-
-    /** @return true if the image is a GPU image and need special processing. */
-    virtual bool isGpuImage() const { return false; }
-
     /**
-     * Generate the GPU image.
-     * This method will be called on a thread with an active OpenGL context if
-     * isGpuImage() is true;
+     * Construct an image source.
+     * Does not load any data until the image is first requested.
+     * @param uri The uri to a valid image file.
      */
-    virtual bool generateGpuImage() { return false; }
+    explicit ImageSource( const QString& uri );
+
+    /** @copydoc DataSource::getTileRect */
+    QRect getTileRect( uint tileIndex ) const final;
+
+    /** @copydoc DataSource::getTilesArea */
+    QSize getTilesArea( uint lod ) const final;
+
+    /** @copydoc DataSource::computeVisibleSet */
+    Indices computeVisibleSet( const QRectF& visibleTilesArea,
+                               uint lod ) const final;
+
+    /** @copydoc DataSource::getMaxLod */
+    uint getMaxLod() const final;
+
+private:
+    const QString _uri;
+    const QSize _imageSize;
+
+    QImage getCachableTileImage( uint tileId ) const final;
 };
 
 #endif
