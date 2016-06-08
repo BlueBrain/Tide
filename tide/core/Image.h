@@ -45,6 +45,9 @@
 /**
  * An interface to provide necessary image information for the texture upload
  * and swap in TextureUploader.
+ *
+ * Currently, the only valid image format is 32 bits per pixel. Derived
+ * classes must make sure to comply with this requirement.
  */
 class Image
 {
