@@ -5,7 +5,6 @@ CMakeLists.txt.user*
 build/
 CMake/common/
 Deflect/
-FlatBuffers/
 httpxx/
 Servus/
 TUIO/
