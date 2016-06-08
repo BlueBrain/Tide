@@ -37,36 +37,46 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef IMAGESYNCHRONIZER_H
-#define IMAGESYNCHRONIZER_H
+#ifndef IMAGESOURCE_H
+#define IMAGESOURCE_H
 
-#include "BasicSynchronizer.h" // base class
-#include "ImageSource.h"       // member
+#include "types.h"
+
+#include "CachedDataSource.h"
 
 /**
- * Synchronizer for simple images.
+ * Cached data source for regular images.
+ *
+ * Used by ImageSynchronizer.
  */
-class ImageSynchronizer : public BasicSynchronizer
+class ImageSource : public CachedDataSource
 {
-    Q_OBJECT
-    Q_DISABLE_COPY( ImageSynchronizer )
-
 public:
-    /** Constructor. */
-    explicit ImageSynchronizer( const QString& uri );
+    /**
+     * Construct an image source.
+     * Does not load any data until the image is first requested.
+     * @param uri The uri to a valid image file.
+     */
+    explicit ImageSource( const QString& uri );
 
-    /** @copydoc ContentSynchronizer::update */
-    void update( const ContentWindow& window,
-                 const QRectF& visibleArea ) final;
+    /** @copydoc DataSource::getTileRect */
+    QRect getTileRect( uint tileIndex ) const final;
 
-    /** @copydoc ContentSynchronizer::getTileImage */
-    ImagePtr getTileImage( uint tileIndex ) const final;
+    /** @copydoc DataSource::getTilesArea */
+    QSize getTilesArea( uint lod ) const final;
 
-    /** @copydoc ContentSynchronizer::getZoomContextTile */
-    TilePtr getZoomContextTile() const final;
+    /** @copydoc DataSource::computeVisibleSet */
+    Indices computeVisibleSet( const QRectF& visibleTilesArea,
+                               uint lod ) const final;
+
+    /** @copydoc DataSource::getMaxLod */
+    uint getMaxLod() const final;
 
 private:
-    ImageSource _dataSource;
+    const QString _uri;
+    const QSize _imageSize;
+
+    QImage getCachableTileImage( uint tileId ) const final;
 };
 
 #endif
