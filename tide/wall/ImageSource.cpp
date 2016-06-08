@@ -37,36 +37,56 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef IMAGESYNCHRONIZER_H
-#define IMAGESYNCHRONIZER_H
+#include "ImageSource.h"
 
-#include "BasicSynchronizer.h" // base class
-#include "ImageSource.h"       // member
+#include "QtImage.h"
 
-/**
- * Synchronizer for simple images.
- */
-class ImageSynchronizer : public BasicSynchronizer
+#include <QImageReader>
+
+ImageSource::ImageSource( const QString& uri )
+    : _uri( uri )
+    , _imageSize( QImageReader( _uri ).size( ))
+{}
+
+QRect ImageSource::getTileRect( const uint tileIndex ) const
 {
-    Q_OBJECT
-    Q_DISABLE_COPY( ImageSynchronizer )
+    Q_UNUSED( tileIndex );
+    return QRect( QPoint( 0, 0 ), _imageSize );
+}
 
-public:
-    /** Constructor. */
-    explicit ImageSynchronizer( const QString& uri );
+QSize ImageSource::getTilesArea( const uint lod ) const
+{
+    Q_UNUSED( lod );
+    return _imageSize;
+}
 
-    /** @copydoc ContentSynchronizer::update */
-    void update( const ContentWindow& window,
-                 const QRectF& visibleArea ) final;
+QImage ImageSource::getCachableTileImage( const uint tileIndex ) const
+{
+    Q_UNUSED( tileIndex );
 
-    /** @copydoc ContentSynchronizer::getTileImage */
-    ImagePtr getTileImage( uint tileIndex ) const final;
+    // Make sure image format is 32-bits per pixel as required by the GL texture
+    QImage image( _uri );
+    if( !QtImage::is32Bits( image ))
+        image = image.convertToFormat( QImage::Format_ARGB32 );
 
-    /** @copydoc ContentSynchronizer::getZoomContextTile */
-    TilePtr getZoomContextTile() const final;
+    return image;
+}
 
-private:
-    ImageSource _dataSource;
-};
+Indices ImageSource::computeVisibleSet( const QRectF& visibleTilesArea,
+                                        const uint lod ) const
+{
+    Q_UNUSED( lod );
 
-#endif
+    Indices visibleSet;
+
+    if( visibleTilesArea.isEmpty( ))
+        return visibleSet;
+
+    visibleSet.insert( 0 );
+    return visibleSet;
+}
+
+uint ImageSource::getMaxLod() const
+{
+    return 0;
+}
