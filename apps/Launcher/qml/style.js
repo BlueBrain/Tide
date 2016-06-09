@@ -5,17 +5,22 @@ var windowBackgroundColor = "black"
 
 var menuWidth = 0.12
 var menuColor = "lightgrey"
-var menuHighlightColor = "lightsteelblue"
+var menuHighlightColor = "grey"
 var menuHighlightOpactiy = 0.5
 var menuTextColor = "white"
 var menuRelTextSize = 0.1
-var menuSectionHeadingColor = "lightsteelblue"
 
 var defaultPanelColor = "darkgrey"
 var defaultPanelTextColor = "white"
+
+var titleBarRelHeight = 0.1
+var mainPanelRelMargin = 0.25
 
 var fileBrowserBackgroundColor = defaultPanelColor
 var fileBrowserTitleBarColor = "#757575"
 var fileBrowserTextColor = "white"
 var fileBrowserDiscreteTextColor = "#B0B0B0"
-var fileBrowserSelectionColor = "blue"
+var fileBrowserBlinkColor = "lightblue"
+
+var placeholderTopColor = "darkgrey"
+var placeholderBottomColor = "lightgrey"

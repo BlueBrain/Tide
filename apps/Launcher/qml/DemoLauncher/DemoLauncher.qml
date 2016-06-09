@@ -16,35 +16,30 @@ Rectangle {
 
     property string serviceUrl: ""
     property string imagesFolder: ""
+    property string deflectStreamHost: ""
     property var demosComm: ({})
 
     property int itemSize: height / 5
-    property int gridSize: 1.5 * itemSize
     property real textPixelSize: 0.1 * itemSize
 
     color: Style.defaultPanelColor
 
-    ListModel {
-        id: demoList
-    }
-
-    Text {
-        width: parent.width
-        anchors.centerIn: parent
-        font.pixelSize: textPixelSize
-        text: "Demos provided by:\n" + serviceUrl
-        color: Style.defaultPanelTextColor
-        wrapMode: Text.WrapAnywhere
-        horizontalAlignment: Text.AlignHCenter
-    }
-
     GridView {
         id: demoView
-        anchors.fill: parent
+        anchors.top: titleBar.bottom
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.margins: itemSize * Style.mainPanelRelMargin
+
         model: demoList
         delegate: demoButtonDelegate
-        cellWidth: gridSize
-        cellHeight: gridSize
+        cellWidth: 1.5 * itemSize
+        cellHeight: cellWidth
+    }
+
+    ListModel {
+        id: demoList
     }
 
     Component {
@@ -55,16 +50,31 @@ Rectangle {
             Column {
                 anchors.fill: parent
                 spacing: 0.1 * image.height
-                Image {
-                    id: image
+
+                Rectangle {
+                    id: placeholder
                     width: itemSize
                     height: itemSize
                     anchors.horizontalCenter: parent.horizontalCenter
-                    source: demoImage
-                    asynchronous: true
-                    MouseArea {
+
+                    gradient: Gradient {
+                        GradientStop { position: 0.0; color: Style.placeholderTopColor }
+                        GradientStop { position: 1.0; color: Style.placeholderBottomColor }
+                    }
+                    Image {
+                        id: image
                         anchors.fill: parent
-                        onClicked: demosComm.launch(demoName)
+
+                        source: demoImage
+                        asynchronous: true
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                infoRect.demo = demoId
+                                infoRect.open = true
+                                demosComm.launch(demoId)
+                            }
+                        }
                     }
                 }
                 Text {
@@ -80,20 +90,102 @@ Rectangle {
     }
 
     Rectangle {
-        id: infoRect
-        color: "darkgrey"
-        anchors.bottom: parent.bottom
+        id: titleBar
         width: parent.width
-        height: 0.1 * parent.height
+        height: parent.height * Style.titleBarRelHeight
+        anchors.top: parent.top
+        color: Style.fileBrowserTitleBarColor
+
         Text {
-            id: infoText
-            font.pixelSize: textPixelSize
+            id: titleText
+            anchors.fill: parent
+            anchors.margins: 0.1 * height
+
+            font.pixelSize: 0.25 * parent.height
+            color: Style.fileBrowserDiscreteTextColor
+            verticalAlignment: Text.AlignVCenter
+            text: "Demos provided by: " + serviceUrl
+            elide: Text.ElideRight
         }
-        function displayStatusCallback(status) {
-           infoText.text = status
+    }
+
+    Rectangle {
+        id: infoRect
+        color: "black"
+        opacity: 0.7
+        width: parent.width
+        height: parent.height
+        x: 0
+        y: parent.height
+
+        property bool open: false
+        property string demo: ""
+
+        MouseArea {
+            id: touchBarrier
+            anchors.fill: parent
         }
+
+        Column {
+            anchors.centerIn: parent
+            spacing: textPixelSize
+            Text {
+                id: title
+                color: "white"
+                text: "Starting demo '" + infoRect.demo + "' - please wait..."
+                font.pixelSize: textPixelSize
+                anchors.horizontalCenter: parent.horizontalCenter
+            }
+            Text {
+                id: infoText
+                color: "white"
+                font.pixelSize: textPixelSize
+                anchors.horizontalCenter: parent.horizontalCenter
+            }
+            Rectangle {
+                id: closeButton
+                color: "darkgray"
+                border.color: "white"
+                border.width: 0.05 * width
+                width: infoRect.width * 0.10
+                height: width * 0.4
+                radius: height * 0.25
+                anchors.horizontalCenter: parent.horizontalCenter
+                Text {
+                    anchors.centerIn: parent
+                    text: "cancel"
+                    font.pixelSize: textPixelSize
+                }
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        demosComm.closeCurrentSession()
+                        infoRect.open = false
+                        infoRect.demo = ""
+                    }
+                }
+            }
+        }
+
         Timer {
-            onTriggered: demosComm.querySessionStatus(displayStatusCallback)
+            repeat: true
+            running: infoRect.open
+            onTriggered: demosComm.queryStatus( function (status) { infoText.text = status })
+        }
+        states: [
+            State {
+                name: "open"
+                when: infoRect.open
+                PropertyChanges {
+                    target: infoRect
+                    y: 0
+                }
+            }
+        ]
+        Behavior on y {
+            NumberAnimation {
+                easing.type: Easing.InOutQuad
+            }
         }
     }
 
@@ -102,13 +194,18 @@ Rectangle {
         {
             demoList.append(
             {
+                demoId: demos[i].id,
                 demoName: demos[i].command_line,
                 demoImage: "file://" + imagesFolder + "/" + demos[i].id + ".png"
             });
         }
     }
     Component.onCompleted : {
-        demosComm = new RRM.Communicator(serviceUrl);
+        demosComm = new RRM.Communicator(serviceUrl, deflectStreamHost);
         demosComm.queryDemos(fillDemoList);
+    }
+    Component.onDestruction: {
+        if (!demosComm.isRunning())
+            demosComm.closeCurrentSession();
     }
 }

@@ -56,7 +56,7 @@ class PixelStreamWindowManager;
 class MasterConfiguration;
 class MultiTouchListener;
 class RestInterface;
-
+class LoggingUtility;
 /**
  * The main application for the Master process.
  */
@@ -111,6 +111,7 @@ private:
 
 #if TIDE_ENABLE_REST_INTERFACE
     std::unique_ptr<RestInterface> _restInterface;
+    std::unique_ptr<LoggingUtility> _logger;
     void _initRestInterface();
 #endif
 };

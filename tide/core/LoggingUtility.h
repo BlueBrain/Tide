@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,30 +37,61 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef FOLDERTHUMBNAILGENERATOR_H
-#define FOLDERTHUMBNAILGENERATOR_H
+#ifndef LOGGINGUTILITY_H
+#define LOGGINGUTILITY_H
 
-#include "ThumbnailGenerator.h"
+#include <QObject>
 
-#include <QFileInfoList>
+#include "types.h"
 
-class FolderThumbnailGenerator : public ThumbnailGenerator
+/**
+ * Provides information/statistics on application usage.
+ */
+class LoggingUtility : public QObject
 {
-public:
-    FolderThumbnailGenerator( const QSize& size );
+    Q_OBJECT
 
-    QImage generate( const QString& filename ) const override;
+public:
+
+    /** @return the number of open windows from the start. */
+    size_t getAccumulatedWindowCount() const;
+
+    /** @return the timestamp of opening/closing a window */
+    const QString& getCounterModificationTime() const;
+
+    /** @return the value of interaction counter. */
+    int getInteractionCount() const;
+
+    /** @return the name of last interaction */
+    const QString& getLastInteraction() const;
+
+    /** @return the timestamp of last interaction */
+    const QString& getLastInteractionTime() const;
+
+    /** @return the number of currently open windows. */
+    size_t getWindowCount() const;
+
+public slots:
+
+    /** Log the event, update the counters and update the timestamp of last interaction */
+    void contentWindowAdded( ContentWindowPtr contentWindow );
+
+    /** Log the event, update the counters and update the timestamp of last interaction */
+    void contentWindowMovedToFront();
+
+    /** Log the event, update the counters and update the timestamp of last interaction */
+    void contentWindowRemoved();
 
 private:
-    QImage generatePlaceholderImage( const QDir& dir ) const;
-    void addMetadataToImage( QImage& img, const QString& url ) const;
-    QImage createFolderImage( const QDir& dir, bool generateThumbnails) const;
-    QVector<QRectF> calculatePlacement( int nX, int nY, float padding,
-                                        float totalWidth,
-                                        float totalHeight ) const;
-    void paintThumbnailsMosaic( QImage &img,
-                                const QFileInfoList& fileList ) const;
-    QFileInfoList getSupportedFilesInDir( QDir dir ) const;
+    size_t _windowCounter = 0;
+    size_t _windowCounterTotal = 0;
+    QString _counterModificationTime;
+    QString _lastInteraction;
+    QString _lastInteractionTime;
+    size_t _interactionCounter = 0;
+
+    QString _getTimeStamp() const;
+    void _log( const QString& s );
 };
 
-#endif
+#endif // LOGGINGUTILITY_H

@@ -41,6 +41,8 @@
 #define RESTINTERFACE_H
 
 #include "types.h"
+#include "LoggingUtility.h"
+#include "RestLogger.h"
 
 #include <QObject>
 #include <memory>
@@ -70,6 +72,8 @@ public:
 
     /** Out-of-line destructor. */
     ~RestInterface();
+
+    void setLogger(const LoggingUtility& logger) const;
 
 signals:
     /** Open a content. */
