@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,30 +37,41 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef FOLDERTHUMBNAILGENERATOR_H
-#define FOLDERTHUMBNAILGENERATOR_H
+#include "RestLogger.h"
 
-#include "ThumbnailGenerator.h"
+#include <iostream>
+#include <string>
+#include <QJsonDocument>
+#include <QJsonObject>
 
-#include <QFileInfoList>
 
-class FolderThumbnailGenerator : public ThumbnailGenerator
+RestLogger::RestLogger( const LoggingUtility& logger )
+    : _logger( logger )
+{}
+
+std::string RestLogger::getTypeName() const
 {
-public:
-    FolderThumbnailGenerator( const QSize& size );
+    return _name;
+}
 
-    QImage generate( const QString& filename ) const override;
+std::string RestLogger::_toJSON() const
+{
+    std::string content;
 
-private:
-    QImage generatePlaceholderImage( const QDir& dir ) const;
-    void addMetadataToImage( QImage& img, const QString& url ) const;
-    QImage createFolderImage( const QDir& dir, bool generateThumbnails) const;
-    QVector<QRectF> calculatePlacement( int nX, int nY, float padding,
-                                        float totalWidth,
-                                        float totalHeight ) const;
-    void paintThumbnailsMosaic( QImage &img,
-                                const QFileInfoList& fileList ) const;
-    QFileInfoList getSupportedFilesInDir( QDir dir ) const;
-};
+    QJsonObject obj;
+    QJsonObject event;
+    event["last_event"] = _logger.getLastInteraction();
+    event["last_event_date"] = _logger.getLastInteractionTime();
+    event["count"] = static_cast<int>( _logger.getInteractionCount() );
+    obj["event"] = event;
+    QJsonObject window;
+    window["count"] =  static_cast<int>(_logger.getWindowCount());
+    window["date_set"] = _logger.getCounterModificationTime();
+    window["accumulated_count"] = static_cast<int>( _logger.getAccumulatedWindowCount() );
+    obj["window"] = window;
+    QJsonDocument doc(obj);
+    QString strJson( doc.toJson( QJsonDocument::Indented ) );
+    content.append( strJson.toStdString() );
 
-#endif
+    return content;
+}

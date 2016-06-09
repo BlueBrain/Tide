@@ -18,6 +18,7 @@ Rectangle {
 
     property string demoServiceUrl: ""
     property string demoServiceImageFolder: ""
+    property string demoServiceDeflectHost: ""
 
     width: Style.windowDefaultSize.width
     height: Style.windowDefaultSize.height
@@ -29,6 +30,7 @@ Rectangle {
             id: menu
             width: Style.menuWidth * root.width
             height: root.height
+            demoItemVisible: demoServiceUrl && demoServiceImageFolder && demoServiceDeflectHost
             onClearSession: sendRestCommand("load", "");
             onStartWebbrowser: sendRestCommand("browse", "");
             onShowFilesPanel: centralWidget.sourceComponent = fileBrowser
@@ -81,6 +83,7 @@ Rectangle {
         DemoLauncher {
             serviceUrl: demoServiceUrl
             imagesFolder: demoServiceImageFolder
+            deflectStreamHost: demoServiceDeflectHost
         }
     }
 

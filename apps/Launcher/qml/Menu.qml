@@ -16,70 +16,68 @@ Rectangle {
 
     color: Style.menuColor
 
+    property bool demoItemVisible: false
+
     property real textSize: Style.menuRelTextSize * menu.width
 
     ListView {
-        id: appListView
+        id: menuListView
         anchors.fill: parent
-        model: appList
-        delegate: appButtonDelegate
-        spacing: 0.1 * width
+
+        model: menuList
+        delegate: menuButtonDelegate
 
         highlight: highlightBar
         highlightFollowsCurrentItem: false
         currentIndex: -1
 
-        section.delegate: sectionHeading
-        section.property: "appCategory"
-        section.criteria: ViewSection.FullString
-
         boundsBehavior: Flickable.StopAtBounds
     }
 
     ListModel {
-        id: appList
-        // ListElement can't store function pointers so use eval(appAction)
+        id: menuList
+        // ListElement can't store function pointers so use eval(model.action)
         ListElement {
-            appAction: "showFilesPanel"
-            appName: "Open"
-            appImage: "qrc:/images/file.svg"
-            appCategory: "Content"
-            appIsPanel: true
+            action: "showFilesPanel"
+            name: "Open"
+            image: "qrc:/images/file.svg"
+            category: "Content"
+            isPanel: true
         }
         ListElement {
-            appAction: "clearSession"
-            appName: "Close all"
-            appImage: "qrc:/images/clearall.png"
-            appCategory: "Content"
-            appIsPanel: false
+            action: "clearSession"
+            name: "Close all"
+            image: "qrc:///img/close.svg"
+            category: "Content"
+            isPanel: false
         }
         ListElement {
-            appAction: "showSessionsPanel"
-            appName: "Load"
-            appImage: "qrc:/images/folder.svg"
-            appCategory: "Session"
-            appIsPanel: true
+            action: "showSessionsPanel"
+            name: "Load"
+            image: "qrc:/images/folder.svg"
+            category: "Session"
+            isPanel: true
         }
         ListElement {
-            appAction: "showOptionsPanel"
-            appName: "Settings"
-            appImage: "qrc:/images/settings.svg"
-            appCategory: "Options"
-            appIsPanel: true
+            action: "showOptionsPanel"
+            name: "Settings"
+            image: "qrc:/images/settings.svg"
+            category: "Options"
+            isPanel: true
         }
         ListElement {
-            appAction: "startWebbrowser"
-            appName: "Webbrowser"
-            appImage: "qrc:/images/cloud.svg"
-            appCategory: "Applications"
-            appIsPanel: false
+            action: "startWebbrowser"
+            name: "Webbrowser"
+            image: "qrc:/images/cloud.svg"
+            category: "Applications"
+            isPanel: false
         }
         ListElement {
-            appAction: "showDemosPanel"
-            appName: "Visualization"
-            appImage: "qrc:/images/book.svg"
-            appCategory: "Demos"
-            appIsPanel: true
+            action: "showDemosPanel"
+            name: "Visualization"
+            image: "qrc:/images/book.svg"
+            category: "Demos"
+            isPanel: true
         }
     }
 
@@ -88,66 +86,44 @@ Rectangle {
         Rectangle {
             color: Style.menuHighlightColor
             opacity: Style.menuHighlightOpactiy
-            width: appListView.width
-            height: appListView.currentItem.height
-            y: appListView.currentItem.y
+            width: menuListView.width
+            height: menuListView.currentItem.height
+            y: menuListView.currentItem.y
             Behavior on y { SmoothedAnimation { velocity: 1000 } }
         }
     }
 
     Component {
-        id: sectionHeading
-        Column {
-            Rectangle {
-                width: appListView.width
-                height: 1.3 * sectionHeadingText.height
-                color: Style.menuSectionHeadingColor
-                Text {
-                    id: sectionHeadingText
-                    text: section
-                    font.bold: true
-                    font.pixelSize: menu.textSize
-                    anchors.centerIn: parent
-                }
-            }
-            Item {
-                id: spacer
-                width: appListView.width
-                height: width * 0.1
-            }
-        }
-    }
-
-    Component {
-        id: appButtonDelegate
+        id: menuButtonDelegate
         Item {
             id: button
-            height: childrenRect.height
-            width: appListView.width * 0.8
+            visible: model.category === "Demos" ? menu.demoItemVisible : true
+            height: image.height + caption.height + 0.2 * menuListView.width
+            width: menuListView.width * 0.8
             anchors.horizontalCenter: parent.horizontalCenter
             Column {
-                spacing: 0.05 * width
-                anchors.horizontalCenter: parent.horizontalCenter
+                spacing: 0.05 * menuListView.width
+                anchors.centerIn: parent
                 Image {
                     id: image
                     anchors.horizontalCenter: parent.horizontalCenter
                     width: button.width * 0.7
                     height: width
-                    source: appImage
+                    source: model.image
                     fillMode: Image.PreserveAspectFit
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
-                            if(appIsPanel)
-                                appListView.currentIndex = index;
-                            eval(appAction)();
+                            if(model.isPanel)
+                                menuListView.currentIndex = index;
+                            eval(model.action)();
                         }
                     }
                 }
                 Text {
                     id: caption
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: appName
+                    text: model.name
                     font.bold: true
                     font.pixelSize: menu.textSize
                     color: Style.menuTextColor

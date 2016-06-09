@@ -19,6 +19,7 @@ set(TEST_LIBRARIES
 if(NOT TIDE_ENABLE_REST_INTERFACE)
   set(EXCLUDE_FROM_TESTS
     core/JsonOptionsTests.cpp
+    core/LoggingUtilityTest.cpp
     core/RESTCommandTests.cpp
   )
 endif()

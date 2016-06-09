@@ -17,5 +17,6 @@
         <file>images/folder.svg</file>
         <file>images/left.svg</file>
         <file>images/settings.svg</file>
+        <file>images/check.svg</file>
     </qresource>
 </RCC>

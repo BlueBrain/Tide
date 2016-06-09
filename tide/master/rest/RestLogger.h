@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,30 +37,35 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef FOLDERTHUMBNAILGENERATOR_H
-#define FOLDERTHUMBNAILGENERATOR_H
+#ifndef RESTLOGGER_H
+#define RESTLOGGER_H
 
-#include "ThumbnailGenerator.h"
+#include <servus/serializable.h> // base class
 
-#include <QFileInfoList>
+#include "LoggingUtility.h"
 
-class FolderThumbnailGenerator : public ThumbnailGenerator
+/**
+ * Exposes usage statistics content to ZeroEQ http server gathered by LoggingUtility.
+ */
+class RestLogger : public servus::Serializable
 {
 public:
-    FolderThumbnailGenerator( const QSize& size );
+    /**
+     * Construct dynamic content used by REST interface.
+     *
+     * @param logger LoggingUtility object which is exposed.
+     */
+    RestLogger( const LoggingUtility& logger );
 
-    QImage generate( const QString& filename ) const override;
+    /** @return the string used as an endpoint by REST interface. */
+    std::string getTypeName() const final;
 
 private:
-    QImage generatePlaceholderImage( const QDir& dir ) const;
-    void addMetadataToImage( QImage& img, const QString& url ) const;
-    QImage createFolderImage( const QDir& dir, bool generateThumbnails) const;
-    QVector<QRectF> calculatePlacement( int nX, int nY, float padding,
-                                        float totalWidth,
-                                        float totalHeight ) const;
-    void paintThumbnailsMosaic( QImage &img,
-                                const QFileInfoList& fileList ) const;
-    QFileInfoList getSupportedFilesInDir( QDir dir ) const;
+
+    const std::string _name = "tide::stats";
+    const LoggingUtility& _logger ;
+
+    std::string _toJSON() const final;
 };
 
 #endif
