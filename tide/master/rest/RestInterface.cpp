@@ -41,6 +41,7 @@
 
 #include "JsonOptions.h"
 #include "RestCommand.h"
+#include "RestLogger.h"
 #include "StaticContent.h"
 
 #include <tide/master/version.h>
@@ -102,6 +103,7 @@ public:
     RestCommand loadCmd{ "tide::load" };
     RestCommand saveCmd{ "tide::save" };
     JsonOptions options;
+    std::unique_ptr<RestLogger> logContent;
 };
 
 RestInterface::RestInterface( const int port, OptionsPtr options )
@@ -131,3 +133,9 @@ RestInterface::RestInterface( const int port, OptionsPtr options )
 }
 
 RestInterface::~RestInterface() {}
+
+void RestInterface::setLogger( const LoggingUtility& logger ) const
+{
+    _impl->logContent.reset( new RestLogger( logger ));
+    _impl->httpServer.register_( *(_impl->logContent.get()) );
+}

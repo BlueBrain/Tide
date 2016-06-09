@@ -64,6 +64,7 @@
 
 #if TIDE_ENABLE_REST_INTERFACE
 #  include "ContentLoader.h"
+#  include "LoggingUtility.h"
 #  include "rest/RestInterface.h"
 #endif
 
@@ -313,6 +314,7 @@ void MasterApplication::_initRestInterface()
 {
     _restInterface = make_unique<RestInterface>( config_->getWebServicePort(),
                                                  masterWindow_->getOptions( ));
+    _logger = make_unique<LoggingUtility>();
 
     connect( _restInterface.get(), &RestInterface::browse, [this]( QString uri )
     {
@@ -336,5 +338,15 @@ void MasterApplication::_initRestInterface()
     connect( _restInterface.get(), &RestInterface::clear, [this]() {
         displayGroup_->clear();
     });
+    connect( displayGroup_.get(), &DisplayGroup::contentWindowAdded,
+             _logger.get(), &LoggingUtility::contentWindowAdded );
+
+    connect( displayGroup_.get(), &DisplayGroup::contentWindowRemoved,
+            _logger.get(), &LoggingUtility::contentWindowRemoved );
+
+    connect( displayGroup_.get(), &DisplayGroup::contentWindowMovedToFront,
+           _logger.get(), &LoggingUtility::contentWindowMovedToFront );
+
+    _restInterface.get()->setLogger( *(_logger.get()) );
 }
 #endif
