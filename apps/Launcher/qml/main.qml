@@ -30,6 +30,7 @@ Rectangle {
             id: menu
             width: Style.menuWidth * root.width
             height: root.height
+            demoItemVisible: demoServiceUrl && demoServiceImageFolder && demoServiceDeflectHost
             onClearSession: sendRestCommand("load", "");
             onStartWebbrowser: sendRestCommand("browse", "");
             onShowFilesPanel: centralWidget.sourceComponent = fileBrowser
