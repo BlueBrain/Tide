@@ -23,17 +23,13 @@ Rectangle {
     ListView {
         id: menuListView
         anchors.fill: parent
+
         model: menuList
         delegate: menuButtonDelegate
-        spacing: 0.1 * width
 
         highlight: highlightBar
         highlightFollowsCurrentItem: false
         currentIndex: -1
-
-        section.delegate: sectionHeading
-        section.property: "category"
-        section.criteria: ViewSection.FullString
 
         boundsBehavior: Flickable.StopAtBounds
     }
@@ -51,7 +47,7 @@ Rectangle {
         ListElement {
             action: "clearSession"
             name: "Close all"
-            image: "qrc:/images/clearall.png"
+            image: "qrc:///img/close.svg"
             category: "Content"
             isPanel: false
         }
@@ -98,40 +94,16 @@ Rectangle {
     }
 
     Component {
-        id: sectionHeading
-        Column {
-            Rectangle {
-                visible: section === "Demos" ? menu.demoItemVisible : true
-                width: menuListView.width
-                height: 1.3 * sectionHeadingText.height
-                color: Style.menuSectionHeadingColor
-                Text {
-                    id: sectionHeadingText
-                    text: section
-                    font.bold: true
-                    font.pixelSize: menu.textSize
-                    anchors.centerIn: parent
-                }
-            }
-            Item {
-                id: spacer
-                width: menuListView.width
-                height: width * 0.1
-            }
-        }
-    }
-
-    Component {
         id: menuButtonDelegate
         Item {
             id: button
             visible: model.category === "Demos" ? menu.demoItemVisible : true
-            height: childrenRect.height
+            height: image.height + caption.height + 0.2 * menuListView.width
             width: menuListView.width * 0.8
             anchors.horizontalCenter: parent.horizontalCenter
             Column {
-                spacing: 0.05 * width
-                anchors.horizontalCenter: parent.horizontalCenter
+                spacing: 0.05 * menuListView.width
+                anchors.centerIn: parent
                 Image {
                     id: image
                     anchors.horizontalCenter: parent.horizontalCenter

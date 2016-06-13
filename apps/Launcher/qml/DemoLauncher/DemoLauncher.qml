@@ -20,32 +20,26 @@ Rectangle {
     property var demosComm: ({})
 
     property int itemSize: height / 5
-    property int gridSize: 1.5 * itemSize
     property real textPixelSize: 0.1 * itemSize
 
     color: Style.defaultPanelColor
 
-    ListModel {
-        id: demoList
-    }
-
-    Text {
-        width: parent.width
-        anchors.centerIn: parent
-        font.pixelSize: textPixelSize
-        text: "Demos provided by:\n" + serviceUrl
-        color: Style.defaultPanelTextColor
-        wrapMode: Text.WrapAnywhere
-        horizontalAlignment: Text.AlignHCenter
-    }
-
     GridView {
         id: demoView
-        anchors.fill: parent
+        anchors.top: titleBar.bottom
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.margins: itemSize * Style.mainPanelRelMargin
+
         model: demoList
         delegate: demoButtonDelegate
-        cellWidth: gridSize
-        cellHeight: gridSize
+        cellWidth: 1.5 * itemSize
+        cellHeight: cellWidth
+    }
+
+    ListModel {
+        id: demoList
     }
 
     Component {
@@ -56,19 +50,30 @@ Rectangle {
             Column {
                 anchors.fill: parent
                 spacing: 0.1 * image.height
-                Image {
-                    id: image
+
+                Rectangle {
+                    id: placeholder
                     width: itemSize
                     height: itemSize
                     anchors.horizontalCenter: parent.horizontalCenter
-                    source: demoImage
-                    asynchronous: true
-                    MouseArea {
+
+                    gradient: Gradient {
+                        GradientStop { position: 0.0; color: Style.placeholderTopColor }
+                        GradientStop { position: 1.0; color: Style.placeholderBottomColor }
+                    }
+                    Image {
+                        id: image
                         anchors.fill: parent
-                        onClicked: {
-                            infoRect.demo = demoId
-                            infoRect.open = true
-                            demosComm.launch(demoId)
+
+                        source: demoImage
+                        asynchronous: true
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                infoRect.demo = demoId
+                                infoRect.open = true
+                                demosComm.launch(demoId)
+                            }
                         }
                     }
                 }
@@ -81,6 +86,26 @@ Rectangle {
                     color: Style.defaultPanelTextColor
                 }
             }
+        }
+    }
+
+    Rectangle {
+        id: titleBar
+        width: parent.width
+        height: parent.height * Style.titleBarRelHeight
+        anchors.top: parent.top
+        color: Style.fileBrowserTitleBarColor
+
+        Text {
+            id: titleText
+            anchors.fill: parent
+            anchors.margins: 0.1 * height
+
+            font.pixelSize: 0.25 * parent.height
+            color: Style.fileBrowserDiscreteTextColor
+            verticalAlignment: Text.AlignVCenter
+            text: "Demos provided by: " + serviceUrl
+            elide: Text.ElideRight
         }
     }
 

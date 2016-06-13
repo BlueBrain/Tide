@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -47,19 +47,20 @@
 class FolderThumbnailGenerator : public ThumbnailGenerator
 {
 public:
-    FolderThumbnailGenerator(const QSize &size);
+    FolderThumbnailGenerator( const QSize& size );
 
-    QImage generate(const QString& filename) const override;
+    QImage generate( const QString& filename ) const override;
 
-    QImage generatePlaceholderImage(QDir dir) const;
-    QImage generateUpFolderImage(QDir dir) const;
-
-protected:
-    void addMetadataToImage(QImage& img, const QString &url) const;
-    QImage createFolderImage(QDir dir, bool generateThumbnails) const;
-    QVector<QRectF> calculatePlacement(int nX, int nY, float padding, float totalWidth, float totalHeight) const;
-    void paintThumbnailsMosaic(QImage &img, const QFileInfoList &fileList) const;
-    QFileInfoList getSupportedFilesInDir(QDir dir) const;
+private:
+    QImage generatePlaceholderImage( const QDir& dir ) const;
+    void addMetadataToImage( QImage& img, const QString& url ) const;
+    QImage createFolderImage( const QDir& dir, bool generateThumbnails) const;
+    QVector<QRectF> calculatePlacement( int nX, int nY, float padding,
+                                        float totalWidth,
+                                        float totalHeight ) const;
+    void paintThumbnailsMosaic( QImage &img,
+                                const QFileInfoList& fileList ) const;
+    QFileInfoList getSupportedFilesInDir( QDir dir ) const;
 };
 
-#endif // FOLDERTHUMBNAILGENERATOR_H
+#endif

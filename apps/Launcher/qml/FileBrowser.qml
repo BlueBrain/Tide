@@ -13,7 +13,6 @@ Rectangle {
 
     property string rootfolder: ""
     property alias nameFilters: folders.nameFilters // list<string>
-    property int buttonHeight: height / 10
     property int itemSize: height / 5
 
     signal itemSelected(string file)
@@ -40,33 +39,32 @@ Rectangle {
         folder: "file:" + fileBrowser.rootfolder
         showDirsFirst: true
         showDotAndDotDot: false
-    }
-
-    SystemPalette {
-        id: palette
+        // Extra property needed to silence Qml warning:
+        // "[...] depends on non-NOTIFYable properties: [...] rootFolder"
+        readonly property string constRootFolder: "file://" + fileBrowser.rootfolder
     }
 
     Component {
         id: fileDelegate
         Rectangle {
             id: wrapper
-            width: folderImage.width
-            height: folderImage.height
+            width: itemSize
+            height: itemSize
             color: "transparent"
 
-            Item {
-                id: folderImage
-                width: itemSize
-                height: itemSize
-
+            Rectangle {
+                id: placeholder
+                anchors.fill: parent
+                anchors.margins: 0.05 * wrapper.width
+                gradient: Gradient {
+                    GradientStop { position: 0.0; color: Style.placeholderTopColor }
+                    GradientStop { position: 1.0; color: Style.placeholderBottomColor }
+                }
                 Image {
-                    id: folderPicture
+                    id: thumbnail
+                    anchors.fill: parent
                     source: "image://thumbnail/" + filePath
-                    width: itemSize * 0.9
-                    height: itemSize * 0.9
                     fillMode: Image.PreserveAspectFit
-                    anchors.horizontalCenter: folderImage.horizontalCenter
-                    anchors.verticalCenter: folderImage.verticalCenter
                 }
             }
 
@@ -75,37 +73,36 @@ Rectangle {
                 text: fileName.length > 15 ? fileName.substr(0,15) + "..." : fileName
                 font.bold: true
                 anchors.top: parent.bottom
-                anchors.horizontalCenter: folderImage.horizontalCenter
+                anchors.horizontalCenter: wrapper.horizontalCenter
                 color: Style.fileBrowserTextColor
-                font.pixelSize: 0.1 * itemSize
+                font.pixelSize: 0.1 * wrapper.height
             }
 
             MouseArea {
                 id: mouseRegion
                 anchors.fill: parent
                 onPressed: wrapper.GridView.view.currentIndex = index
-                onClicked: {
-                    wrapper.color = Style.fileBrowserSelectionColor
-                    animateColor.start()
-                    var path = "file://";
-                    if (filePath.length > 2 && filePath[1] === ':')
-                        path += '/';
-
-                    path += filePath;
-
-                    if (folders.isFolder(index))
-                        fileBrowser.goDown(path);
-                    else
-                        fileBrowser.selectFile(path.replace("file://", ""))
-                }
+                onClicked: clickAnimation.start()
             }
-            PropertyAnimation {
-                id: animateColor
+
+            function openCurrentItem() {
+                var path = "file://";
+                if (filePath.length > 2 && filePath[1] === ':')
+                    path += '/';
+                path += filePath;
+
+                if (folders.isFolder(index))
+                    fileBrowser.goDown(path);
+                else
+                    fileBrowser.selectFile(path.replace("file://", ""));
+            }
+
+            ColorAnimation on color {
+                id: clickAnimation
+                running: false
+                from: Style.fileBrowserBlinkColor
                 to: "transparent"
-                target: wrapper
-                properties: "color"
-                easing.type: Easing.Linear
-                duration: 1000
+                onStopped: openCurrentItem()
             }
         }
     }
@@ -113,11 +110,13 @@ Rectangle {
     GridView {
         id: view
         anchors.top: titleBar.bottom
-        anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: parent.bottom
-        width: parent.width - 0.5 * itemSize
-        cellWidth: itemSize * 1.2
-        cellHeight: itemSize * 1.2
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.margins: itemSize * Style.mainPanelRelMargin
+
+        cellWidth: itemSize * 1.33
+        cellHeight: cellWidth
         model: folders
         delegate: fileDelegate
         focus: true
@@ -126,80 +125,70 @@ Rectangle {
     Rectangle {
         id: titleBar
         width: parent.width
-        height: buttonHeight + 10
+        height: parent.height * Style.titleBarRelHeight
+        color: Style.fileBrowserTitleBarColor
         anchors.top: parent.top
-        color: Style.fileBrowserBackgroundColor
 
-        Rectangle {
-            width: parent.width
-            height: buttonHeight
-            color: Style.fileBrowserTitleBarColor
-            anchors.top: parent.top
-            anchors.left: parent.left
-            anchors.right: parent.right
-            radius: buttonHeight / 15
+        Row {
+            anchors.fill: parent
+            anchors.leftMargin: 10
+            spacing: 10
 
-            Row {
-                anchors.fill: parent
-                anchors.leftMargin: 10
-                spacing: 10
+            move: Transition {
+                NumberAnimation { properties: "x,y"; easing.type: Easing.OutQuad }
+            }
 
-                move: Transition {
-                    NumberAnimation { properties: "x,y"; easing.type: Easing.OutQuad }
+            Rectangle {
+                id: upButton
+                width: 0.75 * titleBar.height
+                height: width
+                anchors.verticalCenter: parent.verticalCenter
+                color: "transparent"
+                Image {
+                    anchors.fill: parent
+                    source: "qrc:/images/left.svg"
                 }
-
-                Rectangle {
-                    id: upButton
-                    width: 0.75 * buttonHeight
-                    height: 0.75 * buttonHeight
-                    anchors.verticalCenter: parent.verticalCenter
-                    color: "transparent"
-                    Image {
-                        anchors.fill: parent
-                        source: "qrc:/images/left.svg"
-                    }
-                    MouseArea {
-                        id: upRegion
-                        anchors.fill: parent
-                        onClicked: fileBrowser.goUp()
-                    }
-                    states: [
-                        State {
-                            name: "pressed"
-                            when: upRegion.pressed
-                            PropertyChanges {
-                                target: upButton
-                                color: palette.highlight
-                            }
-                        }
-                    ]
-                }
-                Text {
-                    id: titleText
-                    height: buttonHeight
-                    color: Style.fileBrowserTextColor
-                    font.pixelSize: 0.5 * buttonHeight
-                    verticalAlignment: Text.AlignVCenter
-                    text: folders.folder.toString().replace(folders.rootFolder.toString()+"/", "")
-                    Behavior on color { PropertyAnimation{ }}
+                MouseArea {
+                    id: upRegion
+                    anchors.fill: parent
+                    onClicked: fileBrowser.goUp()
                 }
                 states: [
                     State {
-                        name: "showRootPath"
-                        when: folders.folder === folders.rootFolder
-                        PropertyChanges {
-                            target: titleText
-                            color: Style.fileBrowserDiscreteTextColor
-                            text: folders.rootFolder.toString().replace("file://", "")
-                            anchors.leftMargin: buttonHeight * 0.5
-                        }
+                        name: "pressed"
+                        when: upRegion.pressed
                         PropertyChanges {
                             target: upButton
-                            visible: false
+                            color: Style.fileBrowserBlinkColor
                         }
                     }
                 ]
             }
+            Text {
+                id: titleText
+                height: titleBar.height
+                color: Style.fileBrowserTextColor
+                font.pixelSize: 0.5 * height
+                verticalAlignment: Text.AlignVCenter
+                text: folders.folder.toString().replace(folders.constRootFolder+"/", "")
+                Behavior on color { PropertyAnimation{ }}
+            }
+            states: [
+                State {
+                    name: "showRootPath"
+                    when: folders.folder.toString() === folders.constRootFolder
+                    PropertyChanges {
+                        target: titleText
+                        color: Style.fileBrowserDiscreteTextColor
+                        text: folders.constRootFolder.replace("file://", "")
+                        anchors.leftMargin: titleBar.height * 0.5
+                    }
+                    PropertyChanges {
+                        target: upButton
+                        visible: false
+                    }
+                }
+            ]
         }
     }
 }
