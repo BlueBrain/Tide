@@ -64,10 +64,16 @@ Rectangle {
                     Image {
                         id: image
                         anchors.fill: parent
-                        onClicked: {
-                            infoRect.demo = demoId
-                            infoRect.open = true
-                            demosComm.launch(demoId)
+
+                        source: demoImage
+                        asynchronous: true
+                        MouseArea {
+                            anchors.fill: parent
+                            onClicked: {
+                                infoRect.demo = demoId
+                                infoRect.open = true
+                                demosComm.launch(demoId)
+                            }
                         }
                     }
                 }
@@ -80,6 +86,26 @@ Rectangle {
                     color: Style.defaultPanelTextColor
                 }
             }
+        }
+    }
+
+    Rectangle {
+        id: titleBar
+        width: parent.width
+        height: parent.height * Style.titleBarRelHeight
+        anchors.top: parent.top
+        color: Style.fileBrowserTitleBarColor
+
+        Text {
+            id: titleText
+            anchors.fill: parent
+            anchors.margins: 0.1 * height
+
+            font.pixelSize: 0.25 * parent.height
+            color: Style.fileBrowserDiscreteTextColor
+            verticalAlignment: Text.AlignVCenter
+            text: "Demos provided by: " + serviceUrl
+            elide: Text.ElideRight
         }
     }
 
