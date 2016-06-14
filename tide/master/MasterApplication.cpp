@@ -62,7 +62,7 @@
 #include "StateSerializationHelper.h"
 #include "PixelStreamWindowManager.h"
 
-#ifdef TIDE_ENABLE_REST_INTERFACE
+#if TIDE_ENABLE_REST_INTERFACE
 #  include "ContentLoader.h"
 #  include "rest/RestInterface.h"
 #endif
