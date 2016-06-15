@@ -10,6 +10,7 @@ Rectangle {
     signal clearSession()
     signal showFilesPanel()
     signal showSessionsPanel()
+    signal showSaveSessionPanel()
     signal showOptionsPanel()
     signal showDemosPanel()
     signal startWebbrowser()
@@ -55,6 +56,13 @@ Rectangle {
             action: "showSessionsPanel"
             name: "Load"
             image: "qrc:/images/folder.svg"
+            category: "Session"
+            isPanel: true
+        }
+        ListElement {
+            action: "showSaveSessionPanel"
+            name: "Save"
+            image: "qrc:/images/star.svg"
             category: "Session"
             isPanel: true
         }

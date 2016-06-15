@@ -6,18 +6,20 @@
         <file>qml/DemoLauncher/DemoLauncher.qml</file>
         <file>qml/DemoLauncher/RenderingResourcesManager.js</file>
         <file>qml/FileBrowser.qml</file>
-        <file>qml/Menu.qml</file>
+        <file>qml/LaunchMenu.qml</file>
         <file>qml/OptionsPanel.qml</file>
+        <file>qml/SavePanel.qml</file>
     </qresource>
     <qresource prefix="/">
         <file>images/book.svg</file>
+        <file>images/check.svg</file>
+        <file>images/check_white.svg</file>
         <file>images/clearall.png</file>
         <file>images/cloud.svg</file>
         <file>images/file.svg</file>
         <file>images/folder.svg</file>
         <file>images/left.svg</file>
         <file>images/settings.svg</file>
-        <file>images/check.svg</file>
-        <file>images/check_white.svg</file>
+        <file>images/star.svg</file>
     </qresource>
 </RCC>

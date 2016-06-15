@@ -13,7 +13,9 @@ Rectangle {
 
     property string rootfolder: ""
     property alias nameFilters: folders.nameFilters // list<string>
-    property int itemSize: height / 5
+    property alias currentFolder: folders.folder
+    property alias titleBarHeight: titleBar.height
+    property int itemSize: height * Style.fileBrowserItemSizeRel
 
     signal itemSelected(string file)
 

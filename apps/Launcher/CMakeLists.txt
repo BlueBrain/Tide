@@ -4,6 +4,7 @@
 #                     Raphael Dumusc <raphael.dumusc@epfl.ch>
 
 set(TIDELAUNCHER_HEADERS
+  FileInfoHelper.h
   Launcher.h
 )
 
@@ -16,3 +17,6 @@ set(TIDELAUNCHER_SOURCES
 set(TIDELAUNCHER_LINK_LIBRARIES DeflectQt TideMaster)
 
 common_application(tideLauncher)
+if(TARGET VirtualKeyboard)
+  add_dependencies(tideLauncher VirtualKeyboard)
+endif()

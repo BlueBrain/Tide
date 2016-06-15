@@ -37,27 +37,24 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "Launcher.h"
+#ifndef FILEINFOHELPER_H
+#define FILEINFOHELPER_H
 
-#include "tide/core/log.h"
+#include <QObject>
+#include <QFileInfo>
 
-int main( int argc, char** argv )
+/**
+ * Expose QFileInfo helper functions to Qml.
+ */
+class FileInfoHelper : public QObject
 {
-    logger_id = "launcher";
-    qInstallMessageHandler( qtMessageLogger );
+    Q_OBJECT
 
-    // Load virtualkeyboard input context plugin
-    qputenv( "QT_IM_MODULE", QByteArray( "qtvirtualkeyboard" ));
+public:
+    Q_INVOKABLE QString baseNameFromPath( const QString& filePath ) const
+    {
+        return QFileInfo( filePath ).completeBaseName();
+    }
+};
 
-    std::unique_ptr<Launcher> launcher;
-    try
-    {
-        launcher.reset( new Launcher( argc, argv ));
-    }
-    catch( const std::runtime_error& exception )
-    {
-        put_flog( LOG_ERROR, "failed to start: %s", exception.what( ));
-        return EXIT_FAILURE;
-    }
-    return launcher->exec();
-}
+#endif

@@ -21,6 +21,7 @@ var fileBrowserTitleBarColor = "#757575"
 var fileBrowserTextColor = "white"
 var fileBrowserDiscreteTextColor = "#B0B0B0"
 var fileBrowserBlinkColor = "lightblue"
+var fileBrowserItemSizeRel = 0.2
 
 var placeholderTopColor = "darkgrey"
 var placeholderBottomColor = "lightgrey"
