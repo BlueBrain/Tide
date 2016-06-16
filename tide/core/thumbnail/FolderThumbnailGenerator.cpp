@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -47,8 +47,13 @@
 #include "ContentFactory.h"
 #include "log.h"
 
-#define FOLDER_THUMBNAIL_COUNT_X  2
-#define FOLDER_THUMBNAIL_COUNT_Y  2
+namespace
+{
+const int FOLDER_THUMBNAILS_X = 2;
+const int FOLDER_THUMBNAILS_Y = 2;
+const float FOLDER_THUMBNAILS_PADDING = 0.1;
+const QString FOLDER_TEXT( "folder" );
+}
 
 FolderThumbnailGenerator::FolderThumbnailGenerator( const QSize& size )
     : ThumbnailGenerator( size )
@@ -57,7 +62,7 @@ FolderThumbnailGenerator::FolderThumbnailGenerator( const QSize& size )
 
 QImage FolderThumbnailGenerator::generate( const QString& filename ) const
 {
-    QDir dir( filename );
+    const QDir dir( filename );
     if( dir.exists( ))
         return createFolderImage( dir, true );
 
@@ -66,18 +71,10 @@ QImage FolderThumbnailGenerator::generate( const QString& filename ) const
     return createErrorImage( "folder" );
 }
 
-
-QImage FolderThumbnailGenerator::generatePlaceholderImage( QDir dir ) const
+QImage
+FolderThumbnailGenerator::generatePlaceholderImage( const QDir& dir ) const
 {
     QImage img = createGradientImage( Qt::black, Qt::white );
-    addMetadataToImage( img, dir.path( ));
-    return img;
-}
-
-QImage FolderThumbnailGenerator::generateUpFolderImage( QDir dir ) const
-{
-    QImage img = createGradientImage( Qt::darkGray, Qt::lightGray );
-    paintText( img, "UP" );
     addMetadataToImage( img, dir.path( ));
     return img;
 }
@@ -89,7 +86,10 @@ void FolderThumbnailGenerator::addMetadataToImage( QImage& img,
     ThumbnailGenerator::addMetadataToImage( img, url );
 }
 
-QVector<QRectF> FolderThumbnailGenerator::calculatePlacement( int nX, int nY, float padding, float totalWidth, float totalHeight) const
+QVector<QRectF>
+FolderThumbnailGenerator::calculatePlacement( int nX, int nY, float padding,
+                                              float totalWidth,
+                                              float totalHeight ) const
 {
     const float totalPaddingWidth = padding*(nX+1);
     const float imageWidth = (1.0f-totalPaddingWidth)/(float)nX;
@@ -98,26 +98,34 @@ QVector<QRectF> FolderThumbnailGenerator::calculatePlacement( int nX, int nY, fl
     const float imageHeight = (1.0f-totalPaddingHeight)/(float)nY;
 
     QVector<QRectF> rect;
-    for (int j=0; j<nY; j++)
+    for( int j = 0; j < nY; ++j )
     {
         const float y = padding + j*(imageHeight+padding);
-        for (int i=0; i<nX; i++)
+        for( int i = 0; i < nX; ++i )
         {
             const float x = padding + i*(imageWidth+padding);
-            rect.append(QRect(x*totalWidth, y*totalHeight, imageWidth*totalWidth, imageHeight*totalHeight));
+            rect.append( QRect( x*totalWidth, y*totalHeight,
+                                imageWidth*totalWidth,
+                                imageHeight*totalHeight ));
         }
     }
     return rect;
 }
 
-void FolderThumbnailGenerator::paintThumbnailsMosaic(QImage& img, const QFileInfoList& fileList) const
+void FolderThumbnailGenerator::paintThumbnailsMosaic( QImage& img,
+                                                      const QFileInfoList&
+                                                      fileList) const
 {
-    int numPreviews = std::min(FOLDER_THUMBNAIL_COUNT_X*FOLDER_THUMBNAIL_COUNT_Y, fileList.size());
-
-    if (numPreviews == 0)
+    const int numPreviews = std::min( FOLDER_THUMBNAILS_X*FOLDER_THUMBNAILS_Y,
+                                      fileList.size( ));
+    if( numPreviews == 0 )
         return;
 
-    QVector<QRectF> rect = calculatePlacement(FOLDER_THUMBNAIL_COUNT_X, FOLDER_THUMBNAIL_COUNT_Y, 0.1, img.size().width(), img.size().height());
+    QVector<QRectF> rect = calculatePlacement( FOLDER_THUMBNAILS_X,
+                                               FOLDER_THUMBNAILS_Y,
+                                               FOLDER_THUMBNAILS_PADDING,
+                                               img.size().width(),
+                                               img.size().height( ));
     QPainter painter( &img );
     for( int i = 0; i < numPreviews; ++i )
     {
@@ -126,35 +134,34 @@ void FolderThumbnailGenerator::paintThumbnailsMosaic(QImage& img, const QFileInf
 
         QImage thumbnail;
         // Avoid recursion into subfolders
-        if (QDir(filename).exists())
-            thumbnail = createFolderImage(QDir(filename), false);
+        if( QDir( filename ).exists( ))
+            thumbnail = createFolderImage( QDir( filename ), false );
         else
-            thumbnail = ThumbnailGeneratorFactory::getGenerator(filename, size_)->generate(filename);
+            thumbnail = ThumbnailGeneratorFactory::getGenerator( filename, size_ )->generate( filename );
 
-        painter.drawImage(rect[i], thumbnail);
+        painter.drawImage( rect[i], thumbnail );
     }
     painter.end();
 }
 
-QImage FolderThumbnailGenerator::createFolderImage(QDir dir, bool generateThumbnails) const
+QImage
+FolderThumbnailGenerator::createFolderImage( const QDir& dir,
+                                             const bool generateThumbnails ) const
 {
-    QImage img = generatePlaceholderImage(dir);
+    QImage img = generatePlaceholderImage( dir );
 
-    const QFileInfoList& fileList = getSupportedFilesInDir(dir);
+    const QFileInfoList& fileList = getSupportedFilesInDir( dir );
 
-    if(generateThumbnails && fileList.size() > 0)
-    {
+    if( generateThumbnails && fileList.size() > 0 )
         paintThumbnailsMosaic(img, fileList);
-    }
     else
-    {
-        paintText(img, dir.dirName());
-    }
+        paintText( img, FOLDER_TEXT );
 
     return img;
 }
 
-QFileInfoList FolderThumbnailGenerator::getSupportedFilesInDir(QDir dir) const
+QFileInfoList
+FolderThumbnailGenerator::getSupportedFilesInDir( QDir dir ) const
 {
     dir.setFilter( QDir::Files | QDir::NoDotAndDotDot );
     QStringList filters = ContentFactory::getSupportedFilesFilter();
