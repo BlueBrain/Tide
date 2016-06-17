@@ -55,11 +55,6 @@ const QString deflectQmlFile( "qrc:/qml/qml/main.qml" );
 const QString thumbnailProviderId( "thumbnail" );
 }
 
-QString getLocalHostName()
-{
-    return QHostInfo::localHostName() + "." + QHostInfo::localDomainName();
-}
-
 Launcher::Launcher( int& argc, char* argv[] )
     : QGuiApplication( argc, argv )
 {
@@ -96,7 +91,7 @@ Launcher::Launcher( int& argc, char* argv[] )
     item->setProperty( "demoServiceUrl", config.getDemoServiceUrl( ));
     item->setProperty( "demoServiceImageFolder",
                        config.getDemoServiceImageFolder( ));
-    item->setProperty( "demoServiceDeflectHost", getLocalHostName( ));
+    item->setProperty( "demoServiceDeflectHost", QHostInfo::localHostName( ));
 }
 
 Launcher::~Launcher()
