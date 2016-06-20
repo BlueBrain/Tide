@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,83 +37,41 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef MASTERAPPLICATION_H
-#define MASTERAPPLICATION_H
+#include "RestLogger.h"
 
-#include "config.h"
-#include "types.h"
+#include <iostream>
+#include <string>
+#include <QJsonDocument>
+#include <QJsonObject>
 
-#include <QApplication>
-#include <QThread>
-#include <boost/scoped_ptr.hpp>
 
-class MasterToWallChannel;
-class MasterToForkerChannel;
-class MasterFromWallChannel;
-class MasterWindow;
-class PixelStreamerLauncher;
-class PixelStreamWindowManager;
-class MasterConfiguration;
-class MultiTouchListener;
-class RestInterface;
-class LoggingUtility;
-/**
- * The main application for the Master process.
- */
-class MasterApplication : public QApplication
+RestLogger::RestLogger( const LoggingUtility& logger )
+    : _logger( logger )
+{}
+
+std::string RestLogger::getTypeName() const
 {
-    Q_OBJECT
+    return _name;
+}
 
-public:
-    /**
-     * Constructor
-     * @param argc Command line argument count (required by QApplication)
-     * @param argv Command line arguments (required by QApplication)
-     * @param worldChannel The world MPI channel
-     * @param forkChannel The MPI channel for forking processes
-     * @throw std::runtime_error if an error occured during initialization
-     */
-    MasterApplication( int &argc, char **argv, MPIChannelPtr worldChannel,
-                       MPIChannelPtr forkChannel );
+std::string RestLogger::_toJSON() const
+{
+    std::string content;
 
-    /** Destructor */
-    virtual ~MasterApplication();
+    QJsonObject obj;
+    QJsonObject event;
+    event["last_event"] = _logger.getLastInteraction();
+    event["last_event_date"] = _logger.getLastInteractionTime();
+    event["count"] = static_cast<int>( _logger.getInteractionCount() );
+    obj["event"] = event;
+    QJsonObject window;
+    window["count"] =  static_cast<int>(_logger.getWindowCount());
+    window["date_set"] = _logger.getCounterModificationTime();
+    window["accumulated_count"] = static_cast<int>( _logger.getAccumulatedWindowCount() );
+    obj["window"] = window;
+    QJsonDocument doc(obj);
+    QString strJson( doc.toJson( QJsonDocument::Indented ) );
+    content.append( strJson.toStdString() );
 
-private:
-    boost::scoped_ptr<MasterToForkerChannel> masterToForkerChannel_;
-    boost::scoped_ptr<MasterToWallChannel> masterToWallChannel_;
-    boost::scoped_ptr<MasterFromWallChannel> masterFromWallChannel_;
-    boost::scoped_ptr<MasterWindow> masterWindow_;
-    boost::scoped_ptr<MasterConfiguration> config_;
-    boost::scoped_ptr<deflect::Server> deflectServer_;
-    boost::scoped_ptr<PixelStreamerLauncher> pixelStreamerLauncher_;
-    boost::scoped_ptr<PixelStreamWindowManager> pixelStreamWindowManager_;
-#if TIDE_ENABLE_TUIO_TOUCH_LISTENER
-    boost::scoped_ptr<MultiTouchListener> touchListener_;
-#endif
-
-    DisplayGroupPtr displayGroup_;
-    MarkersPtr markers_;
-
-    QThread mpiSendThread_;
-    QThread mpiReceiveThread_;
-
-    void init();
-    bool createConfig( const QString& filename );
-    void startDeflectServer();
-    void restoreBackground();
-    void initPixelStreamLauncher();
-    void initMPIConnection();
-
-#if TIDE_ENABLE_TUIO_TOUCH_LISTENER
-    void initTouchListener();
-#endif
-
-#if TIDE_ENABLE_REST_INTERFACE
-    std::unique_ptr<RestInterface> _restInterface;
-    std::unique_ptr<LoggingUtility> _logger;
-    void _initRestInterface();
-#endif
-};
-
-#endif // MASTERAPPLICATION_H
+    return content;
+}

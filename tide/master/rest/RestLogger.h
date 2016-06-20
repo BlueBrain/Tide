@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,83 +37,35 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef MASTERAPPLICATION_H
-#define MASTERAPPLICATION_H
+#ifndef RESTLOGGER_H
+#define RESTLOGGER_H
 
-#include "config.h"
-#include "types.h"
+#include <servus/serializable.h> // base class
 
-#include <QApplication>
-#include <QThread>
-#include <boost/scoped_ptr.hpp>
+#include "LoggingUtility.h"
 
-class MasterToWallChannel;
-class MasterToForkerChannel;
-class MasterFromWallChannel;
-class MasterWindow;
-class PixelStreamerLauncher;
-class PixelStreamWindowManager;
-class MasterConfiguration;
-class MultiTouchListener;
-class RestInterface;
-class LoggingUtility;
 /**
- * The main application for the Master process.
+ * Exposes usage statistics content to ZeroEQ http server gathered by LoggingUtility.
  */
-class MasterApplication : public QApplication
+class RestLogger : public servus::Serializable
 {
-    Q_OBJECT
-
 public:
     /**
-     * Constructor
-     * @param argc Command line argument count (required by QApplication)
-     * @param argv Command line arguments (required by QApplication)
-     * @param worldChannel The world MPI channel
-     * @param forkChannel The MPI channel for forking processes
-     * @throw std::runtime_error if an error occured during initialization
+     * Construct dynamic content used by REST interface.
+     *
+     * @param logger LoggingUtility object which is exposed.
      */
-    MasterApplication( int &argc, char **argv, MPIChannelPtr worldChannel,
-                       MPIChannelPtr forkChannel );
+    RestLogger( const LoggingUtility& logger );
 
-    /** Destructor */
-    virtual ~MasterApplication();
+    /** @return the string used as an endpoint by REST interface. */
+    std::string getTypeName() const final;
 
 private:
-    boost::scoped_ptr<MasterToForkerChannel> masterToForkerChannel_;
-    boost::scoped_ptr<MasterToWallChannel> masterToWallChannel_;
-    boost::scoped_ptr<MasterFromWallChannel> masterFromWallChannel_;
-    boost::scoped_ptr<MasterWindow> masterWindow_;
-    boost::scoped_ptr<MasterConfiguration> config_;
-    boost::scoped_ptr<deflect::Server> deflectServer_;
-    boost::scoped_ptr<PixelStreamerLauncher> pixelStreamerLauncher_;
-    boost::scoped_ptr<PixelStreamWindowManager> pixelStreamWindowManager_;
-#if TIDE_ENABLE_TUIO_TOUCH_LISTENER
-    boost::scoped_ptr<MultiTouchListener> touchListener_;
-#endif
 
-    DisplayGroupPtr displayGroup_;
-    MarkersPtr markers_;
+    const std::string _name = "tide::stats";
+    const LoggingUtility& _logger ;
 
-    QThread mpiSendThread_;
-    QThread mpiReceiveThread_;
-
-    void init();
-    bool createConfig( const QString& filename );
-    void startDeflectServer();
-    void restoreBackground();
-    void initPixelStreamLauncher();
-    void initMPIConnection();
-
-#if TIDE_ENABLE_TUIO_TOUCH_LISTENER
-    void initTouchListener();
-#endif
-
-#if TIDE_ENABLE_REST_INTERFACE
-    std::unique_ptr<RestInterface> _restInterface;
-    std::unique_ptr<LoggingUtility> _logger;
-    void _initRestInterface();
-#endif
+    std::string _toJSON() const final;
 };
 
-#endif // MASTERAPPLICATION_H
+#endif

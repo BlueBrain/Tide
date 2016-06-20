@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,83 +37,61 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef MASTERAPPLICATION_H
-#define MASTERAPPLICATION_H
+#ifndef LOGGINGUTILITY_H
+#define LOGGINGUTILITY_H
 
-#include "config.h"
+#include <QObject>
+
 #include "types.h"
 
-#include <QApplication>
-#include <QThread>
-#include <boost/scoped_ptr.hpp>
-
-class MasterToWallChannel;
-class MasterToForkerChannel;
-class MasterFromWallChannel;
-class MasterWindow;
-class PixelStreamerLauncher;
-class PixelStreamWindowManager;
-class MasterConfiguration;
-class MultiTouchListener;
-class RestInterface;
-class LoggingUtility;
 /**
- * The main application for the Master process.
+ * Provides information/statistics on application usage.
  */
-class MasterApplication : public QApplication
+class LoggingUtility : public QObject
 {
     Q_OBJECT
 
 public:
-    /**
-     * Constructor
-     * @param argc Command line argument count (required by QApplication)
-     * @param argv Command line arguments (required by QApplication)
-     * @param worldChannel The world MPI channel
-     * @param forkChannel The MPI channel for forking processes
-     * @throw std::runtime_error if an error occured during initialization
-     */
-    MasterApplication( int &argc, char **argv, MPIChannelPtr worldChannel,
-                       MPIChannelPtr forkChannel );
 
-    /** Destructor */
-    virtual ~MasterApplication();
+    /** @return the number of open windows from the start. */
+    size_t getAccumulatedWindowCount() const;
+
+    /** @return the timestamp of opening/closing a window */
+    const QString& getCounterModificationTime() const;
+
+    /** @return the value of interaction counter. */
+    int getInteractionCount() const;
+
+    /** @return the name of last interaction */
+    const QString& getLastInteraction() const;
+
+    /** @return the timestamp of last interaction */
+    const QString& getLastInteractionTime() const;
+
+    /** @return the number of currently open windows. */
+    size_t getWindowCount() const;
+
+public slots:
+
+    /** Log the event, update the counters and update the timestamp of last interaction */
+    void contentWindowAdded( ContentWindowPtr contentWindow );
+
+    /** Log the event, update the counters and update the timestamp of last interaction */
+    void contentWindowMovedToFront();
+
+    /** Log the event, update the counters and update the timestamp of last interaction */
+    void contentWindowRemoved();
 
 private:
-    boost::scoped_ptr<MasterToForkerChannel> masterToForkerChannel_;
-    boost::scoped_ptr<MasterToWallChannel> masterToWallChannel_;
-    boost::scoped_ptr<MasterFromWallChannel> masterFromWallChannel_;
-    boost::scoped_ptr<MasterWindow> masterWindow_;
-    boost::scoped_ptr<MasterConfiguration> config_;
-    boost::scoped_ptr<deflect::Server> deflectServer_;
-    boost::scoped_ptr<PixelStreamerLauncher> pixelStreamerLauncher_;
-    boost::scoped_ptr<PixelStreamWindowManager> pixelStreamWindowManager_;
-#if TIDE_ENABLE_TUIO_TOUCH_LISTENER
-    boost::scoped_ptr<MultiTouchListener> touchListener_;
-#endif
+    size_t _windowCounter = 0;
+    size_t _windowCounterTotal = 0;
+    QString _counterModificationTime;
+    QString _lastInteraction;
+    QString _lastInteractionTime;
+    size_t _interactionCounter = 0;
 
-    DisplayGroupPtr displayGroup_;
-    MarkersPtr markers_;
-
-    QThread mpiSendThread_;
-    QThread mpiReceiveThread_;
-
-    void init();
-    bool createConfig( const QString& filename );
-    void startDeflectServer();
-    void restoreBackground();
-    void initPixelStreamLauncher();
-    void initMPIConnection();
-
-#if TIDE_ENABLE_TUIO_TOUCH_LISTENER
-    void initTouchListener();
-#endif
-
-#if TIDE_ENABLE_REST_INTERFACE
-    std::unique_ptr<RestInterface> _restInterface;
-    std::unique_ptr<LoggingUtility> _logger;
-    void _initRestInterface();
-#endif
+    QString _getTimeStamp() const;
+    void _log( const QString& s );
 };
 
-#endif // MASTERAPPLICATION_H
+#endif // LOGGINGUTILITY_H
