@@ -12,6 +12,7 @@ DisplayGroup {
         anchors.rightMargin: 0.5 * width
         visible: options.showClock
         displayedHeight: displaygroup.height * Style.clockScale
+        z: Style.overlayZorder
     }
 
     property int frames: 0

@@ -21,6 +21,7 @@
         <file>unknownfile.png</file>
         <file>gear.svg</file>
         <file>exit.svg</file>
+        <file>clock.svg</file>
     </qresource>
     <qresource prefix="/fonts">
         <file>Gotham-Book.otf</file>

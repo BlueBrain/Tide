@@ -40,7 +40,7 @@ SideButton {
             }
         }
         Image {
-            source: "qrc:/img/gear.svg"
+            source: "qrc:/img/clock.svg"
             width: parent.width
             height: width
             anchors.horizontalCenter: parent.horizontalCenter
