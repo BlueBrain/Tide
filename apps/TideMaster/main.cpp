@@ -53,6 +53,7 @@ int main( int argc, char* argv[] )
     MPIChannelPtr worldChannel( new MPIChannel( argc, argv ));
     const int rank = worldChannel->getRank();
     logger_id = "master";
+    qInstallMessageHandler( qtMessageLogger );
 
     MPIChannelPtr localChannel( new MPIChannel( *worldChannel, 0, rank ));
     MPIChannelPtr mainChannel( new MPIChannel( *worldChannel, 1, rank ));

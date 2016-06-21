@@ -45,6 +45,7 @@
 #include "QuickRenderer.h"
 #include "TestPattern.h"
 #include "TextureUploader.h"
+#include "log.h"
 
 #include "WallConfiguration.h"
 
@@ -136,7 +137,12 @@ void WallWindow::exposeEvent( QExposeEvent* )
         _glContext->create();
 
     #if QT_VERSION >= 0x050500
+        // Call required to make QtGraphicalEffects work in the initial scene.
         _renderControl->prepareThread( _quickRendererThread );
+    #else
+        put_flog( LOG_DEBUG, "missing QQuickRenderControl::prepareThread() on "
+                             "Qt < 5.5. Expect some qWarnings and failing "
+                             "QtGraphicalEffects." );
     #endif
 
         _glContext->moveToThread( _quickRendererThread );

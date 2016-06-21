@@ -53,6 +53,7 @@ int main( int argc, char* argv[] )
     MPIChannelPtr worldChannel( new MPIChannel( argc, argv ));
     const int rank = worldChannel->getRank();
     logger_id = QString( "wall%1" ).arg( rank ).toStdString();
+    qInstallMessageHandler( qtMessageLogger );
 
     if( worldChannel->getSize() < 2 )
     {
