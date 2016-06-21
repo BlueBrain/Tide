@@ -39,11 +39,10 @@ SideButton {
                 anchors.horizontalCenter: parent.horizontalCenter
             }
         }
-        Image {
-            source: "qrc:/img/clock.svg"
-            width: parent.width
-            height: width
+        Clock {
+            displayedHeight: parent.width
             anchors.horizontalCenter: parent.horizontalCenter
+            showSeconds: false
             Loader {
                 property int buttonIndex: 3
                 anchors.fill: parent

@@ -50,6 +50,7 @@ Item {
     property int seconds
     property real shift
     property bool internationalTime: false
+    property alias showSeconds: second.visible
 
     property real displayedHeight: background.nominalHeight
     property real scaleFactor: displayedHeight / background.nominalHeight
@@ -68,7 +69,7 @@ Item {
 
     Image {
         id: background
-        source: "clock.svg"
+        source: "qrc:/img/clock/background.svg"
         property real nominalWidth: 104
         property real nominalHeight: 120
         sourceSize.width: nominalWidth * scaleFactor
@@ -79,7 +80,7 @@ Item {
             property real rotationCenter: 6.0 * scaleFactor
             x: parent.width / 2 - width / 2
             y: parent.height / 2 - height + rotationCenter
-            source: "hour.svg"
+            source: "qrc:/img/clock/hour.svg"
             sourceSize.width: 12 * scaleFactor
             sourceSize.height: 32 * scaleFactor
             transform: Rotation {
@@ -98,7 +99,7 @@ Item {
             property real rotationCenter: 6.0 * scaleFactor
             x: parent.width / 2 - width / 2
             y: parent.height / 2 - height + rotationCenter
-            source: "minute.svg"
+            source: "qrc:/img/clock/minute.svg"
             sourceSize.width: 12 * scaleFactor
             sourceSize.height: 50 * scaleFactor
             transform: Rotation {
@@ -116,7 +117,7 @@ Item {
             id: second
             x: parent.width / 2 - width / 2
             y: parent.height / 2 - height
-            source: "second.svg"
+            source: "qrc:/img/clock/second.svg"
             sourceSize.width: 4 * scaleFactor
             sourceSize.height: 50 * scaleFactor
             transform: Rotation {

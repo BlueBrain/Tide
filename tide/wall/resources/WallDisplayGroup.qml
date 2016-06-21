@@ -1,6 +1,5 @@
 import QtQuick 2.0
 import Tide 1.0
-import "qrc:/clock/."
 import "qrc:/qml/core/."
 import "qrc:/qml/core/style.js" as Style
 
