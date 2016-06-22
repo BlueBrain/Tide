@@ -48,6 +48,9 @@ public:
     PDFThumbnailGenerator( const QSize& size );
 
     QImage generate( const QString& filename ) const override;
+
+private:
+    QImage _createLargePdfPlaceholder() const;
 };
 
 #endif // PDFTHUMBNAILGENERATOR_H
