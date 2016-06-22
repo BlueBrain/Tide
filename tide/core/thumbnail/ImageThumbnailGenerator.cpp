@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -44,7 +44,7 @@
 
 #include "log.h"
 
-#define SIZEOF_MEGABYTE  (1024*1024)
+#define SIZEOF_MEGABYTE     (1024*1024)
 #define MAX_IMAGE_FILE_SIZE (100*SIZEOF_MEGABYTE)
 
 ImageThumbnailGenerator::ImageThumbnailGenerator( const QSize& size )
@@ -54,22 +54,13 @@ ImageThumbnailGenerator::ImageThumbnailGenerator( const QSize& size )
 
 QImage ImageThumbnailGenerator::generate( const QString& filename ) const
 {
-    QImage img;
-
     QImageReader reader( filename );
     if( reader.canRead( ))
     {
-        if (QFileInfo(filename).size() < MAX_IMAGE_FILE_SIZE)
-        {
-            img = reader.read();
-            img = img.scaled(size_, aspectRatioMode_);
-        }
-        else
-        {
-            img = createLargeImagePlaceholder();
-        }
-        addMetadataToImage( img, filename );
-        return img;
+        if( QFileInfo( filename ).size() > MAX_IMAGE_FILE_SIZE )
+            return _createLargeImagePlaceholder();
+
+        return reader.read().scaled( _size, _aspectRatioMode );
     }
 
     put_flog( LOG_ERROR, "could not open image file: '%s'",
@@ -77,7 +68,7 @@ QImage ImageThumbnailGenerator::generate( const QString& filename ) const
     return createErrorImage( "image" );
 }
 
-QImage ImageThumbnailGenerator::createLargeImagePlaceholder() const
+QImage ImageThumbnailGenerator::_createLargeImagePlaceholder() const
 {
     QImage img = createGradientImage( Qt::darkBlue, Qt::white );
     paintText( img, "LARGE\nIMAGE" );

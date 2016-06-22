@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -45,12 +45,12 @@
 class StateThumbnailGenerator : public ThumbnailGenerator
 {
 public:
-    StateThumbnailGenerator(const QSize &size);
+    StateThumbnailGenerator( const QSize& size );
 
-    QImage generate(const QString& filename) const override;
+    QImage generate( const QString& filename ) const final;
 
-protected:
-    QRect scaleRectAroundCenter(const QRect& rect, float scaleFactor) const;
+private:
+    QRect _scaleRectAroundCenter( const QRect& rect, float scaleFactor ) const;
 };
 
-#endif // STATETHUMBNAILGENERATOR_H
+#endif

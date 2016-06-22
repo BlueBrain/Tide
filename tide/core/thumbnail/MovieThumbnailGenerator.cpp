@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -59,10 +59,7 @@ QImage MovieThumbnailGenerator::generate( const QString& filename ) const
     const double target = PREVIEW_RELATIVE_POSITION * movie.getDuration();
     PicturePtr picture = movie.getFrame( target );
     if( picture )
-    {
-        QImage image = picture->toQImage().scaled( size_, aspectRatioMode_ );
-        addMetadataToImage( image, filename );
-        return image;
-    }
+        return picture->toQImage().scaled( _size, _aspectRatioMode );
+
     return createErrorImage( "movie" );
 }

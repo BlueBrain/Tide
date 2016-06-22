@@ -47,6 +47,8 @@
 #include <QFileInfo>
 #include <QImageReader>
 
+#include <cassert>
+
 namespace
 {
 const int cacheMaxSize = 200;

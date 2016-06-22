@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -47,19 +47,13 @@ PyramidThumbnailGenerator::PyramidThumbnailGenerator( const QSize& size )
 {
 }
 
-QImage PyramidThumbnailGenerator::generate( const QString &filename ) const
+QImage PyramidThumbnailGenerator::generate( const QString& filename ) const
 {
-    QImage image = DynamicTexture( filename ).getRootImage();
+    const QImage image = DynamicTexture( filename ).getRootImage();
     if( !image.isNull( ))
-    {
-        image = image.scaled( size_, aspectRatioMode_ );
-        addMetadataToImage( image, filename );
-        return image;
-    }
-    else
-    {
-        put_flog( LOG_ERROR, "could not open pyramid file: '%s'",
-                  filename.toLatin1().constData( ));
-        return createErrorImage( "pyramid" );
-    }
+        return image.scaled( _size, _aspectRatioMode );
+
+    put_flog( LOG_ERROR, "could not open pyramid file: '%s'",
+              filename.toLatin1().constData( ));
+    return createErrorImage( "pyramid" );
 }

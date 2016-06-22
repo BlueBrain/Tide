@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -40,39 +40,39 @@
 #include "StateThumbnailGenerator.h"
 
 #include "StatePreview.h"
+
 #include <QPainter>
 
-StateThumbnailGenerator::StateThumbnailGenerator(const QSize &size)
-    : ThumbnailGenerator(size)
+StateThumbnailGenerator::StateThumbnailGenerator( const QSize& size )
+    : ThumbnailGenerator( size )
 {
 }
 
-QImage StateThumbnailGenerator::generate(const QString &filename) const
+QImage StateThumbnailGenerator::generate( const QString& filename ) const
 {
     QImage img = createGradientImage( Qt::darkCyan, Qt::cyan );
-    paintText(img, "DCX");
+    paintText( img, "DCX" );
 
-    StatePreview filePreview(filename);
-    if (filePreview.loadFromFile())
+    StatePreview filePreview( filename );
+    if( filePreview.loadFromFile( ))
     {
-        QImage preview = filePreview.getImage();
-
-        QPainter painter(&img);
-        QRect rect = scaleRectAroundCenter(img.rect(), 0.8f);
-        painter.drawImage(rect, preview);
+        QPainter painter( &img );
+        const QRect rect = _scaleRectAroundCenter( img.rect(), 0.8f );
+        painter.drawImage( rect, filePreview.getImage( ));
     }
-    addMetadataToImage(img, filename);
     return img;
 }
 
 
-QRect StateThumbnailGenerator::scaleRectAroundCenter(const QRect& rect, float scaleFactor) const
+QRect
+StateThumbnailGenerator::_scaleRectAroundCenter( const QRect& rect,
+                                                 const float scaleFactor ) const
 {
-    const float topLeftFactor = 0.5f*(1.0f-scaleFactor);
+    const float topLeftFactor = 0.5f * ( 1.0f - scaleFactor );
 
-    return QRect(topLeftFactor*rect.size().width(),
-                 topLeftFactor*rect.size().height(),
-                 scaleFactor*rect.size().width(),
-                 scaleFactor*rect.size().height()
+    return QRect( topLeftFactor*rect.size().width(),
+                  topLeftFactor*rect.size().height(),
+                  scaleFactor*rect.size().width(),
+                  scaleFactor*rect.size().height()
                  );
 }

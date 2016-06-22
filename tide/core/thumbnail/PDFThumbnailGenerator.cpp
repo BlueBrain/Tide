@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -70,7 +70,7 @@ QImage PDFThumbnailGenerator::generate( const QString& filename ) const
     if( QFileInfo( filename ).size() > maxPdfPageSize * pdf.getPageCount( ))
         return _createLargePdfPlaceholder();
 
-    QImage image = pdf.renderToImage( size_ );
+    const QImage image = pdf.renderToImage( _size );
 
     if( image.isNull( ))
     {
@@ -79,7 +79,6 @@ QImage PDFThumbnailGenerator::generate( const QString& filename ) const
         return createErrorImage( "pdf" );
     }
 
-    addMetadataToImage( image, filename );
     return image;
 }
 

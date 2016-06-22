@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -40,27 +40,27 @@
 #ifndef THUMBNAILGENERATOR_H
 #define THUMBNAILGENERATOR_H
 
-#include <QString>
+#include <QColor>
 #include <QImage>
 #include <QSize>
-#include <QColor>
+#include <QString>
 
 class ThumbnailGenerator
 {
 public:
-    ThumbnailGenerator(const QSize& size);
+    ThumbnailGenerator( const QSize& size );
     virtual ~ThumbnailGenerator() {}
 
-    virtual QImage generate(const QString& filename) const = 0;
+    virtual QImage generate( const QString& filename ) const = 0;
 
 protected:
-    QSize size_;
-    Qt::AspectRatioMode aspectRatioMode_;
+    const QSize _size;
+    const Qt::AspectRatioMode _aspectRatioMode;
 
-    void addMetadataToImage(QImage& img, const QString &url) const;
-    QImage createErrorImage(const QString& message) const;
-    QImage createGradientImage(const QColor &bgcolor1, const QColor &bgcolor2) const;
-    void paintText(QImage &img, const QString &text) const;
+    QImage createErrorImage( const QString& message ) const;
+    QImage createGradientImage( const QColor& bgcolor1,
+                                const QColor& bgcolor2 ) const;
+    void paintText( QImage& img, const QString& text ) const;
 };
 
-#endif // THUMBNAILGENERATOR_H
+#endif
