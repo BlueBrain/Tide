@@ -43,11 +43,14 @@
 #include "ThumbnailGenerator.h"
 #include "ThumbnailGeneratorFactory.h"
 
+#include <QDateTime>
 #include <QFileInfo>
 #include <QImageReader>
 
 namespace
 {
+const int cacheMaxSize = 200;
+const QString cacheModificationDateKey( "lastModificationDate" );
 const char* folderImg = "qrc:/img/folder.png";
 const char* unknownFileImg = "qrc:/img/unknownfile.png";
 }
@@ -56,7 +59,9 @@ ThumbnailProvider::ThumbnailProvider( const QSize defaultSize )
     : QQuickImageProvider( QQuickImageProvider::Image,
                            QQuickImageProvider::ForceAsynchronousImageLoading )
     , _defaultSize( defaultSize )
-{}
+{
+    _cache.setMaxCost( cacheMaxSize );
+}
 
 QImage ThumbnailProvider::requestImage( const QString& filename, QSize* size,
                                         const QSize& requestedSize )
@@ -68,12 +73,23 @@ QImage ThumbnailProvider::requestImage( const QString& filename, QSize* size,
     if( size )
         *size = newSize;
 
+    if( _isImageInCache( filename ))
+        return *_cache[filename];
+
     auto generator = ThumbnailGeneratorFactory::getGenerator( filename,
                                                               newSize );
     const QImage image = generator->generate( filename );
     if( !image.isNull( ))
+    {
+        // QCache requires a <T>* and takes ownership, a new QImage is required
+        QImage* cacheImage = new QImage( image );
+        cacheImage->setText( cacheModificationDateKey,
+                             QFileInfo( filename ).lastModified().toString( ));
+        _cache.insert( filename, cacheImage );
         return image;
+    }
 
+    // Thumbnail generation failed, return a placeholder
     const QFileInfo fileInfo( filename );
     if( fileInfo.isFile( ))
     {
@@ -81,7 +97,6 @@ QImage ThumbnailProvider::requestImage( const QString& filename, QSize* size,
         assert( !im.isNull( ));
         return im;
     }
-
     if( fileInfo.isDir( ))
     {
         static QImage im( folderImg );
@@ -90,4 +105,14 @@ QImage ThumbnailProvider::requestImage( const QString& filename, QSize* size,
     }
 
     return image; // Silence compiler warning
+}
+
+bool ThumbnailProvider::_isImageInCache( const QString& filename ) const
+{
+    if( !_cache.contains( filename ))
+        return false;
+
+    const QFileInfo info( filename );
+    return info.lastModified().toString() ==
+            _cache.object( filename )->text( cacheModificationDateKey );
 }

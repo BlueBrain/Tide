@@ -63,6 +63,7 @@ Rectangle {
                 Image {
                     id: thumbnail
                     anchors.fill: parent
+                    cache: false
                     source: "image://thumbnail/" + filePath
                     fillMode: Image.PreserveAspectFit
                 }

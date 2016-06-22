@@ -42,9 +42,21 @@
 #define THUMBNAILPROVIDER_H
 
 #include <QtQuick/QQuickImageProvider>
+#include <QCache>
 
 /**
  * Provide thumbnails for files and folders to the Qml FileBrowser.
+ *
+ * The provider maintains an internal cache to speed up the request of
+ * previously generated images. It also takes care of regenerating the thumbnail
+ * if the file has been modified since the last request (checking the file
+ * modification date).
+ *
+ * Example of correct usage in Qml:
+ * Image {
+ *     source: "image://thumbnail/" + filePath
+ *     cache: false
+ * }
  */
 class ThumbnailProvider : public QQuickImageProvider
 {
@@ -56,6 +68,9 @@ public:
 
 private:
     const QSize _defaultSize;
+    QCache<QString, QImage> _cache;
+
+    bool _isImageInCache( const QString& filename ) const;
 };
 
 #endif
