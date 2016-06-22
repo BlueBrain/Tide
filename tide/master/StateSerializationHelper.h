@@ -41,6 +41,7 @@
 #define STATESERIALIZATIONHELPER_H
 
 #include <QString>
+#include <QtConcurrent>
 
 #include "types.h"
 
@@ -53,9 +54,9 @@ public:
     /**
      * Constructor
      *
-     * @param displayGroup The DisplayGroup to be saved or restored.
+     * @param group The DisplayGroup to be saved or restored.
      */
-    StateSerializationHelper( DisplayGroupPtr displayGroup );
+    StateSerializationHelper( DisplayGroupPtr group );
 
     /**
      * Save the state of the application.
@@ -63,17 +64,18 @@ public:
      * @param filename The .dcx file to save the state.
      * @param generatePreview Also generate a .dcxpreview thumbnail image.
      */
-    bool save( const QString& filename, bool generatePreview = true );
+    QFuture<bool> save( const QString& filename, bool generatePreview = true );
 
     /**
      * Load the state from a given xml file.
+     *
+     * @return the loaded display group on success, nullptr on failure.
      */
-    bool load( const QString& filename );
+    QFuture<DisplayGroupConstPtr> load( const QString& filename );
 
 private:
     DisplayGroupPtr _displayGroup;
-
-    void _validateContents( DisplayGroup& group ) const;
+    DisplayGroupPtr _copyDisplayGroup() const;
 };
 
-#endif // STATESERIALIZATIONHELPER_H
+#endif

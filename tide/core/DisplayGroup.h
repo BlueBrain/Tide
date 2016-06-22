@@ -51,7 +51,6 @@
 #include <boost/serialization/vector.hpp>
 #include <boost/serialization/set.hpp>
 #include <boost/enable_shared_from_this.hpp>
-#include <boost/foreach.hpp>
 
 #include <QObject>
 #include <QUuid>
@@ -114,7 +113,7 @@ public:
      * Replace the content windows.
      * @param contentWindows The list of windows to set.
      */
-    void setContentWindows( ContentWindowPtrs contentWindows );
+    Q_INVOKABLE void setContentWindows( ContentWindowPtrs contentWindows );
 
 
     /**
@@ -172,7 +171,7 @@ public:
     bool getShowWindowTitles() const;
 
     /** Enable/Disable visibility of window titles when saving the session. */
-    void setShowWindowTitles( bool set );
+    Q_INVOKABLE void setShowWindowTitles( bool set );
     //@}
 
 public slots:

@@ -44,7 +44,9 @@
 #include "types.h"
 
 #include <QApplication>
+#include <QFutureWatcher>
 #include <QThread>
+
 #include <boost/scoped_ptr.hpp>
 
 class MasterToWallChannel;
@@ -91,6 +93,12 @@ private:
 #if TIDE_ENABLE_TUIO_TOUCH_LISTENER
     boost::scoped_ptr<MultiTouchListener> touchListener_;
 #endif
+#if TIDE_ENABLE_REST_INTERFACE
+    std::unique_ptr<RestInterface> _restInterface;
+    std::unique_ptr<LoggingUtility> _logger;
+#endif
+    QFutureWatcher<DisplayGroupConstPtr> _loadSessionOp;
+    QFutureWatcher<bool> _saveSessionOp;
 
     DisplayGroupPtr displayGroup_;
     MarkersPtr markers_;
@@ -108,10 +116,7 @@ private:
 #if TIDE_ENABLE_TUIO_TOUCH_LISTENER
     void initTouchListener();
 #endif
-
 #if TIDE_ENABLE_REST_INTERFACE
-    std::unique_ptr<RestInterface> _restInterface;
-    std::unique_ptr<LoggingUtility> _logger;
     void _initRestInterface();
 #endif
 };

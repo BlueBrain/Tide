@@ -55,6 +55,9 @@ public:
     /** Rescale to fit inside the given size, preserving aspect ratio. */
     void adjust( const QSizeF& maxGroupSize );
 
+    /** Reshape to fit inside the given size, scaling and centering windows. */
+    void reshape( const QSizeF& newSize );
+
     /** Transform from normalized coordinates to pixel coordinates. */
     void denormalize( const QSizeF& targetSize );
 
@@ -66,6 +69,9 @@ public:
 
 private:
     DisplayGroup& _group;
+
+    /** Extend the DisplayGroup surface, keeping the windows centered. */
+    void _extend( const QSizeF& newSize );
 
     qreal _estimateAspectRatio() const;
 };
