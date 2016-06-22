@@ -13,7 +13,7 @@ var SESSION_STATUS_STARTING = 4;
 var SESSION_STATUS_RUNNING = 5;
 var SESSION_STATUS_STOPPING = 6;
 
-var SESSION_COOKIE_ID = 'HBP';
+var SESSION_COOKIE_NAME = 'HBP';
 
 var SESSION_COMMAND_NONE = '';
 var SESSION_COMMAND_LOG = 'log';
@@ -28,13 +28,16 @@ var NO_BODY;
  * Class to manage communication with the BlueBrain RenderingResourceManager
  */
 function Communicator(baseUrl, deflectStreamHost) {
+    // Constants
     this.serviceUrl = baseUrl;
-    this.connected = false;
-    this.renderer_id = ''; // The id of the demo (or application name)
-
+    this.deflectStreamHost = deflectStreamHost;
     this.commandLineArguments = '';
     this.environmentVariables = 'DEFLECT_HOST='+deflectStreamHost;
 
+    // The id of the demo (or application name), set by the launch() function
+    this.renderer_id = '';
+
+    // Status of the session, returned by the RRM
     this.currentStatus = SESSION_STATUS_STOPPED;
     this.status = '';
 }
@@ -52,7 +55,7 @@ Communicator.prototype.sendRequest = function(method, module, command, body, cal
     var request = new XMLHttpRequest();
     request.withCredentials = true;
     request.open(method, fullUrl, true);
-    request.setRequestHeader(SESSION_COOKIE_ID, this.renderer_id)
+    request.setRequestHeader(SESSION_COOKIE_NAME, this.renderer_id)
 
     var bodyStr;
     if (body) {
@@ -67,6 +70,29 @@ Communicator.prototype.sendRequest = function(method, module, command, body, cal
     request.send(bodyStr);
 };
 
+/**
+ * Query the status of the session as a string.
+ */
+Communicator.prototype.toStatusString = function(statusCode) {
+    switch(statusCode) {
+    case SESSION_STATUS_STOPPED:
+        return "STOPPED";
+    case SESSION_STATUS_SCHEDULING:
+        return "SCHEDULING";
+    case SESSION_STATUS_SCHEDULED:
+        return "SCHEDULED";
+    case SESSION_STATUS_GETTING_HOSTNAME:
+        return "GETTING_HOSTNAME";
+    case SESSION_STATUS_STARTING:
+        return "STARTING";
+    case SESSION_STATUS_RUNNING:
+        return "RUNNING";
+    case SESSION_STATUS_STOPPING:
+        return "STOPPING";
+    default:
+        return "UNKNOWN_STATUS";
+    }
+}
 
 /**
  * Query the status of the session and pass it back to the callback.
@@ -75,15 +101,12 @@ Communicator.prototype.queryStatus = function(callback) {
     var self = this;
     this.sendRequest('GET', MODULE_SESSION, SESSION_COMMAND_STATUS, NO_BODY,
                      function(request) {
-                         console.log("STATUS RESPONSE:", request.status, request.responseText);
                          if (request.status === 200) {
                              var obj = JSON.parse(request.responseText);
                              self.currentStatus = obj.code;
                              self.status = obj.description;
-                             callback(request.responseText);
+                             callback(self.currentStatus);
                          }
-                         else
-                             callback("Session status unavailable");
                      });
 };
 
@@ -95,18 +118,18 @@ Communicator.prototype.launch = function(demo_id) {
     this.renderer_id = demo_id;
 
     var openSessionParams = {
-        owner: this.renderer_id + 'Controller',
-        renderer_id: this.renderer_id,
+        owner: demo_id+'@'+this.deflectStreamHost,
+        renderer_id: demo_id
     };
+
     var self = this;
     this.sendRequest('POST', MODULE_SESSION, SESSION_COMMAND_NONE, openSessionParams,
                      function(request) {
-                         if (request.status === 201) {
-                             console.log("Session opened, starting application", request.status, request.responseText);
+                         if (request.status === 201)
                              self.startRenderer();
-                         }
                          else
-                             console.log("Session could not be opened", request.status, request.responseText);
+                             console.warn("Session could not be opened",
+                                          request.status, request.responseText);
                      });
 };
 
@@ -129,11 +152,12 @@ Communicator.prototype.startRenderer = function() {
     var self = this;
     this.sendRequest('PUT', MODULE_SESSION, SESSION_COMMAND_SCHEDULE, params,
                      function (request) {
-                         console.log("Renderer start:", request.status, request.responseText);
-                         // Debug info
-                         self.querySessionInfo(SESSION_COMMAND_ERROR);
-                         self.querySessionInfo(SESSION_COMMAND_JOB);
-                         self.querySessionInfo(SESSION_COMMAND_LOG);
+                         if(request.status === 200)
+                             self.querySessionInfo(SESSION_COMMAND_JOB);
+                         else {
+                             self.querySessionInfo(SESSION_COMMAND_ERROR);
+                             self.querySessionInfo(SESSION_COMMAND_LOG);
+                         }
                      });
 }
 
@@ -143,11 +167,17 @@ Communicator.prototype.startRenderer = function() {
 Communicator.prototype.querySessionInfo = function(infoType) {
     this.sendRequest('GET', MODULE_SESSION, infoType, NO_BODY,
                      function(request) {
-                         console.log("Session info:", infoType, request.status, request.responseText);
                          if (request.status === 200) {
                              var obj = JSON.parse(request.responseText);
-                             console.log(obj.contents);
+                             if (infoType === SESSION_COMMAND_JOB)
+                                 console.log("job info:", request.status,
+                                             obj.contents);
+                             else
+                                 console.warn("job "+infoType+":",
+                                              request.status, obj.contents);
                          }
+                         else
+                             console.warn("get "+infoType+":", request.status);
                      });
 };
 
@@ -163,7 +193,7 @@ Communicator.prototype.queryConfigurations = function(callback, filter) {
         }
     }
     request.open("GET", this.serviceUrl + '/config/', true);
-    request.send()
+    request.send();
 };
 
 /**
