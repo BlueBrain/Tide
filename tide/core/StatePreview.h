@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -96,8 +96,8 @@ public:
 protected:
     QString previewFilename() const;
 
-    QString dcxFileName_;
-    QImage previewImage_;
+    QString _dcxFileName;
+    QImage _previewImage;
 };
 
 #endif // STATEPREVIEW_H

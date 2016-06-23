@@ -70,6 +70,64 @@ QImage FolderThumbnailGenerator::generate( const QString& filename ) const
     return createErrorImage( "folder" );
 }
 
+QImage
+FolderThumbnailGenerator::_createFolderImage( const QDir& dir,
+                                              const bool generateThumbnails ) const
+{
+    QImage img = createGradientImage( Qt::black, Qt::white );
+
+    const QFileInfoList& fileList = _getSupportedFilesInDir( dir );
+
+    if( generateThumbnails && fileList.size() > 0 )
+        _paintThumbnailsMosaic( img, fileList );
+    else
+        paintText( img, FOLDER_TEXT );
+
+    return img;
+}
+
+void FolderThumbnailGenerator::_paintThumbnailsMosaic( QImage& img,
+                                                       const QFileInfoList&
+                                                       fileList ) const
+{
+    const int numPreviews = std::min( FOLDER_THUMBNAILS_X*FOLDER_THUMBNAILS_Y,
+                                      fileList.size( ));
+    if( numPreviews == 0 )
+        return;
+
+    QVector<QRectF> rect = _calculatePlacement( FOLDER_THUMBNAILS_X,
+                                                FOLDER_THUMBNAILS_Y,
+                                                FOLDER_THUMBNAILS_PADDING,
+                                                img.size().width(),
+                                                img.size().height( ));
+    QPainter painter( &img );
+    for( int i = 0; i < numPreviews; ++i )
+    {
+        QFileInfo fileInfo = fileList.at( i );
+        const QString& filename = fileInfo.absoluteFilePath();
+
+        QImage thumbnail;
+        // Avoid recursion into subfolders
+        if( QDir( filename ).exists( ))
+            thumbnail = _createFolderImage( QDir( filename ), false );
+        else
+        {
+            const auto size = rect[i].size().toSize();
+            auto generator =
+                    ThumbnailGeneratorFactory::getGenerator( filename, size );
+            thumbnail = generator->generate( filename );
+        }
+
+        // Draw the thumbnail centered in its rectangle, preserving aspect ratio
+        QSizeF paintedSize( thumbnail.size( ));
+        paintedSize.scale( rect[i].size(), Qt::KeepAspectRatio );
+        QRectF paintRect( QPointF(), paintedSize );
+        paintRect.moveCenter( rect[i].center( ));
+        painter.drawImage( paintRect, thumbnail );
+    }
+    painter.end();
+}
+
 QVector<QRectF>
 FolderThumbnailGenerator::_calculatePlacement( int nX, int nY, float padding,
                                                float totalWidth,
@@ -94,54 +152,6 @@ FolderThumbnailGenerator::_calculatePlacement( int nX, int nY, float padding,
         }
     }
     return rect;
-}
-
-void FolderThumbnailGenerator::_paintThumbnailsMosaic( QImage& img,
-                                                       const QFileInfoList&
-                                                       fileList ) const
-{
-    const int numPreviews = std::min( FOLDER_THUMBNAILS_X*FOLDER_THUMBNAILS_Y,
-                                      fileList.size( ));
-    if( numPreviews == 0 )
-        return;
-
-    QVector<QRectF> rect = _calculatePlacement( FOLDER_THUMBNAILS_X,
-                                               FOLDER_THUMBNAILS_Y,
-                                               FOLDER_THUMBNAILS_PADDING,
-                                               img.size().width(),
-                                               img.size().height( ));
-    QPainter painter( &img );
-    for( int i = 0; i < numPreviews; ++i )
-    {
-        QFileInfo fileInfo = fileList.at( i );
-        const QString& filename = fileInfo.absoluteFilePath();
-
-        QImage thumbnail;
-        // Avoid recursion into subfolders
-        if( QDir( filename ).exists( ))
-            thumbnail = _createFolderImage( QDir( filename ), false );
-        else
-            thumbnail = ThumbnailGeneratorFactory::getGenerator( filename, _size )->generate( filename );
-
-        painter.drawImage( rect[i], thumbnail );
-    }
-    painter.end();
-}
-
-QImage
-FolderThumbnailGenerator::_createFolderImage( const QDir& dir,
-                                              const bool generateThumbnails ) const
-{
-    QImage img = createGradientImage( Qt::black, Qt::white );
-
-    const QFileInfoList& fileList = _getSupportedFilesInDir( dir );
-
-    if( generateThumbnails && fileList.size() > 0 )
-        _paintThumbnailsMosaic(img, fileList);
-    else
-        paintText( img, FOLDER_TEXT );
-
-    return img;
 }
 
 QFileInfoList

@@ -48,12 +48,9 @@
 
 #define THUMBNAIL_FONT_SIZE 30
 
-// TODO change this when the slide show is adapted to keep aspect ratio
-#define ASPECT_RATIO Qt::IgnoreAspectRatio
-
 ThumbnailGenerator::ThumbnailGenerator( const QSize& size )
     : _size( size )
-    , _aspectRatioMode( ASPECT_RATIO )
+    , _aspectRatioMode( Qt::KeepAspectRatio )
 {
 }
 

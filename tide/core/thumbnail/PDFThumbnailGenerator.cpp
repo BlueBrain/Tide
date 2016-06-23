@@ -70,8 +70,8 @@ QImage PDFThumbnailGenerator::generate( const QString& filename ) const
     if( QFileInfo( filename ).size() > maxPdfPageSize * pdf.getPageCount( ))
         return _createLargePdfPlaceholder();
 
-    const QImage image = pdf.renderToImage( _size );
-
+    const QSize imageSize = pdf.getSize().scaled( _size, _aspectRatioMode );
+    const QImage image = pdf.renderToImage( imageSize );
     if( image.isNull( ))
     {
         put_flog( LOG_ERROR, "could not render pdf file: '%s'",

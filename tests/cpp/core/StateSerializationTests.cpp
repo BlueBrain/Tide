@@ -414,16 +414,17 @@ BOOST_AUTO_TEST_CASE( testStateSerializationToFile )
     BOOST_CHECK_LT( previewError, 0.02f );
 
     // 4) Test restoring
-    DisplayGroupPtr loadedDisplayGroup = boost::make_shared<DisplayGroup>( wallSize );
-    StateSerializationHelper loader( loadedDisplayGroup );
+    DisplayGroupPtr loadedGroup = boost::make_shared<DisplayGroup>( wallSize );
+    StateSerializationHelper loader( loadedGroup );
     BOOST_CHECK( loader.load( TEST_DIR + "/test.dcx" ));
 
-    BOOST_REQUIRE_EQUAL( loadedDisplayGroup->getContentWindows().size(),
+    BOOST_REQUIRE_EQUAL( loadedGroup->getContentWindows().size(),
                          displayGroup->getContentWindows().size( ));
-    BOOST_REQUIRE_EQUAL( loadedDisplayGroup->getShowWindowTitles(),
+    BOOST_REQUIRE_EQUAL( loadedGroup->getShowWindowTitles(),
                          displayGroup->getShowWindowTitles());
-    BOOST_REQUIRE_EQUAL( loadedDisplayGroup->getCoordinates(), QRectF( QPointF( 0, 0 ), wallSize ));
-    checkWindow( loadedDisplayGroup->getContentWindows()[0] );
+    BOOST_REQUIRE_EQUAL( loadedGroup->getCoordinates(),
+                         QRectF( QPointF( 0, 0 ), wallSize ));
+    checkWindow( loadedGroup->getContentWindows()[0] );
 
     // 4) Cleanup
     cleanupTestDir();

@@ -60,13 +60,14 @@ Rectangle {
                     GradientStop { position: 0.0; color: Style.placeholderTopColor }
                     GradientStop { position: 1.0; color: Style.placeholderBottomColor }
                 }
-                Image {
-                    id: thumbnail
-                    anchors.fill: parent
-                    cache: false
-                    source: "image://thumbnail/" + filePath
-                    fillMode: Image.PreserveAspectFit
-                }
+                visible: thumbnail.status !== Image.Ready
+            }
+            Image {
+                id: thumbnail
+                anchors.fill: placeholder
+                fillMode: Image.PreserveAspectFit
+                cache: false
+                source: "image://thumbnail/" + filePath
             }
 
             Text {
