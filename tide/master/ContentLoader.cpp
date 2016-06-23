@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -46,7 +46,7 @@
 #include "log.h"
 
 ContentLoader::ContentLoader( DisplayGroupPtr displayGroup )
-    : displayGroup_( displayGroup )
+    : _displayGroup( displayGroup )
 {
 }
 
@@ -55,6 +55,13 @@ bool ContentLoader::load( const QString& filename,
                           const QSizeF& windowSize )
 {
     put_flog( LOG_INFO, "opening: '%s'", filename.toLocal8Bit().constData( ));
+
+    if( isAlreadyOpen( filename ))
+    {
+        put_flog( LOG_INFO, "file already opened: '%s'",
+                  filename.toLocal8Bit().constData( ));
+        return false;
+    }
 
     ContentPtr content = ContentFactory::getContent( filename );
     if( !content )
@@ -65,7 +72,7 @@ bool ContentLoader::load( const QString& filename,
     }
 
     ContentWindowPtr contentWindow( new ContentWindow( content ));
-    ContentWindowController controller( *contentWindow, *displayGroup_ );
+    ContentWindowController controller( *contentWindow, *_displayGroup );
 
     if( windowSize.isValid( ))
         controller.resize( windowSize );
@@ -73,11 +80,21 @@ bool ContentLoader::load( const QString& filename,
         controller.adjustSize( SIZE_1TO1_FITTING );
 
     if( windowCenterPosition.isNull( ))
-        controller.moveCenterTo( displayGroup_->getCoordinates().center( ));
+        controller.moveCenterTo( _displayGroup->getCoordinates().center( ));
     else
         controller.moveCenterTo( windowCenterPosition );
 
-    displayGroup_->addContentWindow( contentWindow );
+    _displayGroup->addContentWindow( contentWindow );
 
     return true;
+}
+
+bool ContentLoader::isAlreadyOpen( const QString& filename ) const
+{
+    for( const ContentWindowPtr& window : _displayGroup->getContentWindows( ))
+    {
+        if( window->getContent()->getURI() == filename )
+            return true;
+    }
+    return false;
 }

@@ -334,8 +334,6 @@ void MasterApplication::_initRestInterface()
     });
     connect( _restInterface.get(), &RestInterface::open, [this]( QString uri ) {
         ContentLoader( displayGroup_ ).load( uri );
-        masterWindow_->getOptions()->setShowWindowTitles(
-                    displayGroup_->getShowWindowTitles( ));
     });
     connect( _restInterface.get(), &RestInterface::load, [this]( QString uri ) {
         _loadSessionOp.setFuture(

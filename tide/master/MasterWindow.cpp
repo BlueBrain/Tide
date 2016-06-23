@@ -434,10 +434,12 @@ void MasterWindow::_openContent()
 
     _contentFolder = QFileInfo( filename ).absoluteDir().path();
 
-    if( !ContentLoader( _displayGroup ).load( filename ))
+    ContentLoader loader ( _displayGroup );
+    if( !loader.load( filename ))
     {
         QMessageBox messageBox;
-        messageBox.setText( "Unsupported file." );
+        messageBox.setText( loader.isAlreadyOpen( filename ) ?
+                                "File already open." : "Unsupported file." );
         messageBox.exec();
     }
 }
