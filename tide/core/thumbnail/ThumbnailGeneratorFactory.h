@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -40,26 +40,26 @@
 #ifndef THUMBNAILGENERATORFACTORY_H
 #define THUMBNAILGENERATORFACTORY_H
 
-#include <QString>
+#include <memory>
+
 #include <QSize>
-#include <boost/shared_ptr.hpp>
+#include <QString>
 
 class ThumbnailGenerator;
 class FolderThumbnailGenerator;
 
-typedef boost::shared_ptr<ThumbnailGenerator> ThumbnailGeneratorPtr;
-typedef boost::shared_ptr<FolderThumbnailGenerator> FolderThumbnailGeneratorPtr;
+typedef std::unique_ptr<ThumbnailGenerator> ThumbnailGeneratorPtr;
+typedef std::unique_ptr<FolderThumbnailGenerator> FolderThumbnailGeneratorPtr;
 
 class ThumbnailGeneratorFactory
 {
 public:
-    ThumbnailGeneratorFactory();
+    static ThumbnailGeneratorPtr getGenerator( const QString& filename,
+                                               const QSize& size );
 
-    static ThumbnailGeneratorPtr getGenerator(const QString& filename, const QSize& size);
+    static ThumbnailGeneratorPtr getDefaultGenerator( const QSize& size );
 
-    static ThumbnailGeneratorPtr getDefaultGenerator(const QSize& size);
-
-    static FolderThumbnailGeneratorPtr getFolderGenerator(const QSize& size);
+    static FolderThumbnailGeneratorPtr getFolderGenerator( const QSize& size );
 };
 
-#endif // THUMBNAILGENERATORFACTORY_H
+#endif

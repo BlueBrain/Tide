@@ -3,6 +3,11 @@ Changelog {#Changelog}
 
 # git master (1.1.0)
 
+* [46](https://github.com/BlueBrain/Tide/pull/46):
+  Improved Launcher:
+  - The creation and caching of file thumbnails is more efficient.
+  - File thumbnails are displayed with their correct aspect ratio.
+  Session preview images are of better quality (no longer pixelated).
 * [38](https://github.com/BlueBrain/Tide/pull/38):
   Fix a segfault that occured when opening grayscale images.
 * [36](https://github.com/BlueBrain/Tide/pull/36):

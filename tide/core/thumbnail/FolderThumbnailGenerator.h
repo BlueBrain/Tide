@@ -49,18 +49,16 @@ class FolderThumbnailGenerator : public ThumbnailGenerator
 public:
     FolderThumbnailGenerator( const QSize& size );
 
-    QImage generate( const QString& filename ) const override;
+    QImage generate( const QString& filename ) const final;
 
 private:
-    QImage generatePlaceholderImage( const QDir& dir ) const;
-    void addMetadataToImage( QImage& img, const QString& url ) const;
-    QImage createFolderImage( const QDir& dir, bool generateThumbnails) const;
-    QVector<QRectF> calculatePlacement( int nX, int nY, float padding,
-                                        float totalWidth,
-                                        float totalHeight ) const;
-    void paintThumbnailsMosaic( QImage &img,
-                                const QFileInfoList& fileList ) const;
-    QFileInfoList getSupportedFilesInDir( QDir dir ) const;
+    QImage _createFolderImage( const QDir& dir, bool generateThumbnails ) const;
+    QVector<QRectF> _calculatePlacement( int nX, int nY, float padding,
+                                         float totalWidth,
+                                         float totalHeight ) const;
+    void _paintThumbnailsMosaic( QImage& img,
+                                 const QFileInfoList& fileList ) const;
+    QFileInfoList _getSupportedFilesInDir( QDir dir ) const;
 };
 
 #endif

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -45,9 +45,9 @@
 class MovieThumbnailGenerator : public ThumbnailGenerator
 {
 public:
-    MovieThumbnailGenerator(const QSize &size);
+    MovieThumbnailGenerator( const QSize& size );
 
-    QImage generate(const QString& filename) const override;
+    QImage generate( const QString& filename ) const final;
 };
 
-#endif // MOVIETHUMBNAILGENERATOR_H
+#endif

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -55,12 +55,11 @@
 
 namespace
 {
-static const QSize PREVIEW_IMAGE_SIZE( 512, 512 );
-static const QSize THUMBNAIL_SIZE( 128, 128 );
+const QSize PREVIEW_IMAGE_SIZE( 512, 512 );
 }
 
 StatePreview::StatePreview( const QString &dcxFileName )
-    : dcxFileName_( dcxFileName )
+    : _dcxFileName( dcxFileName )
 {
 }
 
@@ -71,12 +70,12 @@ QString StatePreview::getFileExtension()
 
 QImage StatePreview::getImage() const
 {
-    return previewImage_;
+    return _previewImage;
 }
 
 QString StatePreview::previewFilename() const
 {
-    QFileInfo fileinfo( dcxFileName_ );
+    QFileInfo fileinfo( _dcxFileName );
 
     const QString extension = fileinfo.suffix().toLower();
     if( extension != "dcx" )
@@ -84,7 +83,7 @@ QString StatePreview::previewFilename() const
         put_flog( LOG_WARN, "wrong state file extension: '%s' for session: '%s'"
                             "(expected: .dcx)",
                   extension.toLocal8Bit().constData( ),
-                  dcxFileName_.toLocal8Bit().constData( ));
+                  _dcxFileName.toLocal8Bit().constData( ));
         return QString();
     }
     return fileinfo.path() + "/" + fileinfo.completeBaseName() + getFileExtension();
@@ -117,7 +116,8 @@ void StatePreview::generateImage( const QSize& wallDimensions,
 
         const QString& filename = window->getContent()->getURI();
         ThumbnailGeneratorPtr generator =
-            ThumbnailGeneratorFactory::getGenerator( filename, THUMBNAIL_SIZE );
+            ThumbnailGeneratorFactory::getGenerator( filename,
+                                                     area.size().toSize( ));
         const QImage image = generator->generate( filename );
 
         painter.drawImage( area, image );
@@ -125,12 +125,12 @@ void StatePreview::generateImage( const QSize& wallDimensions,
 
     painter.end();
 
-    previewImage_ = preview;
+    _previewImage = preview;
 }
 
 bool StatePreview::saveToFile() const
 {
-    const bool success = previewImage_.save( previewFilename(), "PNG" );
+    const bool success = _previewImage.save( previewFilename(), "PNG" );
 
     if( !success )
         put_flog( LOG_ERROR, "Saving StatePreview image failed: '%s'",
@@ -142,9 +142,5 @@ bool StatePreview::saveToFile() const
 bool StatePreview::loadFromFile()
 {
     QImageReader reader( previewFilename( ));
-    if ( reader.canRead( ))
-    {
-        return reader.read( &previewImage_ );
-    }
-    return false;
+    return reader.canRead() && reader.read( &_previewImage );
 }

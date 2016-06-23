@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -41,8 +41,8 @@
 
 #include "config.h"
 #if TIDE_ENABLE_PDF_SUPPORT
+#  include "PDFContent.h"
 #  include "PDFThumbnailGenerator.h"
-#  include "../PDFContent.h"
 #endif
 
 #include "DefaultThumbnailGenerator.h"
@@ -52,62 +52,49 @@
 #include "PyramidThumbnailGenerator.h"
 #include "StateThumbnailGenerator.h"
 
+#include "DynamicTextureContent.h"
 #include "MovieContent.h"
 #include "TextureContent.h"
-#include "DynamicTextureContent.h"
 
-#include <QImageReader>
 #include <QDir>
 
-ThumbnailGeneratorFactory::ThumbnailGeneratorFactory()
+ThumbnailGeneratorPtr
+ThumbnailGeneratorFactory::getGenerator( const QString& filename,
+                                         const QSize& size )
 {
-}
+    const QString& extension = QFileInfo( filename ).suffix().toLower();
 
-ThumbnailGeneratorPtr ThumbnailGeneratorFactory::getGenerator(const QString &filename, const QSize &size)
-{
-    const QString& extension = QFileInfo(filename).suffix().toLower();
-
-    if (!filename.isEmpty() && QDir(filename).exists())
-    {
-        return ThumbnailGeneratorPtr(new FolderThumbnailGenerator(size));
-    }
+    if( !filename.isEmpty() && QDir( filename ).exists( ))
+        return ThumbnailGeneratorPtr( new FolderThumbnailGenerator( size ));
 
     if( extension == "dcx" )
-    {
-        return ThumbnailGeneratorPtr(new StateThumbnailGenerator(size));
-    }
+        return ThumbnailGeneratorPtr( new StateThumbnailGenerator( size ));
 
     if( MovieContent::getSupportedExtensions().contains( extension ))
-    {
-        return ThumbnailGeneratorPtr(new MovieThumbnailGenerator(size));
-    }
+        return ThumbnailGeneratorPtr( new MovieThumbnailGenerator( size ));
 
     if( TextureContent::getSupportedExtensions().contains( extension ))
-    {
-        return ThumbnailGeneratorPtr(new ImageThumbnailGenerator(size));
-    }
+        return ThumbnailGeneratorPtr( new ImageThumbnailGenerator( size ));
 
     if( DynamicTextureContent::getSupportedExtensions().contains( extension ))
-    {
-        return ThumbnailGeneratorPtr(new PyramidThumbnailGenerator(size));
-    }
+        return ThumbnailGeneratorPtr( new PyramidThumbnailGenerator( size ));
 
 #if TIDE_ENABLE_PDF_SUPPORT
     if( PDFContent::getSupportedExtensions().contains( extension ))
-    {
-        return ThumbnailGeneratorPtr(new PDFThumbnailGenerator(size));
-    }
+        return ThumbnailGeneratorPtr( new PDFThumbnailGenerator( size ));
 #endif
 
-    return ThumbnailGeneratorPtr(new DefaultThumbnailGenerator(size));
+    return ThumbnailGeneratorPtr( new DefaultThumbnailGenerator( size ));
 }
 
-ThumbnailGeneratorPtr ThumbnailGeneratorFactory::getDefaultGenerator(const QSize &size)
+ThumbnailGeneratorPtr
+ThumbnailGeneratorFactory::getDefaultGenerator( const QSize& size )
 {
-    return ThumbnailGeneratorPtr(new DefaultThumbnailGenerator(size));
+    return ThumbnailGeneratorPtr( new DefaultThumbnailGenerator( size ));
 }
 
-FolderThumbnailGeneratorPtr ThumbnailGeneratorFactory::getFolderGenerator(const QSize &size)
+FolderThumbnailGeneratorPtr
+ThumbnailGeneratorFactory::getFolderGenerator( const QSize& size )
 {
-    return FolderThumbnailGeneratorPtr(new FolderThumbnailGenerator(size));
+    return FolderThumbnailGeneratorPtr( new FolderThumbnailGenerator( size ));
 }

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -48,55 +48,50 @@
 
 #define THUMBNAIL_FONT_SIZE 30
 
-// TODO change this when the slide show is adapted to keep aspect ratio
-#define ASPECT_RATIO Qt::IgnoreAspectRatio
-
-ThumbnailGenerator::ThumbnailGenerator(const QSize &size)
-    : size_(size)
-    , aspectRatioMode_(ASPECT_RATIO)
+ThumbnailGenerator::ThumbnailGenerator( const QSize& size )
+    : _size( size )
+    , _aspectRatioMode( Qt::KeepAspectRatio )
 {
 }
 
-void ThumbnailGenerator::addMetadataToImage(QImage &img, const QString &url) const
+QImage ThumbnailGenerator::createErrorImage( const QString& message) const
 {
-    img.setText("source", url);
-}
-
-QImage ThumbnailGenerator::createErrorImage(const QString &message) const
-{
-    QImage img = createGradientImage(Qt::red, Qt::darkRed);
-    paintText(img, message);
+    QImage img = createGradientImage( Qt::red, Qt::darkRed );
+    paintText( img, message );
     return img;
 }
 
-QImage ThumbnailGenerator::createGradientImage( const QColor& bgcolor1, const QColor& bgcolor2 ) const
+QImage ThumbnailGenerator::createGradientImage( const QColor& bgcolor1,
+                                                const QColor& bgcolor2 ) const
 {
-    QImage img( size_, QImage::Format_RGB32 );
+    QImage img( _size, QImage::Format_RGB32 );
 
     QPainter painter( &img );
-    QPoint p1( GRADIENT_START_X * img.width(), GRADIENT_START_Y * img.height( ));
-    QPoint p2( GRADIENT_END_X   * img.width(), GRADIENT_END_Y   * img.height( ));
+    const QPoint p1( GRADIENT_START_X * img.width(),
+                     GRADIENT_START_Y * img.height( ));
+    const QPoint p2( GRADIENT_END_X   * img.width(),
+                     GRADIENT_END_Y   * img.height( ));
     QLinearGradient linearGrad( p1, p2 );
     linearGrad.setColorAt( 0, bgcolor1 );
     linearGrad.setColorAt( 1, bgcolor2 );
-    painter.setBrush(linearGrad);
-    painter.fillRect( 0, 0, img.width(), img.height(), QBrush(linearGrad));
+    painter.setBrush( linearGrad );
+    painter.fillRect( 0, 0, img.width(), img.height(), QBrush( linearGrad ));
     painter.end();
 
     return img;
 }
 
-void ThumbnailGenerator::paintText(QImage& img, const QString& text) const
+void ThumbnailGenerator::paintText( QImage& img, const QString& text ) const
 {
     QFont font;
-    font.setStyleHint(QFont::Times, QFont::PreferAntialias);
-    font.setPointSize(THUMBNAIL_FONT_SIZE);
+    font.setStyleHint( QFont::Times, QFont::PreferAntialias );
+    font.setPointSize( THUMBNAIL_FONT_SIZE );
 
     QPainter painter( &img );
-    painter.setRenderHint(QPainter::Antialiasing);
-    painter.setBrush(Qt::black);
-    painter.setFont(font);
+    painter.setRenderHint( QPainter::Antialiasing );
+    painter.setBrush( Qt::black );
+    painter.setFont( font );
     int flags = Qt::AlignVCenter | Qt::AlignHCenter | Qt::TextWrapAnywhere;
-    painter.drawText(img.rect(), flags, text);
+    painter.drawText( img.rect(), flags, text );
     painter.end();
 }

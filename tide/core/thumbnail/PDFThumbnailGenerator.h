@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -47,7 +47,10 @@ class PDFThumbnailGenerator : public ThumbnailGenerator
 public:
     PDFThumbnailGenerator( const QSize& size );
 
-    QImage generate( const QString& filename ) const override;
+    QImage generate( const QString& filename ) const final;
+
+private:
+    QImage _createLargePdfPlaceholder() const;
 };
 
-#endif // PDFTHUMBNAILGENERATOR_H
+#endif

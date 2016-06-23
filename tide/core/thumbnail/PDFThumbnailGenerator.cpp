@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -42,6 +42,15 @@
 #include "PDF.h"
 #include "log.h"
 
+#include <QFileInfo>
+
+namespace
+{
+const size_t sizeOfMegabyte = 1024 * 1024;
+// empirical value used to minimize thumbnail generation time
+const qint64 maxPdfPageSize = 2 * sizeOfMegabyte;
+}
+
 PDFThumbnailGenerator::PDFThumbnailGenerator( const QSize& size )
     : ThumbnailGenerator( size )
 {
@@ -58,8 +67,11 @@ QImage PDFThumbnailGenerator::generate( const QString& filename ) const
         return createErrorImage( "pdf" );
     }
 
-    QImage image = pdf.renderToImage( size_ );
+    if( QFileInfo( filename ).size() > maxPdfPageSize * pdf.getPageCount( ))
+        return _createLargePdfPlaceholder();
 
+    const QSize imageSize = pdf.getSize().scaled( _size, _aspectRatioMode );
+    const QImage image = pdf.renderToImage( imageSize );
     if( image.isNull( ))
     {
         put_flog( LOG_ERROR, "could not render pdf file: '%s'",
@@ -67,6 +79,12 @@ QImage PDFThumbnailGenerator::generate( const QString& filename ) const
         return createErrorImage( "pdf" );
     }
 
-    addMetadataToImage( image, filename );
     return image;
+}
+
+QImage PDFThumbnailGenerator::_createLargePdfPlaceholder() const
+{
+    QImage img = createGradientImage( Qt::darkBlue, Qt::white );
+    paintText( img, "LARGE\nPDF" );
+    return img;
 }

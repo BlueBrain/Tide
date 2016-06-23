@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -39,15 +39,14 @@
 
 #include "DefaultThumbnailGenerator.h"
 
-DefaultThumbnailGenerator::DefaultThumbnailGenerator(const QSize &size)
-    : ThumbnailGenerator(size)
+DefaultThumbnailGenerator::DefaultThumbnailGenerator( const QSize& size )
+    : ThumbnailGenerator( size )
 {
 }
 
-QImage DefaultThumbnailGenerator::generate(const QString& filename) const
+QImage DefaultThumbnailGenerator::generate( const QString& ) const
 {
-    QImage img = createGradientImage( QColor(Qt::black), QColor(Qt::white) );
-    paintText(img, "FILE");
-    addMetadataToImage(img, filename);
+    QImage img = createGradientImage( QColor( Qt::black ), QColor( Qt::white ));
+    paintText( img, "FILE" );
     return img;
 }
