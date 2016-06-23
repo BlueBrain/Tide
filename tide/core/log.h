@@ -43,6 +43,7 @@
 #define LOG_H
 
 #include <string>
+#include <qlogging.h>
 
 #define LOG_VERBOSE 0
 #define LOG_DEBUG 1
@@ -59,6 +60,8 @@
 
 extern std::string logger_id;
 extern void put_log( int level, const char* format, ... );
+extern void qtMessageLogger( QtMsgType type, const QMessageLogContext& context,
+                             const QString& msg );
 
 #ifdef _WIN32
 #  define put_flog( l, fmt, ... ) put_log( l, "%s: " fmt, __FUNCTION__, ##__VA_ARGS__ )

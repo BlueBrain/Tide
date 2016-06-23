@@ -45,6 +45,9 @@
 #include <iostream>
 #include <sstream>
 
+#include <QByteArray>
+#include <QString>
+
 #define MAX_LOG_LENGTH 1024
 
 std::string logger_id = "";
@@ -70,4 +73,41 @@ void put_log( const int level, const char* format, ... )
         std::cerr << message.str() << std::endl;
     else
         std::cout << message.str() << std::endl;
+}
+
+void qtMessageLogger( const QtMsgType type,
+                      const QMessageLogContext& context,
+                      const QString& message )
+{
+    const QByteArray msg = message.toLocal8Bit();
+    QByteArray ctx;
+    if( context.file && context.line && context.function  )
+        ctx = QString( " (%1:%2, %3)" ).arg( context.file ).arg(
+                  context.line ).arg( context.function ).toLocal8Bit();
+
+    switch( type )
+    {
+    case QtDebugMsg:
+        put_log( LOG_DEBUG, "qDebug: %s%s", msg.constData(), ctx.constData( ));
+        break;
+#if QT_VERSION >= 0x050500
+    case QtInfoMsg:
+        put_log( LOG_INFO, "qInfo: %s%s", msg.constData(), ctx.constData( ));
+        break;
+#endif
+    case QtWarningMsg:
+        put_log( LOG_WARN, "qWarning: %s%s", msg.constData(), ctx.constData( ));
+        break;
+    case QtCriticalMsg:
+        put_log( LOG_ERROR, "qCritical: %s%s", msg.constData(),
+                 ctx.constData( ));
+        break;
+    case QtFatalMsg:
+        put_log( LOG_FATAL, "qFatal: %s%s", msg.constData(), ctx.constData( ));
+        abort();
+    default:
+        put_log( LOG_WARN, "qMsgTypeUndef: %s%s", msg.constData(),
+                 ctx.constData( ));
+        break;
+    }
 }

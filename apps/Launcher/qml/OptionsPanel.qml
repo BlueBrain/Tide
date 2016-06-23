@@ -54,7 +54,7 @@ DefaultPanel {
         }
         CheckBox {
             id: alphaBlending
-            text: "Alpha blending"
+            text: "Transparent Windows"
             onClicked: buttonClicked("alphaBlending", checked)
             style: checkboxScalingStyle
         }

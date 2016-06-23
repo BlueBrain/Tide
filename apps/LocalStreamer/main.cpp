@@ -65,6 +65,7 @@ int main( int argc, char* argv[] )
     }
 
     logger_id = getStreamerTypeString( type ).toStdString();
+    qInstallMessageHandler( qtMessageLogger );
 
     Application app( argc, argv );
     if( !app.initialize( options ))

@@ -21,6 +21,13 @@
         <file>unknownfile.png</file>
         <file>gear.svg</file>
         <file>exit.svg</file>
+        <file>clock.svg</file>
+    </qresource>
+    <qresource prefix="/img/clock">
+        <file>background.svg</file>
+        <file>hour.svg</file>
+        <file>minute.svg</file>
+        <file>second.svg</file>
     </qresource>
     <qresource prefix="/fonts">
         <file>Gotham-Book.otf</file>
@@ -34,6 +41,7 @@
     <qresource prefix="/qml/core">
         <file>style.js</file>
         <file>BaseContentWindow.qml</file>
+        <file>Clock.qml</file>
         <file>CloseControlButton.qml</file>
         <file>ControlButton.qml</file>
         <file>DisplayGroup.qml</file>

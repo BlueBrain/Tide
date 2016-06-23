@@ -44,6 +44,7 @@
 int main( int argc, char** argv )
 {
     logger_id = "launcher";
+    qInstallMessageHandler( qtMessageLogger );
 
     std::unique_ptr<Launcher> launcher;
     try

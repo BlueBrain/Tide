@@ -48,6 +48,7 @@
 int main( int argc, char* argv[] )
 {
     logger_id = "forker";
+    qInstallMessageHandler( qtMessageLogger );
 
     MPIChannelPtr worldChannel( new MPIChannel( argc, argv ));
     const int rank = worldChannel->getRank();

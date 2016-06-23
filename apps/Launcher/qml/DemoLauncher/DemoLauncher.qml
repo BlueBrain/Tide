@@ -3,6 +3,7 @@
 //                          Raphael Dumusc <raphael.dumusc@epfl.ch>
 
 import QtQuick 2.0
+import QtQuick.Controls 1.2
 import "../style.js" as Style
 import "RenderingResourcesManager.js" as RRM
 
@@ -101,7 +102,7 @@ Rectangle {
             anchors.fill: parent
             anchors.margins: 0.1 * height
 
-            font.pixelSize: 0.25 * parent.height
+            font.pixelSize: 0.2 * parent.height
             color: Style.fileBrowserDiscreteTextColor
             verticalAlignment: Text.AlignVCenter
             text: "Demos provided by: " + serviceUrl
@@ -120,6 +121,7 @@ Rectangle {
 
         property bool open: false
         property string demo: ""
+        property int status: RRM.SESSION_STATUS_STOPPED
 
         MouseArea {
             id: touchBarrier
@@ -132,16 +134,34 @@ Rectangle {
             Text {
                 id: title
                 color: "white"
-                text: "Starting demo '" + infoRect.demo + "' - please wait..."
+                text: "Launching '" + infoRect.demo + "'"
                 font.pixelSize: textPixelSize
                 anchors.horizontalCenter: parent.horizontalCenter
             }
             Text {
                 id: infoText
+                text: demosComm.toStatusString(infoRect.status)
                 color: "white"
                 font.pixelSize: textPixelSize
                 anchors.horizontalCenter: parent.horizontalCenter
             }
+            Item {
+                height: 3 * infoText.height
+                width: height
+                anchors.horizontalCenter: parent.horizontalCenter
+                Image {
+                    id: runningIcon
+                    source: "qrc:/images/check_white.svg"
+                    anchors.fill: parent
+                    sourceSize: Qt.size(width,height)
+                    visible: infoRect.status === RRM.SESSION_STATUS_RUNNING
+                }
+                BusyIndicator {
+                    running: infoRect.status < RRM.SESSION_STATUS_RUNNING
+                    anchors.fill: parent
+                }
+            }
+
             Rectangle {
                 id: closeButton
                 color: "darkgray"
@@ -170,7 +190,8 @@ Rectangle {
         Timer {
             repeat: true
             running: infoRect.open
-            onTriggered: demosComm.queryStatus( function (status) { infoText.text = status })
+            onTriggered: demosComm.queryStatus( function (status) { infoRect.status = status })
+            onRunningChanged: if(!running) { infoRect.status = RRM.SESSION_STATUS_STOPPED }
         }
         states: [
             State {
@@ -205,7 +226,6 @@ Rectangle {
         demosComm.queryDemos(fillDemoList);
     }
     Component.onDestruction: {
-        if (!demosComm.isRunning())
-            demosComm.closeCurrentSession();
+        demosComm.closeCurrentSession();
     }
 }
