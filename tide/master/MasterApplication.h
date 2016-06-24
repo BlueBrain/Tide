@@ -47,8 +47,6 @@
 #include <QFutureWatcher>
 #include <QThread>
 
-#include <boost/scoped_ptr.hpp>
-
 class MasterToWallChannel;
 class MasterToForkerChannel;
 class MasterFromWallChannel;
@@ -59,6 +57,7 @@ class MasterConfiguration;
 class MultiTouchListener;
 class RestInterface;
 class LoggingUtility;
+
 /**
  * The main application for the Master process.
  */
@@ -82,16 +81,16 @@ public:
     virtual ~MasterApplication();
 
 private:
-    boost::scoped_ptr<MasterToForkerChannel> masterToForkerChannel_;
-    boost::scoped_ptr<MasterToWallChannel> masterToWallChannel_;
-    boost::scoped_ptr<MasterFromWallChannel> masterFromWallChannel_;
-    boost::scoped_ptr<MasterWindow> masterWindow_;
-    boost::scoped_ptr<MasterConfiguration> config_;
-    boost::scoped_ptr<deflect::Server> deflectServer_;
-    boost::scoped_ptr<PixelStreamerLauncher> pixelStreamerLauncher_;
-    boost::scoped_ptr<PixelStreamWindowManager> pixelStreamWindowManager_;
+    std::unique_ptr<MasterToForkerChannel> _masterToForkerChannel;
+    std::unique_ptr<MasterToWallChannel> _masterToWallChannel;
+    std::unique_ptr<MasterFromWallChannel> _masterFromWallChannel;
+    std::unique_ptr<MasterWindow> _masterWindow;
+    std::unique_ptr<MasterConfiguration> _config;
+    std::unique_ptr<deflect::Server> _deflectServer;
+    std::unique_ptr<PixelStreamerLauncher> _pixelStreamerLauncher;
+    std::unique_ptr<PixelStreamWindowManager> _pixelStreamWindowManager;
 #if TIDE_ENABLE_TUIO_TOUCH_LISTENER
-    boost::scoped_ptr<MultiTouchListener> touchListener_;
+    std::unique_ptr<MultiTouchListener> _touchListener;
 #endif
 #if TIDE_ENABLE_REST_INTERFACE
     std::unique_ptr<RestInterface> _restInterface;
@@ -100,25 +99,24 @@ private:
     QFutureWatcher<DisplayGroupConstPtr> _loadSessionOp;
     QFutureWatcher<bool> _saveSessionOp;
 
-    DisplayGroupPtr displayGroup_;
-    MarkersPtr markers_;
+    DisplayGroupPtr _displayGroup;
+    MarkersPtr _markers;
 
-    QThread mpiSendThread_;
-    QThread mpiReceiveThread_;
+    QThread _mpiSendThread;
+    QThread _mpiReceiveThread;
 
-    void init();
-    bool createConfig( const QString& filename );
-    void startDeflectServer();
-    void restoreBackground();
-    void initPixelStreamLauncher();
-    void initMPIConnection();
-
+    void _init();
+    bool _createConfig( const QString& filename );
+    void _startDeflectServer();
+    void _restoreBackground();
+    void _initPixelStreamLauncher();
+    void _initMPIConnection();
 #if TIDE_ENABLE_TUIO_TOUCH_LISTENER
-    void initTouchListener();
+    void _initTouchListener();
 #endif
 #if TIDE_ENABLE_REST_INTERFACE
     void _initRestInterface();
 #endif
 };
 
-#endif // MASTERAPPLICATION_H
+#endif
