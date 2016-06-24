@@ -58,7 +58,7 @@ public:
      * Construct any empty serialization buffer
      */
     SerializeBuffer()
-        : size_( 0 )
+        : _size( 0 )
     {}
 
     /**
@@ -67,21 +67,21 @@ public:
      */
     void setSize(const size_t minSize)
     {
-        if (buffer_.size() < minSize)
-            buffer_.resize(minSize);
-        size_ = minSize;
+        if (_buffer.size() < minSize)
+            _buffer.resize(minSize);
+        _size = minSize;
     }
 
     /** @return the current size of the buffer */
     size_t size() const
     {
-        return size_;
+        return _size;
     }
 
     /** Direct write access to the buffer, don't write beyond size() */
     char* data()
     {
-        return buffer_.data();
+        return _buffer.data();
     }
 
     /**
@@ -110,18 +110,18 @@ public:
 #ifdef __APPLE__
         // pubsetbuf() does nothing on OSX (and probably on Windows too).
         // so an intermediate copy of the data is required.
-        std::string dataStr(buffer_.data(), buffer_.size());
+        std::string dataStr(_buffer.data(), _buffer.size());
         iss.str(dataStr);
 #else
-        iss.rdbuf()->pubsetbuf(buffer_.data(), size_);
+        iss.rdbuf()->pubsetbuf(_buffer.data(), _size);
 #endif
         boost::archive::binary_iarchive ia(iss);
         ia >> object;
     }
 
 private:
-    std::vector<char> buffer_;
-    size_t size_;
+    std::vector<char> _buffer;
+    size_t _size;
 };
 
-#endif // SERIALIZEBUFFER_H
+#endif

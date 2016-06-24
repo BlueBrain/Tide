@@ -77,11 +77,11 @@ WallApplication::WallApplication( int& argc_, char** argv_,
     if( options.getHelp( ))
         options.showSyntax();
 
-    if ( !createConfig( options.getConfigFilename(), worldChannel->getRank( )))
+    if ( !_createConfig( options.getConfigFilename(), worldChannel->getRank( )))
         throw std::runtime_error(" WallApplication: initialization failed." );
 
-    initWallWindow();
-    initMPIConnection( worldChannel );
+    _initWallWindow();
+    _initMPIConnection( worldChannel );
 }
 
 WallApplication::~WallApplication()
@@ -93,7 +93,7 @@ WallApplication::~WallApplication()
     _mpiSendThread.wait();
 }
 
-bool WallApplication::createConfig( const QString& filename, const int rank )
+bool WallApplication::_createConfig( const QString& filename, const int rank )
 {
     try
     {
@@ -107,7 +107,7 @@ bool WallApplication::createConfig( const QString& filename, const int rank )
     return true;
 }
 
-void WallApplication::initWallWindow()
+void WallApplication::_initWallWindow()
 {
     try
     {
@@ -124,7 +124,7 @@ void WallApplication::initWallWindow()
     _renderController.reset( new RenderController( *_window ));
 }
 
-void WallApplication::initMPIConnection( MPIChannelPtr worldChannel )
+void WallApplication::_initMPIConnection( MPIChannelPtr worldChannel )
 {
     _fromMasterChannel.reset( new WallFromMasterChannel( worldChannel ));
     _toMasterChannel.reset( new WallToMasterChannel( worldChannel ));

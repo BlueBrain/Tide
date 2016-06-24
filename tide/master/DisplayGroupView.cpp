@@ -63,7 +63,7 @@ const QString WALL_OBJECT_NAME( "Wall" );
 
 DisplayGroupView::DisplayGroupView( OptionsPtr options,
                                     const MasterConfiguration& config )
-    : displayGroupItem_( nullptr )
+    : _displayGroupItem( nullptr )
 {
     setResizeMode( QQuickView::SizeRootObjectToView );
 
@@ -72,82 +72,82 @@ DisplayGroupView::DisplayGroupView( OptionsPtr options,
 
     setSource( QML_BACKGROUND_URL );
 
-    wallObject_ = rootObject()->findChild<QObject*>( WALL_OBJECT_NAME );
-    wallObject_->setProperty( "numberOfTilesX", config.getTotalScreenCountX( ));
-    wallObject_->setProperty( "numberOfTilesY", config.getTotalScreenCountY( ));
-    wallObject_->setProperty( "mullionWidth", config.getMullionWidth( ));
-    wallObject_->setProperty( "mullionHeight", config.getMullionHeight( ));
-    wallObject_->setProperty( "screenWidth", config.getScreenWidth( ));
-    wallObject_->setProperty( "screenHeight", config.getScreenHeight( ));
-    wallObject_->setProperty( "wallWidth", config.getTotalWidth( ));
-    wallObject_->setProperty( "wallHeight", config.getTotalHeight( ));
+    _wallObject = rootObject()->findChild<QObject*>( WALL_OBJECT_NAME );
+    _wallObject->setProperty( "numberOfTilesX", config.getTotalScreenCountX( ));
+    _wallObject->setProperty( "numberOfTilesY", config.getTotalScreenCountY( ));
+    _wallObject->setProperty( "mullionWidth", config.getMullionWidth( ));
+    _wallObject->setProperty( "mullionHeight", config.getMullionHeight( ));
+    _wallObject->setProperty( "screenWidth", config.getScreenWidth( ));
+    _wallObject->setProperty( "screenHeight", config.getScreenHeight( ));
+    _wallObject->setProperty( "wallWidth", config.getTotalWidth( ));
+    _wallObject->setProperty( "wallHeight", config.getTotalHeight( ));
 }
 
 DisplayGroupView::~DisplayGroupView() {}
 
 void DisplayGroupView::setDataModel( DisplayGroupPtr displayGroup )
 {
-    if( displayGroup_ )
+    if( _displayGroup )
     {
-        displayGroup_->disconnect( this );
-        clearScene();
+        _displayGroup->disconnect( this );
+        _clearScene();
     }
 
-    displayGroup_ = displayGroup;
-    if( !displayGroup_ )
+    _displayGroup = displayGroup;
+    if( !_displayGroup )
         return;
 
-    rootContext()->setContextProperty( "displaygroup", displayGroup_.get( ));
+    rootContext()->setContextProperty( "displaygroup", _displayGroup.get( ));
 
     QQmlComponent component( engine(), QML_DISPLAYGROUP_URL );
-    displayGroupItem_ = qobject_cast< QQuickItem* >( component.create( ));
+    _displayGroupItem = qobject_cast< QQuickItem* >( component.create( ));
     qmlCheckOrThrow( component );
     auto wallObject = rootObject()->findChild<QQuickItem*>( WALL_OBJECT_NAME );
-    displayGroupItem_->setParentItem( wallObject );
+    _displayGroupItem->setParentItem( wallObject );
 
-    connect( displayGroupItem_, SIGNAL( launcherControlPressed( )),
+    connect( _displayGroupItem, SIGNAL( launcherControlPressed( )),
              this, SIGNAL( launcherControlPressed( )));
-    connect( displayGroupItem_, SIGNAL( settingsControlsPressed( )),
+    connect( _displayGroupItem, SIGNAL( settingsControlsPressed( )),
              this, SIGNAL( settingsControlsPressed( )));
 
-    ContentWindowPtrs contentWindows = displayGroup_->getContentWindows();
+    ContentWindowPtrs contentWindows = _displayGroup->getContentWindows();
     for( ContentWindowPtr contentWindow : contentWindows )
-        add( contentWindow );
+        _add( contentWindow );
 
-    connect( displayGroup_.get(),
+    connect( _displayGroup.get(),
              SIGNAL( contentWindowAdded( ContentWindowPtr )),
-             this, SLOT( add( ContentWindowPtr )));
-    connect( displayGroup_.get(),
+             this, SLOT( _add( ContentWindowPtr )));
+    connect( _displayGroup.get(),
              SIGNAL( contentWindowRemoved( ContentWindowPtr )),
-             this, SLOT( remove( ContentWindowPtr )));
-    connect( displayGroup_.get(),
+             this, SLOT( _remove( ContentWindowPtr )));
+    connect( _displayGroup.get(),
              SIGNAL( contentWindowMovedToFront( ContentWindowPtr )),
-             this, SLOT( moveToFront( ContentWindowPtr )));
+             this, SLOT( _moveToFront( ContentWindowPtr )));
 }
 
 QPointF DisplayGroupView::mapToWallPos( const QPointF& normalizedPos ) const
 {
-    const float scale = QQmlProperty::read( wallObject_, "scale" ).toFloat();
-    const float offsetX = QQmlProperty::read( wallObject_, "offsetX" ).toFloat();
-    const float offsetY = QQmlProperty::read( wallObject_, "offsetY" ).toFloat();
+    const float scale = QQmlProperty::read( _wallObject, "scale" ).toFloat();
+    const float offsetX = QQmlProperty::read( _wallObject, "offsetX" ).toFloat();
+    const float offsetY = QQmlProperty::read( _wallObject, "offsetY" ).toFloat();
 
-    const float screenPosX = normalizedPos.x() * displayGroup_->width() *
+    const float screenPosX = normalizedPos.x() * _displayGroup->width() *
                              scale + offsetX;
-    const float screenPosY = normalizedPos.y() * displayGroup_->height() *
+    const float screenPosY = normalizedPos.y() * _displayGroup->height() *
                              scale + offsetY;
 
     return QPointF( screenPosX, screenPosY );
 }
 
-void DisplayGroupView::clearScene()
+void DisplayGroupView::_clearScene()
 {
-    uuidToWindowMap_.clear();
+    _uuidToWindowMap.clear();
 
-    if( displayGroupItem_ )
+    if( _displayGroupItem )
     {
-        displayGroupItem_->setParentItem( 0 );
-        delete displayGroupItem_;
-        displayGroupItem_ = 0;
+        _displayGroupItem->setParentItem( 0 );
+        delete _displayGroupItem;
+        _displayGroupItem = 0;
     }
 }
 
@@ -175,7 +175,7 @@ bool DisplayGroupView::event( QEvent *evt )
     }
 }
 
-void DisplayGroupView::add( ContentWindowPtr contentWindow )
+void DisplayGroupView::_add( ContentWindowPtr contentWindow )
 {
     // New Context for the window, ownership retained by the windowItem
     QQmlContext* windowContext = new QQmlContext( rootContext( ));
@@ -187,27 +187,27 @@ void DisplayGroupView::add( ContentWindowPtr contentWindow )
 
     // Store a reference to the window and add it to the scene
     const QUuid& id = contentWindow->getID();
-    uuidToWindowMap_[ id ] = qobject_cast<QQuickItem*>( windowItem );
-    uuidToWindowMap_[ id ]->setParentItem( displayGroupItem_ );
+    _uuidToWindowMap[ id ] = qobject_cast<QQuickItem*>( windowItem );
+    _uuidToWindowMap[ id ]->setParentItem( _displayGroupItem );
 }
 
-void DisplayGroupView::remove( ContentWindowPtr contentWindow )
+void DisplayGroupView::_remove( ContentWindowPtr contentWindow )
 {
     const QUuid& id = contentWindow->getID();
-    if( !uuidToWindowMap_.contains( id ))
+    if( !_uuidToWindowMap.contains( id ))
         return;
 
-    QQuickItem* itemToRemove = uuidToWindowMap_[id];
-    uuidToWindowMap_.remove( id );
+    QQuickItem* itemToRemove = _uuidToWindowMap[id];
+    _uuidToWindowMap.remove( id );
     delete itemToRemove;
 }
 
-void DisplayGroupView::moveToFront( ContentWindowPtr contentWindow )
+void DisplayGroupView::_moveToFront( ContentWindowPtr contentWindow )
 {
     const QUuid& id = contentWindow->getID();
-    if( !uuidToWindowMap_.contains( id ))
+    if( !_uuidToWindowMap.contains( id ))
         return;
 
-    QQuickItem* itemToRaise = uuidToWindowMap_[id];
-    itemToRaise->stackAfter( displayGroupItem_->childItems().last( ));
+    QQuickItem* itemToRaise = _uuidToWindowMap[id];
+    itemToRaise->stackAfter( _displayGroupItem->childItems().last( ));
 }

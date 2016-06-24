@@ -108,7 +108,7 @@ public:
 private:
     void exposeEvent( QExposeEvent* exposeEvent ) final;
 
-    void startQuick( const WallConfiguration& config );
+    void _startQuick( const WallConfiguration& config );
 
     DisplayGroupRenderer* _displayGroupRenderer;
     TestPattern* _testPattern;
@@ -128,4 +128,4 @@ private:
     DataProvider* _provider;
 };
 
-#endif // WALLWINDOW_H
+#endif

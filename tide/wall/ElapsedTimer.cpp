@@ -45,21 +45,21 @@ ElapsedTimer::ElapsedTimer() {}
 
 void ElapsedTimer::setCurrentTime( const boost::posix_time::ptime& time )
 {
-    previousTime_ = currentTime_;
-    currentTime_ = time;
+    _previousTime = _currentTime;
+    _currentTime = time;
 }
 
 void ElapsedTimer::resetTime( const boost::posix_time::ptime& time )
 {
-    previousTime_ = currentTime_ = time;
+    _previousTime = _currentTime = time;
 }
 
 boost::posix_time::time_duration ElapsedTimer::getElapsedTime() const
 {
-    if (previousTime_.is_not_a_date_time() || currentTime_.is_not_a_date_time())
+    if (_previousTime.is_not_a_date_time() || _currentTime.is_not_a_date_time())
         return boost::posix_time::time_duration(); // duration == 0
 
-    return currentTime_ - previousTime_;
+    return _currentTime - _previousTime;
 }
 
 double ElapsedTimer::toSeconds( const boost::posix_time::time_duration time )

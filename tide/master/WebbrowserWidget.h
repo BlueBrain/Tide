@@ -66,9 +66,9 @@ public slots:
     void accept() override;
 
 private:
-    QLineEdit* urlLineEdit_;
-    QSpinBox* widthSpinBox_;
-    QSpinBox* heightSpinBox_;
+    QLineEdit* _urlLineEdit;
+    QSpinBox* _widthSpinBox;
+    QSpinBox* _heightSpinBox;
 };
 
-#endif // WEBBROWSERWIDGET_H
+#endif

@@ -60,13 +60,13 @@ public:
     void setDataModel( DisplayGroupPtr displayGroup );
 
 private slots:
-    void addContentWindow( ContentWindowPtr contentWindow );
-    void removeContentWindow( ContentWindowPtr contentWindow );
-    void moveContentWindowToFront( ContentWindowPtr contentWindow );
-    void moveListWidgetItemToFront( QListWidgetItem* listWidgetItem );
+    void _addContentWindow( ContentWindowPtr window );
+    void _removeContentWindow( ContentWindowPtr window );
+    void _moveContentWindowToFront( ContentWindowPtr window );
+    void _moveListWidgetItemToFront( QListWidgetItem* listWidgetItem );
 
 private:
-    DisplayGroupPtr displayGroup_;
+    DisplayGroupPtr _displayGroup;
 };
 
 #endif

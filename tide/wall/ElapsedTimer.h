@@ -66,8 +66,8 @@ public:
     static boost::posix_time::time_duration toTimeDuration( double seconds );
 
 private:
-    boost::posix_time::ptime currentTime_;
-    boost::posix_time::ptime previousTime_;
+    boost::posix_time::ptime _currentTime;
+    boost::posix_time::ptime _previousTime;
 };
 
-#endif // ELAPSEDTIMER_H
+#endif

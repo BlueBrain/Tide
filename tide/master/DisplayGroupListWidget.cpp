@@ -51,41 +51,44 @@
 DisplayGroupListWidget::DisplayGroupListWidget( QWidget* parent_ )
     : QListWidget( parent_ )
 {
-    connect( this, SIGNAL( itemClicked( QListWidgetItem* )),
-             this, SLOT( moveListWidgetItemToFront( QListWidgetItem* )));
+    connect( this, &QListWidget::itemClicked,
+             this, &DisplayGroupListWidget::_moveListWidgetItemToFront );
 }
 
 void DisplayGroupListWidget::setDataModel( DisplayGroupPtr displayGroup )
 {
-    if( displayGroup_ )
-        displayGroup_->disconnect( this );
+    if( _displayGroup )
+        _displayGroup->disconnect( this );
     clear();
 
-    displayGroup_ = displayGroup;
-    if( !displayGroup_ )
+    _displayGroup = displayGroup;
+    if( !_displayGroup )
         return;
 
-    connect( displayGroup_.get(), SIGNAL( contentWindowAdded( ContentWindowPtr )),
-             this, SLOT( addContentWindow( ContentWindowPtr )));
-    connect( displayGroup_.get(), SIGNAL( contentWindowRemoved( ContentWindowPtr )),
-             this, SLOT( removeContentWindow( ContentWindowPtr )));
-    connect( displayGroup_.get(), SIGNAL( contentWindowMovedToFront( ContentWindowPtr )),
-             this, SLOT( moveContentWindowToFront( ContentWindowPtr )));
+    connect( _displayGroup.get(), &DisplayGroup::contentWindowAdded,
+             this, &DisplayGroupListWidget::_addContentWindow );
+    connect( _displayGroup.get(), &DisplayGroup::contentWindowRemoved,
+             this, &DisplayGroupListWidget::_removeContentWindow );
+    connect( _displayGroup.get(), &DisplayGroup::contentWindowMovedToFront,
+             this, &DisplayGroupListWidget::_moveContentWindowToFront );
 }
 
-void DisplayGroupListWidget::addContentWindow( ContentWindowPtr contentWindow )
+void DisplayGroupListWidget::_addContentWindow( ContentWindowPtr contentWindow )
 {
-    ContentWindowListWidgetItem* newItem = new ContentWindowListWidgetItem( contentWindow );
+    ContentWindowListWidgetItem* newItem =
+            new ContentWindowListWidgetItem( contentWindow );
     newItem->setText( contentWindow->getContent()->getURI( ));
     insertItem( 0, newItem );
 }
 
-void DisplayGroupListWidget::removeContentWindow( ContentWindowPtr contentWindow )
+void DisplayGroupListWidget::_removeContentWindow( ContentWindowPtr
+                                                   contentWindow )
 {
     for( int i = 0; i < count(); ++i )
     {
         QListWidgetItem* listWidgetItem = item( i );
-        ContentWindowListWidgetItem* windowItem = dynamic_cast< ContentWindowListWidgetItem* >( listWidgetItem );
+        ContentWindowListWidgetItem* windowItem =
+                dynamic_cast< ContentWindowListWidgetItem* >( listWidgetItem );
         if( windowItem && windowItem->getContentWindow() == contentWindow )
         {
             takeItem( i );
@@ -95,12 +98,14 @@ void DisplayGroupListWidget::removeContentWindow( ContentWindowPtr contentWindow
     }
 }
 
-void DisplayGroupListWidget::moveContentWindowToFront( ContentWindowPtr contentWindow )
+void DisplayGroupListWidget::_moveContentWindowToFront( ContentWindowPtr
+                                                        contentWindow )
 {
     for( int i = 0; i < count(); ++i )
     {
         QListWidgetItem* listWidgetItem = item( i );
-        ContentWindowListWidgetItem* windowItem = dynamic_cast< ContentWindowListWidgetItem* >( listWidgetItem );
+        ContentWindowListWidgetItem* windowItem =
+                dynamic_cast< ContentWindowListWidgetItem* >( listWidgetItem );
         if( windowItem && windowItem->getContentWindow() == contentWindow )
         {
             takeItem( i );
@@ -110,9 +115,11 @@ void DisplayGroupListWidget::moveContentWindowToFront( ContentWindowPtr contentW
     }
 }
 
-void DisplayGroupListWidget::moveListWidgetItemToFront( QListWidgetItem* listWidgetItem )
+void DisplayGroupListWidget::_moveListWidgetItemToFront( QListWidgetItem*
+                                                         listWidgetItem )
 {
-    ContentWindowListWidgetItem* windowItem = dynamic_cast< ContentWindowListWidgetItem* >( listWidgetItem );
+    ContentWindowListWidgetItem* windowItem =
+            dynamic_cast< ContentWindowListWidgetItem* >( listWidgetItem );
     if( windowItem )
-        displayGroup_->moveContentWindowToFront( windowItem->getContentWindow( ));
+        _displayGroup->moveContentWindowToFront( windowItem->getContentWindow( ));
 }

@@ -39,30 +39,25 @@
 
 #include "FpsCounter.h"
 
-#define HISTORY_SIZE  30
-
-FpsCounter::FpsCounter()
-{
-}
+#define _historySIZE  30
 
 void FpsCounter::tick()
 {
-    history_.push_back(boost::posix_time::microsec_clock::universal_time());
+    _history.push_back( boost::posix_time::microsec_clock::universal_time( ));
 
     // see if we need to remove an entry
-    while(history_.size() > HISTORY_SIZE)
-    {
-        history_.erase(history_.begin());
-    }
+    while( _history.size() > _historySIZE )
+        _history.erase( _history.begin( ));
 }
 
 float FpsCounter::getFps() const
 {
-    if(history_.empty())
+    if( _history.empty( ))
         return 0.f;
 
-    const float delta = (float)(history_.back() - history_.front()).total_milliseconds() / 1000.f;
-    return (float)history_.size() / delta;
+    const float delta = (float)(_history.back() -
+                                _history.front()).total_milliseconds() / 1000.f;
+    return (float)_history.size() / delta;
 }
 
 QString FpsCounter::toString() const

@@ -95,20 +95,20 @@ public slots:
     void processEvent(deflect::Event event) override;
 
 private slots:
-    void update();
+    void _update();
 
 private:
-    QWebView webView_;
-    boost::scoped_ptr<WebkitAuthenticationHelper> authenticationHelper_;
-    boost::scoped_ptr<WebkitHtmlSelectReplacer> selectReplacer_;
-    QTimer timer_;
-    QMutex mutex_;
+    QWebView _webView;
+    boost::scoped_ptr<WebkitAuthenticationHelper> _authenticationHelper;
+    boost::scoped_ptr<WebkitHtmlSelectReplacer> _selectReplacer;
+    QTimer _timer;
+    QMutex _mutex;
 
-    QImage image_;
+    QImage _image;
 
-    bool interactionModeActive_;
+    bool _interactionModeActive;
 
-    unsigned int initialWidth_;
+    unsigned int _initialWidth;
 
     void processClickEvent(const deflect::Event& clickEvent);
     void processPressEvent(const deflect::Event& pressEvent);
@@ -126,4 +126,4 @@ private:
     void recomputeZoomFactor();
 };
 
-#endif // WEBKITPIXELSTREAMER_H
+#endif

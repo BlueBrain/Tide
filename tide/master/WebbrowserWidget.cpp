@@ -52,16 +52,16 @@
 WebbrowserWidget::WebbrowserWidget( const MasterConfiguration& config,
                                     QWidget* parent_ )
     : QDialog(parent_)
-    , widthSpinBox_(0)
-    , heightSpinBox_(0)
+    , _widthSpinBox(0)
+    , _heightSpinBox(0)
 {
     setWindowTitle(tr("Open Webbrowser"));
 
     // URL input
 
     QLabel* urlLabel = new QLabel("Url: ", this);
-    urlLineEdit_ = new QLineEdit(config.getWebBrowserDefaultURL(), this);
-    urlLabel->setBuddy(urlLineEdit_);
+    _urlLineEdit = new QLineEdit(config.getWebBrowserDefaultURL(), this);
+    urlLabel->setBuddy(_urlLineEdit);
 
     // Standard buttons
 
@@ -76,17 +76,17 @@ WebbrowserWidget::WebbrowserWidget( const MasterConfiguration& config,
 
     QLabel* widthLabel = new QLabel("Width: ", this);
 
-    widthSpinBox_ = new QSpinBox(this);
-    widthSpinBox_->setMinimum(SPIN_BOX_MIN_VALUE);
-    widthSpinBox_->setMaximum(SPIN_BOX_MAX_VALUE);
-    widthSpinBox_->setValue(WEBBROWSER_DEFAULT_WIDTH);
+    _widthSpinBox = new QSpinBox(this);
+    _widthSpinBox->setMinimum(SPIN_BOX_MIN_VALUE);
+    _widthSpinBox->setMaximum(SPIN_BOX_MAX_VALUE);
+    _widthSpinBox->setValue(WEBBROWSER_DEFAULT_WIDTH);
 
     QLabel* heightLabel = new QLabel("Height: ", this);
 
-    heightSpinBox_ = new QSpinBox(this);
-    heightSpinBox_->setMinimum(SPIN_BOX_MIN_VALUE);
-    heightSpinBox_->setMaximum(SPIN_BOX_MAX_VALUE);
-    heightSpinBox_->setValue(WEBBROWSER_DEFAULT_HEIGHT);
+    _heightSpinBox = new QSpinBox(this);
+    _heightSpinBox->setMinimum(SPIN_BOX_MIN_VALUE);
+    _heightSpinBox->setMaximum(SPIN_BOX_MAX_VALUE);
+    _heightSpinBox->setValue(WEBBROWSER_DEFAULT_HEIGHT);
 
     // Layout
 
@@ -96,22 +96,22 @@ WebbrowserWidget::WebbrowserWidget( const MasterConfiguration& config,
     setLayout(gridLayout);
 
     gridLayout->addWidget(urlLabel, 0, 0);
-    gridLayout->addWidget(urlLineEdit_, 0, 1);
+    gridLayout->addWidget(_urlLineEdit, 0, 1);
 
     gridLayout->addWidget(widthLabel, 1, 0);
-    gridLayout->addWidget(widthSpinBox_, 1, 1);
+    gridLayout->addWidget(_widthSpinBox, 1, 1);
 
     gridLayout->addWidget(heightLabel, 2, 0);
-    gridLayout->addWidget(heightSpinBox_, 2, 1);
+    gridLayout->addWidget(_heightSpinBox, 2, 1);
 
     gridLayout->addWidget(buttonBox, 3, 1);
 }
 
 void WebbrowserWidget::accept()
 {
-    const QSize dimensions(widthSpinBox_->value(), heightSpinBox_->value());
+    const QSize dimensions(_widthSpinBox->value(), _heightSpinBox->value());
 
-    emit openWebBrowser(QPointF(), dimensions, urlLineEdit_->text());
+    emit openWebBrowser(QPointF(), dimensions, _urlLineEdit->text());
 
     QDialog::accept();
 }

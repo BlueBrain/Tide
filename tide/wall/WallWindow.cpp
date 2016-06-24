@@ -97,7 +97,7 @@ WallWindow::WallWindow( const WallConfiguration& config,
     else
         show();
 
-    startQuick( config );
+    _startQuick( config );
 }
 
 WallWindow::~WallWindow()
@@ -164,7 +164,7 @@ void WallWindow::exposeEvent( QExposeEvent* )
     }
 }
 
-void WallWindow::startQuick( const WallConfiguration& config )
+void WallWindow::_startQuick( const WallConfiguration& config )
 {
     _qmlComponent = new QQmlComponent(_qmlEngine, QML_BACKGROUND_URL );
     QObject* rootObject_ = _qmlComponent->create();
