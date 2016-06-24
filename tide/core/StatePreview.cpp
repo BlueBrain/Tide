@@ -51,8 +51,6 @@
 #include <QPainter>
 #include <QImageReader>
 
-#include <boost/foreach.hpp>
-
 namespace
 {
 const QSize PREVIEW_IMAGE_SIZE( 512, 512 );
@@ -90,7 +88,7 @@ QString StatePreview::previewFilename() const
 }
 
 void StatePreview::generateImage( const QSize& wallDimensions,
-                                  const ContentWindowPtrs &contentWindows )
+                                  const ContentWindowPtrs& contentWindows )
 {
     QSize previewDimension( wallDimensions );
     previewDimension.scale( PREVIEW_IMAGE_SIZE, Qt::KeepAspectRatio );
@@ -102,7 +100,7 @@ void StatePreview::generateImage( const QSize& wallDimensions,
     QPainter painter( &preview );
 
     // Paint all Contents at their correct location
-    BOOST_FOREACH( ContentWindowPtr window, contentWindows )
+    for( const auto& window : contentWindows )
     {
         if( window->getContent()->getType() == CONTENT_TYPE_PIXEL_STREAM ||
             window->getContent()->getType() == CONTENT_TYPE_WEBBROWSER )

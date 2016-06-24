@@ -96,17 +96,12 @@ MasterApplication::MasterApplication( int& argc_, char** argv_,
     if( !createConfig( options.getConfigFilename( )))
         throw std::runtime_error( "MasterApplication: initialization failed." );
 
-    displayGroup_.reset( new DisplayGroup( config_->getTotalSize( )));
-
     init();
 
     const QString& session = options.getSessionFilename();
     if( !session.isEmpty( ))
-    {
-        StateSerializationHelper( displayGroup_ ).load( session );
-        masterWindow_->getOptions()->setShowWindowTitles(
-                    displayGroup_->getShowWindowTitles( ));
-    }
+        _loadSessionOp.setFuture(
+                    StateSerializationHelper( displayGroup_ ).load( session ));
 }
 
 MasterApplication::~MasterApplication()
@@ -125,9 +120,24 @@ MasterApplication::~MasterApplication()
 
 void MasterApplication::init()
 {
+    displayGroup_.reset( new DisplayGroup( config_->getTotalSize( )));
+
     masterWindow_.reset( new MasterWindow( displayGroup_, *config_ ));
     pixelStreamWindowManager_.reset(
                 new PixelStreamWindowManager( *displayGroup_ ));
+
+    connect( &_loadSessionOp, &QFutureWatcher<DisplayGroupConstPtr>::finished,
+             [this]()
+    {
+        auto group = _loadSessionOp.result();
+        if( !group )
+            return;
+
+        displayGroup_->setContentWindows( group->getContentWindows( ));
+        displayGroup_->setShowWindowTitles( group->getShowWindowTitles( ));
+        masterWindow_->getOptions()->setShowWindowTitles(
+                    group->getShowWindowTitles( ));
+    });
 
     initPixelStreamLauncher();
     startDeflectServer();
@@ -328,12 +338,14 @@ void MasterApplication::_initRestInterface()
                     displayGroup_->getShowWindowTitles( ));
     });
     connect( _restInterface.get(), &RestInterface::load, [this]( QString uri ) {
-        StateSerializationHelper( displayGroup_ ).load( uri );
+        _loadSessionOp.setFuture(
+                    StateSerializationHelper( displayGroup_ ).load( uri ));
     });
     connect( _restInterface.get(), &RestInterface::save, [this]( QString uri ) {
         displayGroup_->setShowWindowTitles(
                     masterWindow_->getOptions()->getShowWindowTitles( ));
-        StateSerializationHelper( displayGroup_ ).save( uri );
+        _saveSessionOp.setFuture(
+                    StateSerializationHelper( displayGroup_ ).save( uri ));
     });
     connect( _restInterface.get(), &RestInterface::clear, [this]() {
         displayGroup_->clear();

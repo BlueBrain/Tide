@@ -42,6 +42,8 @@
 
 #include "types.h"
 
+#include "StateSerializationHelper.h"
+
 #include <QMainWindow>
 #include <QMimeData>
 
@@ -116,6 +118,9 @@ private:
 
     DisplayGroupPtr _displayGroup;
     OptionsPtr _options;
+    QFutureWatcher<DisplayGroupConstPtr> _loadSessionOp;
+    QFutureWatcher<bool> _saveSessionOp;
+
     BackgroundWidget* _backgroundWidget;
     WebbrowserWidget* _webbrowserWidget;
     DisplayGroupView* _displayGroupView;

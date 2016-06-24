@@ -66,6 +66,12 @@ void DisplayGroupController::adjust( const QSizeF& maxGroupSize )
     scale( QSizeF( scaleFactor, scaleFactor ));
 }
 
+void DisplayGroupController::reshape( const QSizeF& newSize )
+{
+    adjust( newSize );
+    _extend( newSize );
+}
+
 void DisplayGroupController::denormalize( const QSizeF& targetSize )
 {
     if( _group.getCoordinates() != UNIT_RECTF )
@@ -99,6 +105,19 @@ QRectF DisplayGroupController::estimateSurface() const
     area.setTopLeft( QPointF( 0.0, 0.0 ));
 
     return area;
+}
+
+void DisplayGroupController::_extend( const QSizeF& newSize )
+{
+    const QSizeF offset = 0.5 * ( newSize - _group.getCoordinates().size( ));
+
+    _group.setWidth( newSize.width( ));
+    _group.setHeight( newSize.height( ));
+
+    const QTransform t = QTransform::fromTranslate( offset.width(),
+                                                    offset.height( ));
+    for( ContentWindowPtr window : _group.getContentWindows( ))
+        window->setCoordinates( t.mapRect( window->getCoordinates( )));
 }
 
 qreal DisplayGroupController::_estimateAspectRatio() const

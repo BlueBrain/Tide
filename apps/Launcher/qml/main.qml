@@ -64,7 +64,10 @@ Rectangle {
     Component {
         id: sessionsBrowser
         FileBrowser {
-            onItemSelected: sendRestCommand("load", file);
+            onItemSelected: {
+                var nextCommand = function() { sendRestCommand("load", file); };
+                sendRestCommand("load", "", nextCommand);
+            }
             rootfolder: rootSessionsFolder
             nameFilters: ["*.dcx"]
         }
@@ -87,19 +90,25 @@ Rectangle {
         }
     }
 
-    function sendRestCommand(action, file) {
-        sendRestData(action, "uri", file);
+    function sendRestCommand(action, file, callback) {
+        sendRestData(action, "uri", file, callback);
     }
 
     function sendRestOption(optionName, value) {
         sendRestData("options", optionName, value);
     }
 
-    function sendRestData(action, key, value) {
+    function sendRestData(action, key, value, callback) {
         var request = new XMLHttpRequest();
         var url = "http://"+restHost+":"+restPort+"/tide/"+action;
         var payload = typeof(value) === 'string' ? '{ "'+key+'" : "'+value+'" }'
                                                  : '{ "'+key+'" : '+value+' }';
+        request.onreadystatechange = function() {
+            if (request.readyState === XMLHttpRequest.DONE && request.status == 200) {
+                if (typeof callback !== 'undefined')
+                    callback();
+            }
+        }
         request.open("PUT", url, true);
         request.send(payload);
     }

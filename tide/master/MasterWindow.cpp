@@ -96,6 +96,28 @@ MasterWindow::MasterWindow( DisplayGroupPtr displayGroup,
              this, &MasterWindow::openWebBrowser );
 #endif
 
+    connect( &_loadSessionOp, &QFutureWatcher<DisplayGroupConstPtr>::finished,
+             [this]()
+    {
+        auto group = _loadSessionOp.result();
+        if( !group )
+        {
+            QMessageBox::warning( this, "Error", "Could not load session file.",
+                                  QMessageBox::Ok, QMessageBox::Ok );
+            return;
+        }
+
+        _displayGroup->setContentWindows( group->getContentWindows( ));
+        _displayGroup->setShowWindowTitles( group->getShowWindowTitles( ));
+        getOptions()->setShowWindowTitles( group->getShowWindowTitles( ));
+    });
+
+    connect( &_saveSessionOp, &QFutureWatcher<bool>::finished, [this]() {
+        if( !_saveSessionOp.result( ))
+            QMessageBox::warning( this, "Error", "Could not save session file.",
+                                  QMessageBox::Ok, QMessageBox::Ok );
+    });
+
     resize( DEFAULT_WINDOW_SIZE );
     setAcceptDrops( true );
 
@@ -522,23 +544,14 @@ void MasterWindow::_saveSession()
     }
 
     _displayGroup->setShowWindowTitles( getOptions()->getShowWindowTitles( ));
-
-    if( !StateSerializationHelper( _displayGroup ).save( filename ))
-    {
-        QMessageBox::warning( this, "Error", "Could not save session file.",
-                              QMessageBox::Ok, QMessageBox::Ok );
-    }
+    _saveSessionOp.setFuture(
+                StateSerializationHelper( _displayGroup ).save( filename ));
 }
 
 void MasterWindow::_loadSession( const QString& filename )
 {
-    if( !StateSerializationHelper( _displayGroup ).load( filename ))
-    {
-        QMessageBox::warning( this, "Error", "Could not load session file.",
-                              QMessageBox::Ok, QMessageBox::Ok );
-        return;
-    }
-    getOptions()->setShowWindowTitles( _displayGroup->getShowWindowTitles( ));
+    _loadSessionOp.setFuture(
+                StateSerializationHelper( _displayGroup ).load( filename ));
 }
 
 void MasterWindow::_computeImagePyramid()

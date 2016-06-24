@@ -92,6 +92,7 @@ typedef boost::shared_ptr< ContentWindow > ContentWindowPtr;
 typedef std::unique_ptr<ContentWindowController> ContentWindowControllerPtr;
 typedef boost::shared_ptr< DisplayGroupAdapter > DisplayGroupAdapterPtr;
 typedef boost::shared_ptr< DisplayGroup > DisplayGroupPtr;
+typedef boost::shared_ptr< const DisplayGroup > DisplayGroupConstPtr;
 typedef boost::shared_ptr< DisplayGroupRenderer > DisplayGroupRendererPtr;
 typedef std::shared_ptr< DynamicTexture > DynamicTexturePtr;
 typedef std::shared_ptr<Image> ImagePtr;

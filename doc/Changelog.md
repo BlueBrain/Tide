@@ -3,6 +3,8 @@ Changelog {#Changelog}
 
 # git master (1.1.0)
 
+* [47](https://github.com/BlueBrain/Tide/pull/47):
+  Loading and saving sessions no longer block the wall interface.
 * [46](https://github.com/BlueBrain/Tide/pull/46):
   Improved Launcher:
   - The creation and caching of file thumbnails is more efficient.
