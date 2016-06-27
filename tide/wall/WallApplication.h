@@ -88,9 +88,9 @@ private:
     QThread _mpiSendThread;
     QThread _mpiReceiveThread;
 
-    bool createConfig(const QString& filename, const int rank);
-    void initWallWindow();
-    void initMPIConnection(MPIChannelPtr worldChannel);
+    bool _createConfig( const QString& filename, const int rank );
+    void _initWallWindow();
+    void _initMPIConnection( MPIChannelPtr worldChannel );
 };
 
 #endif // WALLAPPLICATION_H

@@ -99,34 +99,34 @@ private:
     template<class Archive>
     void serialize( Archive & ar, const unsigned int version )
     {
-        version_ = static_cast< StateVersion >( version );
+        _version = static_cast< StateVersion >( version );
 
         if( version < FIRST_PIXEL_COORDINATES_FILE_VERSION )
-            displayGroup_->setCoordinates( UNIT_RECTF );
+            _displayGroup->setCoordinates( UNIT_RECTF );
 
         if( version < WINDOW_TITLES_VERSION )
         {
             ContentWindowPtrs contentWindows;
             ar & boost::serialization::make_nvp( "contentWindows",
                                                  contentWindows );
-            displayGroup_->setContentWindows( contentWindows );
-            displayGroup_->setShowWindowTitles( false );
+            _displayGroup->setContentWindows( contentWindows );
+            _displayGroup->setShowWindowTitles( false );
         }
         else
         {
             ar & boost::serialization::make_nvp( "displayGroup",
-                                                 displayGroup_ );
+                                                 _displayGroup );
         }
     }
 
     /** Legacy methods. @deprecated */
-    bool checkVersion_( QXmlQuery& query ) const;
-    ContentPtr loadContent_( QXmlQuery& query, const int index ) const;
-    ContentWindowPtr restoreContent_( QXmlQuery& query, ContentPtr content,
+    bool _checkVersion( QXmlQuery& query ) const;
+    ContentPtr _loadContent( QXmlQuery& query, const int index ) const;
+    ContentWindowPtr _restoreContent( QXmlQuery& query, ContentPtr content,
                                       const int index ) const;
 
-    DisplayGroupPtr displayGroup_;
-    StateVersion version_;
+    DisplayGroupPtr _displayGroup;
+    StateVersion _version;
 };
 
 BOOST_CLASS_VERSION( State, FOCUS_MODE_VERSION )

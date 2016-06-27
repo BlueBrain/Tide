@@ -40,27 +40,26 @@
 
 #include "MasterApplication.h"
 
-#include "log.h"
 #include "CommandLineParameters.h"
-#include "MasterWindow.h"
+#include "ContentFactory.h"
 #include "DisplayGroup.h"
 #include "DisplayGroupView.h"
-#include "ContentFactory.h"
+#include "Options.h"
+#include "Markers.h"
 #include "MasterConfiguration.h"
 #include "MasterToForkerChannel.h"
 #include "MasterToWallChannel.h"
 #include "MasterFromWallChannel.h"
-#include "Options.h"
-#include "Markers.h"
+#include "MasterWindow.h"
+#include "PixelStreamWindowManager.h"
+#include "StateSerializationHelper.h"
 #include "QmlTypeRegistration.h"
+#include "localstreamer/PixelStreamerLauncher.h"
+#include "log.h"
 
 #if TIDE_ENABLE_TUIO_TOUCH_LISTENER
 #  include "MultiTouchListener.h"
 #endif
-
-#include "localstreamer/PixelStreamerLauncher.h"
-#include "StateSerializationHelper.h"
-#include "PixelStreamWindowManager.h"
 
 #if TIDE_ENABLE_REST_INTERFACE
 #  include "ContentLoader.h"
@@ -78,10 +77,10 @@ MasterApplication::MasterApplication( int& argc_, char** argv_,
                                       MPIChannelPtr worldChannel,
                                       MPIChannelPtr forkChannel )
     : QApplication( argc_, argv_ )
-    , masterToForkerChannel_( new MasterToForkerChannel( forkChannel ))
-    , masterToWallChannel_( new MasterToWallChannel( worldChannel ))
-    , masterFromWallChannel_( new MasterFromWallChannel( worldChannel ))
-    , markers_( new Markers )
+    , _masterToForkerChannel( new MasterToForkerChannel( forkChannel ))
+    , _masterToWallChannel( new MasterToWallChannel( worldChannel ))
+    , _masterFromWallChannel( new MasterFromWallChannel( worldChannel ))
+    , _markers( new Markers )
 {
     master::registerQmlTypes();
 
@@ -93,38 +92,38 @@ MasterApplication::MasterApplication( int& argc_, char** argv_,
     if( options.getHelp( ))
         options.showSyntax();
 
-    if( !createConfig( options.getConfigFilename( )))
+    if( !_createConfig( options.getConfigFilename( )))
         throw std::runtime_error( "MasterApplication: initialization failed." );
 
-    init();
+    _init();
 
     const QString& session = options.getSessionFilename();
     if( !session.isEmpty( ))
         _loadSessionOp.setFuture(
-                    StateSerializationHelper( displayGroup_ ).load( session ));
+                    StateSerializationHelper( _displayGroup ).load( session ));
 }
 
 MasterApplication::~MasterApplication()
 {
-    deflectServer_.reset();
+    _deflectServer.reset();
 
-    masterToForkerChannel_->sendQuit();
-    masterToWallChannel_->sendQuit();
+    _masterToForkerChannel->sendQuit();
+    _masterToWallChannel->sendQuit();
 
-    mpiSendThread_.quit();
-    mpiSendThread_.wait();
+    _mpiSendThread.quit();
+    _mpiSendThread.wait();
 
-    mpiReceiveThread_.quit();
-    mpiReceiveThread_.wait();;
+    _mpiReceiveThread.quit();
+    _mpiReceiveThread.wait();;
 }
 
-void MasterApplication::init()
+void MasterApplication::_init()
 {
-    displayGroup_.reset( new DisplayGroup( config_->getTotalSize( )));
+    _displayGroup.reset( new DisplayGroup( _config->getTotalSize( )));
 
-    masterWindow_.reset( new MasterWindow( displayGroup_, *config_ ));
-    pixelStreamWindowManager_.reset(
-                new PixelStreamWindowManager( *displayGroup_ ));
+    _masterWindow.reset( new MasterWindow( _displayGroup, *_config ));
+    _pixelStreamWindowManager.reset(
+                new PixelStreamWindowManager( *_displayGroup ));
 
     connect( &_loadSessionOp, &QFutureWatcher<DisplayGroupConstPtr>::finished,
              [this]()
@@ -133,25 +132,25 @@ void MasterApplication::init()
         if( !group )
             return;
 
-        displayGroup_->setContentWindows( group->getContentWindows( ));
-        displayGroup_->setShowWindowTitles( group->getShowWindowTitles( ));
-        masterWindow_->getOptions()->setShowWindowTitles(
+        _displayGroup->setContentWindows( group->getContentWindows( ));
+        _displayGroup->setShowWindowTitles( group->getShowWindowTitles( ));
+        _masterWindow->getOptions()->setShowWindowTitles(
                     group->getShowWindowTitles( ));
     });
 
-    initPixelStreamLauncher();
-    startDeflectServer();
-    initMPIConnection();
+    _initPixelStreamLauncher();
+    _startDeflectServer();
+    _initMPIConnection();
 
     // send initial display group to wall processes so that they at least the
     // real display group size to compute correct sizes for full screen etc.
     // which is vital for the following restoreBackground().
-    masterToWallChannel_->sendAsync( displayGroup_ );
+    _masterToWallChannel->sendAsync( _displayGroup );
 
-    restoreBackground();
+    _restoreBackground();
 
 #if TIDE_ENABLE_TUIO_TOUCH_LISTENER
-    initTouchListener();
+    _initTouchListener();
 #endif
 
 #if TIDE_ENABLE_REST_INTERFACE
@@ -159,11 +158,11 @@ void MasterApplication::init()
 #endif
 }
 
-bool MasterApplication::createConfig( const QString& filename )
+bool MasterApplication::_createConfig( const QString& filename )
 {
     try
     {
-        config_.reset( new MasterConfiguration( filename ));
+        _config.reset( new MasterConfiguration( filename ));
     }
     catch( const std::runtime_error& e )
     {
@@ -173,13 +172,13 @@ bool MasterApplication::createConfig( const QString& filename )
     return true;
 }
 
-void MasterApplication::startDeflectServer()
+void MasterApplication::_startDeflectServer()
 {
-    if( deflectServer_ )
+    if( _deflectServer )
         return;
     try
     {
-        deflectServer_.reset( new deflect::Server );
+        _deflectServer.reset( new deflect::Server );
     }
     catch( const std::runtime_error& e )
     {
@@ -188,25 +187,25 @@ void MasterApplication::startDeflectServer()
     }
 
     deflect::FrameDispatcher& dispatcher =
-            deflectServer_->getPixelStreamDispatcher();
+            _deflectServer->getPixelStreamDispatcher();
 
     connect( &dispatcher, &deflect::FrameDispatcher::openPixelStream,
-             pixelStreamWindowManager_.get(),
+             _pixelStreamWindowManager.get(),
              &PixelStreamWindowManager::openPixelStreamWindow );
     connect( &dispatcher, &deflect::FrameDispatcher::deletePixelStream,
-             pixelStreamWindowManager_.get(),
+             _pixelStreamWindowManager.get(),
              &PixelStreamWindowManager::closePixelStreamWindow );
-    connect( pixelStreamWindowManager_.get(),
+    connect( _pixelStreamWindowManager.get(),
              &PixelStreamWindowManager::pixelStreamWindowClosed,
              &dispatcher, &deflect::FrameDispatcher::deleteStream );
 }
 
-void MasterApplication::restoreBackground()
+void MasterApplication::_restoreBackground()
 {
-    OptionsPtr options = masterWindow_->getOptions();
-    options->setBackgroundColor( config_->getBackgroundColor( ));
+    OptionsPtr options = _masterWindow->getOptions();
+    options->setBackgroundColor( _config->getBackgroundColor( ));
 
-    const QString& uri = config_->getBackgroundUri();
+    const QString& uri = _config->getBackgroundUri();
     if( !uri.isEmpty( ))
     {
         ContentPtr content = ContentFactory::getContent( uri );
@@ -216,147 +215,150 @@ void MasterApplication::restoreBackground()
     }
 }
 
-void MasterApplication::initPixelStreamLauncher()
+void MasterApplication::_initPixelStreamLauncher()
 {
-    pixelStreamerLauncher_.reset(
-             new PixelStreamerLauncher( *pixelStreamWindowManager_, *config_ ));
+    _pixelStreamerLauncher.reset(
+             new PixelStreamerLauncher( *_pixelStreamWindowManager, *_config ));
 
-    connect( masterWindow_.get(),
+    connect( _masterWindow.get(),
              &MasterWindow::openWebBrowser,
-             pixelStreamerLauncher_.get(),
+             _pixelStreamerLauncher.get(),
              &PixelStreamerLauncher::openWebBrowser );
-    connect( masterWindow_.get(), &MasterWindow::openLauncher,
-             pixelStreamerLauncher_.get(),
+    connect( _masterWindow.get(), &MasterWindow::openLauncher,
+             _pixelStreamerLauncher.get(),
              &PixelStreamerLauncher::openLauncher );
-    connect( masterWindow_.get(), &MasterWindow::hideLauncher,
-             pixelStreamerLauncher_.get(),
+    connect( _masterWindow.get(), &MasterWindow::hideLauncher,
+             _pixelStreamerLauncher.get(),
              &PixelStreamerLauncher::hideLauncher );
 }
 
-void MasterApplication::initMPIConnection()
+void MasterApplication::_initMPIConnection()
 {
-    masterToForkerChannel_->moveToThread( &mpiSendThread_ );
-    masterToWallChannel_->moveToThread( &mpiSendThread_ );
-    masterFromWallChannel_->moveToThread( &mpiReceiveThread_ );
+    _masterToForkerChannel->moveToThread( &_mpiSendThread );
+    _masterToWallChannel->moveToThread( &_mpiSendThread );
+    _masterFromWallChannel->moveToThread( &_mpiReceiveThread );
 
-    connect( pixelStreamerLauncher_.get(), &PixelStreamerLauncher::start,
-             masterToForkerChannel_.get(), &MasterToForkerChannel::sendStart );
+    connect( _pixelStreamerLauncher.get(), &PixelStreamerLauncher::start,
+             _masterToForkerChannel.get(), &MasterToForkerChannel::sendStart );
 
-    connect( displayGroup_.get(), &DisplayGroup::modified,
-             masterToWallChannel_.get(),
+    connect( _displayGroup.get(), &DisplayGroup::modified,
+             _masterToWallChannel.get(),
              [this]( DisplayGroupPtr displayGroup )
-                { masterToWallChannel_->sendAsync( displayGroup ); },
+                { _masterToWallChannel->sendAsync( displayGroup ); },
              Qt::DirectConnection );
 
-    connect( masterWindow_->getOptions().get(), &Options::updated,
-             masterToWallChannel_.get(),
+    connect( _masterWindow->getOptions().get(), &Options::updated,
+             _masterToWallChannel.get(),
              [this]( OptionsPtr options )
-                { masterToWallChannel_->sendAsync( options ); },
+                { _masterToWallChannel->sendAsync( options ); },
              Qt::DirectConnection );
 
-    connect( markers_.get(), &Markers::updated,
-             masterToWallChannel_.get(),
+    connect( _markers.get(), &Markers::updated,
+             _masterToWallChannel.get(),
              [this]( MarkersPtr markers )
-                { masterToWallChannel_->sendAsync( markers ); },
+                { _masterToWallChannel->sendAsync( markers ); },
              Qt::DirectConnection );
 
-    connect( &deflectServer_->getPixelStreamDispatcher(),
+    connect( &_deflectServer->getPixelStreamDispatcher(),
              &deflect::FrameDispatcher::sendFrame,
-             masterToWallChannel_.get(),
+             _masterToWallChannel.get(),
              &MasterToWallChannel::send );
-    connect( &deflectServer_->getPixelStreamDispatcher(),
+    connect( &_deflectServer->getPixelStreamDispatcher(),
              &deflect::FrameDispatcher::sendFrame,
-             pixelStreamWindowManager_.get(),
+             _pixelStreamWindowManager.get(),
              &PixelStreamWindowManager::updateStreamDimensions );
-    connect( deflectServer_.get(),
+    connect( _deflectServer.get(),
              &deflect::Server::registerToEvents,
-             pixelStreamWindowManager_.get(),
+             _pixelStreamWindowManager.get(),
              &PixelStreamWindowManager::registerEventReceiver );
-    connect( deflectServer_.get(), &deflect::Server::receivedSizeHints,
-             pixelStreamWindowManager_.get(),
+    connect( _deflectServer.get(), &deflect::Server::receivedSizeHints,
+             _pixelStreamWindowManager.get(),
              &PixelStreamWindowManager::updateSizeHints );
 
-    connect( pixelStreamWindowManager_.get(),
+    connect( _pixelStreamWindowManager.get(),
              &PixelStreamWindowManager::pixelStreamWindowClosed,
-             deflectServer_.get(), &deflect::Server::onPixelStreamerClosed );
-    connect( pixelStreamWindowManager_.get(),
+             _deflectServer.get(), &deflect::Server::onPixelStreamerClosed );
+    connect( _pixelStreamWindowManager.get(),
              &PixelStreamWindowManager::eventRegistrationReply,
-             deflectServer_.get(),
+             _deflectServer.get(),
              &deflect::Server::onEventRegistrationReply );
 
-    pixelStreamWindowManager_->setAutoFocusNewWindows(
-                masterWindow_->getOptions()->getAutoFocusPixelStreams( ));
-    connect( masterWindow_->getOptions().get(),
+    _pixelStreamWindowManager->setAutoFocusNewWindows(
+                _masterWindow->getOptions()->getAutoFocusPixelStreams( ));
+    connect( _masterWindow->getOptions().get(),
              &Options::autoFocusPixelStreamsChanged,
-             pixelStreamWindowManager_.get(),
+             _pixelStreamWindowManager.get(),
              &PixelStreamWindowManager::setAutoFocusNewWindows );
 
-    connect( masterFromWallChannel_.get(),
+    connect( _masterFromWallChannel.get(),
              &MasterFromWallChannel::receivedRequestFrame,
-             &deflectServer_->getPixelStreamDispatcher(),
+             &_deflectServer->getPixelStreamDispatcher(),
              &deflect::FrameDispatcher::requestFrame );
 
-    connect( &mpiReceiveThread_, &QThread::started,
-             masterFromWallChannel_.get(),
+    connect( &_mpiReceiveThread, &QThread::started,
+             _masterFromWallChannel.get(),
              &MasterFromWallChannel::processMessages );
 
-    mpiSendThread_.start();
-    mpiReceiveThread_.start();
+    _mpiSendThread.start();
+    _mpiReceiveThread.start();
 }
 
 #if TIDE_ENABLE_TUIO_TOUCH_LISTENER
-void MasterApplication::initTouchListener()
+void MasterApplication::_initTouchListener()
 {
-    DisplayGroupView* view = masterWindow_->getDisplayGroupView();
-    touchListener_.reset( new MultiTouchListener(
-                              *view, config_->getTotalSize( )));
-    connect( touchListener_.get(), &MultiTouchListener::touchPointAdded,
-             markers_.get(), &Markers::addMarker );
-    connect( touchListener_.get(), &MultiTouchListener::touchPointUpdated,
-             markers_.get(), &Markers::updateMarker );
-    connect( touchListener_.get(), &MultiTouchListener::touchPointRemoved,
-             markers_.get(), &Markers::removeMarker );
+    DisplayGroupView* view = _masterWindow->getDisplayGroupView();
+    _touchListener.reset( new MultiTouchListener(
+                              *view, _config->getTotalSize( )));
+    connect( _touchListener.get(), &MultiTouchListener::touchPointAdded,
+             _markers.get(), &Markers::addMarker );
+    connect( _touchListener.get(), &MultiTouchListener::touchPointUpdated,
+             _markers.get(), &Markers::updateMarker );
+    connect( _touchListener.get(), &MultiTouchListener::touchPointRemoved,
+             _markers.get(), &Markers::removeMarker );
 }
 #endif
 
 #if TIDE_ENABLE_REST_INTERFACE
 void MasterApplication::_initRestInterface()
 {
-    _restInterface = make_unique<RestInterface>( config_->getWebServicePort(),
-                                                 masterWindow_->getOptions( ));
+    _restInterface = make_unique<RestInterface>( _config->getWebServicePort(),
+                                                 _masterWindow->getOptions( ));
     _logger = make_unique<LoggingUtility>();
 
     connect( _restInterface.get(), &RestInterface::browse, [this]( QString uri )
     {
         if( uri.isEmpty( ))
-            uri = config_->getWebBrowserDefaultURL();
-        pixelStreamerLauncher_->openWebBrowser( QPointF(), QSize(), uri );
+            uri = _config->getWebBrowserDefaultURL();
+        _pixelStreamerLauncher->openWebBrowser( QPointF(), QSize(), uri );
     });
-    connect( _restInterface.get(), &RestInterface::open, [this]( QString uri ) {
-        ContentLoader( displayGroup_ ).load( uri );
-        masterWindow_->getOptions()->setShowWindowTitles(
-                    displayGroup_->getShowWindowTitles( ));
+    connect( _restInterface.get(), &RestInterface::open, [this]( QString uri )
+    {
+        ContentLoader( _displayGroup ).load( uri );
     });
-    connect( _restInterface.get(), &RestInterface::load, [this]( QString uri ) {
+    connect( _restInterface.get(), &RestInterface::load, [this]( QString uri )
+    {
         _loadSessionOp.setFuture(
-                    StateSerializationHelper( displayGroup_ ).load( uri ));
+                    StateSerializationHelper( _displayGroup ).load( uri ));
     });
-    connect( _restInterface.get(), &RestInterface::save, [this]( QString uri ) {
-        displayGroup_->setShowWindowTitles(
-                    masterWindow_->getOptions()->getShowWindowTitles( ));
+    connect( _restInterface.get(), &RestInterface::save, [this]( QString uri )
+    {
+        _displayGroup->setShowWindowTitles(
+                    _masterWindow->getOptions()->getShowWindowTitles( ));
         _saveSessionOp.setFuture(
-                    StateSerializationHelper( displayGroup_ ).save( uri ));
+                    StateSerializationHelper( _displayGroup ).save( uri ));
     });
-    connect( _restInterface.get(), &RestInterface::clear, [this]() {
-        displayGroup_->clear();
+    connect( _restInterface.get(), &RestInterface::clear, [this]()
+    {
+        _displayGroup->clear();
     });
-    connect( displayGroup_.get(), &DisplayGroup::contentWindowAdded,
+
+    connect( _displayGroup.get(), &DisplayGroup::contentWindowAdded,
              _logger.get(), &LoggingUtility::contentWindowAdded );
 
-    connect( displayGroup_.get(), &DisplayGroup::contentWindowRemoved,
+    connect( _displayGroup.get(), &DisplayGroup::contentWindowRemoved,
             _logger.get(), &LoggingUtility::contentWindowRemoved );
 
-    connect( displayGroup_.get(), &DisplayGroup::contentWindowMovedToFront,
+    connect( _displayGroup.get(), &DisplayGroup::contentWindowMovedToFront,
            _logger.get(), &LoggingUtility::contentWindowMovedToFront );
 
     _restInterface.get()->setLogger( *(_logger.get()) );

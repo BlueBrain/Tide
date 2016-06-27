@@ -89,21 +89,21 @@ protected:
     bool event( QEvent* event ) override;
 
 private slots:
-    void add( ContentWindowPtr contentWindow );
-    void remove( ContentWindowPtr contentWindow );
-    void moveToFront( ContentWindowPtr contentWindow );
+    void _add( ContentWindowPtr contentWindow );
+    void _remove( ContentWindowPtr contentWindow );
+    void _moveToFront( ContentWindowPtr contentWindow );
 
 private:
-    void clearScene();
-    QPointF getScenePos( const QPointF& pos ) const;
+    void _clearScene();
+    QPointF _getScenePos( const QPointF& pos ) const;
 
-    DisplayGroupPtr displayGroup_;
+    DisplayGroupPtr _displayGroup;
 
-    QQuickItem* displayGroupItem_;
-    QObject* wallObject_;
+    QQuickItem* _displayGroupItem;
+    QObject* _wallObject;
 
     typedef QMap<QUuid, QQuickItem*> UuidToWindowMap;
-    UuidToWindowMap uuidToWindowMap_;
+    UuidToWindowMap _uuidToWindowMap;
 };
 
 #endif

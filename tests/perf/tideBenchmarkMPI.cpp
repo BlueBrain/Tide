@@ -67,7 +67,7 @@ class Timer
 public:
     void start()
     {
-        lastTime_ = boost::posix_time::microsec_clock::universal_time();
+        _lastTime = boost::posix_time::microsec_clock::universal_time();
     }
 
     void restart()
@@ -78,20 +78,20 @@ public:
     float elapsed()
     {
         const boost::posix_time::ptime now = boost::posix_time::microsec_clock::universal_time();
-        return (float)(now - lastTime_).total_milliseconds();
+        return (float)(now - _lastTime).total_milliseconds();
     }
 private:
-    boost::posix_time::ptime lastTime_;
+    boost::posix_time::ptime _lastTime;
 };
 
 
 struct BenchmarkOptions
 {
     BenchmarkOptions(int &argc, char **argv)
-        : desc_("Allowed options")
-        , getHelp_(true)
-        , dataSize_(0)
-        , packetsCount_(0)
+        : _desc("Allowed options")
+        , _getHelp(true)
+        , _dataSize(0)
+        , _packetsCount(0)
     {
         initDesc();
         parseCommandLineArguments(argc, argv);
@@ -99,12 +99,12 @@ struct BenchmarkOptions
 
     void showSyntax() const
     {
-        std::cout << desc_;
+        std::cout << _desc;
     }
 
     void initDesc()
     {
-        desc_.add_options()
+        _desc.add_options()
             ("help", "produce help message")
             ("datasize", boost::program_options::value<float>()->default_value(0),
                      "Size of each data packet [MB]")
@@ -121,7 +121,7 @@ struct BenchmarkOptions
         boost::program_options::variables_map vm;
         try
         {
-            boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc_), vm);
+            boost::program_options::store(boost::program_options::parse_command_line(argc, argv, _desc), vm);
             boost::program_options::notify(vm);
         }
         catch (const std::exception& e)
@@ -130,16 +130,16 @@ struct BenchmarkOptions
             return;
         }
 
-        getHelp_ = vm.count("help");
-        dataSize_ = vm["datasize"].as<float>() * MEGABYTE;
-        packetsCount_ = vm["packets"].as<unsigned int>();
+        _getHelp = vm.count("help");
+        _dataSize = vm["datasize"].as<float>() * MEGABYTE;
+        _packetsCount = vm["packets"].as<unsigned int>();
     }
 
-    boost::program_options::options_description desc_;
+    boost::program_options::options_description _desc;
 
-    bool getHelp_;
-    unsigned int dataSize_;
-    unsigned int packetsCount_;
+    bool _getHelp;
+    unsigned int _dataSize;
+    unsigned int _packetsCount;
 };
 }
 
@@ -149,7 +149,7 @@ struct BenchmarkOptions
 int main(int argc, char **argv)
 {
     BenchmarkOptions options(argc, argv);
-    if (options.getHelp_)
+    if (options._getHelp)
     {
         options.showSyntax();
         return 0;
@@ -158,7 +158,7 @@ int main(int argc, char **argv)
     MPIChannel mpiChannel(argc, argv);
 
     // Send buffer
-    std::vector<char> noiseBuffer(options.dataSize_);
+    std::vector<char> noiseBuffer(options._dataSize);
     for (std::vector<char>::iterator it = noiseBuffer.begin(); it != noiseBuffer.end(); ++it)
         *it = rand();
     const std::string serializedData = SerializeBuffer::serialize(noiseBuffer);
@@ -171,7 +171,7 @@ int main(int argc, char **argv)
     mpiChannel.globalBarrier();
     timer.start();
 
-    while(counter < options.packetsCount_)
+    while(counter < options._packetsCount)
     {
         if (mpiChannel.getRank() == RANK0)
             mpiChannel.broadcast(MPI_MESSAGE_TYPE_NONE, serializedData);

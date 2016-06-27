@@ -73,6 +73,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   QmlTypeRegistration.h
   QtImage.h
   StatePreview.h
+  SerializeBuffer.h
   SVGContent.h
   TextureContent.h
   thumbnail/DefaultThumbnailGenerator.h

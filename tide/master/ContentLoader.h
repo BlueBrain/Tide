@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -74,9 +74,16 @@ public:
                const QPointF& windowCenterPosition = QPointF(),
                const QSizeF& windowSize = QSizeF( ));
 
+    /**
+     * Check if a content is already open.
+     *
+     * @param filename The content file to search for.
+     * @return true if a content with the same uri is already open.
+     */
+    bool isAlreadyOpen( const QString& filename ) const;
+
 private:
-    DisplayGroupPtr displayGroup_;
+    DisplayGroupPtr _displayGroup;
 };
 
-
-#endif // CONTENTLOADER_H
+#endif

@@ -78,20 +78,20 @@ public slots:
     void reject() override;
 
 private slots:
-    void chooseColor();
-    void openBackgroundContent();
-    void removeBackground();
+    void _chooseColor();
+    void _openBackgroundContent();
+    void _removeBackground();
 
 private:
-    MasterConfiguration& configuration_;
+    MasterConfiguration& _configuration;
 
-    QLabel* colorLabel_;
-    QLabel* backgroundLabel_;
+    QLabel* _colorLabel;
+    QLabel* _backgroundLabel;
 
-    QColor previousColor_;
-    QString previousBackgroundURI_;
+    QColor _previousColor;
+    QString _previousBackgroundURI;
 
-    QString backgroundFolder_;
+    QString _backgroundFolder;
 };
 
-#endif // BACKGROUNDWIDGET_H
+#endif

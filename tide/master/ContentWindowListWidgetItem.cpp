@@ -40,12 +40,13 @@
 
 #include "ContentWindowListWidgetItem.h"
 
-ContentWindowListWidgetItem::ContentWindowListWidgetItem( ContentWindowPtr contentWindow )
-    : contentWindow_( contentWindow )
+ContentWindowListWidgetItem::ContentWindowListWidgetItem( ContentWindowPtr
+                                                          contentWindow )
+    : _contentWindow( contentWindow )
 {
 }
 
 ContentWindowPtr ContentWindowListWidgetItem::getContentWindow() const
 {
-    return contentWindow_;
+    return _contentWindow;
 }

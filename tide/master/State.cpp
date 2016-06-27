@@ -47,19 +47,19 @@
 #include <QtXmlPatterns/QXmlQuery>
 
 State::State()
-    : displayGroup_( new DisplayGroup( QSizeF( )))
-    , version_( INVALID_FILE_VERSION )
+    : _displayGroup( new DisplayGroup( QSizeF( )))
+    , _version( INVALID_FILE_VERSION )
 {}
 
 State::State( DisplayGroupPtr displayGroup )
-    : displayGroup_( displayGroup )
-    , version_( INVALID_FILE_VERSION )
+    : _displayGroup( displayGroup )
+    , _version( INVALID_FILE_VERSION )
 {
 }
 
 DisplayGroupPtr State::getDisplayGroup()
 {
-    return displayGroup_;
+    return _displayGroup;
 }
 
 bool State::legacyLoadXML( const QString& filename )
@@ -73,7 +73,7 @@ bool State::legacyLoadXML( const QString& filename )
         return false;
     }
 
-    if( !checkVersion_( query ))
+    if( !_checkVersion( query ))
         return false;
 
     int numContentWindows = 0;
@@ -87,30 +87,30 @@ bool State::legacyLoadXML( const QString& filename )
     contentWindows.reserve( numContentWindows );
     for( int i = 1; i <= numContentWindows; ++i )
     {
-        ContentPtr content = loadContent_( query, i );
+        ContentPtr content = _loadContent( query, i );
         if( !content )
             content = ContentFactory::getErrorContent();
 
-        ContentWindowPtr contentWindow = restoreContent_( query, content, i );
+        ContentWindowPtr contentWindow = _restoreContent( query, content, i );
         if( contentWindow )
             contentWindows.push_back( contentWindow );
     }
 
-    displayGroup_->setContentWindows( contentWindows );
+    _displayGroup->setContentWindows( contentWindows );
     // Preserve appearence of legacy sessions.
-    displayGroup_->setShowWindowTitles( false );
-    displayGroup_->setCoordinates( UNIT_RECTF );
-    version_ = LEGACY_FILE_VERSION;
+    _displayGroup->setShowWindowTitles( false );
+    _displayGroup->setCoordinates( UNIT_RECTF );
+    _version = LEGACY_FILE_VERSION;
 
     return true;
 }
 
 StateVersion State::getVersion() const
 {
-    return version_;
+    return _version;
 }
 
-bool State::checkVersion_( QXmlQuery& query ) const
+bool State::_checkVersion( QXmlQuery& query ) const
 {
     QString qstring;
 
@@ -131,7 +131,7 @@ bool State::checkVersion_( QXmlQuery& query ) const
     return true;
 }
 
-ContentPtr State::loadContent_( QXmlQuery& query, const int index ) const
+ContentPtr State::_loadContent( QXmlQuery& query, const int index ) const
 {
     char string[1024];
     sprintf( string, "string(//state/ContentWindow[%i]/URI)", index );
@@ -145,7 +145,7 @@ ContentPtr State::loadContent_( QXmlQuery& query, const int index ) const
     return ContentFactory::getContent( uri );
 }
 
-ContentWindowPtr State::restoreContent_( QXmlQuery& query, ContentPtr content,
+ContentWindowPtr State::_restoreContent( QXmlQuery& query, ContentPtr content,
                                          const int index ) const
 {
     double x, y, w, h, centerX, centerY, zoom;

@@ -49,15 +49,12 @@
 class FpsCounter
 {
 public:
-    FpsCounter();
-
     void tick();
-
     float getFps() const;
     QString toString() const;
 
 private:
-    std::vector<boost::posix_time::ptime> history_;
+    std::vector<boost::posix_time::ptime> _history;
 };
 
-#endif // FPSCOUNTER_H
+#endif

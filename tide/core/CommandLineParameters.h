@@ -50,7 +50,7 @@ class CommandLineParameters
 {
 public:
     /** Construct from command line parameters */
-    CommandLineParameters(int &argc, char **argv);
+    CommandLineParameters( int& argc, char** argv );
 
     /** Was the --help flag given. */
     bool getHelp() const;
@@ -65,14 +65,14 @@ public:
     const QString& getSessionFilename() const;
 
 private:
-    void initDesc();
-    void parseCommandLineArguments(int &argc, char **argv);
+    void _initDesc();
+    void _parseCommandLineArguments( int& argc, char** argv );
 
-    boost::program_options::options_description desc_;
-    bool getHelp_;
+    boost::program_options::options_description _desc;
+    bool _getHelp;
 
-    QString configFilename_;
-    QString sessionFilename_;
+    QString _configFilename;
+    QString _sessionFilename;
 };
 
-#endif // COMMANDLINEPARAMETERS_H
+#endif

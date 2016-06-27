@@ -42,28 +42,28 @@
 #include <iostream>
 #include <boost/program_options.hpp>
 
-CommandLineParameters::CommandLineParameters(int &argc, char **argv)
-    : desc_("Allowed options")
-    , getHelp_(false)
+CommandLineParameters::CommandLineParameters( int& argc, char** argv )
+    : _desc("Allowed options")
+    , _getHelp(false)
 {
-    initDesc();
-    parseCommandLineArguments(argc, argv);
+    _initDesc();
+    _parseCommandLineArguments(argc, argv);
 }
 
 
 bool CommandLineParameters::getHelp() const
 {
-    return getHelp_;
+    return _getHelp;
 }
 
 void CommandLineParameters::showSyntax() const
 {
-    std::cout << desc_;
+    std::cout << _desc;
 }
 
-void CommandLineParameters::initDesc()
+void CommandLineParameters::_initDesc()
 {
-    desc_.add_options()
+    _desc.add_options()
         ("help", "produce help message")
         ("config", boost::program_options::value<std::string>()->default_value(""),
                  "path to configuration file")
@@ -72,12 +72,12 @@ void CommandLineParameters::initDesc()
     ;
 }
 
-void CommandLineParameters::parseCommandLineArguments(int &argc, char **argv)
+void CommandLineParameters::_parseCommandLineArguments( int& argc, char** argv )
 {
     boost::program_options::variables_map vm;
     try
     {
-        boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc_), vm);
+        boost::program_options::store(boost::program_options::parse_command_line(argc, argv, _desc), vm);
         boost::program_options::notify(vm);
     }
     catch (const std::exception& e)
@@ -86,18 +86,17 @@ void CommandLineParameters::parseCommandLineArguments(int &argc, char **argv)
         return;
     }
 
-    getHelp_ = vm.count("help");
-    configFilename_ = vm["config"].as<std::string>().c_str();
-    sessionFilename_ = vm["sessionfile"].as<std::string>().c_str();
+    _getHelp = vm.count("help");
+    _configFilename = vm["config"].as<std::string>().c_str();
+    _sessionFilename = vm["sessionfile"].as<std::string>().c_str();
 }
 
 const QString& CommandLineParameters::getConfigFilename() const
 {
-    return configFilename_;
+    return _configFilename;
 }
 
 const QString& CommandLineParameters::getSessionFilename() const
 {
-    return sessionFilename_;
+    return _sessionFilename;
 }
-

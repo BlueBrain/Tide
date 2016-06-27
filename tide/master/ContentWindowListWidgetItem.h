@@ -59,7 +59,7 @@ public:
     ContentWindowPtr getContentWindow() const;
 
 private:
-    ContentWindowPtr contentWindow_;
+    ContentWindowPtr _contentWindow;
 };
 
 #endif

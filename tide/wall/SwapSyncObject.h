@@ -57,62 +57,62 @@ public:
 
     /** Default constructor. */
     SwapSyncObject()
-        : frontObject_()
-        , backObject_()
-        , version_(0)
+        : _frontObject()
+        , _backObject()
+        , _version( 0 )
     {}
 
     /** Default value constructor. */
-    SwapSyncObject(const T& defaultObject)
-        : frontObject_(defaultObject)
-        , backObject_(defaultObject)
-        , version_(0)
+    SwapSyncObject( const T& defaultObject )
+        : _frontObject( defaultObject )
+        , _backObject( defaultObject )
+        , _version( 0 )
     {}
 
     /** Get the front object */
     T get() const
     {
-        return frontObject_;
+        return _frontObject;
     }
 
     /** Update the back object. */
-    void update(const T& newObject)
+    void update( const T& newObject )
     {
-        backObject_ = newObject;
-        ++version_;
+        _backObject = newObject;
+        ++_version;
     }
 
     /** Synchronize the object. */
-    bool sync(const SyncFunction& syncFunc)
+    bool sync( const SyncFunction& syncFunc )
     {
-        assert(syncFunc);
+        assert( syncFunc );
 
-        if (syncFunc(version_) && frontObject_ != backObject_)
+        if( syncFunc( _version ) && _frontObject != _backObject )
         {
-            swap();
-            if (callback_)
-                callback_(frontObject_);
+            _swap();
+            if( _callback )
+                _callback( _frontObject );
             return true;
         }
         return false;
     }
 
     /** Set an optional function to call after swapping. */
-    void setCallback(const SyncCallbackFunction& callback)
+    void setCallback( const SyncCallbackFunction& callback )
     {
-        callback_ = callback;
+        _callback = callback;
     }
 
 private:
-    SyncCallbackFunction callback_;
-    T frontObject_;
-    T backObject_;
-    uint64_t version_;
+    SyncCallbackFunction _callback;
+    T _frontObject;
+    T _backObject;
+    uint64_t _version;
 
-    void swap()
+    void _swap()
     {
-        frontObject_ = backObject_;
+        _frontObject = _backObject;
     }
 };
 
-#endif // SWAPSYNCOBJECT_H
+#endif

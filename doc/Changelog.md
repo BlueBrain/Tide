@@ -3,6 +3,8 @@ Changelog {#Changelog}
 
 # git master (1.1.0)
 
+* [48](https://github.com/BlueBrain/Tide/pull/48):
+  Prevent users from opening a file multiple times.
 * [47](https://github.com/BlueBrain/Tide/pull/47):
   Loading and saving sessions no longer block the wall interface.
 * [46](https://github.com/BlueBrain/Tide/pull/46):
@@ -10,6 +12,8 @@ Changelog {#Changelog}
   - The creation and caching of file thumbnails is more efficient.
   - File thumbnails are displayed with their correct aspect ratio.
   Session preview images are of better quality (no longer pixelated).
+* [39](https://github.com/BlueBrain/Tide/pull/39):
+  Expose usage statistics to the REST interface for monitoring [DISCL-318].
 * [38](https://github.com/BlueBrain/Tide/pull/38):
   Fix a segfault that occured when opening grayscale images.
 * [36](https://github.com/BlueBrain/Tide/pull/36):
