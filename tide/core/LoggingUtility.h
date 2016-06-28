@@ -80,9 +80,17 @@ public slots:
     void contentWindowMovedToFront();
 
     /** Log the event, update the counters and update the timestamp of last interaction */
-    void contentWindowRemoved();
+    void contentWindowRemoved( ContentWindowPtr contentWindow );
+
+    /** Increment the counter when the launcher is brought to front and change launcher booleans */
+    void launcherShow(  );
+
+    /** Decrement the counter when the launcher is brought to background and change launcher booleans */
+    void launcherHide(  );
 
 private:
+    bool _launcherVisible = false;
+    bool _launcherStarted = false;
     size_t _windowCounter = 0;
     size_t _windowCounterTotal = 0;
     QString _counterModificationTime;

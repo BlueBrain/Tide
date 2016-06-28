@@ -90,7 +90,7 @@ BOOST_AUTO_TEST_CASE( testAccumulatedWindowCount )
 {
     ContentPtr content( new DummyContent );
     DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
-    
+
     ContentWindowPtr window1 = boost::make_shared<ContentWindow>( content );
     ContentWindowPtr window2 = boost::make_shared<ContentWindow>( content );
     std::unique_ptr<LoggingUtility> logger = make_unique<LoggingUtility>();
@@ -101,7 +101,7 @@ BOOST_AUTO_TEST_CASE( testAccumulatedWindowCount )
     BOOST_CHECK( logger.get()->getAccumulatedWindowCount() == 0);
     displayGroup->addContentWindow( window1 );
     BOOST_CHECK( logger.get()->getAccumulatedWindowCount() == 1);
-    
+
     displayGroup->addContentWindow( window2 );
     BOOST_CHECK( logger.get()->getAccumulatedWindowCount() == 2);
 
@@ -166,7 +166,7 @@ BOOST_AUTO_TEST_CASE( testLastInteraction )
 {
     ContentPtr content( new DummyContent );
     DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
-    
+
     ContentWindowPtr window1 = boost::make_shared<ContentWindow>( content );
     std::unique_ptr<LoggingUtility> logger = make_unique<LoggingUtility>();
     BOOST_CHECK( logger.get()->getLastInteraction() == "");
@@ -184,7 +184,7 @@ BOOST_AUTO_TEST_CASE( testJsonOutput )
 {
     ContentPtr content( new DummyContent );
     DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
-    
+
     ContentWindowPtr window1 = boost::make_shared<ContentWindow>( content );
     ContentWindowPtr window2 = boost::make_shared<ContentWindow>( content );
     std::unique_ptr<LoggingUtility> logger = make_unique<LoggingUtility>();

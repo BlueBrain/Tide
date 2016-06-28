@@ -85,13 +85,37 @@ void LoggingUtility::contentWindowAdded( ContentWindowPtr contentWindow )
     _log(__func__);
 };
 
+void LoggingUtility::launcherHide(  )
+{
+     if ( _launcherVisible ) {
+        --_windowCounter;
+        _launcherVisible = false;
+    }
+};
+
+void LoggingUtility::launcherShow(  )
+{
+    if ( _launcherStarted && !_launcherVisible ){
+        ++_windowCounter;
+        ++_windowCounterTotal;
+
+    }
+    _launcherVisible = true;
+    _launcherStarted = true;
+};
+
 void LoggingUtility::contentWindowMovedToFront()
 {
     _log(__func__);
 };
 
-void LoggingUtility::contentWindowRemoved()
+void LoggingUtility::contentWindowRemoved( ContentWindowPtr contentWindow )
 {
+    std::string uid = contentWindow.get()->getContentPtr()->getURI().toStdString();
+    if (uid == "Launcher"){
+        _launcherStarted = false;
+        _launcherVisible = false;
+    }
     if (_windowCounter > 0)
         --_windowCounter;
     _counterModificationTime = _getTimeStamp();
