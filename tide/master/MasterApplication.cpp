@@ -361,6 +361,11 @@ void MasterApplication::_initRestInterface()
     connect( _displayGroup.get(), &DisplayGroup::contentWindowMovedToFront,
            _logger.get(), &LoggingUtility::contentWindowMovedToFront );
 
+    connect( masterWindow_.get(), &MasterWindow::hideLauncher,
+              _logger.get(), &LoggingUtility::launcherHide );
+    connect( masterWindow_.get(), &MasterWindow::openLauncher,
+              _logger.get(), &LoggingUtility::launcherShow );
+
     _restInterface.get()->setLogger( *(_logger.get()) );
 }
 #endif
