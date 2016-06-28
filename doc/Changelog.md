@@ -3,6 +3,8 @@ Changelog {#Changelog}
 
 # git master (1.1.0)
 
+* [49](https://github.com/BlueBrain/Tide/pull/49):
+  Handling of launcher window taking its visiblity into account
 * [38](https://github.com/BlueBrain/Tide/pull/38):
   Fix a segfault that occured when opening grayscale images.
 * [36](https://github.com/BlueBrain/Tide/pull/36):

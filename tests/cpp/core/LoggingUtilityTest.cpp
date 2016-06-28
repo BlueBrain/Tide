@@ -184,7 +184,7 @@ BOOST_AUTO_TEST_CASE( testJsonOutput )
 {
     ContentPtr content( new DummyContent );
     DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
-    
+
     ContentWindowPtr window1 = boost::make_shared<ContentWindow>( content );
     ContentWindowPtr window2 = boost::make_shared<ContentWindow>( content );
     std::unique_ptr<LoggingUtility> logger = make_unique<LoggingUtility>();
