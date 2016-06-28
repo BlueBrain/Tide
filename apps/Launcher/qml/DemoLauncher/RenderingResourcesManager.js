@@ -52,7 +52,7 @@ Communicator.prototype.sendRequest = function(method, module, command, body, cal
     var request = new XMLHttpRequest();
     request.withCredentials = true;
     request.open(method, fullUrl, true);
-    //request.setRequestHeader(SESSION_COOKIE_ID, this.renderer_id)
+    request.setRequestHeader(SESSION_COOKIE_ID, this.renderer_id)
 
     var bodyStr;
     if (body) {
