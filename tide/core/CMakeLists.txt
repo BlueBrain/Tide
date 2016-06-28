@@ -75,7 +75,6 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   LayoutEngine.h
   LodTools.h
   log.h
-  LoggingUtility.h
   Markers.h
   MasterFromWallChannel.h
   MasterToWallChannel.h
@@ -127,7 +126,6 @@ list(APPEND TIDECORE_SOURCES
   LayoutEngine.cpp
   LodTools.cpp
   log.cpp
-  LoggingUtility.cpp
   Markers.cpp
   MasterFromWallChannel.cpp
   MasterToWallChannel.cpp

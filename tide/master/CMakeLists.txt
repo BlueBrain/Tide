@@ -21,6 +21,7 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   localstreamer/PixelStreamer.h
   localstreamer/PixelStreamerLauncher.h
   localstreamer/PixelStreamerType.h
+  LoggingUtility.h
   MasterApplication.h
   MasterConfiguration.h
   MasterToForkerChannel.h
@@ -45,6 +46,7 @@ list(APPEND TIDEMASTER_SOURCES
   localstreamer/PixelStreamerFactory.cpp
   localstreamer/PixelStreamerLauncher.cpp
   localstreamer/PixelStreamerType.cpp
+  LoggingUtility.cpp
   MasterApplication.cpp
   MasterConfiguration.cpp
   MasterToForkerChannel.cpp

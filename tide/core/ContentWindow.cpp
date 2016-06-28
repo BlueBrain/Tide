@@ -262,7 +262,14 @@ bool ContentWindow::setState( const ContentWindow::WindowState state )
     if( _windowState == state )
         return false;
 
+    const ContentWindow::WindowState prevState = _windowState;
+
     _windowState = state;
+
+    if ( prevState == ContentWindow::HIDDEN )
+        emit hiddenChanged( false );
+    else if ( state == ContentWindow::HIDDEN )
+        emit hiddenChanged( true );
 
     emit stateChanged();
     emit modified();

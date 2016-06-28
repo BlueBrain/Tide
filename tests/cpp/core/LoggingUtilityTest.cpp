@@ -70,7 +70,7 @@ R"(\{
 )"
 };
 const std::string defaultJson{
-R"({
+    R"({
     "event": {
         "count": 0,
         "last_event": "",
@@ -178,6 +178,29 @@ BOOST_AUTO_TEST_CASE( testLastInteraction )
     displayGroup->focus( window1->getID());
     BOOST_CHECK( logger.get()->getLastInteraction() == "mode changed");
 
+}
+
+BOOST_AUTO_TEST_CASE( hideLauncher )
+{
+    ContentPtr content( new DummyContent );
+    DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
+
+    ContentWindowPtr window1 = boost::make_shared<ContentWindow>( content );
+    std::unique_ptr<LoggingUtility> logger = make_unique<LoggingUtility>();
+
+    QObject::connect( displayGroup.get(), &DisplayGroup::contentWindowAdded,
+                      logger.get(), &LoggingUtility::contentWindowAdded );
+
+    displayGroup->addContentWindow( window1 );
+    BOOST_CHECK( logger.get()->getWindowCount() == 1 );
+    window1->setState( ContentWindow::HIDDEN );
+    BOOST_CHECK( logger.get()->getWindowCount() == 0 );
+    window1->setState( ContentWindow::HIDDEN );
+    BOOST_CHECK( logger.get()->getWindowCount() == 0 );
+    window1->setState( ContentWindow::NONE );
+    BOOST_CHECK( logger.get()->getWindowCount() == 1 );
+    window1->setState( ContentWindow::MOVING );
+    BOOST_CHECK( logger.get()->getWindowCount() == 1 );
 }
 
 BOOST_AUTO_TEST_CASE( testJsonOutput )

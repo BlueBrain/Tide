@@ -286,6 +286,7 @@ signals:
     void stateChanged();
     void labelChanged();
     void controlsVisibleChanged();
+    void hiddenChanged( bool hidden );
     //@}
 
 private:
