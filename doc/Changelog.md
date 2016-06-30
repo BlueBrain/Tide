@@ -1,7 +1,7 @@
 Changelog {#Changelog}
 ============
 
-# git master (1.1.0)
+# Release 1.1 (30-06-2016)
 
 * [48](https://github.com/BlueBrain/Tide/pull/48):
   Prevent users from opening a file multiple times.
@@ -55,7 +55,7 @@ Changelog {#Changelog}
 * [12](https://github.com/BlueBrain/Tide/pull/12):
   Added a basic REST interface with support for open/load/save commands.
 
-# Release 1.0.0 (07-04-2016)
+# Release 1.0 (07-04-2016)
 
 * Initial version, based on
   [DisplayCluster/qml2](https://github.com/BlueBrain/DisplayCluster/tree/qml2)
