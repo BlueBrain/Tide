@@ -58,7 +58,7 @@ Rectangle {
             }
             PropertyChanges {
                 target: buttons
-                fixed_buttons_count: 2
+                fixed_buttons_count: 3
             }
         },
         State {
