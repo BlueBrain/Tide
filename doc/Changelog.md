@@ -1,6 +1,15 @@
 Changelog {#Changelog}
 ============
 
+# Release 1.2 (git master)
+
+* [52](https://github.com/BlueBrain/Tide/pull/52):
+  Minor UI changes:
+  - Interacting with a window always brings it to the front
+  - Close button is also visible for focused windows
+  - Improved layout for focused windows
+  - Session thumbnails in the Launcher have correct aspect ratio
+
 # Release 1.1 (30-06-2016)
 
 * [48](https://github.com/BlueBrain/Tide/pull/48):
