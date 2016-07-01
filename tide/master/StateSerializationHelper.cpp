@@ -53,6 +53,11 @@
 #include <boost/archive/xml_oarchive.hpp>
 #include <boost/archive/xml_archive_exception.hpp>
 
+namespace
+{
+const QString SESSION_FILE_EXTENSION( ".dcx" );
+}
+
 StateSerializationHelper::StateSerializationHelper( DisplayGroupPtr group )
     : _displayGroup( group )
 {
@@ -241,20 +246,28 @@ void _generatePreview( DisplayGroupConstPtr group, const QString& filename )
     filePreview.saveToFile();
 }
 
-QFuture<bool> StateSerializationHelper::save( const QString& filename,
+QFuture<bool> StateSerializationHelper::save( QString filename,
                                               const bool generatePreview )
 {
+    if( !filename.endsWith( SESSION_FILE_EXTENSION ))
+    {
+        filename.append( SESSION_FILE_EXTENSION );
+        put_flog( LOG_VERBOSE, "appended %s filename extension",
+                  SESSION_FILE_EXTENSION.toLocal8Bit().constData( ));
+    }
+
     put_flog( LOG_INFO, "Saving session: '%s'",
               filename.toStdString().c_str( ));
 
     DisplayGroupPtr group = _copyDisplayGroup();
     return QtConcurrent::run([group, filename, generatePreview]()
     {
-        if( !_writeState( group, filename ))
-            return false;
-
+        // Create preview before session so that thumbnail shows in file browser
         if( generatePreview )
             _generatePreview( group, filename );
+
+        if( !_writeState( group, filename ))
+            return false;
 
         return true;
     });
