@@ -46,9 +46,10 @@
 
 namespace
 {
-const qreal INSIDE_MARGIN = 0.05;
-const qreal WINDOW_SPACING_PX = 50.0;
-const qreal WINDOW_CONTROLS_MARGIN_PX = 175.0;
+const qreal INSIDE_MARGIN_RELATIVE = 0.02;
+const qreal SIDEBAR_WITH_REL_TO_DISPLAYGROUP_HEIGHT = 0.3 * 0.3;
+const qreal WINDOW_CONTROLS_MARGIN_PX = 200.0;
+const qreal WINDOW_SPACING_PX = 80.0;
 }
 
 LayoutEngine::LayoutEngine( const DisplayGroup& group )
@@ -178,6 +179,6 @@ void LayoutEngine::_constrainFullyInside( QRectF& window ) const
 
 qreal LayoutEngine::_getInsideMargin() const
 {
-    return _displayGroup.getCoordinates().height() * INSIDE_MARGIN;
+    return _displayGroup.width() * INSIDE_MARGIN_RELATIVE +
+            _displayGroup.height() * SIDEBAR_WITH_REL_TO_DISPLAYGROUP_HEIGHT;
 }
-

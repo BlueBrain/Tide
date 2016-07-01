@@ -353,8 +353,9 @@ BOOST_AUTO_TEST_CASE( testLayoutEngineOneWindow )
     LayoutEngine engine( *displayGroup );
     const QRectF coords = engine.getFocusedCoord( *window );
 
-    const qreal expectedPadding = 0.05 * wallSize.width();
-    const qreal expectedXOffset = 175.0; // window controls width
+    const qreal expectedPadding = 0.02 * wallSize.width() +
+                                  0.3 * 0.3 * wallSize.height();
+    const qreal expectedXOffset = 200.0; // window controls width
     const qreal totalExpectedMargin = 2.0 * expectedPadding + expectedXOffset;
     const qreal expectedWidth = wallSize.width() - totalExpectedMargin;
     const qreal expectedHeight = expectedWidth / content->getAspectRatio();
@@ -384,6 +385,6 @@ BOOST_AUTO_TEST_CASE( testLayoutEngineTwoWindows )
     const QRectF coords1 = engine.getFocusedCoord( *window1 );
     const QRectF coords2 = engine.getFocusedCoord( *window2 );
 
-    BOOST_CHECK_EQUAL( coords1, QRectF( 225, 406.25, 250, 187.5 ));
-    BOOST_CHECK_EQUAL( coords2, QRectF( 700, 406.25, 250, 187.5 ));
+    BOOST_CHECK_EQUAL( coords1, QRectF( 310, 443.75, 150, 112.5 ));
+    BOOST_CHECK_EQUAL( coords2, QRectF( 740, 443.75, 150, 112.5 ));
 }
