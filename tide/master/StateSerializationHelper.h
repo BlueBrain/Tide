@@ -61,10 +61,11 @@ public:
     /**
      * Save the state of the application.
      *
-     * @param filename The .dcx file to save the state.
+     * @param filename The .dcx file to save the state. The extension will be
+     *        automatically added if it is missing.
      * @param generatePreview Also generate a .dcxpreview thumbnail image.
      */
-    QFuture<bool> save( const QString& filename, bool generatePreview = true );
+    QFuture<bool> save( QString filename, bool generatePreview = true );
 
     /**
      * Load the state from a given xml file.

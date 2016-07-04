@@ -50,17 +50,23 @@ StateThumbnailGenerator::StateThumbnailGenerator( const QSize& size )
 
 QImage StateThumbnailGenerator::generate( const QString& filename ) const
 {
-    QImage img = createGradientImage( Qt::darkCyan, Qt::cyan );
-    paintText( img, "DCX" );
+    QImage thumbnail = createGradientImage( Qt::darkCyan, Qt::cyan );
 
     StatePreview filePreview( filename );
     if( filePreview.loadFromFile( ))
     {
-        QPainter painter( &img );
-        const QRect rect = _scaleRectAroundCenter( img.rect(), 0.8f );
-        painter.drawImage( rect, filePreview.getImage( ));
+        const QImage preview = filePreview.getImage();
+        const QSize newSize = preview.size().scaled( thumbnail.size(),
+                                                     Qt::KeepAspectRatio );
+        thumbnail = thumbnail.scaled( newSize );
+        QPainter painter( &thumbnail );
+        const QRect rect = _scaleRectAroundCenter( thumbnail.rect(), 0.9f );
+        painter.drawImage( rect, preview );
     }
-    return img;
+    else
+        paintText( thumbnail, "session" );
+
+    return thumbnail;
 }
 
 
@@ -70,9 +76,9 @@ StateThumbnailGenerator::_scaleRectAroundCenter( const QRect& rect,
 {
     const float topLeftFactor = 0.5f * ( 1.0f - scaleFactor );
 
-    return QRect( topLeftFactor*rect.size().width(),
-                  topLeftFactor*rect.size().height(),
-                  scaleFactor*rect.size().width(),
-                  scaleFactor*rect.size().height()
+    return QRect( topLeftFactor*rect.width(),
+                  topLeftFactor*rect.height(),
+                  scaleFactor*rect.width(),
+                  scaleFactor*rect.height()
                  );
 }

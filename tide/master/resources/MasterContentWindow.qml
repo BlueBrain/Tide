@@ -102,10 +102,9 @@ BaseContentWindow {
 
         /** Tap, pan and pinch gestures are used by either content or window. */
         onTouchStarted: {
+            displaygroup.moveContentWindowToFront(contentwindow.id)
             if(contentActive)
                 contentwindow.delegate.touchBegin(pos)
-            else if(windowActive)
-                displaygroup.moveContentWindowToFront(contentwindow.id)
         }
         onTouchEnded: {
             if(contentActive)

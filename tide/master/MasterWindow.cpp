@@ -66,7 +66,6 @@
 
 namespace
 {
-const QString SESSION_FILE_EXTENSION( ".dcx" );
 const QString SESSION_FILES_FILTER( "Session files (*.dcx)" );
 const QSize DEFAULT_WINDOW_SIZE( 800, 600 );
 }
@@ -536,14 +535,6 @@ void MasterWindow::_saveSession()
         return;
 
     _sessionFolder = QFileInfo( filename ).absoluteDir().path();
-
-    // make sure filename has correct extension
-    if( !filename.endsWith( SESSION_FILE_EXTENSION ))
-    {
-        put_flog( LOG_VERBOSE, "appended %s filename extension",
-                  SESSION_FILE_EXTENSION.toLocal8Bit().constData( ));
-        filename.append( SESSION_FILE_EXTENSION );
-    }
 
     _displayGroup->setShowWindowTitles( getOptions()->getShowWindowTitles( ));
     _saveSessionOp.setFuture(
