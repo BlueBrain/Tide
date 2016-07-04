@@ -43,14 +43,16 @@
 #include "config.h"
 
 #include "Content.h"
-#include "TextureContent.h"
 #include "DynamicTextureContent.h"
-#include "SVGContent.h"
-#include "MovieContent.h"
+#if TIDE_ENABLE_MOVIE_SUPPORT
+#  include "MovieContent.h"
+#endif
 #if TIDE_ENABLE_PDF_SUPPORT
 #  include "PDFContent.h"
 #endif
 #include "PixelStreamContent.h"
+#include "SVGContent.h"
+#include "TextureContent.h"
 #include "WebbrowserContent.h"
 
 #include <QFile>
@@ -75,8 +77,10 @@ CONTENT_TYPE ContentFactory::getContentTypeForFile( const QString& uri )
     if( SVGContent::getSupportedExtensions().contains( extension ))
         return CONTENT_TYPE_SVG;
 
+#if TIDE_ENABLE_MOVIE_SUPPORT
     if( MovieContent::getSupportedExtensions().contains( extension ))
         return CONTENT_TYPE_MOVIE;
+#endif
 
 #if TIDE_ENABLE_PDF_SUPPORT
     if( PDFContent::getSupportedExtensions().contains( extension ))
@@ -113,9 +117,11 @@ ContentPtr ContentFactory::getContent( const QString& uri )
     case CONTENT_TYPE_SVG:
         content = boost::make_shared<SVGContent>( uri );
         break;
+#if TIDE_ENABLE_MOVIE_SUPPORT
     case CONTENT_TYPE_MOVIE:
         content = boost::make_shared<MovieContent>( uri );
         break;
+#endif
 #if TIDE_ENABLE_PDF_SUPPORT
     case CONTENT_TYPE_PDF:
         content = boost::make_shared<PDFContent>( uri );
@@ -162,15 +168,17 @@ const QStringList& ContentFactory::getSupportedExtensions()
 {
     static QStringList extensions;
 
-    if (extensions.empty())
+    if( extensions.empty( ))
     {
 #if TIDE_ENABLE_PDF_SUPPORT
-        extensions.append(PDFContent::getSupportedExtensions());
+        extensions.append( PDFContent::getSupportedExtensions( ));
 #endif
-        extensions.append(SVGContent::getSupportedExtensions());
-        extensions.append(TextureContent::getSupportedExtensions());
-        extensions.append(DynamicTextureContent::getSupportedExtensions());
-        extensions.append(MovieContent::getSupportedExtensions());
+        extensions.append( SVGContent::getSupportedExtensions( ));
+        extensions.append( TextureContent::getSupportedExtensions( ));
+        extensions.append( DynamicTextureContent::getSupportedExtensions( ));
+#if TIDE_ENABLE_MOVIE_SUPPORT
+        extensions.append( MovieContent::getSupportedExtensions( ));
+#endif
         extensions.removeDuplicates();
     }
 
@@ -181,7 +189,7 @@ const QStringList& ContentFactory::getSupportedFilesFilter()
 {
     static QStringList filters;
 
-    if (filters.empty())
+    if( filters.empty( ))
     {
         const QStringList& extensions = getSupportedExtensions();
         foreach( const QString ext, extensions )
@@ -196,7 +204,7 @@ QString ContentFactory::getSupportedFilesFilterAsString()
     const QStringList& extensions = getSupportedFilesFilter();
 
     QString s;
-    QTextStream out(&s);
+    QTextStream out( &s );
 
     out << "Content files (";
     foreach( const QString ext, extensions )
