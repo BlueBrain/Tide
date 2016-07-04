@@ -3,6 +3,8 @@ Changelog {#Changelog}
 
 # Release 1.2 (git master)
 
+* [56](https://github.com/BlueBrain/Tide/pull/56):
+  Support new FFMPEG 3.1 AVCodec API
 * [55](https://github.com/BlueBrain/Tide/pull/55):
   Fix potentially [serious bug](https://github.com/BlueBrain/Deflect/pull/115)
   in Deflect server.

@@ -46,9 +46,11 @@
 #include <sstream>
 #include <stdexcept>
 
+#define USE_NEW_FFMPEG_API (LIBAVCODEC_VERSION_MAJOR >= 57)
+
 FFMPEGVideoStream::FFMPEGVideoStream( AVFormatContext& avFormatContext )
     : _avFormatContext( avFormatContext )
-    , _videoCodecContext( 0 ) // shortcut to _videoStream->codec; don't free
+    , _videoCodecContext( 0 ) // allocated if USE_NEW_FFMPEG_API, else shortcut
     , _videoStream( 0 )  // shortcut to _avFormatContext->streams[i]; don't free
     // Seeking parameters
     , _numFrames( 0 )
@@ -66,7 +68,9 @@ FFMPEGVideoStream::FFMPEGVideoStream( AVFormatContext& avFormatContext )
 
 FFMPEGVideoStream::~FFMPEGVideoStream()
 {
-    avcodec_close( _videoCodecContext );
+#if USE_NEW_FFMPEG_API
+    avcodec_free_context( &_videoCodecContext );
+#endif
 }
 
 PicturePtr FFMPEGVideoStream::decode( AVPacket& packet )
@@ -95,11 +99,37 @@ bool FFMPEGVideoStream::_isVideoPacket( const AVPacket& packet ) const
     return packet.stream_index == _videoStream->index;
 }
 
+std::string _getAvError( const int errorCode )
+{
+    char errbuf[256];
+    av_strerror( errorCode, errbuf, 256 );
+    return std::string( errbuf );
+}
+
 bool FFMPEGVideoStream::_decodeToAvFrame( AVPacket& packet )
 {
     if( !_isVideoPacket( packet ))
         return false;
 
+#if USE_NEW_FFMPEG_API
+    int errCode = avcodec_send_packet( _videoCodecContext, &packet );
+    if( errCode < 0 )
+    {
+        put_flog( LOG_ERROR, "avcodec_send_packet returned error code '%i' : "
+                  "'%s' in '%s'", errCode, _getAvError( errCode ).c_str(),
+                  _avFormatContext.filename );
+        return false;
+    }
+
+    errCode = avcodec_receive_frame( _videoCodecContext, &_frame->getAVFrame());
+    if( errCode < 0 )
+    {
+        put_flog( LOG_ERROR, "avcodec_receive_frame returned error code '%i' : "
+                  "'%s' in '%s'", errCode, _getAvError( errCode ).c_str(),
+                  _avFormatContext.filename );
+        return false;
+    }
+#else
     int frameDecodingComplete = 0;
     const int errCode = avcodec_decode_video2( _videoCodecContext,
                                                &_frame->getAVFrame(),
@@ -121,7 +151,7 @@ bool FFMPEGVideoStream::_decodeToAvFrame( AVPacket& packet )
                                _avFormatContext.filename );
         return false;
     }
-
+#endif
     return true;
 }
 
@@ -223,7 +253,11 @@ void FFMPEGVideoStream::_findVideoStream()
     for( unsigned int i = 0; i < _avFormatContext.nb_streams; ++i )
     {
         AVStream* stream = _avFormatContext.streams[i];
+#if USE_NEW_FFMPEG_API
+        if( stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO )
+#else
         if( stream->codec->codec_type == AVMEDIA_TYPE_VIDEO )
+#endif
         {
             _videoStream = stream; // Shortcut pointer - don't free
             return;
@@ -235,23 +269,36 @@ void FFMPEGVideoStream::_findVideoStream()
 
 void FFMPEGVideoStream::_openVideoStreamDecoder()
 {
+    AVCodec* codec = nullptr;
+
+#if USE_NEW_FFMPEG_API
+    if( !( codec = avcodec_find_decoder( _videoStream->codecpar->codec_id )))
+        throw std::runtime_error( "No decoder found for video stream" );
+
+    _videoCodecContext = avcodec_alloc_context3( codec );
+    if( !_videoCodecContext )
+        throw std::runtime_error( "Could not allocate a decoding context" );
+
+    const int error = avcodec_parameters_to_context( _videoCodecContext,
+                                                     _videoStream->codecpar );
+    if( error < 0 )
+        throw std::runtime_error( "Could not init context from parameters" );
+#else
     // Contains information about the codec that the stream is using
     _videoCodecContext = _videoStream->codec; // Shortcut - don't free
 
-    AVCodec* codec = avcodec_find_decoder( _videoCodecContext->codec_id );
+    codec = avcodec_find_decoder( _videoCodecContext->codec_id );
     if( !codec )
         throw std::runtime_error( "No decoder found for video stream" );
+#endif
 
     // open codec
     const int ret = avcodec_open2( _videoCodecContext, codec, NULL );
-
     if( ret < 0 )
     {
-        char errbuf[256];
-        av_strerror( ret, errbuf, 256 );
-
         std::stringstream message;
-        message << "Could not open codec, error code " << ret << ": " << errbuf;
+        message << "Could not open codec, error code " << ret << ": " <<
+                   _getAvError( ret );
 
         throw std::runtime_error( message.str( ));
     }
