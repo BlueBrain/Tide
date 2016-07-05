@@ -25,7 +25,7 @@ before_install:
   - brew update
   - brew outdated cmake || brew upgrade cmake
   - brew install cppcheck doxygen ninja
-  - brew install ffmpeg jpeg-turbo mpich qt5
+  - brew install homebrew/versions/ffmpeg28 jpeg-turbo mpich qt5
   - brew install poppler --with-qt5
 script:
   - mkdir $BUILD_TYPE
