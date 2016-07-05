@@ -79,6 +79,7 @@ bool FFMPEGMovie::_open( const QString& uri )
     {
         put_flog( LOG_FATAL, "Error opening file %s : '%s'",
                   uri.toLocal8Bit().constData(), e.what( ));
+        _releaseAvFormatContext();
         return false;
     }
 
