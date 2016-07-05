@@ -47,6 +47,7 @@
 #include "tide/master/MasterConfiguration.h"
 
 #include <QHostInfo>
+#include <QQmlContext>
 
 namespace
 {
@@ -86,6 +87,7 @@ Launcher::Launcher( int& argc, char* argv[] )
 
     QQmlEngine* engine = _qmlStreamer->getQmlEngine();
     engine->addImageProvider( thumbnailProviderId, new ThumbnailProvider );
+    engine->rootContext()->setContextProperty( "fileInfo", &_fileInfoHelper );
 
     // DemoLauncher setup
     item->setProperty( "demoServiceUrl", config.getDemoServiceUrl( ));
@@ -98,4 +100,30 @@ Launcher::~Launcher()
 {
     QQmlEngine* engine = _qmlStreamer->getQmlEngine();
     engine->removeImageProvider( thumbnailProviderId );
+}
+
+bool _send( QInputMethodEvent* keyEvent, QQuickItem* rootItem )
+{
+    // Work around missing key event support in Qt for offscreen windows.
+    const QList<QQuickItem*> items =
+            rootItem->findChildren<QQuickItem*>( QString(),
+                                                 Qt::FindChildrenRecursively );
+    for( QQuickItem* item : items )
+    {
+        if( item->hasFocus( ))
+        {
+            QGuiApplication::instance()->sendEvent( item, keyEvent );
+            if( keyEvent->isAccepted( ))
+                return true;
+        }
+    }
+    return false;
+}
+
+bool Launcher::event( QEvent* event_ )
+{
+    QInputMethodEvent* keyEvent = dynamic_cast<QInputMethodEvent*>( event_ );
+    if( keyEvent )
+        return _send( keyEvent, _qmlStreamer->getRootItem( ));
+    return QGuiApplication::event( event_ );
 }

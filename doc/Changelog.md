@@ -3,6 +3,8 @@ Changelog {#Changelog}
 
 # Release 1.2 (git master)
 
+* [54](https://github.com/BlueBrain/Tide/pull/54):
+  Users can save sessions from the Launcher on the wall [DISCL-256]
 * [53](https://github.com/BlueBrain/Tide/pull/53):
   FFMPEG dependency is optional. Movie support can be controlled with CMake
   option TIDE_ENABLE_MOVIE_SUPPORT.

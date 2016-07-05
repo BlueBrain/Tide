@@ -26,7 +26,7 @@ Rectangle {
     color: Style.windowBackgroundColor
 
     Row {
-        Menu {
+        LaunchMenu {
             id: menu
             width: Style.menuWidth * root.width
             height: root.height
@@ -35,6 +35,7 @@ Rectangle {
             onStartWebbrowser: sendRestCommand("browse", "");
             onShowFilesPanel: centralWidget.sourceComponent = fileBrowser
             onShowSessionsPanel: centralWidget.sourceComponent = sessionsBrowser
+            onShowSaveSessionPanel: centralWidget.sourceComponent = saveSessionPanel
             onShowDemosPanel: centralWidget.sourceComponent = demoLauncher
             onShowOptionsPanel: centralWidget.sourceComponent = optionsPanel
         }
@@ -43,6 +44,7 @@ Rectangle {
             width: root.width - menu.width
             height: root.height
             sourceComponent: defaultPanel
+            focus: true // let loaded components get focus
         }
     }
 
@@ -70,6 +72,15 @@ Rectangle {
             }
             rootfolder: rootSessionsFolder
             nameFilters: ["*.dcx"]
+        }
+    }
+
+    Component {
+        id: saveSessionPanel
+        SavePanel {
+            rootfolder: rootSessionsFolder
+            nameFilters: ["*.dcx"]
+            onSaveSession: sendRestCommand("save", filename)
         }
     }
 
