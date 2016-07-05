@@ -3,6 +3,9 @@ Changelog {#Changelog}
 
 # Release 1.2 (git master)
 
+* [55](https://github.com/BlueBrain/Tide/pull/55):
+  Fix potentially [serious bug](https://github.com/BlueBrain/Deflect/pull/115)
+  in Deflect server.
 * [54](https://github.com/BlueBrain/Tide/pull/54):
   Users can save sessions from the Launcher on the wall [DISCL-256]
 * [53](https://github.com/BlueBrain/Tide/pull/53):
