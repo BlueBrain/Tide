@@ -3,6 +3,9 @@ Changelog {#Changelog}
 
 # Release 1.2 (git master)
 
+* [53](https://github.com/BlueBrain/Tide/pull/53):
+  FFMPEG dependency is optional. Movie support can be controlled with CMake
+  option TIDE_ENABLE_MOVIE_SUPPORT.
 * [52](https://github.com/BlueBrain/Tide/pull/52):
   Minor UI changes:
   - Interacting with a window always brings it to the front

@@ -20,6 +20,27 @@ set(TIDECORE_LINK_LIBRARIES
     Qt5::Svg
 )
 
+if(TIDE_ENABLE_MOVIE_SUPPORT)
+  list(APPEND TIDECORE_PUBLIC_HEADERS
+    FFMPEGFrame.h
+    FFMPEGMovie.h
+    FFMPEGPicture.h
+    FFMPEGVideoFrameConverter.h
+    FFMPEGVideoStream.h
+    MovieContent.h
+    thumbnail/MovieThumbnailGenerator.h
+  )
+  list(APPEND TIDECORE_SOURCES
+    FFMPEGFrame.cpp
+    FFMPEGMovie.cpp
+    FFMPEGPicture.cpp
+    FFMPEGVideoFrameConverter.cpp
+    FFMPEGVideoStream.cpp
+    MovieContent.cpp
+    thumbnail/MovieThumbnailGenerator.cpp
+  )
+endif()
+
 if(TIDE_ENABLE_PDF_SUPPORT)
   list(APPEND TIDECORE_PUBLIC_HEADERS
     PDFContent.h
@@ -50,11 +71,6 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   DisplayGroup.h
   DynamicTextureContent.h
   DynamicTexture.h
-  FFMPEGFrame.h
-  FFMPEGMovie.h
-  FFMPEGPicture.h
-  FFMPEGVideoFrameConverter.h
-  FFMPEGVideoStream.h
   Image.h
   LayoutEngine.h
   LodTools.h
@@ -63,7 +79,6 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   Markers.h
   MasterFromWallChannel.h
   MasterToWallChannel.h
-  MovieContent.h
   MPIChannel.h
   MPIContext.h
   MPINospin.h
@@ -79,7 +94,6 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   thumbnail/DefaultThumbnailGenerator.h
   thumbnail/FolderThumbnailGenerator.h
   thumbnail/ImageThumbnailGenerator.h
-  thumbnail/MovieThumbnailGenerator.h
   thumbnail/PyramidThumbnailGenerator.h
   thumbnail/StateThumbnailGenerator.h
   thumbnail/ThumbnailGeneratorFactory.h
@@ -110,11 +124,6 @@ list(APPEND TIDECORE_SOURCES
   DisplayGroup.cpp
   DynamicTextureContent.cpp
   DynamicTexture.cpp
-  FFMPEGFrame.cpp
-  FFMPEGMovie.cpp
-  FFMPEGPicture.cpp
-  FFMPEGVideoFrameConverter.cpp
-  FFMPEGVideoStream.cpp
   LayoutEngine.cpp
   LodTools.cpp
   log.cpp
@@ -123,7 +132,6 @@ list(APPEND TIDECORE_SOURCES
   MasterFromWallChannel.cpp
   MasterToWallChannel.cpp
   MetaTypeRegistration.cpp
-  MovieContent.cpp
   MPIChannel.cpp
   MPIContext.cpp
   MPINospin.cpp
@@ -137,7 +145,6 @@ list(APPEND TIDECORE_SOURCES
   thumbnail/DefaultThumbnailGenerator.cpp
   thumbnail/FolderThumbnailGenerator.cpp
   thumbnail/ImageThumbnailGenerator.cpp
-  thumbnail/MovieThumbnailGenerator.cpp
   thumbnail/PyramidThumbnailGenerator.cpp
   thumbnail/StateThumbnailGenerator.cpp
   thumbnail/ThumbnailGenerator.cpp

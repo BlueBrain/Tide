@@ -28,9 +28,7 @@ include(Common)
 common_find_package(Boost REQUIRED COMPONENTS program_options date_time
   serialization unit_test_framework regex system thread)
 common_find_package(Deflect REQUIRED)
-common_find_package(FFMPEG REQUIRED)
 common_find_package(MPI REQUIRED)
-common_find_package(OpenGL REQUIRED)
 common_find_package(Qt5Concurrent REQUIRED)
 common_find_package(Qt5Core REQUIRED)
 common_find_package(Qt5Network REQUIRED)
@@ -41,11 +39,6 @@ common_find_package(Qt5WebKitWidgets SYSTEM)
 common_find_package(Qt5Widgets REQUIRED)
 common_find_package(Qt5XmlPatterns REQUIRED)
 common_find_package(Qt5Xml REQUIRED)
-common_find_package(ZeroEQ)
-
-if(TARGET ZeroEQ)
-  option(TIDE_ENABLE_REST_INTERFACE "Enable Tide's REST interface using ZeroEQ" ON)
-endif()
 
 # WAR for Ubuntu 14.04 in CI super-project conditions
 common_find_package(Qt5Quick 5.4)
@@ -55,24 +48,29 @@ if(NOT Qt5Quick_FOUND)
   return()
 endif()
 
-common_find_package(TUIO 1.4 SYSTEM)
-if(TUIO_FOUND)
-  option(TIDE_ENABLE_TUIO_TOUCH_LISTENER "Enable TUIO touch listener for multi-touch events" ON)
+common_find_package(FFMPEG)
+if(FFMPEG_FOUND)
+  option(TIDE_ENABLE_MOVIE_SUPPORT "Enable FFMPEG movie support" ON)
 endif()
+
 common_find_package(Poppler COMPONENTS Qt5)
 if(POPPLER_FOUND)
   option(TIDE_ENABLE_PDF_SUPPORT "Enable Pdf support using Poppler" ON)
 endif()
 
+common_find_package(TUIO 1.4 SYSTEM)
+if(TUIO_FOUND)
+  option(TIDE_ENABLE_TUIO_TOUCH_LISTENER "Enable TUIO touch listener for multi-touch events" ON)
+endif()
 if(TIDE_ENABLE_TUIO_TOUCH_LISTENER)
   common_find_package(X11 REQUIRED)
 else()
   common_find_package(X11) # for webbrowser unit tests
 endif()
 
-if(CMAKE_COMPILER_IS_CLANG)
-  # Fix for Qt5 - using namespace QtDeclarative in header
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-header-hygiene")
+common_find_package(ZeroEQ)
+if(TARGET ZeroEQ)
+  option(TIDE_ENABLE_REST_INTERFACE "Enable REST interface using ZeroEQ" ON)
 endif()
 
 common_find_package_post()

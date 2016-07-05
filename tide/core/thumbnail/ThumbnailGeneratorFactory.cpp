@@ -40,20 +40,20 @@
 #include "ThumbnailGeneratorFactory.h"
 
 #include "config.h"
+#include "DefaultThumbnailGenerator.h"
+#include "DynamicTextureContent.h"
+#include "FolderThumbnailGenerator.h"
+#include "ImageThumbnailGenerator.h"
+#if TIDE_ENABLE_MOVIE_SUPPORT
+#include "MovieContent.h"
+#include "MovieThumbnailGenerator.h"
+#endif
 #if TIDE_ENABLE_PDF_SUPPORT
 #  include "PDFContent.h"
 #  include "PDFThumbnailGenerator.h"
 #endif
-
-#include "DefaultThumbnailGenerator.h"
-#include "FolderThumbnailGenerator.h"
-#include "ImageThumbnailGenerator.h"
-#include "MovieThumbnailGenerator.h"
 #include "PyramidThumbnailGenerator.h"
 #include "StateThumbnailGenerator.h"
-
-#include "DynamicTextureContent.h"
-#include "MovieContent.h"
 #include "TextureContent.h"
 
 #include <QDir>
@@ -70,8 +70,10 @@ ThumbnailGeneratorFactory::getGenerator( const QString& filename,
     if( extension == "dcx" )
         return ThumbnailGeneratorPtr( new StateThumbnailGenerator( size ));
 
+#if TIDE_ENABLE_MOVIE_SUPPORT
     if( MovieContent::getSupportedExtensions().contains( extension ))
         return ThumbnailGeneratorPtr( new MovieThumbnailGenerator( size ));
+#endif
 
     if( TextureContent::getSupportedExtensions().contains( extension ))
         return ThumbnailGeneratorPtr( new ImageThumbnailGenerator( size ));

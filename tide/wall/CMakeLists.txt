@@ -12,6 +12,17 @@ set(TIDEWALL_LINK_LIBRARIES
     Qt5::Svg
 )
 
+if(TIDE_ENABLE_MOVIE_SUPPORT)
+  list(APPEND TIDEWALL_PUBLIC_HEADERS
+    MovieSynchronizer.h
+    MovieUpdater.h
+  )
+  list(APPEND TIDEWALL_SOURCES
+    MovieSynchronizer.cpp
+    MovieUpdater.cpp
+  )
+endif()
+
 if(TIDE_ENABLE_PDF_SUPPORT)
   list(APPEND TIDEWALL_PUBLIC_HEADERS
     PDFSynchronizer.h
@@ -35,8 +46,6 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   ImageSynchronizer.h
   LodSynchronizer.h
   LodTiler.h
-  MovieSynchronizer.h
-  MovieUpdater.h
   PixelStreamSynchronizer.h
   PixelStreamUpdater.h
   QmlWindowRenderer.h
@@ -71,8 +80,6 @@ list(APPEND TIDEWALL_SOURCES
   ImageSynchronizer.cpp
   LodSynchronizer.cpp
   LodTiler.cpp
-  MovieSynchronizer.cpp
-  MovieUpdater.cpp
   PixelStreamSynchronizer.cpp
   PixelStreamUpdater.cpp
   QmlWindowRenderer.cpp

@@ -45,7 +45,9 @@
 #include "BasicSynchronizer.h"
 #include "DynamicTextureSynchronizer.h"
 #include "ImageSynchronizer.h"
+#if TIDE_ENABLE_MOVIE_SUPPORT
 #include "MovieSynchronizer.h"
+#endif
 #include "PixelStreamSynchronizer.h"
 #if TIDE_ENABLE_PDF_SUPPORT
 #include "PDFSynchronizer.h"
@@ -61,8 +63,10 @@ ContentSynchronizerPtr ContentSynchronizer::create( ContentPtr content )
     {
     case CONTENT_TYPE_DYNAMIC_TEXTURE:
         return make_unique<DynamicTextureSynchronizer>( uri );
+#if TIDE_ENABLE_MOVIE_SUPPORT
     case CONTENT_TYPE_MOVIE:
         return make_unique<MovieSynchronizer>( uri );
+#endif
     case CONTENT_TYPE_PIXEL_STREAM:
     case CONTENT_TYPE_WEBBROWSER:
         return make_unique<PixelStreamSynchronizer>();
