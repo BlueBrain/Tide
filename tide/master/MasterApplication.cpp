@@ -73,6 +73,11 @@
 
 #include <stdexcept>
 
+namespace
+{
+const int MOUSE_MARKER_ID = INT_MAX; // TUIO touch point IDs start at 0
+}
+
 MasterApplication::MasterApplication( int& argc_, char** argv_,
                                       MPIChannelPtr worldChannel,
                                       MPIChannelPtr forkChannel )
@@ -315,6 +320,19 @@ void MasterApplication::_initTouchListener()
              _markers.get(), &Markers::updateMarker );
     connect( _touchListener.get(), &MultiTouchListener::touchPointRemoved,
              _markers.get(), &Markers::removeMarker );
+
+    connect( view, &DisplayGroupView::mousePressed, [this]( const QPointF pos )
+    {
+        _markers->addMarker( MOUSE_MARKER_ID, pos );
+    });
+    connect( view, &DisplayGroupView::mouseMoved, [this]( const QPointF pos )
+    {
+        _markers->updateMarker( MOUSE_MARKER_ID, pos );
+    });
+    connect( view, &DisplayGroupView::mouseReleased, [this]( const QPointF )
+    {
+        _markers->removeMarker( MOUSE_MARKER_ID );
+    });
 }
 #endif
 
