@@ -46,7 +46,8 @@
 #include <sstream>
 #include <stdexcept>
 
-#define USE_NEW_FFMPEG_API (LIBAVCODEC_VERSION_MAJOR >= 57)
+// FFMPEG 3.1
+#define USE_NEW_FFMPEG_API (LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(57,48,0))
 
 FFMPEGVideoStream::FFMPEGVideoStream( AVFormatContext& avFormatContext )
     : _avFormatContext( avFormatContext )
