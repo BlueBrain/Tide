@@ -23,7 +23,7 @@ set(TEST_LIBRARIES
 )
 
 set(PERF_TEST_SOURCES
-    tideBenchmarkMPI.cpp
+  tideBenchmarkMPI.cpp
 )
 
 # Create executables but do not add them to the tests target
