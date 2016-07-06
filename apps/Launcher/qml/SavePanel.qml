@@ -95,19 +95,5 @@ Item {
         height: width / 4
         y: Qt.inputMethod.visible ? parent.height - height : parent.height
         Behavior on y { NumberAnimation { easing.type: Easing.InOutQuad; duration: 150 }}
-        onStatusChanged: {
-            if (status == Loader.Error)
-                sourceComponent = missingVirtualKeyboard
-        }
-    }
-    Component {
-        id: missingVirtualKeyboard
-        Rectangle {
-            color: "gray"
-            Text {
-                text: "Virtual Keyboard not loaded"
-                anchors.centerIn: parent
-            }
-        }
     }
 }

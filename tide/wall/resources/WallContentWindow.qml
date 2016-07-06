@@ -11,6 +11,22 @@ BaseContentWindow {
 
     property string imagesource: "image://texture/" + contentwindow.content.uri
 
+    virtualKeyboard.onLoaded: {
+        // Display keyboard state from the master processes
+        // Proxy functions are needed because contentwindow is a context
+        // property which changes constantly, so regular property bindings
+        // would be inoperant
+        virtualKeyboard.item.shiftActive = Qt.binding(function() {
+            return contentwindow.content.keyboard.shift
+        })
+        virtualKeyboard.item.symbolsActive = Qt.binding(function() {
+            return contentwindow.content.keyboard.symbols
+        })
+        virtualKeyboard.item.activeKeyId = Qt.binding(function() {
+            return contentwindow.content.keyboard.activeKeyId
+        })
+    }
+
     contentComponent: Item {
         id: contentItem
         objectName: "TilesParent"

@@ -133,5 +133,5 @@ void ContentAction::trigger()
     if( _checkable )
         setChecked( !_checked );
 
-    emit triggered( _uuid, _checked );
+    emit triggered( _checked );
 }

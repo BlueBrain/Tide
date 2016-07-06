@@ -43,6 +43,9 @@ var controlsBorderWidth = 3;
 var controlsRadius = 0;
 var controlsLeftMargin = 28;
 
+var keyboardRelSize = 0.8
+var keyboardMaxSizePx = 1200;
+
 var resizeCircleRadius = 50;
 var resizeCircleActiveColor = activeColor;
 var resizeCircleFreeResizeColor = highlightColor;

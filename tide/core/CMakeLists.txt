@@ -72,6 +72,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   DynamicTextureContent.h
   DynamicTexture.h
   Image.h
+  KeyboardState.h
   LayoutEngine.h
   LodTools.h
   log.h
@@ -123,6 +124,7 @@ list(APPEND TIDECORE_SOURCES
   DisplayGroup.cpp
   DynamicTextureContent.cpp
   DynamicTexture.cpp
+  KeyboardState.cpp
   LayoutEngine.cpp
   LodTools.cpp
   log.cpp

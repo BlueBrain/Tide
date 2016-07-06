@@ -76,7 +76,7 @@ public:
 
 protected:
     // Default constructor required for boost::serialization
-    PixelStreamContent() {}
+    PixelStreamContent() { _createActions(); }
 
 private:
     friend class boost::serialization::access;
@@ -90,6 +90,8 @@ private:
     }
 
     unsigned int _eventReceiversCount = 0;
+
+    void _createActions();
 };
 
 #endif

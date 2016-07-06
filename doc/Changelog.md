@@ -3,6 +3,8 @@ Changelog {#Changelog}
 
 # Release 1.2 (git master)
 
+* [59](https://github.com/BlueBrain/Tide/pull/59):
+  A virtual keyboard is now available for all applications [DISCL-108]
 * [57](https://github.com/BlueBrain/Tide/pull/57):
   A position marker is shown on the wall for mouse interactions.
 * [56](https://github.com/BlueBrain/Tide/pull/56):

@@ -93,7 +93,7 @@ signals:
     void unchecked();
 
     /** The action has been triggered. */
-    void triggered( QUuid actionId, bool checked );
+    void triggered( bool checked );
 
     /** @name QProperty notifiers */
     //@{

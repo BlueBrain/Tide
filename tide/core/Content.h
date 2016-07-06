@@ -45,6 +45,7 @@
 #include "types.h"
 #include "ContentType.h"
 #include "ContentActionsModel.h"
+#include "KeyboardState.h"
 
 #include "serializationHelpers.h"
 #include <boost/serialization/access.hpp>
@@ -71,6 +72,7 @@ class Content : public QObject
 {
     Q_OBJECT
     Q_PROPERTY( ContentActionsModel* actions READ getActions CONSTANT )
+    Q_PROPERTY( KeyboardState* keyboard READ getKeyboardState CONSTANT )
     Q_PROPERTY( qreal aspectRatio READ getAspectRatio CONSTANT )
     Q_PROPERTY( QRectF zoomRect READ getZoomRect CONSTANT )
     Q_PROPERTY( QSize size READ getDimensions CONSTANT )
@@ -139,6 +141,9 @@ public:
     /** Get the actions from QML. */
     ContentActionsModel* getActions();
 
+    /** Get the keyboard state from QML. */
+    KeyboardState* getKeyboardState();
+
     /** Set optional size hints to constrain resize/scale and 1:1 size. */
     void setSizeHints( const deflect::SizeHints& sizeHints );
 
@@ -185,6 +190,8 @@ protected:
         ar & _zoomRect;
         ar & _actions;
         _actions.setParent( this );
+        ar & _keyboardState;
+        _keyboardState.setParent( this );
         ar & _captureInteraction;
     }
 
@@ -223,6 +230,7 @@ protected:
     QSize _size;
     QRectF _zoomRect;
     ContentActionsModel _actions;
+    KeyboardState _keyboardState;
     deflect::SizeHints _sizeHints;
     bool _captureInteraction;
 

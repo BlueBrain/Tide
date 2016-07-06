@@ -1,8 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael.Dumusc@epfl.ch                        */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,64 +37,68 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "PixelStreamContent.h"
+#include "KeyboardState.h"
 
-#include <boost/serialization/export.hpp>
-#include "serializationHelpers.h"
+KeyboardState::KeyboardState( QObject* parentObject )
+    : QObject( parentObject )
+{}
 
-BOOST_CLASS_EXPORT_GUID( PixelStreamContent, "PixelStreamContent" )
-
-namespace
+bool KeyboardState::isVisible() const
 {
-const QString ICON_KEYBOARD( "qrc:///img/keyboard.svg" );
+    return _visible;
 }
 
-PixelStreamContent::PixelStreamContent( const QString& uri )
-    : Content( uri )
-    , _eventReceiversCount( 0 )
+bool KeyboardState::getShiftActive() const
 {
-    _createActions();
+    return _shiftActive;
 }
 
-CONTENT_TYPE PixelStreamContent::getType() const
+bool KeyboardState::getSymbolsActive() const
 {
-    return CONTENT_TYPE_PIXEL_STREAM;
+    return _symbolsActive;
 }
 
-bool PixelStreamContent::readMetadata()
+int KeyboardState::getActiveKeyId() const
 {
-    return true;
+    return _activeKeyId;
 }
 
-Content::Interaction PixelStreamContent::getInteractionPolicy() const
+void KeyboardState::setVisible( const bool visible )
 {
-    return hasEventReceivers() ? Content::Interaction::ON :
-                                 Content::Interaction::OFF;
+    if( _visible == visible )
+        return;
+
+    _visible = visible;
+    emit visibleChanged( visible );
+    emit modified();
 }
 
-bool PixelStreamContent::hasEventReceivers() const
+void KeyboardState::setShiftActive( const bool state )
 {
-    return _eventReceiversCount > 0;
+    if( _shiftActive == state )
+        return;
+
+    _shiftActive = state;
+    emit shiftActiveChanged( state );
+    emit modified();
 }
 
-void PixelStreamContent::incrementEventReceiverCount()
+void KeyboardState::setSymbolsActive( const bool state )
 {
-    if( ++_eventReceiversCount == 1 )
-    {
-        emit interactionPolicyChanged();
-        emit modified();
-    }
+    if( _symbolsActive == state )
+        return;
+
+    _symbolsActive = state;
+    emit symbolsActiveChanged( state );
+    emit modified();
 }
 
-void PixelStreamContent::_createActions()
+void KeyboardState::setActiveKeyId( const int keyId )
 {
-    ContentAction* keyboardAction = new ContentAction();
-    keyboardAction->setCheckable( true );
-    keyboardAction->setIcon( ICON_KEYBOARD );
-    keyboardAction->setIconChecked( ICON_KEYBOARD );
-    connect( keyboardAction, &ContentAction::triggered,
-             &_keyboardState, &KeyboardState::setVisible );
-    connect( &_keyboardState, &KeyboardState::visibleChanged,
-             keyboardAction, &ContentAction::setChecked );
-    _actions.add( keyboardAction );
+    if( _activeKeyId == keyId )
+        return;
+
+    _activeKeyId = keyId;
+    emit activeKeyIdChanged( keyId );
+    emit modified();
 }

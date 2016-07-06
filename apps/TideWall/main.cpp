@@ -55,6 +55,9 @@ int main( int argc, char* argv[] )
     logger_id = QString( "wall%1" ).arg( rank ).toStdString();
     qInstallMessageHandler( qtMessageLogger );
 
+    // Load virtualkeyboard input context plugin
+    qputenv( "QT_IM_MODULE", QByteArray( "qtvirtualkeyboard" ));
+
     if( worldChannel->getSize() < 2 )
     {
         std::cerr << "MPI group size < 2 detected. Use tide script or check "

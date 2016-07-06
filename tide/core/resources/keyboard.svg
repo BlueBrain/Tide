@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="800"
+   height="800"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="keyboard.svg">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.35"
+     inkscape:cx="525.71429"
+     inkscape:cy="417.14287"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:window-width="1509"
+     inkscape:window-height="983"
+     inkscape:window-x="171"
+     inkscape:window-y="96"
+     inkscape:window-maximized="0" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(2.8571417,307.63779)">
+    <path
+       style="fill:#000000;fill-opacity:1;stroke:none"
+       d="M 71.4375 152.84375 C 44.528932 152.84375 22.84375 174.52893 22.84375 201.4375 L 22.84375 598.5625 C 22.84375 625.47107 44.528932 647.15625 71.4375 647.15625 L 728.5625 647.15625 C 755.47107 647.15625 777.15625 625.47107 777.15625 598.5625 L 777.15625 201.4375 C 777.15625 174.52893 755.47107 152.84375 728.5625 152.84375 L 71.4375 152.84375 z M 63.71875 204.28125 L 183.71875 204.28125 L 183.71875 321.4375 L 63.71875 321.4375 L 63.71875 204.28125 z M 203.71875 204.28125 L 323.71875 204.28125 L 323.71875 321.4375 L 203.71875 321.4375 L 203.71875 204.28125 z M 343.71875 204.28125 L 463.71875 204.28125 L 463.71875 321.4375 L 343.71875 321.4375 L 343.71875 204.28125 z M 483.71875 204.28125 L 603.71875 204.28125 L 603.71875 321.4375 L 483.71875 321.4375 L 483.71875 204.28125 z M 623.71875 204.28125 L 743.71875 204.28125 L 743.71875 321.4375 L 623.71875 321.4375 L 623.71875 204.28125 z M 135.71875 348.28125 L 255.71875 348.28125 L 255.71875 465.4375 L 135.71875 465.4375 L 135.71875 348.28125 z M 275.71875 348.28125 L 395.71875 348.28125 L 395.71875 465.4375 L 275.71875 465.4375 L 275.71875 348.28125 z M 415.71875 348.28125 L 535.71875 348.28125 L 535.71875 465.4375 L 415.71875 465.4375 L 415.71875 348.28125 z M 555.71875 348.28125 L 675.71875 348.28125 L 675.71875 465.4375 L 555.71875 465.4375 L 555.71875 348.28125 z M 184.28125 495.15625 L 627.65625 495.15625 L 627.65625 604.65625 L 184.28125 604.65625 L 184.28125 495.15625 z "
+       transform="translate(-2.8571417,-307.63779)"
+       id="rect2985" />
+  </g>
+</svg>
