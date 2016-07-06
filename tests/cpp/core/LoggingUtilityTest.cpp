@@ -40,7 +40,6 @@
 #define BOOST_TEST_MODULE LoggingUtilityTest
 
 #include <boost/make_shared.hpp>
-#include <boost/regex.hpp>
 #include <boost/test/unit_test.hpp>
 namespace ut = boost::unit_test;
 
@@ -50,21 +49,22 @@ namespace ut = boost::unit_test;
 #include "rest/RestLogger.h"
 
 #include <QObject>
+#include <QRegularExpression>
 
 namespace
 {
 const QSize wallSize( 1000, 1000 );
-const std::string regexJson{
+const QString regexJson{
 R"(\{
     "event": \{
         "count": 2,
         "last_event": "contentWindowAdded",
-        "last_event_date": "\d{4}-\d{2}-\d{2}\u\d{2}:\d{2}:\d{2}.\d{6}"
+        "last_event_date": "\d{4}-\d{2}-\d{2}[A-Z]\d{2}:\d{2}:\d{2}.\d{6}"
     \},
     "window": \{
         "accumulated_count": 2,
         "count": 2,
-        "date_set": "\d{4}-\d{2}-\d{2}\u\d{2}:\d{2}:\d{2}.\d{6}"
+        "date_set": "\d{4}-\d{2}-\d{2}[A-Z]\d{2}:\d{2}:\d{2}.\d{6}"
     \}
 \}
 )"
@@ -155,7 +155,7 @@ BOOST_AUTO_TEST_CASE( testInteractionCounter )
 
     QObject::connect( displayGroup.get(), &DisplayGroup::contentWindowAdded,
                       logger.get(), &LoggingUtility::contentWindowAdded );
- 
+
     displayGroup->addContentWindow( window1 );
     displayGroup->focus( window1->getID());
     BOOST_CHECK( logger.get()->getInteractionCount() == 2);
@@ -173,7 +173,7 @@ BOOST_AUTO_TEST_CASE( testLastInteraction )
 
     QObject::connect( displayGroup.get(), &DisplayGroup::contentWindowAdded,
                       logger.get(), &LoggingUtility::contentWindowAdded );
- 
+
     displayGroup->addContentWindow( window1 );
     displayGroup->focus( window1->getID());
     BOOST_CHECK( logger.get()->getLastInteraction() == "mode changed");
@@ -191,24 +191,15 @@ BOOST_AUTO_TEST_CASE( testJsonOutput )
 
     QObject::connect( displayGroup.get(), &DisplayGroup::contentWindowAdded,
                       logger.get(), &LoggingUtility::contentWindowAdded );
- 
-    std::unique_ptr<RestLogger> logContent;
-    logContent.reset( new RestLogger( *(logger.get()) ));
-    BOOST_CHECK( logContent->toJSON() == defaultJson );
+
+    const RestLogger restLogger( *logger );
+    BOOST_CHECK_EQUAL( restLogger.toJSON(), defaultJson );
 
     displayGroup->addContentWindow( window1 );
     displayGroup->addContentWindow( window2 );
 
-    std::string logText =  logContent->toJSON();
-
-    boost::regex ip_regex(regexJson);
-    boost::sregex_iterator it(logText.begin(), logText.end(), ip_regex);
-    boost::sregex_iterator end;
-
-    std::string outputJson;
-    for (; it != end; ++it)
-        outputJson.append( it->str());
-
-    BOOST_CHECK( logContent->toJSON() == outputJson  );
-
+    const QRegularExpression regex( regexJson );
+    const QString json = QString::fromStdString( restLogger.toJSON( ));
+    const QString matchedJson = regex.match( json ).captured();
+    BOOST_CHECK_EQUAL( restLogger.toJSON(), matchedJson.toStdString( ));
 }
