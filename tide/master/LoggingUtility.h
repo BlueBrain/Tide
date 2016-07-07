@@ -52,7 +52,6 @@ class LoggingUtility : public QObject
     Q_OBJECT
 
 public:
-
     /** @return the number of open windows from the start. */
     size_t getAccumulatedWindowCount() const;
 
@@ -72,7 +71,6 @@ public:
     size_t getWindowCount() const;
 
 public slots:
-
     /** Log the event, update the counters and update the timestamp of last interaction */
     void contentWindowAdded( ContentWindowPtr contentWindow );
 
@@ -90,8 +88,10 @@ private:
     QString _lastInteractionTime;
     size_t _interactionCounter = 0;
 
+    void _decrementWindowCount();
+    void _incrementWindowCount();
     QString _getTimeStamp() const;
     void _log( const QString& s );
 };
 
-#endif // LOGGINGUTILITY_H
+#endif
