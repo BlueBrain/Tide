@@ -84,6 +84,13 @@ signals:
     /** Emitted when a user taps the settings control. */
     void settingsControlsPressed();
 
+    /** @name Emitted when a user interactacts with the mouse. */
+    //@{
+    void mousePressed( QPointF pos );
+    void mouseMoved( QPointF pos );
+    void mouseReleased( QPointF pos );
+    //@}
+
 protected:
     /** Re-implement QWindow event to capture tab key. */
     bool event( QEvent* event ) override;

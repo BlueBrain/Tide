@@ -3,6 +3,8 @@ Changelog {#Changelog}
 
 # Release 1.2 (git master)
 
+* [57](https://github.com/BlueBrain/Tide/pull/57):
+  A position marker is shown on the wall for mouse interactions.
 * [56](https://github.com/BlueBrain/Tide/pull/56):
   Support new FFMPEG 3.1 AVCodec API
 * [55](https://github.com/BlueBrain/Tide/pull/55):

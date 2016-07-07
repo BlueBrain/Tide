@@ -170,9 +170,31 @@ bool DisplayGroupView::event( QEvent *evt )
         }
         return true;
     }
-    default:
-        return QQuickView::event( evt );
+    case QEvent::MouseButtonPress:
+    {
+        QMouseEvent* e = static_cast< QMouseEvent* >( evt );
+        if( e->button() == Qt::LeftButton )
+            emit mousePressed( _displayGroupItem->mapFromScene( e->localPos( )));
+        break;
     }
+    case QEvent::MouseMove:
+    {
+        QMouseEvent* e = static_cast< QMouseEvent* >( evt );
+        if( e->buttons() & Qt::LeftButton )
+            emit mouseMoved( _displayGroupItem->mapFromScene( e->localPos( )));
+        break;
+    }
+    case QEvent::MouseButtonRelease:
+    {
+        QMouseEvent* e = static_cast< QMouseEvent* >( evt );
+        if( e->button() == Qt::LeftButton )
+            emit mouseReleased( _displayGroupItem->mapFromScene( e->localPos( )));
+        break;
+    }
+    default:
+        break;
+    }
+    return QQuickView::event( evt );
 }
 
 void DisplayGroupView::_add( ContentWindowPtr contentWindow )
