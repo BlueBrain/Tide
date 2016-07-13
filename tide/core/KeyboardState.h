@@ -1,8 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael.Dumusc@epfl.ch                        */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,64 +37,90 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "PixelStreamContent.h"
+#ifndef KEYBOARDSTATE_H
+#define KEYBOARDSTATE_H
 
-#include <boost/serialization/export.hpp>
-#include "serializationHelpers.h"
+#include <QObject>
 
-BOOST_CLASS_EXPORT_GUID( PixelStreamContent, "PixelStreamContent" )
+#include <boost/serialization/access.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/serialization/nvp.hpp>
 
-namespace
+/**
+ * The state of the virtual keyboard, distributed by master to wall processes.
+ */
+class KeyboardState : public QObject
 {
-const QString ICON_KEYBOARD( "qrc:///img/keyboard.svg" );
-}
+    Q_OBJECT
+    Q_DISABLE_COPY( KeyboardState )
 
-PixelStreamContent::PixelStreamContent( const QString& uri )
-    : Content( uri )
-    , _eventReceiversCount( 0 )
-{
-    _createActions();
-}
+    Q_PROPERTY( bool visible READ isVisible WRITE setVisible
+                NOTIFY visibleChanged )
+    Q_PROPERTY( bool shift READ getShiftActive WRITE setShiftActive
+                NOTIFY shiftActiveChanged )
+    Q_PROPERTY( bool symbols READ getSymbolsActive WRITE setSymbolsActive
+                NOTIFY symbolsActiveChanged )
+    Q_PROPERTY( int activeKeyId READ getActiveKeyId WRITE setActiveKeyId
+                NOTIFY activeKeyIdChanged )
 
-CONTENT_TYPE PixelStreamContent::getType() const
-{
-    return CONTENT_TYPE_PIXEL_STREAM;
-}
+public:
+    explicit KeyboardState( QObject* parent = 0 );
 
-bool PixelStreamContent::readMetadata()
-{
-    return true;
-}
+    /** @return true if the keyboard is visible. */
+    bool isVisible() const;
 
-Content::Interaction PixelStreamContent::getInteractionPolicy() const
-{
-    return hasEventReceivers() ? Content::Interaction::ON :
-                                 Content::Interaction::OFF;
-}
+    /** @return true if the keybard shift key is active. */
+    bool getShiftActive() const;
 
-bool PixelStreamContent::hasEventReceivers() const
-{
-    return _eventReceiversCount > 0;
-}
+    /** @return true if the keyboard symbols key is active. */
+    bool getSymbolsActive() const;
 
-void PixelStreamContent::incrementEventReceiverCount()
-{
-    if( ++_eventReceiversCount == 1 )
+    /** @return the identifier of the currently active key (if any) else -1. */
+    int getActiveKeyId() const;
+
+public slots:
+    /** Set the visibility of the keyboard. */
+    void setVisible( bool visible );
+
+    /** (De)Activate the shift key. */
+    void setShiftActive( bool state );
+
+    /** (De)Activate the symbols key. */
+    void setSymbolsActive( bool state );
+
+    /** Set the identifier of the active key. Use -1 if no key is active. */
+    void setActiveKeyId( int keyId );
+
+signals:
+    /** @name QProperty notifiers */
+    //@{
+    void visibleChanged( bool visible );
+    void shiftActiveChanged( bool state );
+    void symbolsActiveChanged( bool state );
+    void activeKeyIdChanged( int keyId );
+    //@}
+
+    /** Emitted whenever any field has been modified. */
+    void modified();
+
+private:
+    friend class boost::serialization::access;
+
+    /** Serialize for sending to Wall applications. */
+    template< class Archive >
+    void serialize( Archive & ar, const unsigned int /*version*/ )
     {
-        emit interactionPolicyChanged();
-        emit modified();
+        ar & _visible;
+        ar & _shiftActive;
+        ar & _symbolsActive;
+        ar & _activeKeyId;
     }
-}
 
-void PixelStreamContent::_createActions()
-{
-    ContentAction* keyboardAction = new ContentAction();
-    keyboardAction->setCheckable( true );
-    keyboardAction->setIcon( ICON_KEYBOARD );
-    keyboardAction->setIconChecked( ICON_KEYBOARD );
-    connect( keyboardAction, &ContentAction::triggered,
-             &_keyboardState, &KeyboardState::setVisible );
-    connect( &_keyboardState, &KeyboardState::visibleChanged,
-             keyboardAction, &ContentAction::setChecked );
-    _actions.add( keyboardAction );
-}
+    bool _visible = false;
+    bool _shiftActive = false;
+    bool _symbolsActive = false;
+    int _activeKeyId = -1;
+};
+
+#endif

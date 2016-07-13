@@ -55,6 +55,9 @@ int main( int argc, char* argv[] )
     logger_id = "master";
     qInstallMessageHandler( qtMessageLogger );
 
+    // Load virtualkeyboard input context plugin
+    qputenv( "QT_IM_MODULE", QByteArray( "qtvirtualkeyboard" ));
+
     MPIChannelPtr localChannel( new MPIChannel( *worldChannel, 0, rank ));
     MPIChannelPtr mainChannel( new MPIChannel( *worldChannel, 1, rank ));
 

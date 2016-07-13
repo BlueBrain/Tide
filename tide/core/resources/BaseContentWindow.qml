@@ -19,6 +19,7 @@ Rectangle {
     property alias backgroundComponent: backgroundLoader.sourceComponent
     property alias contentComponent: contentBackgroundLoader.sourceComponent
     property alias contentArea: contentArea
+    property alias virtualKeyboard: virtualKeyboard
     property alias windowControlsList: windowControls.listview
     property alias resizeCirclesDelegate: resizeCircles.delegate
     property alias previousButton: previousButton
@@ -86,6 +87,26 @@ Rectangle {
             id: contentBackgroundLoader
             // Note: this loader can't have a size, otherwise it breaks the
             // width/height bindings of loaded content in WallContentWindow.
+        }
+
+        Loader {
+            id: virtualKeyboard
+            source: "qrc:/virtualkeyboard/InputPanel.qml"
+            active: contentwindow.content.keyboard.visible
+            width: Math.min(Style.keyboardMaxSizePx, Style.keyboardRelSize * parent.width)
+            height: 0.25 * width
+            anchors.horizontalCenter: parent.horizontalCenter
+            y: contentwindow.content.keyboard.visible ? Math.min(0.5 * parent.height, parent.height - height) : parent.height
+            opacity:  contentwindow.content.keyboard.visible ? 1.0 : 0.0
+            visible: opacity > 0.0
+            Behavior on y { NumberAnimation { easing.type: Easing.InOutQuad; duration: 150 }}
+            Behavior on opacity { NumberAnimation { easing.type: Easing.InOutQuad; duration: 150 }}
+            onStatusChanged: {
+                if (status == Loader.Error)
+                    source = "qrc:/qml/core/MissingVirtualKeyboard.qml"
+                else if( status == Loader.Ready )
+                    active = true // Keep the keyboard loaded when hidding it
+            }
         }
     }
 

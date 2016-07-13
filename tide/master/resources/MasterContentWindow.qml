@@ -67,6 +67,24 @@ BaseContentWindow {
         event.accepted = true;
     }
 
+    virtualKeyboard.onLoaded: {
+        // Process key events
+        virtualKeyboard.item.hideKeyPressed.connect(function() {
+            contentwindow.content.keyboard.visible = false
+        })
+        virtualKeyboard.item.keyPressed.connect(contentwindow.delegate.keyPress)
+        virtualKeyboard.item.keyReleased.connect(contentwindow.delegate.keyRelease)
+        // Distribute keyboard state to the wall processes
+        // use wrapper functions because the notifyChanged signals don't include the new value
+        virtualKeyboard.item.shiftActiveChanged.connect(function() {
+            contentwindow.content.keyboard.shift = virtualKeyboard.item.shiftActive
+        })
+        virtualKeyboard.item.symbolsActiveChanged.connect(function() {
+            contentwindow.content.keyboard.symbols = virtualKeyboard.item.symbolsActive
+        })
+        virtualKeyboard.item.keyActivated.connect(contentwindow.content.keyboard.setActiveKeyId)
+    }
+
     backgroundComponent: MultitouchArea {
         id: windowMoveAndResizeArea
 

@@ -66,6 +66,9 @@ void Content::_init()
 {
     connect( this, &Content::interactionPolicyChanged,
              this, &Content::captureInteractionChanged );
+
+    connect( &_keyboardState, &KeyboardState::modified,
+             this, &Content::modified );
 }
 
 const QString& Content::getURI() const
@@ -166,7 +169,6 @@ void Content::setDimensions( const QSize& dimensions )
         return;
 
     _size = dimensions;
-
     emit modified();
 }
 
@@ -204,4 +206,9 @@ void Content::resetZoom()
 ContentActionsModel* Content::getActions()
 {
     return &_actions;
+}
+
+KeyboardState* Content::getKeyboardState()
+{
+    return &_keyboardState;
 }
