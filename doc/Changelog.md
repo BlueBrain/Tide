@@ -3,6 +3,12 @@ Changelog {#Changelog}
 
 # Release 1.2 (git master)
 
+* [63](https://github.com/BlueBrain/Tide/pull/63):
+  Several corrections and bugfixes for session loading. Due to an error in
+  [#28](https://github.com/BlueBrain/Tide/pull/28), some sessions saved
+  with Tide version 1.1 may include incorrect "_eventReceiversCount" entries
+  and will not load anymore. To open them again, manually edit and
+  remove all occurencences from the affected .dcx xml file.
 * [59](https://github.com/BlueBrain/Tide/pull/59):
   A virtual keyboard is now available for all applications [DISCL-108]
 * [57](https://github.com/BlueBrain/Tide/pull/57):
