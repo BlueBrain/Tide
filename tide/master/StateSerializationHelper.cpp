@@ -105,61 +105,61 @@ bool _canBeRestored( const CONTENT_TYPE type )
     return true;
 }
 
-void _validateContents( DisplayGroup& group )
+bool _validateContent( const ContentWindowPtr& window )
 {
-    const ContentWindowPtrs& windows = group.getContentWindows();
-
-    ContentWindowPtrs validContentWindows;
-    validContentWindows.reserve( windows.size( ));
-
-    for( ContentWindowPtr contentWindow : windows )
+    ContentPtr content = window->getContent();
+    if( !content )
     {
-        ContentPtr content = contentWindow->getContent();
-        if( !content )
-        {
-            put_flog( LOG_WARN, "Window '%s' does not have a Content!",
-                contentWindow->getID().toString().toLocal8Bit().constData( ));
-            continue;
-        }
-
-        if( !_canBeRestored( content->getType( )))
-            continue;
-
-        // Some regular textures were saved as DynamicTexture type before the
-        // migration to qml2 rendering
-        if( content->getType() == CONTENT_TYPE_DYNAMIC_TEXTURE )
-        {
-            const QString& uri = content->getURI();
-            const auto type = ContentFactory::getContentTypeForFile( uri );
-            if( type == CONTENT_TYPE_TEXTURE )
-            {
-                put_flog( LOG_DEBUG, "Try restoring legacy DynamicTexture as "
-                                     "a regular texture: '%s'",
-                          content->getURI().toLocal8Bit().constData( ));
-
-                content = ContentFactory::getContent( uri );
-                contentWindow->setContent( content );
-            }
-        }
-
-        // Refresh content information, files can have been modified or removed
-        // since the state was saved.
-        if( content->readMetadata( ))
-        {
-            put_flog( LOG_DEBUG, "Restoring content: '%s'",
-                      content->getURI().toLocal8Bit().constData( ));
-        }
-        else
-        {
-            put_flog( LOG_WARN, "'%s' could not be restored!",
-                      content->getURI().toLocal8Bit().constData( ));
-            const QSize& size = content->getDimensions();
-            contentWindow->setContent( ContentFactory::getErrorContent( size ));
-        }
-        validContentWindows.push_back( contentWindow );
+        put_flog( LOG_WARN, "Window '%s' does not have a Content!",
+            window->getID().toString().toLocal8Bit().constData( ));
+        return false;
     }
 
-    group.setContentWindows( validContentWindows );
+    if( !_canBeRestored( content->getType( )))
+        return false;
+
+    // Some regular textures were saved as DynamicTexture type before the
+    // migration to qml2 rendering
+    if( content->getType() == CONTENT_TYPE_DYNAMIC_TEXTURE )
+    {
+        const QString& uri = content->getURI();
+        const auto type = ContentFactory::getContentTypeForFile( uri );
+        if( type == CONTENT_TYPE_TEXTURE )
+        {
+            put_flog( LOG_DEBUG, "Try restoring legacy DynamicTexture as "
+                                 "a regular texture: '%s'",
+                      content->getURI().toLocal8Bit().constData( ));
+
+            content = ContentFactory::getContent( uri );
+            window->setContent( content );
+        }
+    }
+
+    // Refresh content information, files can have been modified or removed
+    // since the state was saved.
+    if( content->readMetadata( ))
+    {
+        put_flog( LOG_DEBUG, "Restoring content: '%s'",
+                  content->getURI().toLocal8Bit().constData( ));
+    }
+    else
+    {
+        put_flog( LOG_WARN, "'%s' could not be restored!",
+                  content->getURI().toLocal8Bit().constData( ));
+        const QSize& size = content->getDimensions();
+        window->setContent( ContentFactory::getErrorContent( size ));
+    }
+    return true;
+}
+
+void _validateContents( DisplayGroup& group )
+{
+    typedef QVector<ContentWindowPtr> Windows;
+    Windows windows = Windows::fromStdVector( group.getContentWindows( ));
+
+    QtConcurrent::blockingFilter( windows, _validateContent );
+
+    group.setContentWindows( windows.toStdVector( ));
 }
 
 DisplayGroupConstPtr _load( const QString& filename, DisplayGroupConstPtr targetGroup )

@@ -71,6 +71,8 @@ FFMPEGVideoStream::~FFMPEGVideoStream()
 {
 #if USE_NEW_FFMPEG_API
     avcodec_free_context( &_videoCodecContext );
+#else
+    avcodec_close( _videoCodecContext );
 #endif
 }
 
@@ -300,7 +302,6 @@ void FFMPEGVideoStream::_openVideoStreamDecoder()
         std::stringstream message;
         message << "Could not open codec, error code " << ret << ": " <<
                    _getAvError( ret );
-
         throw std::runtime_error( message.str( ));
     }
 }

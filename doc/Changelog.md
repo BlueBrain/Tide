@@ -3,6 +3,8 @@ Changelog {#Changelog}
 
 # Release 1.2 (git master)
 
+* [64](https://github.com/BlueBrain/Tide/pull/64):
+  Faster session loading and fix for FFMPEG thread safety issues.
 * [63](https://github.com/BlueBrain/Tide/pull/63):
   Several corrections and bugfixes for session loading. Due to an error in
   [#28](https://github.com/BlueBrain/Tide/pull/28), some sessions saved

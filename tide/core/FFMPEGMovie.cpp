@@ -51,6 +51,28 @@
 #pragma clang diagnostic ignored "-Wdeprecated"
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
+// Solve FFMPEG issue "insufficient thread locking around avcodec_open/close()"
+int ffmpegLockManagerCallback( void** mutex, enum AVLockOp op )
+{
+    switch( op )
+    {
+    case AV_LOCK_CREATE:
+        *mutex = static_cast<void*>( new std::mutex( ));
+        return 0;
+    case AV_LOCK_OBTAIN:
+        static_cast<std::mutex*>( *mutex )->lock();
+        return 0;
+    case AV_LOCK_RELEASE:
+        static_cast<std::mutex*>( *mutex )->unlock();
+        return 0;
+    case AV_LOCK_DESTROY:
+        delete static_cast<std::mutex*>( *mutex );
+        return 0;
+    default:
+        return 1;
+    }
+}
+
 FFMPEGMovie::FFMPEGMovie( const QString& uri )
     : _avFormatContext( 0 )
     , _streamPosition( 0.0 )
@@ -123,6 +145,7 @@ void FFMPEGMovie::initGlobalState()
 
     if( !initialized )
     {
+        av_lockmgr_register( &ffmpegLockManagerCallback );
         av_register_all();
         initialized = true;
     }

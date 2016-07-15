@@ -8,6 +8,8 @@ set(TIDEMASTER_LINK_LIBRARIES
   PUBLIC
     TideCore
     Qt5::Widgets
+  PRIVATE
+    Qt5::Concurrent
 )
 
 list(APPEND TIDEMASTER_PUBLIC_HEADERS
