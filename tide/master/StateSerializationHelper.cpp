@@ -92,6 +92,19 @@ bool _loadBoostXml( State& state, const QString& filename )
     return true;
 }
 
+bool _canBeRestored( const CONTENT_TYPE type )
+{
+    // PixelStreams are external applications and can't be restored.
+    if( type == CONTENT_TYPE_PIXEL_STREAM )
+        return false;
+
+    // Webbrowsers are not supported yet, don't restore them.
+    if( type == CONTENT_TYPE_WEBBROWSER )
+        return false;
+
+    return true;
+}
+
 void _validateContents( DisplayGroup& group )
 {
     const ContentWindowPtrs& windows = group.getContentWindows();
@@ -109,12 +122,7 @@ void _validateContents( DisplayGroup& group )
             continue;
         }
 
-        // PixelStreams are external applications and can't be restored.
-        if( content->getType() == CONTENT_TYPE_PIXEL_STREAM )
-            continue;
-
-        // Webbrowsers are not supported yet, don't restore them.
-        if( content->getType() == CONTENT_TYPE_WEBBROWSER )
+        if( !_canBeRestored( content->getType( )))
             continue;
 
         // Some regular textures were saved as DynamicTexture type before the
@@ -236,14 +244,30 @@ bool _writeState( DisplayGroupPtr group, const QString& filename )
     return true;
 }
 
-void _generatePreview( DisplayGroupConstPtr group, const QString& filename )
+void _generatePreview( const DisplayGroup& group, const QString& filename )
 {
-    const QSize size = group->getCoordinates().size().toSize();
-    const ContentWindowPtrs& windows = group->getContentWindows();
+    const QSize size = group.getCoordinates().size().toSize();
+    const ContentWindowPtrs& windows = group.getContentWindows();
 
     StatePreview filePreview( filename );
     filePreview.generateImage( size, windows );
     filePreview.saveToFile();
+}
+
+void _filterContents( DisplayGroup& group )
+{
+    const auto& windows = group.getContentWindows();
+
+    ContentWindowPtrs filteredWindows;
+    filteredWindows.reserve( windows.size( ));
+
+    std::copy_if( windows.begin(), windows.end(),
+                  std::back_inserter( filteredWindows ),
+                  []( const ContentWindowPtr& window )
+    {
+        return _canBeRestored( window->getContent()->getType( ));
+    });
+    group.setContentWindows( filteredWindows );
 }
 
 QFuture<bool> StateSerializationHelper::save( QString filename,
@@ -262,9 +286,11 @@ QFuture<bool> StateSerializationHelper::save( QString filename,
     DisplayGroupPtr group = _copyDisplayGroup();
     return QtConcurrent::run([group, filename, generatePreview]()
     {
+        _filterContents( *group );
+
         // Create preview before session so that thumbnail shows in file browser
         if( generatePreview )
-            _generatePreview( group, filename );
+            _generatePreview( *group, filename );
 
         if( !_writeState( group, filename ))
             return false;

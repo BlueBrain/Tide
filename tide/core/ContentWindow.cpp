@@ -110,6 +110,7 @@ void ContentWindow::setContent( ContentPtr content )
     if( _content )
         _content->disconnect( this, SIGNAL( contentModified( )));
 
+    content->moveToThread( thread( ));
     _content = content;
     _init();
 }

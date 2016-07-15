@@ -49,6 +49,7 @@ Content::Content( const QString& uri )
     : _uri( uri )
     , _zoomRect( UNIT_RECTF )
     , _actions( this )
+    , _keyboardState( this )
     , _captureInteraction( false )
 {
     _init();
@@ -57,6 +58,7 @@ Content::Content( const QString& uri )
 Content::Content()
     : _zoomRect( UNIT_RECTF )
     , _actions( this )
+    , _keyboardState( this )
     , _captureInteraction( false )
 {
     _init();
