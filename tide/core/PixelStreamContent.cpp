@@ -44,7 +44,9 @@
 #include <boost/serialization/export.hpp>
 #include "serializationHelpers.h"
 
-BOOST_CLASS_EXPORT_GUID( PixelStreamContent, "PixelStreamContent" )
+BOOST_CLASS_EXPORT_IMPLEMENT( PixelStreamContent )
+
+IMPLEMENT_SERIALIZE_FOR_XML( PixelStreamContent )
 
 namespace
 {

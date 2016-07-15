@@ -43,7 +43,9 @@
 #define PIXEL_STREAM_CONTENT_H
 
 #include "Content.h"
+
 #include <boost/serialization/base_object.hpp>
+#include <boost/serialization/export.hpp>
 
 class PixelStreamContent : public Content
 {
@@ -81,17 +83,43 @@ protected:
 private:
     friend class boost::serialization::access;
 
-    template<class Archive>
-    void serialize( Archive & ar, const unsigned int )
+    /** Serialize for sending to Wall applications. */
+    template< class Archive >
+    void serialize( Archive & ar, const unsigned int /*version*/ )
+    {
+        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP( Content );
+        ar & _eventReceiversCount;
+    }
+
+    /** Serialize for saving to an xml file */
+    template< class Archive >
+    void serialize_members_xml( Archive & ar, const unsigned int /*version*/ )
     {
         // serialize base class information (with NVP for xml archives)
         ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP( Content );
-        ar & BOOST_SERIALIZATION_NVP( _eventReceiversCount );
+    }
+
+    /** Loading from xml. */
+    void serialize_for_xml( boost::archive::xml_iarchive& ar,
+                            const unsigned int version )
+    {
+        serialize_members_xml( ar, version );
+    }
+
+    /** Saving to xml. */
+    void serialize_for_xml( boost::archive::xml_oarchive& ar,
+                            const unsigned int version )
+    {
+        serialize_members_xml( ar, version );
     }
 
     unsigned int _eventReceiversCount = 0;
 
     void _createActions();
 };
+
+DECLARE_SERIALIZE_FOR_XML( PixelStreamContent )
+
+BOOST_CLASS_EXPORT_KEY( PixelStreamContent )
 
 #endif
