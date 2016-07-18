@@ -85,6 +85,7 @@ private:
 
     int _renderTimer;
     int _stopRenderingDelayTimer;
+    int _idleRedrawTimer;
     bool _needRedraw;
 };
 

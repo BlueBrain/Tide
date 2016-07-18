@@ -56,6 +56,7 @@ RenderController::RenderController( WallWindow& window )
     , _syncOptions( boost::make_shared<Options>( ))
     , _renderTimer( 0 )
     , _stopRenderingDelayTimer( 0 )
+    , _idleRedrawTimer( 0 )
     , _needRedraw( false )
 {
     _syncDisplayGroup.setCallback( boost::bind( &WallWindow::setDisplayGroup,
@@ -78,12 +79,18 @@ void RenderController::timerEvent( QTimerEvent* qtEvent )
 {
     if( qtEvent->timerId() == _renderTimer )
         _syncAndRender();
+    else if( qtEvent->timerId() == _idleRedrawTimer )
+        requestRender();
     else if( qtEvent->timerId() == _stopRenderingDelayTimer )
     {
         killTimer( _renderTimer );
         killTimer( _stopRenderingDelayTimer );
         _renderTimer = 0;
         _stopRenderingDelayTimer = 0;
+
+        // Redraw screen every minute so that the on-screen clock is up to date
+        if( _idleRedrawTimer == 0 )
+            _idleRedrawTimer = startTimer( 60000 /*ms*/ );
     }
 }
 
@@ -91,6 +98,8 @@ void RenderController::requestRender()
 {
     killTimer( _stopRenderingDelayTimer );
     _stopRenderingDelayTimer = 0;
+    killTimer( _idleRedrawTimer );
+    _idleRedrawTimer = 0;
 
     if( _renderTimer == 0 )
         _renderTimer = startTimer( 5, Qt::PreciseTimer );
