@@ -50,12 +50,14 @@ int main( int argc, char* argv[] )
     logger_id = "forker";
     qInstallMessageHandler( qtMessageLogger );
 
-    MPIChannelPtr worldChannel( new MPIChannel( argc, argv ));
-    const int rank = worldChannel->getRank();
-    MPIChannelPtr localChannel( new MPIChannel( *worldChannel, 0, rank ));
-    MPIChannelPtr mainChannel( new MPIChannel( *worldChannel, 0, rank ));
+    {
+        MPIChannelPtr worldChannel( new MPIChannel( argc, argv ));
+        const int rank = worldChannel->getRank();
+        MPIChannelPtr localChannel( new MPIChannel( *worldChannel, 0, rank ));
+        MPIChannelPtr mainChannel( new MPIChannel( *worldChannel, 0, rank ));
 
-    ProcessForker( localChannel ).run();
+        ProcessForker( localChannel ).run();
+    }
     put_flog( LOG_DEBUG, "done." );
     return EXIT_SUCCESS;
 }

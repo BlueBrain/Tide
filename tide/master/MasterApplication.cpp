@@ -111,15 +111,21 @@ MasterApplication::MasterApplication( int& argc_, char** argv_,
 MasterApplication::~MasterApplication()
 {
     _deflectServer.reset();
+    _pixelStreamerLauncher.reset();
 
-    _masterToForkerChannel->sendQuit();
-    _masterToWallChannel->sendQuit();
-
+    // Make sure the send quit happens after any pending send operation;
+    // If a send operation is not matched by a receive, the MPI connection
+    // will block indefintely when trying to disconnect.
+    QMetaObject::invokeMethod( _masterToForkerChannel.get(), "sendQuit",
+                               Qt::BlockingQueuedConnection );
+    QMetaObject::invokeMethod( _masterToWallChannel.get(), "sendQuit",
+                               Qt::BlockingQueuedConnection );
     _mpiSendThread.quit();
     _mpiSendThread.wait();
 
+    // This will wait for the quit reply from the first wall process
     _mpiReceiveThread.quit();
-    _mpiReceiveThread.wait();;
+    _mpiReceiveThread.wait();
 }
 
 void MasterApplication::_init()
