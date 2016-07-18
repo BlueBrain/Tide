@@ -3,6 +3,9 @@ Changelog {#Changelog}
 
 # Release 1.2 (git master)
 
+* [65](https://github.com/BlueBrain/Tide/pull/65):
+  The wall is redrawn every minute when idle so the on-screen clock stays on
+  time.
 * [64](https://github.com/BlueBrain/Tide/pull/64):
   Faster session loading and fix for FFMPEG thread safety issues.
 * [63](https://github.com/BlueBrain/Tide/pull/63):
