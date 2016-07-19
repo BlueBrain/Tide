@@ -50,41 +50,43 @@
 
 int main( int argc, char* argv[] )
 {
-    MPIChannelPtr worldChannel( new MPIChannel( argc, argv ));
-    const int rank = worldChannel->getRank();
-    logger_id = QString( "wall%1" ).arg( rank ).toStdString();
-    qInstallMessageHandler( qtMessageLogger );
-
     // Load virtualkeyboard input context plugin
     qputenv( "QT_IM_MODULE", QByteArray( "qtvirtualkeyboard" ));
 
-    if( worldChannel->getSize() < 2 )
     {
-        std::cerr << "MPI group size < 2 detected. Use tide script or check "
-                     "MPI configuration." << std::endl;
-        return EXIT_FAILURE;
+        MPIChannelPtr worldChannel( new MPIChannel( argc, argv ));
+        const int rank = worldChannel->getRank();
+
+        logger_id = QString( "wall%1" ).arg( rank ).toStdString();
+        qInstallMessageHandler( qtMessageLogger );
+
+        if( worldChannel->getSize() < 2 )
+        {
+            std::cerr << "MPI group size < 2 detected. Use tide script or check"
+                         " MPI configuration." << std::endl;
+            return EXIT_FAILURE;
+        }
+
+        MPIChannelPtr localChannel( new MPIChannel( *worldChannel, 1, rank ));
+        MPIChannelPtr mainChannel( new MPIChannel( *worldChannel, 1, rank ));
+
+        std::unique_ptr< WallApplication > app;
+        try
+        {
+            app.reset( new WallApplication( argc, argv, mainChannel,
+                                            localChannel ));
+        }
+        catch( const std::runtime_error& e )
+        {
+            put_flog( LOG_FATAL, "Could not initialize application. %s",
+                      e.what( ));
+            return EXIT_FAILURE;
+        }
+        app->exec(); // enter Qt event loop
+
+        put_flog( LOG_DEBUG, "waiting for threads to finish..." );
+        QThreadPool::globalInstance()->waitForDone();
     }
-
-    MPIChannelPtr localChannel( new MPIChannel( *worldChannel, 1, rank ));
-    MPIChannelPtr mainChannel( new MPIChannel( *worldChannel, 1, rank ));
-
-    std::unique_ptr< WallApplication > app;
-    try
-    {
-        app.reset( new WallApplication( argc, argv, mainChannel,
-                                        localChannel ));
-    }
-    catch( const std::runtime_error& e )
-    {
-        put_flog( LOG_FATAL, "Could not initialize application. %s", e.what( ));
-        return EXIT_FAILURE;
-    }
-
-    app->exec(); // enter Qt event loop
-
-    put_flog( LOG_DEBUG, "waiting for threads to finish..." );
-    QThreadPool::globalInstance()->waitForDone();
     put_flog( LOG_DEBUG, "done." );
-
     return EXIT_SUCCESS;
 }

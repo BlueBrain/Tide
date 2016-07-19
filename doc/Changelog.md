@@ -3,6 +3,8 @@ Changelog {#Changelog}
 
 # Release 1.2 (git master)
 
+* [66](https://github.com/BlueBrain/Tide/pull/66):
+  Fix bugs that could cause the application to deadlock on exit [DISCL-375].
 * [65](https://github.com/BlueBrain/Tide/pull/65):
   The wall is redrawn every minute when idle so the on-screen clock stays on
   time.

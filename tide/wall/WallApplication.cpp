@@ -86,6 +86,16 @@ WallApplication::WallApplication( int& argc_, char** argv_,
 
 WallApplication::~WallApplication()
 {
+    if( _wallChannel->getRank() == 0 )
+    {
+        // Make sure the send quit happens after any pending sendRequestFrame.
+        // The MasterFromWallChannel is waiting for this signal to exit.
+        // This step ensures that the queue of messages is flushed and the MPI
+        // connection will not block when closing itself.
+        QMetaObject::invokeMethod( _toMasterChannel.get(), "sendQuit",
+                                   Qt::BlockingQueuedConnection );
+    }
+
     _mpiReceiveThread.quit();
     _mpiReceiveThread.wait();
 
@@ -158,9 +168,6 @@ void WallApplication::_initMPIConnection( MPIChannelPtr worldChannel )
                  SIGNAL( requestFrame( QString )),
                  _toMasterChannel.get(), SLOT( sendRequestFrame( QString )));
     }
-
-    connect( _fromMasterChannel.get(), SIGNAL( receivedQuit( )),
-             _toMasterChannel.get(), SLOT( sendQuit( )));
 
     connect( &_mpiReceiveThread, SIGNAL( started( )),
              _fromMasterChannel.get(), SLOT( processMessages( )));

@@ -53,7 +53,7 @@
 
 MPIChannel::MPIChannel( int argc, char* argv[] )
     : _mpiContext( new MPIContext( argc, argv ))
-    , _mpiComm( MPI_COMM_WORLD)
+    , _mpiComm( MPI_COMM_WORLD )
     , _mpiRank( -1 )
     , _mpiSize( -1 )
 {
@@ -64,7 +64,7 @@ MPIChannel::MPIChannel( int argc, char* argv[] )
 MPIChannel::MPIChannel( const MPIChannel& parent, const int color,
                         const int key )
     : _mpiContext( parent._mpiContext )
-    , _mpiComm( MPI_COMM_WORLD )
+    , _mpiComm( MPI_COMM_NULL )
     , _mpiRank( -1 )
     , _mpiSize( -1 )
 {
@@ -76,7 +76,7 @@ MPIChannel::MPIChannel( const MPIChannel& parent, const int color,
 MPIChannel::~MPIChannel()
 {
     if( _mpiComm != MPI_COMM_WORLD )
-        MPI_Comm_free( &_mpiComm );
+        MPI_Comm_disconnect( &_mpiComm );
 }
 
 int MPIChannel::getRank() const
