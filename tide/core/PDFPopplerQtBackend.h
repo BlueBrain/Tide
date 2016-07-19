@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,85 +37,50 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "PDF.h"
+#ifndef PDFPOPPLERQTBACKEND_H
+#define PDFPOPPLERQTBACKEND_H
 
-#include "log.h"
+#include "PDFBackend.h" // Base class
 
-#include "PDFBackend.h"
-#include "PDFPopplerQtBackend.h"
+#include "types.h"
 
-namespace
+namespace Poppler
 {
-const int INVALID_PAGE_NUMBER = -1;
+class Document;
+class Page;
 }
 
-class PDF::Impl
+/**
+ * A PDF backend based on the Poppler-Qt library.
+ */
+class PDFPopplerQtBackend : public PDFBackend
 {
 public:
-    QString filename;
-    int currentPage = 0;
-    std::unique_ptr<PDFBackend> pdf;
+    /**
+     * Open a PDF document for rendering.
+     * @throw std::runtime_error if the document could not be opened.
+     */
+    PDFPopplerQtBackend( const QString& uri );
+
+    /** Close the document. */
+    ~PDFPopplerQtBackend();
+
+    /** @copydoc PDFBackend::getSize */
+    QSize getSize() const final;
+
+    /** @copydoc PDFBackend::getPageCount */
+    int getPageCount() const final;
+
+    /** @copydoc PDFBackend::setPage */
+    bool setPage( int pageNumber ) final;
+
+    /** @copydoc PDFBackend::renderToImage */
+    QImage renderToImage( const QSize& imageSize,
+                          const QRectF& region ) const final;
+
+private:
+    std::unique_ptr<Poppler::Document> _pdfDoc;
+    std::unique_ptr<Poppler::Page> _pdfPage;
 };
 
-PDF::PDF( const QString& uri )
-    : _impl( new Impl )
-{
-    _impl->filename = uri;
-    try
-    {
-        _impl->pdf.reset( new PDFPopplerQtBackend( uri ));
-    }
-    catch( const std::runtime_error& )
-    {
-        put_flog( LOG_DEBUG, "Could not open document: '%s'",
-                  uri.toLocal8Bit().constData( ));
-    }
-}
-
-PDF::~PDF() {}
-
-const QString& PDF::getFilename() const
-{
-    return _impl->filename;
-}
-
-bool PDF::isValid() const
-{
-    return bool(_impl->pdf);
-}
-
-QSize PDF::getSize() const
-{
-    return isValid() ? _impl->pdf->getSize() : QSize();
-}
-
-int PDF::getPage() const
-{
-    return isValid() ? _impl->currentPage : INVALID_PAGE_NUMBER;
-}
-
-void PDF::setPage( const int pageNumber )
-{
-    if( pageNumber == getPage( ))
-        return;
-    if( pageNumber < 0 || pageNumber >= getPageCount( ))
-        return;
-
-    if( !_impl->pdf->setPage( pageNumber ))
-    {
-        put_flog( LOG_WARN, "Could not open page: %d in PDF document: '%s'",
-                  pageNumber, _impl->filename.toLocal8Bit().constData( ));
-        return;
-    }
-    _impl->currentPage = pageNumber;
-}
-
-int PDF::getPageCount() const
-{
-    return isValid() ? _impl->pdf->getPageCount() : 0;
-}
-
-QImage PDF::renderToImage( const QSize& imageSize, const QRectF& region ) const
-{
-    return isValid() ? _impl->pdf->renderToImage( imageSize, region ) : QImage();
-}
+#endif

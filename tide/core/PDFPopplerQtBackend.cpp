@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,85 +37,62 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "PDF.h"
-
-#include "log.h"
-
-#include "PDFBackend.h"
 #include "PDFPopplerQtBackend.h"
+
+#include <exception>
+
+#include <poppler-qt5.h>
 
 namespace
 {
-const int INVALID_PAGE_NUMBER = -1;
+const qreal PDF_RES = 72.0;
 }
 
-class PDF::Impl
+PDFPopplerQtBackend::PDFPopplerQtBackend( const QString& uri )
+    : _pdfDoc( Poppler::Document::load( uri ))
 {
-public:
-    QString filename;
-    int currentPage = 0;
-    std::unique_ptr<PDFBackend> pdf;
-};
-
-PDF::PDF( const QString& uri )
-    : _impl( new Impl )
-{
-    _impl->filename = uri;
-    try
-    {
-        _impl->pdf.reset( new PDFPopplerQtBackend( uri ));
-    }
-    catch( const std::runtime_error& )
-    {
-        put_flog( LOG_DEBUG, "Could not open document: '%s'",
-                  uri.toLocal8Bit().constData( ));
-    }
+    if( !_pdfDoc || _pdfDoc->isLocked( ) || !setPage( 0 ))
+        throw std::runtime_error( "Could not open document" );
 }
 
-PDF::~PDF() {}
+PDFPopplerQtBackend::~PDFPopplerQtBackend() {}
 
-const QString& PDF::getFilename() const
+QSize PDFPopplerQtBackend::getSize() const
 {
-    return _impl->filename;
+    return _pdfPage->pageSize();
 }
 
-bool PDF::isValid() const
+int PDFPopplerQtBackend::getPageCount() const
 {
-    return bool(_impl->pdf);
+    return _pdfDoc->numPages();
 }
 
-QSize PDF::getSize() const
+bool PDFPopplerQtBackend::setPage( const int pageNumber )
 {
-    return isValid() ? _impl->pdf->getSize() : QSize();
+    Poppler::Page* page = _pdfDoc->page( pageNumber );
+    if( !page )
+        return false;
+
+    _pdfPage.reset( page );
+    return true;
 }
 
-int PDF::getPage() const
+QImage PDFPopplerQtBackend::renderToImage( const QSize& imageSize,
+                                           const QRectF& region ) const
 {
-    return isValid() ? _impl->currentPage : INVALID_PAGE_NUMBER;
-}
+    const QSize pageSize( _pdfPage->pageSize( ));
 
-void PDF::setPage( const int pageNumber )
-{
-    if( pageNumber == getPage( ))
-        return;
-    if( pageNumber < 0 || pageNumber >= getPageCount( ))
-        return;
+    const qreal zoomX = 1.0 / region.width();
+    const qreal zoomY = 1.0 / region.height();
 
-    if( !_impl->pdf->setPage( pageNumber ))
-    {
-        put_flog( LOG_WARN, "Could not open page: %d in PDF document: '%s'",
-                  pageNumber, _impl->filename.toLocal8Bit().constData( ));
-        return;
-    }
-    _impl->currentPage = pageNumber;
-}
+    const QPointF topLeft( region.x() * imageSize.width(),
+                           region.y() * imageSize.height( ));
 
-int PDF::getPageCount() const
-{
-    return isValid() ? _impl->pdf->getPageCount() : 0;
-}
+    const qreal resX = PDF_RES * imageSize.width() / pageSize.width();
+    const qreal resY = PDF_RES * imageSize.height() / pageSize.height();
 
-QImage PDF::renderToImage( const QSize& imageSize, const QRectF& region ) const
-{
-    return isValid() ? _impl->pdf->renderToImage( imageSize, region ) : QImage();
+    _pdfDoc->setRenderHint( Poppler::Document::TextAntialiasing );
+    return _pdfPage->renderToImage( resX * zoomX, resY * zoomY,
+                                    topLeft.x() * zoomX, topLeft.y() * zoomY,
+                                    imageSize.width(), imageSize.height( ));
 }

@@ -44,9 +44,12 @@ endif()
 if(TIDE_ENABLE_PDF_SUPPORT)
   list(APPEND TIDECORE_PUBLIC_HEADERS
     PDFContent.h
+    PDFBackend.h
+    PDFPopplerQtBackend.h
   )
   list(APPEND TIDECORE_SOURCES
     PDF.cpp
+    PDFPopplerQtBackend.cpp
     PDFContent.cpp
     PDFInteractionDelegate.cpp
     thumbnail/PDFThumbnailGenerator.cpp
