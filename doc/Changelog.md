@@ -3,6 +3,8 @@ Changelog {#Changelog}
 
 # Release 1.2 (git master)
 
+* [67](https://github.com/BlueBrain/Tide/pull/67):
+  Faster PDF rendering with new Cairo backend and larger tile size [DISCL-373].
 * [66](https://github.com/BlueBrain/Tide/pull/66):
   Fix bugs that could cause the application to deadlock on exit [DISCL-375].
 * [65](https://github.com/BlueBrain/Tide/pull/65):

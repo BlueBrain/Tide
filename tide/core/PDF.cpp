@@ -41,17 +41,28 @@
 
 #include "log.h"
 
-#include "PDFBackend.h"
+#if TIDE_USE_CAIRO && TIDE_USE_POPPLER_GLIB
+#include "PDFPopplerCairoBackend.h"
+#else
 #include "PDFPopplerQtBackend.h"
+#endif
 
 namespace
 {
 const int INVALID_PAGE_NUMBER = -1;
 }
 
-class PDF::Impl
+std::unique_ptr<PDFBackend> _createPdfBackend( const QString& uri )
 {
-public:
+#if TIDE_USE_CAIRO && TIDE_USE_POPPLER_GLIB
+    return make_unique<PDFPopplerCairoBackend>( uri );
+#else
+    return make_unique<PDFPopplerQtBackend>( uri );
+#endif
+}
+
+struct PDF::Impl
+{
     QString filename;
     int currentPage = 0;
     std::unique_ptr<PDFBackend> pdf;
@@ -63,12 +74,12 @@ PDF::PDF( const QString& uri )
     _impl->filename = uri;
     try
     {
-        _impl->pdf.reset( new PDFPopplerQtBackend( uri ));
+        _impl->pdf = _createPdfBackend( uri );
     }
-    catch( const std::runtime_error& )
+    catch( const std::runtime_error& e )
     {
-        put_flog( LOG_DEBUG, "Could not open document: '%s'",
-                  uri.toLocal8Bit().constData( ));
+        put_flog( LOG_DEBUG, "Could not open document '%s': '%s'",
+                  uri.toLocal8Bit().constData( ), e.what( ));
     }
 }
 

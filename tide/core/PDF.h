@@ -95,7 +95,7 @@ public:
                           const QRectF& region = UNIT_RECTF ) const;
 
 private:
-    class Impl;
+    struct Impl;
     std::unique_ptr<Impl> _impl;
 };
 

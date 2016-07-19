@@ -16,8 +16,9 @@ set(TIDE_LICENSE BSD)
 set(TIDE_DEB_DEPENDS  libboost-date-time-dev libboost-program-options-dev
   libboost-serialization-dev libboost-test-dev libopenmpi-dev openmpi-bin
   qtbase5-dev qtdeclarative5-dev libqt5svg5-dev libqt5webkit5-dev
-  libqt5xmlpatterns5-dev libqt5x11extras5-dev libpoppler-qt5-dev
-  libavutil-dev libavformat-dev libavcodec-dev libswscale-dev libxmu-dev)
+  libqt5xmlpatterns5-dev libqt5x11extras5-dev libpoppler-glib-dev libcairo2-dev
+  libpoppler-qt5-dev libavutil-dev libavformat-dev libavcodec-dev libswscale-dev
+  libxmu-dev)
 set(TIDE_PORT_DEPENDS boost ffmpeg mpich-devel qt5)
 
 include(Common)
@@ -51,9 +52,15 @@ if(FFMPEG_FOUND)
   option(TIDE_ENABLE_MOVIE_SUPPORT "Enable FFMPEG movie support" ON)
 endif()
 
-common_find_package(Poppler COMPONENTS Qt5)
-if(POPPLER_FOUND)
-  option(TIDE_ENABLE_PDF_SUPPORT "Enable Pdf support using Poppler" ON)
+common_find_package(cairo)
+common_find_package(poppler-glib)
+if(CAIRO_FOUND AND POPPLER-GLIB_FOUND)
+  option(TIDE_ENABLE_PDF_SUPPORT "Enable Pdf support using Poppler-glib + Cairo" ON)
+else()
+  common_find_package(poppler-qt5)
+  if(POPPLER-QT5_FOUND)
+    option(TIDE_ENABLE_PDF_SUPPORT "Enable Pdf support using Poppler-qt5" ON)
+  endif()
 endif()
 
 common_find_package(TUIO 1.4 SYSTEM)

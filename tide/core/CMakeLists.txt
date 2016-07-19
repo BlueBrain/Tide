@@ -43,18 +43,37 @@ endif()
 
 if(TIDE_ENABLE_PDF_SUPPORT)
   list(APPEND TIDECORE_PUBLIC_HEADERS
-    PDFContent.h
     PDFBackend.h
-    PDFPopplerQtBackend.h
+    PDFContent.h
   )
   list(APPEND TIDECORE_SOURCES
     PDF.cpp
-    PDFPopplerQtBackend.cpp
     PDFContent.cpp
     PDFInteractionDelegate.cpp
     thumbnail/PDFThumbnailGenerator.cpp
   )
-  list(APPEND TIDECORE_LINK_LIBRARIES PRIVATE ${POPPLER_LIBRARIES})
+  if(TIDE_USE_CAIRO AND TIDE_USE_POPPLER_GLIB)
+    list(APPEND TIDECORE_PUBLIC_HEADERS
+      PDFPopplerCairoBackend.h
+    )
+    list(APPEND TIDECORE_SOURCES
+      PDFPopplerCairoBackend.cpp
+    )
+    list(APPEND TIDECORE_LINK_LIBRARIES
+      PRIVATE ${poppler-glib_LIBRARIES}
+    )
+  endif()
+  if(TIDE_USE_POPPLER_QT5)
+    list(APPEND TIDECORE_PUBLIC_HEADERS
+      PDFPopplerQtBackend.h
+    )
+    list(APPEND TIDECORE_SOURCES
+      PDFPopplerQtBackend.cpp
+    )
+    list(APPEND TIDECORE_LINK_LIBRARIES
+      PRIVATE ${poppler-qt5_LIBRARIES}
+    )
+  endif()
 endif()
 
 list(APPEND TIDECORE_PUBLIC_HEADERS
