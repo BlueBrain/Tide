@@ -53,10 +53,11 @@ public:
      *
      * @param name The name of the content exposed through the REST interface,
      *        separated by '::' instead of '/' (e.g. "restapi::index").
+     * @param content the content to expose
      */
     StaticContent( const std::string& name, const std::string& content );
 
-    /** @retrun the name of the command passed in the constructor. */
+    /** @return the name of the command passed in the constructor. */
     std::string getTypeName() const final;
 
 private:

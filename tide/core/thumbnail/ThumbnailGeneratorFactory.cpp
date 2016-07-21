@@ -52,6 +52,11 @@
 #  include "PDFContent.h"
 #  include "PDFThumbnailGenerator.h"
 #endif
+#if TIDE_USE_TIFF
+#  include "ImagePyramidContent.h"
+#  include "ImagePyramidThumbnailGenerator.h"
+#  include "TiffPyramidReader.h"
+#endif
 #include "PyramidThumbnailGenerator.h"
 #include "StateThumbnailGenerator.h"
 #include "TextureContent.h"
@@ -73,6 +78,18 @@ ThumbnailGeneratorFactory::getGenerator( const QString& filename,
 #if TIDE_ENABLE_MOVIE_SUPPORT
     if( MovieContent::getSupportedExtensions().contains( extension ))
         return ThumbnailGeneratorPtr( new MovieThumbnailGenerator( size ));
+#endif
+
+#if TIDE_USE_TIFF
+    if( ImagePyramidContent::getSupportedExtensions().contains( extension ))
+    {
+        try
+        {
+            TiffPyramidReader tif{ filename };
+            return ThumbnailGeneratorPtr( new ImagePyramidThumbnailGenerator( size ));
+        }
+        catch( ... ) { /* not a pyramid file, pass */ }
+    }
 #endif
 
     if( TextureContent::getSupportedExtensions().contains( extension ))

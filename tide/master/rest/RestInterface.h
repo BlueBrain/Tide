@@ -50,8 +50,8 @@
 /**
  * Enables remote control of Tide through a REST API.
  *
- * It listens for http PUT requests on 'http://hostname:port/tide/<command>'
- * and emits the corresponding <command> signal on success.
+ * It listens for http PUT requests on 'http://hostname:port/tide/\<command\>'
+ * and emits the corresponding \<command\> signal on success.
  *
  * Example command:
  * curl -i -X PUT -d '{"uri": "image.png"}' http://localhost:8888/tide/open

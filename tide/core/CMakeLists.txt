@@ -76,6 +76,23 @@ if(TIDE_ENABLE_PDF_SUPPORT)
   endif()
 endif()
 
+if(TIDE_USE_TIFF)
+  list(APPEND TIDECORE_PUBLIC_HEADERS
+    ImagePyramidContent.h
+    TiffPyramidReader.h
+    thumbnail/ImagePyramidThumbnailGenerator.h
+  )
+  list(APPEND TIDECORE_SOURCES
+    ImagePyramidContent.cpp
+    TiffPyramidReader.cpp
+    thumbnail/ImagePyramidThumbnailGenerator.cpp
+  )
+  list(APPEND TIDECORE_LINK_LIBRARIES
+    PRIVATE
+      ${TIFF_LIBRARIES}
+  )
+endif()
+
 list(APPEND TIDECORE_PUBLIC_HEADERS
   CachedDataSource.h
   CommandLineParameters.h

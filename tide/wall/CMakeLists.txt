@@ -34,6 +34,17 @@ if(TIDE_ENABLE_PDF_SUPPORT)
   )
 endif()
 
+if(TIDE_USE_TIFF)
+  list(APPEND TIDEWALL_PUBLIC_HEADERS
+    ImagePyramidDataSource.h
+    ImagePyramidSynchronizer.h
+  )
+  list(APPEND TIDEWALL_SOURCES
+    ImagePyramidDataSource.cpp
+    ImagePyramidSynchronizer.cpp
+  )
+endif()
+
 list(APPEND TIDEWALL_PUBLIC_HEADERS
   BasicSynchronizer.h
   ContentSynchronizer.h

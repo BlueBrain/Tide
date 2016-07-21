@@ -3,6 +3,9 @@ Changelog {#Changelog}
 
 # Release 1.2 (git master)
 
+* [68](https://github.com/BlueBrain/Tide/pull/68):
+  Added support for TIFF image pyramids to replace legacy DynamicTextures
+  as a way to view very large images [DISCL-360].
 * [67](https://github.com/BlueBrain/Tide/pull/67):
   Faster PDF rendering with new Cairo backend and larger tile size [DISCL-373].
 * [66](https://github.com/BlueBrain/Tide/pull/66):

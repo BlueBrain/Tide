@@ -52,7 +52,8 @@ static TypeMap typemap = boost::assign::list_of< TypeMap::relation >
         (CONTENT_TYPE_SVG, QString("CONTENT_TYPE_SVG"))
         (CONTENT_TYPE_TEXTURE, QString("CONTENT_TYPE_TEXTURE"))
         (CONTENT_TYPE_PDF, QString("CONTENT_TYPE_PDF"))
-        (CONTENT_TYPE_WEBBROWSER, QString("CONTENT_TYPE_WEBBROWSER"));
+        (CONTENT_TYPE_WEBBROWSER, QString("CONTENT_TYPE_WEBBROWSER"))
+        (CONTENT_TYPE_IMAGE_PYRAMID, QString("CONTENT_TYPE_IMAGE_PYRAMID"));
 
 QString getContentTypeString( const CONTENT_TYPE type )
 {

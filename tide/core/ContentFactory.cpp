@@ -1,6 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -44,6 +44,10 @@
 
 #include "Content.h"
 #include "DynamicTextureContent.h"
+#if TIDE_USE_TIFF
+#  include "ImagePyramidContent.h"
+#  include "TiffPyramidReader.h"
+#endif
 #if TIDE_ENABLE_MOVIE_SUPPORT
 #  include "MovieContent.h"
 #endif
@@ -87,6 +91,18 @@ CONTENT_TYPE ContentFactory::getContentTypeForFile( const QString& uri )
         return CONTENT_TYPE_PDF;
 #endif
 
+#if TIDE_USE_TIFF
+    if( ImagePyramidContent::getSupportedExtensions().contains( extension ))
+    {
+        try
+        {
+            TiffPyramidReader tif{ uri };
+            return CONTENT_TYPE_IMAGE_PYRAMID;
+        }
+        catch( ... ) { /* not a pyramid file, pass */ }
+    }
+#endif
+
     if( DynamicTextureContent::getSupportedExtensions().contains( extension ))
         return CONTENT_TYPE_DYNAMIC_TEXTURE;
 
@@ -117,6 +133,11 @@ ContentPtr ContentFactory::getContent( const QString& uri )
     case CONTENT_TYPE_SVG:
         content = boost::make_shared<SVGContent>( uri );
         break;
+#if TIDE_USE_TIFF
+    case CONTENT_TYPE_IMAGE_PYRAMID:
+        content = boost::make_shared<ImagePyramidContent>( uri );
+        break;
+#endif
 #if TIDE_ENABLE_MOVIE_SUPPORT
     case CONTENT_TYPE_MOVIE:
         content = boost::make_shared<MovieContent>( uri );

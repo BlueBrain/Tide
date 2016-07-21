@@ -1,6 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -75,4 +75,4 @@ public:
     static CONTENT_TYPE getContentTypeForFile( const QString& uri );
 };
 
-#endif // CONTENTFACTORY_H
+#endif

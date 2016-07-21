@@ -52,12 +52,12 @@ enum CONTENT_TYPE
     CONTENT_TYPE_SVG,
     CONTENT_TYPE_TEXTURE,
     CONTENT_TYPE_PDF,
-    CONTENT_TYPE_WEBBROWSER
+    CONTENT_TYPE_WEBBROWSER,
+    CONTENT_TYPE_IMAGE_PYRAMID
 };
 
 QString getContentTypeString( const CONTENT_TYPE type );
 
 CONTENT_TYPE getContentType( const QString& typeString );
-
 
 #endif

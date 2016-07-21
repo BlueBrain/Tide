@@ -37,67 +37,42 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "PDFTiler.h"
+#include "ImagePyramidContent.h"
 
-#include "VectorialContent.h"
-#include "LodTools.h"
+#include "TiffPyramidReader.h"
+#include "serializationHelpers.h"
+#include <boost/serialization/export.hpp>
 
-#include <QThread>
+BOOST_CLASS_EXPORT_GUID( ImagePyramidContent, "ImagePyramidContent" )
 
-namespace
-{
-// The main bottelneck of Poppler is the parsing done for every render call not
-// the rendering itself. See: https://bugzilla.gnome.org/show_bug.cgi?id=303365
-// Rendering a small tile takes almost as long a rendering the whole page, so
-// it is more optimal to use a large tile size.
-const uint tileSize = 2048;
-}
-
-PDFTiler::PDFTiler( PDF& pdf )
-    : LodTiler( pdf.getSize() * VectorialContent::getMaxScale(), tileSize )
-    , _pdf( pdf )
-    , _tilesPerPage( _lodTool.getTilesCount( ))
+ImagePyramidContent::ImagePyramidContent( const QString& uri )
+    : Content( uri )
 {}
 
-QRect PDFTiler::getTileRect( uint tileId ) const
+CONTENT_TYPE ImagePyramidContent::getType() const
 {
-    tileId = tileId % _tilesPerPage;
-    return LodTiler::getTileRect( tileId );
+    return CONTENT_TYPE_IMAGE_PYRAMID;
 }
 
-Indices PDFTiler::computeVisibleSet( const QRectF& visibleTilesArea,
-                                     const uint lod ) const
+bool ImagePyramidContent::readMetadata()
 {
-    const Indices visibleSet =
-            LodTiler::computeVisibleSet( visibleTilesArea, lod );
-
-    Indices offsetSet;
-    const auto pageOffset = getPreviewTileId();
-    for( auto tileId : visibleSet )
-        offsetSet.insert( tileId + pageOffset );
-
-    return offsetSet;
-}
-
-QImage PDFTiler::getCachableTileImage( uint tileId ) const
-{
-    const auto id = QThread::currentThreadId();
-
-    PDF* pdf = nullptr;
+    try
     {
-        QMutexLocker lock( &_threadMapMutex );
-        if( !_perThreadPDF.count( id ))
-            _perThreadPDF[id] = make_unique<PDF>( _pdf.getFilename( ));
-        pdf = _perThreadPDF[id].get();
+        _size = TiffPyramidReader{ _uri }.getImageSize();
     }
-    pdf->setPage( tileId / _tilesPerPage );
-
-    tileId = tileId % _tilesPerPage;
-    const QRect tile = getTileRect( tileId );
-    return pdf->renderToImage( tile.size(), getNormalizedTileRect( tileId ));
+    catch( ... )
+    {
+        return false;
+    }
+    return true;
 }
 
-uint PDFTiler::getPreviewTileId() const
+const QStringList& ImagePyramidContent::getSupportedExtensions()
 {
-    return _tilesPerPage * _pdf.getPage();
+    static QStringList extensions;
+
+    if( extensions.empty( ))
+        extensions << "tif" << "tiff";
+
+    return extensions;
 }

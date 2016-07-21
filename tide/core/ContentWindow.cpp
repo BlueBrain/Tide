@@ -341,6 +341,7 @@ void ContentWindow::_createInteractionDelegate()
         break;
 #endif
     case CONTENT_TYPE_DYNAMIC_TEXTURE:
+    case CONTENT_TYPE_IMAGE_PYRAMID:
     case CONTENT_TYPE_TEXTURE:
     case CONTENT_TYPE_SVG:
         _interactionDelegate.reset( new ZoomInteractionDelegate( *this ));

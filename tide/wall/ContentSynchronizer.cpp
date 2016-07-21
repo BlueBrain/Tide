@@ -45,6 +45,9 @@
 #include "BasicSynchronizer.h"
 #include "DynamicTextureSynchronizer.h"
 #include "ImageSynchronizer.h"
+#if TIDE_USE_TIFF
+#include "ImagePyramidSynchronizer.h"
+#endif
 #if TIDE_ENABLE_MOVIE_SUPPORT
 #include "MovieSynchronizer.h"
 #endif
@@ -63,6 +66,10 @@ ContentSynchronizerPtr ContentSynchronizer::create( ContentPtr content )
     {
     case CONTENT_TYPE_DYNAMIC_TEXTURE:
         return make_unique<DynamicTextureSynchronizer>( uri );
+#if TIDE_USE_TIFF
+    case CONTENT_TYPE_IMAGE_PYRAMID:
+        return make_unique<ImagePyramidSynchronizer>( uri );
+#endif
 #if TIDE_ENABLE_MOVIE_SUPPORT
     case CONTENT_TYPE_MOVIE:
         return make_unique<MovieSynchronizer>( uri );

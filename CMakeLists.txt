@@ -37,6 +37,7 @@ common_find_package(Qt5WebKitWidgets SYSTEM)
 common_find_package(Qt5Widgets REQUIRED)
 common_find_package(Qt5XmlPatterns REQUIRED)
 common_find_package(Qt5Xml REQUIRED)
+common_find_package(TIFF)
 common_find_package(VirtualKeyboard)
 
 # WAR for Ubuntu 14.04 in CI super-project conditions

@@ -66,6 +66,7 @@ class FFMPEGPicture;
 class FFMPEGVideoFrameConverter;
 class FFMPEGVideoStream;
 class Image;
+class ImagePyramidDataSource;
 class MarkerRenderer;
 class Markers;
 class MasterConfiguration;
