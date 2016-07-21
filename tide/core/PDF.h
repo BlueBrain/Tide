@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -44,43 +44,59 @@
 
 #include <QImage>
 
-namespace Poppler
-{
-class Document;
-class Page;
-}
-
+/**
+ * A PDF document which can be rendered as a QImage.
+ *
+ * This class is a facade to different PDF readers/rendering backends available.
+ * It currently uses (in order of preference):
+ * - Poppler-glib with Cairo (faster)
+ * - Poppler-qt with Splash
+ */
 class PDF
 {
 public:
+    /**
+     * Open a document.
+     * @param uri the file to open.
+     */
     PDF( const QString& uri );
+
+    /** Close the document. */
     ~PDF();
 
+    /** @return the filename of the document passed to the constructor. */
     const QString& getFilename() const;
 
+    /** @return true if the document is valid. */
     bool isValid() const;
 
+    /** @return the dimensions of the document in pixels. */
     QSize getSize() const;
 
+    /** @return the current page number. */
     int getPage() const;
-    void setPage( const int pageNumber );
 
+    /**
+     * Go to a given page number.
+     * @param pageNumber the page to open. If invalid, the page is not changed.
+     */
+    void setPage( int pageNumber );
+
+    /** @return the number of pages in the document. */
     int getPageCount() const;
 
+    /**
+     * Render the document to an image.
+     * @param imageSize the desired size for the image
+     * @param region the target area of the page to render, in normalized coord.
+     * @return the rendered image region, or an empty QImage on failure.
+     */
     QImage renderToImage( const QSize& imageSize,
                           const QRectF& region = UNIT_RECTF ) const;
 
-    bool isValid( const int pageNumber ) const;
-
 private:
-    Poppler::Document* _pdfDoc;
-    Poppler::Page* _pdfPage;
-    int _pageNumber;
-    QString _filename;
-
-    void _openDocument( const QString& filename );
-    void _closeDocument();
-    void _closePage();
+    struct Impl;
+    std::unique_ptr<Impl> _impl;
 };
 
-#endif // PDF_H
+#endif

@@ -37,66 +37,62 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "PDFTiler.h"
+#include "PDFPopplerQtBackend.h"
 
-#include "VectorialContent.h"
-#include "LodTools.h"
+#include <exception>
 
-#include <QThread>
+#include <poppler-qt5.h>
 
 namespace
 {
-// The main bottelneck of Poppler is the parsing done for every render call not
-// the rendering itself. See: https://bugzilla.gnome.org/show_bug.cgi?id=303365
-// Rendering a small tile takes almost as long a rendering the whole page, so
-// it is more optimal to use a large tile size.
-const uint tileSize = 2048;
+const qreal PDF_RES = 72.0;
 }
 
-PDFTiler::PDFTiler( PDF& pdf )
-    : LodTiler( pdf.getSize() * VectorialContent::getMaxScale(), tileSize )
-    , _pdf( pdf )
-    , _tilesPerPage( _lodTool.getTilesCount( ))
-{}
-
-QRect PDFTiler::getTileRect( uint tileId ) const
+PDFPopplerQtBackend::PDFPopplerQtBackend( const QString& uri )
+    : _pdfDoc( Poppler::Document::load( uri ))
 {
-    tileId = tileId % _tilesPerPage;
-    return LodTiler::getTileRect( tileId );
+    if( !_pdfDoc || _pdfDoc->isLocked( ) || !setPage( 0 ))
+        throw std::runtime_error( "Could not open document" );
 }
 
-Indices PDFTiler::computeVisibleSet( const QRectF& visibleTilesArea,
-                                     const uint lod ) const
-{
-    const Indices visibleSet = _lodTool.getVisibleTiles( visibleTilesArea,
-                                                         lod );
-    Indices offsetSet;
-    const auto pageOffset = getPreviewTileId();
-    for( auto tileId : visibleSet )
-        offsetSet.insert( tileId + pageOffset );
+PDFPopplerQtBackend::~PDFPopplerQtBackend() {}
 
-    return offsetSet;
+QSize PDFPopplerQtBackend::getSize() const
+{
+    return _pdfPage->pageSize();
 }
 
-QImage PDFTiler::getCachableTileImage( uint tileId ) const
+int PDFPopplerQtBackend::getPageCount() const
 {
-    const auto id = QThread::currentThreadId();
-
-    PDF* pdf = nullptr;
-    {
-        QMutexLocker lock( &_threadMapMutex );
-        if( !_perThreadPDF.count( id ))
-            _perThreadPDF[id] = make_unique<PDF>( _pdf.getFilename( ));
-        pdf = _perThreadPDF[id].get();
-    }
-    pdf->setPage( tileId / _tilesPerPage );
-
-    tileId = tileId % _tilesPerPage;
-    const QRect tile = getTileRect( tileId );
-    return pdf->renderToImage( tile.size(), getNormalizedTileRect( tileId ));
+    return _pdfDoc->numPages();
 }
 
-uint PDFTiler::getPreviewTileId() const
+bool PDFPopplerQtBackend::setPage( const int pageNumber )
 {
-    return _tilesPerPage * _pdf.getPage();
+    Poppler::Page* page = _pdfDoc->page( pageNumber );
+    if( !page )
+        return false;
+
+    _pdfPage.reset( page );
+    return true;
+}
+
+QImage PDFPopplerQtBackend::renderToImage( const QSize& imageSize,
+                                           const QRectF& region ) const
+{
+    const QSize pageSize( _pdfPage->pageSize( ));
+
+    const qreal zoomX = 1.0 / region.width();
+    const qreal zoomY = 1.0 / region.height();
+
+    const QPointF topLeft( region.x() * imageSize.width(),
+                           region.y() * imageSize.height( ));
+
+    const qreal resX = PDF_RES * imageSize.width() / pageSize.width();
+    const qreal resY = PDF_RES * imageSize.height() / pageSize.height();
+
+    _pdfDoc->setRenderHint( Poppler::Document::TextAntialiasing );
+    return _pdfPage->renderToImage( resX * zoomX, resY * zoomY,
+                                    topLeft.x() * zoomX, topLeft.y() * zoomY,
+                                    imageSize.width(), imageSize.height( ));
 }
