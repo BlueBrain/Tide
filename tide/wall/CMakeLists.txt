@@ -50,7 +50,6 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   ContentSynchronizer.h
   DataProvider.h
   DisplayGroupRenderer.h
-  DynamicTextureSynchronizer.h
   ElapsedTimer.h
   FpsCounter.h
   ImageSource.h
@@ -84,7 +83,6 @@ list(APPEND TIDEWALL_SOURCES
   ContentSynchronizer.cpp
   DataProvider.cpp
   DisplayGroupRenderer.cpp
-  DynamicTextureSynchronizer.cpp
   ElapsedTimer.cpp
   FpsCounter.cpp
   ImageSource.cpp

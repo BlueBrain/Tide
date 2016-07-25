@@ -41,7 +41,6 @@
 
 #include "config.h"
 #include "DefaultThumbnailGenerator.h"
-#include "DynamicTextureContent.h"
 #include "FolderThumbnailGenerator.h"
 #include "ImageThumbnailGenerator.h"
 #if TIDE_ENABLE_MOVIE_SUPPORT
@@ -57,7 +56,6 @@
 #  include "ImagePyramidThumbnailGenerator.h"
 #  include "TiffPyramidReader.h"
 #endif
-#include "PyramidThumbnailGenerator.h"
 #include "StateThumbnailGenerator.h"
 #include "TextureContent.h"
 
@@ -94,9 +92,6 @@ ThumbnailGeneratorFactory::getGenerator( const QString& filename,
 
     if( TextureContent::getSupportedExtensions().contains( extension ))
         return ThumbnailGeneratorPtr( new ImageThumbnailGenerator( size ));
-
-    if( DynamicTextureContent::getSupportedExtensions().contains( extension ))
-        return ThumbnailGeneratorPtr( new PyramidThumbnailGenerator( size ));
 
 #if TIDE_ENABLE_PDF_SUPPORT
     if( PDFContent::getSupportedExtensions().contains( extension ))

@@ -1,6 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -42,13 +42,11 @@
 
 #include "types.h"
 
-#include "StateSerializationHelper.h"
-
+#include <QFutureWatcher>
 #include <QMainWindow>
 #include <QMimeData>
 
 class BackgroundWidget;
-class MasterConfiguration;
 class DisplayGroupView;
 class WebbrowserWidget;
 
@@ -97,8 +95,6 @@ private slots:
 
     void _openSession();
     void _saveSession();
-
-    void _computeImagePyramid();
 
     void _openAboutWidget();
 

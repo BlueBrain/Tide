@@ -133,6 +133,13 @@ bool _validateContent( const ContentWindowPtr& window )
             content = ContentFactory::getContent( uri );
             window->setContent( content );
         }
+        else
+        {
+            put_flog( LOG_INFO, "DynamicTexture are no longer supported. Please"
+                                "convert the source image to a tiff pyramid: "
+                                "'%s'",
+                      content->getURI().toLocal8Bit().constData( ));
+        }
     }
 
     // Refresh content information, files can have been modified or removed

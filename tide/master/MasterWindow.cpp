@@ -1,6 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -46,8 +46,6 @@
 #include "ContentLoader.h"
 #include "ContentFactory.h"
 #include "StateSerializationHelper.h"
-
-#include "DynamicTexture.h"
 
 #include "DisplayGroup.h"
 #include "ContentWindow.h"
@@ -143,7 +141,6 @@ void MasterWindow::_setupMasterWindowUI()
     QMenu* fileMenu = menuBar()->addMenu( "&File" );
     QMenu* editMenu = menuBar()->addMenu( "&Edit" );
     QMenu* viewMenu = menuBar()->addMenu( "&View" );
-    QMenu* toolsMenu = menuBar()->addMenu( "&Tools" );
     QMenu* helpMenu = menuBar()->addMenu( "&Help" );
 
     // create tool bar
@@ -318,15 +315,6 @@ void MasterWindow::_setupMasterWindowUI()
     connect( _options.get(), &Options::showZoomContextChanged,
              showZoomContextAction, &QAction::setChecked );
 
-    /** TOOLS menu */
-
-    // compute image pyramid action
-    QAction* computeImagePyramidAction = new QAction( "Compute Image Pyramid",
-                                                      this );
-    computeImagePyramidAction->setStatusTip( "Compute image pyramid" );
-    connect( computeImagePyramidAction, &QAction::triggered,
-             this, &MasterWindow::_computeImagePyramid );
-
     /** HELP menu */
 
     QAction* showAboutDialog = new QAction( "About", this );
@@ -356,7 +344,6 @@ void MasterWindow::_setupMasterWindowUI()
     viewMenu->addAction( showWindowBordersAction );
     viewMenu->addAction( showWindowTitlesAction );
     viewMenu->addAction( showZoomContextAction );
-    toolsMenu->addAction( computeImagePyramidAction );
     helpMenu->addAction( showAboutDialog );
 
     // add actions to toolbar
@@ -545,31 +532,6 @@ void MasterWindow::_loadSession( const QString& filename )
 {
     _loadSessionOp.setFuture(
                 StateSerializationHelper( _displayGroup ).load( filename ));
-}
-
-void MasterWindow::_computeImagePyramid()
-{
-    const QString filename = QFileDialog::getOpenFileName( this, "Select image",
-                                                           _contentFolder );
-    if( filename.isEmpty( ))
-        return;
-
-    _contentFolder = QFileInfo( filename ).absoluteDir().path();
-
-    put_flog( LOG_DEBUG, "source image filename: %s",
-              filename.toLocal8Bit().constData( ));
-
-    put_flog( LOG_DEBUG, "target location for image pyramid folder: %s",
-              _contentFolder.toLocal8Bit().constData( ));
-
-    DynamicTexturePtr dynamicTexture( new DynamicTexture( filename ));
-    if( !dynamicTexture->generateImagePyramid( _contentFolder ))
-    {
-        QMessageBox::warning( this, "Error", "Image pyramid creation failed.",
-                              QMessageBox::Ok, QMessageBox::Ok );
-    }
-
-    put_flog( LOG_DEBUG, "done generating pyramid" );
 }
 
 void MasterWindow::_openAboutWidget()

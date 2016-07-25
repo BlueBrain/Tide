@@ -43,7 +43,6 @@
 #include "Content.h"
 
 #include "BasicSynchronizer.h"
-#include "DynamicTextureSynchronizer.h"
 #include "ImageSynchronizer.h"
 #if TIDE_USE_TIFF
 #include "ImagePyramidSynchronizer.h"
@@ -64,8 +63,6 @@ ContentSynchronizerPtr ContentSynchronizer::create( ContentPtr content )
     const QString& uri = content->getURI();
     switch( content->getType( ))
     {
-    case CONTENT_TYPE_DYNAMIC_TEXTURE:
-        return make_unique<DynamicTextureSynchronizer>( uri );
 #if TIDE_USE_TIFF
     case CONTENT_TYPE_IMAGE_PYRAMID:
         return make_unique<ImagePyramidSynchronizer>( uri );

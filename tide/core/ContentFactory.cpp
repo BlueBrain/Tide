@@ -43,7 +43,6 @@
 #include "config.h"
 
 #include "Content.h"
-#include "DynamicTextureContent.h"
 #if TIDE_USE_TIFF
 #  include "ImagePyramidContent.h"
 #  include "TiffPyramidReader.h"
@@ -103,9 +102,6 @@ CONTENT_TYPE ContentFactory::getContentTypeForFile( const QString& uri )
     }
 #endif
 
-    if( DynamicTextureContent::getSupportedExtensions().contains( extension ))
-        return CONTENT_TYPE_DYNAMIC_TEXTURE;
-
     const QImageReader imageReader( uri );
     if( imageReader.canRead( ))
     {
@@ -148,9 +144,6 @@ ContentPtr ContentFactory::getContent( const QString& uri )
         content = boost::make_shared<PDFContent>( uri );
         break;
 #endif
-    case CONTENT_TYPE_DYNAMIC_TEXTURE:
-        content = boost::make_shared<DynamicTextureContent>( uri );
-        break;
     case CONTENT_TYPE_TEXTURE:
         content = boost::make_shared<TextureContent>( uri );
         break;
@@ -196,7 +189,6 @@ const QStringList& ContentFactory::getSupportedExtensions()
 #endif
         extensions.append( SVGContent::getSupportedExtensions( ));
         extensions.append( TextureContent::getSupportedExtensions( ));
-        extensions.append( DynamicTextureContent::getSupportedExtensions( ));
 #if TIDE_ENABLE_MOVIE_SUPPORT
         extensions.append( MovieContent::getSupportedExtensions( ));
 #endif

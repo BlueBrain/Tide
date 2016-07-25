@@ -340,7 +340,6 @@ void ContentWindow::_createInteractionDelegate()
         _interactionDelegate.reset( new PDFInteractionDelegate( *this ));
         break;
 #endif
-    case CONTENT_TYPE_DYNAMIC_TEXTURE:
     case CONTENT_TYPE_IMAGE_PYRAMID:
     case CONTENT_TYPE_TEXTURE:
     case CONTENT_TYPE_SVG:
