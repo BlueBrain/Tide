@@ -42,26 +42,30 @@
 
 #include "LodTiler.h"
 
-#include "SVGTextureFactory.h"
+#include "SVG.h"
 
 /**
- * Reprensent an SVG image as a multi-LOD tiled data source.
+ * Represent an SVG image as a multi-LOD tiled data source.
  */
 class SVGTiler : public LodTiler
 {
 public:
     /** Constructor. */
-    explicit SVGTiler( SVGTextureFactoryPtr factory );
+    explicit SVGTiler( SVG& svg );
 
 private:
     /**
      * Get a tile image which will be cached.
-     * Unlike other DataSource classes, this method must be called from a thread
-     * with an OpenGL context.
+     * Unlike other DataSource classes, this method may need to be called from a
+     * thread with an OpenGL context depending on the SVG backend used.
      */
     QImage getCachableTileImage( uint tileId ) const final;
 
-    SVGTextureFactoryPtr _factory;
+    SVG& _svg;
+
+    mutable QMutex _threadMapMutex;
+    typedef std::unique_ptr<SVG> SVGPtr;
+    mutable std::map<Qt::HANDLE, SVGPtr> _perThreadSVG;
 };
 
 #endif

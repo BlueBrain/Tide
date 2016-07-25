@@ -39,14 +39,18 @@
 
 #include "SVGTiler.h"
 
+#include "VectorialContent.h"
+
+#include <QThread>
+
 namespace
 {
-const uint tileSize = 512;
+const uint tileSize = 1024;
 }
 
-SVGTiler::SVGTiler( SVGTextureFactoryPtr factory )
-    : LodTiler( factory->getMaxSize(), tileSize )
-    , _factory( std::move( factory ))
+SVGTiler::SVGTiler( SVG& svg )
+    : LodTiler( svg.getSize() * VectorialContent::getMaxScale(), tileSize )
+    , _svg( svg )
 {}
 
 QImage SVGTiler::getCachableTileImage( const uint tileId ) const
@@ -54,5 +58,19 @@ QImage SVGTiler::getCachableTileImage( const uint tileId ) const
     const QRect imageRect = getTileRect( tileId );
     const QRectF zoomRect = getNormalizedTileRect( tileId );
 
-    return _factory->createTexture( imageRect.size(), zoomRect );
+#if TIDE_USE_CAIRO && TIDE_USE_RSVG
+    // The SvgCairoRSVGBackend is called from multiple threads
+    SVG* svg = nullptr;
+    {
+        const auto id = QThread::currentThreadId();
+        const QMutexLocker lock( &_threadMapMutex );
+        if( !_perThreadSVG.count( id ))
+            _perThreadSVG[id] = make_unique<SVG>( _svg.getData( ));
+        svg = _perThreadSVG[id].get();
+    }
+#else
+    // The SvgQtGpuBackend is always called from the GPU thread
+    SVG* svg = &_svg;
+#endif
+    return svg->renderToImage( imageRect.size(), zoomRect );
 }

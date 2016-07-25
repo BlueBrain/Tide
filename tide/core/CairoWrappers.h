@@ -37,41 +37,22 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "SVGImage.h"
+#ifndef CAIROWRAPPERS_H
+#define CAIROWRAPPERS_H
 
-SVGImage::SVGImage( const SVGTiler& dataSource, const uint tileId )
-    : _dataSource( dataSource )
-    , _tileId( tileId )
-{}
+#include <cairo/cairo.h>
+#include <memory>
 
-int SVGImage::getWidth() const
+struct CairoDeleter
 {
-    return _image->getWidth();
-}
+    void operator()( cairo_t* cairo ) { cairo_destroy( cairo ); }
+};
+typedef std::unique_ptr<cairo_t, CairoDeleter> CairoPtr;
 
-int SVGImage::getHeight() const
+struct CairoSurfaceDeleter
 {
-    return _image->getHeight();
-}
+    void operator()( cairo_surface_t* s ) { cairo_surface_destroy( s ); }
+};
+typedef std::unique_ptr<cairo_surface_t, CairoSurfaceDeleter> CairoSurfacePtr;
 
-const uint8_t* SVGImage::getData() const
-{
-    return _image->getData();
-}
-
-uint SVGImage::getFormat() const
-{
-    return _image->getFormat();
-}
-
-bool SVGImage::isGpuImage() const
-{
-    return true;
-}
-
-bool SVGImage::generateGpuImage()
-{
-    // Call getTileImage so that the image gets cached for the next request
-    _image = _dataSource.getTileImage( _tileId );
-    return true;
-}
+#endif

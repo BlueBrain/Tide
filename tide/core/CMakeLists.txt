@@ -41,6 +41,12 @@ if(TIDE_ENABLE_MOVIE_SUPPORT)
   )
 endif()
 
+if(TIDE_USE_CAIRO)
+  list(APPEND TIDECORE_PUBLIC_HEADERS
+    CairoWrappers.h
+  )
+endif()
+
 if(TIDE_ENABLE_PDF_SUPPORT)
   list(APPEND TIDECORE_PUBLIC_HEADERS
     PDFBackend.h
@@ -74,6 +80,18 @@ if(TIDE_ENABLE_PDF_SUPPORT)
       PRIVATE ${poppler-qt5_LIBRARIES}
     )
   endif()
+endif()
+
+if(TIDE_USE_CAIRO AND TIDE_USE_RSVG)
+  list(APPEND TIDECORE_PUBLIC_HEADERS
+    SVGCairoRSVGBackend.h
+  )
+  list(APPEND TIDECORE_SOURCES
+    SVGCairoRSVGBackend.cpp
+  )
+  list(APPEND TIDECORE_LINK_LIBRARIES
+    PRIVATE ${RSVG_LIBRARIES}
+  )
 endif()
 
 if(TIDE_USE_TIFF)
@@ -127,7 +145,10 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   QtImage.h
   StatePreview.h
   SerializeBuffer.h
+  SVG.h
+  SVGBackend.h
   SVGContent.h
+  SVGQtGpuBackend.h
   TextureContent.h
   thumbnail/DefaultThumbnailGenerator.h
   thumbnail/FolderThumbnailGenerator.h
@@ -176,7 +197,9 @@ list(APPEND TIDECORE_SOURCES
   PixelStreamInteractionDelegate.cpp
   QtImage.cpp
   StatePreview.cpp
+  SVG.cpp
   SVGContent.cpp
+  SVGQtGpuBackend.cpp
   TextureContent.cpp
   thumbnail/DefaultThumbnailGenerator.cpp
   thumbnail/FolderThumbnailGenerator.cpp

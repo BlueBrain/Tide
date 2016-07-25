@@ -63,8 +63,8 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   QuickRenderer.h
   RenderController.h
   StreamImage.h
+  SVGGpuImage.h
   SVGSynchronizer.h
-  SVGTextureFactory.h
   SVGTiler.h
   TestPattern.h
   TextureNode.h
@@ -96,9 +96,8 @@ list(APPEND TIDEWALL_SOURCES
   QuickRenderer.cpp
   RenderController.cpp
   StreamImage.cpp
-  SVGImage.cpp
+  SVGGpuImage.cpp
   SVGSynchronizer.cpp
-  SVGTextureFactory.cpp
   SVGTiler.cpp
   TestPattern.cpp
   TextureNode.cpp

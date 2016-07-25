@@ -37,47 +37,42 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef SVGIMAGE_H
-#define SVGIMAGE_H
+#ifndef SVGCAIRORSVGBACKEND_H
+#define SVGCAIRORSVGBACKEND_H
 
-#include "Image.h"
+#include "SVGBackend.h"
 
-#include "SVGTiler.h"
+#include <memory>
 
 /**
- * Image wrapper for an SVG tile.
+ * A Cairo + RSVG data source for SVG images.
  *
- * The actual image has to be rendered with OpenGL in the texture upload thread.
- * Until generateGpuImage has succeeded, this image contains no image data.
+ * This class is thread-safe, however concurrent calls to renderToImage will be
+ * serialized because the RSVG library cannot handle concurrent render calls.
  */
-class SVGImage : public Image
+class SVGCairoRSVGBackend : public SVGBackend
 {
 public:
-    /** Constructor. */
-    SVGImage( const SVGTiler& dataSource, uint tileId );
+    /**
+     * Create an SVG renderer.
+     * @param svgData the svg data, typically read from an svg file
+     * @throw std::runtime_error if an error occurs
+     */
+    explicit SVGCairoRSVGBackend( const QByteArray& svgData );
 
-    /** @copydoc Image::getWidth */
-    int getWidth() const override;
+    /** Free the SVG renderer. */
+    ~SVGCairoRSVGBackend();
 
-    /** @copydoc Image::getHeight */
-    int getHeight() const override;
+    /** @copydoc SVGBackend::getSize */
+    QSize getSize() const final;
 
-    /** @copydoc Image::getData */
-    const uint8_t* getData() const override;
-
-    /** @copydoc Image::getFormat */
-    uint getFormat() const override;
-
-    /** @copydoc Image::isGpuImage */
-    bool isGpuImage() const final;
-
-    /** @copydoc Image::generateGpuImage */
-    bool generateGpuImage() final;
+    /** @copydoc SVGBackend::renderToImage */
+    QImage renderToImage( const QSize& imageSize,
+                          const QRectF& region ) const final;
 
 private:
-    const SVGTiler& _dataSource;
-    const uint _tileId;
-    ImagePtr _image;
+    struct Impl;
+    std::unique_ptr<Impl> _impl;
 };
 
 #endif

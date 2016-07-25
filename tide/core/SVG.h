@@ -37,44 +37,67 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "SVGSynchronizer.h"
+#ifndef SVG_H
+#define SVG_H
 
-#include "SVG.h"
-#include "SVGGpuImage.h"
-#include "SVGTiler.h"
+#include "types.h"
 
-struct SVGSynchronizer::Impl
+#include <QImage>
+
+/**
+ * An SVG document which can be rendered as a QImage.
+ *
+ * This class is a facade to different SVG readers/rendering backends available.
+ * It currently uses (in order of preference):
+ * - RSVG with Cairo
+ * - QSvgRenderer (with GPU antialiasing)
+ */
+class SVG
 {
-    Impl( const QString& uri )
-        : svg( uri )
-        , dataSource( svg )
-    {}
-    SVG svg;
-    SVGTiler dataSource;
+public:
+    /**
+     * Open an svg document.
+     * @param uri the file to open.
+     * @sa isValid()
+     */
+    explicit SVG( const QString& uri );
+
+    /**
+     * Create an svg document from existing data.
+     * @param svgData the svg data, typically read from an svg file
+     * @throw std::runtime_error if the data is invalid
+     */
+    explicit SVG( const QByteArray& svgData );
+
+    /** Close the document. */
+    ~SVG();
+
+    /** @return the filename of the document passed to the constructor. */
+    const QString& getFilename() const;
+
+    /** @return true if the document is valid. */
+    bool isValid() const;
+
+    /** @return the dimensions of the document in pixels. */
+    QSize getSize() const;
+
+    /** @return the raw svg data. */
+    const QByteArray& getData() const;
+
+    /**
+     * Render the document to an image.
+     * @param imageSize the desired size for the image
+     * @param region the target area of the svg to render, in normalized coord.
+     * @return the rendered image region, or an empty QImage on failure.
+     * @note when using the SVGQtGpuBackend, this function must be called from a
+     *       thread with an active OpenGL context
+     */
+    QImage renderToImage( const QSize& imageSize,
+                          const QRectF& region = UNIT_RECTF ) const;
+
+private:
+    struct Impl;
+    std::unique_ptr<Impl> _impl;
 };
 
-SVGSynchronizer::SVGSynchronizer( const QString& uri )
-    : LodSynchronizer( TileSwapPolicy::SwapTilesIndependently )
-    , _impl( new Impl( uri ))
-{}
-
-SVGSynchronizer::~SVGSynchronizer() {}
-
-void SVGSynchronizer::synchronize( WallToWallChannel& channel )
-{
-    Q_UNUSED( channel );
-}
-
-ImagePtr SVGSynchronizer::getTileImage( const uint tileId ) const
-{
-#if !(TIDE_USE_CAIRO && TIDE_USE_RSVG)
-    if( !_impl->dataSource.contains( tileId ))
-        return std::make_shared<SVGGpuImage>( _impl->dataSource, tileId );
 #endif
-    return LodSynchronizer::getTileImage( tileId );
-}
-
-const DataSource& SVGSynchronizer::getDataSource() const
-{
-    return _impl->dataSource;
-}

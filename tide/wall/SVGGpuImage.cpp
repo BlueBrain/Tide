@@ -37,44 +37,41 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "SVGSynchronizer.h"
-
-#include "SVG.h"
 #include "SVGGpuImage.h"
-#include "SVGTiler.h"
 
-struct SVGSynchronizer::Impl
-{
-    Impl( const QString& uri )
-        : svg( uri )
-        , dataSource( svg )
-    {}
-    SVG svg;
-    SVGTiler dataSource;
-};
-
-SVGSynchronizer::SVGSynchronizer( const QString& uri )
-    : LodSynchronizer( TileSwapPolicy::SwapTilesIndependently )
-    , _impl( new Impl( uri ))
+SVGGpuImage::SVGGpuImage( const SVGTiler& dataSource, const uint tileId )
+    : _dataSource( dataSource )
+    , _tileId( tileId )
 {}
 
-SVGSynchronizer::~SVGSynchronizer() {}
-
-void SVGSynchronizer::synchronize( WallToWallChannel& channel )
+int SVGGpuImage::getWidth() const
 {
-    Q_UNUSED( channel );
+    return _image->getWidth();
 }
 
-ImagePtr SVGSynchronizer::getTileImage( const uint tileId ) const
+int SVGGpuImage::getHeight() const
 {
-#if !(TIDE_USE_CAIRO && TIDE_USE_RSVG)
-    if( !_impl->dataSource.contains( tileId ))
-        return std::make_shared<SVGGpuImage>( _impl->dataSource, tileId );
-#endif
-    return LodSynchronizer::getTileImage( tileId );
+    return _image->getHeight();
 }
 
-const DataSource& SVGSynchronizer::getDataSource() const
+const uint8_t* SVGGpuImage::getData() const
 {
-    return _impl->dataSource;
+    return _image->getData();
+}
+
+uint SVGGpuImage::getFormat() const
+{
+    return _image->getFormat();
+}
+
+bool SVGGpuImage::isGpuImage() const
+{
+    return true;
+}
+
+bool SVGGpuImage::generateGpuImage()
+{
+    // Call getTileImage so that the image gets cached for the next request
+    _image = _dataSource.getTileImage( _tileId );
+    return true;
 }

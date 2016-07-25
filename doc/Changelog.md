@@ -3,6 +3,8 @@ Changelog {#Changelog}
 
 # Release 1.2 (git master)
 
+* [69](https://github.com/BlueBrain/Tide/pull/69):
+  Added a new SVG backend based on Cairo + rsvg for better results [DISCL-379].
 * [68](https://github.com/BlueBrain/Tide/pull/68):
   Added support for TIFF image pyramids to replace legacy DynamicTextures
   as a way to view very large images [DISCL-360].

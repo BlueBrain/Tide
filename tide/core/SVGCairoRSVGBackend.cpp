@@ -37,44 +37,87 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "SVGSynchronizer.h"
+#include <librsvg/rsvg.h> // Must come before any Qt include
 
-#include "SVG.h"
-#include "SVGGpuImage.h"
-#include "SVGTiler.h"
+#include "SVGCairoRSVGBackend.h"
 
-struct SVGSynchronizer::Impl
+#include "CairoWrappers.h"
+
+#include <mutex>
+
+#define RSVG_HAS_LARGE_FILE_SUPPORT LIBRSVG_CHECK_VERSION(2,40,3)
+
+struct RsvgHandleDeleter
 {
-    Impl( const QString& uri )
-        : svg( uri )
-        , dataSource( svg )
-    {}
-    SVG svg;
-    SVGTiler dataSource;
+    void operator()( RsvgHandle* rsvg ) { g_object_unref( rsvg ); }
+};
+typedef std::unique_ptr<RsvgHandle, RsvgHandleDeleter> RsvgHandlePtr;
+
+struct GInputStreamDeleter
+{
+    void operator()( GInputStream* rsvg ) { g_object_unref( rsvg ); }
+};
+typedef std::unique_ptr<GInputStream, GInputStreamDeleter> GInputStreamPtr;
+
+struct SVGCairoRSVGBackend::Impl
+{
+    RsvgHandlePtr svg;
+    std::mutex renderMutex;
 };
 
-SVGSynchronizer::SVGSynchronizer( const QString& uri )
-    : LodSynchronizer( TileSwapPolicy::SwapTilesIndependently )
-    , _impl( new Impl( uri ))
-{}
-
-SVGSynchronizer::~SVGSynchronizer() {}
-
-void SVGSynchronizer::synchronize( WallToWallChannel& channel )
+SVGCairoRSVGBackend::SVGCairoRSVGBackend( const QByteArray& svgData )
+    : _impl{ new Impl }
 {
-    Q_UNUSED( channel );
-}
-
-ImagePtr SVGSynchronizer::getTileImage( const uint tileId ) const
-{
-#if !(TIDE_USE_CAIRO && TIDE_USE_RSVG)
-    if( !_impl->dataSource.contains( tileId ))
-        return std::make_shared<SVGGpuImage>( _impl->dataSource, tileId );
+#if RSVG_HAS_LARGE_FILE_SUPPORT
+    const auto flags = RSVG_HANDLE_FLAG_UNLIMITED;
+#else
+    const auto flags = RSVG_HANDLE_FLAGS_NONE;
 #endif
-    return LodSynchronizer::getTileImage( tileId );
+    _impl->svg.reset( rsvg_handle_new_with_flags( flags ));
+    GInputStreamPtr input( g_memory_input_stream_new_from_data(
+                               svgData.constData(), svgData.size(), nullptr ));
+    GError* gerror = nullptr;
+    if( !rsvg_handle_read_stream_sync( _impl->svg.get(), input.get(), nullptr,
+                                       &gerror ))
+        throw std::runtime_error( gerror->message );
 }
 
-const DataSource& SVGSynchronizer::getDataSource() const
+SVGCairoRSVGBackend::~SVGCairoRSVGBackend() {}
+
+QSize SVGCairoRSVGBackend::getSize() const
 {
-    return _impl->dataSource;
+    RsvgDimensionData dimensions;
+    rsvg_handle_get_dimensions( _impl->svg.get(), &dimensions );
+    return QSize{ dimensions.width, dimensions.height };
+}
+
+QImage SVGCairoRSVGBackend::renderToImage( const QSize& imageSize,
+                                           const QRectF& region ) const
+{
+    const QSizeF svgSize( getSize( ));
+
+    const qreal zoomX = 1.0 / region.width();
+    const qreal zoomY = 1.0 / region.height();
+
+    const qreal resX = imageSize.width() / svgSize.width();
+    const qreal resY = imageSize.height() / svgSize.height();
+
+    const QPointF topLeft( region.x() * svgSize.width(),
+                           region.y() * svgSize.height( ));
+
+    QImage image( imageSize, QImage::Format_ARGB32 );
+    image.fill( Qt::white );
+    CairoSurfacePtr surface( cairo_image_surface_create_for_data(
+                                 image.bits(), CAIRO_FORMAT_ARGB32,
+                                 image.width(), image.height(),
+                                 4 * image.width( )));
+    CairoPtr context( cairo_create( surface.get( )));
+
+    cairo_scale( context.get(), zoomX * resX, zoomY * resY );
+    cairo_translate( context.get(), -topLeft.x(), -topLeft.y( ));
+
+    const std::lock_guard<std::mutex> lock( _impl->renderMutex );
+    rsvg_handle_render_cairo( _impl->svg.get(), context.get( ));
+
+    return image;
 }
