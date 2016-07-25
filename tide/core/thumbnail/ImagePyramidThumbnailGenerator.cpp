@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,31 +37,21 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef DYNAMICTEXTURESYNCHRONIZER_H
-#define DYNAMICTEXTURESYNCHRONIZER_H
+#include "ImagePyramidThumbnailGenerator.h"
 
-#include "LodSynchronizer.h"
+#include "TiffPyramidReader.h"
+#include "log.h"
 
-/**
- * A synchronizer which provides the list of Tiles for DynamicTextures.
- */
-class DynamicTextureSynchronizer : public LodSynchronizer
+ImagePyramidThumbnailGenerator::ImagePyramidThumbnailGenerator( const QSize&
+                                                                size )
+    : ThumbnailGenerator( size )
+{}
+
+QImage ImagePyramidThumbnailGenerator::generate( const QString& filename ) const
 {
-    Q_OBJECT
-    Q_DISABLE_COPY( DynamicTextureSynchronizer )
+    const QImage image = TiffPyramidReader{ filename }.readTopLevelImage();
 
-public:
-    /** Constructor */
-    DynamicTextureSynchronizer( const QString& uri );
-
-    /** @copydoc ContentSynchronizer::synchronize */
-    void synchronize( WallToWallChannel& channel ) final;
-
-private:
-    DynamicTexturePtr _reader;
-
-    /** @copydoc LodSynchronizer::getDataSource */
-    const DataSource& getDataSource() const final;
-};
-
-#endif
+    if( !image.isNull( ))
+        return image.scaled( _size, _aspectRatioMode );
+    return createErrorImage( "pyramid" );
+}

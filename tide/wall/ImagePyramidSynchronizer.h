@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,17 +37,34 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef PYRAMIDTHUMBNAILGENERATOR_H
-#define PYRAMIDTHUMBNAILGENERATOR_H
+#ifndef IMAGEPYRAMIDSYNCHRONIZER_H
+#define IMAGEPYRAMIDSYNCHRONIZER_H
 
-#include "ThumbnailGenerator.h"
+#include "LodSynchronizer.h"
 
-class PyramidThumbnailGenerator : public ThumbnailGenerator
+/**
+ * A synchronizer which provides the list of Tiles for image pyramids.
+ */
+class ImagePyramidSynchronizer : public LodSynchronizer
 {
-public:
-    PyramidThumbnailGenerator( const QSize& size );
+    Q_OBJECT
+    Q_DISABLE_COPY( ImagePyramidSynchronizer )
 
-    QImage generate( const QString& filename ) const override;
+public:
+    /** Constructor */
+    ImagePyramidSynchronizer( const QString& uri );
+
+    /** Destructor */
+    ~ImagePyramidSynchronizer();
+
+    /** @copydoc ContentSynchronizer::synchronize */
+    void synchronize( WallToWallChannel& channel ) final;
+
+private:
+    std::unique_ptr<ImagePyramidDataSource> _dataSource;
+
+    /** @copydoc LodSynchronizer::getDataSource */
+    const DataSource& getDataSource() const final;
 };
 
 #endif

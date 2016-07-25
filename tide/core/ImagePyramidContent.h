@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,23 +37,45 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "PyramidThumbnailGenerator.h"
+#ifndef IMAGEPYRAMID_CONTENT_H
+#define IMAGEPYRAMID_CONTENT_H
 
-#include "DynamicTexture.h"
-#include "log.h"
+#include "Content.h"
 
-PyramidThumbnailGenerator::PyramidThumbnailGenerator( const QSize& size )
-    : ThumbnailGenerator( size )
+#include <boost/serialization/base_object.hpp>
+
+class ImagePyramidContent : public Content
 {
-}
+public:
+    /**
+     * Constructor.
+     * @param uri The uri of the image pyramid file.
+     */
+    explicit ImagePyramidContent( const QString& uri );
 
-QImage PyramidThumbnailGenerator::generate( const QString& filename ) const
-{
-    const QImage image = DynamicTexture( filename ).getRootImage();
-    if( !image.isNull( ))
-        return image.scaled( _size, _aspectRatioMode );
+    /** Get the content type **/
+    CONTENT_TYPE getType() const final;
 
-    put_flog( LOG_ERROR, "could not open pyramid file: '%s'",
-              filename.toLatin1().constData( ));
-    return createErrorImage( "pyramid" );
-}
+    /**
+     * Read texture metadata.
+     * @return true on success, false if the URI is invalid or an error occured.
+    **/
+    bool readMetadata() final;
+
+    static const QStringList& getSupportedExtensions();
+
+private:
+    friend class boost::serialization::access;
+
+    // Default constructor required for boost::serialization
+    ImagePyramidContent() {}
+
+    template<class Archive>
+    void serialize( Archive & ar, const unsigned int )
+    {
+        // serialize base class information (with NVP for xml archives)
+        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP( Content );
+    }
+};
+
+#endif

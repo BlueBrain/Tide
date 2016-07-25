@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,21 +37,24 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "DynamicTextureSynchronizer.h"
+#ifndef IMAGEPYRAMIDDATASOURCE_H
+#define IMAGEPYRAMIDDATASOURCE_H
 
-#include "DynamicTexture.h"
+#include "LodTiler.h"
 
-DynamicTextureSynchronizer::DynamicTextureSynchronizer( const QString& uri )
-    : LodSynchronizer( TileSwapPolicy::SwapTilesIndependently )
-    , _reader( new DynamicTexture( uri ))
-{}
-
-void DynamicTextureSynchronizer::synchronize( WallToWallChannel& channel )
+/**
+ * A data source for tiled image pyramids.
+ */
+class ImagePyramidDataSource : public LodTiler
 {
-    Q_UNUSED( channel );
-}
+public:
+    /** Constructor. */
+    explicit ImagePyramidDataSource( const QString& uri );
 
-const DataSource& DynamicTextureSynchronizer::getDataSource() const
-{
-    return *_reader;
-}
+private:
+    const QString _uri;
+
+    QImage getCachableTileImage( uint tileId ) const final; // threadsafe
+};
+
+#endif

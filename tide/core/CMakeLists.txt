@@ -76,6 +76,23 @@ if(TIDE_ENABLE_PDF_SUPPORT)
   endif()
 endif()
 
+if(TIDE_USE_TIFF)
+  list(APPEND TIDECORE_PUBLIC_HEADERS
+    ImagePyramidContent.h
+    TiffPyramidReader.h
+    thumbnail/ImagePyramidThumbnailGenerator.h
+  )
+  list(APPEND TIDECORE_SOURCES
+    ImagePyramidContent.cpp
+    TiffPyramidReader.cpp
+    thumbnail/ImagePyramidThumbnailGenerator.cpp
+  )
+  list(APPEND TIDECORE_LINK_LIBRARIES
+    PRIVATE
+      ${TIFF_LIBRARIES}
+  )
+endif()
+
 list(APPEND TIDECORE_PUBLIC_HEADERS
   CachedDataSource.h
   CommandLineParameters.h
@@ -92,7 +109,6 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   DataSource.h
   DisplayGroup.h
   DynamicTextureContent.h
-  DynamicTexture.h
   Image.h
   KeyboardState.h
   LayoutEngine.h
@@ -116,7 +132,6 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   thumbnail/DefaultThumbnailGenerator.h
   thumbnail/FolderThumbnailGenerator.h
   thumbnail/ImageThumbnailGenerator.h
-  thumbnail/PyramidThumbnailGenerator.h
   thumbnail/StateThumbnailGenerator.h
   thumbnail/ThumbnailGeneratorFactory.h
   thumbnail/ThumbnailGenerator.h
@@ -145,7 +160,6 @@ list(APPEND TIDECORE_SOURCES
   Coordinates.cpp
   DisplayGroup.cpp
   DynamicTextureContent.cpp
-  DynamicTexture.cpp
   KeyboardState.cpp
   LayoutEngine.cpp
   LodTools.cpp
@@ -167,7 +181,6 @@ list(APPEND TIDECORE_SOURCES
   thumbnail/DefaultThumbnailGenerator.cpp
   thumbnail/FolderThumbnailGenerator.cpp
   thumbnail/ImageThumbnailGenerator.cpp
-  thumbnail/PyramidThumbnailGenerator.cpp
   thumbnail/StateThumbnailGenerator.cpp
   thumbnail/ThumbnailGenerator.cpp
   thumbnail/ThumbnailGeneratorFactory.cpp

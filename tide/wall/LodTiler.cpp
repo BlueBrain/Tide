@@ -43,6 +43,10 @@ LodTiler::LodTiler( const QSize& contentSize, const uint tileSize )
     : _lodTool( contentSize, tileSize )
 {}
 
+LodTiler::LodTiler( std::pair<QSize, uint> args )
+    : _lodTool( args.first, args.second )
+{}
+
 QRect LodTiler::getTileRect( const uint tileId ) const
 {
     return _lodTool.getTileCoord( tileId );

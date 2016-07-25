@@ -50,13 +50,6 @@
 class LodTiler : public CachedDataSource
 {
 public:
-    /**
-     * Constructor
-     * @param contentSize the size of the full resolution content
-     * @param tileSize the size of the tiles to subdivide the content
-     */
-    LodTiler( const QSize& contentSize, uint tileSize );
-
     /** @copydoc DataSource::getTileRect */
     QRect getTileRect( uint tileId ) const override;
 
@@ -74,6 +67,14 @@ public:
     QRectF getNormalizedTileRect( uint tileId ) const;
 
 protected:
+    /**
+     * Constructor
+     * @param contentSize the size of the full resolution content
+     * @param tileSize the size of the tiles to subdivide the content
+     */
+    LodTiler( const QSize& contentSize, uint tileSize );
+    LodTiler( std::pair<QSize, uint> args );
+
     LodTools _lodTool;
 };
 

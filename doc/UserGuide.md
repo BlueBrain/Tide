@@ -24,6 +24,14 @@ and the list of windows that each one of them will display.
 More examples can be found in the examples folder of the source directory, or
 installed under ${install_prefix}/share/Tide/examples.
 
+## TIFF image pyramids {#tiffimagepyramids}
+
+Tide can open any image pyramid saved in standard TIFF file format. To convert
+an existing image to a TIFF pyramid one can use for instance ImageMagick:
+> convert myimage.xyz -monitor -define tiff:tile-geometry=512x512 -compress jpeg 'ptif:myimage.tif'
+Or even more simply use the *pyramidmaker* script provided by Tide:
+> pyramidmaker myimage.xyz myimage.tif
+
 ## Open ports {#openports}
 
 Tide listens on the following ports:

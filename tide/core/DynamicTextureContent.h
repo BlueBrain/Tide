@@ -46,27 +46,19 @@
 #include <boost/serialization/base_object.hpp>
 
 /**
- * The Content object for a dynamically loaded large scale image.
+ * Legacy image pyramid format, no longer supported.
+ *
+ * This class is kept only to let boost deserialize old session files which
+ * contained instances of this class.
  */
 class DynamicTextureContent : public Content
 {
 public:
-    /**
-     * Constructor.
-     * @param uri The image or pyramid file.
-     */
-    explicit DynamicTextureContent( const QString& uri );
-
     /** Get the content type **/
-    CONTENT_TYPE getType() const override;
+    CONTENT_TYPE getType() const final;
 
-    /**
-     * Read texture informations from the source URI.
-     * @return true on success, false if the URI is invalid or an error occured.
-    **/
-    bool readMetadata() override;
-
-    static const QStringList& getSupportedExtensions();
+    /** @return always false, no longer supported. */
+    bool readMetadata() final { return false; }
 
 private:
     friend class boost::serialization::access;

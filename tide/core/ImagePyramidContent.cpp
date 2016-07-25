@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,59 +37,42 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "DynamicTexture.h"
+#include "ImagePyramidContent.h"
 
-#include <iostream>
-#include <QtCore/QCoreApplication>
-#include <QtCore/QFileInfo>
+#include "TiffPyramidReader.h"
+#include "serializationHelpers.h"
+#include <boost/serialization/export.hpp>
 
-namespace
+BOOST_CLASS_EXPORT_GUID( ImagePyramidContent, "ImagePyramidContent" )
+
+ImagePyramidContent::ImagePyramidContent( const QString& uri )
+    : Content( uri )
+{}
+
+CONTENT_TYPE ImagePyramidContent::getType() const
 {
-const int SUCCESS_RETURN_CODE = 0;
-const int INVALID_PARAM_COUNT_ERROR_CODE = -1;
-const int INVALID_IMAGE_ERROR_CODE = -2;
-const int INVALID_OUTPUTDIR_ERROR_CODE = -3;
-const int PYRAMID_CREATION_FAILED_ERROR_CODE = -4;
+    return CONTENT_TYPE_IMAGE_PYRAMID;
 }
 
-int main( int argc, char* argv[] )
+bool ImagePyramidContent::readMetadata()
 {
-    if( argc != 3 )
+    try
     {
-        std::cout << "Usage: pyramidmaker imagefile outputdir" << std::endl;
-        return INVALID_PARAM_COUNT_ERROR_CODE;
+        _size = TiffPyramidReader{ _uri }.getImageSize();
     }
-
-    QCoreApplication app( argc, argv );
-
-    const QString filename( argv[1] );
-    std::cout << "source image filename: " << filename.toStdString() <<
-                 std::endl;
-
-    DynamicTexturePtr texture( new DynamicTexture( filename ));
-    if( texture->getSize().isEmpty( ))
+    catch( ... )
     {
-        std::cerr << "The source image could not be read." << std::endl;
-        return INVALID_IMAGE_ERROR_CODE;
+        return false;
     }
+    return true;
+}
 
-    const QString destDir( argv[2] );
-    std::cout << "target location for image pyramid folder: " <<
-                 destDir.toStdString() << std::endl;
+const QStringList& ImagePyramidContent::getSupportedExtensions()
+{
+    static QStringList extensions;
 
-    const QFileInfo dir( destDir );
-    if( !dir.exists() || !dir.isWritable( ))
-    {
-        std::cerr << "Invalid or unwritable output directory." << std::endl;
-        return INVALID_OUTPUTDIR_ERROR_CODE;
-    }
+    if( extensions.empty( ))
+        extensions << "tif" << "tiff";
 
-    if( !texture->generateImagePyramid( destDir ))
-    {
-        std::cerr << "Image pyramid creation failed." << std::endl;
-        return PYRAMID_CREATION_FAILED_ERROR_CODE;
-    }
-
-    std::cout << "Done generating image pyramid!" << std::endl;
-    return SUCCESS_RETURN_CODE;
+    return extensions;
 }

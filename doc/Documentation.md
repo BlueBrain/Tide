@@ -30,9 +30,9 @@ pointers to auxilary documentation.
                    parameters and streams that content to the local tide
                    instance. The webbrowser content for instance is one
                    exisiting implementation.
-  * PyramidMaker: An application that generates an image pyramid for a big
-                  image which can be loaded and rendered by tide more
-                  efficently.
+  * pyramidmaker: A script that generates a TIFF image pyramid from a big
+                  source image using ImageMagick's convert tool. Image pyramids
+                  can be loaded and rendered by Tide more efficently.
 
 * tests: Unit tests.
 * doc: Doxygen and other documentation.

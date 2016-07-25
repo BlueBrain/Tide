@@ -41,41 +41,12 @@
 
 #include "DynamicTextureContent.h"
 
-#include "DynamicTexture.h"
 #include "serializationHelpers.h"
-
 #include <boost/serialization/export.hpp>
-#include <QtCore/QFileInfo>
-#include <QtGui/QImageReader>
 
 BOOST_CLASS_EXPORT_GUID( DynamicTextureContent, "DynamicTextureContent" )
-
-DynamicTextureContent::DynamicTextureContent( const QString& uri )
-    : Content( uri )
-{}
 
 CONTENT_TYPE DynamicTextureContent::getType() const
 {
     return CONTENT_TYPE_DYNAMIC_TEXTURE;
-}
-
-bool DynamicTextureContent::readMetadata()
-{
-    QFileInfo file( getURI( ));
-    if( !file.exists() || !file.isReadable( ))
-        return false;
-
-    const DynamicTexture dynamicTexture( getURI( ));
-    _size = dynamicTexture.getSize();
-    return true;
-}
-
-const QStringList& DynamicTextureContent::getSupportedExtensions()
-{
-    static QStringList extensions;
-
-    if( extensions.empty( ))
-        extensions << "pyr";
-
-    return extensions;
 }
