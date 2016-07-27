@@ -37,44 +37,82 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "SVGSynchronizer.h"
-
 #include "SVG.h"
-#include "SVGGpuImage.h"
-#include "SVGTiler.h"
 
-struct SVGSynchronizer::Impl
+#if TIDE_USE_CAIRO && TIDE_USE_RSVG
+#include "SVGCairoRSVGBackend.h"
+#else
+#include "SVGQtGpuBackend.h"
+#endif
+#include "log.h"
+
+#include <QFile>
+
+std::unique_ptr<SVGBackend> _createSvgBackend( const QByteArray& svgData )
 {
-    Impl( const QString& uri )
-        : svg( uri )
-        , dataSource( svg )
-    {}
-    SVG svg;
-    SVGTiler dataSource;
+#if TIDE_USE_CAIRO && TIDE_USE_RSVG
+    return make_unique<SVGCairoRSVGBackend>( svgData );
+#else
+    return make_unique<SVGQtGpuBackend>( svgData );
+#endif
+}
+
+struct SVG::Impl
+{
+    QString filename;
+    QByteArray svgData;
+    std::unique_ptr<SVGBackend> svg;
 };
 
-SVGSynchronizer::SVGSynchronizer( const QString& uri )
-    : LodSynchronizer( TileSwapPolicy::SwapTilesIndependently )
-    , _impl( new Impl( uri ))
-{}
-
-SVGSynchronizer::~SVGSynchronizer() {}
-
-void SVGSynchronizer::synchronize( WallToWallChannel& channel )
+SVG::SVG( const QString& uri )
+    : _impl( new Impl )
 {
-    Q_UNUSED( channel );
+    _impl->filename = uri;
+    try
+    {
+        QFile file( uri );
+        if( !file.open( QIODevice::ReadOnly ))
+            throw std::runtime_error( "invalid file" );
+        _impl->svgData = file.readAll();
+        _impl->svg = _createSvgBackend( _impl->svgData );
+    }
+    catch( const std::runtime_error& e )
+    {
+        put_flog( LOG_DEBUG, "Could not open document '%s': '%s'",
+                  uri.toLocal8Bit().constData( ), e.what( ));
+    }
 }
 
-ImagePtr SVGSynchronizer::getTileImage( const uint tileId ) const
+SVG::SVG( const QByteArray& svgData )
+    : _impl( new Impl )
 {
-#if !(TIDE_USE_CAIRO && TIDE_USE_RSVG)
-    if( !_impl->dataSource.contains( tileId ))
-        return std::make_shared<SVGGpuImage>( _impl->dataSource, tileId );
-#endif
-    return LodSynchronizer::getTileImage( tileId );
+    _impl->svgData = svgData;
+    _impl->svg = _createSvgBackend( _impl->svgData );
 }
 
-const DataSource& SVGSynchronizer::getDataSource() const
+SVG::~SVG() {}
+
+const QString& SVG::getFilename() const
 {
-    return _impl->dataSource;
+    return _impl->filename;
+}
+
+bool SVG::isValid() const
+{
+    return bool(_impl->svg);
+}
+
+QSize SVG::getSize() const
+{
+    return isValid() ? _impl->svg->getSize() : QSize();
+}
+
+const QByteArray& SVG::getData() const
+{
+    return _impl->svgData;
+}
+
+QImage SVG::renderToImage( const QSize& imageSize, const QRectF& region ) const
+{
+    return isValid() ? _impl->svg->renderToImage( imageSize, region ) : QImage();
 }

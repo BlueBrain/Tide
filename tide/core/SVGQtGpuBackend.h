@@ -37,28 +37,36 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef SVGTEXTUREFACTORY_H
-#define SVGTEXTUREFACTORY_H
+#ifndef SVGQTGPUBACKEND_H
+#define SVGQTGPUBACKEND_H
+
+#include "SVGBackend.h"
 
 #include <QMutex>
 #include <QSvgRenderer>
 
-/** Renders an svg document into a texure using hardware antialiasing. */
-class SVGTextureFactory
+/**
+ * Renders an svg document into a texure using hardware antialiasing.
+ */
+class SVGQtGpuBackend : public SVGBackend
 {
 public:
-    /** Constructor */
-    SVGTextureFactory( const QString& uri );
+    /**
+     * Create an SVG renderer.
+     * @param svgData the svg data, typically read from an svg file
+     * @throw std::runtime_error if an error occurs
+     */
+    explicit SVGQtGpuBackend( const QByteArray& svgData );
 
-    /** The maximum size for the content. */
-    QSize getMaxSize() const;
+    /** @copydoc SVGBackend::getSize */
+    QSize getSize() const final;
 
     /**
      * Render the specified area on the GPU and downloads it into core memory.
      * This function must be called on a thread with an active GL context.
      */
-    QImage createTexture( const QSize& textureSize,
-                          const QRectF& zoomRect ) const;
+    QImage renderToImage( const QSize& imageSize,
+                          const QRectF& region ) const final;
 
 private:
     mutable QMutex _mutex;

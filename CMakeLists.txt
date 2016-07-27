@@ -17,8 +17,8 @@ set(TIDE_DEB_DEPENDS  libboost-date-time-dev libboost-program-options-dev
   libboost-serialization-dev libboost-test-dev libopenmpi-dev openmpi-bin
   qtbase5-dev qtdeclarative5-dev libqt5svg5-dev libqt5webkit5-dev
   libqt5xmlpatterns5-dev libqt5x11extras5-dev libpoppler-glib-dev libcairo2-dev
-  libpoppler-qt5-dev libavutil-dev libavformat-dev libavcodec-dev libswscale-dev
-  libxmu-dev)
+  libpoppler-qt5-dev librsvg2-dev libavutil-dev libavformat-dev libavcodec-dev
+  libswscale-dev libxmu-dev)
 set(TIDE_PORT_DEPENDS boost ffmpeg mpich-devel qt5)
 
 include(Common)
@@ -37,6 +37,7 @@ common_find_package(Qt5WebKitWidgets SYSTEM)
 common_find_package(Qt5Widgets REQUIRED)
 common_find_package(Qt5XmlPatterns REQUIRED)
 common_find_package(Qt5Xml REQUIRED)
+common_find_package(RSVG MODULE librsvg-2.0 2.36.2)
 common_find_package(TIFF)
 common_find_package(VirtualKeyboard)
 

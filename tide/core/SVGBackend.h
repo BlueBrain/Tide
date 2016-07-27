@@ -37,44 +37,33 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "SVGSynchronizer.h"
+#ifndef SVGBACKEND
+#define SVGBACKEND
 
-#include "SVG.h"
-#include "SVGGpuImage.h"
-#include "SVGTiler.h"
+#include <QImage>
 
-struct SVGSynchronizer::Impl
+/**
+ * An abstract interface for SVG backends.
+ *
+ * Derived classes provide SVG parsing and rendering using different libraries.
+ */
+class SVGBackend
 {
-    Impl( const QString& uri )
-        : svg( uri )
-        , dataSource( svg )
-    {}
-    SVG svg;
-    SVGTiler dataSource;
+public:
+    /** Virtual destructor. */
+    virtual ~SVGBackend() {}
+
+    /** @return the dimensions of the document in pixels. */
+    virtual QSize getSize() const = 0;
+
+    /**
+     * Render the document to an image.
+     * @param imageSize the desired size for the image
+     * @param region the target area of the svg to render, in normalized coord.
+     * @return the rendered image region, or an empty QImage on failure.
+     */
+    virtual QImage renderToImage( const QSize& imageSize,
+                                  const QRectF& region ) const = 0;
 };
 
-SVGSynchronizer::SVGSynchronizer( const QString& uri )
-    : LodSynchronizer( TileSwapPolicy::SwapTilesIndependently )
-    , _impl( new Impl( uri ))
-{}
-
-SVGSynchronizer::~SVGSynchronizer() {}
-
-void SVGSynchronizer::synchronize( WallToWallChannel& channel )
-{
-    Q_UNUSED( channel );
-}
-
-ImagePtr SVGSynchronizer::getTileImage( const uint tileId ) const
-{
-#if !(TIDE_USE_CAIRO && TIDE_USE_RSVG)
-    if( !_impl->dataSource.contains( tileId ))
-        return std::make_shared<SVGGpuImage>( _impl->dataSource, tileId );
 #endif
-    return LodSynchronizer::getTileImage( tileId );
-}
-
-const DataSource& SVGSynchronizer::getDataSource() const
-{
-    return _impl->dataSource;
-}

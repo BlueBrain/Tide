@@ -37,44 +37,47 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "SVGSynchronizer.h"
+#ifndef SVGGPUIMAGE_H
+#define SVGGPUIMAGE_H
 
-#include "SVG.h"
-#include "SVGGpuImage.h"
+#include "Image.h"
+
 #include "SVGTiler.h"
 
-struct SVGSynchronizer::Impl
+/**
+ * Image wrapper for an SVG tile which will be rendered on the GPU.
+ *
+ * Until generateGpuImage() has succeeded, this class contains no image data.
+ * It is called in the texture upload thread with an active OpenGL context.
+ */
+class SVGGpuImage : public Image
 {
-    Impl( const QString& uri )
-        : svg( uri )
-        , dataSource( svg )
-    {}
-    SVG svg;
-    SVGTiler dataSource;
+public:
+    /** Constructor. */
+    SVGGpuImage( const SVGTiler& dataSource, uint tileId );
+
+    /** @copydoc Image::getWidth */
+    int getWidth() const override;
+
+    /** @copydoc Image::getHeight */
+    int getHeight() const override;
+
+    /** @copydoc Image::getData */
+    const uint8_t* getData() const override;
+
+    /** @copydoc Image::getFormat */
+    uint getFormat() const override;
+
+    /** @copydoc Image::isGpuImage */
+    bool isGpuImage() const final;
+
+    /** @copydoc Image::generateGpuImage */
+    bool generateGpuImage() final;
+
+private:
+    const SVGTiler& _dataSource;
+    const uint _tileId;
+    ImagePtr _image;
 };
 
-SVGSynchronizer::SVGSynchronizer( const QString& uri )
-    : LodSynchronizer( TileSwapPolicy::SwapTilesIndependently )
-    , _impl( new Impl( uri ))
-{}
-
-SVGSynchronizer::~SVGSynchronizer() {}
-
-void SVGSynchronizer::synchronize( WallToWallChannel& channel )
-{
-    Q_UNUSED( channel );
-}
-
-ImagePtr SVGSynchronizer::getTileImage( const uint tileId ) const
-{
-#if !(TIDE_USE_CAIRO && TIDE_USE_RSVG)
-    if( !_impl->dataSource.contains( tileId ))
-        return std::make_shared<SVGGpuImage>( _impl->dataSource, tileId );
 #endif
-    return LodSynchronizer::getTileImage( tileId );
-}
-
-const DataSource& SVGSynchronizer::getDataSource() const
-{
-    return _impl->dataSource;
-}

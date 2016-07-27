@@ -37,10 +37,8 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "SVGTextureFactory.h"
+#include "SVGQtGpuBackend.h"
 
-#include "VectorialContent.h"
-#include "log.h"
 #include "types.h" // for make_unique()
 
 #include <QOpenGLContext>
@@ -48,34 +46,21 @@
 #include <QOpenGLFramebufferObject>
 #include <QOpenGLPaintDevice>
 #include <QPainter>
-#include <QFile>
 
 namespace
 {
 const int MULTI_SAMPLE_ANTI_ALIASING_SAMPLES = 8;
 }
 
-SVGTextureFactory::SVGTextureFactory( const QString& uri )
+SVGQtGpuBackend::SVGQtGpuBackend( const QByteArray& svgData )
 {
-    QFile file( uri );
-    if( !file.open( QIODevice::ReadOnly ))
-    {
-        put_flog( LOG_WARN, "could not open file: '%s'",
-                  uri.toLocal8Bit().constData( ));
-        return;
-    }
-
-    if( !_svgRenderer.load( file.readAll( )) || !_svgRenderer.isValid( ))
-    {
-        put_flog( LOG_WARN, "could not setImageData: '%s'",
-                  uri.toLocal8Bit().constData( ));
-        return;
-    }
+    if( !_svgRenderer.load( svgData ) || !_svgRenderer.isValid( ))
+        throw std::runtime_error( "svg data could not be loaded" );
 }
 
-QSize SVGTextureFactory::getMaxSize() const
+QSize SVGQtGpuBackend::getSize() const
 {
-    return _svgRenderer.defaultSize() * VectorialContent::getMaxScale();
+    return _svgRenderer.defaultSize();
 }
 
 void _saveGLState()
@@ -125,13 +110,13 @@ QRectF _getViewBox( const QRectF& zoomRect, const QRectF& svgExtents )
                    zoomRect.height() * svgExtents.height( ));
 }
 
-QImage SVGTextureFactory::createTexture( const QSize& textureSize,
-                                         const QRectF& zoomRect ) const
+QImage SVGQtGpuBackend::renderToImage( const QSize& imageSize,
+                                       const QRectF& region ) const
 {
     _saveGLState();
 
     // Use a separate multisampled FBO for anti-aliased rendering
-    auto renderFbo = _createMultisampledFBO( textureSize );
+    auto renderFbo = _createMultisampledFBO( imageSize );
     renderFbo->bind();
 
     // the paint device acts on the currently bound fbo
@@ -143,7 +128,7 @@ QImage SVGTextureFactory::createTexture( const QSize& textureSize,
     {
         const QMutexLocker lock( &_mutex );
         const QRectF viewBoxBackup = _svgRenderer.viewBoxF();
-        _svgRenderer.setViewBox( _getViewBox( zoomRect, viewBoxBackup ));
+        _svgRenderer.setViewBox( _getViewBox( region, viewBoxBackup ));
         _svgRenderer.render( &painter );
         painter.end();
         _svgRenderer.setViewBox( viewBoxBackup );

@@ -41,8 +41,7 @@
 
 #include "PDFPopplerCairoBackend.h"
 
-#include <cairo/cairo.h>
-
+#include "CairoWrappers.h"
 
 struct PopplerPageDeleter
 {
@@ -103,18 +102,6 @@ bool PDFPopplerCairoBackend::setPage( const int pageNumber )
     _impl->page = std::move( page );
     return true;
 }
-
-struct CairoDeleter
-{
-    void operator()( cairo_t* cairo ) { cairo_destroy( cairo ); }
-};
-typedef std::unique_ptr<cairo_t, CairoDeleter> CairoPtr;
-
-struct CairoSurfaceDeleter
-{
-    void operator()( cairo_surface_t* s ) { cairo_surface_destroy( s ); }
-};
-typedef std::unique_ptr<cairo_surface_t, CairoSurfaceDeleter> CairoSurfacePtr;
 
 void _threadSafeRenderPage( PopplerPage* page, cairo_t* context )
 {

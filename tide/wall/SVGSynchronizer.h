@@ -42,8 +42,6 @@
 
 #include "LodSynchronizer.h"
 
-#include "SVGTiler.h"
-
 /**
  * Synchronize SVG content.
  */
@@ -56,6 +54,9 @@ public:
     /** Constructor. */
     explicit SVGSynchronizer( const QString& uri );
 
+    /** Destructor. */
+    ~SVGSynchronizer();
+
     /** @copydoc ContentSynchronizer::synchronize */
     void synchronize( WallToWallChannel& channel ) final;
 
@@ -63,10 +64,11 @@ public:
     ImagePtr getTileImage( uint tileId ) const final;
 
 private:
-    SVGTiler _dataSource;
-
     /** @copydoc LodSynchronizer::getDataSource */
     const DataSource& getDataSource() const final;
+
+    struct Impl;
+    std::unique_ptr<Impl> _impl;
 };
 
 #endif

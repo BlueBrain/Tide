@@ -41,11 +41,12 @@
 
 #include "SVGContent.h"
 
-#include <boost/serialization/export.hpp>
+#include "SVG.h"
+
 #include "serializationHelpers.h"
+#include <boost/serialization/export.hpp>
 
 #include <QFileInfo>
-#include <QSvgRenderer>
 
 BOOST_CLASS_EXPORT_GUID( SVGContent, "SVGContent" )
 
@@ -60,15 +61,15 @@ CONTENT_TYPE SVGContent::getType() const
 
 bool SVGContent::readMetadata()
 {
-    QFileInfo file( getURI( ));
+    const QFileInfo file( getURI( ));
     if( !file.exists() || !file.isReadable( ))
         return false;
 
-    QSvgRenderer svgRenderer( getURI( ));
-    if( !svgRenderer.isValid( ))
+    const SVG svg( getURI( ));
+    if( !svg.isValid( ))
         return false;
 
-    _size = svgRenderer.defaultSize();
+    _size = svg.getSize();
     return true;
 }
 
