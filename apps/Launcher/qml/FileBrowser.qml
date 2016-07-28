@@ -16,6 +16,7 @@ Rectangle {
     property alias currentFolder: folders.folder
     property alias titleBarHeight: titleBar.height
     property int itemSize: height * Style.fileBrowserItemSizeRel
+    property real textPixelSize: itemSize * Style.fileBrowserTextSizeRelToItem
 
     signal itemSelected(string file)
 
@@ -79,7 +80,7 @@ Rectangle {
                 anchors.top: parent.bottom
                 anchors.horizontalCenter: wrapper.horizontalCenter
                 color: Style.fileBrowserTextColor
-                font.pixelSize: 0.1 * wrapper.height
+                font.pixelSize: textPixelSize
             }
 
             MouseArea {

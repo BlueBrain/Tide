@@ -20,23 +20,22 @@ Rectangle {
     property string deflectStreamHost: ""
     property var demosComm: ({})
 
-    property int itemSize: height / 5
-    property real textPixelSize: 0.1 * itemSize
+    property int itemSize: height * Style.fileBrowserItemSizeRel
+    property real textPixelSize: itemSize * Style.fileBrowserTextSizeRelToItem
 
     color: Style.defaultPanelColor
 
-    GridView {
+    ListView {
         id: demoView
         anchors.top: titleBar.bottom
         anchors.bottom: parent.bottom
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.margins: itemSize * Style.mainPanelRelMargin
+        spacing: itemSize * Style.demoLauncherItemSpacingRel
 
         model: demoList
         delegate: demoButtonDelegate
-        cellWidth: 1.5 * itemSize
-        cellHeight: cellWidth
     }
 
     ListModel {
@@ -46,44 +45,51 @@ Rectangle {
     Component {
         id: demoButtonDelegate
         Item {
-            width: demoView.cellWidth
-            height: demoView.cellHeight
-            Column {
-                anchors.fill: parent
-                spacing: 0.1 * image.height
+            width: parent.width
+            height: itemSize
+            Rectangle {
+                id: placeholder
+                width: itemSize
+                height: itemSize
 
-                Rectangle {
-                    id: placeholder
-                    width: itemSize
-                    height: itemSize
-                    anchors.horizontalCenter: parent.horizontalCenter
+                gradient: Gradient {
+                    GradientStop { position: 0.0; color: Style.placeholderTopColor }
+                    GradientStop { position: 1.0; color: Style.placeholderBottomColor }
+                }
+                Image {
+                    id: image
+                    anchors.fill: parent
 
-                    gradient: Gradient {
-                        GradientStop { position: 0.0; color: Style.placeholderTopColor }
-                        GradientStop { position: 1.0; color: Style.placeholderBottomColor }
-                    }
-                    Image {
-                        id: image
+                    source: demoImage
+                    asynchronous: true
+                    MouseArea {
                         anchors.fill: parent
-
-                        source: demoImage
-                        asynchronous: true
-                        MouseArea {
-                            anchors.fill: parent
-                            onClicked: {
-                                infoRect.demo = demoId
-                                infoRect.open = true
-                                demosComm.launch(demoId)
-                            }
+                        onClicked: {
+                            infoRect.demo = demoId
+                            infoRect.open = true
+                            demosComm.launch(demoId)
                         }
                     }
                 }
+            }
+            Column {
+                anchors.left: placeholder.right
+                anchors.leftMargin: demoView.spacing
+                anchors.right: parent.right
                 Text {
                     id: caption
-                    anchors.horizontalCenter: parent.horizontalCenter
                     text: demoName
                     font.pixelSize: textPixelSize
                     font.bold: true
+                    color: Style.defaultPanelTextColor
+                }
+                Text {
+                    id: description
+                    text: demoDesc
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    font.pixelSize: textPixelSize
+                    wrapMode: Text.Wrap
                     color: Style.defaultPanelTextColor
                 }
             }
@@ -100,9 +106,8 @@ Rectangle {
         Text {
             id: titleText
             anchors.fill: parent
-            anchors.margins: 0.1 * height
-
-            font.pixelSize: 0.2 * parent.height
+            anchors.leftMargin: font.pixelSize
+            font.pixelSize: parent.height * Style.demoLauncherTitleBarTextHeightRel
             color: Style.fileBrowserDiscreteTextColor
             verticalAlignment: Text.AlignVCenter
             text: "Demos provided by: " + serviceUrl
@@ -216,7 +221,8 @@ Rectangle {
             demoList.append(
             {
                 demoId: demos[i].id,
-                demoName: demos[i].command_line,
+                demoName: demos[i].name,
+                demoDesc: demos[i].description,
                 demoImage: "file://" + imagesFolder + "/" + demos[i].id + ".png"
             });
         }
