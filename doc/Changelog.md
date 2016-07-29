@@ -3,6 +3,8 @@ Changelog {#Changelog}
 
 # Release 1.2 (git master)
 
+* [71](https://github.com/BlueBrain/Tide/pull/71):
+  Detect tap-and-hold gestures with any number of fingers.
 * [69](https://github.com/BlueBrain/Tide/pull/69):
   Added a new SVG backend based on Cairo + rsvg for better results [DISCL-379].
 * [68](https://github.com/BlueBrain/Tide/pull/68):
