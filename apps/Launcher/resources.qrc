@@ -6,6 +6,8 @@
         <file>qml/DemoLauncher/DemoLauncher.qml</file>
         <file>qml/DemoLauncher/RenderingResourcesManager.js</file>
         <file>qml/FileBrowser.qml</file>
+        <file>qml/FileBrowserImage.qml</file>
+        <file>qml/FileBrowserViewButton.qml</file>
         <file>qml/LaunchMenu.qml</file>
         <file>qml/OptionsPanel.qml</file>
         <file>qml/SavePanel.qml</file>
@@ -18,7 +20,9 @@
         <file>images/cloud.svg</file>
         <file>images/file.svg</file>
         <file>images/folder.svg</file>
+        <file>images/gridview.svg</file>
         <file>images/left.svg</file>
+        <file>images/listview.svg</file>
         <file>images/settings.svg</file>
         <file>images/star.svg</file>
     </qresource>

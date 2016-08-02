@@ -20,6 +20,8 @@ Rectangle {
     property string demoServiceImageFolder: ""
     property string demoServiceDeflectHost: ""
 
+    property bool useListViewMode: false // retain presentation mode, shared for all panels
+
     width: Style.windowDefaultSize.width
     height: Style.windowDefaultSize.height
 
@@ -60,6 +62,8 @@ Rectangle {
             onItemSelected: sendRestCommand("open", file);
             rootfolder: rootFilesFolder
             nameFilters: filesFilter
+            listViewMode: useListViewMode
+            onListViewModeChanged: useListViewMode = listViewMode
         }
     }
 
@@ -72,6 +76,8 @@ Rectangle {
             }
             rootfolder: rootSessionsFolder
             nameFilters: ["*.dcx"]
+            listViewMode: useListViewMode
+            onListViewModeChanged: useListViewMode = listViewMode
         }
     }
 
@@ -81,6 +87,8 @@ Rectangle {
             rootfolder: rootSessionsFolder
             nameFilters: ["*.dcx"]
             onSaveSession: sendRestCommand("save", filename)
+            listViewMode: useListViewMode
+            onListViewModeChanged: useListViewMode = listViewMode
         }
     }
 
