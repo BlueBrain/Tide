@@ -99,9 +99,6 @@ signals:
 
     /** Emitted when two taps occur in a fast sequence. */
     void doubleTap( QPointF pos );
-
-    /** Emitted after a prolonged non-moving one finger touch. */
-    void tapAndHold( QPointF pos );
     //@}
 
     /** @name One-finger move gesture. */
@@ -137,6 +134,12 @@ signals:
     void swipeDown();
     //@}
 
+    /** @name Multi-finger gestures. */
+    //@{
+    /** Emitted after a prolonged non-moving touch with one or more fingers. */
+    void tapAndHold( QPointF pos, uint numPoints );
+    //@}
+
 private:
     void mousePressEvent( QMouseEvent* event ) override;
     void mouseMoveEvent( QMouseEvent* event ) override;
@@ -159,8 +162,14 @@ private:
     void _startPanGesture( const QPointF& pos );
     void _cancelPanGesture();
 
-    void _startTapAndHoldGesture();
+    typedef std::vector<QPointF> Positions;
+
+    void _handleTapAndHold( const QTouchEvent* touch );
+    void _startTapAndHoldGesture( const Positions& positions );
+    void _cancelTapAndHoldIfMoved( const Positions& positions );
     void _cancelTapAndHoldGesture();
+    QPointF _getTapAndHoldCenter() const;
+    uint _getTapAndHoldPointsCount() const;
 
     void _startDoubleTapGesture();
     void _cancelDoubleTapGesture();
@@ -189,6 +198,7 @@ private:
     uint _tapCounter;
     qreal _initialPinchDist;
 
+    Positions _touchStartPos;
     QTimer _tapAndHoldTimer;
     QTimer _doubleTapTimer;
 };

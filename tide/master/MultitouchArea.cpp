@@ -68,8 +68,9 @@ MultitouchArea::MultitouchArea( QQuickItem* parent_ )
     setAcceptedMouseButtons( Qt::LeftButton );
 
     _tapAndHoldTimer.setInterval( tapAndHoldTimeout );
-    connect( &_tapAndHoldTimer, &QTimer::timeout,
-             this, [this]() { emit tapAndHold( _tapStartPos ); } );
+    connect( &_tapAndHoldTimer, &QTimer::timeout, this, [this]() {
+        emit tapAndHold( _getTapAndHoldCenter(), _getTapAndHoldPointsCount( ));
+    });
 
     _doubleTapTimer.setInterval( doubleTapTimeout );
     connect( &_doubleTapTimer, &QTimer::timeout,
@@ -126,7 +127,7 @@ void MultitouchArea::mousePressEvent( QMouseEvent* mouse )
      _mousePrevPos = pos;
      emit touchStarted( pos );
 
-     _startTapAndHoldGesture();
+     _startTapAndHoldGesture( { pos } );
 }
 
 void MultitouchArea::mouseMoveEvent( QMouseEvent* mouse )
@@ -181,6 +182,7 @@ void MultitouchArea::touchEvent( QTouchEvent* touch )
     default:
         break;
     }
+    _handleTapAndHold( touch );
 }
 
 void MultitouchArea::_handleSinglePoint( const QTouchEvent::TouchPoint& point )
@@ -201,8 +203,6 @@ void MultitouchArea::_handleSinglePoint( const QTouchEvent::TouchPoint& point )
             _tapCounter = 0;
         }
         _tapStartPos = pos;
-
-        _startTapAndHoldGesture();
         break;
 
     case Qt::TouchPointStationary:
@@ -213,7 +213,6 @@ void MultitouchArea::_handleSinglePoint( const QTouchEvent::TouchPoint& point )
         {
             _startPanGesture( pos );
             _lastPanPos = pos;
-            _cancelTapAndHoldGesture();
         }
         if( _panning )
         {
@@ -227,7 +226,6 @@ void MultitouchArea::_handleSinglePoint( const QTouchEvent::TouchPoint& point )
              emit tap( pos );
 
         _cancelPanGesture();
-        _cancelTapAndHoldGesture();
         emit touchEnded( pos );
         break;
     }
@@ -251,14 +249,65 @@ void MultitouchArea::_cancelPanGesture()
     emit panEnded();
 }
 
-void MultitouchArea::_startTapAndHoldGesture()
+void MultitouchArea::_handleTapAndHold( const QTouchEvent* touch )
 {
+    const auto& points = touch->touchPoints();
+
+    Positions positions;
+    bool restart = false;
+    for( auto point : points )
+    {
+        if( point.state() != Qt::TouchPointReleased )
+            positions.push_back( _getScenePos( point ));
+
+        restart = restart || point.state() == Qt::TouchPointPressed ||
+                  point.state() == Qt::TouchPointReleased;
+    }
+
+    if( positions.empty( ))
+        _cancelTapAndHoldGesture();
+    else if( restart )
+        _startTapAndHoldGesture( positions );
+    else if( _tapAndHoldTimer.isActive( ))
+        _cancelTapAndHoldIfMoved( positions );
+}
+
+void MultitouchArea::_cancelTapAndHoldIfMoved( const Positions& positions )
+{
+    size_t i = 0;
+    for( const auto& pos : positions )
+    {
+        if( (pos - _touchStartPos[i++]).manhattanLength() > _panThreshold )
+        {
+            _cancelTapAndHoldGesture();
+            return;
+        }
+    }
+}
+
+void MultitouchArea::_startTapAndHoldGesture( const Positions& positions )
+{
+    _touchStartPos = positions;
     _tapAndHoldTimer.start();
 }
 
 void MultitouchArea::_cancelTapAndHoldGesture()
 {
     _tapAndHoldTimer.stop();
+    _touchStartPos.clear();
+}
+
+QPointF MultitouchArea::_getTapAndHoldCenter() const
+{
+    QPointF center;
+    for( const auto& pos : _touchStartPos )
+        center += pos;
+    return center / _touchStartPos.size();
+}
+
+uint MultitouchArea::_getTapAndHoldPointsCount() const
+{
+    return _touchStartPos.size();
 }
 
 void MultitouchArea::_startDoubleTapGesture()
@@ -305,11 +354,10 @@ void MultitouchArea::_handleTwoPoints( const QTouchEvent::TouchPoint& p0,
     if( !_twoFingersDetectionStarted )
     {
         _twoFingersDetectionStarted = true;
-        _initialPinchDist = _getDist( _getScenePos( p0 ), _getScenePos( p1 ));
         _cancelPanGesture();
-        _cancelTapAndHoldGesture();
         _cancelDoubleTapGesture();
 
+        _initialPinchDist = _getDist( _getScenePos( p0 ), _getScenePos( p1 ));
         _canBeSwipe = _initialPinchDist < swipeMaxFingersIntervalPx;
         _twoFingersStartPos = _getCenter( p0, p1 );
     }

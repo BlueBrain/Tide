@@ -137,7 +137,7 @@ BaseContentWindow {
         }
         onDoubleTap: {
             if(!contentActive && !contentwindow.fullscreen)
-                onDoubleTap: toggleFocusMode()
+                toggleFocusMode()
         }
         onTapAndHold: {
             if(contentActive)
