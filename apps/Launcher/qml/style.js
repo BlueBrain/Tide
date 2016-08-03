@@ -18,6 +18,7 @@ var mainPanelRelMargin = 0.25
 
 var fileBrowserBackgroundColor = defaultPanelColor
 var fileBrowserTitleBarColor = "#757575"
+var fileBrowserTitleBarSpacing = 0.2
 var fileBrowserTextColor = "white"
 var fileBrowserDiscreteTextColor = "#B0B0B0"
 var fileBrowserBlinkColor = "lightblue"

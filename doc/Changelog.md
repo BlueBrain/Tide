@@ -3,6 +3,9 @@ Changelog {#Changelog}
 
 # Release 1.2 (git master)
 
+* [72](https://github.com/BlueBrain/Tide/pull/72):
+  The Launcher has an additional list-view mode for browsing files and sessions
+  [DISCL-376].
 * [71](https://github.com/BlueBrain/Tide/pull/71):
   Detect tap-and-hold gestures with any number of fingers.
 * [69](https://github.com/BlueBrain/Tide/pull/69):

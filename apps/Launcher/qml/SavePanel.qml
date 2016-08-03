@@ -12,6 +12,7 @@ Item {
 
     property alias rootfolder: browser.rootfolder
     property alias nameFilters: browser.nameFilters
+    property alias listViewMode: browser.listViewMode
 
     signal saveSession(string filename)
 
