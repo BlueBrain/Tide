@@ -4,6 +4,7 @@ import "style.js" as Style
 
 Rectangle {
     property alias listview: buttons
+    property bool contentActionsVisible: true
 
     id: windowControls
     width: buttons.width + radius + (Style.buttonsSize - Style.buttonsImageSize)
@@ -43,7 +44,7 @@ Rectangle {
         }
         delegate: WindowControlsDelegate {
         }
-        model: contentwindow.content.actions
+        model: contentActionsVisible ? contentwindow.content.actions : undefined
     }
 
     states: [

@@ -49,14 +49,6 @@
 
 MovieUpdater::MovieUpdater( const QString& uri )
     : _ffmpegMovie( new FFMPEGMovie( uri ))
-    , _lastFrameDone( false )
-    , _paused( false )
-    , _loop( true )
-    , _visible( true )
-    , _requestNewFrame( false )
-    , _elapsedTime( 0.0 )
-    , _sharedTimestamp( 0.0 )
-    , _currentPosition( 0.0 )
 {
     // Observed bug [DISCL-295]: opening a movie might fail on WallProcesses
     // despite correctly reading metadata on the MasterProcess.
@@ -74,6 +66,8 @@ void MovieUpdater::update( const MovieContent& movie, const bool visible )
     _paused = movie.getControlState() & STATE_PAUSED;
     _loop = movie.getControlState() & STATE_LOOP;
     _visible = visible;
+    _skipping = movie.isSkipping();
+    _skipPosition = movie.getPosition();
 }
 
 QRect MovieUpdater::getTileRect( const uint tileIndex ) const
@@ -93,21 +87,24 @@ ImagePtr MovieUpdater::getTileImage( const uint tileIndex ) const
     Q_UNUSED( tileIndex );
     double timestamp;
     {
-        QMutexLocker lock( &_mutex );
+        const QMutexLocker lock( &_mutex );
         timestamp = _sharedTimestamp;
     }
 
     ImagePtr image = _ffmpegMovie->getFrame( timestamp );
-    if( _loop && !image )
+
+    const bool loopBack = _loop && !image;
+    if( loopBack )
         image = _ffmpegMovie->getFrame( 0.0 );
 
     {
-        QMutexLocker lock( &_mutex );
+        const QMutexLocker lock( &_mutex );
         _currentPosition = _ffmpegMovie->getPosition();
         // stay inSync for start != 0.0 and loop conditions
         _sharedTimestamp = _currentPosition;
+        // WAR a risk of deadlock when skipping movies with incorrect duration
+        _loopedBack = loopBack;
     }
-
     return image;
 }
 
@@ -116,13 +113,10 @@ Indices MovieUpdater::computeVisibleSet( const QRectF& visibleTilesArea,
 {
     Q_UNUSED( lod );
 
-    Indices visibleSet;
-
     if( visibleTilesArea.isEmpty( ))
-        return visibleSet;
+        return Indices();
 
-    visibleSet.insert( 0 );
-    return visibleSet;
+    return { 0 };
 }
 
 uint MovieUpdater::getMaxLod() const
@@ -147,27 +141,37 @@ QString MovieUpdater::getStatistics() const
 {
     const QString fps =
             QString::number( 1.0 / _ffmpegMovie->getFrameDuration(), 'g', 3 );
-    const QString progress =
-            QString::number( _sharedTimestamp * 100.0 /
-                             _ffmpegMovie->getDuration(), 'g', 3 );
+    const QString progress = QString::number( getPosition() * 100.0, 'g', 3 );
     return QString( "%1 / %2 fps %3 %").arg(_fpsCounter.toString())
                                        .arg( fps )
                                        .arg( progress );
 }
 
+qreal MovieUpdater::getPosition() const
+{
+    return _sharedTimestamp / _ffmpegMovie->getDuration();
+}
+
+bool MovieUpdater::isSkipping() const
+{
+    return _skipping;
+}
+
+qreal MovieUpdater::getSkipPosition() const
+{
+    return _skipPosition / _ffmpegMovie->getDuration();
+}
+
 bool MovieUpdater::advanceToNextFrame( WallToWallChannel& channel )
 {
-    if( _paused )
-    {
-        // don't advance time if paused
-        _timer.resetTime( channel.getTime( ));
-        return false;
-    }
-
     const double frameDuration = _ffmpegMovie->getFrameDuration();
 
     // protect _sharedTimestamp & _currentPosition from getTileImage()
-    QMutexLocker lock( &_mutex );
+    const QMutexLocker lock( &_mutex );
+
+    // Jump to the skip position
+    if( _skipping && !_loopedBack )
+        _sharedTimestamp = _skipPosition;
 
     // If any visible updater is out-of-sync, only update those ones. This
     // causes a seek in the movie to _sharedTimestamp. The time stands still in
@@ -182,8 +186,15 @@ bool MovieUpdater::advanceToNextFrame( WallToWallChannel& channel )
         if( !_lastFrameDone )
             return false;
         _lastFrameDone = false;
-        _requestNewFrame = !inSync;
+        _requestNewFrame = _visible && !inSync;
         return true;
+    }
+
+    // Don't advance time if paused or skipping
+    if( _paused || _skipping )
+    {
+        _timer.resetTime( channel.getTime( ));
+        return false;
     }
 
     // If everybody is in sync, do a proper increment and throttle to movie
@@ -197,21 +208,27 @@ bool MovieUpdater::advanceToNextFrame( WallToWallChannel& channel )
     // advance to the next frame, keep correct elapsedTime as vsync frequency
     // of this function might not match movie frequency.
     _sharedTimestamp = _currentPosition + frameDuration;
-    _elapsedTime -= _ffmpegMovie->getFrameDuration();
+    _elapsedTime -= frameDuration;
 
     // Always exchange timestamp for processes where _currentPosition is not
     // advancing to allow seek if visible again.
-    const int leader = channel.electLeader( _visible && inSync );
-    if( leader >= 0 )
-    {
-        if( leader == channel.getRank( ))
-            channel.broadcast( ElapsedTimer::toTimeDuration( _sharedTimestamp ));
-        else
-            _sharedTimestamp = ElapsedTimer::toSeconds(
-                                       channel.receiveTimestampBroadcast( leader ));
-    }
+    _exchangeSharedTimestamp( channel, inSync );
 
     _lastFrameDone = false;
     _requestNewFrame = _visible;
     return true;
+}
+
+void MovieUpdater::_exchangeSharedTimestamp( WallToWallChannel& channel,
+                                             const bool inSync )
+{
+    const int leader = channel.electLeader( _visible && inSync );
+    if( leader < 0 )
+        return;
+
+    if( leader == channel.getRank( ))
+        channel.broadcast( ElapsedTimer::toTimeDuration( _sharedTimestamp ));
+    else
+        _sharedTimestamp = ElapsedTimer::toSeconds(
+                               channel.receiveTimestampBroadcast( leader ));
 }

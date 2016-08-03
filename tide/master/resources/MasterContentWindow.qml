@@ -306,8 +306,8 @@ BaseContentWindow {
         text: contentwindow.label
         font.pixelSize: 48
         width: Math.min(paintedWidth, parent.width)
-        anchors.top: parent.top
-        anchors.left: parent.left
+        anchors.top: contentArea.top
+        anchors.left: contentArea.left
         anchors.topMargin: 10
         anchors.leftMargin: 10
     }

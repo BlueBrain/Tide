@@ -77,13 +77,10 @@ Indices ImageSource::computeVisibleSet( const QRectF& visibleTilesArea,
 {
     Q_UNUSED( lod );
 
-    Indices visibleSet;
-
     if( visibleTilesArea.isEmpty( ))
-        return visibleSet;
+        return Indices();
 
-    visibleSet.insert( 0 );
-    return visibleSet;
+    return { 0 };
 }
 
 uint ImageSource::getMaxLod() const

@@ -53,18 +53,13 @@ namespace
 {
 const QString ICON_PAUSE( "qrc:///img/pause.svg" );
 const QString ICON_PLAY( "qrc:///img/play.svg" );
+const QString MOVIE_CONTROLS( "qrc:///qml/core/MovieControls.qml" );
 }
 
 MovieContent::MovieContent( const QString& uri )
     : Content( uri )
-    , _controlState( STATE_LOOP )
 {
     _createActions();
-}
-
-MovieContent::MovieContent()
-    : _controlState( STATE_LOOP )
-{
 }
 
 CONTENT_TYPE MovieContent::getType() const
@@ -83,7 +78,13 @@ bool MovieContent::readMetadata()
         return false;
 
     _size = QSize( movie.getWidth(), movie.getHeight( ));
+    _duration = movie.getDuration();
     return true;
+}
+
+QString MovieContent::getQmlControls() const
+{
+    return MOVIE_CONTROLS;
 }
 
 Content::Interaction MovieContent::getInteractionPolicy() const
@@ -109,14 +110,49 @@ ControlState MovieContent::getControlState() const
     return _controlState;
 }
 
-void MovieContent::play()
+qreal MovieContent::getDuration() const
+{
+    return _duration;
+}
+
+qreal MovieContent::getPosition() const
+{
+    return _position;
+}
+
+void MovieContent::setPosition( const qreal pos )
+{
+    if( pos == _position || pos < 0.0 || pos >= getDuration( ))
+        return;
+
+    _position = pos;
+    emit positionChanged( pos );
+    emit modified();
+}
+
+bool MovieContent::isSkipping() const
+{
+    return _skipping;
+}
+
+void MovieContent::setSkipping( const bool skipping )
+{
+    if( skipping == _skipping )
+        return;
+
+    _skipping = skipping;
+    emit skippingChanged( skipping );
+    emit modified();
+}
+
+void MovieContent::_play()
 {
     _controlState = (ControlState)(_controlState & ~STATE_PAUSED);
 
     emit modified();
 }
 
-void MovieContent::pause()
+void MovieContent::_pause()
 {
     _controlState = (ControlState)(_controlState | STATE_PAUSED);
 
@@ -130,7 +166,9 @@ void MovieContent::_createActions()
     playPauseAction->setIcon( ICON_PAUSE );
     playPauseAction->setIconChecked( ICON_PLAY );
     playPauseAction->setChecked( _controlState & STATE_PAUSED );
-    connect( playPauseAction, SIGNAL( checked( )), this, SLOT( pause( )));
-    connect( playPauseAction, SIGNAL( unchecked( )), this, SLOT( play( )));
+    connect( playPauseAction, &ContentAction::checked,
+             this, &MovieContent::_pause );
+    connect( playPauseAction, &ContentAction::unchecked,
+             this, &MovieContent::_play );
     _actions.add( playPauseAction );
 }

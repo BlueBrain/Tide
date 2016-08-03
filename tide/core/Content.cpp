@@ -138,6 +138,11 @@ Content::Interaction Content::getInteractionPolicy() const
     return Content::Interaction::AUTO;
 }
 
+QString Content::getQmlControls() const
+{
+    return QString();
+}
+
 bool Content::getCaptureInteraction() const
 {
     switch( getInteractionPolicy( ))

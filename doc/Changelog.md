@@ -3,6 +3,11 @@ Changelog {#Changelog}
 
 # Release 1.2 (git master)
 
+* [73](https://github.com/BlueBrain/Tide/pull/73):
+  Movie improvements:
+  - Added a new control bar for movies to the wall interface [DISCL-314].
+  - Fixed a bug that caused paused movies to not update correctly when moved to
+    a different screen [DISCL-381].
 * [72](https://github.com/BlueBrain/Tide/pull/72):
   The Launcher has an additional list-view mode for browsing files and sessions
   [DISCL-376].

@@ -49,6 +49,7 @@
         <file>FocusControlButton.qml</file>
         <file>FullscreenControlButton.qml</file>
         <file>MissingVirtualKeyboard.qml</file>
+        <file>MovieControls.qml</file>
         <file>OneToOneControlButton.qml</file>
         <file>ResizeCircle.qml</file>
         <file>ResizeCircles.qml</file>
