@@ -6,60 +6,75 @@ import "style.js" as Style
 Rectangle {
     id: windowRect
 
-    property alias titleBar: titleBar
     property bool isBackground: false
     property bool animating: widthAnimation.running || heightAnimation.running
                              || unfocusTransition.running
 
-    property real widthOffset: 2 * border.width
-    property real heightOffset: border.width + (titleBar.visible ? titleBar.height : border.width)
-    property real xOffset: border.width
-    property real yOffset: titleBar.visible ? titleBar.height : border.width
-
     property alias backgroundComponent: backgroundLoader.sourceComponent
     property alias contentComponent: contentBackgroundLoader.sourceComponent
     property alias contentArea: contentArea
+    property alias focusEffectEnabled: focusEffect.visible
+    property alias nextButton: nextButton
+    property alias previousButton: previousButton
+    property alias resizeCirclesDelegate: resizeCircles.delegate
+    property alias titleBar: titleBar
     property alias virtualKeyboard: virtualKeyboard
     property alias windowControlsList: windowControls.listview
-    property alias resizeCirclesDelegate: resizeCircles.delegate
-    property alias previousButton: previousButton
-    property alias nextButton: nextButton
-    property alias focusEffectEnabled: focusEffect.visible
 
     border.color: Style.windowBorderDefaultColor
     border.width: options.showWindowBorders && !isBackground ? Style.windowBorderWidth : 0
 
-    x: contentwindow.x - xOffset
-    y: contentwindow.y - yOffset
+    // The window header overlaps with the top window border (when visible)
+    property real yOffset: Math.max(border.width, windowHeader.height)
+
+    x: contentArea.posX - border.width
+    y: contentArea.posY - yOffset
+    width: contentArea.width + border.width * 2
+    height: contentArea.height + border.width + yOffset // top + bottom padding
     z: isBackground ? Style.backgroundZOrder : 0
-    width: contentwindow.width + widthOffset
-    height: contentwindow.height + heightOffset
-
-    Rectangle {
-        id: titleBar
-        visible: options.showWindowTitles && !windowRect.isBackground
-                 && !contentwindow.isPanel
-        width: parent.width
-        height: Style.windowTitleHeight
-        color: parent.border.color
-
-        Text {
-            anchors.verticalCenter: parent.verticalCenter
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.leftMargin: Style.windowTitleFontSize / 4
-
-            FontLoader { id: gothamBook; source: "qrc:/fonts/Gotham-Book.otf"; name: "qrc::gotham-book" }
-
-            elide: Text.ElideRight
-            text: contentwindow.label
-            font { family: "qrc::gotham-book"; pixelSize: Style.windowTitleFontSize }
-        }
-    }
 
     Loader {
         id: backgroundLoader
         anchors.fill: parent
+    }
+
+    Rectangle {
+        id: windowHeader
+        width: parent.width
+        height: visible ? windowHeaderItems.height : 0
+        color: windowRect.border.color
+
+        Column {
+            id: windowHeaderItems
+            width: parent.width
+            spacing: -Style.windowTitleControlsOverlap
+            Item {
+                id: titleBar
+                visible: options.showWindowTitles && !windowRect.isBackground
+                         && !contentwindow.isPanel
+                width: parent.width
+                height: Style.windowTitleHeight
+                Text {
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.leftMargin: Style.windowTitleFontSize / 2
+
+                    FontLoader { id: gothamBook; source: "qrc:/fonts/Gotham-Book.otf"; name: "qrc::gotham-book" }
+
+                    elide: Text.ElideRight
+                    text: contentwindow.label
+                    font { family: "qrc::gotham-book"; pixelSize: Style.windowTitleFontSize }
+                }
+            }
+            Loader {
+                id: controlBar
+                width: parent.width
+                height: Style.windowTitleHeight
+                visible: status == Loader.Ready
+                source: windowRect.isBackground ? "" : contentwindow.content.qmlControls
+            }
+        }
     }
 
     RectangularGlow {
@@ -75,11 +90,14 @@ Rectangle {
 
     Rectangle {
         id: contentArea
+        property real posX: contentwindow.x
+        property real posY: contentwindow.y
+        width: contentwindow.width
+        height: contentwindow.height
+
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: windowRect.border.width
+        anchors.margins: windowRect.border.width
         anchors.horizontalCenter: parent.horizontalCenter
-        width: parent.width - windowRect.widthOffset
-        height: parent.height - windowRect.heightOffset
         clip: true
         color: "transparent"
 
@@ -106,6 +124,36 @@ Rectangle {
                     source = "qrc:/qml/core/MissingVirtualKeyboard.qml"
                 else if( status == Loader.Ready )
                     active = true // Keep the keyboard loaded when hidding it
+            }
+        }
+        Behavior on posX {
+            enabled: contentwindow.focused
+            NumberAnimation {
+                duration: Style.focusTransitionTime
+                easing.type: Easing.InOutQuad
+            }
+        }
+        Behavior on posY {
+            enabled: contentwindow.focused
+            NumberAnimation {
+                duration: Style.focusTransitionTime
+                easing.type: Easing.InOutQuad
+            }
+        }
+        Behavior on width {
+            enabled: contentwindow.focused
+            NumberAnimation {
+                id: widthAnimation
+                duration: Style.focusTransitionTime
+                easing.type: Easing.InOutQuad
+            }
+        }
+        Behavior on height {
+            enabled: contentwindow.focused
+            NumberAnimation {
+                id: heightAnimation
+                duration: Style.focusTransitionTime
+                easing.type: Easing.InOutQuad
             }
         }
     }
@@ -141,6 +189,7 @@ Rectangle {
 
     WindowControls {
         id: windowControls
+        contentActionsVisible: !controlBar.visible
     }
 
     ResizeCircles {
@@ -152,16 +201,19 @@ Rectangle {
             name: "fullscreen"
             when: contentwindow.fullscreen
             PropertyChanges {
-                target: windowRect
-                x: contentwindow.fullscreenCoordinates.x
-                y: contentwindow.fullscreenCoordinates.y
+                target: contentArea
+                posX: contentwindow.fullscreenCoordinates.x
+                posY: contentwindow.fullscreenCoordinates.y
                 width: contentwindow.fullscreenCoordinates.width
                 height: contentwindow.fullscreenCoordinates.height
+            }
+            PropertyChanges {
+                target: windowRect
                 border.width: 0
                 z: Style.fullscreenZorder
             }
             PropertyChanges {
-                target: titleBar
+                target: windowHeader
                 visible: false
             }
         },
@@ -169,11 +221,14 @@ Rectangle {
             name: "focused"
             when: contentwindow.focused
             PropertyChanges {
+                target: contentArea
+                posX: contentwindow.focusedCoordinates.x
+                posY: contentwindow.focusedCoordinates.y
+                width: contentwindow.focusedCoordinates.width
+                height: contentwindow.focusedCoordinates.height
+            }
+            PropertyChanges {
                 target: windowRect
-                x: contentwindow.focusedCoordinates.x - xOffset
-                y: contentwindow.focusedCoordinates.y - yOffset
-                width: contentwindow.focusedCoordinates.width + widthOffset
-                height: contentwindow.focusedCoordinates.height + heightOffset
                 border.color: Style.windowBorderFocusedColor
                 z: Style.focusZorder
             }
@@ -198,12 +253,15 @@ Rectangle {
             name: "hidden"
             when: contentwindow.state === ContentWindow.HIDDEN
             PropertyChanges {
-                target: windowRect
-                opacity: 0
-                x: -contentwindow.width
-                y: 0.5 * displaygroup.height
+                target: contentArea
+                posX: -contentwindow.width
+                posY: 0.5 * displaygroup.height
                 width: 0
                 height: 0
+            }
+            PropertyChanges {
+                target: windowRect
+                opacity: 0
             }
         }
     ]
@@ -223,8 +281,8 @@ Rectangle {
                 ParallelAnimation {
                     ColorAnimation { duration: Style.focusTransitionTime }
                     NumberAnimation {
-                        target: windowRect
-                        properties: "x,y,height,width"
+                        target: contentArea
+                        properties: "posX,posY,width,height"
                         duration: Style.focusTransitionTime
                         easing.type: Easing.InOutQuad
                     }
@@ -236,8 +294,8 @@ Rectangle {
             id: panelAppearTransition
             reversible: true
             NumberAnimation {
-                target: windowRect
-                properties: "x,y,height,width"
+                target: contentArea
+                properties: "posX,posY,width,height"
                 duration: Style.panelsAnimationTime
                 easing.type: Easing.InOutQuad
             }
@@ -247,7 +305,8 @@ Rectangle {
             to: "fullscreen"
             reversible: true
             NumberAnimation {
-                properties: "x,y,width,height"
+                target: contentArea
+                properties: "posX,posY,width,height"
                 duration: Style.focusTransitionTime
                 easing.type: Easing.OutQuad
             }
@@ -256,45 +315,23 @@ Rectangle {
                 property: "z"
                 value: Style.fullscreenZorder
             }
+            NumberAnimation {
+                target: windowRect
+                property: "border.width"
+                duration: Style.focusTransitionTime
+                easing.type: Easing.OutQuad
+            }
         }
     ]
 
     Behavior on border.color {
         ColorAnimation { duration: Style.focusTransitionTime }
     }
-    Behavior on x {
-        enabled: contentwindow.focused
-        NumberAnimation {
-            duration: Style.focusTransitionTime
-            easing.type: Easing.InOutQuad
-        }
-    }
-    Behavior on y {
-        enabled: contentwindow.focused
-        NumberAnimation {
-            duration: Style.focusTransitionTime
-            easing.type: Easing.InOutQuad
-        }
-    }
-    Behavior on width {
-        enabled: contentwindow.focused
-        NumberAnimation {
-            id: widthAnimation
-            duration: Style.focusTransitionTime
-            easing.type: Easing.InOutQuad
-        }
-    }
-    Behavior on height {
-        enabled: contentwindow.focused
-        NumberAnimation {
-            id: heightAnimation
-            duration: Style.focusTransitionTime
-            easing.type: Easing.InOutQuad
-        }
+    Behavior on border.width {
+        NumberAnimation { duration: Style.focusTransitionTime }
     }
     Behavior on opacity {
         NumberAnimation {
-            id: opacityAnimation
             duration: Style.panelsAnimationTime
             easing.type: Easing.InOutQuad
         }

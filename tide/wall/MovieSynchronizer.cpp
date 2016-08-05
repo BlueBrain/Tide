@@ -64,13 +64,16 @@ void MovieSynchronizer::update( const ContentWindow& window,
         emit addTile( std::make_shared<Tile>( 0, QRect( QPoint( 0, 0 ),
                                                         getTilesArea( ))));
         emit tilesAreaChanged();
-
         _tileAdded = true;
     }
 
     _visible = !visibleArea.isEmpty();
-    _updater->update( static_cast< const MovieContent& >( *window.getContent()),
-                      _visible );
+
+    const auto& movie = static_cast<const MovieContent&>( *window.getContent());
+    _updater->update( movie, _visible );
+
+    if( _updater->isSkipping( ))
+        emit sliderPositionChanged();
 }
 
 void MovieSynchronizer::synchronize( WallToWallChannel& channel )
@@ -84,6 +87,7 @@ void MovieSynchronizer::synchronize( WallToWallChannel& channel )
 
         _updater->lastFrameDone();
         emit statisticsChanged();
+        emit sliderPositionChanged();
     }
 
     if( _updater->advanceToNextFrame( channel ))
@@ -114,4 +118,11 @@ void MovieSynchronizer::onSwapReady( TilePtr tile )
 {
     _tile = tile;
     _swapReady = true;
+}
+
+qreal MovieSynchronizer::getSliderPosition() const
+{
+    // The slider follows user input while skipping to keep things smooth
+    return _updater->isSkipping() ? _updater->getSkipPosition() :
+                                    _updater->getPosition();
 }

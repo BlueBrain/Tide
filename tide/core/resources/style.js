@@ -4,6 +4,7 @@
 var baseColor = "#F2F2F2";   // grey
 var activeColor = "#FCEE21"; // yellow
 var highlightColor = "cyan"; // cyan
+var contrastColor = "black"; // black
 
 // General
 var backgroundZOrder = -1;
@@ -46,6 +47,9 @@ var controlsLeftMargin = 28;
 var keyboardRelSize = 0.8
 var keyboardMaxSizePx = 1200;
 
+var movieControlsLineThickness = 4;
+var movieControlsHandleDiameter = 34;
+
 var resizeCircleRadius = 50;
 var resizeCircleActiveColor = activeColor;
 var resizeCircleFreeResizeColor = highlightColor;
@@ -56,11 +60,13 @@ var statisticsBorderMargin = 10;
 var statisticsFontSize = 24;
 var statisticsFontColor = "red";
 
+var transparentContentsBackgroundColor = "black";
+
 var windowBorderWidth = 24;
 var windowBorderDefaultColor = baseColor;
 var windowBorderSelectedColor = baseColor;
 var windowBorderFocusedColor = activeColor;
-var windowBorderMovingColor= baseColor;
+var windowBorderMovingColor = baseColor;
 var windowBorderResizingColor = baseColor;
 
 var windowFocusGlowColor = highlightColor;
@@ -70,13 +76,13 @@ var windowFocusGlowSpread = 0.2;
 var windowSideButtonWidth = 64;
 var windowSideButtonHeight = 360;
 var windowSideButtonNarrowHeight = 90;
-var windowSideButtonArrowColor = "black";
 
+var windowTitleControlsOverlap = 10;
 var windowTitleFontSize = 45;
 var windowTitleHeight = 100;
 
 var zoomContextBorderColor = "white";
-var zoomContextBackgroundColor = "black"
+var zoomContextBackgroundColor = transparentContentsBackgroundColor;
 var zoomContextBorderWidth = 5;
 var zoomContextSelectionColor = "#6B9794";
 var zoomContextSelectionWidth = 3;

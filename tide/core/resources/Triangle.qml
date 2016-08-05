@@ -1,4 +1,5 @@
 import QtQuick 2.0
+import "qrc:/qml/core/style.js" as Style
 
 Canvas {
     id: triangle
@@ -7,8 +8,8 @@ Canvas {
     property int triangleWidth: 0.5 * width
     property int triangleHeight: 0.5 * height
     property int lineWidth: 3
-    property color strokeColor: "black"
-    property color fillColor: "black"
+    property color strokeColor: Style.contrastColor
+    property color fillColor: Style.contrastColor
     property bool stroke: true
     property bool fill: true
 

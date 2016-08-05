@@ -7,7 +7,8 @@ BaseContentWindow {
     id: windowRect
 
     // for contents with alpha channel such as SVG or PNG
-    color: options.alphaBlending ? "transparent" : "black"
+    color: options.alphaBlending ? "transparent" :
+                                   Style.transparentContentsBackgroundColor
 
     property string imagesource: "image://texture/" + contentwindow.content.uri
 

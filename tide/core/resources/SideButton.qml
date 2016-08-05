@@ -6,7 +6,7 @@ Canvas {
     width: height / Style.windowSideButtonHeight * Style.windowSideButtonWidth
     height: Style.windowSideButtonHeight
 
-    property color color: "lightgray"
+    property color color: Style.sideButtonColor
     onColorChanged: requestPaint()
 
     property bool flipRight: false

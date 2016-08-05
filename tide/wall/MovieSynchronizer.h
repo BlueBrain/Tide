@@ -47,7 +47,10 @@
  */
 class MovieSynchronizer : public ContentSynchronizer
 {
+    Q_OBJECT
     Q_DISABLE_COPY( MovieSynchronizer )
+    Q_PROPERTY( qreal sliderPosition READ getSliderPosition
+                NOTIFY sliderPositionChanged )
 
 public:
     /**
@@ -74,6 +77,15 @@ public:
 
     /** @copydoc ContentSynchronizer::onSwapReady */
     void onSwapReady( TilePtr tile ) final;
+
+    /** @return the normalized position in the move. */
+    qreal getSliderPosition() const;
+
+signals:
+    /** @name QProperty notifiers */
+    //@{
+    void sliderPositionChanged();
+    //@}
 
 private:
     MovieUpdaterSharedPtr _updater;

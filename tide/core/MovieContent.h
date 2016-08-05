@@ -56,12 +56,19 @@ enum ControlState
 class MovieContent : public Content
 {
     Q_OBJECT
+    Q_DISABLE_COPY( MovieContent )
+
+    Q_PROPERTY( qreal duration READ getDuration CONSTANT )
+    Q_PROPERTY( qreal position READ getPosition WRITE setPosition
+                NOTIFY positionChanged )
+    Q_PROPERTY( bool skipping READ isSkipping WRITE setSkipping
+                NOTIFY skippingChanged )
 
 public:
     /** Create a MovieContent from the given uri. */
     explicit MovieContent( const QString& uri );
 
-    /** Get the content type **/
+    /** @copydoc Content::getType **/
     CONTENT_TYPE getType() const final;
 
     /**
@@ -70,16 +77,35 @@ public:
     **/
     bool readMetadata() final;
 
+    /** @return the qml file which contains the movie controls. */
+    QString getQmlControls() const final;
+
     /** @return OFF. */
     Interaction getInteractionPolicy() const final;
 
+    /** @return the list of supported movie file extensions. */
     static const QStringList& getSupportedExtensions();
 
+    /** @name Playback control. */
+    //@{
     ControlState getControlState() const;
+    qreal getDuration() const;
+    qreal getPosition() const;
+    void setPosition( qreal pos );
+    bool isSkipping() const;
+    void setSkipping( bool skipping );
+    //@}
+
+signals:
+    /** @name QProperty notifiers */
+    //@{
+    void positionChanged( qreal pos );
+    void skippingChanged( bool skipping );
+    //@}
 
 private slots:
-    void play();
-    void pause();
+    void _play();
+    void _pause();
 
 private:
     void _createActions();
@@ -87,7 +113,7 @@ private:
     friend class boost::serialization::access;
 
     // Default constructor required for boost::serialization
-    MovieContent();
+    MovieContent() = default;
 
     /** Serialize for sending to Wall applications. */
     template< class Archive >
@@ -95,6 +121,9 @@ private:
     {
         ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP( Content );
         ar & _controlState;
+        ar & _duration;
+        ar & _position;
+        ar & _skipping;
     }
 
     /** Serialize for saving to an xml file. */
@@ -122,7 +151,10 @@ private:
         serialize_members_xml( ar, version );
     }
 
-    ControlState _controlState;
+    ControlState _controlState = STATE_LOOP;
+    double _duration = 0.0;
+    double _position = 0.0;
+    bool _skipping = false;
 };
 
 BOOST_CLASS_VERSION( MovieContent, 2 )

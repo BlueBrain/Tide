@@ -96,25 +96,40 @@ public:
      */
     void lastFrameDone();
 
-    /** @return current / max fps, movie position in percentage */
+    /** @return current / max fps, movie position in percentage. */
     QString getStatistics() const;
+
+    /** @return current position of the movie, normalized between [0.0, 1.0]. */
+    qreal getPosition() const;
+
+    /** @return true if the user is currently skipping the movie. */
+    bool isSkipping() const;
+
+    /** @return skip position of the movie, normalized between [0.0, 1.0]. */
+    qreal getSkipPosition() const;
 
 private:
     MoviePtr _ffmpegMovie;
     FpsCounter _fpsCounter;
 
-    bool _lastFrameDone;
-    bool _paused;
-    bool _loop;
-    bool _visible;
-    bool _requestNewFrame;
+    bool _paused = false;
+    bool _loop = true;
+    bool _visible = false;
+    bool _skipping = false;
+    double _skipPosition = 0.0;
+
+    bool _lastFrameDone = false;
+    bool _requestNewFrame = false;
 
     ElapsedTimer _timer;
-    double _elapsedTime;
+    double _elapsedTime = 0.0;
 
     mutable QMutex _mutex;
-    mutable double _sharedTimestamp;
-    mutable double _currentPosition;
+    mutable double _sharedTimestamp = 0.0;
+    mutable double _currentPosition = 0.0;
+    mutable bool _loopedBack = false;
+
+    void _exchangeSharedTimestamp( WallToWallChannel& channel, bool inSync );
 };
 
 #endif

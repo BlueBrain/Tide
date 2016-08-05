@@ -71,14 +71,15 @@ class WallToWallChannel;
 class Content : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY( ContentActionsModel* actions READ getActions CONSTANT )
-    Q_PROPERTY( KeyboardState* keyboard READ getKeyboardState CONSTANT )
-    Q_PROPERTY( qreal aspectRatio READ getAspectRatio CONSTANT )
-    Q_PROPERTY( QRectF zoomRect READ getZoomRect CONSTANT )
     Q_PROPERTY( QSize size READ getDimensions CONSTANT )
+    Q_PROPERTY( qreal aspectRatio READ getAspectRatio CONSTANT )
+    Q_PROPERTY( bool hasFixedAspectRatio READ hasFixedAspectRatio CONSTANT )
+    Q_PROPERTY( QRectF zoomRect READ getZoomRect CONSTANT )
+    Q_PROPERTY( ContentActionsModel* actions READ getActions CONSTANT )
+    Q_PROPERTY( QString qmlControls READ getQmlControls CONSTANT )
+    Q_PROPERTY( KeyboardState* keyboard READ getKeyboardState CONSTANT )
     Q_PROPERTY( Interaction interactionPolicy READ getInteractionPolicy
                 NOTIFY interactionPolicyChanged )
-    Q_PROPERTY( bool hasFixedAspectRatio READ hasFixedAspectRatio CONSTANT )
     Q_PROPERTY( bool captureInteraction READ getCaptureInteraction
                 WRITE setCaptureInteraction NOTIFY captureInteractionChanged )
 
@@ -141,8 +142,14 @@ public:
     /** Get the actions from QML. */
     ContentActionsModel* getActions();
 
+    /** Get content-specific qml controls file (default: empty). */
+    virtual QString getQmlControls() const;
+
     /** Get the keyboard state from QML. */
     KeyboardState* getKeyboardState();
+
+    /** Get the interaction policy (default: AUTO). */
+    virtual Interaction getInteractionPolicy() const;
 
     /** Set optional size hints to constrain resize/scale and 1:1 size. */
     void setSizeHints( const deflect::SizeHints& sizeHints );
@@ -158,9 +165,6 @@ public:
 
     /** @return the maxium scale factor for zoom and resize */
     static qreal getMaxScale();
-
-    /** Get the interaction policy (default: AUTO). */
-    virtual Interaction getInteractionPolicy() const;
 
 signals:
     /** @name QProperty notifiers */
