@@ -55,9 +55,11 @@ ZoomInteractionDelegate::~ZoomInteractionDelegate()
 {
 }
 
-void ZoomInteractionDelegate::pan( const QPointF position, const QPointF delta )
+void ZoomInteractionDelegate::pan( const QPointF position, const QPointF delta,
+                                   const uint numPoints )
 {
     Q_UNUSED( position );
+    Q_UNUSED( numPoints );
     _moveZoomRect( delta );
 }
 

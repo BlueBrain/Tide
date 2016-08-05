@@ -61,8 +61,8 @@ public:
     void touchEnd( QPointF position ) override;
     void tap( QPointF position ) override;
     void doubleTap( QPointF position ) override;
-    void tapAndHold( QPointF position ) override;
-    void pan( QPointF position, QPointF delta ) override;
+    void tapAndHold( QPointF position, uint numPoints ) override;
+    void pan( QPointF position, QPointF delta, uint numPoints ) override;
     void pinch( QPointF position, qreal pixelDelta ) override;
     void swipeLeft() override;
     void swipeRight() override;

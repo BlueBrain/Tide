@@ -99,13 +99,31 @@ BaseContentWindow {
         }
         onDoubleTap: toggleFocusMode()
 
-        onPanStarted: if(windowActive) { contentwindow.state = ContentWindow.MOVING }
-        onPan: if(windowActive) { moveWindow(delta) }
-        onPanEnded: if(windowActive) { contentwindow.state = ContentWindow.NONE }
+        onPanStarted: {
+            if(windowActive && contentwindow.state === ContentWindow.NONE)
+                contentwindow.state = ContentWindow.MOVING
+        }
+        onPan: {
+            if(windowActive && contentwindow.state === ContentWindow.MOVING)
+                moveWindow(delta)
+        }
+        onPanEnded: {
+            if(windowActive && contentwindow.state === ContentWindow.MOVING)
+                contentwindow.state = ContentWindow.NONE
+        }
 
-        onPinchStarted: if(windowActive) { contentwindow.state = ContentWindow.RESIZING }
-        onPinch: if(windowActive) { scaleWindow(pos, pixelDelta) }
-        onPinchEnded: if(windowActive) { contentwindow.state = ContentWindow.NONE }
+        onPinchStarted: {
+            if(windowActive && contentwindow.state === ContentWindow.NONE)
+                contentwindow.state = ContentWindow.RESIZING
+        }
+        onPinch: {
+            if(windowActive && contentwindow.state === ContentWindow.RESIZING)
+                scaleWindow(pos, pixelDelta)
+        }
+        onPinchEnded: {
+            if(windowActive && contentwindow.state === ContentWindow.RESIZING)
+                contentwindow.state = ContentWindow.NONE
+        }
     }
 
     contentComponent: MultitouchArea {
@@ -141,38 +159,38 @@ BaseContentWindow {
         }
         onTapAndHold: {
             if(contentActive)
-                contentwindow.delegate.tapAndHold(pos)
+                contentwindow.delegate.tapAndHold(pos, numPoints)
             else
                 contentwindow.content.captureInteraction = true
         }
 
         onPanStarted: {
-            if(!contentActive && windowActive)
+            if(!contentActive && windowActive && contentwindow.state === ContentWindow.NONE)
                 contentwindow.state = ContentWindow.MOVING
         }
         onPan: {
             if(contentActive)
-                contentwindow.delegate.pan(pos, Qt.point(delta.x, delta.y))
-            else if(windowActive)
+                contentwindow.delegate.pan(pos, Qt.point(delta.x, delta.y), numPoints)
+            else if(windowActive && contentwindow.state === ContentWindow.MOVING)
                 moveWindow(delta)
         }
         onPanEnded: {
-            if(!contentActive && windowActive)
+            if(!contentActive && windowActive && contentwindow.state === ContentWindow.MOVING)
                 contentwindow.state = ContentWindow.NONE
         }
 
         onPinchStarted: {
-            if(!contentActive && windowActive)
+            if(!contentActive && windowActive && contentwindow.state === ContentWindow.NONE)
                 contentwindow.state = ContentWindow.RESIZING
         }
         onPinch: {
             if(contentActive)
                 contentwindow.delegate.pinch(pos, pixelDelta)
-            else if(windowActive)
+            else if(windowActive && contentwindow.state === ContentWindow.RESIZING)
                 scaleWindow(pos, pixelDelta)
         }
         onPinchEnded: {
-            if(!contentActive && windowActive)
+            if(!contentActive && windowActive && contentwindow.state === ContentWindow.RESIZING)
                 contentwindow.state = ContentWindow.NONE
         }
         /** END shared gestures. */

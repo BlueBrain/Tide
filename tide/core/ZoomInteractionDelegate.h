@@ -56,7 +56,7 @@ public:
 
     /** @name Touch gesture handlers. */
     //@{
-    void pan( QPointF position, QPointF delta ) override;
+    void pan( QPointF position, QPointF delta, uint numPoints ) override;
     void pinch( QPointF position, qreal pixelDelta ) override;
     //@}
 

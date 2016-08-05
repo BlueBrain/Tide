@@ -3,6 +3,11 @@ Changelog {#Changelog}
 
 # Release 1.2 (git master)
 
+* [74](https://github.com/BlueBrain/Tide/pull/74):
+  Added support for multi-finger pan gestures [DISCL-357].
+  Two-finger pan and pinch gestures can also be used simultaneously for zooming
+  & moving in an image. External Deflect applications can make use of the new
+  EVT_PAN, with the <key> field containing the number of touch points.
 * [73](https://github.com/BlueBrain/Tide/pull/73):
   Movie improvements:
   - Added a new control bar for movies to the wall interface [DISCL-314].
