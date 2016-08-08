@@ -131,6 +131,9 @@ void WebkitPixelStreamer::processEvent(deflect::Event event_)
     case deflect::Event::EVT_VIEW_SIZE_CHANGED:
         processViewSizeChange(event_);
         break;
+    case deflect::Event::EVT_PAN:
+        processMoveEvent(event_);
+        break;
     default:
         break;
     }
@@ -167,7 +170,7 @@ void WebkitPixelStreamer::processMoveEvent(const deflect::Event& moveEvent)
 {
     const QPoint& pointerPos = getPointerPosition(moveEvent);
 
-    if( _interactionModeActive )
+    if( _interactionModeActive && moveEvent.key < 2 )
     {
         QMouseEvent myEvent(QEvent::MouseMove, pointerPos,
                             Qt::LeftButton, Qt::LeftButton,

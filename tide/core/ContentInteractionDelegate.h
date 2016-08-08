@@ -71,10 +71,11 @@ public:
     { Q_UNUSED( position ) }
     Q_INVOKABLE virtual void doubleTap( QPointF position )
     { Q_UNUSED( position ) }
-    Q_INVOKABLE virtual void tapAndHold( QPointF position )
-    { Q_UNUSED( position ) }
-    Q_INVOKABLE virtual void pan( QPointF position, QPointF delta )
-    { Q_UNUSED( position ) Q_UNUSED( delta ) }
+    Q_INVOKABLE virtual void tapAndHold( QPointF position, uint numPoints )
+    { Q_UNUSED( position ) Q_UNUSED( numPoints ) }
+    Q_INVOKABLE virtual void pan( QPointF position, QPointF delta,
+                                  uint numPoints )
+    { Q_UNUSED( position ) Q_UNUSED( delta ) Q_UNUSED( numPoints ) }
     Q_INVOKABLE virtual void pinch( QPointF position, qreal pixelDelta )
     { Q_UNUSED( position ) Q_UNUSED( pixelDelta ) }
     Q_INVOKABLE virtual void swipeLeft() {}

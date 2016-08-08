@@ -83,19 +83,28 @@ void PixelStreamInteractionDelegate::doubleTap( const QPointF position )
     emit notify( deflectEvent );
 }
 
-void PixelStreamInteractionDelegate::tapAndHold( const QPointF position )
+void PixelStreamInteractionDelegate::tapAndHold( const QPointF position,
+                                                 const uint numPoints )
 {
     deflect::Event deflectEvent = _getNormEvent( position );
     deflectEvent.type = deflect::Event::EVT_TAP_AND_HOLD;
+    deflectEvent.key = numPoints;
 
     emit notify( deflectEvent );
 }
 
 void PixelStreamInteractionDelegate::pan( const QPointF position,
-                                          const QPointF delta )
+                                          const QPointF delta,
+                                          const uint numPoints )
 {
     deflect::Event deflectEvent = _getNormEvent( position );
-    deflectEvent.type = deflect::Event::EVT_MOVE;
+    if( numPoints == 1 )
+        deflectEvent.type = deflect::Event::EVT_MOVE;
+    else
+    {
+        deflectEvent.type = deflect::Event::EVT_PAN;
+        deflectEvent.key = numPoints;
+    }
 
     const QPointF normDelta = getNormalizedPoint( delta );
     deflectEvent.dx = normDelta.x();
