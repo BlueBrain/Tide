@@ -7,8 +7,8 @@ Rectangle {
     property bool contentActionsVisible: true
 
     id: windowControls
-    width: buttons.width + radius + (Style.buttonsSize - Style.buttonsImageSize)
-    height: buttons.height + (Style.buttonsSize - Style.buttonsImageSize)
+    width: buttons.width + radius + (Style.buttonsSize * (1.0 - Style.buttonsImageRelSize))
+    height: buttons.height + (Style.buttonsSize * (1.0 - Style.buttonsImageRelSize))
     color: Style.controlsDefaultColor
     border.color: Style.controlsDefaultColor
     border.width: Style.controlsBorderWidth

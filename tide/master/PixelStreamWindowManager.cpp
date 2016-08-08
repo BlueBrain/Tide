@@ -201,6 +201,17 @@ void PixelStreamWindowManager::updateStreamDimensions( deflect::FramePtr frame )
     contentWindow->getContent()->setDimensions( size );
 }
 
+void PixelStreamWindowManager::sendDataToWindow( const QString uri,
+                                                 const QByteArray data )
+{
+    auto window = getContentWindow( uri );
+    if( !window )
+        return;
+
+    auto& content = dynamic_cast<PixelStreamContent&>( *window->getContent( ));
+    content.parseData( data );
+}
+
 bool PixelStreamWindowManager::getAutoFocusNewWindows() const
 {
     return _autoFocusNewWindows;

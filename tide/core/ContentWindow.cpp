@@ -51,6 +51,9 @@
 #if TIDE_ENABLE_PDF_SUPPORT
 #  include "PDFInteractionDelegate.h"
 #endif
+#ifdef TIDE_USE_QT5WEBKITWIDGETS
+#  include "WebbrowserInteractionDelegate.h"
+#endif
 
 IMPLEMENT_SERIALIZE_FOR_XML( ContentWindow )
 
@@ -332,9 +335,13 @@ void ContentWindow::_createInteractionDelegate()
     switch ( _content->getType( ))
     {
     case CONTENT_TYPE_PIXEL_STREAM:
-    case CONTENT_TYPE_WEBBROWSER:
         _interactionDelegate.reset( new PixelStreamInteractionDelegate( *this ));
         break;
+#ifdef TIDE_USE_QT5WEBKITWIDGETS
+    case CONTENT_TYPE_WEBBROWSER:
+        _interactionDelegate.reset( new WebbrowserInteractionDelegate( *this ));
+        break;
+#endif
 #if TIDE_ENABLE_PDF_SUPPORT
     case CONTENT_TYPE_PDF:
         _interactionDelegate.reset( new PDFInteractionDelegate( *this ));

@@ -40,9 +40,16 @@
 #include "WebbrowserContent.h"
 
 #include <boost/serialization/export.hpp>
-#include "serializationHelpers.h"
+#include <sstream>
 
-BOOST_CLASS_EXPORT_GUID( WebbrowserContent, "WebbrowserContent" )
+BOOST_CLASS_EXPORT_IMPLEMENT( WebbrowserContent )
+
+IMPLEMENT_SERIALIZE_FOR_XML( WebbrowserContent )
+
+namespace
+{
+const QString WEBBROWSER_CONTROLS( "qrc:///qml/core/WebbrowserControls.qml" );
+}
 
 WebbrowserContent::WebbrowserContent( const QString& uri )
     : PixelStreamContent( uri )
@@ -58,12 +65,113 @@ bool WebbrowserContent::hasFixedAspectRatio() const
     return false;
 }
 
+QString WebbrowserContent::getQmlControls() const
+{
+    return WEBBROWSER_CONTROLS;
+}
+
 int WebbrowserContent::getPage() const
 {
-    return 1;
+    return _history.currentItemIndex();
 }
 
 int WebbrowserContent::getPageCount() const
 {
-    return 3;
+    return _history.items().size();
+}
+
+int WebbrowserContent::getRestPort() const
+{
+    return _restPort;
+}
+
+int WebbrowserContent::getCursorPosition() const
+{
+    return _cursorPosition;
+}
+
+void WebbrowserContent::setCursorPosition( const int arg )
+{
+    if( _cursorPosition == arg )
+        return;
+
+    _cursorPosition = arg;
+    emit cursorPositionChanged();
+}
+
+int WebbrowserContent::getSelectionStart() const
+{
+    return _selectionStart;
+}
+
+void WebbrowserContent::setSelectionStart( const int pos )
+{
+    if( _selectionStart == pos )
+        return;
+
+    _selectionStart = pos;
+    emit selectionStartChanged();
+    emit modified();
+}
+
+int WebbrowserContent::getSelectionEnd() const
+{
+    return _selectionEnd;
+}
+
+void WebbrowserContent::setSelectionEnd( const int pos )
+{
+    if( _selectionEnd == pos )
+        return;
+
+    _selectionEnd = pos;
+    emit selectionEndChanged();
+    emit modified();
+}
+
+QString WebbrowserContent::getUrl() const
+{
+    return _addressBarUrl;
+}
+
+void WebbrowserContent::setUrl( const QString url )
+{
+    if( getUrl() == url )
+        return;
+
+    _addressBarUrl = url;
+    emit urlChanged();
+    emit modified();
+}
+
+bool WebbrowserContent::isAddressBarFocused() const
+{
+    return _addressBarFocused;
+}
+
+void WebbrowserContent::setAddressBarFocused( const bool set )
+{
+    if( _addressBarFocused == set )
+        return;
+
+    _addressBarFocused = set;
+    emit addressBarFocusedChanged();
+    emit modified();
+}
+
+void WebbrowserContent::parseData( const QByteArray data )
+{
+    std::istringstream iss{ data.toStdString(), std::istringstream::binary };
+    {
+        boost::archive::binary_iarchive ia{ iss };
+        ia >> _history;
+        ia >> _restPort;
+    }
+    _addressBarUrl = _history.currentItem();
+
+    emit pageChanged();
+    emit pageCountChanged();
+    emit restPortChanged();
+    emit urlChanged();
+    emit modified();
 }

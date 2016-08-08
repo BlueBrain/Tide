@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,60 +37,58 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef PIXELSTREAMINTERACTIONDELEGATE_H
-#define PIXELSTREAMINTERACTIONDELEGATE_H
+#include "WebbrowserInteractionDelegate.h"
 
-#include "ContentInteractionDelegate.h"
+#include "ContentWindow.h"
+#include "WebbrowserContent.h"
 
-#include <deflect/Event.h>
+WebbrowserInteractionDelegate::WebbrowserInteractionDelegate( ContentWindow&
+                                                              contentWindow )
+    : PixelStreamInteractionDelegate( contentWindow )
+{}
 
-/**
- * Forward user actions to a deflect::Stream using Deflect events.
- */
-class PixelStreamInteractionDelegate : public ContentInteractionDelegate
+void WebbrowserInteractionDelegate::touchBegin( const QPointF position )
 {
-    Q_OBJECT
+    getWebContent().setAddressBarFocused( false );
 
-public:
-    /** Constructor */
-    explicit PixelStreamInteractionDelegate( ContentWindow& contentWindow );
+    PixelStreamInteractionDelegate::touchBegin( position );
+}
 
-    /** @name Touch gesture handlers. */
-    //@{
-    void touchBegin( QPointF position ) override;
-    void touchEnd( QPointF position ) override;
-    void tap( QPointF position ) override;
-    void doubleTap( QPointF position ) override;
-    void tapAndHold( QPointF position, uint numPoints ) override;
-    void pan( QPointF position, QPointF delta, uint numPoints ) override;
-    void pinch( QPointF position, qreal pixelDelta ) override;
-    void swipeLeft() override;
-    void swipeRight() override;
-    void swipeUp() override;
-    void swipeDown() override;
-    //@}
+void WebbrowserInteractionDelegate::keyPress( const int key,
+                                              const int modifiers,
+                                              const QString text )
+{
+    if( getWebContent().isAddressBarFocused( ))
+        return;
 
-    /** @name Keyboard gesture handlers. */
-    //@{
-    void keyPress( int key, int modifiers, QString text ) override;
-    void keyRelease( int key, int modifiers, QString text ) override;
-    //@}
+    PixelStreamInteractionDelegate::keyPress( key, modifiers, text );
+}
 
-    /** @name UI event handlers. */
-    //@{
-    void prevPage() override;
-    void nextPage() override;
-    //@}
+void WebbrowserInteractionDelegate::keyRelease( const int key,
+                                                const int modifiers,
+                                                const QString text )
+{
+    if( getWebContent().isAddressBarFocused( ))
+    {
+        switch( key )
+        {
+        case Qt::Key_Enter:
+            emit enterKeyPressed();
+            break;
+        case Qt::Key_Backspace:
+            emit deleteKeyPressed();
+            break;
+        default:
+            emit keyboardInput( text );
+            break;
+        }
+        return;
+    }
 
-signals:
-    /** Emitted when an Event occured. */
-    void notify( deflect::Event event );
+    PixelStreamInteractionDelegate::keyRelease( key, modifiers, text );
+}
 
-private slots:
-    void _sendSizeChangedEvent();
-
-private:
-    deflect::Event _getNormEvent( const QPointF& position ) const;
-};
-
-#endif
+WebbrowserContent& WebbrowserInteractionDelegate::getWebContent()
+{
+    return dynamic_cast<WebbrowserContent&>( *_contentWindow.getContent( ));
+}

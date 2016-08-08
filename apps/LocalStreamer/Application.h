@@ -77,6 +77,7 @@ public:
 
 private slots:
     void sendImage( QImage image );
+    void sendData( QByteArray data );
     void processPendingEvents();
 
 private:

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,60 +37,32 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef PIXELSTREAMINTERACTIONDELEGATE_H
-#define PIXELSTREAMINTERACTIONDELEGATE_H
+#include "WebbrowserHistory.h"
 
-#include "ContentInteractionDelegate.h"
+#include <QUrl>
 
-#include <deflect/Event.h>
-
-/**
- * Forward user actions to a deflect::Stream using Deflect events.
- */
-class PixelStreamInteractionDelegate : public ContentInteractionDelegate
+WebbrowserHistory::WebbrowserHistory( const QWebHistory& history )
+    : _items()
+    , _currentItemIndex( history.currentItemIndex( ))
 {
-    Q_OBJECT
+    for( auto item : history.items( ))
+        _items.push_back( item.url().toString( ));
+}
 
-public:
-    /** Constructor */
-    explicit PixelStreamInteractionDelegate( ContentWindow& contentWindow );
+size_t WebbrowserHistory::currentItemIndex() const
+{
+    return _currentItemIndex;
+}
 
-    /** @name Touch gesture handlers. */
-    //@{
-    void touchBegin( QPointF position ) override;
-    void touchEnd( QPointF position ) override;
-    void tap( QPointF position ) override;
-    void doubleTap( QPointF position ) override;
-    void tapAndHold( QPointF position, uint numPoints ) override;
-    void pan( QPointF position, QPointF delta, uint numPoints ) override;
-    void pinch( QPointF position, qreal pixelDelta ) override;
-    void swipeLeft() override;
-    void swipeRight() override;
-    void swipeUp() override;
-    void swipeDown() override;
-    //@}
+const std::vector<QString>& WebbrowserHistory::items() const
+{
+    return _items;
+}
 
-    /** @name Keyboard gesture handlers. */
-    //@{
-    void keyPress( int key, int modifiers, QString text ) override;
-    void keyRelease( int key, int modifiers, QString text ) override;
-    //@}
+QString WebbrowserHistory::currentItem() const
+{
+    if( _currentItemIndex >= _items.size( ))
+        return QString();
 
-    /** @name UI event handlers. */
-    //@{
-    void prevPage() override;
-    void nextPage() override;
-    //@}
-
-signals:
-    /** Emitted when an Event occured. */
-    void notify( deflect::Event event );
-
-private slots:
-    void _sendSizeChangedEvent();
-
-private:
-    deflect::Event _getNormEvent( const QPointF& position ) const;
-};
-
-#endif
+    return _items[ _currentItemIndex ];
+}

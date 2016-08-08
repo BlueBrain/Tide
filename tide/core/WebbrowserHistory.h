@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,60 +37,44 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef PIXELSTREAMINTERACTIONDELEGATE_H
-#define PIXELSTREAMINTERACTIONDELEGATE_H
+#ifndef WEBBROWSERHISTORY_H
+#define WEBBROWSERHISTORY_H
 
-#include "ContentInteractionDelegate.h"
+#include "serializationHelpers.h" // for QString
+#include <boost/serialization/access.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/vector.hpp>
 
-#include <deflect/Event.h>
+#include <QWebHistory>
 
 /**
- * Forward user actions to a deflect::Stream using Deflect events.
+ * A serializable navigation history.
  */
-class PixelStreamInteractionDelegate : public ContentInteractionDelegate
+class WebbrowserHistory
 {
-    Q_OBJECT
-
 public:
-    /** Constructor */
-    explicit PixelStreamInteractionDelegate( ContentWindow& contentWindow );
+    WebbrowserHistory() = default;
+    explicit WebbrowserHistory( const QWebHistory& history );
 
-    /** @name Touch gesture handlers. */
-    //@{
-    void touchBegin( QPointF position ) override;
-    void touchEnd( QPointF position ) override;
-    void tap( QPointF position ) override;
-    void doubleTap( QPointF position ) override;
-    void tapAndHold( QPointF position, uint numPoints ) override;
-    void pan( QPointF position, QPointF delta, uint numPoints ) override;
-    void pinch( QPointF position, qreal pixelDelta ) override;
-    void swipeLeft() override;
-    void swipeRight() override;
-    void swipeUp() override;
-    void swipeDown() override;
-    //@}
-
-    /** @name Keyboard gesture handlers. */
-    //@{
-    void keyPress( int key, int modifiers, QString text ) override;
-    void keyRelease( int key, int modifiers, QString text ) override;
-    //@}
-
-    /** @name UI event handlers. */
-    //@{
-    void prevPage() override;
-    void nextPage() override;
-    //@}
-
-signals:
-    /** Emitted when an Event occured. */
-    void notify( deflect::Event event );
-
-private slots:
-    void _sendSizeChangedEvent();
+    const std::vector<QString>& items() const;
+    size_t currentItemIndex() const;
+    QString currentItem() const;
 
 private:
-    deflect::Event _getNormEvent( const QPointF& position ) const;
+    friend class boost::serialization::access;
+
+    template<class Archive>
+    void serialize( Archive & ar, const unsigned int )
+    {
+        ar & boost::serialization::make_nvp( "items", _items );
+        ar & boost::serialization::make_nvp( "currentItemIndex",
+                                             _currentItemIndex );
+    }
+
+    std::vector<QString> _items;
+    size_t _currentItemIndex = 0;
 };
 
 #endif

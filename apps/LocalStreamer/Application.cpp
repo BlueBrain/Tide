@@ -78,8 +78,10 @@ bool Application::initialize( const CommandLineOptions& options )
     _pixelStreamer = PixelStreamerFactory::create( options );
     if( !_pixelStreamer)
         return false;
-    connect( _pixelStreamer, SIGNAL( imageUpdated( QImage )),
-             this, SLOT( sendImage( QImage )));
+    connect( _pixelStreamer, &PixelStreamer::imageUpdated,
+             this, &Application::sendImage );
+    connect( _pixelStreamer, &PixelStreamer::stateChanged,
+             this, &Application::sendData );
 
     // Connect to Tide
     _deflectStream = new deflect::Stream( options.getStreamname().toStdString(),
@@ -107,13 +109,15 @@ bool Application::initialize( const CommandLineOptions& options )
 void Application::sendImage(QImage image)
 {
 #ifdef COMPRESS_IMAGES
-    // QImage Format_RGB32 (0xffRRGGBB) corresponds in fact to GL_BGRA == deflect::BGRA
+    // QImage Format_RGB32 (0xffRRGGBB) corresponds in fact to
+    // GL_BGRA == deflect::BGRA
     deflect::ImageWrapper deflectImage( (const void*)image.bits(),
                                         image.width(), image.height(),
                                         deflect::BGRA );
     deflectImage.compressionPolicy = deflect::COMPRESSION_ON;
 #else
-    // This conversion is suboptimal, but the only solution until we send the PixelFormat with the PixelStreamSegment
+    // This conversion is suboptimal, but the only solution until we send the
+    // PixelFormat with the PixelStreamSegment
     image = image.rgbSwapped();
     deflect::ImageWrapper deflectImage( (const void*)image.bits(),
                                         image.width(), image.height(),
@@ -127,6 +131,12 @@ void Application::sendImage(QImage image)
         QApplication::quit();
         return;
     }
+}
+
+void Application::sendData( const QByteArray data )
+{
+    if( !_deflectStream->sendData( data.constData(), data.size( )))
+        QApplication::quit();
 }
 
 void Application::processPendingEvents()

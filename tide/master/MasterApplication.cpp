@@ -285,6 +285,9 @@ void MasterApplication::_initMPIConnection()
     connect( _deflectServer.get(), &deflect::Server::receivedSizeHints,
              _pixelStreamWindowManager.get(),
              &PixelStreamWindowManager::updateSizeHints );
+    connect( _deflectServer.get(), &deflect::Server::receivedData,
+             _pixelStreamWindowManager.get(),
+             &PixelStreamWindowManager::sendDataToWindow );
 
     connect( _pixelStreamWindowManager.get(),
              &PixelStreamWindowManager::pixelStreamWindowClosed,

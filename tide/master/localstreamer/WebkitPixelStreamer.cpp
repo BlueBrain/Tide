@@ -39,27 +39,58 @@
 
 #include "WebkitPixelStreamer.h"
 
-#include <QWebFrame>
-#include <QWebView>
-#include <QWebElement>
-#include <QKeyEvent>
-
-#include <QTimer>
-
-#include "log.h"
+#include "WebbrowserHistory.h"
 #include "WebkitAuthenticationHelper.h"
 #include "WebkitHtmlSelectReplacer.h"
+#include "log.h"
+
+#ifdef TIDE_USE_ZEROEQ
+#  include "rest/RestCommand.h"
+#  include <zeroeq/http/server.h>
+#  include <zeroeq/uri.h>
+#endif
+
+#include <sstream>
+
+#include <QKeyEvent>
+#include <QSocketNotifier>
+#include <QWebElement>
+#include <QWebFrame>
+#include <QWebHistory>
+#include <QWebView>
 
 #define WEBPAGE_MIN_WIDTH      640
 #define WEBPAGE_MIN_HEIGHT     512
 
 #define WEBPAGE_DEFAULT_ZOOM   2.0
 
-WebkitPixelStreamer::WebkitPixelStreamer(const QSize& webpageSize, const QString& url)
+#ifdef TIDE_USE_ZEROEQ
+class RestInterface
+{
+public:
+    RestInterface()
+    {
+        _httpServer.subscribe( loadCmd );
+        _socketNotifier.connect( &_socketNotifier, &QSocketNotifier::activated,
+                                 [this]() { _httpServer.receive( 0 ); });
+    }
+    int getPort() const
+    {
+        return _httpServer.getURI().getPort();
+    }
+    RestCommand loadCmd{ "load" };
+private:
+    zeroeq::http::Server _httpServer;
+    QSocketNotifier _socketNotifier{ _httpServer.getSocketDescriptor(),
+                                     QSocketNotifier::Read };
+};
+#endif
+
+WebkitPixelStreamer::WebkitPixelStreamer( const QSize& webpageSize,
+                                          const QString& url )
     : PixelStreamer()
-    , _authenticationHelper(new WebkitAuthenticationHelper(_webView))
-    , _selectReplacer(new WebkitHtmlSelectReplacer(_webView))
-    , _interactionModeActive(false)
+    , _authenticationHelper( new WebkitAuthenticationHelper( _webView ))
+    , _selectReplacer( new WebkitHtmlSelectReplacer( _webView ))
     , _initialWidth( std::max( webpageSize.width(), WEBPAGE_MIN_WIDTH ))
 {
     setSize( webpageSize * WEBPAGE_DEFAULT_ZOOM );
@@ -72,7 +103,25 @@ WebkitPixelStreamer::WebkitPixelStreamer(const QSize& webpageSize, const QString
     settings->setAttribute( QWebSettings::LocalStorageEnabled, true );
     settings->setAttribute( QWebSettings::WebGLEnabled, true );
 
-    setUrl(url);
+#ifdef TIDE_USE_ZEROEQ
+    _restInterface.reset( new RestInterface );
+    connect( &_restInterface->loadCmd, &RestCommand::received,
+             [this]( const QString uri ) { setUrl( uri ); });
+#endif
+    connect( &_webView, &QWebView::urlChanged, [this](){
+        std::ostringstream stream{ std::ostringstream::binary };
+        {
+            boost::archive::binary_oarchive oa( stream );
+            const auto history = WebbrowserHistory{ *_webView.history( )};
+            const auto port = _restInterface ? _restInterface->getPort() : 0;
+            oa << history;
+            oa << port;
+        }
+        const auto string = stream.str();
+        emit stateChanged( QByteArray{ string.data(), (int)string.size( )});
+    });
+
+    setUrl( url );
 
     connect(&_timer, SIGNAL(timeout()), this, SLOT(_update()));
     _timer.start(30);
@@ -83,11 +132,14 @@ WebkitPixelStreamer::~WebkitPixelStreamer()
     _timer.stop();
 }
 
-void WebkitPixelStreamer::setUrl(const QString& url)
+void WebkitPixelStreamer::setUrl( const QString& url )
 {
-    QMutexLocker locker(&_mutex);
+    auto address = QUrl{ url };
+    if( address.scheme().isEmpty( ))
+        address.setScheme( "http" );
 
-    _webView.load( QUrl(url) );
+    const QMutexLocker lock( &_mutex );
+    _webView.load( address );
 }
 
 const QWebView* WebkitPixelStreamer::getView() const

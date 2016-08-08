@@ -34,7 +34,7 @@ var clockScale = 0.2  // times the height of the displaygroup
 
 // Content windows
 var buttonsSize = 130;
-var buttonsImageSize = 100;
+var buttonsImageRelSize = 0.75;
 var buttonsEnabledOpacity = 100;
 var buttonsDisabledOpacity = 20;
 

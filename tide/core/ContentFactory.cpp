@@ -56,7 +56,9 @@
 #include "PixelStreamContent.h"
 #include "SVGContent.h"
 #include "TextureContent.h"
+#ifdef TIDE_USE_QT5WEBKITWIDGETS
 #include "WebbrowserContent.h"
+#endif
 
 #include <QFile>
 #include <QFileInfo>
@@ -165,7 +167,11 @@ ContentPtr ContentFactory::getPixelStreamContent( const QString& uri )
 
 ContentPtr ContentFactory::getWebbrowserContent( const QString& uri )
 {
+#ifdef TIDE_USE_QT5WEBKITWIDGETS
     return ContentPtr( new WebbrowserContent( uri ));
+#else
+    throw std::runtime_error( "Tide was compiled without WebbrowserContent!" );
+#endif
 }
 
 ContentPtr ContentFactory::getErrorContent( const QSize& size )

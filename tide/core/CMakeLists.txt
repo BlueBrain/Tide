@@ -161,7 +161,6 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   VectorialContent.h
   WallFromMasterChannel.h
   WallToMasterChannel.h
-  WebbrowserContent.h
   ZoomHelper.h
   ZoomInteractionDelegate.h
 )
@@ -211,11 +210,24 @@ list(APPEND TIDECORE_SOURCES
   VectorialContent.cpp
   WallFromMasterChannel.cpp
   WallToMasterChannel.cpp
-  WebbrowserContent.cpp
   ZoomHelper.cpp
   ZoomInteractionDelegate.cpp
   resources/core.qrc
 )
+
+if(TARGET Qt5::WebKitWidgets)
+  list(APPEND TIDECORE_PUBLIC_HEADERS
+    WebbrowserContent.h
+    WebbrowserHistory.h
+    WebbrowserInteractionDelegate.h
+  )
+  list(APPEND TIDECORE_SOURCES
+    WebbrowserContent.cpp
+    WebbrowserHistory.cpp
+    WebbrowserInteractionDelegate.cpp
+  )
+  list(APPEND TIDECORE_LINK_LIBRARIES PRIVATE Qt5::WebKitWidgets)
+endif()
 
 set(TIDECORE_INCLUDE_NAME tide/core)
 common_library(TideCore)
