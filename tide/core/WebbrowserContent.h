@@ -119,8 +119,22 @@ public:
     /** Give the keyboard focus to the address bar. */
     void setAddressBarFocused( bool set );
 
-    /** Parse navigation history data received from the deflect::Stream. */
+    /**
+     * Parse data received from the deflect::Stream.
+     *
+     * @param data a data buffer created by serializeData()
+     */
     void parseData( QByteArray data ) final;
+
+    /**
+     * Serialize webbrowser data for sending through the deflect::Stream.
+     *
+     * @param history the navigation history
+     * @param restPort the port of the REST interface to send commands to
+     * @return a serialized data buffer that can be parsed by parseData()
+     */
+    static QByteArray serializeData( const WebbrowserHistory& history,
+                                     int restPort );
 
 signals:
     /** @name QProperty notifiers */
@@ -154,7 +168,7 @@ private:
         ar & _selectionEnd;
     }
 
-    /** Serialize for saving to an xml file */
+    /** Serialize for saving to an xml file. */
     template< class Archive >
     void serialize_members_xml( Archive & ar, const unsigned int /*version*/ )
     {
@@ -177,9 +191,11 @@ private:
         serialize_members_xml( ar, version );
     }
 
+    /** Information received from the Webbrowser PixelStreamer. */
     WebbrowserHistory _history;
     int _restPort = 0;
 
+    /** State of the address bar on master shared with the wall processes. */
     bool _addressBarFocused = false;
     QString _addressBarUrl;
     int _cursorPosition = 0;

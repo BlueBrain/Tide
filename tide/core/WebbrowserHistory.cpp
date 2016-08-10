@@ -49,6 +49,13 @@ WebbrowserHistory::WebbrowserHistory( const QWebHistory& history )
         _items.push_back( item.url().toString( ));
 }
 
+WebbrowserHistory::WebbrowserHistory( std::vector<QString>&& items_,
+                                      const int currentItemIndex_ )
+{
+    _items = items_;
+    _currentItemIndex = currentItemIndex_;
+}
+
 size_t WebbrowserHistory::currentItemIndex() const
 {
     return _currentItemIndex;

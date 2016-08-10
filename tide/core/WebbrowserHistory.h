@@ -57,6 +57,7 @@ class WebbrowserHistory
 public:
     WebbrowserHistory() = default;
     explicit WebbrowserHistory( const QWebHistory& history );
+    WebbrowserHistory( std::vector<QString>&& items, int currentItemIndex );
 
     const std::vector<QString>& items() const;
     size_t currentItemIndex() const;

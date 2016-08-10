@@ -39,6 +39,7 @@
 
 #include "WebkitPixelStreamer.h"
 
+#include "WebbrowserContent.h"
 #include "WebbrowserHistory.h"
 #include "WebkitAuthenticationHelper.h"
 #include "WebkitHtmlSelectReplacer.h"
@@ -46,14 +47,10 @@
 
 #ifdef TIDE_USE_ZEROEQ
 #  include "rest/RestCommand.h"
-#  include <zeroeq/http/server.h>
-#  include <zeroeq/uri.h>
+#  include "rest/RestServer.h"
 #endif
 
-#include <sstream>
-
 #include <QKeyEvent>
-#include <QSocketNotifier>
 #include <QWebElement>
 #include <QWebFrame>
 #include <QWebHistory>
@@ -70,19 +67,16 @@ class RestInterface
 public:
     RestInterface()
     {
-        _httpServer.subscribe( loadCmd );
-        _socketNotifier.connect( &_socketNotifier, &QSocketNotifier::activated,
-                                 [this]() { _httpServer.receive( 0 ); });
+        _httpServer.get().subscribe( loadCmd );
     }
     int getPort() const
     {
-        return _httpServer.getURI().getPort();
+        return _httpServer.getPort();
     }
     RestCommand loadCmd{ "load" };
+
 private:
-    zeroeq::http::Server _httpServer;
-    QSocketNotifier _socketNotifier{ _httpServer.getSocketDescriptor(),
-                                     QSocketNotifier::Read };
+    RestServer _httpServer;
 };
 #endif
 
@@ -108,17 +102,11 @@ WebkitPixelStreamer::WebkitPixelStreamer( const QSize& webpageSize,
     connect( &_restInterface->loadCmd, &RestCommand::received,
              [this]( const QString uri ) { setUrl( uri ); });
 #endif
-    connect( &_webView, &QWebView::urlChanged, [this](){
-        std::ostringstream stream{ std::ostringstream::binary };
-        {
-            boost::archive::binary_oarchive oa( stream );
-            const auto history = WebbrowserHistory{ *_webView.history( )};
-            const auto port = _restInterface ? _restInterface->getPort() : 0;
-            oa << history;
-            oa << port;
-        }
-        const auto string = stream.str();
-        emit stateChanged( QByteArray{ string.data(), (int)string.size( )});
+    connect( &_webView, &QWebView::urlChanged, [this]()
+    {
+        const auto history = WebbrowserHistory{ *_webView.history( )};
+        const auto port = _restInterface ? _restInterface->getPort() : 0;
+        emit stateChanged( WebbrowserContent::serializeData( history, port ));
     });
 
     setUrl( url );

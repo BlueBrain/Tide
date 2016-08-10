@@ -145,6 +145,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   QtImage.h
   StatePreview.h
   SerializeBuffer.h
+  SerializeUtils.h
   SVG.h
   SVGBackend.h
   SVGContent.h

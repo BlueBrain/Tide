@@ -42,16 +42,10 @@
 #include "ContentFactory.h"
 #include "DisplayGroup.h"
 #include "DisplayGroupController.h"
+#include "SerializeUtils.h"
 #include "State.h"
 #include "StatePreview.h"
 #include "log.h"
-
-#include <fstream>
-#include <sstream>
-
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/archive/xml_oarchive.hpp>
-#include <boost/archive/xml_archive_exception.hpp>
 
 namespace
 {
@@ -61,35 +55,6 @@ const QString SESSION_FILE_EXTENSION( ".dcx" );
 StateSerializationHelper::StateSerializationHelper( DisplayGroupPtr group )
     : _displayGroup( group )
 {
-}
-
-bool _loadBoostXml( State& state, const QString& filename )
-{
-    // De-serialize state file
-    std::ifstream ifs( filename.toStdString( ));
-    if ( !ifs.good( ))
-        return false;
-    try
-    {
-        boost::archive::xml_iarchive ia( ifs );
-        ia >> BOOST_SERIALIZATION_NVP( state );
-    }
-    catch( const boost::archive::archive_exception& e )
-    {
-        put_flog( LOG_ERROR, "Could not restore session: '%s': %s",
-                  filename.toStdString().c_str(), e.what( ));
-        return false;
-    }
-    catch( const std::exception& e )
-    {
-        put_flog( LOG_ERROR, "Could not restore state file '%s'',"
-                             "wrong file format: %s",
-                  filename.toStdString().c_str(), e.what( ));
-        return false;
-    }
-
-    ifs.close();
-    return true;
 }
 
 bool _canBeRestored( const CONTENT_TYPE type )
@@ -173,8 +138,11 @@ DisplayGroupConstPtr _load( const QString& filename, DisplayGroupConstPtr target
 {
     State state;
     // For backward compatibility, try to load the file as a legacy xml first
-    if( !state.legacyLoadXML( filename ) && !_loadBoostXml( state, filename ))
+    if( !state.legacyLoadXML( filename ) &&
+        !SerializeUtils::fromXmlFile( state, filename.toStdString( )))
+    {
         return DisplayGroupConstPtr();
+    }
 
     DisplayGroupPtr group = state.getDisplayGroup();
     _validateContents( *group );
@@ -218,39 +186,6 @@ StateSerializationHelper::load( const QString& filename )
     });
 }
 
-DisplayGroupPtr StateSerializationHelper::_copyDisplayGroup() const
-{
-    // Important: use xml archive not binary as they use different code paths
-    std::stringstream oss;
-    {
-        boost::archive::xml_oarchive oa( oss );
-        oa << BOOST_SERIALIZATION_NVP( _displayGroup );
-    }
-    DisplayGroupPtr group;
-    {
-        boost::archive::xml_iarchive ia( oss );
-        ia >> BOOST_SERIALIZATION_NVP( group );
-    }
-    return group;
-}
-
-bool _writeState( DisplayGroupPtr group, const QString& filename )
-{
-    // serialize state
-    std::ofstream ofs( filename.toStdString( ));
-    if( !ofs.good( ))
-        return false;
-
-    // brace this so destructor is called on archive before we use the stream
-    {
-        State state( group );
-        boost::archive::xml_oarchive oa( ofs );
-        oa << BOOST_SERIALIZATION_NVP( state );
-    }
-    ofs.close();
-    return true;
-}
-
 void _generatePreview( const DisplayGroup& group, const QString& filename )
 {
     const QSize size = group.getCoordinates().size().toSize();
@@ -290,7 +225,8 @@ QFuture<bool> StateSerializationHelper::save( QString filename,
     put_flog( LOG_INFO, "Saving session: '%s'",
               filename.toStdString().c_str( ));
 
-    DisplayGroupPtr group = _copyDisplayGroup();
+    // Important: use xml archive not binary as they use different code paths
+    DisplayGroupPtr group = SerializeUtils::xmlCopy( _displayGroup );
     return QtConcurrent::run([group, filename, generatePreview]()
     {
         _filterContents( *group );
@@ -299,7 +235,7 @@ QFuture<bool> StateSerializationHelper::save( QString filename,
         if( generatePreview )
             _generatePreview( *group, filename );
 
-        if( !_writeState( group, filename ))
+        if( !SerializeUtils::toXmlFile( State{ group }, filename.toStdString()))
             return false;
 
         return true;

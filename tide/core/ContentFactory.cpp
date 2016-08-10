@@ -170,6 +170,7 @@ ContentPtr ContentFactory::getWebbrowserContent( const QString& uri )
 #ifdef TIDE_USE_QT5WEBKITWIDGETS
     return ContentPtr( new WebbrowserContent( uri ));
 #else
+    Q_UNUSED( uri );
     throw std::runtime_error( "Tide was compiled without WebbrowserContent!" );
 #endif
 }

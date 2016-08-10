@@ -70,7 +70,7 @@ public:
     void swipeDown() override;
     //@}
 
-    /** @name Keyboard gesture handlers. */
+    /** @name Keyboard event handlers. */
     //@{
     void keyPress( int key, int modifiers, QString text ) override;
     void keyRelease( int key, int modifiers, QString text ) override;

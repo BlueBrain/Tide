@@ -39,7 +39,6 @@
 
 #define BOOST_TEST_MODULE ContentWindowTests
 #include <boost/test/unit_test.hpp>
-namespace ut = boost::unit_test;
 
 #include "ContentWindow.h"
 #include "ZoomInteractionDelegate.h"

@@ -175,3 +175,16 @@ void WebbrowserContent::parseData( const QByteArray data )
     emit urlChanged();
     emit modified();
 }
+
+QByteArray WebbrowserContent::serializeData( const WebbrowserHistory& history,
+                                             const int restPort )
+{
+    std::ostringstream stream{ std::ostringstream::binary };
+    {
+        boost::archive::binary_oarchive oa{ stream };
+        oa << history;
+        oa << restPort;
+    }
+    const auto string = stream.str();
+    return QByteArray{ string.data(), (int)string.size( )};
+}

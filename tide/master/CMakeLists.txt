@@ -93,6 +93,7 @@ if(TIDE_ENABLE_REST_INTERFACE)
     rest/RestCommand.h
     rest/RestInterface.h
     rest/RestLogger.h
+    rest/RestServer.h
     rest/StaticContent.h
   )
   list(APPEND TIDEMASTER_SOURCES
@@ -100,6 +101,7 @@ if(TIDE_ENABLE_REST_INTERFACE)
     rest/RestCommand.cpp
     rest/RestInterface.cpp
     rest/RestLogger.cpp
+    rest/RestServer.cpp
     rest/StaticContent.cpp
   )
   # Servus PUBLIC because servus::Serializable is a base class of public headers

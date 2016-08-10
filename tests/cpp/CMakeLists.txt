@@ -16,11 +16,14 @@ set(TEST_LIBRARIES
   Qt5::OpenGL
 )
 
-if(NOT TIDE_ENABLE_REST_INTERFACE)
+if(TIDE_ENABLE_REST_INTERFACE AND TARGET ZeroEQ)
+  list(APPEND TEST_LIBRARIES ZeroEQ)
+else()
   set(EXCLUDE_FROM_TESTS
     core/JsonOptionsTests.cpp
     core/LoggingUtilityTest.cpp
-    core/RESTCommandTests.cpp
+    core/RestCommandTests.cpp
+    core/RestServerTests.cpp
   )
 endif()
 
@@ -29,6 +32,7 @@ if(X11_FOUND AND TARGET Qt5::WebKitWidgets)
 else()
   list(APPEND EXCLUDE_FROM_TESTS
     core/WebbrowserTests.cpp
+    core/WebbrowserContentTests.cpp
     core/WebkitHtmlSelectReplacementTests.cpp)
 endif()
 
