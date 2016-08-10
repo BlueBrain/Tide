@@ -39,24 +39,17 @@
 
 #define BOOST_TEST_MODULE StateSerializationTests
 #include <boost/test/unit_test.hpp>
-namespace ut = boost::unit_test;
-
-#include "State.h"
-#include "StateSerializationHelper.h"
 
 #include "types.h"
 #include "Content.h"
 #include "ContentFactory.h"
-#include "TextureContent.h"
-#include "DummyContent.h"
 #include "ContentWindow.h"
 #include "DisplayGroup.h"
-
-#include <fstream>
-#include <boost/make_shared.hpp>
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/archive/xml_oarchive.hpp>
-#include <boost/archive/xml_archive_exception.hpp>
+#include "DummyContent.h"
+#include "SerializeUtils.h"
+#include "State.h"
+#include "StateSerializationHelper.h"
+#include "TextureContent.h"
 
 #include <QtCore/QDir>
 #include <QtGui/QImage>
@@ -84,35 +77,27 @@ const QString TEST_DIR = "tmp";
 const QSize VALID_TEXTURE_SIZE( 256, 128 );
 }
 
+State makeTestStateCopy()
+{
+    DummyContent* dummyContent = new DummyContent( DUMMY_URI );
+    ContentPtr content( dummyContent );
+    dummyContent->dummyParam_ = DUMMY_PARAM_VALUE;
+
+    content->setDimensions( CONTENT_SIZE );
+    ContentWindowPtr window( new ContentWindow( content ));
+
+    DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
+    displayGroup->addContentWindow( window );
+
+    State state( displayGroup );
+    return SerializeUtils::xmlCopy( state );
+}
+
 BOOST_AUTO_TEST_CASE( testWhenStateIsSerializedAndDeserializedThenContentPropertiesArePreserved )
 {
-    // Serialize
-    std::stringstream ss;
-    {
-        DummyContent* dummyContent = new DummyContent( DUMMY_URI );
-        ContentPtr content( dummyContent );
-        dummyContent->dummyParam_ = DUMMY_PARAM_VALUE;
-
-        content->setDimensions( CONTENT_SIZE );
-        ContentWindowPtr window( new ContentWindow( content ));
-
-        DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
-        displayGroup->addContentWindow( window );
-        State state( displayGroup );
-        boost::archive::xml_oarchive oa( ss );
-        oa << BOOST_SERIALIZATION_NVP( state );
-    }
-
-    // Deserialize
-    bool showWindowTitles( false );
-    ContentWindowPtrs contentWindows;
-    {
-        State state;
-        boost::archive::xml_iarchive ia( ss );
-        ia >> BOOST_SERIALIZATION_NVP( state );
-        contentWindows = state.getDisplayGroup()->getContentWindows();
-        showWindowTitles = state.getDisplayGroup()->getShowWindowTitles();
-    }
+    State state = makeTestStateCopy();
+    auto contentWindows = state.getDisplayGroup()->getContentWindows();
+    bool showWindowTitles = state.getDisplayGroup()->getShowWindowTitles();
 
     BOOST_REQUIRE_EQUAL( contentWindows.size(), 1 );
     BOOST_REQUIRE_EQUAL( showWindowTitles, true );
@@ -243,19 +228,17 @@ void checkWindowVersion4( ContentWindowPtr window )
 
 BOOST_AUTO_TEST_CASE( testWhenOpeningValidStateThenContentIsLoaded )
 {
-    std::ifstream ifs( STATE_V0_URI.toStdString( ));
-    BOOST_REQUIRE( ifs.good( ));
-
     State state;
-    boost::archive::xml_iarchive ia( ifs );
-    BOOST_CHECK_NO_THROW( ia >> BOOST_SERIALIZATION_NVP( state ));
-    ifs.close();
+    bool success = false;
+    const auto file = STATE_V0_URI.toStdString();
+    BOOST_CHECK_NO_THROW( success = SerializeUtils::fromXmlFile( state, file ));
+    BOOST_REQUIRE( success );
 
-    ContentWindowPtrs contentWindows = state.getDisplayGroup()->getContentWindows();
-    BOOST_REQUIRE_EQUAL( contentWindows.size(), 1 );
+    const auto& windows = state.getDisplayGroup()->getContentWindows();
+    BOOST_REQUIRE_EQUAL( windows.size(), 1 );
     BOOST_CHECK_EQUAL( state.getDisplayGroup()->getShowWindowTitles(), false );
 
-    checkLegacyWindow( contentWindows[0] );
+    checkLegacyWindow( windows[0] );
 }
 
 BOOST_AUTO_TEST_CASE( testStateSerializationHelperReadingFromVersion0File )
@@ -278,16 +261,14 @@ BOOST_AUTO_TEST_CASE( testStateSerializationHelperReadingFromVersion0File )
 
 BOOST_AUTO_TEST_CASE( testWhenOpeningValidVersion3StateThenContentIsLoaded )
 {
-    std::ifstream ifs( STATE_V3_URI.toStdString( ));
-    BOOST_REQUIRE( ifs.good( ));
-
     State state;
-    boost::archive::xml_iarchive ia( ifs );
-    BOOST_CHECK_NO_THROW( ia >> BOOST_SERIALIZATION_NVP( state ));
-    ifs.close();
+    bool success = false;
+    const auto file = STATE_V3_URI.toStdString();
+    BOOST_CHECK_NO_THROW( success = SerializeUtils::fromXmlFile( state, file ));
+    BOOST_REQUIRE( success );
 
-    ContentWindowPtrs contentWindows = state.getDisplayGroup()->getContentWindows();
-    BOOST_REQUIRE_EQUAL( contentWindows.size(), 1 );
+    const auto& windows = state.getDisplayGroup()->getContentWindows();
+    BOOST_REQUIRE_EQUAL( windows.size(), 1 );
     BOOST_CHECK_EQUAL( state.getDisplayGroup()->getShowWindowTitles(), true );
     BOOST_CHECK_EQUAL( state.getDisplayGroup()->getCoordinates(), QRectF( 0, 0, 1536, 648 ));
 

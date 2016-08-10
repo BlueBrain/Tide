@@ -144,6 +144,14 @@ public slots:
      */
     void updateSizeHints( QString uri, deflect::SizeHints hints );
 
+    /**
+     * Send data to window.
+     *
+     * @param uri the URI of the streamer
+     * @param data the data to send
+     */
+    void sendDataToWindow( QString uri, QByteArray data );
+
     /** Open new windows in focus mode. */
     void setAutoFocusNewWindows( bool set );
 

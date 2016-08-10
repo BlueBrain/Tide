@@ -39,7 +39,6 @@
 
 #define BOOST_TEST_MODULE PixelStreamer
 #include <boost/test/unit_test.hpp>
-namespace ut = boost::unit_test;
 
 #include "localstreamer/CommandLineOptions.h"
 #include "localstreamer/PixelStreamerType.h"

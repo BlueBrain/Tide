@@ -3,6 +3,11 @@ Changelog {#Changelog}
 
 # Release 1.2 (git master)
 
+* [75](https://github.com/BlueBrain/Tide/pull/75):
+  Webbrowser improvements:
+  - New address bar to see the current url and enter an address [DISCL-380].
+  - The previous/next buttons are only visible if the browsing history has
+    corresponding entries.
 * [74](https://github.com/BlueBrain/Tide/pull/74):
   Added support for multi-finger pan gestures [DISCL-357].
   Two-finger pan and pinch gestures can also be used simultaneously for zooming

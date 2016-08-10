@@ -40,7 +40,6 @@
 
 #define BOOST_TEST_MODULE VisibilityHelperTests
 #include <boost/test/unit_test.hpp>
-namespace ut = boost::unit_test;
 
 #include "VisibilityHelper.h"
 #include "DisplayGroup.h"

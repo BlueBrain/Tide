@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,93 +37,45 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#define BOOST_TEST_MODULE WebBrowser
-#include <boost/test/unit_test.hpp>
+#ifndef WEBBROWSERINTERACTIONDELEGATE_H
+#define WEBBROWSERINTERACTIONDELEGATE_H
 
-#include <QDebug>
-#include "localstreamer/WebkitHtmlSelectReplacer.h"
+#include "PixelStreamInteractionDelegate.h"
 
-#include <QWebView>
-#include <QWebPage>
-#include <QWebFrame>
-#include <QWebElement>
-#include <QDir>
+class WebbrowserContent;
 
-#include "GlobalQtApp.h"
-
-#define TEST_PAGE_URL               "/select_test.htm"
-#define HTTP_BODY_SELECTOR          "body"
-#define HTTP_SELECT_SELECTOR        "select[id=language]"
-#define HTTP_SELECTBOXIT_SELECTOR   "span[id=languageSelectBoxIt]"
-#define DISPLAY_STYLE_PROPERTY_NAME "display"
-#define DISPLAY_STYLE_NONE          "none"
-
-BOOST_GLOBAL_FIXTURE( GlobalQtApp );
-
-QString testPageURL()
+/**
+ * Delegate which forwards events to the Webbrowser or to its address bar.
+ */
+class WebbrowserInteractionDelegate : public PixelStreamInteractionDelegate
 {
-    return "file://" + QDir::currentPath() + TEST_PAGE_URL;
-}
+    Q_OBJECT
 
-class TestPage
-{
 public:
-    TestPage()
-    {
-        webview.page()->setViewportSize(QSize(640, 480));
-        QObject::connect( &webview, SIGNAL(loadFinished(bool)),
-                          QApplication::instance(), SLOT(quit()));
-    }
+    /** Constructor */
+    explicit WebbrowserInteractionDelegate( ContentWindow& contentWindow );
 
-    void load()
-    {
-        webview.load(QUrl(testPageURL()));
-        QApplication::instance()->exec();
+    /** @name Touch gesture handlers. */
+    //@{
+    void touchBegin( QPointF position ) final;
+    //@}
 
-        // Check that the page could be loaded
-        const QString pageContent = getElement(HTTP_BODY_SELECTOR).toInnerXml();
-        BOOST_REQUIRE( !pageContent.isEmpty( ));
-    }
+    /** @name Keyboard gesture handlers. */
+    //@{
+    void keyPress( int key, int modifiers, QString text ) final;
+    void keyRelease( int key, int modifiers, QString text ) final;
+    //@}
 
-    QWebElement getElement(const QString& selectorQuery) const
-    {
-        return webview.page()->mainFrame()->findFirstElement(selectorQuery);
-    }
+signals:
+    /** @name Forward keyboard events to the Qml address bar. */
+    //@{
+    void keyboardInput( QString text );
+    void deleteKeyPressed();
+    void enterKeyPressed();
+    //@}
 
-    QString getSelectElementDisplayProperty() const
-    {
-        const QWebElement select = getElement(HTTP_SELECT_SELECTOR);
-        BOOST_REQUIRE( !select.isNull( ));
-        return select.styleProperty(DISPLAY_STYLE_PROPERTY_NAME, QWebElement::InlineStyle);
-    }
-
-    QWebView webview;
+private:
+    WebbrowserContent& getWebContent();
 };
 
-BOOST_AUTO_TEST_CASE( TestWhenNoReplacerThenSelectElementIsVisible )
-{
-    if( !hasGLXDisplay( ))
-        return;
-
-    TestPage testPage;
-    testPage.load();
-
-    const QString displayStyleProperty = testPage.getSelectElementDisplayProperty();
-    BOOST_CHECK( displayStyleProperty.isEmpty( ));
-}
-
-BOOST_AUTO_TEST_CASE( TestWhenReplacerThenSelectHasEquivalentHtml )
-{
-    if( !hasGLXDisplay( ))
-        return;
-
-    TestPage testPage;
-    WebkitHtmlSelectReplacer replacer(testPage.webview);
-    testPage.load();
-
-    const QString displayStyleProperty = testPage.getSelectElementDisplayProperty();
-    BOOST_CHECK_EQUAL( displayStyleProperty.toStdString(), DISPLAY_STYLE_NONE );
-
-    QWebElement selectboxit = testPage.getElement(HTTP_SELECTBOXIT_SELECTOR);
-    BOOST_CHECK( !selectboxit.isNull( ));
-}
+#endif

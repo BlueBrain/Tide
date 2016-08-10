@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,93 +37,58 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#define BOOST_TEST_MODULE WebBrowser
-#include <boost/test/unit_test.hpp>
+#include "WebbrowserInteractionDelegate.h"
 
-#include <QDebug>
-#include "localstreamer/WebkitHtmlSelectReplacer.h"
+#include "ContentWindow.h"
+#include "WebbrowserContent.h"
 
-#include <QWebView>
-#include <QWebPage>
-#include <QWebFrame>
-#include <QWebElement>
-#include <QDir>
+WebbrowserInteractionDelegate::WebbrowserInteractionDelegate( ContentWindow&
+                                                              contentWindow )
+    : PixelStreamInteractionDelegate( contentWindow )
+{}
 
-#include "GlobalQtApp.h"
-
-#define TEST_PAGE_URL               "/select_test.htm"
-#define HTTP_BODY_SELECTOR          "body"
-#define HTTP_SELECT_SELECTOR        "select[id=language]"
-#define HTTP_SELECTBOXIT_SELECTOR   "span[id=languageSelectBoxIt]"
-#define DISPLAY_STYLE_PROPERTY_NAME "display"
-#define DISPLAY_STYLE_NONE          "none"
-
-BOOST_GLOBAL_FIXTURE( GlobalQtApp );
-
-QString testPageURL()
+void WebbrowserInteractionDelegate::touchBegin( const QPointF position )
 {
-    return "file://" + QDir::currentPath() + TEST_PAGE_URL;
+    getWebContent().setAddressBarFocused( false );
+
+    PixelStreamInteractionDelegate::touchBegin( position );
 }
 
-class TestPage
+void WebbrowserInteractionDelegate::keyPress( const int key,
+                                              const int modifiers,
+                                              const QString text )
 {
-public:
-    TestPage()
-    {
-        webview.page()->setViewportSize(QSize(640, 480));
-        QObject::connect( &webview, SIGNAL(loadFinished(bool)),
-                          QApplication::instance(), SLOT(quit()));
-    }
-
-    void load()
-    {
-        webview.load(QUrl(testPageURL()));
-        QApplication::instance()->exec();
-
-        // Check that the page could be loaded
-        const QString pageContent = getElement(HTTP_BODY_SELECTOR).toInnerXml();
-        BOOST_REQUIRE( !pageContent.isEmpty( ));
-    }
-
-    QWebElement getElement(const QString& selectorQuery) const
-    {
-        return webview.page()->mainFrame()->findFirstElement(selectorQuery);
-    }
-
-    QString getSelectElementDisplayProperty() const
-    {
-        const QWebElement select = getElement(HTTP_SELECT_SELECTOR);
-        BOOST_REQUIRE( !select.isNull( ));
-        return select.styleProperty(DISPLAY_STYLE_PROPERTY_NAME, QWebElement::InlineStyle);
-    }
-
-    QWebView webview;
-};
-
-BOOST_AUTO_TEST_CASE( TestWhenNoReplacerThenSelectElementIsVisible )
-{
-    if( !hasGLXDisplay( ))
+    if( getWebContent().isAddressBarFocused( ))
         return;
 
-    TestPage testPage;
-    testPage.load();
-
-    const QString displayStyleProperty = testPage.getSelectElementDisplayProperty();
-    BOOST_CHECK( displayStyleProperty.isEmpty( ));
+    PixelStreamInteractionDelegate::keyPress( key, modifiers, text );
 }
 
-BOOST_AUTO_TEST_CASE( TestWhenReplacerThenSelectHasEquivalentHtml )
+void WebbrowserInteractionDelegate::keyRelease( const int key,
+                                                const int modifiers,
+                                                const QString text )
 {
-    if( !hasGLXDisplay( ))
+    if( getWebContent().isAddressBarFocused( ))
+    {
+        switch( key )
+        {
+        case Qt::Key_Enter:
+            emit enterKeyPressed();
+            break;
+        case Qt::Key_Backspace:
+            emit deleteKeyPressed();
+            break;
+        default:
+            emit keyboardInput( text );
+            break;
+        }
         return;
+    }
 
-    TestPage testPage;
-    WebkitHtmlSelectReplacer replacer(testPage.webview);
-    testPage.load();
+    PixelStreamInteractionDelegate::keyRelease( key, modifiers, text );
+}
 
-    const QString displayStyleProperty = testPage.getSelectElementDisplayProperty();
-    BOOST_CHECK_EQUAL( displayStyleProperty.toStdString(), DISPLAY_STYLE_NONE );
-
-    QWebElement selectboxit = testPage.getElement(HTTP_SELECTBOXIT_SELECTOR);
-    BOOST_CHECK( !selectboxit.isNull( ));
+WebbrowserContent& WebbrowserInteractionDelegate::getWebContent()
+{
+    return dynamic_cast<WebbrowserContent&>( *_contentWindow.getContent( ));
 }

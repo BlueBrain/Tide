@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,93 +37,45 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#define BOOST_TEST_MODULE WebBrowser
-#include <boost/test/unit_test.hpp>
+#ifndef WEBBROWSERHISTORY_H
+#define WEBBROWSERHISTORY_H
 
-#include <QDebug>
-#include "localstreamer/WebkitHtmlSelectReplacer.h"
+#include "serializationHelpers.h" // for QString
+#include <boost/serialization/access.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/vector.hpp>
 
-#include <QWebView>
-#include <QWebPage>
-#include <QWebFrame>
-#include <QWebElement>
-#include <QDir>
+#include <QWebHistory>
 
-#include "GlobalQtApp.h"
-
-#define TEST_PAGE_URL               "/select_test.htm"
-#define HTTP_BODY_SELECTOR          "body"
-#define HTTP_SELECT_SELECTOR        "select[id=language]"
-#define HTTP_SELECTBOXIT_SELECTOR   "span[id=languageSelectBoxIt]"
-#define DISPLAY_STYLE_PROPERTY_NAME "display"
-#define DISPLAY_STYLE_NONE          "none"
-
-BOOST_GLOBAL_FIXTURE( GlobalQtApp );
-
-QString testPageURL()
-{
-    return "file://" + QDir::currentPath() + TEST_PAGE_URL;
-}
-
-class TestPage
+/**
+ * A serializable navigation history.
+ */
+class WebbrowserHistory
 {
 public:
-    TestPage()
+    WebbrowserHistory() = default;
+    explicit WebbrowserHistory( const QWebHistory& history );
+    WebbrowserHistory( std::vector<QString>&& items, int currentItemIndex );
+
+    const std::vector<QString>& items() const;
+    size_t currentItemIndex() const;
+    QString currentItem() const;
+
+private:
+    friend class boost::serialization::access;
+
+    template<class Archive>
+    void serialize( Archive & ar, const unsigned int )
     {
-        webview.page()->setViewportSize(QSize(640, 480));
-        QObject::connect( &webview, SIGNAL(loadFinished(bool)),
-                          QApplication::instance(), SLOT(quit()));
+        ar & boost::serialization::make_nvp( "items", _items );
+        ar & boost::serialization::make_nvp( "currentItemIndex",
+                                             _currentItemIndex );
     }
 
-    void load()
-    {
-        webview.load(QUrl(testPageURL()));
-        QApplication::instance()->exec();
-
-        // Check that the page could be loaded
-        const QString pageContent = getElement(HTTP_BODY_SELECTOR).toInnerXml();
-        BOOST_REQUIRE( !pageContent.isEmpty( ));
-    }
-
-    QWebElement getElement(const QString& selectorQuery) const
-    {
-        return webview.page()->mainFrame()->findFirstElement(selectorQuery);
-    }
-
-    QString getSelectElementDisplayProperty() const
-    {
-        const QWebElement select = getElement(HTTP_SELECT_SELECTOR);
-        BOOST_REQUIRE( !select.isNull( ));
-        return select.styleProperty(DISPLAY_STYLE_PROPERTY_NAME, QWebElement::InlineStyle);
-    }
-
-    QWebView webview;
+    std::vector<QString> _items;
+    size_t _currentItemIndex = 0;
 };
 
-BOOST_AUTO_TEST_CASE( TestWhenNoReplacerThenSelectElementIsVisible )
-{
-    if( !hasGLXDisplay( ))
-        return;
-
-    TestPage testPage;
-    testPage.load();
-
-    const QString displayStyleProperty = testPage.getSelectElementDisplayProperty();
-    BOOST_CHECK( displayStyleProperty.isEmpty( ));
-}
-
-BOOST_AUTO_TEST_CASE( TestWhenReplacerThenSelectHasEquivalentHtml )
-{
-    if( !hasGLXDisplay( ))
-        return;
-
-    TestPage testPage;
-    WebkitHtmlSelectReplacer replacer(testPage.webview);
-    testPage.load();
-
-    const QString displayStyleProperty = testPage.getSelectElementDisplayProperty();
-    BOOST_CHECK_EQUAL( displayStyleProperty.toStdString(), DISPLAY_STYLE_NONE );
-
-    QWebElement selectboxit = testPage.getElement(HTTP_SELECTBOXIT_SELECTOR);
-    BOOST_CHECK( !selectboxit.isNull( ));
-}
+#endif

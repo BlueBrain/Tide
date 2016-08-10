@@ -71,6 +71,9 @@ signals:
     /** Emit this signal after a new image has been generated. */
     void imageUpdated( QImage image );
 
+    /** Emit this signal to update the state of the remote Tide Content. */
+    void stateChanged( QByteArray data );
+
 private:
     Q_DISABLE_COPY( PixelStreamer )
 };

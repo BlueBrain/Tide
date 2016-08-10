@@ -40,7 +40,6 @@
 
 #define BOOST_TEST_MODULE SerializeBufferTests
 #include <boost/test/unit_test.hpp>
-namespace ut = boost::unit_test;
 
 #include "SerializeBuffer.h"
 

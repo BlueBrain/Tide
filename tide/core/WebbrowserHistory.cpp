@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,93 +37,39 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#define BOOST_TEST_MODULE WebBrowser
-#include <boost/test/unit_test.hpp>
+#include "WebbrowserHistory.h"
 
-#include <QDebug>
-#include "localstreamer/WebkitHtmlSelectReplacer.h"
+#include <QUrl>
 
-#include <QWebView>
-#include <QWebPage>
-#include <QWebFrame>
-#include <QWebElement>
-#include <QDir>
-
-#include "GlobalQtApp.h"
-
-#define TEST_PAGE_URL               "/select_test.htm"
-#define HTTP_BODY_SELECTOR          "body"
-#define HTTP_SELECT_SELECTOR        "select[id=language]"
-#define HTTP_SELECTBOXIT_SELECTOR   "span[id=languageSelectBoxIt]"
-#define DISPLAY_STYLE_PROPERTY_NAME "display"
-#define DISPLAY_STYLE_NONE          "none"
-
-BOOST_GLOBAL_FIXTURE( GlobalQtApp );
-
-QString testPageURL()
+WebbrowserHistory::WebbrowserHistory( const QWebHistory& history )
+    : _items()
+    , _currentItemIndex( history.currentItemIndex( ))
 {
-    return "file://" + QDir::currentPath() + TEST_PAGE_URL;
+    for( auto item : history.items( ))
+        _items.push_back( item.url().toString( ));
 }
 
-class TestPage
+WebbrowserHistory::WebbrowserHistory( std::vector<QString>&& items_,
+                                      const int currentItemIndex_ )
 {
-public:
-    TestPage()
-    {
-        webview.page()->setViewportSize(QSize(640, 480));
-        QObject::connect( &webview, SIGNAL(loadFinished(bool)),
-                          QApplication::instance(), SLOT(quit()));
-    }
-
-    void load()
-    {
-        webview.load(QUrl(testPageURL()));
-        QApplication::instance()->exec();
-
-        // Check that the page could be loaded
-        const QString pageContent = getElement(HTTP_BODY_SELECTOR).toInnerXml();
-        BOOST_REQUIRE( !pageContent.isEmpty( ));
-    }
-
-    QWebElement getElement(const QString& selectorQuery) const
-    {
-        return webview.page()->mainFrame()->findFirstElement(selectorQuery);
-    }
-
-    QString getSelectElementDisplayProperty() const
-    {
-        const QWebElement select = getElement(HTTP_SELECT_SELECTOR);
-        BOOST_REQUIRE( !select.isNull( ));
-        return select.styleProperty(DISPLAY_STYLE_PROPERTY_NAME, QWebElement::InlineStyle);
-    }
-
-    QWebView webview;
-};
-
-BOOST_AUTO_TEST_CASE( TestWhenNoReplacerThenSelectElementIsVisible )
-{
-    if( !hasGLXDisplay( ))
-        return;
-
-    TestPage testPage;
-    testPage.load();
-
-    const QString displayStyleProperty = testPage.getSelectElementDisplayProperty();
-    BOOST_CHECK( displayStyleProperty.isEmpty( ));
+    _items = items_;
+    _currentItemIndex = currentItemIndex_;
 }
 
-BOOST_AUTO_TEST_CASE( TestWhenReplacerThenSelectHasEquivalentHtml )
+size_t WebbrowserHistory::currentItemIndex() const
 {
-    if( !hasGLXDisplay( ))
-        return;
+    return _currentItemIndex;
+}
 
-    TestPage testPage;
-    WebkitHtmlSelectReplacer replacer(testPage.webview);
-    testPage.load();
+const std::vector<QString>& WebbrowserHistory::items() const
+{
+    return _items;
+}
 
-    const QString displayStyleProperty = testPage.getSelectElementDisplayProperty();
-    BOOST_CHECK_EQUAL( displayStyleProperty.toStdString(), DISPLAY_STYLE_NONE );
+QString WebbrowserHistory::currentItem() const
+{
+    if( _currentItemIndex >= _items.size( ))
+        return QString();
 
-    QWebElement selectboxit = testPage.getElement(HTTP_SELECTBOXIT_SELECTOR);
-    BOOST_CHECK( !selectboxit.isNull( ));
+    return _items[ _currentItemIndex ];
 }

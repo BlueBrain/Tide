@@ -76,6 +76,9 @@ public:
     /** @return ON when hasEventReceivers() is true, otherwise OFF. */
     Interaction getInteractionPolicy() const final;
 
+    /** Parse data received from the deflect::Stream. */
+    virtual void parseData( QByteArray data ) { Q_UNUSED( data ); }
+
 protected:
     // Default constructor required for boost::serialization
     PixelStreamContent() { _createActions(); }

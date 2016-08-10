@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,93 +37,60 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#define BOOST_TEST_MODULE WebBrowser
+#define BOOST_TEST_MODULE RestServerTests
 #include <boost/test/unit_test.hpp>
 
-#include <QDebug>
-#include "localstreamer/WebkitHtmlSelectReplacer.h"
+#include "rest/RestServer.h"
+#include "rest/StaticContent.h"
 
-#include <QWebView>
-#include <QWebPage>
-#include <QWebFrame>
-#include <QWebElement>
-#include <QDir>
+#include <zeroeq/uri.h>
 
-#include "GlobalQtApp.h"
+#include <QNetworkAccessManager>
+#include <QNetworkReply>
 
-#define TEST_PAGE_URL               "/select_test.htm"
-#define HTTP_BODY_SELECTOR          "body"
-#define HTTP_SELECT_SELECTOR        "select[id=language]"
-#define HTTP_SELECTBOXIT_SELECTOR   "span[id=languageSelectBoxIt]"
-#define DISPLAY_STYLE_PROPERTY_NAME "display"
-#define DISPLAY_STYLE_NONE          "none"
+#include "MinimalGlobalQtApp.h"
+BOOST_GLOBAL_FIXTURE( MinimalGlobalQtApp );
 
-BOOST_GLOBAL_FIXTURE( GlobalQtApp );
 
-QString testPageURL()
+BOOST_AUTO_TEST_CASE( testDefaultPort )
 {
-    return "file://" + QDir::currentPath() + TEST_PAGE_URL;
+    RestServer server;
+    BOOST_CHECK_GT( server.getPort(), 0 );
 }
 
-class TestPage
+BOOST_AUTO_TEST_CASE( testUnavailablePort )
 {
-public:
-    TestPage()
-    {
-        webview.page()->setViewportSize(QSize(640, 480));
-        QObject::connect( &webview, SIGNAL(loadFinished(bool)),
-                          QApplication::instance(), SLOT(quit()));
-    }
-
-    void load()
-    {
-        webview.load(QUrl(testPageURL()));
-        QApplication::instance()->exec();
-
-        // Check that the page could be loaded
-        const QString pageContent = getElement(HTTP_BODY_SELECTOR).toInnerXml();
-        BOOST_REQUIRE( !pageContent.isEmpty( ));
-    }
-
-    QWebElement getElement(const QString& selectorQuery) const
-    {
-        return webview.page()->mainFrame()->findFirstElement(selectorQuery);
-    }
-
-    QString getSelectElementDisplayProperty() const
-    {
-        const QWebElement select = getElement(HTTP_SELECT_SELECTOR);
-        BOOST_REQUIRE( !select.isNull( ));
-        return select.styleProperty(DISPLAY_STYLE_PROPERTY_NAME, QWebElement::InlineStyle);
-    }
-
-    QWebView webview;
-};
-
-BOOST_AUTO_TEST_CASE( TestWhenNoReplacerThenSelectElementIsVisible )
-{
-    if( !hasGLXDisplay( ))
-        return;
-
-    TestPage testPage;
-    testPage.load();
-
-    const QString displayStyleProperty = testPage.getSelectElementDisplayProperty();
-    BOOST_CHECK( displayStyleProperty.isEmpty( ));
+    // system port (<1024)
+    BOOST_CHECK_THROW( RestServer server{ 80 }, std::runtime_error );
 }
 
-BOOST_AUTO_TEST_CASE( TestWhenReplacerThenSelectHasEquivalentHtml )
+QString sendHttpRequest( const QUrl& url )
 {
-    if( !hasGLXDisplay( ))
-        return;
+    // create custom temporary event loop on stack
+    QEventLoop eventLoop;
+    // quit the event-loop when the network request finished
+    QNetworkAccessManager manager;
+    QObject::connect( &manager, &QNetworkAccessManager::finished,
+                      &eventLoop, &QEventLoop::quit );
 
-    TestPage testPage;
-    WebkitHtmlSelectReplacer replacer(testPage.webview);
-    testPage.load();
+    std::unique_ptr<QNetworkReply> reply( manager.get( QNetworkRequest{ url }));
+    eventLoop.exec(); // blocks stack until "finished()" has been called
 
-    const QString displayStyleProperty = testPage.getSelectElementDisplayProperty();
-    BOOST_CHECK_EQUAL( displayStyleProperty.toStdString(), DISPLAY_STYLE_NONE );
+    return (reply->error() == QNetworkReply::NoError) ? reply->readAll() :
+                                                        reply->errorString();
+}
 
-    QWebElement selectboxit = testPage.getElement(HTTP_SELECTBOXIT_SELECTOR);
-    BOOST_CHECK( !selectboxit.isNull( ));
+BOOST_AUTO_TEST_CASE( testServerReturnsSimpleContent )
+{
+    RestServer server;
+    BOOST_REQUIRE_GT( server.getPort(), 0 );
+
+    StaticContent testPage{ "test", "Hello World!" };
+    server.get().register_( testPage );
+
+    const auto url = QString( "http://localhost:%1/test" ).arg(
+                         server.getPort( ));
+    const auto response = sendHttpRequest( url );
+
+    BOOST_CHECK_EQUAL( response.toStdString(), "Hello World!" );
 }

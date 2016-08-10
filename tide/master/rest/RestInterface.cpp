@@ -42,21 +42,16 @@
 #include "JsonOptions.h"
 #include "RestCommand.h"
 #include "RestLogger.h"
+#include "RestServer.h"
 #include "StaticContent.h"
 
 #include <tide/master/version.h>
+
 #include <QDateTime>
-
-#include <zeroeq/http/server.h>
-#include <zeroeq/uri.h>
-
-#include <QSocketNotifier>
 #include <QHostInfo>
 
 namespace
 {
-const uint32_t RECEIVE_TIMEOUT = 0; // non-blocking receive
-
 const QString indexpage = QString(
 "\
 <!DOCTYPE html> \
@@ -83,20 +78,19 @@ class RestInterface::Impl
 {
 public:
     Impl( const int port, OptionsPtr options_ )
-        : httpServer{ zeroeq::URI { QString(":%1").arg( port ).toStdString( )}}
-        , options( options_ )
+        : httpServer{ port }
+        , options{ options_ }
     {
-        httpServer.register_( indexPage );
-        httpServer.subscribe( browseCmd );
-        httpServer.subscribe( openCmd );
-        httpServer.subscribe( loadCmd );
-        httpServer.subscribe( saveCmd );
-        httpServer.add( options );
+        auto& server = httpServer.get();
+        server.register_( indexPage );
+        server.subscribe( browseCmd );
+        server.subscribe( openCmd );
+        server.subscribe( loadCmd );
+        server.subscribe( saveCmd );
+        server.add( options );
     }
 
-    zeroeq::http::Server httpServer;
-    QSocketNotifier socketNotifier{ httpServer.getSocketDescriptor(),
-                                    QSocketNotifier::Read };
+    RestServer httpServer;
     StaticContent indexPage{ "tide", indexpage.toStdString( )};
     RestCommand browseCmd{ "tide::browse" };
     RestCommand openCmd{ "tide::open" };
@@ -109,11 +103,6 @@ public:
 RestInterface::RestInterface( const int port, OptionsPtr options )
     : _impl( new Impl( port, options ))
 {
-    connect( &_impl->socketNotifier, &QSocketNotifier::activated, [this]()
-    {
-        _impl->httpServer.receive( RECEIVE_TIMEOUT );
-    });
-
     connect( &_impl->browseCmd, &RestCommand::received,
              this, &RestInterface::browse );
 
@@ -137,5 +126,5 @@ RestInterface::~RestInterface() {}
 void RestInterface::setLogger( const LoggingUtility& logger ) const
 {
     _impl->logContent.reset( new RestLogger( logger ));
-    _impl->httpServer.register_( *(_impl->logContent.get()) );
+    _impl->httpServer.get().register_( *(_impl->logContent.get( )));
 }

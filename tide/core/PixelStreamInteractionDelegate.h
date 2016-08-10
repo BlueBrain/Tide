@@ -53,7 +53,7 @@ class PixelStreamInteractionDelegate : public ContentInteractionDelegate
 
 public:
     /** Constructor */
-    PixelStreamInteractionDelegate( ContentWindow& contentWindow );
+    explicit PixelStreamInteractionDelegate( ContentWindow& contentWindow );
 
     /** @name Touch gesture handlers. */
     //@{
@@ -70,7 +70,7 @@ public:
     void swipeDown() override;
     //@}
 
-    /** @name Mouse gesture handlers. */
+    /** @name Keyboard event handlers. */
     //@{
     void keyPress( int key, int modifiers, QString text ) override;
     void keyRelease( int key, int modifiers, QString text ) override;

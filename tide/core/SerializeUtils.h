@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,93 +37,97 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#define BOOST_TEST_MODULE WebBrowser
-#include <boost/test/unit_test.hpp>
+#ifndef SERIALIZEUTILS_H
+#define SERIALIZEUTILS_H
 
-#include <QDebug>
-#include "localstreamer/WebkitHtmlSelectReplacer.h"
+#include "log.h"
 
-#include <QWebView>
-#include <QWebPage>
-#include <QWebFrame>
-#include <QWebElement>
-#include <QDir>
+#include <fstream>
+#include <sstream>
 
-#include "GlobalQtApp.h"
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/xml_archive_exception.hpp>
+#include <boost/archive/xml_iarchive.hpp>
+#include <boost/archive/xml_oarchive.hpp>
 
-#define TEST_PAGE_URL               "/select_test.htm"
-#define HTTP_BODY_SELECTOR          "body"
-#define HTTP_SELECT_SELECTOR        "select[id=language]"
-#define HTTP_SELECTBOXIT_SELECTOR   "span[id=languageSelectBoxIt]"
-#define DISPLAY_STYLE_PROPERTY_NAME "display"
-#define DISPLAY_STYLE_NONE          "none"
+#include <boost/serialization/shared_ptr.hpp>
 
-BOOST_GLOBAL_FIXTURE( GlobalQtApp );
-
-QString testPageURL()
+/**
+ * A set of serialization utility functions.
+ */
+struct SerializeUtils
 {
-    return "file://" + QDir::currentPath() + TEST_PAGE_URL;
-}
-
-class TestPage
-{
-public:
-    TestPage()
+    template <typename T>
+    static T binaryCopy( const T& source )
     {
-        webview.page()->setViewportSize(QSize(640, 480));
-        QObject::connect( &webview, SIGNAL(loadFinished(bool)),
-                          QApplication::instance(), SLOT(quit()));
+        std::stringstream oss;
+        {
+            boost::archive::binary_oarchive oa( oss );
+            oa << source;
+        }
+        T copy;
+        {
+            boost::archive::binary_iarchive ia( oss );
+            ia >> copy;
+        }
+        return copy;
     }
 
-    void load()
+    template <typename T>
+    static T xmlCopy( const T& source )
     {
-        webview.load(QUrl(testPageURL()));
-        QApplication::instance()->exec();
-
-        // Check that the page could be loaded
-        const QString pageContent = getElement(HTTP_BODY_SELECTOR).toInnerXml();
-        BOOST_REQUIRE( !pageContent.isEmpty( ));
+        std::stringstream oss;
+        {
+            boost::archive::xml_oarchive oa( oss );
+            oa << BOOST_SERIALIZATION_NVP( source );
+        }
+        T copy;
+        {
+            boost::archive::xml_iarchive ia( oss );
+            ia >> BOOST_SERIALIZATION_NVP( copy );
+        }
+        return copy;
     }
 
-    QWebElement getElement(const QString& selectorQuery) const
+    template <typename T>
+    static bool fromXmlFile( T& object, const std::string& filename )
     {
-        return webview.page()->mainFrame()->findFirstElement(selectorQuery);
+        std::ifstream ifs( filename );
+        if( !ifs.good( ))
+            return false;
+        try
+        {
+            boost::archive::xml_iarchive ia( ifs );
+            ia >> BOOST_SERIALIZATION_NVP( object );
+        }
+        catch( const boost::archive::archive_exception& e )
+        {
+            put_flog( LOG_ERROR, "Could not restore from file: '%s': %s",
+                      filename.c_str(), e.what( ));
+            return false;
+        }
+        catch( const std::exception& e )
+        {
+            put_flog( LOG_ERROR, "Could not restore from file '%s'',"
+                                 "wrong file format: %s",
+                      filename.c_str(), e.what( ));
+            return false;
+        }
+        return true;
     }
 
-    QString getSelectElementDisplayProperty() const
+    template <typename T>
+    static bool toXmlFile( const T& object, const std::string& filename )
     {
-        const QWebElement select = getElement(HTTP_SELECT_SELECTOR);
-        BOOST_REQUIRE( !select.isNull( ));
-        return select.styleProperty(DISPLAY_STYLE_PROPERTY_NAME, QWebElement::InlineStyle);
-    }
+        std::ofstream ofs( filename );
+        if( !ofs.good( ))
+            return false;
 
-    QWebView webview;
+        boost::archive::xml_oarchive oa( ofs );
+        oa << BOOST_SERIALIZATION_NVP( object );
+        return true;
+    }
 };
 
-BOOST_AUTO_TEST_CASE( TestWhenNoReplacerThenSelectElementIsVisible )
-{
-    if( !hasGLXDisplay( ))
-        return;
-
-    TestPage testPage;
-    testPage.load();
-
-    const QString displayStyleProperty = testPage.getSelectElementDisplayProperty();
-    BOOST_CHECK( displayStyleProperty.isEmpty( ));
-}
-
-BOOST_AUTO_TEST_CASE( TestWhenReplacerThenSelectHasEquivalentHtml )
-{
-    if( !hasGLXDisplay( ))
-        return;
-
-    TestPage testPage;
-    WebkitHtmlSelectReplacer replacer(testPage.webview);
-    testPage.load();
-
-    const QString displayStyleProperty = testPage.getSelectElementDisplayProperty();
-    BOOST_CHECK_EQUAL( displayStyleProperty.toStdString(), DISPLAY_STYLE_NONE );
-
-    QWebElement selectboxit = testPage.getElement(HTTP_SELECTBOXIT_SELECTOR);
-    BOOST_CHECK( !selectboxit.isNull( ));
-}
+#endif

@@ -39,7 +39,6 @@
 
 #define BOOST_TEST_MODULE ContentInteractionDelegateTests
 #include <boost/test/unit_test.hpp>
-namespace ut = boost::unit_test;
 
 #include "ContentWindow.h"
 #include "ContentInteractionDelegate.h"

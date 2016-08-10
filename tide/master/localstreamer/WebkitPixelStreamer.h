@@ -40,22 +40,23 @@
 #ifndef WEBKITPIXELSTREAMER_H
 #define WEBKITPIXELSTREAMER_H
 
-#include "PixelStreamer.h"
+#include "PixelStreamer.h" // base class
 
-#include <QString>
 #include <QImage>
+#include <QMutex>
+#include <QString>
 #include <QTimer>
 #include <QWebView>
-#include <QMutex>
 
-#include <boost/smart_ptr/scoped_ptr.hpp>
+#include <memory>
+
+class RestInterface;
+class WebkitAuthenticationHelper;
+class WebkitHtmlSelectReplacer;
 
 class QRect;
 class QWebHitTestResult;
 class QWebElement;
-
-class WebkitAuthenticationHelper;
-class WebkitHtmlSelectReplacer;
 
 /**
  * Stream webpages with user interaction support.
@@ -68,11 +69,11 @@ public:
     /**
      * Constructor.
      *
-     * @param webpageSize The desired size of the webpage viewport. The actual stream
-     *        dimensions will be: size * default zoom factor (2x).
+     * @param webpageSize The desired size of the webpage viewport. The actual
+     *        stream dimensions will be: size * default zoom factor (2x).
      * @param url The webpage to load.
      */
-    WebkitPixelStreamer(const QSize& webpageSize, const QString& url);
+    WebkitPixelStreamer( const QSize& webpageSize, const QString& url );
 
     /** Destructor. */
     ~WebkitPixelStreamer();
@@ -85,30 +86,30 @@ public:
      *
      * @param url The address of the webpage to load.
      */
-    void setUrl(const QString& url);
+    void setUrl( const QString& url );
 
     /** Get the QWebView used internally by the streamer. */
     const QWebView* getView() const;
 
 public slots:
     /** Process an Event. */
-    void processEvent(deflect::Event event) override;
+    void processEvent( deflect::Event event ) override;
 
 private slots:
     void _update();
 
 private:
     QWebView _webView;
-    boost::scoped_ptr<WebkitAuthenticationHelper> _authenticationHelper;
-    boost::scoped_ptr<WebkitHtmlSelectReplacer> _selectReplacer;
+    std::unique_ptr<WebkitAuthenticationHelper> _authenticationHelper;
+    std::unique_ptr<WebkitHtmlSelectReplacer> _selectReplacer;
+    std::unique_ptr<RestInterface> _restInterface;
+
     QTimer _timer;
     QMutex _mutex;
-
     QImage _image;
 
-    bool _interactionModeActive;
-
-    unsigned int _initialWidth;
+    bool _interactionModeActive = 0;
+    unsigned int _initialWidth = 0;
 
     void processClickEvent(const deflect::Event& clickEvent);
     void processPressEvent(const deflect::Event& pressEvent);

@@ -42,6 +42,7 @@
 
 #include <QApplication>
 #include <boost/noncopyable.hpp>
+#include <boost/test/unit_test.hpp>
 
 #include "glxDisplay.h"
 
@@ -57,6 +58,7 @@ struct GlobalQtApp : public boost::noncopyable
           return;
 
         // need QApplication to instantiate WebkitPixelStreamer
+        namespace ut = boost::unit_test;
         ut::master_test_suite_t& testSuite = ut::framework::master_test_suite();
         app = new QApplication( testSuite.argc, testSuite.argv );
     }

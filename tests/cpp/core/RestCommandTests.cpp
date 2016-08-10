@@ -39,7 +39,6 @@
 
 #define BOOST_TEST_MODULE RESTCommand
 #include <boost/test/unit_test.hpp>
-namespace ut = boost::unit_test;
 
 #include "rest/RestCommand.h"
 #include "rest/StaticContent.h"

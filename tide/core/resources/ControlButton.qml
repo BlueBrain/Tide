@@ -8,8 +8,8 @@ Item {
     height: Style.buttonsSize
     Image {
         id: image
-        width: Style.buttonsImageSize
-        height: Style.buttonsImageSize
+        width: parent.width * Style.buttonsImageRelSize
+        height: parent.height * Style.buttonsImageRelSize
         anchors.centerIn: parent
         // Force redraw the SVG
         sourceSize.width: width
