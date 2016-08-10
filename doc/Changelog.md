@@ -3,6 +3,14 @@ Changelog {#Changelog}
 
 # Release 1.2 (git master)
 
+* [79](https://github.com/BlueBrain/Tide/pull/79):
+  Introduce faster and more complete Webbrowser based on Qml WebEngineView
+  [DISCL-366]. It is still in an experimental state and has some know issues:
+  - With Qt 5.4.1 - 5.5.1, loading some websites cause the browser to crash due
+    to SSL errors (observed on Ubuntu 14.04). Also, interaction with Webgl
+    contents may not work as expected.
+  - Works well with Qt >= 5.6, however these versions currently have other 
+    [serious stability issues](https://github.com/BlueBrain/Tide/issues/80).
 * [78](https://github.com/BlueBrain/Tide/pull/78):
   Fix regresion after #77 (Launcher + Webbrowser no longer started streaming).
 * [77](https://github.com/BlueBrain/Tide/pull/77):

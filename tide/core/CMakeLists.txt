@@ -216,7 +216,7 @@ list(APPEND TIDECORE_SOURCES
   resources/core.qrc
 )
 
-if(TARGET Qt5::WebKitWidgets)
+if(TARGET Qt5::WebKitWidgets OR TARGET Qt5::WebEngine)
   list(APPEND TIDECORE_PUBLIC_HEADERS
     WebbrowserContent.h
     WebbrowserHistory.h
@@ -227,6 +227,8 @@ if(TARGET Qt5::WebKitWidgets)
     WebbrowserHistory.cpp
     WebbrowserInteractionDelegate.cpp
   )
+endif()
+if(TARGET Qt5::WebKitWidgets)
   list(APPEND TIDECORE_LINK_LIBRARIES PRIVATE Qt5::WebKitWidgets)
 endif()
 

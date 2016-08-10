@@ -48,7 +48,11 @@ IMPLEMENT_SERIALIZE_FOR_XML( WebbrowserContent )
 
 namespace
 {
+#if TIDE_USE_QT5WEBKITWIDGETS
 const QString WEBBROWSER_CONTROLS( "qrc:///qml/core/WebbrowserControls.qml" );
+#else
+const QString WEBBROWSER_CONTROLS;
+#endif
 }
 
 WebbrowserContent::WebbrowserContent( const QString& uri )

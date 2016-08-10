@@ -37,41 +37,30 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "WebbrowserHistory.h"
+#include "Webbrowser.h"
 
-#include <QUrl>
+#include "tide/core/log.h"
 
-#ifdef TIDE_USE_QT5WEBKITWIDGETS
-WebbrowserHistory::WebbrowserHistory( const QWebHistory& history )
-    : _items()
-    , _currentItemIndex( history.currentItemIndex( ))
+int main( int argc, char** argv )
 {
-    for( auto item : history.items( ))
-        _items.push_back( item.url().toString( ));
-}
-#endif
+    logger_id = "webbrowser";
+    qInstallMessageHandler( qtMessageLogger );
 
-WebbrowserHistory::WebbrowserHistory( std::vector<QString>&& items_,
-                                      const int currentItemIndex_ )
-{
-    _items = items_;
-    _currentItemIndex = currentItemIndex_;
-}
+    // Load virtualkeyboard input context plugin
+    qputenv( "QT_IM_MODULE", QByteArray( "qtvirtualkeyboard" ));
 
-size_t WebbrowserHistory::currentItemIndex() const
-{
-    return _currentItemIndex;
-}
+    // Equivalent to QtWebEngine::initialize() inside to application.
+    QGuiApplication::setAttribute( Qt::AA_ShareOpenGLContexts );
 
-const std::vector<QString>& WebbrowserHistory::items() const
-{
-    return _items;
-}
-
-QString WebbrowserHistory::currentItem() const
-{
-    if( _currentItemIndex >= _items.size( ))
-        return QString();
-
-    return _items[ _currentItemIndex ];
+    std::unique_ptr<Webbrowser> webbrowser;
+    try
+    {
+        webbrowser.reset( new Webbrowser( argc, argv ));
+    }
+    catch( const std::runtime_error& exception )
+    {
+        put_flog( LOG_ERROR, "failed to start: %s", exception.what( ));
+        return EXIT_FAILURE;
+    }
+    return webbrowser->exec();
 }

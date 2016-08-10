@@ -51,7 +51,7 @@ const WebbrowserHistory history{ {"url1", "url2", "url3"}, 1 };
 
 BOOST_AUTO_TEST_CASE( testDefaultWebbrowserHistoryEmpty )
 {
-    const WebbrowserHistory emptyHistory;
+    const WebbrowserHistory emptyHistory{};
     BOOST_CHECK_EQUAL( emptyHistory.currentItemIndex(), 0 );
     BOOST_CHECK_EQUAL( emptyHistory.currentItem().toStdString(), "" );
     BOOST_CHECK_EQUAL( emptyHistory.items().size(), 0 );

@@ -56,7 +56,7 @@
 #include "PixelStreamContent.h"
 #include "SVGContent.h"
 #include "TextureContent.h"
-#ifdef TIDE_USE_QT5WEBKITWIDGETS
+#if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
 #include "WebbrowserContent.h"
 #endif
 
@@ -167,7 +167,7 @@ ContentPtr ContentFactory::getPixelStreamContent( const QString& uri )
 
 ContentPtr ContentFactory::getWebbrowserContent( const QString& uri )
 {
-#ifdef TIDE_USE_QT5WEBKITWIDGETS
+#if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
     return ContentPtr( new WebbrowserContent( uri ));
 #else
     Q_UNUSED( uri );

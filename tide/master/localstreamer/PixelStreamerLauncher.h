@@ -106,6 +106,7 @@ private:
 
     QString _getLocalStreamerBin() const;
     QString _getLauncherBin() const;
+    QString _getWebbrowserBin() const;
 };
 
-#endif // PIXELSTREAMERLAUNCHER_H
+#endif

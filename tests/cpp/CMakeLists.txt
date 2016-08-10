@@ -27,10 +27,11 @@ else()
   )
 endif()
 
-if(X11_FOUND AND TARGET Qt5::WebKitWidgets)
+if(NOT TARGET Qt5::WebEngine AND X11_FOUND AND TARGET Qt5::WebKitWidgets)
   list(APPEND TEST_LIBRARIES ${X11_LIBRARIES} Qt5::WebKitWidgets)
 else()
   list(APPEND EXCLUDE_FROM_TESTS
+    core/LocalPixelStreamerTests.cpp
     core/WebbrowserTests.cpp
     core/WebbrowserContentTests.cpp
     core/WebkitHtmlSelectReplacementTests.cpp)

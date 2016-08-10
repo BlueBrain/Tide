@@ -8,7 +8,12 @@ add_subdirectory(TideForker)
 add_subdirectory(TideMaster)
 add_subdirectory(TideWall)
 add_subdirectory(Launcher)
+if(TARGET Qt5::WebKitWidgets)
 add_subdirectory(LocalStreamer)
+endif()
+if(TARGET Qt5::WebEngine)
+  add_subdirectory(Webbrowser)
+endif()
 
 install(PROGRAMS pyramidmaker tide DESTINATION bin COMPONENT apps)
 

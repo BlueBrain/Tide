@@ -37,41 +37,75 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "WebbrowserHistory.h"
+#include "QmlKeyInjector.h"
 
-#include <QUrl>
+#include <QGuiApplication>
 
-#ifdef TIDE_USE_QT5WEBKITWIDGETS
-WebbrowserHistory::WebbrowserHistory( const QWebHistory& history )
-    : _items()
-    , _currentItemIndex( history.currentItemIndex( ))
+bool _isBackspaceEvent( const QInputMethodEvent* inputEvent )
 {
-    for( auto item : history.items( ))
-        _items.push_back( item.url().toString( ));
-}
-#endif
-
-WebbrowserHistory::WebbrowserHistory( std::vector<QString>&& items_,
-                                      const int currentItemIndex_ )
-{
-    _items = items_;
-    _currentItemIndex = currentItemIndex_;
+    return inputEvent->commitString().isEmpty() &&
+            inputEvent->replacementStart() == -1 &&
+            inputEvent->replacementLength() == 1;
 }
 
-size_t WebbrowserHistory::currentItemIndex() const
+bool _isEnterEvent( const QInputMethodEvent* inputEvent )
 {
-    return _currentItemIndex;
+    return inputEvent->commitString() == "\n";
 }
 
-const std::vector<QString>& WebbrowserHistory::items() const
+bool _sendEventToWebengine( QEvent* event, QQuickItem* webengineItem )
 {
-    return _items;
+    for( auto child : webengineItem->childItems( ))
+        QGuiApplication::instance()->sendEvent( child, event );
+    return event->isAccepted();
 }
 
-QString WebbrowserHistory::currentItem() const
+bool _sendKeyEventToWebengine( const int key, QQuickItem* webengineItem )
 {
-    if( _currentItemIndex >= _items.size( ))
-        return QString();
+    QKeyEvent press( QEvent::KeyPress, key, Qt::NoModifier );
+    QKeyEvent release( QEvent::KeyRelease, key, Qt::NoModifier );
+    return _sendEventToWebengine( &press, webengineItem ) &&
+            _sendEventToWebengine( &release, webengineItem );
+}
 
-    return _items[ _currentItemIndex ];
+bool QmlKeyInjector::sendToWebengine( QInputMethodEvent* inputEvent,
+                                      QQuickItem* webengineItem )
+{
+    if( _isEnterEvent( inputEvent ))
+        return _sendKeyEventToWebengine( Qt::Key_Return, webengineItem );
+
+    if( _isBackspaceEvent( inputEvent ))
+        return _sendKeyEventToWebengine( Qt::Key_Backspace, webengineItem );
+
+    return _sendEventToWebengine( inputEvent, webengineItem );
+}
+
+bool _sendEvent( QEvent* event, QQuickItem* targetItem )
+{
+    QGuiApplication::instance()->sendEvent( targetItem, event );
+    return event->isAccepted( );
+}
+
+bool _sendKeyEvent( const int key, QQuickItem* rootItem )
+{
+    QKeyEvent press( QEvent::KeyPress, key, Qt::NoModifier );
+    QKeyEvent release( QEvent::KeyRelease, key, Qt::NoModifier );
+    return _sendEvent( &press, rootItem ) && _sendEvent( &release, rootItem );
+}
+
+bool QmlKeyInjector::send( QInputMethodEvent* inputEvent, QQuickItem* rootItem )
+{
+    // Work around missing key event support in Qt for offscreen windows.
+    const auto items = rootItem->findChildren<QQuickItem*>();
+    for( auto item : items )
+    {
+        if( !item->hasFocus( ))
+            continue;
+
+        if( _isEnterEvent( inputEvent ) && _sendKeyEvent( Qt::Key_Enter, item ))
+            return true;
+        if( _sendEvent( inputEvent, item ))
+            return true;
+    }
+    return false;
 }
