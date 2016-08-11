@@ -59,6 +59,8 @@ public:
      */
     explicit MovieSynchronizer( const QString& uri );
 
+    ~MovieSynchronizer();
+
     /** Update the movies, using the channel to synchronize accross processes.*/
     void synchronize( WallToWallChannel& channel ) final;
 

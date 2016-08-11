@@ -54,6 +54,8 @@ MovieSynchronizer::MovieSynchronizer( const QString& uri )
 {
 }
 
+MovieSynchronizer::~MovieSynchronizer() {}
+
 void MovieSynchronizer::update( const ContentWindow& window,
                                 const QRectF& visibleArea )
 {
