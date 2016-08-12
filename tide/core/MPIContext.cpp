@@ -42,6 +42,7 @@
 #include "log.h"
 
 #include <mpi.h>
+#include <stdexcept>
 
 MPIContext::MPIContext( int argc, char* argv[] )
 {
