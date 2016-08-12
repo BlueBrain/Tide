@@ -73,6 +73,11 @@ DataProvider::getStreamDataSource( const QString& uri )
         connect( updater.get(), &PixelStreamUpdater::requestFrame,
                  this, &DataProvider::requestFrame );
         _streamUpdaters[uri] = PixelStreamUpdaterWeakPtr( updater );
+
+        // Fix DISCL-382: New frames are requested after showing the current one,
+        // but it's conditional to _streamUpdaters[uri] in setNewFrame(), hence
+        // request a frame once we have a PixelStreamUpdater.
+        emit requestFrame( uri );
     }
 
     return updater;
