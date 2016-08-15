@@ -296,6 +296,10 @@ void MasterApplication::_initMPIConnection()
              &PixelStreamWindowManager::eventRegistrationReply,
              _deflectServer.get(),
              &deflect::Server::onEventRegistrationReply );
+    connect( _pixelStreamWindowManager.get(),
+             &PixelStreamWindowManager::requestFirstFrame,
+             &_deflectServer->getPixelStreamDispatcher(),
+             &deflect::FrameDispatcher::requestFrame );
 
     _pixelStreamWindowManager->setAutoFocusNewWindows(
                 _masterWindow->getOptions()->getAutoFocusPixelStreams( ));
