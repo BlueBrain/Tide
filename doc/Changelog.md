@@ -3,6 +3,8 @@ Changelog {#Changelog}
 
 # Release 1.2 (git master)
 
+* [78](https://github.com/BlueBrain/Tide/pull/78):
+  Fix regresion after #77 (Launcher + Webbrowser no longer started streaming).
 * [77](https://github.com/BlueBrain/Tide/pull/77):
   Fix: Pixel streamer window might be black initially [DISCL-382]
 * [75](https://github.com/BlueBrain/Tide/pull/75):

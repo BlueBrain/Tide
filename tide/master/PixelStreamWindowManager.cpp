@@ -98,7 +98,12 @@ void PixelStreamWindowManager::openWindow( const QString& uri,
                                            const bool webbrowser )
 {
     if( getContentWindow( uri ))
+    {
+        emit requestFirstFrame( uri );
+        put_flog( LOG_INFO, "start sending frames for stream window: '%s'",
+                  uri.toLocal8Bit().constData( ));
         return;
+    }
 
     put_flog( LOG_INFO, "opening pixel stream window: '%s'",
               uri.toLocal8Bit().constData( ));

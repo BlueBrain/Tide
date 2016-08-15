@@ -171,6 +171,19 @@ signals:
      */
     void eventRegistrationReply( QString uri, bool success );
 
+    /**
+     * Emitted when openPixelStreamWindow is called for a stream which already
+     * has a window, such as the Launcher or Webbrowser.
+     *
+     * Normally, the requestFrame signal comes from the Wall processes when
+     * the window has been opened. For such streamers, however, the window is
+     * opened before the deflect::Stream is started so the
+     * deflect::FrameDispatcher discards it and no frames are being displayed.
+     *
+     * @param uri the URI of the streamer
+     */
+    void requestFirstFrame( QString uri );
+
 private slots:
     /**
      * This will close the streamer that is associated with the given window.
