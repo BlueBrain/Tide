@@ -3,6 +3,8 @@ Changelog {#Changelog}
 
 # Release 1.2 (git master)
 
+* [77](https://github.com/BlueBrain/Tide/pull/77):
+  Fix: Pixel streamer window might be black initially [DISCL-382]
 * [75](https://github.com/BlueBrain/Tide/pull/75):
   Webbrowser improvements:
   - New address bar to see the current url and enter an address [DISCL-380].
