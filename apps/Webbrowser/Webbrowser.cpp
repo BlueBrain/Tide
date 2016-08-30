@@ -1,7 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
-/*                     Ahmet Bilgili <ahmet.bilgili@epfl.ch>         */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -38,30 +37,27 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "Launcher.h"
-
-#include "tide/core/ContentFactory.h"
-#include "tide/core/thumbnail/ThumbnailProvider.h"
+#include "Webbrowser.h"
 
 #include "tide/master/localstreamer/CommandLineOptions.h"
 #include "tide/master/localstreamer/QmlKeyInjector.h"
-#include "tide/master/MasterConfiguration.h"
+#include "WebbrowserContent.h"
+#include "WebbrowserHistory.h"
 
-#include <QHostInfo>
-#include <QQmlContext>
+#include <QQmlProperty>
 
 namespace
 {
 const std::string deflectHost( "localhost" );
-const QString deflectQmlFile( "qrc:/qml/qml/main.qml" );
-const QString thumbnailProviderId( "thumbnail" );
+const QString deflectQmlFile( "qrc:/qml/qml/Webengine.qml" );
+const QString webengineviewItemName( "webengineview" );
+const QString searchUrl( "https://www.google.com/search?q=%1" );
 }
 
-Launcher::Launcher( int& argc, char* argv[] )
+Webbrowser::Webbrowser( int& argc, char* argv[] )
     : QGuiApplication( argc, argv )
 {
     const CommandLineOptions options( argc, argv );
-    const MasterConfiguration config( options.getConfiguration( ));
 
     const auto deflectStreamname = options.getStreamname().toStdString();
     _qmlStreamer.reset( new deflect::qt::QmlStreamer( deflectQmlFile,
@@ -74,38 +70,71 @@ Launcher::Launcher( int& argc, char* argv[] )
     auto item = _qmlStreamer->getRootItem();
 
     // General setup
-    item->setProperty( "restPort", config.getWebServicePort( ));
     if( options.getWidth( ))
         item->setProperty( "width", options.getWidth( ));
     if( options.getHeight( ))
         item->setProperty( "height", options.getHeight( ));
 
-    // FileBrowser setup
-    const auto filters = ContentFactory::getSupportedFilesFilter();
-    item->setProperty( "filesFilter", filters );
-    item->setProperty( "rootFilesFolder", config.getContentDir( ));
-    item->setProperty( "rootSessionsFolder", config.getSessionsDir( ));
+    connect( item, SIGNAL( addressBarTextEntered( QString )),
+             this, SLOT( _processAddressBarInput( QString )));
 
-    QQmlEngine* engine = _qmlStreamer->getQmlEngine();
-    engine->addImageProvider( thumbnailProviderId, new ThumbnailProvider );
-    engine->rootContext()->setContextProperty( "fileInfo", &_fileInfoHelper );
+    // Keep pointer to the webengine to send key events
+    _webengine = item->findChild<QQuickItem*>( webengineviewItemName );
+    _webengine->setProperty( "url", options.getUrl( ));
 
-    // DemoLauncher setup
-    item->setProperty( "demoServiceUrl", config.getDemoServiceUrl( ));
-    item->setProperty( "demoServiceImageFolder",
-                       config.getDemoServiceImageFolder( ));
-    item->setProperty( "demoServiceDeflectHost", QHostInfo::localHostName( ));
+    connect( _webengine, SIGNAL( urlChanged( )), this, SLOT( _sendData( )));
 }
 
-Launcher::~Launcher()
-{
-    QQmlEngine* engine = _qmlStreamer->getQmlEngine();
-    engine->removeImageProvider( thumbnailProviderId );
-}
+Webbrowser::~Webbrowser() {}
 
-bool Launcher::event( QEvent* event_ )
+bool Webbrowser::event( QEvent* event_ )
 {
+    // Work around missing key event support in Qt for offscreen windows
     if( auto inputEvent = dynamic_cast<QInputMethodEvent*>( event_ ))
+    {
+        if( _webengine->hasFocus( ))
+            return QmlKeyInjector::sendToWebengine( inputEvent, _webengine );
         return QmlKeyInjector::send( inputEvent, _qmlStreamer->getRootItem( ));
+    }
     return QGuiApplication::event( event_ );
+}
+
+bool _canBeHttpUrl( const QString& url )
+{
+    return url.startsWith( "www." ) ||
+            (url.contains( '.' ) && !url.contains( ' ' ));
+}
+
+void Webbrowser::_processAddressBarInput( const QString url )
+{
+    auto address = QUrl{ url };
+    if( address.scheme().isEmpty( ))
+    {
+        if( _canBeHttpUrl( url ))
+            address.setScheme( "http" );
+        else
+            address = QUrl{ searchUrl.arg( url.toHtmlEscaped( )) };
+    }
+    QQmlProperty::write( _webengine, "url", address );
+}
+
+void Webbrowser::_sendData()
+{
+    // WebEngineHistory is only available from QtWebEngine 1.1 (Qt >= 5.5)
+    // Make a "fake" history with the available information
+    const auto url = QQmlProperty::read( _webengine, "url" ).toString();
+    const auto prev = QQmlProperty::read( _webengine, "canGoBack" ).toBool();
+    const auto next = QQmlProperty::read( _webengine, "canGoForward" ).toBool();
+
+    auto urls = std::vector<QString>();
+    if( prev )
+        urls.push_back( QString( ));
+    urls.push_back( url );
+    if( next )
+        urls.push_back( QString( ));
+    const auto history = WebbrowserHistory{ std::move( urls ), prev ? 1 : 0 };
+
+    const auto data = WebbrowserContent::serializeData( history, 0 );
+    if( !_qmlStreamer->sendData( data ))
+            QGuiApplication::quit();
 }

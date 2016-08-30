@@ -53,7 +53,7 @@
 #include "DisplayGroupView.h"
 #include "DisplayGroupListWidget.h"
 #include "BackgroundWidget.h"
-#ifdef TIDE_USE_QT5WEBKITWIDGETS
+#if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
 #  include "WebbrowserWidget.h"
 #endif
 
@@ -74,7 +74,7 @@ MasterWindow::MasterWindow( DisplayGroupPtr displayGroup,
     , _displayGroup( displayGroup )
     , _options( new Options )
     , _backgroundWidget( new BackgroundWidget( config, this ))
-#ifdef TIDE_USE_QT5WEBKITWIDGETS
+#if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
     , _webbrowserWidget( new WebbrowserWidget( config, this ))
 #endif
     , _displayGroupView( new DisplayGroupView( _options, config ))
@@ -88,7 +88,7 @@ MasterWindow::MasterWindow( DisplayGroupPtr displayGroup,
     connect( _backgroundWidget, &BackgroundWidget::backgroundContentChanged,
              _options.get(), &Options::setBackgroundContent );
 
-#ifdef TIDE_USE_QT5WEBKITWIDGETS
+#if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
     connect( _webbrowserWidget, &WebbrowserWidget::openWebBrowser,
              this, &MasterWindow::openWebBrowser );
 #endif
@@ -179,7 +179,7 @@ void MasterWindow::_setupMasterWindowUI()
     connect( loadSessionAction, &QAction::triggered,
              this, &MasterWindow::_openSession );
 
-#ifdef TIDE_USE_QT5WEBKITWIDGETS
+#if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
     // Open webbrowser action
     QAction* webbrowserAction = new QAction( "Web Browser", this );
     webbrowserAction->setStatusTip( "Open a web browser" );
@@ -327,7 +327,7 @@ void MasterWindow::_setupMasterWindowUI()
     fileMenu->addAction( openContentsDirectoryAction );
     fileMenu->addAction( loadSessionAction );
     fileMenu->addAction( saveSessionAction );
-#ifdef TIDE_USE_QT5WEBKITWIDGETS
+#if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
     fileMenu->addAction( webbrowserAction );
 #endif
     fileMenu->addAction( clearContentsAction );
@@ -351,7 +351,7 @@ void MasterWindow::_setupMasterWindowUI()
     toolbar->addAction( openContentsDirectoryAction );
     toolbar->addAction( loadSessionAction );
     toolbar->addAction( saveSessionAction );
-#ifdef TIDE_USE_QT5WEBKITWIDGETS
+#if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
     toolbar->addAction( webbrowserAction );
 #endif
     toolbar->addAction( clearContentsAction );

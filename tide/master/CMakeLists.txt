@@ -19,10 +19,9 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   DisplayGroupListWidget.h
   DisplayGroupView.h
   localstreamer/CommandLineOptions.h
-  localstreamer/PixelStreamerFactory.h
-  localstreamer/PixelStreamer.h
   localstreamer/PixelStreamerLauncher.h
   localstreamer/PixelStreamerType.h
+  localstreamer/QmlKeyInjector.h
   LoggingUtility.h
   MasterApplication.h
   MasterConfiguration.h
@@ -45,9 +44,9 @@ list(APPEND TIDEMASTER_SOURCES
   DisplayGroupListWidget.cpp
   DisplayGroupView.cpp
   localstreamer/CommandLineOptions.cpp
-  localstreamer/PixelStreamerFactory.cpp
   localstreamer/PixelStreamerLauncher.cpp
   localstreamer/PixelStreamerType.cpp
+  localstreamer/QmlKeyInjector.cpp
   LoggingUtility.cpp
   MasterApplication.cpp
   MasterConfiguration.cpp
@@ -61,21 +60,29 @@ list(APPEND TIDEMASTER_SOURCES
   resources/master.qrc
 )
 
-if(TARGET Qt5::WebKitWidgets)
+if(TARGET Qt5::WebEngine)
   list(APPEND TIDEMASTER_PUBLIC_HEADERS
+    WebbrowserWidget.h
+  )
+  list(APPEND TIDEMASTER_SOURCES
+    WebbrowserWidget.cpp
+  )
+elseif(TARGET Qt5::WebKitWidgets)
+  list(APPEND TIDEMASTER_PUBLIC_HEADERS
+    localstreamer/PixelStreamerFactory.h
+    localstreamer/PixelStreamer.h
     localstreamer/WebkitAuthenticationHelper.h
     localstreamer/WebkitHtmlSelectReplacer.h
     localstreamer/WebkitPixelStreamer.h
     WebbrowserWidget.h
   )
-
   list(APPEND TIDEMASTER_SOURCES
+    localstreamer/PixelStreamerFactory.cpp
     localstreamer/WebkitAuthenticationHelper.cpp
     localstreamer/WebkitHtmlSelectReplacer.cpp
     localstreamer/WebkitPixelStreamer.cpp
     WebbrowserWidget.cpp
   )
-
   list(APPEND TIDEMASTER_LINK_LIBRARIES PRIVATE Qt5::WebKitWidgets)
 endif()
 

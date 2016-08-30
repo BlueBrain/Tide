@@ -37,41 +37,42 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "WebbrowserHistory.h"
+#ifndef QMLKEYINJECTOR_H
+#define QMLKEYINJECTOR_H
 
-#include <QUrl>
+#include <QEvent>
+#include <QQuickItem>
 
-#ifdef TIDE_USE_QT5WEBKITWIDGETS
-WebbrowserHistory::WebbrowserHistory( const QWebHistory& history )
-    : _items()
-    , _currentItemIndex( history.currentItemIndex( ))
+/**
+ * Helper class to inject Key events into offscreen Qml applications.
+ */
+class QmlKeyInjector
 {
-    for( auto item : history.items( ))
-        _items.push_back( item.url().toString( ));
-}
+public:
+    /**
+     * Send an InputMethodEvent (keyboard input) into an offscreen Qml scene.
+     *
+     * This is a workaround for missing "active focus" support offscreen Qml
+     * applications. Users must be aware that the event will be delivered to the
+     * first QQuickItem encountered that has focus enabled, which may not be
+     * the expected behaviour.
+     * @param inputEvent the event to send
+     * @param rootItem the root item of the scene.
+     * @return true if the event could be delivered
+     */
+    static bool send( QInputMethodEvent* inputEvent, QQuickItem* rootItem );
+
+    /**
+     * Send an InputMethodEvent (keyboard input) to an offscreen WebEngineView.
+     *
+     * WebEngineView must be treated as a special case because the regular send
+     * method does not work for them.
+     * @param inputEvent the event to send
+     * @param webengineItem a Qml WebEngineView item.
+     * @return true if the event could be delivered
+     */
+    static bool sendToWebengine( QInputMethodEvent* inputEvent,
+                                 QQuickItem* webengineItem );
+};
+
 #endif
-
-WebbrowserHistory::WebbrowserHistory( std::vector<QString>&& items_,
-                                      const int currentItemIndex_ )
-{
-    _items = items_;
-    _currentItemIndex = currentItemIndex_;
-}
-
-size_t WebbrowserHistory::currentItemIndex() const
-{
-    return _currentItemIndex;
-}
-
-const std::vector<QString>& WebbrowserHistory::items() const
-{
-    return _items;
-}
-
-QString WebbrowserHistory::currentItem() const
-{
-    if( _currentItemIndex >= _items.size( ))
-        return QString();
-
-    return _items[ _currentItemIndex ];
-}

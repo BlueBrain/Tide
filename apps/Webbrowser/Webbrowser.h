@@ -37,41 +37,35 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "WebbrowserHistory.h"
+#ifndef WEBBROWSER_H
+#define WEBBROWSER_H
 
-#include <QUrl>
+#include <deflect/qt/QmlStreamer.h>
 
-#ifdef TIDE_USE_QT5WEBKITWIDGETS
-WebbrowserHistory::WebbrowserHistory( const QWebHistory& history )
-    : _items()
-    , _currentItemIndex( history.currentItemIndex( ))
+#include <memory>
+
+#include <QGuiApplication>
+
+/**
+ * Offscreen application which streams a Qml Webbrowser using deflect::Qt API.
+ */
+class Webbrowser : public QGuiApplication
 {
-    for( auto item : history.items( ))
-        _items.push_back( item.url().toString( ));
-}
+    Q_OBJECT
+
+public:
+    Webbrowser( int& argc, char* argv[] );
+    ~Webbrowser();
+
+private slots:
+    void _processAddressBarInput( QString url );
+    void _sendData();
+
+private:
+    std::unique_ptr<deflect::qt::QmlStreamer> _qmlStreamer;
+    QQuickItem* _webengine = nullptr; // reference, don't free
+
+    bool event( QEvent* event ) final;
+};
+
 #endif
-
-WebbrowserHistory::WebbrowserHistory( std::vector<QString>&& items_,
-                                      const int currentItemIndex_ )
-{
-    _items = items_;
-    _currentItemIndex = currentItemIndex_;
-}
-
-size_t WebbrowserHistory::currentItemIndex() const
-{
-    return _currentItemIndex;
-}
-
-const std::vector<QString>& WebbrowserHistory::items() const
-{
-    return _items;
-}
-
-QString WebbrowserHistory::currentItem() const
-{
-    if( _currentItemIndex >= _items.size( ))
-        return QString();
-
-    return _items[ _currentItemIndex ];
-}

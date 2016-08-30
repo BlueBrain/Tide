@@ -51,7 +51,7 @@
 #if TIDE_ENABLE_PDF_SUPPORT
 #  include "PDFInteractionDelegate.h"
 #endif
-#ifdef TIDE_USE_QT5WEBKITWIDGETS
+#if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
 #  include "WebbrowserInteractionDelegate.h"
 #endif
 
@@ -337,7 +337,7 @@ void ContentWindow::_createInteractionDelegate()
     case CONTENT_TYPE_PIXEL_STREAM:
         _interactionDelegate.reset( new PixelStreamInteractionDelegate( *this ));
         break;
-#ifdef TIDE_USE_QT5WEBKITWIDGETS
+#if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
     case CONTENT_TYPE_WEBBROWSER:
         _interactionDelegate.reset( new WebbrowserInteractionDelegate( *this ));
         break;
