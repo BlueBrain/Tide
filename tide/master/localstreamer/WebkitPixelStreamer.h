@@ -115,7 +115,7 @@ private:
     void processPressEvent(const deflect::Event& pressEvent);
     void processMoveEvent(const deflect::Event& moveEvent);
     void processReleaseEvent(const deflect::Event& releaseEvent);
-    void processWheelEvent(const deflect::Event& wheelEvent);
+    void processPinchEvent(const deflect::Event& wheelEvent);
     void processKeyPress(const deflect::Event& keyEvent);
     void processKeyRelease(const deflect::Event& keyEvent);
     void processViewSizeChange(const deflect::Event& sizeEvent);

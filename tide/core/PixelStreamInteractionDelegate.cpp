@@ -114,12 +114,15 @@ void PixelStreamInteractionDelegate::pan( const QPointF position,
 }
 
 void PixelStreamInteractionDelegate::pinch( const QPointF position,
-                                            const qreal pixelDelta )
+                                            const QPointF pixelDelta )
 {
     deflect::Event deflectEvent = _getNormEvent( position );
-    deflectEvent.type = deflect::Event::EVT_WHEEL;
+    deflectEvent.type = deflect::Event::EVT_PINCH;
     deflectEvent.mouseLeft = false;
-    deflectEvent.dy = pixelDelta;
+
+    const QRectF& win = _contentWindow.getDisplayCoordinates();
+    deflectEvent.dx = pixelDelta.x() / win.width();
+    deflectEvent.dy = pixelDelta.y() / win.height();
 
     emit notify( deflectEvent );
 }

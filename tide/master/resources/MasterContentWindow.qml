@@ -54,7 +54,10 @@ BaseContentWindow {
     }
 
     function scaleWindow(center, pixelDelta) {
-        contentwindow.controller.scale(center, pixelDelta)
+        var sign = pixelDelta.x + pixelDelta.y > 0 ? 1.0 : -1.0;
+        var delta = Math.sqrt(pixelDelta.x * pixelDelta.x +
+                              pixelDelta.y * pixelDelta.y)
+        contentwindow.controller.scale(center, sign * delta)
     }
 
     focus: contentwindow.content.captureInteraction

@@ -56,14 +56,7 @@ const uint doubleTapTimeout = 750;
 
 MultitouchArea::MultitouchArea( QQuickItem* parent_ )
     : QQuickItem( parent_ )
-    , _referenceItem( nullptr )
     , _panThreshold( defaultPanThresholdPx )
-    , _panning( false )
-    , _twoFingersDetectionStarted( false )
-    , _canBeSwipe( false )
-    , _pinching( false )
-    , _lastPinchDist( 0.0 )
-    , _tapCounter( 0 )
 {
     setAcceptedMouseButtons( Qt::LeftButton );
 
@@ -71,9 +64,6 @@ MultitouchArea::MultitouchArea( QQuickItem* parent_ )
     connect( &_tapAndHoldTimer, &QTimer::timeout, [this]() {
         emit tapAndHold( _getTouchCenterStartPos(), _getPointsCount( ));
     });
-
-    _doubleTapTimer.setInterval( doubleTapTimeout );
-    connect( &_doubleTapTimer, &QTimer::timeout, [this]() { _tapCounter = 0; });
 }
 
 QQuickItem* MultitouchArea::getReferenceItem() const
@@ -104,9 +94,9 @@ void MultitouchArea::setPanThreshold( const qreal arg )
     emit panThresholdChanged( arg );
 }
 
-QPointF MultitouchArea::_getScenePos( const QMouseEvent* mouse )
+QPointF MultitouchArea::_getScenePos( const QMouseEvent& mouse )
 {
-    return mapToItem( _referenceItem, mouse->localPos( ));
+    return mapToItem( _referenceItem, mouse.localPos( ));
 }
 
 QPointF MultitouchArea::_getScenePos( const QTouchEvent::TouchPoint& point )
@@ -114,62 +104,70 @@ QPointF MultitouchArea::_getScenePos( const QTouchEvent::TouchPoint& point )
     return mapToItem( _referenceItem, point.pos( ));
 }
 
-QPointF MultitouchArea::_getScenePos( const QPointF& itemPos )
+QPointF MultitouchArea::_getScenePos( const QWheelEvent& wheel )
 {
-    return mapToItem( _referenceItem, itemPos );
+    return mapToItem( _referenceItem, wheel.posF( ));
+}
+
+uint _getButtonsCount( const QMouseEvent& mouse )
+{
+    uint count = 0;
+    if( mouse.buttons() & Qt::LeftButton )
+        ++count;
+    if( mouse.buttons() & Qt::RightButton )
+        ++count;
+    if( mouse.buttons() & Qt::MiddleButton )
+        ++count;
+    return count;
 }
 
 void MultitouchArea::mousePressEvent( QMouseEvent* mouse )
 {
-    const auto pos = _getScenePos( mouse );
+    if( _getButtonsCount( *mouse ) == 1 )
+        emit touchStarted( _getScenePos( *mouse ));
 
-     _mousePrevPos = pos;
-     emit touchStarted( pos );
-
-     _startMultipointGesture( { pos } );
+     _handleMultipointGestures( _getPositions( *mouse ));
 }
 
 void MultitouchArea::mouseMoveEvent( QMouseEvent* mouse )
 {
-    const auto pos = _getScenePos( mouse );
-
-    const QPointF delta = pos - _mousePrevPos;
-    _mousePrevPos = pos;
-
-    _cancelTapAndHoldGesture();
-
-    _startPanGesture( pos );
-    emit pan( pos, delta, 1 );
+    _handleMultipointGestures( _getPositions( *mouse ));
 }
 
 void MultitouchArea::mouseReleaseEvent( QMouseEvent* mouse )
 {
-    const auto pos = _getScenePos( mouse );
-    if( !_panning )
-         emit tap( pos );
+    const auto count = _getButtonsCount( *mouse );
+    const auto pos = _getScenePos( *mouse );
 
-    _cancelPanGesture();
-    _cancelTapAndHoldGesture();
+    if( count == 0 && !_panning )
+        emit tap( pos );
 
-     emit touchEnded( pos );
+    _handleMultipointGestures( _getPositions( *mouse ));
+
+    if( count == 0 )
+        emit touchEnded( pos );
 }
 
 void MultitouchArea::mouseDoubleClickEvent( QMouseEvent* mouse )
 {
-    emit doubleTap( _getScenePos( mouse ));
+    emit doubleTap( _getScenePos( *mouse ));
 }
 
 void MultitouchArea::wheelEvent( QWheelEvent* wheel )
 {
     emit pinchStarted();
-    emit pinch( _getScenePos( wheel->posF( )),
-                wheel->angleDelta().y() * wheelFactor );
+    const auto delta = wheel->angleDelta();
+    emit pinch( _getScenePos( *wheel ), QPointF{ delta } * wheelFactor );
     emit pinchEnded();
 }
 
 void MultitouchArea::touchEvent( QTouchEvent* touch )
 {
     const auto& points = touch->touchPoints();
+
+    if( touch->type() == QEvent::TouchBegin )
+        emit touchStarted( _getScenePos( points.at( 0 )));
+
     switch( points.size( ))
     {
     case 1:
@@ -181,71 +179,71 @@ void MultitouchArea::touchEvent( QTouchEvent* touch )
     default:
         break;
     }
-    _handleMultipointGestures( points );
+    _handleMultipointGestures( _getPositions( points ));
+
+    if( touch->type() == QEvent::TouchEnd )
+        emit touchEnded( _getScenePos( points.at( 0 )));
+}
+
+MultitouchArea::Positions
+MultitouchArea::_getPositions( const QMouseEvent& mouse )
+{
+    return Positions{ _getButtonsCount( mouse ), _getScenePos( mouse ) };
+}
+
+MultitouchArea::Positions
+MultitouchArea::_getPositions( const TouchPoints& points )
+{
+    Positions positions;
+    for( auto point : points )
+    {
+        if( point.state() != Qt::TouchPointReleased )
+            positions.push_back( _getScenePos( point ));
+    }
+    return positions;
 }
 
 void MultitouchArea::_handleSinglePoint( const QTouchEvent::TouchPoint& point )
 {
-    const QPointF pos = _getScenePos( point );
+    const auto pos = _getScenePos( point );
 
     switch( point.state( ))
     {
     case Qt::TouchPointPressed:
-        emit touchStarted( pos );
-
-        if( _tapCounter == 0 )
-            _startDoubleTapGesture();
-        if( ++_tapCounter == 2 )
-        {
-            if( (pos - _tapStartPos).manhattanLength() < doubleTapThresholdPx )
-                emit doubleTap( pos );
-            _tapCounter = 0;
-        }
-        _tapStartPos = pos;
+        _updateDoubleTapGesture( pos );
         break;
-
     case Qt::TouchPointStationary:
         break;
-
     case Qt::TouchPointMoved:
         break;
-
     case Qt::TouchPointReleased:
         if( !_panning )
              emit tap( pos );
-
-        emit touchEnded( pos );
         break;
     }
 }
 
-void MultitouchArea::_startPanGesture( const QPointF& pos )
+void MultitouchArea::_startDoubleTapGesture( const QPointF& pos )
 {
-    if( _panning )
-        return;
-
-    _panning = true;
-    emit panStarted( pos, _getPointsCount( ));
-}
-
-void MultitouchArea::_cancelPanGesture()
-{
-    if( !_panning )
-        return;
-
-    _panning = false;
-    emit panEnded();
-}
-
-void MultitouchArea::_startDoubleTapGesture()
-{
+    _tapStartPos = pos;
     _doubleTapTimer.start();
+}
+
+void MultitouchArea::_updateDoubleTapGesture( const QPointF& pos )
+{
+    if( _doubleTapTimer.isActive( ))
+    {
+        if( (pos - _tapStartPos).manhattanLength() < doubleTapThresholdPx )
+            emit doubleTap( pos );
+        _cancelDoubleTapGesture();
+    }
+    else
+        _startDoubleTapGesture( pos );
 }
 
 void MultitouchArea::_cancelDoubleTapGesture()
 {
     _doubleTapTimer.stop();
-    _tapCounter = 0;
 }
 
 qreal _getDist( const QPointF& p0, const QPointF& p1 )
@@ -254,16 +252,19 @@ qreal _getDist( const QPointF& p0, const QPointF& p1 )
     return std::sqrt( QPointF::dotProduct( dist, dist ));
 }
 
-qreal MultitouchArea::_getPinchDistance( const QTouchEvent::TouchPoint& p0,
-                                         const QTouchEvent::TouchPoint& p1 )
+QPointF _getCenter( const QPointF& pos0, const QPointF& pos1 )
 {
-    return _getDist(_getScenePos( p0 ), _getScenePos( p1 )) - _initialPinchDist;
+    return ( pos0 + pos1 ) / 2;
 }
 
-QPointF MultitouchArea::_getCenter( const QTouchEvent::TouchPoint& p0,
-                                    const QTouchEvent::TouchPoint& p1 )
+QRectF _makeBoundingRect( const QPointF& pos0, const QPointF& pos1 )
 {
-    return ( _getScenePos( p0 ) + _getScenePos( p1 )) / 2;
+    QRectF rect;
+    rect.setLeft( std::min( pos0.x(), pos1.x( )));
+    rect.setRight( std::max( pos0.x(), pos1.x( )));
+    rect.setTop( std::min( pos0.y(), pos1.y( )));
+    rect.setBottom( std::max( pos0.y(), pos1.y( )));
+    return rect;
 }
 
 void MultitouchArea::_handleTwoPoints( const QTouchEvent::TouchPoint& p0,
@@ -272,80 +273,63 @@ void MultitouchArea::_handleTwoPoints( const QTouchEvent::TouchPoint& p0,
     if( p0.state() == Qt::TouchPointReleased ||
         p1.state() == Qt::TouchPointReleased )
     {
-        _canBeSwipe = false;
-        _twoFingersDetectionStarted = false;
         _cancelPinchGesture();
+        _cancelSwipeGesture();
         return;
     }
 
-    if( !_twoFingersDetectionStarted )
-    {
-        _twoFingersDetectionStarted = true;
-        _cancelDoubleTapGesture();
+    const auto pos0 = _getScenePos( p0 );
+    const auto pos1 = _getScenePos( p1 );
 
-        _initialPinchDist = _getDist( _getScenePos( p0 ), _getScenePos( p1 ));
-        _canBeSwipe = _initialPinchDist < swipeMaxFingersIntervalPx;
-        _twoFingersStartPos = _getCenter( p0, p1 );
+    if( p0.state() == Qt::TouchPointPressed ||
+        p1.state() == Qt::TouchPointPressed )
+    {
+        _initPinchGesture( pos0, pos1 );
+        _initSwipeGesture( pos0, pos1 );
     }
 
-    if( !_pinching && std::abs( _getPinchDistance( p0, p1 )) > pinchThresholdPx)
-    {
-        _lastPinchDist = _getPinchDistance( p0, p1 );
-        _startPinchGesture();
-    }
-
-    if( _pinching )
-    {
-        const auto pinchDist = _getPinchDistance( p0, p1 );
-        const auto pinchDelta = pinchDist - _lastPinchDist;
-        _lastPinchDist = pinchDist;
-        emit pinch( _getCenter( p0, p1 ), pinchDelta );
-    }
-
-    if( _canBeSwipe )
-    {
-        const qreal fingersInterval = _getDist( _getScenePos( p0 ),
-                                                _getScenePos( p1 ));
-        if( fingersInterval > swipeMaxFingersIntervalPx )
-            _canBeSwipe = false;
-        else
-        {
-            const QPointF twoFingersPos = _getCenter( p0, p1 );
-            const qreal dist = _getDist( _twoFingersStartPos, twoFingersPos );
-            if( dist > swipeThresholdPx )
-            {
-                const qreal dx = twoFingersPos.x() - _twoFingersStartPos.x();
-                const qreal dy = twoFingersPos.y() - _twoFingersStartPos.y();
-
-                if( std::abs( dx ) > std::abs( dy ))
-                {
-                    // Horizontal swipe
-                    if( dx > 0.0 )
-                        emit swipeRight();
-                    else
-                        emit swipeLeft();
-                }
-                else
-                {
-                    // Vertical swipe
-                    if( dy > 0.0 )
-                        emit swipeDown();
-                    else
-                        emit swipeUp();
-                }
-                _canBeSwipe = false; // Only allow one swipe
-            }
-        }
-    }
+    _updatePinchGesture( pos0, pos1 );
+    _updateSwipeGesture( pos0, pos1 );
 }
 
-void MultitouchArea::_startPinchGesture()
+void MultitouchArea::_initPinchGesture( const QPointF& pos0,
+                                        const QPointF& pos1 )
+{
+    const auto twoFingersStartRect = _makeBoundingRect( pos0, pos1 );
+    const auto w = twoFingersStartRect.width();
+    const auto h = twoFingersStartRect.height();
+    _initialPinchDist = std::sqrt( w * w + h * h );
+}
+
+void MultitouchArea::_startPinchGesture( const QPointF& pos0,
+                                         const QPointF& pos1 )
 {
     if( _pinching )
         return;
 
     _pinching = true;
+    _lastPinchRect = _makeBoundingRect( pos0, pos1 );
     emit pinchStarted();
+}
+
+void MultitouchArea::_updatePinchGesture( const QPointF& pos0,
+                                          const QPointF& pos1 )
+{
+    if( !_pinching )
+    {
+        const auto pinchDist = _getDist( pos0, pos1 );
+        const auto pinchDelta = std::abs( pinchDist - _initialPinchDist );
+        if( pinchDelta > pinchThresholdPx )
+            _startPinchGesture( pos0, pos1 );
+        else
+            return;
+    }
+
+    const auto pinchRect = _makeBoundingRect( pos0, pos1 );
+    const auto pinchDelta = pinchRect.size() - _lastPinchRect.size();
+    _lastPinchRect = pinchRect;
+    emit pinch( pinchRect.center(), QPointF{ pinchDelta.width(),
+                                             pinchDelta.height() });
 }
 
 void MultitouchArea::_cancelPinchGesture()
@@ -357,34 +341,85 @@ void MultitouchArea::_cancelPinchGesture()
     emit pinchEnded();
 }
 
-void MultitouchArea::_handleMultipointGestures( const TouchPoints& points )
+bool _checkFingersDistanceForSwipe( const QPointF& pos0, const QPointF& pos1 )
 {
-    Positions positions;
-    bool restart = false;
-    for( auto point : points )
-    {
-        if( point.state() != Qt::TouchPointReleased )
-            positions.push_back( _getScenePos( point ));
+    const qreal fingersInterval = _getDist( pos0, pos1 );
+    return fingersInterval < swipeMaxFingersIntervalPx;
+}
 
-        restart = restart || point.state() == Qt::TouchPointPressed ||
-                  point.state() == Qt::TouchPointReleased;
+void MultitouchArea::_initSwipeGesture( const QPointF& pos0,
+                                        const QPointF& pos1 )
+{
+    _canBeSwipe = _checkFingersDistanceForSwipe( pos0, pos1 );
+    _swipeStartPos = _getCenter( pos0, pos1 );
+}
+
+void MultitouchArea::_updateSwipeGesture( const QPointF& pos0,
+                                          const QPointF& pos1 )
+{
+    if( !_canBeSwipe )
+        return;
+
+    if( !_checkFingersDistanceForSwipe( pos0, pos1 ))
+    {
+        _cancelSwipeGesture();
+        return;
     }
-    if( positions.empty( ))
+
+    const auto twoFingersPos = _getCenter( pos0, pos1 );
+    const auto twoFingersStartPos = _swipeStartPos;
+    const auto dist = _getDist( twoFingersStartPos, twoFingersPos );
+    if( dist > swipeThresholdPx )
+    {
+        const qreal dx = twoFingersPos.x() - twoFingersStartPos.x();
+        const qreal dy = twoFingersPos.y() - twoFingersStartPos.y();
+
+        if( std::abs( dx ) > std::abs( dy ))
+        {
+            // Horizontal swipe
+            if( dx > 0.0 )
+                emit swipeRight();
+            else
+                emit swipeLeft();
+        }
+        else
+        {
+            // Vertical swipe
+            if( dy > 0.0 )
+                emit swipeDown();
+            else
+                emit swipeUp();
+        }
+        _cancelSwipeGesture(); // Only allow one swipe
+    }
+}
+
+void MultitouchArea::_cancelSwipeGesture()
+{
+    _canBeSwipe = false;
+}
+
+void MultitouchArea::_handleMultipointGestures( const Positions& positions )
+{
+    if( positions.size() != _touchStartPos.size( ))
     {
         _cancelTapAndHoldGesture();
         _cancelPanGesture();
-        _touchStartPos.clear();
-        return;
-    }
-    if( restart )
-    {
-        _startMultipointGesture( positions );
-        _cancelPanGesture();
+
+        _touchStartPos = positions;
+
+        if( !positions.empty( ))
+            _startTapAndHoldGesture();
         return;
     }
 
     _updateTapAndHoldGesture( positions );
     _updatePanGesture( positions );
+}
+
+void MultitouchArea::_startTapAndHoldGesture()
+{
+    _tapAndHoldTimer.start();
 }
 
 void MultitouchArea::_updateTapAndHoldGesture( const Positions& positions )
@@ -404,12 +439,6 @@ void MultitouchArea::_cancelTapAndHoldIfMoved( const Positions& positions )
             return;
         }
     }
-}
-
-void MultitouchArea::_startMultipointGesture( const Positions& positions )
-{
-    _touchStartPos = positions;
-    _tapAndHoldTimer.start();
 }
 
 void MultitouchArea::_cancelTapAndHoldGesture()
@@ -436,6 +465,15 @@ uint MultitouchArea::_getPointsCount() const
     return _touchStartPos.size();
 }
 
+void MultitouchArea::_startPanGesture( const QPointF& pos )
+{
+    if( _panning )
+        return;
+
+    _panning = true;
+    emit panStarted( pos, _getPointsCount( ));
+}
+
 void MultitouchArea::_updatePanGesture( const Positions& positions )
 {
     const auto pos = _computeCenter( positions );
@@ -451,4 +489,13 @@ void MultitouchArea::_updatePanGesture( const Positions& positions )
         emit pan( pos, pos - _lastPanPos, positions.size( ));
         _lastPanPos = pos;
     }
+}
+
+void MultitouchArea::_cancelPanGesture()
+{
+    if( !_panning )
+        return;
+
+    _panning = false;
+    emit panEnded();
 }

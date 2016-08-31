@@ -76,7 +76,7 @@ public:
     Q_INVOKABLE virtual void pan( QPointF position, QPointF delta,
                                   uint numPoints )
     { Q_UNUSED( position ) Q_UNUSED( delta ) Q_UNUSED( numPoints ) }
-    Q_INVOKABLE virtual void pinch( QPointF position, qreal pixelDelta )
+    Q_INVOKABLE virtual void pinch( QPointF position, QPointF pixelDelta )
     { Q_UNUSED( position ) Q_UNUSED( pixelDelta ) }
     Q_INVOKABLE virtual void swipeLeft() {}
     Q_INVOKABLE virtual void swipeRight() {}

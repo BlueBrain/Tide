@@ -107,7 +107,7 @@ signals:
     void pinchStarted();
 
     /** Emitted for each step of a two-fingers pinch gesture. */
-    void pinch( QPointF pos, qreal pixelDelta );
+    void pinch( QPointF pos, QPointF pixelDelta );
 
     /** Emitted when a pinch ends (i.e. one of the two fingers is released). */
     void pinchEnded();
@@ -145,63 +145,85 @@ private:
     void wheelEvent( QWheelEvent* event ) override;
     void touchEvent( QTouchEvent* event ) override;
 
-    QPointF _getScenePos( const QMouseEvent* mouse );
-    QPointF _getScenePos( const QTouchEvent::TouchPoint& point );
-    QPointF _getScenePos( const QPointF& itemPos );
-
-    qreal _getPinchDistance( const QTouchEvent::TouchPoint& p0,
-                             const QTouchEvent::TouchPoint& p1 );
-    QPointF _getCenter( const QTouchEvent::TouchPoint& p0,
-                        const QTouchEvent::TouchPoint& p1 );
-
-    void _handleSinglePoint( const QTouchEvent::TouchPoint& point );
-
-    void _startPanGesture( const QPointF& pos );
-    void _cancelPanGesture();
-
     using Positions = std::vector<QPointF>;
     using TouchPoints = QList<QTouchEvent::TouchPoint>;
 
-    void _startDoubleTapGesture();
-    void _cancelDoubleTapGesture();
+    Positions _getPositions( const QMouseEvent& mouse );
+    Positions _getPositions( const TouchPoints& points );
 
+    QPointF _getScenePos( const QMouseEvent& mouse );
+    QPointF _getScenePos( const QTouchEvent::TouchPoint& point );
+    QPointF _getScenePos( const QWheelEvent& wheel );
+
+    /** @name Single-point gestures */
+    //@{
+    void _handleSinglePoint( const QTouchEvent::TouchPoint& point );
+
+    void _startDoubleTapGesture( const QPointF& pos );
+    void _updateDoubleTapGesture( const QPointF& pos );
+    void _cancelDoubleTapGesture();
+    //@}
+
+    /** @name Two-point gestures */
+    //@{
     void _handleTwoPoints( const QTouchEvent::TouchPoint& p0,
                            const QTouchEvent::TouchPoint& p1 );
-    void _startPinchGesture();
+
+    void _initPinchGesture( const QPointF& pos0, const QPointF& pos1 );
+    void _startPinchGesture( const QPointF& pos0, const QPointF& pos1 );
+    void _updatePinchGesture( const QPointF& pos0, const QPointF& pos1 );
     void _cancelPinchGesture();
 
-    void _handleMultipointGestures( const TouchPoints& points );
+    void _initSwipeGesture( const QPointF& pos0, const QPointF& pos1 );
+    void _updateSwipeGesture( const QPointF& pos0, const QPointF& pos1 );
+    void _cancelSwipeGesture();
+    //@}
 
+    /** @name Mulit-point gestures */
+    //@{
+    void _handleMultipointGestures( const Positions& positions );
+
+    void _startTapAndHoldGesture();
     void _updateTapAndHoldGesture( const Positions& positions );
-    void _startMultipointGesture( const Positions& positions );
     void _cancelTapAndHoldIfMoved( const Positions& positions );
     void _cancelTapAndHoldGesture();
+
     QPointF _getTouchCenterStartPos() const;
     uint _getPointsCount() const;
 
+    void _startPanGesture( const QPointF& pos );
     void _updatePanGesture( const Positions& positions );
+    void _cancelPanGesture();
+    //@}
 
-    QQuickItem* _referenceItem;
-    qreal _panThreshold;
+    QQuickItem* _referenceItem = nullptr;
 
-    QPointF _mousePrevPos;
-
-    bool _panning;
-    QPointF _lastPanPos;
-
-    bool _twoFingersDetectionStarted;
-    bool _canBeSwipe;
-    bool _pinching;
-    qreal _lastPinchDist;
-    QPointF _twoFingersStartPos;
-
+    /** @name Single-point gestures */
+    //@{
     QPointF _tapStartPos;
-    uint _tapCounter;
-    qreal _initialPinchDist;
-
-    Positions _touchStartPos;
-    QTimer _tapAndHoldTimer;
     QTimer _doubleTapTimer;
+    //@}
+
+    /** @name Two-point gestures */
+    //@{
+    bool _pinching = false;
+    qreal _initialPinchDist = 0.0;
+    QRectF _lastPinchRect;
+
+    bool _canBeSwipe = false;
+    QPointF _swipeStartPos;
+    //@}
+
+    /** @name Mulit-point gestures */
+    //@{
+    Positions _touchStartPos;
+
+    QTimer _tapAndHoldTimer;
+
+    qreal _panThreshold;
+    bool _panning = false;
+    QPointF _lastPanPos;
+    //@}
 };
 
 #endif
