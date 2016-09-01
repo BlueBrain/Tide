@@ -24,14 +24,5 @@ Tide provides the following features:
 A copy of this documentation can be found at
 [bluebrain.github.io](http://bluebrain.github.io/).
 
-Please also take a look at the latest @ref Changelog.
-
-- - -
-
-Tide uses CMake to create a platform-specific build environment.
-The following platforms and build environments are tested:
-
-* Linux: Ubuntu 14.04 ((using Qt 5.4.1 from an installer at
-  http://download.qt.io) and RHEL 6.6 (using a Qt 5.4.1 and Boost 1.54.0 module)
-  (Makefile, Ninja, x64)
-* Mac OS X: 10.10 (limited testing) (Makefile, Ninja, homebrew or macports, x64)
+You can also take a look at the latest @ref changelog or
+[see Tide in action](https://www.youtube.com/watch?v=wATHwvRFGz0).

@@ -1,15 +1,24 @@
-Changelog {#Changelog}
+Changelog {#changelog}
 ============
 
 # Release 1.2 (git master)
 
+* [82](https://github.com/BlueBrain/Tide/pull/82):
+  Documentation and build process improvements:
+  - Added documentation about building Tide on different platforms
+  - Made Tide configure and build out-of-the-box on a fresh install of Ubuntu
+    16.04
+  - Corrected *tide* startup script syntax for openmpi (the error prevented
+    Tide from launching without a hostsfile on Ubuntu 16.04)
+  - Increased MPI thread support requirement to MPI_THREAD_MULTIPLE.
+    MPI_THREAD_SERIALIZED did not work anymore and is too complex to support.
 * [79](https://github.com/BlueBrain/Tide/pull/79):
   Introduce faster and more complete Webbrowser based on Qml WebEngineView
   [DISCL-366]. It is still in an experimental state and has some know issues:
   - With Qt 5.4.1 - 5.5.1, loading some websites cause the browser to crash due
     to SSL errors (observed on Ubuntu 14.04). Also, interaction with Webgl
     contents may not work as expected.
-  - Works well with Qt >= 5.6, however these versions currently have other 
+  - Works well with Qt >= 5.6, however these versions currently have other
     [serious stability issues](https://github.com/BlueBrain/Tide/issues/80).
 * [78](https://github.com/BlueBrain/Tide/pull/78):
   Fix regresion after #77 (Launcher + Webbrowser no longer started streaming).
@@ -24,7 +33,7 @@ Changelog {#Changelog}
   Added support for multi-finger pan gestures [DISCL-357].
   Two-finger pan and pinch gestures can also be used simultaneously for zooming
   & moving in an image. External Deflect applications can make use of the new
-  EVT_PAN, with the <key> field containing the number of touch points.
+  EVT_PAN, with the \<key\> field containing the number of touch points.
 * [73](https://github.com/BlueBrain/Tide/pull/73):
   Movie improvements:
   - Added a new control bar for movies to the wall interface [DISCL-314].
