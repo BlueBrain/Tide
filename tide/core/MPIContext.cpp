@@ -49,11 +49,10 @@ MPIContext::MPIContext( int argc, char* argv[] )
     const int required = MPI_THREAD_MULTIPLE;
     int provided;
     MPI_Init_thread( &argc, &argv, required, &provided );
-    if( provided < MPI_THREAD_SERIALIZED )
+    if( provided < required )
     {
-        throw std::runtime_error( "MPI implementation must support at least "
-                                  "MPI_THREAD_SERIALIZED. (MPI_THREAD_MULTIPLE "
-                                  "is recommended for better performances)" );
+        throw std::runtime_error( "MPI implementation must support "
+                                  "MPI_THREAD_MULTIPLE" );
     }
 }
 

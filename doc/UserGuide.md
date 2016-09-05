@@ -1,9 +1,9 @@
-User Guide {#UserGuide}
+User Guide {#user_guide}
 ============
 
 This document is a short how-to to start running Tide.
 
-# Usage {#usage}
+# Usage
 
 Run 'tide' from the bin folder to launch the application.
 
@@ -13,7 +13,7 @@ Some useful command line options:
   configuration. A default test configuration is used if none is provided.
 * \-\-help lists all the available options.
 
-## Configuration file {#xmlconfig}
+## %Configuration file
 
 A single xml configuration file is required to launch the application. It
 defines the number of processes to launch, the hosts on which they have to run
@@ -24,7 +24,7 @@ and the list of windows that each one of them will display.
 More examples can be found in the examples folder of the source directory, or
 installed under ${install_prefix}/share/Tide/examples.
 
-## TIFF image pyramids {#tiffimagepyramids}
+## TIFF image pyramids
 
 Tide can open any image pyramid saved in standard TIFF file format. To convert
 an existing image to a TIFF pyramid one can use for instance ImageMagick:
@@ -32,7 +32,7 @@ an existing image to a TIFF pyramid one can use for instance ImageMagick:
 Or even more simply use the *pyramidmaker* script provided by Tide:
 > pyramidmaker myimage.xyz myimage.tif
 
-## Open ports {#openports}
+## Open ports
 
 Tide listens on the following ports:
 
@@ -41,7 +41,7 @@ Tide listens on the following ports:
 * TCP port 8888 - REST interface (if compiled with ZeroEQ support),
                   configurable.
 
-## OSX notes {#osxnotes}
+## OSX notes
 
 The following steps might be required to run the application on OSX.
 
@@ -57,3 +57,7 @@ The following steps might be required to run the application on OSX.
   # Add to /etc/hosts:
   127.0.0.1    bluebrain077.epfl.ch
   ~~~~~~~~~~~~~
+
+Multiple windows are not supported, only the basic single-window configuation
+works:
+> bin/tide --config $PWD/../examples/configuration_1x1.xml

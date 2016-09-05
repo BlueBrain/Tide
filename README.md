@@ -1,7 +1,7 @@
 # Tide
 
 Welcome to Tide, a software for Tiled Interactive DisplayWall Environments
-providing multi-user touch interaction for collaborations. 
+providing multi-user touch interaction for collaborations.
 [See Tide in action](https://www.youtube.com/watch?v=wATHwvRFGz0)
 
 ## Features
@@ -22,7 +22,7 @@ the TUIO protocol on port 1701. Tap-and-hold the background to open the launcher
 for content browsing.
 
 For more information see the
-[UserGuide](http://bluebrain.github.io/Tide-1.0/_user_guide.html).
+[UserGuide](http://bluebrain.github.io/Tide-1.2/user_guide.html).
 
 ## Building from Source
 
@@ -34,7 +34,10 @@ For more information see the
   make
 ```
 
+For more information see
+[Building Tide](http://bluebrain.github.io/Tide-1.2/building.html).
+
 ## Documentation
 
 The documentation is available at
-[bluebrain.github.io](http://bluebrain.github.io/)
+[bluebrain.github.io](http://bluebrain.github.io/Tide-1.2)

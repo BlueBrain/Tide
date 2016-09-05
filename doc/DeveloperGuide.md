@@ -1,4 +1,4 @@
-Documentation {#documentation}
+Developer Guide {#developer_guide}
 ============
 
 This document describes the basic structure of the source code and provides
@@ -6,7 +6,7 @@ pointers to auxilary documentation.
 
 ## Directory Layout
 
-* [CMake](https://github.com/Eyescale/CMake#readme): subdirectory
+* [CMake/common](https://github.com/Eyescale/CMake#readme): subdirectory
   included using git externals. See below for details.
 * tide: Contains the main libraries of the project:
   * core: The core library contains utilities, helpers and shared classes that
@@ -30,8 +30,10 @@ pointers to auxilary documentation.
                    parameters and streams that content to the local tide
                    instance. The webbrowser content for instance is one
                    exisiting implementation.
+  * Webbrowser: The application which streams the newer Qml2 WebEngine-based
+                webbrowser.
   * pyramidmaker: A script that generates a TIFF image pyramid from a big
-                  source image using ImageMagick's convert tool. Image pyramids
+                  source image using ImageMagick's convert tool. %Image pyramids
                   can be loaded and rendered by Tide more efficently.
 
 * tests: Unit tests.
@@ -42,7 +44,7 @@ pointers to auxilary documentation.
 
 The top-level CMakeLists is relatively simple due to the delegation of
 details into the CMake external. It starts with the project setup which
-defines the project name and includes the CMake/common git external.
+defines the project name and includes the CMake/common using git external.
 
 ## CMake
 

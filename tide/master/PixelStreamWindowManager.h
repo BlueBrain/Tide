@@ -70,7 +70,8 @@ public:
     /**
      * @param uri the URI of streamer
      * @return the associated window of the given streamer. Can be NULL.
-     * @todo This should not be public! See DISCL-230
+     * @note this function is public only for the purpose of unit testing.
+     * @internal
      */
     ContentWindowPtr getContentWindow( const QString& uri ) const;
 

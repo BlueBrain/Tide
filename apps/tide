@@ -178,7 +178,8 @@ try:
         node_host = '%s %s' % (MPI_PER_NODE_HOST, host)
     else:
         node_host = ''
-        hostlist.append(host)
+        hostlist.append(host) # master
+        hostlist.append(host) # forker
 
     rcmd = '%s %s%s %s -np 1 %s%s %s' % (MPI_SPECIAL_FLAGS, EXPORT_DISPLAY, display, node_host, VGLRUN_BIN, TIDEMASTER_BIN, TIDE_PARAMS)
     runcommands.append(rcmd)
