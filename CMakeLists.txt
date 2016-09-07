@@ -90,6 +90,8 @@ endif()
 
 common_find_package_post()
 
+option(TIDE_IGNORE_MPI_THREADSAFETY "Ignore MPI_THREAD_MULITPLE requirement (Ubuntu 14.04)" OFF)
+
 add_subdirectory(tide)
 add_subdirectory(apps)
 add_subdirectory(tests)

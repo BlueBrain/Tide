@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -57,8 +57,8 @@ public:
      */
     MPIContext( int argc, char* argv[] );
 
-    /** Destructor. */
+    /** Destructor, finalize the MPI context. */
     ~MPIContext();
 };
 
-#endif // MPICONTEXT_H
+#endif

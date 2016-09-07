@@ -128,6 +128,13 @@ system packages are outdated and must be replaced:
 * cppcheck + lcov: build custom cppcheck-1.68 and lcov-1.11 (or newer) and
   export PATH to the binaries (only needed for *tests* and *doxygen* targets)
 
+The system libopenmpi-dev package (verion 1.6.5-8) only reports
+MPI_THREAD_SERIALIZED support. Despite this, it works just the same as if it had
+full MPI_THREAD_MULTIPLE support. The MPI thread support check can thus be
+safely disabled when configuring the project on this platform:
+
+    cmake .. -DTIDE_IGNORE_MPI_THREADSAFETY=ON
+
 ### RedHat 6
 
 Tide has been built and used in production on RHEL 6.7 machines. However, the
