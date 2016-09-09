@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,66 +37,68 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef PIXELSTREAMINTERACTIONDELEGATE_H
-#define PIXELSTREAMINTERACTIONDELEGATE_H
+#include "DoubleTapDetector.h"
 
-#include "ContentInteractionDelegate.h"
+#include "MathUtils.h"
 
-#include <deflect/Event.h>
-
-/**
- * Forward user actions to a deflect::Stream using Deflect events.
- */
-class PixelStreamInteractionDelegate : public ContentInteractionDelegate
+DoubleTapDetector::DoubleTapDetector( const qreal doubleTapThresholdPx,
+                                      const uint doubleTapTimeoutMs )
+    : _doubleTapThresholdPx( doubleTapThresholdPx )
 {
-    Q_OBJECT
+    _doubleTapTimer.setInterval( doubleTapTimeoutMs );
+    _doubleTapTimer.setSingleShot( true );
 
-public:
-    /** Constructor */
-    explicit PixelStreamInteractionDelegate( ContentWindow& contentWindow );
+    connect( &_doubleTapTimer, &QTimer::timeout, this,
+             &DoubleTapDetector::cancelGesture );
+}
 
-    /** @name Touch gesture handlers. */
-    //@{
-    void touchBegin( QPointF position ) override;
-    void touchEnd( QPointF position ) override;
+void DoubleTapDetector::initGesture( const Positions& positions )
+{
+    if( !_canBeDoubleTap )
+    {
+        // adding initial points
+        if( positions.size() > _touchStartPos.size( ))
+        {
+            if( _touchStartPos.empty( ))
+                _startGesture( positions );
+            else
+                _touchStartPos = positions;
+            return;
+        }
 
-    void addTouchPoint( int id, QPointF position ) override;
-    void updateTouchPoint( int id, QPointF position ) override;
-    void removeTouchPoint( int id, QPointF position ) override;
+        // all points released, decide if potential double tap or abort
+        if( positions.empty( ))
+        {
+            _canBeDoubleTap = _doubleTapTimer.isActive();
+            if( !_canBeDoubleTap )
+                cancelGesture();
+        }
+        return;
+    }
 
-    void tap( QPointF position, uint numPoints ) override;
-    void doubleTap( QPointF position, uint numPoints ) override;
-    void tapAndHold( QPointF position, uint numPoints ) override;
-    void pan( QPointF position, QPointF delta, uint numPoints ) override;
-    void pinch( QPointF position, QPointF pixelDelta ) override;
+    // points pressed again, check for double tap
+    if( positions.size() == _touchStartPos.size() &&
+        !MathUtils::hasMoved( positions, _touchStartPos, _doubleTapThresholdPx))
+    {
+        emit doubleTap( MathUtils::computeCenter( _touchStartPos ),
+                        _touchStartPos.size( ));
+        _doubleTapTimer.stop();
+    }
 
-    void swipeLeft() override;
-    void swipeRight() override;
-    void swipeUp() override;
-    void swipeDown() override;
-    //@}
+    // all points released, reset everything for next detection
+    if( positions.empty( ))
+        cancelGesture();
+}
 
-    /** @name Keyboard event handlers. */
-    //@{
-    void keyPress( int key, int modifiers, QString text ) override;
-    void keyRelease( int key, int modifiers, QString text ) override;
-    //@}
+void DoubleTapDetector::cancelGesture()
+{
+    _doubleTapTimer.stop();
+    _canBeDoubleTap = false;
+    _touchStartPos.clear();
+}
 
-    /** @name UI event handlers. */
-    //@{
-    void prevPage() override;
-    void nextPage() override;
-    //@}
-
-signals:
-    /** Emitted when an Event occured. */
-    void notify( deflect::Event event );
-
-private slots:
-    void _sendSizeChangedEvent();
-
-private:
-    deflect::Event _getNormEvent( const QPointF& position ) const;
-};
-
-#endif
+void DoubleTapDetector::_startGesture( const Positions& positions )
+{
+    _touchStartPos = positions;
+    _doubleTapTimer.start();
+}

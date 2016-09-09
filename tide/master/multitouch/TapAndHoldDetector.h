@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,66 +37,39 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef PIXELSTREAMINTERACTIONDELEGATE_H
-#define PIXELSTREAMINTERACTIONDELEGATE_H
+#ifndef TAPANDHOLDDETECTOR_H
+#define TAPANDHOLDDETECTOR_H
 
-#include "ContentInteractionDelegate.h"
+#include "types.h"
 
-#include <deflect/Event.h>
+#include <QObject>
+#include <QTimer>
 
 /**
- * Forward user actions to a deflect::Stream using Deflect events.
+ * Detect TapAndHoldGestures.
  */
-class PixelStreamInteractionDelegate : public ContentInteractionDelegate
+class TapAndHoldDetector : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY( TapAndHoldDetector )
 
 public:
-    /** Constructor */
-    explicit PixelStreamInteractionDelegate( ContentWindow& contentWindow );
+    TapAndHoldDetector( uint tapAndHoldTimeoutMs, qreal moveThresholdPx );
 
-    /** @name Touch gesture handlers. */
-    //@{
-    void touchBegin( QPointF position ) override;
-    void touchEnd( QPointF position ) override;
-
-    void addTouchPoint( int id, QPointF position ) override;
-    void updateTouchPoint( int id, QPointF position ) override;
-    void removeTouchPoint( int id, QPointF position ) override;
-
-    void tap( QPointF position, uint numPoints ) override;
-    void doubleTap( QPointF position, uint numPoints ) override;
-    void tapAndHold( QPointF position, uint numPoints ) override;
-    void pan( QPointF position, QPointF delta, uint numPoints ) override;
-    void pinch( QPointF position, QPointF pixelDelta ) override;
-
-    void swipeLeft() override;
-    void swipeRight() override;
-    void swipeUp() override;
-    void swipeDown() override;
-    //@}
-
-    /** @name Keyboard event handlers. */
-    //@{
-    void keyPress( int key, int modifiers, QString text ) override;
-    void keyRelease( int key, int modifiers, QString text ) override;
-    //@}
-
-    /** @name UI event handlers. */
-    //@{
-    void prevPage() override;
-    void nextPage() override;
-    //@}
+    void initGesture( const Positions& positions );
+    void updateGesture( const Positions& positions );
+    void cancelGesture();
 
 signals:
-    /** Emitted when an Event occured. */
-    void notify( deflect::Event event );
-
-private slots:
-    void _sendSizeChangedEvent();
+    /** Emitted after a prolonged non-moving touch with one or more fingers. */
+    void tapAndHold( QPointF pos, uint numPoints );
 
 private:
-    deflect::Event _getNormEvent( const QPointF& position ) const;
+    const qreal _moveThresholdPx;
+    QTimer _tapAndHoldTimer;
+    Positions _touchStartPos;
+
+    void _cancelGestureIfMoved( const Positions& positions );
 };
 
 #endif

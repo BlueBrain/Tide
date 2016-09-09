@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,66 +37,52 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef PIXELSTREAMINTERACTIONDELEGATE_H
-#define PIXELSTREAMINTERACTIONDELEGATE_H
+#include "MathUtils.h"
 
-#include "ContentInteractionDelegate.h"
+#include <cmath>
 
-#include <deflect/Event.h>
-
-/**
- * Forward user actions to a deflect::Stream using Deflect events.
- */
-class PixelStreamInteractionDelegate : public ContentInteractionDelegate
+namespace MathUtils
 {
-    Q_OBJECT
 
-public:
-    /** Constructor */
-    explicit PixelStreamInteractionDelegate( ContentWindow& contentWindow );
+QRectF getBoundingRect( const QPointF& p0, const QPointF& p1 )
+{
+    QRectF rect;
+    rect.setLeft( std::min( p0.x(), p1.x( )));
+    rect.setRight( std::max( p0.x(), p1.x( )));
+    rect.setTop( std::min( p0.y(), p1.y( )));
+    rect.setBottom( std::max( p0.y(), p1.y( )));
+    return rect;
+}
 
-    /** @name Touch gesture handlers. */
-    //@{
-    void touchBegin( QPointF position ) override;
-    void touchEnd( QPointF position ) override;
+qreal getDist( const QPointF& p0, const QPointF& p1 )
+{
+    const QPointF dist = p1 - p0;
+    return std::sqrt( QPointF::dotProduct( dist, dist ));
+}
 
-    void addTouchPoint( int id, QPointF position ) override;
-    void updateTouchPoint( int id, QPointF position ) override;
-    void removeTouchPoint( int id, QPointF position ) override;
+QPointF getCenter( const QPointF& p0, const QPointF& p1 )
+{
+    return ( p0 + p1 ) / 2;
+}
 
-    void tap( QPointF position, uint numPoints ) override;
-    void doubleTap( QPointF position, uint numPoints ) override;
-    void tapAndHold( QPointF position, uint numPoints ) override;
-    void pan( QPointF position, QPointF delta, uint numPoints ) override;
-    void pinch( QPointF position, QPointF pixelDelta ) override;
+QPointF computeCenter( const Positions& positions )
+{
+    QPointF center;
+    for( const auto& pos : positions )
+        center += pos;
+    return center / positions.size();
+}
 
-    void swipeLeft() override;
-    void swipeRight() override;
-    void swipeUp() override;
-    void swipeDown() override;
-    //@}
+bool hasMoved( const Positions& positions, const Positions& startPositions,
+               const qreal moveThreshold )
+{
+    size_t i = 0;
+    for( const auto& pos : positions )
+    {
+        if( (pos - startPositions[i++]).manhattanLength() > moveThreshold )
+            return true;
+    }
+    return false;
+}
 
-    /** @name Keyboard event handlers. */
-    //@{
-    void keyPress( int key, int modifiers, QString text ) override;
-    void keyRelease( int key, int modifiers, QString text ) override;
-    //@}
-
-    /** @name UI event handlers. */
-    //@{
-    void prevPage() override;
-    void nextPage() override;
-    //@}
-
-signals:
-    /** Emitted when an Event occured. */
-    void notify( deflect::Event event );
-
-private slots:
-    void _sendSizeChangedEvent();
-
-private:
-    deflect::Event _getNormEvent( const QPointF& position ) const;
-};
-
-#endif
+}

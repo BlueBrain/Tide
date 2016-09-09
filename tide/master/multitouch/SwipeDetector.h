@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,66 +37,50 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef PIXELSTREAMINTERACTIONDELEGATE_H
-#define PIXELSTREAMINTERACTIONDELEGATE_H
+#ifndef SWIPEDETECTOR_H
+#define SWIPEDETECTOR_H
 
-#include "ContentInteractionDelegate.h"
+#include "types.h"
 
-#include <deflect/Event.h>
+#include <QObject>
 
 /**
- * Forward user actions to a deflect::Stream using Deflect events.
+ * Detect two-finger swipe gestures.
  */
-class PixelStreamInteractionDelegate : public ContentInteractionDelegate
+class SwipeDetector : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY( SwipeDetector )
 
 public:
-    /** Constructor */
-    explicit PixelStreamInteractionDelegate( ContentWindow& contentWindow );
+    SwipeDetector( qreal swipeMaxFingersIntervalPx, qreal swipeThresholdPx );
 
-    /** @name Touch gesture handlers. */
-    //@{
-    void touchBegin( QPointF position ) override;
-    void touchEnd( QPointF position ) override;
-
-    void addTouchPoint( int id, QPointF position ) override;
-    void updateTouchPoint( int id, QPointF position ) override;
-    void removeTouchPoint( int id, QPointF position ) override;
-
-    void tap( QPointF position, uint numPoints ) override;
-    void doubleTap( QPointF position, uint numPoints ) override;
-    void tapAndHold( QPointF position, uint numPoints ) override;
-    void pan( QPointF position, QPointF delta, uint numPoints ) override;
-    void pinch( QPointF position, QPointF pixelDelta ) override;
-
-    void swipeLeft() override;
-    void swipeRight() override;
-    void swipeUp() override;
-    void swipeDown() override;
-    //@}
-
-    /** @name Keyboard event handlers. */
-    //@{
-    void keyPress( int key, int modifiers, QString text ) override;
-    void keyRelease( int key, int modifiers, QString text ) override;
-    //@}
-
-    /** @name UI event handlers. */
-    //@{
-    void prevPage() override;
-    void nextPage() override;
-    //@}
+    void initGesture( const QPointF& p0, const QPointF& p1 );
+    void updateGesture( const QPointF& p0, const QPointF& p1 );
+    void cancelGesture();
 
 signals:
-    /** Emitted when an Event occured. */
-    void notify( deflect::Event event );
+    /** Two-fingers swipe to the left. */
+    void swipeLeft();
 
-private slots:
-    void _sendSizeChangedEvent();
+    /** Two-fingers swipe to the right. */
+    void swipeRight();
+
+    /** Two-fingers swipe up. */
+    void swipeUp();
+
+    /** Two-fingers swipe down. */
+    void swipeDown();
 
 private:
-    deflect::Event _getNormEvent( const QPointF& position ) const;
+    const qreal _swipeMaxFingersIntervalPx;
+    const qreal _swipeThresholdPx;
+
+    bool _canBeSwipe = false;
+    QPointF _swipeStartPos;
+
+    bool _checkFingersDistanceForSwipe( const QPointF& p0,
+                                        const QPointF& p1 ) const;
 };
 
 #endif

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,66 +37,58 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef PIXELSTREAMINTERACTIONDELEGATE_H
-#define PIXELSTREAMINTERACTIONDELEGATE_H
+#include "PinchDetector.h"
 
-#include "ContentInteractionDelegate.h"
+#include "multitouch/MathUtils.h"
 
-#include <deflect/Event.h>
+#include <cmath>
 
-/**
- * Forward user actions to a deflect::Stream using Deflect events.
- */
-class PixelStreamInteractionDelegate : public ContentInteractionDelegate
+PinchDetector::PinchDetector( const qreal pinchThresholdPx )
+    : _pinchThresholdPx( pinchThresholdPx )
+{}
+
+void PinchDetector::initGesture( const QPointF& pos0, const QPointF& pos1 )
 {
-    Q_OBJECT
+    const auto twoFingersStartRect = MathUtils::getBoundingRect( pos0, pos1 );
+    const auto w = twoFingersStartRect.width();
+    const auto h = twoFingersStartRect.height();
+    _initialPinchDist = std::sqrt( w * w + h * h );
+}
 
-public:
-    /** Constructor */
-    explicit PixelStreamInteractionDelegate( ContentWindow& contentWindow );
+void PinchDetector::updateGesture( const QPointF& pos0, const QPointF& pos1 )
+{
+    if( !_pinching )
+    {
+        const auto pinchDist = MathUtils::getDist( pos0, pos1 );
+        const auto pinchDelta = std::abs( pinchDist - _initialPinchDist );
+        if( pinchDelta > _pinchThresholdPx )
+            _startGesture( pos0, pos1 );
+        else
+            return;
+    }
 
-    /** @name Touch gesture handlers. */
-    //@{
-    void touchBegin( QPointF position ) override;
-    void touchEnd( QPointF position ) override;
+    const auto pinchRect = MathUtils::getBoundingRect( pos0, pos1 );
+    const auto pinchDelta = pinchRect.size() - _lastPinchRect.size();
+    _lastPinchRect = pinchRect;
+    emit pinch( pinchRect.center(), QPointF{ pinchDelta.width(),
+                                             pinchDelta.height() });
+}
 
-    void addTouchPoint( int id, QPointF position ) override;
-    void updateTouchPoint( int id, QPointF position ) override;
-    void removeTouchPoint( int id, QPointF position ) override;
+void PinchDetector::cancelGesture()
+{
+    if( !_pinching )
+        return;
 
-    void tap( QPointF position, uint numPoints ) override;
-    void doubleTap( QPointF position, uint numPoints ) override;
-    void tapAndHold( QPointF position, uint numPoints ) override;
-    void pan( QPointF position, QPointF delta, uint numPoints ) override;
-    void pinch( QPointF position, QPointF pixelDelta ) override;
+    _pinching = false;
+    emit pinchEnded();
+}
 
-    void swipeLeft() override;
-    void swipeRight() override;
-    void swipeUp() override;
-    void swipeDown() override;
-    //@}
+void PinchDetector::_startGesture( const QPointF& pos0, const QPointF& pos1 )
+{
+    if( _pinching )
+        return;
 
-    /** @name Keyboard event handlers. */
-    //@{
-    void keyPress( int key, int modifiers, QString text ) override;
-    void keyRelease( int key, int modifiers, QString text ) override;
-    //@}
-
-    /** @name UI event handlers. */
-    //@{
-    void prevPage() override;
-    void nextPage() override;
-    //@}
-
-signals:
-    /** Emitted when an Event occured. */
-    void notify( deflect::Event event );
-
-private slots:
-    void _sendSizeChangedEvent();
-
-private:
-    deflect::Event _getNormEvent( const QPointF& position ) const;
-};
-
-#endif
+    _pinching = true;
+    _lastPinchRect = MathUtils::getBoundingRect( pos0, pos1 );
+    emit pinchStarted();
+}

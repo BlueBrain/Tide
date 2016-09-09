@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,66 +37,50 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef PIXELSTREAMINTERACTIONDELEGATE_H
-#define PIXELSTREAMINTERACTIONDELEGATE_H
+#ifndef PANDETECTOR_H
+#define PANDETECTOR_H
 
-#include "ContentInteractionDelegate.h"
+#include "types.h"
 
-#include <deflect/Event.h>
+#include <QObject>
 
 /**
- * Forward user actions to a deflect::Stream using Deflect events.
+ * Detect multi-finger pan gestures.
  */
-class PixelStreamInteractionDelegate : public ContentInteractionDelegate
+class PanDetector : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY( PanDetector )
 
 public:
-    /** Constructor */
-    explicit PixelStreamInteractionDelegate( ContentWindow& contentWindow );
+    PanDetector( qreal panThreshold );
 
-    /** @name Touch gesture handlers. */
-    //@{
-    void touchBegin( QPointF position ) override;
-    void touchEnd( QPointF position ) override;
+    void initGesture( const Positions& positions );
+    void updateGesture( const Positions& positions );
+    void cancelGesture();
 
-    void addTouchPoint( int id, QPointF position ) override;
-    void updateTouchPoint( int id, QPointF position ) override;
-    void removeTouchPoint( int id, QPointF position ) override;
+    bool isPanning() const { return _panning; }
 
-    void tap( QPointF position, uint numPoints ) override;
-    void doubleTap( QPointF position, uint numPoints ) override;
-    void tapAndHold( QPointF position, uint numPoints ) override;
-    void pan( QPointF position, QPointF delta, uint numPoints ) override;
-    void pinch( QPointF position, QPointF pixelDelta ) override;
-
-    void swipeLeft() override;
-    void swipeRight() override;
-    void swipeUp() override;
-    void swipeDown() override;
-    //@}
-
-    /** @name Keyboard event handlers. */
-    //@{
-    void keyPress( int key, int modifiers, QString text ) override;
-    void keyRelease( int key, int modifiers, QString text ) override;
-    //@}
-
-    /** @name UI event handlers. */
-    //@{
-    void prevPage() override;
-    void nextPage() override;
-    //@}
+    qreal getPanThreshold() const;
+    void setPanThreshold( qreal arg );
 
 signals:
-    /** Emitted when an Event occured. */
-    void notify( deflect::Event event );
+    /** Emitted when a pan starts (i.e. one or more finger(s) start moving). */
+    void panStarted( QPointF pos, uint numPoints );
 
-private slots:
-    void _sendSizeChangedEvent();
+    /** Emitted for each finger movement between panStarted-panEnded. */
+    void pan( QPointF pos, QPointF delta, uint numPoints );
+
+    /** Emitted when a pan ends (finger released or new finger detected). */
+    void panEnded();
 
 private:
-    deflect::Event _getNormEvent( const QPointF& position ) const;
+    qreal _panThreshold;
+    bool _panning = false;
+    QPointF _startPanPos;
+    QPointF _lastPanPos;
+
+    void _startGesture( const QPointF& pos, uint numPoints );
 };
 
 #endif

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,66 +37,71 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef PIXELSTREAMINTERACTIONDELEGATE_H
-#define PIXELSTREAMINTERACTIONDELEGATE_H
+#include "SwipeDetector.h"
 
-#include "ContentInteractionDelegate.h"
+#include "multitouch/MathUtils.h"
 
-#include <deflect/Event.h>
+#include <cmath>
 
-/**
- * Forward user actions to a deflect::Stream using Deflect events.
- */
-class PixelStreamInteractionDelegate : public ContentInteractionDelegate
+SwipeDetector::SwipeDetector( const qreal swipeMaxFingersIntervalPx,
+                              const qreal swipeThresholdPx )
+    : _swipeMaxFingersIntervalPx( swipeMaxFingersIntervalPx )
+    , _swipeThresholdPx( swipeThresholdPx )
+{}
+
+void SwipeDetector::initGesture( const QPointF& p0, const QPointF& p1 )
 {
-    Q_OBJECT
+    _canBeSwipe = _checkFingersDistanceForSwipe( p0, p1 );
+    _swipeStartPos = MathUtils::getCenter( p0, p1 );
+}
 
-public:
-    /** Constructor */
-    explicit PixelStreamInteractionDelegate( ContentWindow& contentWindow );
+void SwipeDetector::updateGesture( const QPointF& p0, const QPointF& p1 )
+{
+    if( !_canBeSwipe )
+        return;
 
-    /** @name Touch gesture handlers. */
-    //@{
-    void touchBegin( QPointF position ) override;
-    void touchEnd( QPointF position ) override;
+    if( !_checkFingersDistanceForSwipe( p0, p1 ))
+    {
+        cancelGesture();
+        return;
+    }
 
-    void addTouchPoint( int id, QPointF position ) override;
-    void updateTouchPoint( int id, QPointF position ) override;
-    void removeTouchPoint( int id, QPointF position ) override;
+    const auto twoFingersPos = MathUtils::getCenter( p0, p1 );
+    const auto twoFingersStartPos = _swipeStartPos;
+    const auto dist = MathUtils::getDist( twoFingersStartPos, twoFingersPos );
+    if( dist > _swipeThresholdPx )
+    {
+        const qreal dx = twoFingersPos.x() - twoFingersStartPos.x();
+        const qreal dy = twoFingersPos.y() - twoFingersStartPos.y();
 
-    void tap( QPointF position, uint numPoints ) override;
-    void doubleTap( QPointF position, uint numPoints ) override;
-    void tapAndHold( QPointF position, uint numPoints ) override;
-    void pan( QPointF position, QPointF delta, uint numPoints ) override;
-    void pinch( QPointF position, QPointF pixelDelta ) override;
+        if( std::abs( dx ) > std::abs( dy ))
+        {
+            // Horizontal swipe
+            if( dx > 0.0 )
+                emit swipeRight();
+            else
+                emit swipeLeft();
+        }
+        else
+        {
+            // Vertical swipe
+            if( dy > 0.0 )
+                emit swipeDown();
+            else
+                emit swipeUp();
+        }
+        cancelGesture(); // Only allow one swipe
+    }
+}
 
-    void swipeLeft() override;
-    void swipeRight() override;
-    void swipeUp() override;
-    void swipeDown() override;
-    //@}
+void SwipeDetector::cancelGesture()
+{
+    _canBeSwipe = false;
+}
 
-    /** @name Keyboard event handlers. */
-    //@{
-    void keyPress( int key, int modifiers, QString text ) override;
-    void keyRelease( int key, int modifiers, QString text ) override;
-    //@}
-
-    /** @name UI event handlers. */
-    //@{
-    void prevPage() override;
-    void nextPage() override;
-    //@}
-
-signals:
-    /** Emitted when an Event occured. */
-    void notify( deflect::Event event );
-
-private slots:
-    void _sendSizeChangedEvent();
-
-private:
-    deflect::Event _getNormEvent( const QPointF& position ) const;
-};
-
-#endif
+bool SwipeDetector::_checkFingersDistanceForSwipe( const QPointF& p0,
+                                                   const QPointF& p1 ) const
+{
+    const qreal fingersInterval = MathUtils::getDist( p0, p1 );
+    return fingersInterval < _swipeMaxFingersIntervalPx;
+}

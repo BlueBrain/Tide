@@ -67,10 +67,18 @@ public:
     { Q_UNUSED( position ) }
     Q_INVOKABLE virtual void touchEnd( QPointF position )
     { Q_UNUSED( position ) }
-    Q_INVOKABLE virtual void tap( QPointF position )
-    { Q_UNUSED( position ) }
-    Q_INVOKABLE virtual void doubleTap( QPointF position )
-    { Q_UNUSED( position ) }
+
+    Q_INVOKABLE virtual void addTouchPoint( int id, QPointF position )
+    { Q_UNUSED( id ) Q_UNUSED( position ) }
+    Q_INVOKABLE virtual void updateTouchPoint( int id, QPointF position )
+    { Q_UNUSED( id ) Q_UNUSED( position ) }
+    Q_INVOKABLE virtual void removeTouchPoint( int id, QPointF position )
+    { Q_UNUSED( id ) Q_UNUSED( position ) }
+
+    Q_INVOKABLE virtual void tap( QPointF position, uint numPoints )
+    { Q_UNUSED( position ) Q_UNUSED( numPoints ) }
+    Q_INVOKABLE virtual void doubleTap( QPointF position, uint numPoints )
+    { Q_UNUSED( position ) Q_UNUSED( numPoints ) }
     Q_INVOKABLE virtual void tapAndHold( QPointF position, uint numPoints )
     { Q_UNUSED( position ) Q_UNUSED( numPoints ) }
     Q_INVOKABLE virtual void pan( QPointF position, QPointF delta,

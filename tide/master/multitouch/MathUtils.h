@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -36,67 +36,59 @@
 /* interpreted as representing official policies, either expressed   */
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
+#ifndef MATHUTILS_H
+#define MATHUTILS_H
 
-#ifndef PIXELSTREAMINTERACTIONDELEGATE_H
-#define PIXELSTREAMINTERACTIONDELEGATE_H
+#include <QRectF>
 
-#include "ContentInteractionDelegate.h"
-
-#include <deflect/Event.h>
+#include "types.h"
 
 /**
- * Forward user actions to a deflect::Stream using Deflect events.
+ * Utility math functions used by multitouch gesture detectors.
  */
-class PixelStreamInteractionDelegate : public ContentInteractionDelegate
+namespace MathUtils
 {
-    Q_OBJECT
 
-public:
-    /** Constructor */
-    explicit PixelStreamInteractionDelegate( ContentWindow& contentWindow );
+/**
+ * Get the minimal bounding rectangle around two points.
+ * @param p0 the first corner
+ * @param p1 the second corner
+ * @return the bounding rectangle
+ */
+QRectF getBoundingRect( const QPointF& p0, const QPointF& p1 );
 
-    /** @name Touch gesture handlers. */
-    //@{
-    void touchBegin( QPointF position ) override;
-    void touchEnd( QPointF position ) override;
+/**
+ * Get the euclidean distance between two points.
+ * @param p0 the first point
+ * @param p1 the second point
+ * @return the distance between the two points.
+ */
+qreal getDist( const QPointF& p0, const QPointF& p1 );
 
-    void addTouchPoint( int id, QPointF position ) override;
-    void updateTouchPoint( int id, QPointF position ) override;
-    void removeTouchPoint( int id, QPointF position ) override;
+/**
+ * Get the center of two points.
+ * @param p0 the first point
+ * @param p1 the second point
+ * @return the center of the two points.
+ */
+QPointF getCenter( const QPointF& p0, const QPointF& p1 );
 
-    void tap( QPointF position, uint numPoints ) override;
-    void doubleTap( QPointF position, uint numPoints ) override;
-    void tapAndHold( QPointF position, uint numPoints ) override;
-    void pan( QPointF position, QPointF delta, uint numPoints ) override;
-    void pinch( QPointF position, QPointF pixelDelta ) override;
+/**
+ * Compute the center of a list of positions.
+ * @return the center of the points.
+ */
+QPointF computeCenter( const Positions& positions );
 
-    void swipeLeft() override;
-    void swipeRight() override;
-    void swipeUp() override;
-    void swipeDown() override;
-    //@}
+/**
+ * Check if any point has moved by more than a given threshold.
+ * @param positions the current positions
+ * @param startPositions the start positions
+ * @param moveThreshold the distance threshold
+ * @return true if any point has moved
+ */
+bool hasMoved( const Positions& positions, const Positions& startPositions,
+               qreal moveThreshold );
 
-    /** @name Keyboard event handlers. */
-    //@{
-    void keyPress( int key, int modifiers, QString text ) override;
-    void keyRelease( int key, int modifiers, QString text ) override;
-    //@}
-
-    /** @name UI event handlers. */
-    //@{
-    void prevPage() override;
-    void nextPage() override;
-    //@}
-
-signals:
-    /** Emitted when an Event occured. */
-    void notify( deflect::Event event );
-
-private slots:
-    void _sendSizeChangedEvent();
-
-private:
-    deflect::Event _getNormEvent( const QPointF& position ) const;
-};
+}
 
 #endif

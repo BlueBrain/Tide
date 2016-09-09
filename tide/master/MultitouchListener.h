@@ -1,5 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/*                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>     */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,66 +38,44 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef PIXELSTREAMINTERACTIONDELEGATE_H
-#define PIXELSTREAMINTERACTIONDELEGATE_H
+#ifndef MULTITOUCHLISTENER_H
+#define MULTITOUCHLISTENER_H
 
-#include "ContentInteractionDelegate.h"
+#include <TUIO/TuioClient.h>
+#include <TUIO/TuioListener.h>
 
-#include <deflect/Event.h>
+#include <QObject>
+#include <QPointF>
 
 /**
- * Forward user actions to a deflect::Stream using Deflect events.
+ * Listen to TUIO touch events and emit corresponding QSignals.
  */
-class PixelStreamInteractionDelegate : public ContentInteractionDelegate
+class MultitouchListener : public QObject, public TUIO::TuioListener
 {
     Q_OBJECT
+    Q_DISABLE_COPY( MultitouchListener )
 
 public:
-    /** Constructor */
-    explicit PixelStreamInteractionDelegate( ContentWindow& contentWindow );
+    MultitouchListener();
+    ~MultitouchListener();
 
-    /** @name Touch gesture handlers. */
-    //@{
-    void touchBegin( QPointF position ) override;
-    void touchEnd( QPointF position ) override;
+    void addTuioObject( TUIO::TuioObject* ) override {}
+    void updateTuioObject( TUIO::TuioObject* ) override {}
+    void removeTuioObject( TUIO::TuioObject* ) override {}
 
-    void addTouchPoint( int id, QPointF position ) override;
-    void updateTouchPoint( int id, QPointF position ) override;
-    void removeTouchPoint( int id, QPointF position ) override;
+    void addTuioCursor( TUIO::TuioCursor* tcur ) override;
+    void updateTuioCursor( TUIO::TuioCursor* tcur ) override;
+    void removeTuioCursor( TUIO::TuioCursor* tcur ) override;
 
-    void tap( QPointF position, uint numPoints ) override;
-    void doubleTap( QPointF position, uint numPoints ) override;
-    void tapAndHold( QPointF position, uint numPoints ) override;
-    void pan( QPointF position, QPointF delta, uint numPoints ) override;
-    void pinch( QPointF position, QPointF pixelDelta ) override;
-
-    void swipeLeft() override;
-    void swipeRight() override;
-    void swipeUp() override;
-    void swipeDown() override;
-    //@}
-
-    /** @name Keyboard event handlers. */
-    //@{
-    void keyPress( int key, int modifiers, QString text ) override;
-    void keyRelease( int key, int modifiers, QString text ) override;
-    //@}
-
-    /** @name UI event handlers. */
-    //@{
-    void prevPage() override;
-    void nextPage() override;
-    //@}
+    void refresh( TUIO::TuioTime ) override {}
 
 signals:
-    /** Emitted when an Event occured. */
-    void notify( deflect::Event event );
-
-private slots:
-    void _sendSizeChangedEvent();
+    void touchPointAdded( int id, QPointF normalizedPos );
+    void touchPointUpdated( int id, QPointF normalizedPos );
+    void touchPointRemoved( int id, QPointF normalizedPos );
 
 private:
-    deflect::Event _getNormEvent( const QPointF& position ) const;
+    TUIO::TuioClient _client;
 };
 
 #endif

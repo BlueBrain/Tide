@@ -100,7 +100,7 @@ BaseContentWindow {
             if(contentwindow.isPanel) // force toggle
                 contentwindow.controlsVisible = !contentwindow.controlsVisible
         }
-        onDoubleTap: toggleFocusMode()
+        onDoubleTap: (numPoints > 1) ? toggleFullscreenMode() : toggleFocusMode()
 
         onPanStarted: {
             if(windowActive && contentwindow.state === ContentWindow.NONE)
@@ -150,15 +150,27 @@ BaseContentWindow {
                 contentwindow.delegate.touchEnd(pos)
             contentwindow.content.captureInteraction = false
         }
+        onTouchPointAdded: {
+            if(contentActive)
+                contentwindow.delegate.addTouchPoint(id, pos)
+        }
+        onTouchPointUpdated: {
+            if(contentActive)
+                contentwindow.delegate.updateTouchPoint(id, pos)
+        }
+        onTouchPointRemoved: {
+            if(contentActive)
+                contentwindow.delegate.removeTouchPoint(id, pos)
+        }
         onTap: {
             if(contentActive)
-               contentwindow.delegate.tap(pos)
+               contentwindow.delegate.tap(pos, numPoints)
             else if(windowActive)
                 toggleControlsVisibility()
         }
         onDoubleTap: {
             if(!contentActive && !contentwindow.fullscreen)
-                toggleFocusMode()
+                (numPoints > 1) ? toggleFullscreenMode() : toggleFocusMode()
         }
         onTapAndHold: {
             if(contentActive)

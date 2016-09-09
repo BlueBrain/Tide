@@ -58,7 +58,7 @@
 #include "log.h"
 
 #if TIDE_ENABLE_TUIO_TOUCH_LISTENER
-#  include "MultiTouchListener.h"
+#  include "MultitouchListener.h"
 #endif
 
 #if TIDE_ENABLE_REST_INTERFACE
@@ -325,14 +325,41 @@ void MasterApplication::_initMPIConnection()
 void MasterApplication::_initTouchListener()
 {
     DisplayGroupView* view = _masterWindow->getDisplayGroupView();
-    _touchListener.reset( new MultiTouchListener(
-                              *view, _config->getTotalSize( )));
-    connect( _touchListener.get(), &MultiTouchListener::touchPointAdded,
-             _markers.get(), &Markers::addMarker );
-    connect( _touchListener.get(), &MultiTouchListener::touchPointUpdated,
-             _markers.get(), &Markers::updateMarker );
-    connect( _touchListener.get(), &MultiTouchListener::touchPointRemoved,
-             _markers.get(), &Markers::removeMarker );
+    auto mapFunc = std::bind( &DisplayGroupView::mapToWallPos, view,
+                              std::placeholders::_1 );
+    _touchInjector.reset( new deflect::qt::TouchInjector{ *view, mapFunc } );
+    _touchListener.reset( new MultitouchListener( ));
+
+    connect( _touchListener.get(), &MultitouchListener::touchPointAdded,
+             _touchInjector.get(), &deflect::qt::TouchInjector::addTouchPoint );
+    connect( _touchListener.get(), &MultitouchListener::touchPointUpdated,
+             _touchInjector.get(),
+             &deflect::qt::TouchInjector::updateTouchPoint );
+    connect( _touchListener.get(), &MultitouchListener::touchPointRemoved,
+             _touchInjector.get(),
+             &deflect::qt::TouchInjector::removeTouchPoint );
+
+    const auto wallSize = _config->getTotalSize();
+    auto getWallPos = [wallSize]( const QPointF& normalizedPos )
+    {
+        return QPointF{ normalizedPos.x() * wallSize.width(),
+                        normalizedPos.y() * wallSize.height( )};
+    };
+    connect( _touchListener.get(), &MultitouchListener::touchPointAdded,
+             [this, getWallPos]( const int id, const QPointF normalizedPos )
+    {
+        _markers->addMarker( id, getWallPos( normalizedPos ));
+    });
+    connect( _touchListener.get(), &MultitouchListener::touchPointUpdated,
+             [this, getWallPos]( const int id, const QPointF normalizedPos )
+    {
+        _markers->updateMarker( id, getWallPos( normalizedPos ));
+    });
+    connect( _touchListener.get(), &MultitouchListener::touchPointRemoved,
+             [this]( const int id, const QPointF )
+    {
+        _markers->removeMarker( id );
+    });
 
     connect( view, &DisplayGroupView::mousePressed, [this]( const QPointF pos )
     {

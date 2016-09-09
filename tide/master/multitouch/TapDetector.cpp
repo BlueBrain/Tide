@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,66 +37,52 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef PIXELSTREAMINTERACTIONDELEGATE_H
-#define PIXELSTREAMINTERACTIONDELEGATE_H
+#include "TapDetector.h"
 
-#include "ContentInteractionDelegate.h"
+#include "MathUtils.h"
 
-#include <deflect/Event.h>
+TapDetector::TapDetector( const qreal moveThresholdPx )
+    : _moveThresholdPx( moveThresholdPx )
+{}
 
-/**
- * Forward user actions to a deflect::Stream using Deflect events.
- */
-class PixelStreamInteractionDelegate : public ContentInteractionDelegate
+void TapDetector::initGesture( const Positions& positions )
 {
-    Q_OBJECT
+    // Last finger released
+    if( positions.empty( ))
+    {
+        if( !_tapCanceled )
+            emit tap( _tapCenter, _numPoints );
 
-public:
-    /** Constructor */
-    explicit PixelStreamInteractionDelegate( ContentWindow& contentWindow );
+        _tapCanceled = false;
+        _touchStartPos.clear();
+        _numPoints = 0;
+        return;
+    }
 
-    /** @name Touch gesture handlers. */
-    //@{
-    void touchBegin( QPointF position ) override;
-    void touchEnd( QPointF position ) override;
+    if( _tapCanceled )
+        return;
 
-    void addTouchPoint( int id, QPointF position ) override;
-    void updateTouchPoint( int id, QPointF position ) override;
-    void removeTouchPoint( int id, QPointF position ) override;
+    if( positions.size() > _touchStartPos.size( ))
+    {
+        _tapCenter = MathUtils::computeCenter( positions );
+        _numPoints = positions.size();
+    }
+    _touchStartPos = positions;
+}
 
-    void tap( QPointF position, uint numPoints ) override;
-    void doubleTap( QPointF position, uint numPoints ) override;
-    void tapAndHold( QPointF position, uint numPoints ) override;
-    void pan( QPointF position, QPointF delta, uint numPoints ) override;
-    void pinch( QPointF position, QPointF pixelDelta ) override;
+void TapDetector::updateGesture( const Positions& positions )
+{
+    if( !_tapCanceled )
+        _cancelGestureIfMoved( positions );
+}
 
-    void swipeLeft() override;
-    void swipeRight() override;
-    void swipeUp() override;
-    void swipeDown() override;
-    //@}
+void TapDetector::cancelGesture()
+{
+    _tapCanceled = true;
+}
 
-    /** @name Keyboard event handlers. */
-    //@{
-    void keyPress( int key, int modifiers, QString text ) override;
-    void keyRelease( int key, int modifiers, QString text ) override;
-    //@}
-
-    /** @name UI event handlers. */
-    //@{
-    void prevPage() override;
-    void nextPage() override;
-    //@}
-
-signals:
-    /** Emitted when an Event occured. */
-    void notify( deflect::Event event );
-
-private slots:
-    void _sendSizeChangedEvent();
-
-private:
-    deflect::Event _getNormEvent( const QPointF& position ) const;
-};
-
-#endif
+void TapDetector::_cancelGestureIfMoved( const Positions& positions )
+{
+    if( MathUtils::hasMoved( positions, _touchStartPos, _moveThresholdPx ))
+        cancelGesture();
+}
