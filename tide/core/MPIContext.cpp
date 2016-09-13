@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,6 +39,7 @@
 
 #include "MPIContext.h"
 
+#include "config.h"
 #include "log.h"
 
 #include <mpi.h>
@@ -51,8 +52,12 @@ MPIContext::MPIContext( int argc, char* argv[] )
     MPI_Init_thread( &argc, &argv, required, &provided );
     if( provided < required )
     {
+#if TIDE_IGNORE_MPI_THREADSAFETY
+        put_flog( LOG_DEBUG, "MPI support: %d/%d", provided, required );
+#else
         throw std::runtime_error( "MPI implementation must support "
                                   "MPI_THREAD_MULTIPLE" );
+#endif
     }
 }
 

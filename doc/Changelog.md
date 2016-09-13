@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.2 (git master)
 
+* [83](https://github.com/BlueBrain/Tide/pull/83):
+  Added TIDE_IGNORE_MPI_THREADSAFETY CMake option for Ubuntu 14.04 after #82
 * [82](https://github.com/BlueBrain/Tide/pull/82):
   Documentation and build process improvements:
   - Added documentation about building Tide on different platforms
