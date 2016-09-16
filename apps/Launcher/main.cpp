@@ -47,7 +47,7 @@ int main( int argc, char** argv )
     qInstallMessageHandler( qtMessageLogger );
 
     // Load virtualkeyboard input context plugin
-    qputenv( "QT_IM_MODULE", QByteArray( "qtvirtualkeyboard" ));
+    qputenv( "QT_IM_MODULE", QByteArray( "virtualkeyboard" ));
 
     std::unique_ptr<Launcher> launcher;
     try

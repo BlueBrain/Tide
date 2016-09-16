@@ -51,7 +51,7 @@
 int main( int argc, char* argv[] )
 {
     // Load virtualkeyboard input context plugin
-    qputenv( "QT_IM_MODULE", QByteArray( "qtvirtualkeyboard" ));
+    qputenv( "QT_IM_MODULE", QByteArray( "virtualkeyboard" ));
 
     {
         MPIChannelPtr worldChannel( new MPIChannel( argc, argv ));

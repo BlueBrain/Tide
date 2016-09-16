@@ -47,7 +47,7 @@ int main( int argc, char** argv )
     qInstallMessageHandler( qtMessageLogger );
 
     // Load virtualkeyboard input context plugin
-    qputenv( "QT_IM_MODULE", QByteArray( "qtvirtualkeyboard" ));
+    qputenv( "QT_IM_MODULE", QByteArray( "virtualkeyboard" ));
 
     // Equivalent to QtWebEngine::initialize() inside to application.
     QGuiApplication::setAttribute( Qt::AA_ShareOpenGLContexts );
