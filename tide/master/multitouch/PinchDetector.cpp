@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,94 +37,58 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef WEBKITPIXELSTREAMER_H
-#define WEBKITPIXELSTREAMER_H
+#include "PinchDetector.h"
 
-#include "PixelStreamer.h" // base class
+#include "multitouch/MathUtils.h"
 
-#include <QImage>
-#include <QMutex>
-#include <QString>
-#include <QTimer>
-#include <QWebView>
+#include <cmath>
 
-#include <memory>
+PinchDetector::PinchDetector( const qreal pinchThresholdPx )
+    : _pinchThresholdPx( pinchThresholdPx )
+{}
 
-class RestInterface;
-class WebkitAuthenticationHelper;
-class WebkitHtmlSelectReplacer;
-
-class QRect;
-class QWebHitTestResult;
-class QWebElement;
-
-/**
- * Stream webpages with user interaction support.
- */
-class WebkitPixelStreamer : public PixelStreamer
+void PinchDetector::initGesture( const QPointF& pos0, const QPointF& pos1 )
 {
-    Q_OBJECT
+    const auto twoFingersStartRect = MathUtils::getBoundingRect( pos0, pos1 );
+    const auto w = twoFingersStartRect.width();
+    const auto h = twoFingersStartRect.height();
+    _initialPinchDist = std::sqrt( w * w + h * h );
+}
 
-public:
-    /**
-     * Constructor.
-     *
-     * @param webpageSize The desired size of the webpage viewport. The actual
-     *        stream dimensions will be: size * default zoom factor (2x).
-     * @param url The webpage to load.
-     */
-    WebkitPixelStreamer( const QSize& webpageSize, const QString& url );
+void PinchDetector::updateGesture( const QPointF& pos0, const QPointF& pos1 )
+{
+    if( !_pinching )
+    {
+        const auto pinchDist = MathUtils::getDist( pos0, pos1 );
+        const auto pinchDelta = std::abs( pinchDist - _initialPinchDist );
+        if( pinchDelta > _pinchThresholdPx )
+            _startGesture( pos0, pos1 );
+        else
+            return;
+    }
 
-    /** Destructor. */
-    ~WebkitPixelStreamer();
+    const auto pinchRect = MathUtils::getBoundingRect( pos0, pos1 );
+    const auto pinchDelta = pinchRect.size() - _lastPinchRect.size();
+    _lastPinchRect = pinchRect;
+    emit pinch( pinchRect.center(), QPointF{ pinchDelta.width(),
+                                             pinchDelta.height() });
+}
 
-    /** Get the size of the webpage images. */
-    QSize size() const override;
+void PinchDetector::cancelGesture()
+{
+    if( !_pinching )
+        return;
 
-    /**
-     * Open a webpage.
-     *
-     * @param url The address of the webpage to load.
-     */
-    void setUrl( const QString& url );
+    _pinching = false;
+    emit pinchEnded();
+}
 
-    /** Get the QWebView used internally by the streamer. */
-    const QWebView* getView() const;
+void PinchDetector::_startGesture( const QPointF& pos0, const QPointF& pos1 )
+{
+    if( _pinching )
+        return;
 
-public slots:
-    /** Process an Event. */
-    void processEvent( deflect::Event event ) override;
-
-private slots:
-    void _update();
-
-private:
-    QWebView _webView;
-    std::unique_ptr<WebkitAuthenticationHelper> _authenticationHelper;
-    std::unique_ptr<WebkitHtmlSelectReplacer> _selectReplacer;
-    std::unique_ptr<RestInterface> _restInterface;
-
-    QTimer _timer;
-    QMutex _mutex;
-    QImage _image;
-
-    bool _interactionModeActive = 0;
-    unsigned int _initialWidth = 0;
-
-    void processClickEvent(const deflect::Event& clickEvent);
-    void processPressEvent(const deflect::Event& pressEvent);
-    void processMoveEvent(const deflect::Event& moveEvent);
-    void processReleaseEvent(const deflect::Event& releaseEvent);
-    void processPinchEvent(const deflect::Event& wheelEvent);
-    void processKeyPress(const deflect::Event& keyEvent);
-    void processKeyRelease(const deflect::Event& keyEvent);
-    void processViewSizeChange(const deflect::Event& sizeEvent);
-
-    QWebHitTestResult performHitTest(const deflect::Event &event) const;
-    QPoint getPointerPosition(const deflect::Event& event) const;
-    bool isWebGLElement(const QWebElement& element) const;
-    void setSize(const QSize& webpageSize);
-    void recomputeZoomFactor();
-};
-
-#endif
+    _pinching = true;
+    _lastPinchRect = MathUtils::getBoundingRect( pos0, pos1 );
+    emit pinchStarted();
+}

@@ -10,6 +10,7 @@ set(TIDEMASTER_LINK_LIBRARIES
     Qt5::Widgets
   PRIVATE
     Qt5::Concurrent
+    DeflectQt
 )
 
 list(APPEND TIDEMASTER_PUBLIC_HEADERS
@@ -27,6 +28,13 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   MasterConfiguration.h
   MasterToForkerChannel.h
   MasterWindow.h
+  multitouch/DoubleTapDetector.h
+  multitouch/MathUtils.h
+  multitouch/PanDetector.h
+  multitouch/PinchDetector.h
+  multitouch/SwipeDetector.h
+  multitouch/TapAndHoldDetector.h
+  multitouch/TapDetector.h
   MultitouchArea.h
   PixelStreamWindowManager.h
   ProcessForker.h
@@ -52,6 +60,13 @@ list(APPEND TIDEMASTER_SOURCES
   MasterConfiguration.cpp
   MasterToForkerChannel.cpp
   MasterWindow.cpp
+  multitouch/DoubleTapDetector.cpp
+  multitouch/MathUtils.cpp
+  multitouch/PanDetector.cpp
+  multitouch/PinchDetector.cpp
+  multitouch/SwipeDetector.cpp
+  multitouch/TapAndHoldDetector.cpp
+  multitouch/TapDetector.cpp
   MultitouchArea.cpp
   PixelStreamWindowManager.cpp
   ProcessForker.cpp
@@ -87,8 +102,8 @@ elseif(TARGET Qt5::WebKitWidgets)
 endif()
 
 if(TIDE_ENABLE_TUIO_TOUCH_LISTENER)
-  list(APPEND TIDEMASTER_HEADERS MultiTouchListener.h)
-  list(APPEND TIDEMASTER_SOURCES MultiTouchListener.cpp)
+  list(APPEND TIDEMASTER_HEADERS MultitouchListener.h)
+  list(APPEND TIDEMASTER_SOURCES MultitouchListener.cpp)
   list(APPEND TIDEMASTER_LINK_LIBRARIES TUIO ${X11_LIBRARIES})
 endif()
 

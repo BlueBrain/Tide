@@ -1,5 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/*                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>     */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,94 +38,44 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef WEBKITPIXELSTREAMER_H
-#define WEBKITPIXELSTREAMER_H
+#ifndef MULTITOUCHLISTENER_H
+#define MULTITOUCHLISTENER_H
 
-#include "PixelStreamer.h" // base class
+#include <TUIO/TuioClient.h>
+#include <TUIO/TuioListener.h>
 
-#include <QImage>
-#include <QMutex>
-#include <QString>
-#include <QTimer>
-#include <QWebView>
-
-#include <memory>
-
-class RestInterface;
-class WebkitAuthenticationHelper;
-class WebkitHtmlSelectReplacer;
-
-class QRect;
-class QWebHitTestResult;
-class QWebElement;
+#include <QObject>
+#include <QPointF>
 
 /**
- * Stream webpages with user interaction support.
+ * Listen to TUIO touch events and emit corresponding QSignals.
  */
-class WebkitPixelStreamer : public PixelStreamer
+class MultitouchListener : public QObject, public TUIO::TuioListener
 {
     Q_OBJECT
+    Q_DISABLE_COPY( MultitouchListener )
 
 public:
-    /**
-     * Constructor.
-     *
-     * @param webpageSize The desired size of the webpage viewport. The actual
-     *        stream dimensions will be: size * default zoom factor (2x).
-     * @param url The webpage to load.
-     */
-    WebkitPixelStreamer( const QSize& webpageSize, const QString& url );
+    MultitouchListener();
+    ~MultitouchListener();
 
-    /** Destructor. */
-    ~WebkitPixelStreamer();
+    void addTuioObject( TUIO::TuioObject* ) override {}
+    void updateTuioObject( TUIO::TuioObject* ) override {}
+    void removeTuioObject( TUIO::TuioObject* ) override {}
 
-    /** Get the size of the webpage images. */
-    QSize size() const override;
+    void addTuioCursor( TUIO::TuioCursor* tcur ) override;
+    void updateTuioCursor( TUIO::TuioCursor* tcur ) override;
+    void removeTuioCursor( TUIO::TuioCursor* tcur ) override;
 
-    /**
-     * Open a webpage.
-     *
-     * @param url The address of the webpage to load.
-     */
-    void setUrl( const QString& url );
+    void refresh( TUIO::TuioTime ) override {}
 
-    /** Get the QWebView used internally by the streamer. */
-    const QWebView* getView() const;
-
-public slots:
-    /** Process an Event. */
-    void processEvent( deflect::Event event ) override;
-
-private slots:
-    void _update();
+signals:
+    void touchPointAdded( int id, QPointF normalizedPos );
+    void touchPointUpdated( int id, QPointF normalizedPos );
+    void touchPointRemoved( int id, QPointF normalizedPos );
 
 private:
-    QWebView _webView;
-    std::unique_ptr<WebkitAuthenticationHelper> _authenticationHelper;
-    std::unique_ptr<WebkitHtmlSelectReplacer> _selectReplacer;
-    std::unique_ptr<RestInterface> _restInterface;
-
-    QTimer _timer;
-    QMutex _mutex;
-    QImage _image;
-
-    bool _interactionModeActive = 0;
-    unsigned int _initialWidth = 0;
-
-    void processClickEvent(const deflect::Event& clickEvent);
-    void processPressEvent(const deflect::Event& pressEvent);
-    void processMoveEvent(const deflect::Event& moveEvent);
-    void processReleaseEvent(const deflect::Event& releaseEvent);
-    void processPinchEvent(const deflect::Event& wheelEvent);
-    void processKeyPress(const deflect::Event& keyEvent);
-    void processKeyRelease(const deflect::Event& keyEvent);
-    void processViewSizeChange(const deflect::Event& sizeEvent);
-
-    QWebHitTestResult performHitTest(const deflect::Event &event) const;
-    QPoint getPointerPosition(const deflect::Event& event) const;
-    bool isWebGLElement(const QWebElement& element) const;
-    void setSize(const QSize& webpageSize);
-    void recomputeZoomFactor();
+    TUIO::TuioClient _client;
 };
 
 #endif

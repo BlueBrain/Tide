@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
-/*                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>     */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,61 +37,61 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef MULTI_TOUCH_LISTENER_H
-#define MULTI_TOUCH_LISTENER_H
+#include "PanDetector.h"
 
-#include "types.h"
+#include "multitouch/MathUtils.h"
 
-#include <TUIO/TuioListener.h>
-#include <TUIO/TuioClient.h>
+PanDetector::PanDetector( const qreal panThreshold )
+    : _panThreshold( panThreshold )
+{}
 
-#include <QObject>
-#include <QTouchEvent>
-
-class DisplayGroupView;
-
-/**
- * Listen to TUIO events and transmit the touch points to a target QGraphicsView.
- */
-class MultiTouchListener : public QObject, public TUIO::TuioListener
+void PanDetector::initGesture( const Positions& positions )
 {
-    Q_OBJECT
+    cancelGesture();
 
-public:
-    MultiTouchListener( DisplayGroupView& targetView, const QSize& wallSize );
-    ~MultiTouchListener();
+    _startPanPos = MathUtils::computeCenter( positions );
+}
 
-    void addTuioObject( TUIO::TuioObject* tobj ) override;
-    void updateTuioObject( TUIO::TuioObject* tobj ) override;
-    void removeTuioObject( TUIO::TuioObject* tobj ) override;
+void PanDetector::updateGesture( const Positions& positions )
+{
+    const auto pos = MathUtils::computeCenter( positions );
 
-    void addTuioCursor( TUIO::TuioCursor* tcur ) override;
-    void updateTuioCursor( TUIO::TuioCursor* tcur ) override;
-    void removeTuioCursor( TUIO::TuioCursor* tcur ) override;
+    if( !_panning && (pos - _startPanPos).manhattanLength() > _panThreshold )
+    {
+        _startGesture( pos, positions.size( ));
+        _lastPanPos = pos;
+    }
+    if( _panning )
+    {
+        emit pan( pos, pos - _lastPanPos, positions.size( ));
+        _lastPanPos = pos;
+    }
+}
 
-    void refresh( TUIO::TuioTime frameTime ) override;
+void PanDetector::cancelGesture()
+{
+    if( !_panning )
+        return;
 
-signals:
-    void touchPointAdded( int id, QPointF position );
-    void touchPointUpdated( int id, QPointF position );
-    void touchPointRemoved( int id );
+    _panning = false;
+    emit panEnded();
+}
 
-private:
-    Q_DISABLE_COPY( MultiTouchListener )
+qreal PanDetector::getPanThreshold() const
+{
+    return _panThreshold;
+}
 
-    QPointF _getScreenPos( TUIO::TuioCursor* tcur ) const;
-    QPointF _getWallPos( TUIO::TuioCursor* tcur ) const;
+void PanDetector::setPanThreshold( const qreal arg )
+{
+    _panThreshold = arg;
+}
 
-    void _fillBegin( QTouchEvent::TouchPoint& touchPoint ) const;
-    void _fill( QTouchEvent::TouchPoint& touchPoint,
-               const QTouchEvent::TouchPoint& prevPoint ) const;
-    void _handleEvent( TUIO::TuioCursor* tcur, QEvent::Type eventType );
+void PanDetector::_startGesture( const QPointF& pos, const uint numPoints )
+{
+    if( _panning )
+        return;
 
-    QMap<int, QTouchEvent::TouchPoint> _touchPointMap;
-    DisplayGroupView& _targetView;
-    TUIO::TuioClient _client;
-    QTouchDevice _device;
-    const QSize _wallSize;
-};
-
-#endif
+    _panning = true;
+    emit panStarted( pos, numPoints );
+}

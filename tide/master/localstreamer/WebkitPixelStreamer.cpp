@@ -150,8 +150,8 @@ void WebkitPixelStreamer::processEvent(deflect::Event event_)
     case deflect::Event::EVT_MOVE:
         processMoveEvent(event_);
         break;
-    case deflect::Event::EVT_WHEEL:
-        processWheelEvent(event_);
+    case deflect::Event::EVT_PINCH:
+        processPinchEvent(event_);
         break;
     case deflect::Event::EVT_RELEASE:
         processReleaseEvent(event_);
@@ -244,18 +244,20 @@ void WebkitPixelStreamer::processReleaseEvent(const deflect::Event& releaseEvent
     _interactionModeActive = false;
 }
 
-void WebkitPixelStreamer::processWheelEvent(const deflect::Event& wheelEvent)
+void WebkitPixelStreamer::processPinchEvent( const deflect::Event& pinchEvent )
 {
-    const QWebHitTestResult& hitResult = performHitTest(wheelEvent);
+    const QWebHitTestResult& hitResult = performHitTest( pinchEvent );
 
-    if(!hitResult.isNull() && isWebGLElement(hitResult.element()))
+    if( !hitResult.isNull() && isWebGLElement( hitResult.element( )))
     {
-        const int delta = wheelEvent.dy;
-        QWheelEvent myEvent(hitResult.pos(), delta, Qt::NoButton,
-                            (Qt::KeyboardModifiers)wheelEvent.modifiers,
-                            Qt::Vertical);
+        const auto dx = pinchEvent.dx * size().width();
+        const auto dy = pinchEvent.dy * size().height();
+        const auto delta = std::copysign( std::sqrt( dx*dx + dy*dy ), dx + dy );
 
-        _webView.page()->event(&myEvent);
+        QWheelEvent wheelEvent( hitResult.pos(), delta, Qt::NoButton,
+                                (Qt::KeyboardModifiers)pinchEvent.modifiers,
+                                Qt::Vertical );
+        _webView.page()->event( &wheelEvent );
     }
 }
 

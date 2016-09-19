@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,94 +37,52 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef WEBKITPIXELSTREAMER_H
-#define WEBKITPIXELSTREAMER_H
+#include "TapDetector.h"
 
-#include "PixelStreamer.h" // base class
+#include "MathUtils.h"
 
-#include <QImage>
-#include <QMutex>
-#include <QString>
-#include <QTimer>
-#include <QWebView>
+TapDetector::TapDetector( const qreal moveThresholdPx )
+    : _moveThresholdPx( moveThresholdPx )
+{}
 
-#include <memory>
-
-class RestInterface;
-class WebkitAuthenticationHelper;
-class WebkitHtmlSelectReplacer;
-
-class QRect;
-class QWebHitTestResult;
-class QWebElement;
-
-/**
- * Stream webpages with user interaction support.
- */
-class WebkitPixelStreamer : public PixelStreamer
+void TapDetector::initGesture( const Positions& positions )
 {
-    Q_OBJECT
+    // Last finger released
+    if( positions.empty( ))
+    {
+        if( !_tapCanceled )
+            emit tap( _tapCenter, _numPoints );
 
-public:
-    /**
-     * Constructor.
-     *
-     * @param webpageSize The desired size of the webpage viewport. The actual
-     *        stream dimensions will be: size * default zoom factor (2x).
-     * @param url The webpage to load.
-     */
-    WebkitPixelStreamer( const QSize& webpageSize, const QString& url );
+        _tapCanceled = false;
+        _touchStartPos.clear();
+        _numPoints = 0;
+        return;
+    }
 
-    /** Destructor. */
-    ~WebkitPixelStreamer();
+    if( _tapCanceled )
+        return;
 
-    /** Get the size of the webpage images. */
-    QSize size() const override;
+    if( positions.size() > _touchStartPos.size( ))
+    {
+        _tapCenter = MathUtils::computeCenter( positions );
+        _numPoints = positions.size();
+    }
+    _touchStartPos = positions;
+}
 
-    /**
-     * Open a webpage.
-     *
-     * @param url The address of the webpage to load.
-     */
-    void setUrl( const QString& url );
+void TapDetector::updateGesture( const Positions& positions )
+{
+    if( !_tapCanceled )
+        _cancelGestureIfMoved( positions );
+}
 
-    /** Get the QWebView used internally by the streamer. */
-    const QWebView* getView() const;
+void TapDetector::cancelGesture()
+{
+    _tapCanceled = true;
+}
 
-public slots:
-    /** Process an Event. */
-    void processEvent( deflect::Event event ) override;
-
-private slots:
-    void _update();
-
-private:
-    QWebView _webView;
-    std::unique_ptr<WebkitAuthenticationHelper> _authenticationHelper;
-    std::unique_ptr<WebkitHtmlSelectReplacer> _selectReplacer;
-    std::unique_ptr<RestInterface> _restInterface;
-
-    QTimer _timer;
-    QMutex _mutex;
-    QImage _image;
-
-    bool _interactionModeActive = 0;
-    unsigned int _initialWidth = 0;
-
-    void processClickEvent(const deflect::Event& clickEvent);
-    void processPressEvent(const deflect::Event& pressEvent);
-    void processMoveEvent(const deflect::Event& moveEvent);
-    void processReleaseEvent(const deflect::Event& releaseEvent);
-    void processPinchEvent(const deflect::Event& wheelEvent);
-    void processKeyPress(const deflect::Event& keyEvent);
-    void processKeyRelease(const deflect::Event& keyEvent);
-    void processViewSizeChange(const deflect::Event& sizeEvent);
-
-    QWebHitTestResult performHitTest(const deflect::Event &event) const;
-    QPoint getPointerPosition(const deflect::Event& event) const;
-    bool isWebGLElement(const QWebElement& element) const;
-    void setSize(const QSize& webpageSize);
-    void recomputeZoomFactor();
-};
-
-#endif
+void TapDetector::_cancelGestureIfMoved( const Positions& positions )
+{
+    if( MathUtils::hasMoved( positions, _touchStartPos, _moveThresholdPx ))
+        cancelGesture();
+}

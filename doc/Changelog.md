@@ -3,6 +3,13 @@ Changelog {#changelog}
 
 # Release 1.2 (git master)
 
+* [84](https://github.com/BlueBrain/Tide/pull/84):
+  Multitouch improvements [DISCL-383]:
+  - Tap and DoubleTap gestures work with any number of fingers
+  - DoubleTap a window with two fingers to make it fullscreen
+  Deflect adaptations [DISCL-386]:
+  - Clients now receive PINCH events instead of WHEEL events
+  - Clients also receive raw touch events (touch point added, updated, removed)
 * [83](https://github.com/BlueBrain/Tide/pull/83):
   Added TIDE_IGNORE_MPI_THREADSAFETY CMake option for Ubuntu 14.04 after #82
 * [82](https://github.com/BlueBrain/Tide/pull/82):

@@ -57,7 +57,7 @@ public:
     /** @name Touch gesture handlers. */
     //@{
     void pan( QPointF position, QPointF delta, uint numPoints ) override;
-    void pinch( QPointF position, qreal pixelDelta ) override;
+    void pinch( QPointF position, QPointF pixelDelta ) override;
     //@}
 
     /** Adjust the zoom of the window to the aspect ratio of the content. */

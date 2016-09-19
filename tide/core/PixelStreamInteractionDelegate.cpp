@@ -51,6 +51,36 @@ PixelStreamInteractionDelegate::PixelStreamInteractionDelegate( ContentWindow&
              this, &PixelStreamInteractionDelegate::_sendSizeChangedEvent );
 }
 
+void PixelStreamInteractionDelegate::addTouchPoint( const int id,
+                                                    const QPointF position )
+{
+    deflect::Event deflectEvent = _getNormEvent( position );
+    deflectEvent.type = deflect::Event::EVT_TOUCH_ADD;
+    deflectEvent.key = id;
+
+    emit notify( deflectEvent );
+}
+
+void PixelStreamInteractionDelegate::updateTouchPoint( const int id,
+                                                       const QPointF position )
+{
+    deflect::Event deflectEvent = _getNormEvent( position );
+    deflectEvent.type = deflect::Event::EVT_TOUCH_UPDATE;
+    deflectEvent.key = id;
+
+    emit notify( deflectEvent );
+}
+
+void PixelStreamInteractionDelegate::removeTouchPoint( const int id,
+                                                       const QPointF position )
+{
+    deflect::Event deflectEvent = _getNormEvent( position );
+    deflectEvent.type = deflect::Event::EVT_TOUCH_REMOVE;
+    deflectEvent.key = id;
+
+    emit notify( deflectEvent );
+}
+
 void PixelStreamInteractionDelegate::touchBegin( const QPointF position )
 {
     deflect::Event deflectEvent = _getNormEvent( position );
@@ -67,18 +97,22 @@ void PixelStreamInteractionDelegate::touchEnd( const QPointF position )
     emit notify( deflectEvent );
 }
 
-void PixelStreamInteractionDelegate::tap( const QPointF position )
+void PixelStreamInteractionDelegate::tap( const QPointF position,
+                                          const uint numPoints )
 {
     deflect::Event deflectEvent = _getNormEvent( position );
     deflectEvent.type = deflect::Event::EVT_CLICK;
+    deflectEvent.key = numPoints;
 
     emit notify( deflectEvent );
 }
 
-void PixelStreamInteractionDelegate::doubleTap( const QPointF position )
+void PixelStreamInteractionDelegate::doubleTap( const QPointF position,
+                                                const uint numPoints )
 {
     deflect::Event deflectEvent = _getNormEvent( position );
     deflectEvent.type = deflect::Event::EVT_DOUBLECLICK;
+    deflectEvent.key = numPoints;
 
     emit notify( deflectEvent );
 }
@@ -114,12 +148,15 @@ void PixelStreamInteractionDelegate::pan( const QPointF position,
 }
 
 void PixelStreamInteractionDelegate::pinch( const QPointF position,
-                                            const qreal pixelDelta )
+                                            const QPointF pixelDelta )
 {
     deflect::Event deflectEvent = _getNormEvent( position );
-    deflectEvent.type = deflect::Event::EVT_WHEEL;
+    deflectEvent.type = deflect::Event::EVT_PINCH;
     deflectEvent.mouseLeft = false;
-    deflectEvent.dy = pixelDelta;
+
+    const QRectF& win = _contentWindow.getDisplayCoordinates();
+    deflectEvent.dx = pixelDelta.x() / win.width();
+    deflectEvent.dy = pixelDelta.y() / win.height();
 
     emit notify( deflectEvent );
 }

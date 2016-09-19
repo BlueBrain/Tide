@@ -42,7 +42,12 @@
 
 #include <QQuickItem>
 
-#include <QTimer>
+#include "multitouch/DoubleTapDetector.h"
+#include "multitouch/PanDetector.h"
+#include "multitouch/PinchDetector.h"
+#include "multitouch/SwipeDetector.h"
+#include "multitouch/TapAndHoldDetector.h"
+#include "multitouch/TapDetector.h"
 
 /**
  * A multipoint touch area to detect touch gestures on Qml objects.
@@ -90,50 +95,56 @@ signals:
 
     /** Always emitted for the last finger that is removed from the area. */
     void touchEnded( QPointF pos );
+
+    /** Emitted when a new touch point is added. */
+    void touchPointAdded( int id, QPointF pos );
+
+    /** Emitted when an existing touch point is updated. */
+    void touchPointUpdated( int id, QPointF pos );
+
+    /** Emitted when an existing touch point is removed. */
+    void touchPointRemoved( int id, QPointF pos );
     //@}
 
-    /** @name Basic one-finger tap events. */
+    /** @name Two-finger gestures. */
     //@{
-    /** Emitted for a one-finger touch and release in-place (i.e. not a pan). */
-    void tap( QPointF pos );
-
-    /** Emitted when two taps occur in a fast sequence. */
-    void doubleTap( QPointF pos );
-    //@}
-
-    /** @name Two-fingers gestures. */
-    //@{
-    /** Emitted when a pinch starts (i.e. two fingers start moving apart). */
+    /** @copydoc PinchDetector::pinchStarted */
     void pinchStarted();
 
-    /** Emitted for each step of a two-fingers pinch gesture. */
-    void pinch( QPointF pos, qreal pixelDelta );
+    /** @copydoc PinchDetector::pinch */
+    void pinch( QPointF pos, QPointF pixelDelta );
 
-    /** Emitted when a pinch ends (i.e. one of the two fingers is released). */
+    /** @copydoc PinchDetector::pinchEnded */
     void pinchEnded();
 
-    /** Two-fingers swipe to the left. */
+    /** @copydoc SwipeDetector::swipeLeft */
     void swipeLeft();
-    /** Two-fingers swipe to the right. */
+    /** @copydoc SwipeDetector::swipeRight */
     void swipeRight();
-    /** Two-fingers swipe up. */
+    /** @copydoc SwipeDetector::swipeUp */
     void swipeUp();
-    /** Two-fingers swipe down. */
+    /** @copydoc SwipeDetector::swipeDown */
     void swipeDown();
     //@}
 
     /** @name Multi-finger gestures. */
     //@{
-    /** Emitted after a prolonged non-moving touch with one or more fingers. */
+    /** @copydoc TapDetector::tap */
+    void tap( QPointF pos, uint numPoints );
+
+    /** @copydoc DoubleTapDetector::doubleTap */
+    void doubleTap( QPointF pos, uint numPoints );
+
+    /** @copydoc TapAndHoldDetector::tapAndHold */
     void tapAndHold( QPointF pos, uint numPoints );
 
-    /** Emitted when a pan starts (i.e. one or more finger(s) start moving). */
+    /** @copydoc PanDetector::panStarted */
     void panStarted( QPointF pos, uint numPoints );
 
-    /** Emitted for each finger movement between panStarted-panEnded. */
+    /** @copydoc PanDetector::pan */
     void pan( QPointF pos, QPointF delta, uint numPoints );
 
-    /** Emitted when a pan ends (finger released or new finger detected). */
+    /** @copydoc PanDetector::panEnded */
     void panEnded();
     //@}
 
@@ -141,67 +152,31 @@ private:
     void mousePressEvent( QMouseEvent* event ) override;
     void mouseMoveEvent( QMouseEvent* event ) override;
     void mouseReleaseEvent( QMouseEvent* event ) override;
-    void mouseDoubleClickEvent( QMouseEvent* event ) override;
     void wheelEvent( QWheelEvent* event ) override;
     void touchEvent( QTouchEvent* event ) override;
 
-    QPointF _getScenePos( const QMouseEvent* mouse );
-    QPointF _getScenePos( const QTouchEvent::TouchPoint& point );
-    QPointF _getScenePos( const QPointF& itemPos );
-
-    qreal _getPinchDistance( const QTouchEvent::TouchPoint& p0,
-                             const QTouchEvent::TouchPoint& p1 );
-    QPointF _getCenter( const QTouchEvent::TouchPoint& p0,
-                        const QTouchEvent::TouchPoint& p1 );
-
-    void _handleSinglePoint( const QTouchEvent::TouchPoint& point );
-
-    void _startPanGesture( const QPointF& pos );
-    void _cancelPanGesture();
-
-    using Positions = std::vector<QPointF>;
     using TouchPoints = QList<QTouchEvent::TouchPoint>;
 
-    void _startDoubleTapGesture();
-    void _cancelDoubleTapGesture();
+    Positions _getPositions( const QMouseEvent& mouse );
+    Positions _getPositions( const TouchPoints& points );
 
-    void _handleTwoPoints( const QTouchEvent::TouchPoint& p0,
-                           const QTouchEvent::TouchPoint& p1 );
-    void _startPinchGesture();
-    void _cancelPinchGesture();
+    QPointF _getScenePos( const QMouseEvent& mouse );
+    QPointF _getScenePos( const QTouchEvent::TouchPoint& point );
+    QPointF _getScenePos( const QWheelEvent& wheel );
 
-    void _handleMultipointGestures( const TouchPoints& points );
+    void _handleGestures( const Positions& positions );
+    void _handleTouch( const TouchPoints& points );
 
-    void _updateTapAndHoldGesture( const Positions& positions );
-    void _startMultipointGesture( const Positions& positions );
-    void _cancelTapAndHoldIfMoved( const Positions& positions );
-    void _cancelTapAndHoldGesture();
-    QPointF _getTouchCenterStartPos() const;
-    uint _getPointsCount() const;
+    QQuickItem* _referenceItem = nullptr;
 
-    void _updatePanGesture( const Positions& positions );
-
-    QQuickItem* _referenceItem;
-    qreal _panThreshold;
-
-    QPointF _mousePrevPos;
-
-    bool _panning;
-    QPointF _lastPanPos;
-
-    bool _twoFingersDetectionStarted;
-    bool _canBeSwipe;
-    bool _pinching;
-    qreal _lastPinchDist;
-    QPointF _twoFingersStartPos;
-
-    QPointF _tapStartPos;
-    uint _tapCounter;
-    qreal _initialPinchDist;
+    DoubleTapDetector _doubleTapDetector;
+    PanDetector _panDetector;
+    PinchDetector _pinchDetector;
+    SwipeDetector _swipeDetector;
+    TapAndHoldDetector _tapAndHoldDetector;
+    TapDetector _tapDetector;
 
     Positions _touchStartPos;
-    QTimer _tapAndHoldTimer;
-    QTimer _doubleTapTimer;
 };
 
 #endif

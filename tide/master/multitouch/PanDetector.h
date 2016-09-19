@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,94 +37,50 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef WEBKITPIXELSTREAMER_H
-#define WEBKITPIXELSTREAMER_H
+#ifndef PANDETECTOR_H
+#define PANDETECTOR_H
 
-#include "PixelStreamer.h" // base class
+#include "types.h"
 
-#include <QImage>
-#include <QMutex>
-#include <QString>
-#include <QTimer>
-#include <QWebView>
-
-#include <memory>
-
-class RestInterface;
-class WebkitAuthenticationHelper;
-class WebkitHtmlSelectReplacer;
-
-class QRect;
-class QWebHitTestResult;
-class QWebElement;
+#include <QObject>
 
 /**
- * Stream webpages with user interaction support.
+ * Detect multi-finger pan gestures.
  */
-class WebkitPixelStreamer : public PixelStreamer
+class PanDetector : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY( PanDetector )
 
 public:
-    /**
-     * Constructor.
-     *
-     * @param webpageSize The desired size of the webpage viewport. The actual
-     *        stream dimensions will be: size * default zoom factor (2x).
-     * @param url The webpage to load.
-     */
-    WebkitPixelStreamer( const QSize& webpageSize, const QString& url );
+    PanDetector( qreal panThreshold );
 
-    /** Destructor. */
-    ~WebkitPixelStreamer();
+    void initGesture( const Positions& positions );
+    void updateGesture( const Positions& positions );
+    void cancelGesture();
 
-    /** Get the size of the webpage images. */
-    QSize size() const override;
+    bool isPanning() const { return _panning; }
 
-    /**
-     * Open a webpage.
-     *
-     * @param url The address of the webpage to load.
-     */
-    void setUrl( const QString& url );
+    qreal getPanThreshold() const;
+    void setPanThreshold( qreal arg );
 
-    /** Get the QWebView used internally by the streamer. */
-    const QWebView* getView() const;
+signals:
+    /** Emitted when a pan starts (i.e. one or more finger(s) start moving). */
+    void panStarted( QPointF pos, uint numPoints );
 
-public slots:
-    /** Process an Event. */
-    void processEvent( deflect::Event event ) override;
+    /** Emitted for each finger movement between panStarted-panEnded. */
+    void pan( QPointF pos, QPointF delta, uint numPoints );
 
-private slots:
-    void _update();
+    /** Emitted when a pan ends (finger released or new finger detected). */
+    void panEnded();
 
 private:
-    QWebView _webView;
-    std::unique_ptr<WebkitAuthenticationHelper> _authenticationHelper;
-    std::unique_ptr<WebkitHtmlSelectReplacer> _selectReplacer;
-    std::unique_ptr<RestInterface> _restInterface;
+    qreal _panThreshold;
+    bool _panning = false;
+    QPointF _startPanPos;
+    QPointF _lastPanPos;
 
-    QTimer _timer;
-    QMutex _mutex;
-    QImage _image;
-
-    bool _interactionModeActive = 0;
-    unsigned int _initialWidth = 0;
-
-    void processClickEvent(const deflect::Event& clickEvent);
-    void processPressEvent(const deflect::Event& pressEvent);
-    void processMoveEvent(const deflect::Event& moveEvent);
-    void processReleaseEvent(const deflect::Event& releaseEvent);
-    void processPinchEvent(const deflect::Event& wheelEvent);
-    void processKeyPress(const deflect::Event& keyEvent);
-    void processKeyRelease(const deflect::Event& keyEvent);
-    void processViewSizeChange(const deflect::Event& sizeEvent);
-
-    QWebHitTestResult performHitTest(const deflect::Event &event) const;
-    QPoint getPointerPosition(const deflect::Event& event) const;
-    bool isWebGLElement(const QWebElement& element) const;
-    void setSize(const QSize& webpageSize);
-    void recomputeZoomFactor();
+    void _startGesture( const QPointF& pos, uint numPoints );
 };
 
 #endif

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,94 +37,68 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef WEBKITPIXELSTREAMER_H
-#define WEBKITPIXELSTREAMER_H
+#include "DoubleTapDetector.h"
 
-#include "PixelStreamer.h" // base class
+#include "MathUtils.h"
 
-#include <QImage>
-#include <QMutex>
-#include <QString>
-#include <QTimer>
-#include <QWebView>
-
-#include <memory>
-
-class RestInterface;
-class WebkitAuthenticationHelper;
-class WebkitHtmlSelectReplacer;
-
-class QRect;
-class QWebHitTestResult;
-class QWebElement;
-
-/**
- * Stream webpages with user interaction support.
- */
-class WebkitPixelStreamer : public PixelStreamer
+DoubleTapDetector::DoubleTapDetector( const qreal doubleTapThresholdPx,
+                                      const uint doubleTapTimeoutMs )
+    : _doubleTapThresholdPx( doubleTapThresholdPx )
 {
-    Q_OBJECT
+    _doubleTapTimer.setInterval( doubleTapTimeoutMs );
+    _doubleTapTimer.setSingleShot( true );
 
-public:
-    /**
-     * Constructor.
-     *
-     * @param webpageSize The desired size of the webpage viewport. The actual
-     *        stream dimensions will be: size * default zoom factor (2x).
-     * @param url The webpage to load.
-     */
-    WebkitPixelStreamer( const QSize& webpageSize, const QString& url );
+    connect( &_doubleTapTimer, &QTimer::timeout, this,
+             &DoubleTapDetector::cancelGesture );
+}
 
-    /** Destructor. */
-    ~WebkitPixelStreamer();
+void DoubleTapDetector::initGesture( const Positions& positions )
+{
+    if( !_canBeDoubleTap )
+    {
+        // adding initial points
+        if( positions.size() > _touchStartPos.size( ))
+        {
+            if( _touchStartPos.empty( ))
+                _startGesture( positions );
+            else
+                _touchStartPos = positions;
+            return;
+        }
 
-    /** Get the size of the webpage images. */
-    QSize size() const override;
+        // all points released, decide if potential double tap or abort
+        if( positions.empty( ))
+        {
+            _canBeDoubleTap = _doubleTapTimer.isActive();
+            if( !_canBeDoubleTap )
+                cancelGesture();
+        }
+        return;
+    }
 
-    /**
-     * Open a webpage.
-     *
-     * @param url The address of the webpage to load.
-     */
-    void setUrl( const QString& url );
+    // points pressed again, check for double tap
+    if( positions.size() == _touchStartPos.size() &&
+        !MathUtils::hasMoved( positions, _touchStartPos, _doubleTapThresholdPx))
+    {
+        emit doubleTap( MathUtils::computeCenter( _touchStartPos ),
+                        _touchStartPos.size( ));
+        _doubleTapTimer.stop();
+    }
 
-    /** Get the QWebView used internally by the streamer. */
-    const QWebView* getView() const;
+    // all points released, reset everything for next detection
+    if( positions.empty( ))
+        cancelGesture();
+}
 
-public slots:
-    /** Process an Event. */
-    void processEvent( deflect::Event event ) override;
+void DoubleTapDetector::cancelGesture()
+{
+    _doubleTapTimer.stop();
+    _canBeDoubleTap = false;
+    _touchStartPos.clear();
+}
 
-private slots:
-    void _update();
-
-private:
-    QWebView _webView;
-    std::unique_ptr<WebkitAuthenticationHelper> _authenticationHelper;
-    std::unique_ptr<WebkitHtmlSelectReplacer> _selectReplacer;
-    std::unique_ptr<RestInterface> _restInterface;
-
-    QTimer _timer;
-    QMutex _mutex;
-    QImage _image;
-
-    bool _interactionModeActive = 0;
-    unsigned int _initialWidth = 0;
-
-    void processClickEvent(const deflect::Event& clickEvent);
-    void processPressEvent(const deflect::Event& pressEvent);
-    void processMoveEvent(const deflect::Event& moveEvent);
-    void processReleaseEvent(const deflect::Event& releaseEvent);
-    void processPinchEvent(const deflect::Event& wheelEvent);
-    void processKeyPress(const deflect::Event& keyEvent);
-    void processKeyRelease(const deflect::Event& keyEvent);
-    void processViewSizeChange(const deflect::Event& sizeEvent);
-
-    QWebHitTestResult performHitTest(const deflect::Event &event) const;
-    QPoint getPointerPosition(const deflect::Event& event) const;
-    bool isWebGLElement(const QWebElement& element) const;
-    void setSize(const QSize& webpageSize);
-    void recomputeZoomFactor();
-};
-
-#endif
+void DoubleTapDetector::_startGesture( const Positions& positions )
+{
+    _touchStartPos = positions;
+    _doubleTapTimer.start();
+}

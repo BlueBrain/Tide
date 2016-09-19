@@ -68,7 +68,8 @@ BOOST_AUTO_TEST_CASE( test_webgl_support )
         return;
 
     // load the webgl website, exec() returns when loading is finished
-    WebkitPixelStreamer* streamer = new WebkitPixelStreamer( QSize(640,480), EMPTY_PAGE_URL );
+    WebkitPixelStreamer* streamer = new WebkitPixelStreamer( QSize( 640, 480 ),
+                                                             EMPTY_PAGE_URL );
     QObject::connect( streamer->getView(), SIGNAL(loadFinished(bool)),
                       QApplication::instance(), SLOT(quit()));
     streamer->setUrl( testPageURL( ));
@@ -111,9 +112,10 @@ BOOST_AUTO_TEST_CASE( test_webgl_interaction )
         return;
 
     // load the webgl website, exec() returns when loading is finished
-    WebkitPixelStreamer* streamer = new WebkitPixelStreamer( QSize(640, 480), EMPTY_PAGE_URL );
-    QObject::connect( streamer->getView(), SIGNAL(loadFinished(bool)),
-                      QApplication::instance(), SLOT(quit()));
+    WebkitPixelStreamer* streamer = new WebkitPixelStreamer( QSize( 640, 480 ),
+                                                             EMPTY_PAGE_URL );
+    QObject::connect( streamer->getView(), SIGNAL( loadFinished( bool )),
+                      QApplication::instance(), SLOT( quit( )));
     streamer->setUrl( testPageURL( ));
     QApplication::instance()->exec();
 
@@ -168,7 +170,8 @@ BOOST_AUTO_TEST_CASE( test_webgl_press_release )
         return;
 
     // load the webgl website, exec() returns when loading is finished
-    WebkitPixelStreamer* streamer = new WebkitPixelStreamer( QSize(640, 480), EMPTY_PAGE_URL );
+    WebkitPixelStreamer* streamer = new WebkitPixelStreamer( QSize( 640, 480 ),
+                                                             EMPTY_PAGE_URL );
     QObject::connect( streamer->getView(), SIGNAL(loadFinished(bool)),
                       QApplication::instance(), SLOT(quit()));
     streamer->setUrl( testPageURL( ));
@@ -211,9 +214,10 @@ BOOST_AUTO_TEST_CASE( test_webgl_wheel )
         return;
 
     // load the webgl website, exec() returns when loading is finished
-    WebkitPixelStreamer* streamer = new WebkitPixelStreamer( QSize(640, 480), EMPTY_PAGE_URL );
-    QObject::connect( streamer->getView(), SIGNAL(loadFinished(bool)),
-                      QApplication::instance(), SLOT(quit()));
+    WebkitPixelStreamer* streamer = new WebkitPixelStreamer( QSize( 640, 480 ),
+                                                             EMPTY_PAGE_URL );
+    QObject::connect( streamer->getView(), SIGNAL( loadFinished( bool )),
+                      QApplication::instance(), SLOT( quit( )));
     streamer->setUrl( testPageURL( ));
     QApplication::instance()->exec();
 
@@ -223,27 +227,27 @@ BOOST_AUTO_TEST_CASE( test_webgl_wheel )
     BOOST_REQUIRE( frame );
 
     // Normalized mouse coordinates
-    deflect::Event wheelState;
-    wheelState.mouseX = 0.1;
-    wheelState.mouseY = 0.1;
-    wheelState.dy = 40;
-    wheelState.type = deflect::Event::EVT_WHEEL;
+    deflect::Event pinchEvent;
+    pinchEvent.mouseX = 0.1;
+    pinchEvent.mouseY = 0.1;
+    pinchEvent.dy = 40.0 / streamer->size().height();
+    pinchEvent.type = deflect::Event::EVT_PINCH;
 
-    streamer->processEvent(wheelState);
+    streamer->processEvent( pinchEvent );
 
-    const int expectedPosX = wheelState.mouseX * streamer->size().width() /
+    const int expectedPosX = pinchEvent.mouseX * streamer->size().width() /
                              streamer->getView()->zoomFactor();
-    const int expectedPosY = wheelState.mouseY * streamer->size().height() /
+    const int expectedPosY = pinchEvent.mouseY * streamer->size().height() /
                              streamer->getView()->zoomFactor();
-    const int expectedWheelDelta = wheelState.dy;
+    const int expectedWheelDelta = 40;
 
-    QString jsX = QString("lastMouseX == %1;").arg(expectedPosX);
-    QString jsY = QString("lastMouseY == %1;").arg(expectedPosY);
-    QString jsD = QString("wheelDelta == %1;").arg(expectedWheelDelta);
+    QString jsX = QString( "lastMouseX == %1;" ).arg( expectedPosX );
+    QString jsY = QString( "lastMouseY == %1;" ).arg( expectedPosY );
+    QString jsD = QString( "wheelDelta == %1;" ).arg( expectedWheelDelta );
 
-    BOOST_CHECK( frame->evaluateJavaScript(jsX).toBool());
-    BOOST_CHECK( frame->evaluateJavaScript(jsY).toBool());
-    BOOST_CHECK( frame->evaluateJavaScript(jsD).toBool());
+    BOOST_CHECK( frame->evaluateJavaScript( jsX ).toBool( ));
+    BOOST_CHECK( frame->evaluateJavaScript( jsY ).toBool( ));
+    BOOST_CHECK( frame->evaluateJavaScript( jsD ).toBool( ));
 
     delete streamer;
 }
@@ -254,9 +258,10 @@ BOOST_AUTO_TEST_CASE( test_localstorage )
         return;
 
     // load the webgl website, exec() returns when loading is finished
-    WebkitPixelStreamer* streamer = new WebkitPixelStreamer( QSize(640, 480), testPageURL( ));
-    QObject::connect( streamer->getView(), SIGNAL(loadFinished(bool)),
-                      QApplication::instance(), SLOT(quit()));
+    WebkitPixelStreamer* streamer = new WebkitPixelStreamer( QSize( 640, 480 ),
+                                                             testPageURL( ));
+    QObject::connect( streamer->getView(), SIGNAL( loadFinished( bool )),
+                      QApplication::instance(), SLOT(quit( )));
     QApplication::instance()->exec();
 
     QWebPage* page = streamer->getView()->page();

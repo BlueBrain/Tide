@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,94 +37,46 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef WEBKITPIXELSTREAMER_H
-#define WEBKITPIXELSTREAMER_H
+#ifndef PINCHDETECTOR_H
+#define PINCHDETECTOR_H
 
-#include "PixelStreamer.h" // base class
+#include "types.h"
 
-#include <QImage>
-#include <QMutex>
-#include <QString>
-#include <QTimer>
-#include <QWebView>
-
-#include <memory>
-
-class RestInterface;
-class WebkitAuthenticationHelper;
-class WebkitHtmlSelectReplacer;
-
-class QRect;
-class QWebHitTestResult;
-class QWebElement;
+#include <QObject>
+#include <QRectF>
 
 /**
- * Stream webpages with user interaction support.
+ * Detect two-finger pinch gestures.
  */
-class WebkitPixelStreamer : public PixelStreamer
+class PinchDetector : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY( PinchDetector )
 
 public:
-    /**
-     * Constructor.
-     *
-     * @param webpageSize The desired size of the webpage viewport. The actual
-     *        stream dimensions will be: size * default zoom factor (2x).
-     * @param url The webpage to load.
-     */
-    WebkitPixelStreamer( const QSize& webpageSize, const QString& url );
+    explicit PinchDetector( qreal pinchThresholdPx );
 
-    /** Destructor. */
-    ~WebkitPixelStreamer();
+    void initGesture( const QPointF& pos0, const QPointF& pos1 );
+    void updateGesture( const QPointF& pos0, const QPointF& pos1 );
+    void cancelGesture();
 
-    /** Get the size of the webpage images. */
-    QSize size() const override;
+signals:
+    /** Emitted when a pinch starts (i.e. two fingers start moving apart). */
+    void pinchStarted();
 
-    /**
-     * Open a webpage.
-     *
-     * @param url The address of the webpage to load.
-     */
-    void setUrl( const QString& url );
+    /** Emitted for each step of a two-fingers pinch gesture. */
+    void pinch( QPointF pos, QPointF pixelDelta );
 
-    /** Get the QWebView used internally by the streamer. */
-    const QWebView* getView() const;
-
-public slots:
-    /** Process an Event. */
-    void processEvent( deflect::Event event ) override;
-
-private slots:
-    void _update();
+    /** Emitted when a pinch ends (i.e. one of the two fingers is released). */
+    void pinchEnded();
 
 private:
-    QWebView _webView;
-    std::unique_ptr<WebkitAuthenticationHelper> _authenticationHelper;
-    std::unique_ptr<WebkitHtmlSelectReplacer> _selectReplacer;
-    std::unique_ptr<RestInterface> _restInterface;
+    void _startGesture( const QPointF& pos0, const QPointF& pos1 );
 
-    QTimer _timer;
-    QMutex _mutex;
-    QImage _image;
-
-    bool _interactionModeActive = 0;
-    unsigned int _initialWidth = 0;
-
-    void processClickEvent(const deflect::Event& clickEvent);
-    void processPressEvent(const deflect::Event& pressEvent);
-    void processMoveEvent(const deflect::Event& moveEvent);
-    void processReleaseEvent(const deflect::Event& releaseEvent);
-    void processPinchEvent(const deflect::Event& wheelEvent);
-    void processKeyPress(const deflect::Event& keyEvent);
-    void processKeyRelease(const deflect::Event& keyEvent);
-    void processViewSizeChange(const deflect::Event& sizeEvent);
-
-    QWebHitTestResult performHitTest(const deflect::Event &event) const;
-    QPoint getPointerPosition(const deflect::Event& event) const;
-    bool isWebGLElement(const QWebElement& element) const;
-    void setSize(const QSize& webpageSize);
-    void recomputeZoomFactor();
+    const qreal _pinchThresholdPx = 0;
+    bool _pinching = false;
+    qreal _initialPinchDist = 0.0;
+    QRectF _lastPinchRect;
 };
 
 #endif

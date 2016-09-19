@@ -100,6 +100,32 @@ BOOST_AUTO_TEST_CASE( testResizeAndMove )
     BOOST_CHECK_CLOSE( coords.height(), centeredSize.height(), 0.00001 );
 }
 
+BOOST_AUTO_TEST_CASE( testScaleByPixelDelta )
+{
+    ContentPtr content( new DummyContent );
+    content->setDimensions( CONTENT_SIZE );
+    ContentWindow window( content );
+
+    DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
+    ContentWindowController controller( window, *displayGroup );
+
+    const QRectF& coords = window.getCoordinates();
+    const auto pixelDelta = 40.0;
+
+    controller.scale( QPointF(), pixelDelta );
+    BOOST_CHECK_EQUAL( coords.height(), CONTENT_SIZE.height() + pixelDelta );
+    BOOST_CHECK_EQUAL( coords.width(),
+                       CONTENT_SIZE.width() + pixelDelta * CONTENT_AR );
+    BOOST_CHECK_EQUAL( coords.x(), 0 );
+    BOOST_CHECK_EQUAL( coords.y(), 0 );
+
+    controller.scale( coords.bottomRight(), -pixelDelta );
+    BOOST_CHECK_EQUAL( coords.size().width(), CONTENT_SIZE.width( ));
+    BOOST_CHECK_EQUAL( coords.size().height(), CONTENT_SIZE.height( ));
+    BOOST_CHECK_EQUAL( coords.y(), pixelDelta );
+    BOOST_CHECK_CLOSE( coords.x(), pixelDelta * CONTENT_AR, 0.00001 );
+}
+
 ContentWindowPtr makeDummyWindow()
 {
     ContentPtr content( new DummyContent );

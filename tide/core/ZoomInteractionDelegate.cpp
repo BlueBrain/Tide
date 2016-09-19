@@ -63,19 +63,18 @@ void ZoomInteractionDelegate::pan( const QPointF position, const QPointF delta,
     _moveZoomRect( delta );
 }
 
-void ZoomInteractionDelegate::pinch( QPointF position,
-                                     const qreal pixelDelta )
+void ZoomInteractionDelegate::pinch( QPointF position, const QPointF pixelDelta )
 {
     const ZoomHelper zoomHelper( _contentWindow );
     QRectF contentRect = zoomHelper.getContentRect();
 
     position -= _contentWindow.getDisplayCoordinates().topLeft();
 
+    const auto mode = pixelDelta.x() + pixelDelta.y() > 0 ?
+                          Qt::KeepAspectRatioByExpanding : Qt::KeepAspectRatio;
+
     QSizeF newSize = contentRect.size();
-    newSize.scale( newSize.width() + pixelDelta,
-                   newSize.height() + pixelDelta,
-                   pixelDelta < 0 ? Qt::KeepAspectRatio
-                                  : Qt::KeepAspectRatioByExpanding );
+    newSize.scale( newSize + QSizeF( pixelDelta.x(), pixelDelta.y( )), mode );
 
     contentRect = ContentWindowController::scaleRectAroundPosition( contentRect,
                                                                     position,

@@ -43,6 +43,10 @@
 #include "config.h"
 #include "types.h"
 
+#if TIDE_ENABLE_TUIO_TOUCH_LISTENER
+#include <deflect/qt/TouchInjector.h>
+#endif
+
 #include <QApplication>
 #include <QFutureWatcher>
 #include <QThread>
@@ -54,7 +58,7 @@ class MasterWindow;
 class PixelStreamerLauncher;
 class PixelStreamWindowManager;
 class MasterConfiguration;
-class MultiTouchListener;
+class MultitouchListener;
 class RestInterface;
 class LoggingUtility;
 
@@ -90,7 +94,8 @@ private:
     std::unique_ptr<PixelStreamerLauncher> _pixelStreamerLauncher;
     std::unique_ptr<PixelStreamWindowManager> _pixelStreamWindowManager;
 #if TIDE_ENABLE_TUIO_TOUCH_LISTENER
-    std::unique_ptr<MultiTouchListener> _touchListener;
+    std::unique_ptr<MultitouchListener> _touchListener;
+    std::unique_ptr<deflect::qt::TouchInjector> _touchInjector;
 #endif
 #if TIDE_ENABLE_REST_INTERFACE
     std::unique_ptr<RestInterface> _restInterface;

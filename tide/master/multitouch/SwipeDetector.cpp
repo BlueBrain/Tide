@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,94 +37,71 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef WEBKITPIXELSTREAMER_H
-#define WEBKITPIXELSTREAMER_H
+#include "SwipeDetector.h"
 
-#include "PixelStreamer.h" // base class
+#include "multitouch/MathUtils.h"
 
-#include <QImage>
-#include <QMutex>
-#include <QString>
-#include <QTimer>
-#include <QWebView>
+#include <cmath>
 
-#include <memory>
+SwipeDetector::SwipeDetector( const qreal swipeMaxFingersIntervalPx,
+                              const qreal swipeThresholdPx )
+    : _swipeMaxFingersIntervalPx( swipeMaxFingersIntervalPx )
+    , _swipeThresholdPx( swipeThresholdPx )
+{}
 
-class RestInterface;
-class WebkitAuthenticationHelper;
-class WebkitHtmlSelectReplacer;
-
-class QRect;
-class QWebHitTestResult;
-class QWebElement;
-
-/**
- * Stream webpages with user interaction support.
- */
-class WebkitPixelStreamer : public PixelStreamer
+void SwipeDetector::initGesture( const QPointF& p0, const QPointF& p1 )
 {
-    Q_OBJECT
+    _canBeSwipe = _checkFingersDistanceForSwipe( p0, p1 );
+    _swipeStartPos = MathUtils::getCenter( p0, p1 );
+}
 
-public:
-    /**
-     * Constructor.
-     *
-     * @param webpageSize The desired size of the webpage viewport. The actual
-     *        stream dimensions will be: size * default zoom factor (2x).
-     * @param url The webpage to load.
-     */
-    WebkitPixelStreamer( const QSize& webpageSize, const QString& url );
+void SwipeDetector::updateGesture( const QPointF& p0, const QPointF& p1 )
+{
+    if( !_canBeSwipe )
+        return;
 
-    /** Destructor. */
-    ~WebkitPixelStreamer();
+    if( !_checkFingersDistanceForSwipe( p0, p1 ))
+    {
+        cancelGesture();
+        return;
+    }
 
-    /** Get the size of the webpage images. */
-    QSize size() const override;
+    const auto twoFingersPos = MathUtils::getCenter( p0, p1 );
+    const auto twoFingersStartPos = _swipeStartPos;
+    const auto dist = MathUtils::getDist( twoFingersStartPos, twoFingersPos );
+    if( dist > _swipeThresholdPx )
+    {
+        const qreal dx = twoFingersPos.x() - twoFingersStartPos.x();
+        const qreal dy = twoFingersPos.y() - twoFingersStartPos.y();
 
-    /**
-     * Open a webpage.
-     *
-     * @param url The address of the webpage to load.
-     */
-    void setUrl( const QString& url );
+        if( std::abs( dx ) > std::abs( dy ))
+        {
+            // Horizontal swipe
+            if( dx > 0.0 )
+                emit swipeRight();
+            else
+                emit swipeLeft();
+        }
+        else
+        {
+            // Vertical swipe
+            if( dy > 0.0 )
+                emit swipeDown();
+            else
+                emit swipeUp();
+        }
+        cancelGesture(); // Only allow one swipe
+    }
+}
 
-    /** Get the QWebView used internally by the streamer. */
-    const QWebView* getView() const;
+void SwipeDetector::cancelGesture()
+{
+    _canBeSwipe = false;
+}
 
-public slots:
-    /** Process an Event. */
-    void processEvent( deflect::Event event ) override;
-
-private slots:
-    void _update();
-
-private:
-    QWebView _webView;
-    std::unique_ptr<WebkitAuthenticationHelper> _authenticationHelper;
-    std::unique_ptr<WebkitHtmlSelectReplacer> _selectReplacer;
-    std::unique_ptr<RestInterface> _restInterface;
-
-    QTimer _timer;
-    QMutex _mutex;
-    QImage _image;
-
-    bool _interactionModeActive = 0;
-    unsigned int _initialWidth = 0;
-
-    void processClickEvent(const deflect::Event& clickEvent);
-    void processPressEvent(const deflect::Event& pressEvent);
-    void processMoveEvent(const deflect::Event& moveEvent);
-    void processReleaseEvent(const deflect::Event& releaseEvent);
-    void processPinchEvent(const deflect::Event& wheelEvent);
-    void processKeyPress(const deflect::Event& keyEvent);
-    void processKeyRelease(const deflect::Event& keyEvent);
-    void processViewSizeChange(const deflect::Event& sizeEvent);
-
-    QWebHitTestResult performHitTest(const deflect::Event &event) const;
-    QPoint getPointerPosition(const deflect::Event& event) const;
-    bool isWebGLElement(const QWebElement& element) const;
-    void setSize(const QSize& webpageSize);
-    void recomputeZoomFactor();
-};
-
-#endif
+bool SwipeDetector::_checkFingersDistanceForSwipe( const QPointF& p0,
+                                                   const QPointF& p1 ) const
+{
+    const qreal fingersInterval = MathUtils::getDist( p0, p1 );
+    return fingersInterval < _swipeMaxFingersIntervalPx;
+}
