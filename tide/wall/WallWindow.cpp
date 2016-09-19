@@ -45,9 +45,9 @@
 #include "QuickRenderer.h"
 #include "TestPattern.h"
 #include "TextureUploader.h"
-#include "log.h"
-
 #include "WallConfiguration.h"
+#include "log.h"
+#include "qmlUtils.h"
 
 #include <QOpenGLContext>
 #include <QQmlEngine>
@@ -166,7 +166,8 @@ void WallWindow::exposeEvent( QExposeEvent* )
 
 void WallWindow::_startQuick( const WallConfiguration& config )
 {
-    _qmlComponent = new QQmlComponent(_qmlEngine, QML_BACKGROUND_URL );
+    _qmlComponent = new QQmlComponent( _qmlEngine, QML_BACKGROUND_URL );
+    qmlCheckOrThrow( *_qmlComponent );
     QObject* rootObject_ = _qmlComponent->create();
     _rootItem = qobject_cast< QQuickItem* >( rootObject_ );
     _rootItem->setParentItem( contentItem( ));

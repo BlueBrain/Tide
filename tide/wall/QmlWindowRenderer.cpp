@@ -44,6 +44,7 @@
 #include "ContentWindow.h"
 #include "DataProvider.h"
 #include "Tile.h"
+#include "qmlUtils.h"
 
 #include <QQmlComponent>
 
@@ -193,13 +194,7 @@ void QmlWindowRenderer::_updateTile( const uint tileIndex,
 QQuickItem* QmlWindowRenderer::_createQmlItem( const QUrl& url )
 {
     QQmlComponent component( _windowContext->engine(), url );
-    if( component.isError( ))
-    {
-        QList<QQmlError> errorList = component.errors();
-        foreach( const QQmlError& error, errorList )
-            qWarning() << error.url() << error.line() << error;
-        return 0;
-    }
+    qmlCheckOrThrow( component );
     QObject* qmlObject = component.create( _windowContext.get( ));
     return qobject_cast<QQuickItem*>( qmlObject );
 }

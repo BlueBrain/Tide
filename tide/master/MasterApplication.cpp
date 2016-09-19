@@ -385,9 +385,15 @@ void MasterApplication::_initRestInterface()
 
     connect( _restInterface.get(), &RestInterface::browse, [this]( QString uri )
     {
+#if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
         if( uri.isEmpty( ))
             uri = _config->getWebBrowserDefaultURL();
         _pixelStreamerLauncher->openWebBrowser( QPointF(), QSize(), uri );
+#else
+        put_flog( LOG_INFO, "Can't browse url '%s', Tide was compiled without"
+                            "webbrowser support",
+                  uri.toLocal8Bit().constData( ));
+#endif
     });
     connect( _restInterface.get(), &RestInterface::open, [this]( QString uri )
     {

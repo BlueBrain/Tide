@@ -100,8 +100,8 @@ void DisplayGroupView::setDataModel( DisplayGroupPtr displayGroup )
     rootContext()->setContextProperty( "displaygroup", _displayGroup.get( ));
 
     QQmlComponent component( engine(), QML_DISPLAYGROUP_URL );
-    _displayGroupItem = qobject_cast< QQuickItem* >( component.create( ));
     qmlCheckOrThrow( component );
+    _displayGroupItem = qobject_cast< QQuickItem* >( component.create( ));
     auto wallObject = rootObject()->findChild<QQuickItem*>( WALL_OBJECT_NAME );
     _displayGroupItem->setParentItem( wallObject );
 
@@ -204,6 +204,7 @@ void DisplayGroupView::_add( ContentWindowPtr contentWindow )
     windowContext->setContextProperty( "contentwindow", contentWindow.get( ));
 
     QQmlComponent component( engine(), QML_CONTENTWINDOW_URL );
+    qmlCheckOrThrow( component );
     QObject* windowItem = component.create( windowContext );
     windowContext->setParent( windowItem );
 

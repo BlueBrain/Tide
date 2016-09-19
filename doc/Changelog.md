@@ -3,10 +3,16 @@ Changelog {#changelog}
 
 # Release 1.2 (git master)
 
+* [85](https://github.com/BlueBrain/Tide/pull/85):
+  Fix issues affecting Qt 5.7 caused by a conflict with Tide's virtual keyboard.
 * [84](https://github.com/BlueBrain/Tide/pull/84):
   Multitouch improvements [DISCL-383]:
   - Tap and DoubleTap gestures work with any number of fingers
   - DoubleTap a window with two fingers to make it fullscreen
+  - The changes also fixed bug [80](https://github.com/BlueBrain/Tide/issues/80)
+    on Qt >= 5.6, which could lead to an obscure race condition in the QV4
+    JavaScript engine when changing the State property of the ContentWindow
+    between resizing / moving / none.
   Deflect adaptations [DISCL-386]:
   - Clients now receive PINCH events instead of WHEEL events
   - Clients also receive raw touch events (touch point added, updated, removed)

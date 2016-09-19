@@ -20,8 +20,7 @@ functionalities such as rendering, serialization, file handling and network
 communication. Those dependencies are:
 * Boost 1.54 or later
 * MPI with MPI_THREAD_MULTIPLE support (openmpi 1.6.5 or later recommended)
-* Qt 5.4 or 5.5 (versions 5.6 and 5.7 currently have some
-  [stability issues](https://github.com/BlueBrain/Tide/issues/80))
+* Qt 5.4 or later
 
 In addition, it also depends on some external projects that are automatically
 cloned by CMake during the configure step. They come with their own additional
@@ -117,7 +116,7 @@ Tide has been extensively developed and tested on Ubuntu 14.04. Only a few
 system packages are outdated and must be replaced:
 * CMake 2.8: download recent CMake 3 binaries
   [from here](https://cmake.org/download/) and export PATH to *cmake* executable
-* Qt 5.2.1: use Qt 5.4.1 (or 5.5.1) installer downloaded from
+* Qt 5.2.1: use Qt 5.4.1 (or later) installer downloaded from
   [the Qt website](http://download.qt.io) and export (add in ~/.bashrc):
 
       QT_HOME=$HOME/Qt5.4.1/5.4/gcc_64

@@ -39,7 +39,6 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   PixelStreamWindowManager.h
   ProcessForker.h
   QmlTypeRegistration.h
-  qmlUtils.h
   State.h
   StateSerializationHelper.h
 )
