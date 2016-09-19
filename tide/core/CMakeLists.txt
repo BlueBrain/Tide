@@ -142,6 +142,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   PixelStreamContent.h
   PixelStreamInteractionDelegate.h
   QmlTypeRegistration.h
+  qmlUtils.h
   QtImage.h
   StatePreview.h
   SerializeBuffer.h

@@ -46,6 +46,7 @@
 #include "Markers.h"
 #include "VisibilityHelper.h"
 #include "WallWindow.h"
+#include "qmlUtils.h"
 
 #include <deflect/Frame.h>
 
@@ -175,6 +176,7 @@ void DisplayGroupRenderer::_createDisplayGroupQmlItem( QQuickItem& parentItem )
                                               _displayGroup.get( ));
 
     QQmlComponent component( &_engine, QML_DISPLAYGROUP_URL );
+    qmlCheckOrThrow( component );
     _displayGroupItem = qobject_cast<QQuickItem*>( component.create( ));
     _displayGroupItem->setParentItem( &parentItem );
 }
