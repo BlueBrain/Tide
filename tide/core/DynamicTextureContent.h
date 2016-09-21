@@ -43,7 +43,6 @@
 #define DYNAMIC_TEXTURE_CONTENT_H
 
 #include "Content.h"
-#include <boost/serialization/base_object.hpp>
 
 /**
  * Legacy image pyramid format, no longer supported.

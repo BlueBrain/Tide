@@ -46,7 +46,7 @@
 #include "ContentWindow.h"
 #include "DisplayGroup.h"
 #include "DummyContent.h"
-#include "SerializeUtils.h"
+#include "serialization/utils.h"
 #include "State.h"
 #include "StateSerializationHelper.h"
 #include "TextureContent.h"
@@ -90,7 +90,7 @@ State makeTestStateCopy()
     displayGroup->addContentWindow( window );
 
     State state( displayGroup );
-    return SerializeUtils::xmlCopy( state );
+    return serialization::xmlCopy( state );
 }
 
 BOOST_AUTO_TEST_CASE( testWhenStateIsSerializedAndDeserializedThenContentPropertiesArePreserved )
@@ -231,7 +231,7 @@ BOOST_AUTO_TEST_CASE( testWhenOpeningValidStateThenContentIsLoaded )
     State state;
     bool success = false;
     const auto file = STATE_V0_URI.toStdString();
-    BOOST_CHECK_NO_THROW( success = SerializeUtils::fromXmlFile( state, file ));
+    BOOST_CHECK_NO_THROW( success = serialization::fromXmlFile( state, file ));
     BOOST_REQUIRE( success );
 
     const auto& windows = state.getDisplayGroup()->getContentWindows();
@@ -264,7 +264,7 @@ BOOST_AUTO_TEST_CASE( testWhenOpeningValidVersion3StateThenContentIsLoaded )
     State state;
     bool success = false;
     const auto file = STATE_V3_URI.toStdString();
-    BOOST_CHECK_NO_THROW( success = SerializeUtils::fromXmlFile( state, file ));
+    BOOST_CHECK_NO_THROW( success = serialization::fromXmlFile( state, file ));
     BOOST_REQUIRE( success );
 
     const auto& windows = state.getDisplayGroup()->getContentWindows();

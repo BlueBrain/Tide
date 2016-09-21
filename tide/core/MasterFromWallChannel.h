@@ -42,7 +42,7 @@
 
 #include "types.h"
 #include "MPIHeader.h"
-#include "SerializeBuffer.h"
+#include "ReceiveBuffer.h"
 
 #include <QObject>
 
@@ -74,8 +74,8 @@ private:
     Q_DISABLE_COPY( MasterFromWallChannel )
 
     MPIChannelPtr _mpiChannel;
-    SerializeBuffer _buffer;
+    ReceiveBuffer _buffer;
     bool _processMessages;
 };
 
-#endif // MASTERFROMWALLCHANNEL_H
+#endif

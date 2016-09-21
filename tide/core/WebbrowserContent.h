@@ -43,8 +43,6 @@
 #include "PixelStreamContent.h" // Base class
 #include "WebbrowserHistory.h"  // Member
 
-#include <boost/serialization/base_object.hpp>
-
 /**
  * The Webbrowser is a PixelStream extended with history navigation.
  */

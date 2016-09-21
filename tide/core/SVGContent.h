@@ -43,7 +43,6 @@
 #define SVG_CONTENT_H
 
 #include "VectorialContent.h"
-#include <boost/serialization/base_object.hpp>
 
 class SVGContent : public VectorialContent
 {

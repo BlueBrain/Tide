@@ -39,22 +39,18 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef DISPLAY_GROUP_H
-#define DISPLAY_GROUP_H
+#ifndef DISPLAYGROUP_H
+#define DISPLAYGROUP_H
 
 #include "types.h"
-#include "Coordinates.h"
-#include "ContentWindow.h"
+#include "Coordinates.h"     // Base class
+#include "ContentWindow.h"   // needed for serialization
 
-#include <boost/serialization/access.hpp>
-#include <boost/serialization/nvp.hpp>
-#include <boost/serialization/vector.hpp>
-#include <boost/serialization/set.hpp>
+#include "serialization/includes.h"
+
 #include <boost/enable_shared_from_this.hpp>
 
-#include <QObject>
 #include <QUuid>
-#include <QRectF>
 
 /**
  * The different versions of the xml serialized display group.
@@ -74,6 +70,8 @@ class DisplayGroup : public Coordinates,
         public boost::enable_shared_from_this<DisplayGroup>
 {
     Q_OBJECT
+    Q_DISABLE_COPY( DisplayGroup )
+
     Q_PROPERTY( bool hasFocusedWindows READ hasFocusedWindows
                 NOTIFY hasFocusedWindowsChanged )
     Q_PROPERTY( bool hasFullscreenWindows READ hasFullscreenWindows
@@ -216,7 +214,6 @@ private slots:
     void _sendDisplayGroup();
 
 private:
-    Q_DISABLE_COPY( DisplayGroup )
 
     friend class boost::serialization::access;
 
@@ -279,6 +276,7 @@ private:
 };
 
 BOOST_CLASS_VERSION( DisplayGroup, FIRST_DISPLAYGROUP_VERSION )
+
 DECLARE_SERIALIZE_FOR_XML( DisplayGroup )
 
 #endif

@@ -1,5 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
+/*                     Daniel Nachbaur<daniel.nachbaur@epfl.ch>      */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,97 +38,66 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef SERIALIZEUTILS_H
-#define SERIALIZEUTILS_H
+#define BOOST_TEST_MODULE ReceiveBufferTests
+#include <boost/test/unit_test.hpp>
 
-#include "log.h"
+#include "ReceiveBuffer.h"
+#include "serialization/utils.h"
 
-#include <fstream>
-#include <sstream>
 
-#include <boost/archive/binary_iarchive.hpp>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/xml_archive_exception.hpp>
-#include <boost/archive/xml_iarchive.hpp>
-#include <boost/archive/xml_oarchive.hpp>
-
-#include <boost/serialization/shared_ptr.hpp>
-
-/**
- * A set of serialization utility functions.
- */
-struct SerializeUtils
+BOOST_AUTO_TEST_CASE( testReceiveBufferConstruction )
 {
-    template <typename T>
-    static T binaryCopy( const T& source )
-    {
-        std::stringstream oss;
-        {
-            boost::archive::binary_oarchive oa( oss );
-            oa << source;
-        }
-        T copy;
-        {
-            boost::archive::binary_iarchive ia( oss );
-            ia >> copy;
-        }
-        return copy;
-    }
+    const ReceiveBuffer buffer;
+    BOOST_CHECK_EQUAL( buffer.size(), 0 );
+}
 
-    template <typename T>
-    static T xmlCopy( const T& source )
-    {
-        std::stringstream oss;
-        {
-            boost::archive::xml_oarchive oa( oss );
-            oa << BOOST_SERIALIZATION_NVP( source );
-        }
-        T copy;
-        {
-            boost::archive::xml_iarchive ia( oss );
-            ia >> BOOST_SERIALIZATION_NVP( copy );
-        }
-        return copy;
-    }
+BOOST_AUTO_TEST_CASE( testSetSize )
+{
+    ReceiveBuffer buffer;
+    buffer.setSize( 1 );
+    BOOST_CHECK_EQUAL( buffer.size(), 1 );
 
-    template <typename T>
-    static bool fromXmlFile( T& object, const std::string& filename )
-    {
-        std::ifstream ifs( filename );
-        if( !ifs.good( ))
-            return false;
-        try
-        {
-            boost::archive::xml_iarchive ia( ifs );
-            ia >> BOOST_SERIALIZATION_NVP( object );
-        }
-        catch( const boost::archive::archive_exception& e )
-        {
-            put_flog( LOG_ERROR, "Could not restore from file: '%s': %s",
-                      filename.c_str(), e.what( ));
-            return false;
-        }
-        catch( const std::exception& e )
-        {
-            put_flog( LOG_ERROR, "Could not restore from file '%s'',"
-                                 "wrong file format: %s",
-                      filename.c_str(), e.what( ));
-            return false;
-        }
-        return true;
-    }
+    buffer.setSize( 11 );
+    BOOST_CHECK_EQUAL( buffer.size(), 11 );
 
-    template <typename T>
-    static bool toXmlFile( const T& object, const std::string& filename )
-    {
-        std::ofstream ofs( filename );
-        if( !ofs.good( ))
-            return false;
+    buffer.setSize( 5 );
+    BOOST_CHECK_EQUAL( buffer.size(), 5 );
+}
 
-        boost::archive::xml_oarchive oa( ofs );
-        oa << BOOST_SERIALIZATION_NVP( object );
-        return true;
-    }
-};
+namespace
+{
+template< typename T >
+T serializeAndDeserialize( const T& data )
+{
+    const auto serialized = serialization::toBinary( data );
 
-#endif
+    ReceiveBuffer buffer;
+    buffer.setSize( serialized.size( ));
+    memcpy( buffer.data(), serialized.data(), serialized.size( ));
+
+    return serialization::get<T>( buffer );
+}
+}
+
+BOOST_AUTO_TEST_CASE( testSerializeInt )
+{
+    const int foo = 42;
+    const int newFoo = serializeAndDeserialize( foo );
+
+    BOOST_CHECK_EQUAL( foo, newFoo );
+}
+
+BOOST_AUTO_TEST_CASE( testSerializeMultipleData )
+{
+    const std::string dataString( "hello world" );
+    const bool dataBool( false );
+    const float dataFloat( 42.56f );
+
+    const std::string newDataString = serializeAndDeserialize( dataString );
+    const bool newDataBool = serializeAndDeserialize( dataBool );
+    const float newDataFloat = serializeAndDeserialize( dataFloat );
+
+    BOOST_CHECK_EQUAL( dataString, newDataString );
+    BOOST_CHECK_EQUAL( dataBool, newDataBool );
+    BOOST_CHECK_EQUAL( dataFloat, newDataFloat );
+}

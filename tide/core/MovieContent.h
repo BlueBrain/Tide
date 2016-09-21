@@ -44,9 +44,6 @@
 
 #include "Content.h"
 
-#include <boost/serialization/base_object.hpp>
-#include <boost/serialization/export.hpp>
-
 enum ControlState
 {
     STATE_PAUSED = 1 << 0,

@@ -39,8 +39,7 @@
 
 #include "WebbrowserContent.h"
 
-#include <boost/serialization/export.hpp>
-#include <sstream>
+#include "serialization/utils.h"
 
 BOOST_CLASS_EXPORT_IMPLEMENT( WebbrowserContent )
 
@@ -165,12 +164,7 @@ void WebbrowserContent::setAddressBarFocused( const bool set )
 
 void WebbrowserContent::parseData( const QByteArray data )
 {
-    std::istringstream iss{ data.toStdString(), std::istringstream::binary };
-    {
-        boost::archive::binary_iarchive ia{ iss };
-        ia >> _history;
-        ia >> _restPort;
-    }
+    serialization::fromBinary( data.toStdString(), _history, _restPort );
     _addressBarUrl = _history.currentItem();
 
     emit pageChanged();
@@ -183,12 +177,6 @@ void WebbrowserContent::parseData( const QByteArray data )
 QByteArray WebbrowserContent::serializeData( const WebbrowserHistory& history,
                                              const int restPort )
 {
-    std::ostringstream stream{ std::ostringstream::binary };
-    {
-        boost::archive::binary_oarchive oa{ stream };
-        oa << history;
-        oa << restPort;
-    }
-    const auto string = stream.str();
-    return QByteArray{ string.data(), (int)string.size( )};
+    const auto string = serialization::toBinary( history, restPort );
+    return QByteArray::fromStdString( string );
 }

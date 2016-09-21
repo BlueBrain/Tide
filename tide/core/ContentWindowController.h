@@ -42,10 +42,9 @@
 
 #include "types.h"
 
-#include <QtCore/QObject>
-#include <QtCore/QRectF>
+#include "serialization/includes.h"
 
-#include <boost/serialization/access.hpp>
+#include <QObject>
 
 /** Common window size states. */
 enum SizeState
@@ -69,6 +68,7 @@ enum WindowPoint
 class ContentWindowController : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY( ContentWindowController )
 
 public:
     ContentWindowController( ContentWindow& contentWindow,
@@ -126,8 +126,6 @@ public:
                                            const QSizeF& size );
 
 private:
-    Q_DISABLE_COPY( ContentWindowController )
-
     friend class boost::serialization::access;
 
     /** No-argument constructor required for serialization. */
@@ -159,4 +157,4 @@ private:
     const DisplayGroup* _displayGroup;
 };
 
-#endif // CONTENTWINDOWCONTROLLER_H
+#endif

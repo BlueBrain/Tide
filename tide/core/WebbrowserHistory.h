@@ -40,12 +40,7 @@
 #ifndef WEBBROWSERHISTORY_H
 #define WEBBROWSERHISTORY_H
 
-#include "serializationHelpers.h" // for QString
-#include <boost/serialization/access.hpp>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
-#include <boost/serialization/nvp.hpp>
-#include <boost/serialization/vector.hpp>
+#include "serialization/includes.h"
 
 #ifdef TIDE_USE_QT5WEBKITWIDGETS
 #include <QWebHistory>

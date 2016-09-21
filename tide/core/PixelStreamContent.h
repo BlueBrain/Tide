@@ -44,9 +44,6 @@
 
 #include "Content.h"
 
-#include <boost/serialization/base_object.hpp>
-#include <boost/serialization/export.hpp>
-
 class PixelStreamContent : public Content
 {
     Q_OBJECT

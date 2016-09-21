@@ -40,8 +40,7 @@
 #include "MasterToForkerChannel.h"
 
 #include "MPIChannel.h"
-#include "SerializeBuffer.h"
-#include "serializationHelpers.h"
+#include "serialization/utils.h"
 
 namespace
 {
@@ -58,7 +57,7 @@ void MasterToForkerChannel::sendStart( const QString command,
                                        const QStringList env )
 {
     const QString string = command + sep + workingDir + sep + env.join( ';' );
-    const std::string& data = SerializeBuffer::serialize( string );
+    const auto data = serialization::toBinary( string );
     _mpiChannel->send( MPI_MESSAGE_TYPE_START_PROCESS, data, forkerProcess );
 }
 

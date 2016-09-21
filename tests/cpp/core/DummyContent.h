@@ -42,9 +42,6 @@
 
 #include "Content.h"
 
-#include <boost/serialization/base_object.hpp>
-#include <boost/serialization/export.hpp>
-
 class DummyContent : public Content
 {
 public:
@@ -70,6 +67,6 @@ private:
     }
 };
 
-BOOST_CLASS_EXPORT_GUID(DummyContent, "DummyContent")
+BOOST_CLASS_EXPORT_GUID( DummyContent, "DummyContent" )
 
 #endif

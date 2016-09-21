@@ -42,7 +42,6 @@
 
 #include "types.h"
 #include "MPIHeader.h"
-#include "SerializeBuffer.h"
 
 #include <QObject>
 
@@ -66,6 +65,7 @@
 class MasterToWallChannel : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY( MasterToWallChannel )
 
 public:
     /** Constructor */
@@ -102,11 +102,7 @@ public slots:
     void sendQuit();
 
 private:
-    Q_DISABLE_COPY( MasterToWallChannel )
-
     MPIChannelPtr _mpiChannel;
-    SerializeBuffer _buffer;
-    SerializeBuffer _asyncBuffer;
 
     template< typename T >
     void broadcast( const T& object, const MPIMessageType type );
@@ -117,4 +113,4 @@ private slots:
     void _broadcast( MPIMessageType type, std::string data );
 };
 
-#endif // MASTERTOWALLCHANNEL_H
+#endif

@@ -39,8 +39,9 @@
 
 #include "WallToWallChannel.h"
 
-#include "MPIChannel.h"
 #include "log.h"
+#include "MPIChannel.h"
+#include "serialization/utils.h"
 
 #include <boost/date_time/posix_time/time_serialize.hpp>
 
@@ -116,9 +117,8 @@ int WallToWallChannel::electLeader( const bool isCandidate )
 
 void WallToWallChannel::broadcast( boost::posix_time::time_duration timestamp )
 {
-    const std::string& serializedString = _buffer.serialize( timestamp );
-
-    _mpiChannel->broadcast( MPI_MESSAGE_TYPE_TIMESTAMP, serializedString );
+    _mpiChannel->broadcast( MPI_MESSAGE_TYPE_TIMESTAMP,
+                            serialization::toBinary( timestamp ));
 }
 
 boost::posix_time::time_duration
@@ -130,9 +130,7 @@ WallToWallChannel::receiveTimestampBroadcast( const int src )
     _buffer.setSize( header.size );
     _mpiChannel->receiveBroadcast( _buffer.data(), _buffer.size(), src );
 
-    boost::posix_time::time_duration timestamp;
-    _buffer.deserialize( timestamp );
-    return timestamp;
+    return serialization::get<boost::posix_time::time_duration>( _buffer );
 }
 
 void WallToWallChannel::_sendClock()
@@ -142,9 +140,8 @@ void WallToWallChannel::_sendClock()
     _timestamp = boost::posix_time::ptime(
                      boost::posix_time::microsec_clock::universal_time( ));
 
-    const std::string& serializedString = _buffer.serialize( _timestamp );
-
-    _mpiChannel->broadcast( MPI_MESSAGE_TYPE_FRAME_CLOCK, serializedString );
+    _mpiChannel->broadcast( MPI_MESSAGE_TYPE_FRAME_CLOCK,
+                            serialization::toBinary( _timestamp ));
 }
 
 void WallToWallChannel::_receiveClock()
@@ -156,6 +153,6 @@ void WallToWallChannel::_receiveClock()
 
     _buffer.setSize( header.size );
     _mpiChannel->receiveBroadcast( _buffer.data(), _buffer.size(), RANK0 );
-    _buffer.deserialize( _timestamp );
-}
 
+    _timestamp = serialization::get<boost::posix_time::ptime>( _buffer );
+}

@@ -43,7 +43,6 @@
 #define TEXTURE_CONTENT_H
 
 #include "Content.h"
-#include <boost/serialization/base_object.hpp>
 
 class TextureContent : public Content
 {

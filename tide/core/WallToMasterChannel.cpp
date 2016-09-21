@@ -40,9 +40,7 @@
 #include "WallToMasterChannel.h"
 
 #include "MPIChannel.h"
-#include "SerializeBuffer.h"
-#include "serializationHelpers.h"
-
+#include "serialization/utils.h"
 
 WallToMasterChannel::WallToMasterChannel( MPIChannelPtr mpiChannel )
     : _mpiChannel( mpiChannel )
@@ -51,7 +49,7 @@ WallToMasterChannel::WallToMasterChannel( MPIChannelPtr mpiChannel )
 
 void WallToMasterChannel::sendRequestFrame( const QString uri )
 {
-    const std::string& data = SerializeBuffer::serialize( uri );
+    const auto data = serialization::toBinary( uri );
     _mpiChannel->send( MPI_MESSAGE_TYPE_REQUEST_FRAME, data, 0 );
 }
 

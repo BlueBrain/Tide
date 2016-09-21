@@ -39,26 +39,17 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef CONTENT_WINDOW_H
-#define CONTENT_WINDOW_H
+#ifndef CONTENTWINDOW_H
+#define CONTENTWINDOW_H
 
 #include "types.h"
 
-#include "Coordinates.h"
-#include "Content.h" // needed for serialization
+#include "Coordinates.h"             // base class
+#include "Content.h"                 // needed for serialization
 #include "ContentWindowController.h" // needed for serialization
-#include "serializationHelpers.h"
+#include "serialization/includes.h"
 
-#include <QObject>
 #include <QUuid>
-#include <QRectF>
-
-#ifndef Q_MOC_RUN
-// https://bugreports.qt.nokia.com/browse/QTBUG-22829: When Qt moc runs on CGAL
-// files, do not process <boost/type_traits/has_operator.hpp>
-#  include <boost/serialization/shared_ptr.hpp>
-#  include <boost/serialization/scoped_ptr.hpp>
-#endif
 
 /**
  * A window for displaying Content on the Wall.

@@ -42,9 +42,6 @@
 
 #include "VectorialContent.h"
 
-#include <boost/serialization/base_object.hpp>
-#include <boost/serialization/export.hpp>
-
 class PDFContent : public VectorialContent
 {
     Q_OBJECT
@@ -131,4 +128,4 @@ DECLARE_SERIALIZE_FOR_XML( PDFContent )
 
 BOOST_CLASS_EXPORT_KEY( PDFContent )
 
-#endif // PDFCONTENT_H
+#endif

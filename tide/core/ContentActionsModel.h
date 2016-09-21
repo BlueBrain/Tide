@@ -40,13 +40,10 @@
 #ifndef CONTENTACTIONSMODEL_H
 #define CONTENTACTIONSMODEL_H
 
-#include "ContentAction.h"
+#include "ContentAction.h"           // needed for serialization
+#include "serialization/includes.h"
 
-#include <QtCore/QAbstractListModel>
-
-#include <boost/serialization/access.hpp>
-#include <boost/serialization/nvp.hpp>
-#include <boost/serialization/vector.hpp>
+#include <QAbstractListModel>
 
 /**
  * Exposes the actions of a Content for viewing in a QML ListView.
@@ -89,4 +86,4 @@ private:
     BOOST_SERIALIZATION_SPLIT_MEMBER()
 };
 
-#endif // CONTENTACTIONSMODEL_H
+#endif
