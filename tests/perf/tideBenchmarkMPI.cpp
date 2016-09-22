@@ -37,15 +37,15 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include <string>
-#include <iostream>
+#include "MPIChannel.h"
+#include "ReceiveBuffer.h"
+#include "serialization/utils.h"
 
-#include <boost/serialization/vector.hpp>
+#include <iostream>
+#include <string>
+
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/program_options.hpp>
-
-#include "MPIChannel.h"
-#include "SerializeBuffer.h"
 
 #define MEGABYTE 1000000
 #define MICROSEC 1000000
@@ -85,6 +85,8 @@ private:
 };
 
 
+namespace po = boost::program_options;
+
 struct BenchmarkOptions
 {
     BenchmarkOptions(int &argc, char **argv)
@@ -97,6 +99,7 @@ struct BenchmarkOptions
         parseCommandLineArguments(argc, argv);
     }
 
+
     void showSyntax() const
     {
         std::cout << _desc;
@@ -106,9 +109,9 @@ struct BenchmarkOptions
     {
         _desc.add_options()
             ("help", "produce help message")
-            ("datasize", boost::program_options::value<float>()->default_value(0),
+            ("datasize", po::value<float>()->default_value(0),
                      "Size of each data packet [MB]")
-            ("packets", boost::program_options::value<unsigned int>()->default_value(0),
+            ("packets", po::value<unsigned int>()->default_value(0),
                      "number of packets to transmitt")
         ;
     }
@@ -118,11 +121,11 @@ struct BenchmarkOptions
         if (argc <= 1)
             return;
 
-        boost::program_options::variables_map vm;
+        po::variables_map vm;
         try
         {
-            boost::program_options::store(boost::program_options::parse_command_line(argc, argv, _desc), vm);
-            boost::program_options::notify(vm);
+            po::store(po::parse_command_line(argc, argv, _desc), vm);
+            po::notify(vm);
         }
         catch (const std::exception& e)
         {
@@ -135,7 +138,7 @@ struct BenchmarkOptions
         _packetsCount = vm["packets"].as<unsigned int>();
     }
 
-    boost::program_options::options_description _desc;
+    po::options_description _desc;
 
     bool _getHelp;
     unsigned int _dataSize;
@@ -158,13 +161,13 @@ int main(int argc, char **argv)
     MPIChannel mpiChannel(argc, argv);
 
     // Send buffer
-    std::vector<char> noiseBuffer(options._dataSize);
-    for (std::vector<char>::iterator it = noiseBuffer.begin(); it != noiseBuffer.end(); ++it)
-        *it = rand();
-    const std::string serializedData = SerializeBuffer::serialize(noiseBuffer);
+    std::vector<char> noiseBuffer( options._dataSize );
+    for( auto& elem : noiseBuffer )
+        elem = rand();
+    const auto serializedData = serialization::toBinary( noiseBuffer );
 
     // Receive buffer
-    SerializeBuffer buffer;
+    ReceiveBuffer buffer;
     Timer timer;
     size_t counter = 0;
 

@@ -1,8 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
 /* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael.Dumusc@epfl.ch                        */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/*                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,11 +38,88 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "DynamicTextureContent.h"
+#ifndef SERIALIZATION_QTTYPES_H
+#define SERIALIZATION_QTTYPES_H
 
-BOOST_CLASS_EXPORT_GUID( DynamicTextureContent, "DynamicTextureContent" )
+#include <QColor>
+#include <QRectF>
+#include <QString>
+#include <QUuid>
 
-CONTENT_TYPE DynamicTextureContent::getType() const
+#include <boost/serialization/nvp.hpp>
+#include <boost/serialization/split_free.hpp>
+
+namespace boost
 {
-    return CONTENT_TYPE_DYNAMIC_TEXTURE;
+namespace serialization
+{
+
+template< class Archive >
+void serialize( Archive& ar, QColor& color, const unsigned int )
+{
+    unsigned char t;
+    t = color.red(); ar & t; color.setRed( t );
+    t = color.green(); ar & t; color.setGreen( t );
+    t = color.blue(); ar & t; color.setBlue( t );
+    t = color.alpha(); ar & t; color.setAlpha( t );
 }
+
+template< class Archive >
+void save( Archive& ar, const QString& s, const unsigned int )
+{
+    std::string stdStr = s.toStdString();
+    ar << make_nvp( "value", stdStr );
+}
+
+template< class Archive >
+void load( Archive& ar, QString& s, const unsigned int )
+{
+    std::string stdStr;
+    ar >> make_nvp( "value", stdStr );
+    s = QString::fromStdString( stdStr );
+}
+
+template< class Archive >
+void serialize( Archive& ar, QString& s, const unsigned int version )
+{
+    split_free( ar, s, version );
+}
+
+template< class Archive >
+void serialize( Archive& ar, QUuid& uuid, const unsigned int /*version*/ )
+{
+    ar & make_nvp( "data1", uuid.data1 );
+    ar & make_nvp( "data2", uuid.data2 );
+    ar & make_nvp( "data3", uuid.data3 );
+    ar & make_nvp( "data40", uuid.data4[0] );
+    ar & make_nvp( "data41", uuid.data4[1] );
+    ar & make_nvp( "data42", uuid.data4[2] );
+    ar & make_nvp( "data43", uuid.data4[3] );
+    ar & make_nvp( "data44", uuid.data4[4] );
+    ar & make_nvp( "data45", uuid.data4[5] );
+    ar & make_nvp( "data46", uuid.data4[6] );
+    ar & make_nvp( "data47", uuid.data4[7] );
+}
+
+template< class Archive >
+void serialize( Archive& ar, QPointF& point, const unsigned int )
+{
+    qreal t;
+    t = point.x(); ar & make_nvp( "x", t ); point.setX( t );
+    t = point.y(); ar & make_nvp( "y", t ); point.setY( t );
+}
+
+template< class Archive >
+void serialize( Archive& ar, QRectF& rect, const unsigned int )
+{
+    qreal t;
+    t = rect.x(); ar & make_nvp( "x", t ); rect.setX( t );
+    t = rect.y(); ar & make_nvp( "y", t ); rect.setY( t );
+    t = rect.width(); ar & make_nvp( "w", t ); rect.setWidth( t );
+    t = rect.height(); ar & make_nvp( "h", t ); rect.setHeight( t );
+}
+
+}
+}
+
+#endif

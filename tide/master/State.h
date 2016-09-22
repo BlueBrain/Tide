@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>     */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -36,20 +37,14 @@
 /* interpreted as representing official policies, either expressed   */
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
+
 #ifndef STATE_H
 #define STATE_H
 
 #include "types.h"
 
-#include <boost/serialization/access.hpp>
-#include <boost/serialization/nvp.hpp>
-#include <boost/serialization/vector.hpp>
-
-#include "ContentWindow.h"
 #include "DisplayGroup.h"
-
-class QString;
-class QXmlQuery;
+#include "serialization/includes.h"
 
 /**
  * The different versions of the xml State files.
@@ -94,6 +89,9 @@ public:
     DisplayGroupPtr getDisplayGroup();
 
 private:
+    DisplayGroupPtr _displayGroup;
+    StateVersion _version;
+
     friend class boost::serialization::access;
 
     template<class Archive>
@@ -118,15 +116,6 @@ private:
                                                  _displayGroup );
         }
     }
-
-    /** Legacy methods. @deprecated */
-    bool _checkVersion( QXmlQuery& query ) const;
-    ContentPtr _loadContent( QXmlQuery& query, const int index ) const;
-    ContentWindowPtr _restoreContent( QXmlQuery& query, ContentPtr content,
-                                      const int index ) const;
-
-    DisplayGroupPtr _displayGroup;
-    StateVersion _version;
 };
 
 BOOST_CLASS_VERSION( State, FOCUS_MODE_VERSION )

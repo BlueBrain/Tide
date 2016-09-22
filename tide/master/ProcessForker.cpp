@@ -39,9 +39,9 @@
 
 #include "ProcessForker.h"
 
-#include "MPIChannel.h"
 #include "log.h"
-#include "serializationHelpers.h"
+#include "MPIChannel.h"
+#include "serialization/utils.h"
 
 #include <QProcess>
 
@@ -69,9 +69,8 @@ void ProcessForker::run()
         {
         case MPI_MESSAGE_TYPE_START_PROCESS:
         {
-            QString string;
-            _buffer.deserialize( string );
-            QStringList args = string.split( '#' );
+            const auto string = serialization::get<QString>( _buffer );
+            const auto args = string.split( '#' );
             if( args.length() != 3 )
             {
                 put_flog( LOG_WARN, "Invalid command: '%d'",

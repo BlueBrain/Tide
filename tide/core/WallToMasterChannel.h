@@ -50,6 +50,7 @@
 class WallToMasterChannel : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY( WallToMasterChannel )
 
 public:
     /** Constructor */
@@ -68,9 +69,7 @@ public slots:
     void sendQuit();
 
 private:
-    Q_DISABLE_COPY( WallToMasterChannel )
-
     MPIChannelPtr _mpiChannel;
 };
 
-#endif // WALLTOMASTERCHANNEL_H
+#endif

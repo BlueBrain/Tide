@@ -41,7 +41,7 @@
 #define WALLTOWALLCHANNEL_H
 
 #include "types.h"
-#include "SerializeBuffer.h"
+#include "ReceiveBuffer.h"
 
 #include <QObject>
 #include <boost/date_time/posix_time/posix_time.hpp>
@@ -52,6 +52,7 @@
 class WallToWallChannel : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY( WallToWallChannel )
 
 public:
     /** Constructor */
@@ -99,14 +100,12 @@ public:
     boost::posix_time::time_duration receiveTimestampBroadcast( int src );
 
 private:
-    Q_DISABLE_COPY( WallToWallChannel )
-
     MPIChannelPtr _mpiChannel;
+    ReceiveBuffer _buffer;
     boost::posix_time::ptime _timestamp;
-    SerializeBuffer _buffer;
 
     void _sendClock();
     void _receiveClock();
 };
 
-#endif // WALLTOWALLCHANNEL_H
+#endif

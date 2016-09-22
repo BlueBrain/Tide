@@ -1,8 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
 /* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael.Dumusc@epfl.ch                        */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,11 +37,44 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "DynamicTextureContent.h"
+#define BOOST_TEST_MODULE DeflectSerializationTests
+#include <boost/test/unit_test.hpp>
+namespace ut = boost::unit_test;
 
-BOOST_CLASS_EXPORT_GUID( DynamicTextureContent, "DynamicTextureContent" )
+#include "serialization/deflectTypes.h"
 
-CONTENT_TYPE DynamicTextureContent::getType() const
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/archive/binary_iarchive.hpp>
+#include <iostream>
+
+BOOST_AUTO_TEST_CASE( testSegementParametersSerialization )
 {
-    return CONTENT_TYPE_DYNAMIC_TEXTURE;
+    deflect::SegmentParameters params;
+    params.x = 212;
+    params.y = 365;
+    params.height = 32;
+    params.width = 78;
+    params.compressed = false;
+
+
+    // serialize
+    std::stringstream stream;
+    {
+        boost::archive::binary_oarchive oa( stream );
+        oa << params;
+    }
+
+    // deserialize
+    deflect::SegmentParameters paramsDeserialized;
+    {
+        boost::archive::binary_iarchive ia( stream );
+        ia >> paramsDeserialized;
+    }
+
+    BOOST_CHECK_EQUAL( params.x, paramsDeserialized.x );
+    BOOST_CHECK_EQUAL( params.y, paramsDeserialized.y );
+    BOOST_CHECK_EQUAL( params.height, paramsDeserialized.height );
+    BOOST_CHECK_EQUAL( params.width, paramsDeserialized.width );
+    BOOST_CHECK_EQUAL( params.compressed, paramsDeserialized.compressed );
 }
+

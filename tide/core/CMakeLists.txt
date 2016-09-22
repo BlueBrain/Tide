@@ -144,9 +144,13 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   QmlTypeRegistration.h
   qmlUtils.h
   QtImage.h
+  ReceiveBuffer.h
   StatePreview.h
-  SerializeBuffer.h
-  SerializeUtils.h
+  serialization/deflectTypes.h
+  serialization/includes.h
+  serialization/qtTypes.h
+  serialization/utils.h
+  serialization/xmlMacros.h
   SVG.h
   SVGBackend.h
   SVGContent.h

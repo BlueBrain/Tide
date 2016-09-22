@@ -39,11 +39,12 @@
 
 #include "WallFromMasterChannel.h"
 
-#include "MPIChannel.h"
 #include "DisplayGroup.h"
 #include "ContentWindow.h"
-#include "Options.h"
 #include "Markers.h"
+#include "MPIChannel.h"
+#include "Options.h"
+#include "serialization/utils.h"
 
 #include <deflect/Frame.h>
 
@@ -98,19 +99,15 @@ void WallFromMasterChannel::processMessages()
 template <typename T>
 T WallFromMasterChannel::receiveBroadcast( const size_t messageSize )
 {
-    T object;
-
     _buffer.setSize( messageSize );
     _mpiChannel->receiveBroadcast( _buffer.data(), messageSize, RANK0 );
-    _buffer.deserialize( object );
-
-    return object;
+    return serialization::get<T>( _buffer );
 }
 
 template <typename T>
 T WallFromMasterChannel::receiveQObjectBroadcast( const size_t messageSize )
 {
-    T object( receiveBroadcast<T>( messageSize ));
-    object->moveToThread( QApplication::instance()->thread( ));
-    return object;
+    auto qobject = receiveBroadcast<T>( messageSize );
+    qobject->moveToThread( QApplication::instance()->thread( ));
+    return qobject;
 }

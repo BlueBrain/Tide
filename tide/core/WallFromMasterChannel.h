@@ -41,7 +41,7 @@
 #define WALLFROMMASTERCHANNEL_H
 
 #include "types.h"
-#include "SerializeBuffer.h"
+#include "ReceiveBuffer.h"
 
 #include <QObject>
 
@@ -51,6 +51,7 @@
 class WallFromMasterChannel : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY( WallFromMasterChannel )
 
 public:
     /** Constructor */
@@ -108,10 +109,8 @@ signals:
     void receivedQuit();
 
 private:
-    Q_DISABLE_COPY( WallFromMasterChannel )
-
     MPIChannelPtr _mpiChannel;
-    SerializeBuffer _buffer;
+    ReceiveBuffer _buffer;
     bool _processMessages;
 
     template <typename T>
@@ -120,4 +119,4 @@ private:
     T receiveQObjectBroadcast( const size_t messageSize );
 };
 
-#endif // WALLFROMMASTERCHANNEL_H
+#endif

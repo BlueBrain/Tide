@@ -42,10 +42,10 @@
 #include "ContentFactory.h"
 #include "DisplayGroup.h"
 #include "DisplayGroupController.h"
-#include "SerializeUtils.h"
+#include "log.h"
+#include "serialization/utils.h"
 #include "State.h"
 #include "StatePreview.h"
-#include "log.h"
 
 namespace
 {
@@ -139,7 +139,7 @@ DisplayGroupConstPtr _load( const QString& filename, DisplayGroupConstPtr target
     State state;
     // For backward compatibility, try to load the file as a legacy xml first
     if( !state.legacyLoadXML( filename ) &&
-        !SerializeUtils::fromXmlFile( state, filename.toStdString( )))
+        !serialization::fromXmlFile( state, filename.toStdString( )))
     {
         return DisplayGroupConstPtr();
     }
@@ -226,7 +226,7 @@ QFuture<bool> StateSerializationHelper::save( QString filename,
               filename.toStdString().c_str( ));
 
     // Important: use xml archive not binary as they use different code paths
-    DisplayGroupPtr group = SerializeUtils::xmlCopy( _displayGroup );
+    DisplayGroupPtr group = serialization::xmlCopy( _displayGroup );
     return QtConcurrent::run([group, filename, generatePreview]()
     {
         _filterContents( *group );
@@ -235,7 +235,7 @@ QFuture<bool> StateSerializationHelper::save( QString filename,
         if( generatePreview )
             _generatePreview( *group, filename );
 
-        if( !SerializeUtils::toXmlFile( State{ group }, filename.toStdString()))
+        if( !serialization::toXmlFile( State{ group }, filename.toStdString( )))
             return false;
 
         return true;

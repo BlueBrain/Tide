@@ -40,8 +40,6 @@
 #include "ImagePyramidContent.h"
 
 #include "TiffPyramidReader.h"
-#include "serializationHelpers.h"
-#include <boost/serialization/export.hpp>
 
 BOOST_CLASS_EXPORT_GUID( ImagePyramidContent, "ImagePyramidContent" )
 

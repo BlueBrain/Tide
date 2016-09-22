@@ -40,12 +40,9 @@
 #ifndef KEYBOARDSTATE_H
 #define KEYBOARDSTATE_H
 
-#include <QObject>
+#include "serialization/includes.h"
 
-#include <boost/serialization/access.hpp>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
-#include <boost/serialization/nvp.hpp>
+#include <QObject>
 
 /**
  * The state of the virtual keyboard, distributed by master to wall processes.

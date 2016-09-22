@@ -42,16 +42,14 @@
 
 #include "types.h"
 
-#include "serializationHelpers.h"
+#include "serialization/includes.h"
 
+#include <QAbstractListModel>
 #include <QObject>
 #include <QPointF>
-#include <QAbstractListModel>
 #include <map>
 
-#include <boost/serialization/access.hpp>
 #include <boost/enable_shared_from_this.hpp>
-#include <boost/serialization/map.hpp>
 
 /**
  * Store Markers to display user interaction.
@@ -60,6 +58,7 @@ class Markers : public QAbstractListModel,
                 public boost::enable_shared_from_this<Markers>
 {
     Q_OBJECT
+    Q_DISABLE_COPY( Markers )
 
 public:
 
@@ -89,7 +88,6 @@ private:
     typedef std::vector<Marker> MarkersVector;
 
     MarkersVector::iterator _findMarker( const int id );
-    Q_DISABLE_COPY( Markers )
 
     friend class boost::serialization::access;
 
@@ -102,4 +100,4 @@ private:
     MarkersVector _markers;
 };
 
-#endif // MARKERS_H
+#endif

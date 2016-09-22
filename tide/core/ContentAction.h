@@ -40,11 +40,10 @@
 #ifndef CONTENTACTION_H
 #define CONTENTACTION_H
 
-#include <QtCore/QObject>
-#include <QtCore/QUuid>
+#include "serialization/includes.h"
 
-#include <boost/serialization/access.hpp>
-#include <boost/serialization/nvp.hpp>
+#include <QObject>
+#include <QUuid>
 
 /**
  * A content-specific action for use in QML by ContentActionsModel.
@@ -52,6 +51,7 @@
 class ContentAction : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY( ContentAction )
 
     Q_PROPERTY( QString icon READ getIcon NOTIFY iconChanged )
     Q_PROPERTY( QString iconChecked READ getIconChecked NOTIFY iconCheckedChanged )
@@ -105,8 +105,6 @@ signals:
     //@}
 
 private:
-    Q_DISABLE_COPY( ContentAction )
-
     friend class boost::serialization::access;
 
     template< class Archive >
@@ -127,4 +125,4 @@ private:
     bool _enabled;
 };
 
-#endif // CONTENTACTION_H
+#endif

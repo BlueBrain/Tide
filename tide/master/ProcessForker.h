@@ -41,7 +41,7 @@
 #define PROCESSFORKER_H
 
 #include "types.h"
-#include "SerializeBuffer.h"
+#include "ReceiveBuffer.h"
 
 #include <map>
 #include <QStringList>
@@ -81,7 +81,7 @@ public:
 
 private:
     MPIChannelPtr _mpiChannel;
-    SerializeBuffer _buffer;
+    ReceiveBuffer _buffer;
     bool _processMessages;
 
     typedef std::map< QString, QProcess* > Processes;

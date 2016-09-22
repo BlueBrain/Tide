@@ -43,9 +43,6 @@
 
 #include "SVG.h"
 
-#include "serializationHelpers.h"
-#include <boost/serialization/export.hpp>
-
 #include <QFileInfo>
 
 BOOST_CLASS_EXPORT_GUID( SVGContent, "SVGContent" )

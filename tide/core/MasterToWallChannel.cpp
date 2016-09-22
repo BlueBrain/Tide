@@ -44,6 +44,7 @@
 #include "ContentWindow.h"
 #include "Options.h"
 #include "Markers.h"
+#include "serialization/utils.h"
 
 #include <deflect/Frame.h>
 
@@ -56,20 +57,18 @@ template< typename T >
 void MasterToWallChannel::broadcast( const T& object,
                                      const MPIMessageType type )
 {
-    const std::string& serializedString = _buffer.serialize( object );
-
-    _mpiChannel->broadcast( type, serializedString );
+    _mpiChannel->broadcast( type, serialization::toBinary( object ));
 }
 
 template< typename T >
 void MasterToWallChannel::broadcastAsync( const T& object,
                                           const MPIMessageType type )
 {
-    const std::string serializedStringCopy = _asyncBuffer.serialize( object );
+    const auto data = serialization::toBinary( object );
 
     QMetaObject::invokeMethod( this, "_broadcast", Qt::QueuedConnection,
                                Q_ARG( MPIMessageType, type ),
-                               Q_ARG( std::string, serializedStringCopy ));
+                               Q_ARG( std::string, data ));
 }
 
 void MasterToWallChannel::sendAsync( DisplayGroupPtr displayGroup )

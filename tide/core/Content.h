@@ -47,19 +47,12 @@
 #include "ContentActionsModel.h"
 #include "KeyboardState.h"
 
-#include "serializationHelpers.h"
-#include <boost/serialization/access.hpp>
-#include <boost/serialization/assume_abstract.hpp>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
-#include <boost/serialization/nvp.hpp>
-
-#include <QObject>
-#include <QSize>
+#include "serialization/includes.h"
 
 #include <deflect/SizeHints.h>
 
-class WallToWallChannel;
+#include <QObject>
+#include <QSize>
 
 /**
  * An abstract Content displayed in a ContentWindow.

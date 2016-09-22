@@ -41,7 +41,7 @@
 
 #include "log.h"
 #include "MPIChannel.h"
-#include "serializationHelpers.h"
+#include "serialization/utils.h"
 
 MasterFromWallChannel::MasterFromWallChannel( MPIChannelPtr mpiChannel )
     : _mpiChannel( mpiChannel )
@@ -67,12 +67,8 @@ void MasterFromWallChannel::processMessages()
         switch( result.message )
         {
         case MPI_MESSAGE_TYPE_REQUEST_FRAME:
-        {
-            QString uri;
-            _buffer.deserialize( uri );
-            emit receivedRequestFrame( uri );
+            emit receivedRequestFrame( serialization::get<QString>( _buffer ));
             break;
-        }
         case MPI_MESSAGE_TYPE_QUIT:
             _processMessages = false;
             break;

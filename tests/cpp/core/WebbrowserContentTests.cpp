@@ -40,7 +40,7 @@
 #define BOOST_TEST_MODULE WebbrowserContent
 #include <boost/test/unit_test.hpp>
 
-#include "SerializeUtils.h"
+#include "serialization/utils.h"
 #include "WebbrowserContent.h"
 #include "WebbrowserHistory.h"
 
@@ -132,7 +132,7 @@ BOOST_AUTO_TEST_CASE( testBinarySerialization )
     source->setSelectionEnd( 6 );
     source->setUrl( "some_url" );
 
-    const auto copy = SerializeUtils::binaryCopy( source );
+    const auto copy = serialization::binaryCopy( source );
     BOOST_REQUIRE( copy );
     const auto& content = *copy;
 

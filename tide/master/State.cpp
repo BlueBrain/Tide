@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
 /*                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>     */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,7 +40,6 @@
 
 #include "State.h"
 
-#include "ContentWindow.h"
 #include "ContentFactory.h"
 #include "log.h"
 
@@ -57,60 +57,7 @@ State::State( DisplayGroupPtr displayGroup )
 {
 }
 
-DisplayGroupPtr State::getDisplayGroup()
-{
-    return _displayGroup;
-}
-
-bool State::legacyLoadXML( const QString& filename )
-{
-    QXmlQuery query;
-
-    if( !query.setFocus( QUrl( filename )))
-    {
-        put_flog( LOG_DEBUG, "Not a valid legacy session: '%s'",
-                  filename.toLocal8Bit().constData( ));
-        return false;
-    }
-
-    if( !_checkVersion( query ))
-        return false;
-
-    int numContentWindows = 0;
-    query.setQuery( "string(count(//state/ContentWindow))" );
-
-    QString qstring;
-    if( query.evaluateTo( &qstring ))
-        numContentWindows = qstring.toInt();
-
-    ContentWindowPtrs contentWindows;
-    contentWindows.reserve( numContentWindows );
-    for( int i = 1; i <= numContentWindows; ++i )
-    {
-        ContentPtr content = _loadContent( query, i );
-        if( !content )
-            content = ContentFactory::getErrorContent();
-
-        ContentWindowPtr contentWindow = _restoreContent( query, content, i );
-        if( contentWindow )
-            contentWindows.push_back( contentWindow );
-    }
-
-    _displayGroup->setContentWindows( contentWindows );
-    // Preserve appearence of legacy sessions.
-    _displayGroup->setShowWindowTitles( false );
-    _displayGroup->setCoordinates( UNIT_RECTF );
-    _version = LEGACY_FILE_VERSION;
-
-    return true;
-}
-
-StateVersion State::getVersion() const
-{
-    return _version;
-}
-
-bool State::_checkVersion( QXmlQuery& query ) const
+bool _isLegacyVersion( QXmlQuery& query )
 {
     QString qstring;
 
@@ -118,20 +65,17 @@ bool State::_checkVersion( QXmlQuery& query ) const
     query.setQuery( "string(/state/version)" );
 
     if( query.evaluateTo( &qstring ))
-    {
         version = qstring.toInt();
-    }
 
-    if( version != LEGACY_FILE_VERSION )
-    {
-        put_flog( LOG_DEBUG, "not a legacy state file. version: %i, legacy: %i",
-                  version, LEGACY_FILE_VERSION );
-        return false;
-    }
-    return true;
+    if( version == LEGACY_FILE_VERSION )
+        return true;
+
+    put_flog( LOG_DEBUG, "not a legacy state file. version: %i, legacy: %i",
+              version, LEGACY_FILE_VERSION );
+    return false;
 }
 
-ContentPtr State::_loadContent( QXmlQuery& query, const int index ) const
+ContentPtr _loadContent( QXmlQuery& query, const int index )
 {
     char string[1024];
     sprintf( string, "string(//state/ContentWindow[%i]/URI)", index );
@@ -145,8 +89,8 @@ ContentPtr State::_loadContent( QXmlQuery& query, const int index ) const
     return ContentFactory::getContent( uri );
 }
 
-ContentWindowPtr State::_restoreContent( QXmlQuery& query, ContentPtr content,
-                                         const int index ) const
+ContentWindowPtr _restoreContent( QXmlQuery& query, ContentPtr content,
+                                  const int index )
 {
     double x, y, w, h, centerX, centerY, zoom;
     x = y = w = h = centerX = centerY = zoom = -1.;
@@ -226,4 +170,57 @@ ContentWindowPtr State::_restoreContent( QXmlQuery& query, ContentPtr content,
     contentWindow->getContent()->setZoomRect( zoomRect );
 
     return contentWindow;
+}
+
+bool State::legacyLoadXML( const QString& filename )
+{
+    QXmlQuery query;
+
+    if( !query.setFocus( QUrl( filename )))
+    {
+        put_flog( LOG_DEBUG, "Not a valid legacy session: '%s'",
+                  filename.toLocal8Bit().constData( ));
+        return false;
+    }
+
+    if( !_isLegacyVersion( query ))
+        return false;
+
+    int numContentWindows = 0;
+    query.setQuery( "string(count(//state/ContentWindow))" );
+
+    QString qstring;
+    if( query.evaluateTo( &qstring ))
+        numContentWindows = qstring.toInt();
+
+    ContentWindowPtrs contentWindows;
+    contentWindows.reserve( numContentWindows );
+    for( int i = 1; i <= numContentWindows; ++i )
+    {
+        ContentPtr content = _loadContent( query, i );
+        if( !content )
+            content = ContentFactory::getErrorContent();
+
+        ContentWindowPtr contentWindow = _restoreContent( query, content, i );
+        if( contentWindow )
+            contentWindows.push_back( contentWindow );
+    }
+
+    _displayGroup->setContentWindows( contentWindows );
+    // Preserve appearence of legacy sessions.
+    _displayGroup->setShowWindowTitles( false );
+    _displayGroup->setCoordinates( UNIT_RECTF );
+    _version = LEGACY_FILE_VERSION;
+
+    return true;
+}
+
+StateVersion State::getVersion() const
+{
+    return _version;
+}
+
+DisplayGroupPtr State::getDisplayGroup()
+{
+    return _displayGroup;
 }

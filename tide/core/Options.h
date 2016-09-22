@@ -43,12 +43,13 @@
 #define OPTIONS_H
 
 #include "types.h"
-#include "serializationHelpers.h"
+
+#include "serialization/includes.h"
+
+#include <boost/enable_shared_from_this.hpp>
 
 #include <QObject>
 #include <QColor>
-#include <boost/serialization/access.hpp>
-#include <boost/enable_shared_from_this.hpp>
 
 /**
  * Rendering options which can be changed during runtime.
@@ -59,6 +60,7 @@
 class Options : public QObject, public boost::enable_shared_from_this<Options>
 {
     Q_OBJECT
+    Q_DISABLE_COPY( Options )
     Q_PROPERTY( bool alphaBlending READ isAlphaBlendingEnabled
                 NOTIFY alphaBlendingEnabledChanged )
     Q_PROPERTY( bool showClock READ getShowClock NOTIFY showClockChanged )
@@ -169,8 +171,6 @@ signals:
     void updated( OptionsPtr );
 
 private:
-    Q_DISABLE_COPY( Options )
-
     friend class boost::serialization::access;
 
     template<class Archive>

@@ -42,6 +42,8 @@
 #include <iostream>
 #include <boost/program_options.hpp>
 
+namespace po = boost::program_options;
+
 CommandLineParameters::CommandLineParameters( int& argc, char** argv )
     : _desc("Allowed options")
     , _getHelp(false)
@@ -65,20 +67,20 @@ void CommandLineParameters::_initDesc()
 {
     _desc.add_options()
         ("help", "produce help message")
-        ("config", boost::program_options::value<std::string>()->default_value(""),
+        ("config", po::value<std::string>()->default_value(""),
                  "path to configuration file")
-        ("sessionfile", boost::program_options::value<std::string>()->default_value(""),
+        ("sessionfile", po::value<std::string>()->default_value(""),
                  "path to an initial session file")
     ;
 }
 
 void CommandLineParameters::_parseCommandLineArguments( int& argc, char** argv )
 {
-    boost::program_options::variables_map vm;
+    po::variables_map vm;
     try
     {
-        boost::program_options::store(boost::program_options::parse_command_line(argc, argv, _desc), vm);
-        boost::program_options::notify(vm);
+        po::store(po::parse_command_line(argc, argv, _desc), vm);
+        po::notify(vm);
     }
     catch (const std::exception& e)
     {

@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,91 +37,47 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef SERIALIZEBUFFER_H
-#define SERIALIZEBUFFER_H
+#ifndef RECEIVEBUFFER_H
+#define RECEIVEBUFFER_H
 
 #include <vector>
-#include <sstream>
-
-#include <boost/archive/binary_iarchive.hpp>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/serialization/shared_ptr.hpp>
+#include <boost/noncopyable.hpp>
 
 /**
- * Utility class to ease and optimize (de)serialization of any object using
- * boost.serialization.
+ * Utility class to optimize the reception of any type of serialized data.
+ *
+ * The buffer avoids memory reallocations for successive receive operations,
+ * which would otherwise be expensive for large data (such as image streaming).
+ *
+ * The serialization::get<T>() function can be used with this buffer to directly
+ * extract the expected (copyable/movable) object stored in it.
  */
-class SerializeBuffer : boost::noncopyable
+class ReceiveBuffer : boost::noncopyable
 {
 public:
-    /**
-     * Construct any empty serialization buffer
-     */
-    SerializeBuffer()
-        : _size( 0 )
-    {}
+    /** Construct an empty buffer. */
+    ReceiveBuffer() {}
 
     /**
-     * Set the new size of the buffer and grow the storage if necessary
-     * @param minSize the minimum size required for a following (de)serialization
+     * Set the new size of the buffer and grow the storage if necessary.
+     * @param minSize the minimum size required for a following deserialization.
      */
-    void setSize(const size_t minSize)
+    void setSize( const size_t minSize )
     {
-        if (_buffer.size() < minSize)
-            _buffer.resize(minSize);
+        if( _buffer.size() < minSize )
+            _buffer.resize( minSize );
         _size = minSize;
     }
 
-    /** @return the current size of the buffer */
-    size_t size() const
-    {
-        return _size;
-    }
+    /** @return the current size of the buffer. */
+    size_t size() const { return _size; }
 
-    /** Direct write access to the buffer, don't write beyond size() */
-    char* data()
-    {
-        return _buffer.data();
-    }
-
-    /**
-     * Serialize the given object using a binary archive to a string
-     * @param object the object which should be serialized
-     */
-    template <typename T>
-    static std::string serialize(const T& object)
-    {
-        std::ostringstream oss(std::ostringstream::binary);
-        {
-            boost::archive::binary_oarchive oa(oss);
-            oa << object;
-        }
-        return oss.str();
-    }
-
-    /**
-     * Deserialize the current buffer into the given object
-     * @param object the target object for deserializing the current buffer
-     */
-    template <typename T>
-    void deserialize(T& object)
-    {
-        std::istringstream iss(std::istringstream::binary);
-#ifdef __APPLE__
-        // pubsetbuf() does nothing on OSX (and probably on Windows too).
-        // so an intermediate copy of the data is required.
-        std::string dataStr(_buffer.data(), _buffer.size());
-        iss.str(dataStr);
-#else
-        iss.rdbuf()->pubsetbuf(_buffer.data(), _size);
-#endif
-        boost::archive::binary_iarchive ia(iss);
-        ia >> object;
-    }
+    /** Direct write access to the buffer, don't write beyond size(). */
+    char* data() { return _buffer.data(); }
 
 private:
     std::vector<char> _buffer;
-    size_t _size;
+    size_t _size = 0;
 };
 
 #endif

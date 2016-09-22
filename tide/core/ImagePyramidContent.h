@@ -42,8 +42,6 @@
 
 #include "Content.h"
 
-#include <boost/serialization/base_object.hpp>
-
 class ImagePyramidContent : public Content
 {
 public:

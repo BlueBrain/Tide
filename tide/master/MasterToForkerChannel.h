@@ -51,6 +51,7 @@
 class MasterToForkerChannel : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY( MasterToForkerChannel )
 
 public:
     /** Constructor */
@@ -72,8 +73,6 @@ public slots:
     void sendQuit();
 
 private:
-    Q_DISABLE_COPY( MasterToForkerChannel )
-
     MPIChannelPtr _mpiChannel;
 };
 
