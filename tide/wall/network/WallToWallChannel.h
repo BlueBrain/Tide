@@ -44,7 +44,8 @@
 #include "ReceiveBuffer.h"
 
 #include <QObject>
-#include <boost/date_time/posix_time/posix_time.hpp>
+
+#include <chrono>
 
 /**
  * Communication channel between the Wall processes.
@@ -55,6 +56,8 @@ class WallToWallChannel : public QObject
     Q_DISABLE_COPY( WallToWallChannel )
 
 public:
+    using clock = std::chrono::high_resolution_clock;
+
     /** Constructor */
     WallToWallChannel( MPIChannelPtr mpiChannel );
 
@@ -72,7 +75,7 @@ public:
     bool allReady( bool isReady ) const;
 
     /** Get the current timestamp, synchronized accross processes. */
-    boost::posix_time::ptime getTime() const;
+    clock::time_point getTime() const;
 
     /** Synchronize clock time across all processes. */
     void synchronizeClock();
@@ -94,15 +97,15 @@ public:
      * Broadcast a timestamp.
      * All other processes must recieve it with receiveTimestampBroadcast().
      */
-    void broadcast( boost::posix_time::time_duration timestamp );
+    void broadcast( double timestamp );
 
     /** Receive a timestamp broadcasted by broadcast(timestamp). */
-    boost::posix_time::time_duration receiveTimestampBroadcast( int src );
+    double receiveTimestampBroadcast( int src );
 
 private:
     MPIChannelPtr _mpiChannel;
     ReceiveBuffer _buffer;
-    boost::posix_time::ptime _timestamp;
+    clock::time_point _timestamp;
 
     void _sendClock();
     void _receiveClock();

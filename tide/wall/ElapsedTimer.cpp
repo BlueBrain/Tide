@@ -39,36 +39,30 @@
 
 #include "ElapsedTimer.h"
 
-#define MICROSEC 1000000.0
-
 ElapsedTimer::ElapsedTimer() {}
 
-void ElapsedTimer::setCurrentTime( const boost::posix_time::ptime& time )
+void ElapsedTimer::setCurrentTime( const clock::time_point& time )
 {
     _previousTime = _currentTime;
     _currentTime = time;
 }
 
-void ElapsedTimer::resetTime( const boost::posix_time::ptime& time )
+void ElapsedTimer::resetTime( const clock::time_point& time )
 {
     _previousTime = _currentTime = time;
 }
 
-boost::posix_time::time_duration ElapsedTimer::getElapsedTime() const
+ElapsedTimer::clock::duration ElapsedTimer::getElapsedTime() const
 {
-    if (_previousTime.is_not_a_date_time() || _currentTime.is_not_a_date_time())
-        return boost::posix_time::time_duration(); // duration == 0
-
+    if( _previousTime.time_since_epoch().count() == 0 ||
+        _currentTime.time_since_epoch().count() == 0 )
+    {
+        return clock::duration::zero();
+    }
     return _currentTime - _previousTime;
 }
 
-double ElapsedTimer::toSeconds( const boost::posix_time::time_duration time )
+double ElapsedTimer::getElapsedTimeInSeconds() const
 {
-    return time.total_microseconds() / MICROSEC;
-}
-
-boost::posix_time::time_duration
-ElapsedTimer::toTimeDuration( const double seconds )
-{
-    return boost::posix_time::microseconds( seconds * MICROSEC );
+    return std::chrono::duration<double>{ getElapsedTime() }.count();
 }

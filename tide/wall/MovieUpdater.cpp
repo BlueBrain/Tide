@@ -200,8 +200,7 @@ bool MovieUpdater::advanceToNextFrame( WallToWallChannel& channel )
     // If everybody is in sync, do a proper increment and throttle to movie
     // frame duration and decode speed accordingly.
     _timer.setCurrentTime( channel.getTime( ));
-    const double elapsedTime = ElapsedTimer::toSeconds( _timer.getElapsedTime( ));
-    _elapsedTime += elapsedTime;
+    _elapsedTime += _timer.getElapsedTimeInSeconds();
     if( !_lastFrameDone || _elapsedTime < frameDuration )
         return false;
 
@@ -227,8 +226,7 @@ void MovieUpdater::_exchangeSharedTimestamp( WallToWallChannel& channel,
         return;
 
     if( leader == channel.getRank( ))
-        channel.broadcast( ElapsedTimer::toTimeDuration( _sharedTimestamp ));
+        channel.broadcast( _sharedTimestamp );
     else
-        _sharedTimestamp = ElapsedTimer::toSeconds(
-                               channel.receiveTimestampBroadcast( leader ));
+        _sharedTimestamp = channel.receiveTimestampBroadcast( leader );
 }

@@ -41,15 +41,13 @@
 #include "ReceiveBuffer.h"
 #include "serialization/utils.h"
 
+#include <chrono>
 #include <iostream>
 #include <string>
 
-#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/program_options.hpp>
 
 #define MEGABYTE 1000000
-#define MICROSEC 1000000
-
 #define RANK0 0
 
 // Example ways to run this program:
@@ -65,40 +63,36 @@ namespace
 class Timer
 {
 public:
+    using clock = std::chrono::high_resolution_clock;
+
     void start()
     {
-        _lastTime = boost::posix_time::microsec_clock::universal_time();
+        _startTime = clock::now();
     }
 
-    void restart()
+    float elapsed() const
     {
-        start();
+        const auto now = clock::now();
+        return std::chrono::duration<float>{ now - _startTime }.count();
     }
 
-    float elapsed()
-    {
-        const boost::posix_time::ptime now = boost::posix_time::microsec_clock::universal_time();
-        return (float)(now - _lastTime).total_milliseconds();
-    }
 private:
-    boost::posix_time::ptime _lastTime;
+    clock::time_point _startTime;
 };
-
 
 namespace po = boost::program_options;
 
 struct BenchmarkOptions
 {
-    BenchmarkOptions(int &argc, char **argv)
-        : _desc("Allowed options")
-        , _getHelp(true)
-        , _dataSize(0)
-        , _packetsCount(0)
+    BenchmarkOptions( int& argc, char** argv )
+        : _desc( "Allowed options" )
+        , _getHelp( true )
+        , _dataSize( 0 )
+        , _packetsCount( 0 )
     {
         initDesc();
-        parseCommandLineArguments(argc, argv);
+        parseCommandLineArguments( argc, argv );
     }
-
 
     void showSyntax() const
     {
@@ -109,31 +103,31 @@ struct BenchmarkOptions
     {
         _desc.add_options()
             ("help", "produce help message")
-            ("datasize", po::value<float>()->default_value(0),
+            ("datasize", po::value<float>()->default_value( 0 ),
                      "Size of each data packet [MB]")
-            ("packets", po::value<unsigned int>()->default_value(0),
+            ("packets", po::value<unsigned int>()->default_value( 0 ),
                      "number of packets to transmitt")
         ;
     }
 
-    void parseCommandLineArguments(int &argc, char **argv)
+    void parseCommandLineArguments( int& argc, char** argv )
     {
-        if (argc <= 1)
+        if( argc <= 1 )
             return;
 
         po::variables_map vm;
         try
         {
-            po::store(po::parse_command_line(argc, argv, _desc), vm);
-            po::notify(vm);
+            po::store( po::parse_command_line( argc, argv, _desc ), vm );
+            po::notify( vm );
         }
-        catch (const std::exception& e)
+        catch( const std::exception& e )
         {
             std::cerr << e.what() << std::endl;
             return;
         }
 
-        _getHelp = vm.count("help");
+        _getHelp = vm.count( "help" );
         _dataSize = vm["datasize"].as<float>() * MEGABYTE;
         _packetsCount = vm["packets"].as<unsigned int>();
     }
@@ -149,16 +143,16 @@ struct BenchmarkOptions
 /**
  * Send data via MPI to benchmark the effective link speed at application level.
  */
-int main(int argc, char **argv)
+int main( int argc, char** argv )
 {
-    BenchmarkOptions options(argc, argv);
-    if (options._getHelp)
+    BenchmarkOptions options( argc, argv );
+    if( options._getHelp )
     {
         options.showSyntax();
         return 0;
     }
 
-    MPIChannel mpiChannel(argc, argv);
+    MPIChannel mpiChannel( argc, argv );
 
     // Send buffer
     std::vector<char> noiseBuffer( options._dataSize );
@@ -174,22 +168,22 @@ int main(int argc, char **argv)
     mpiChannel.globalBarrier();
     timer.start();
 
-    while(counter < options._packetsCount)
+    while( counter < options._packetsCount )
     {
-        if (mpiChannel.getRank() == RANK0)
-            mpiChannel.broadcast(MPI_MESSAGE_TYPE_NONE, serializedData);
+        if( mpiChannel.getRank() == RANK0 )
+            mpiChannel.broadcast( MPI_MESSAGE_TYPE_NONE, serializedData );
         else
         {
-            const MPIHeader header = mpiChannel.receiveHeader(RANK0);
-            buffer.setSize(header.size);
-            mpiChannel.receiveBroadcast(buffer.data(), header.size, RANK0);
+            const MPIHeader header = mpiChannel.receiveHeader( RANK0 );
+            buffer.setSize( header.size );
+            mpiChannel.receiveBroadcast( buffer.data(), header.size, RANK0 );
         }
         ++counter;
     }
 
-    const float time = timer.elapsed() / 1000.f;
+    const float time = timer.elapsed();
 
-    if (mpiChannel.getRank() == RANK0)
+    if( mpiChannel.getRank() == RANK0 )
     {
         std::cout << "Object size [Mbytes]: " << (float)serializedData.size() / MEGABYTE << std::endl;
         std::cout << "Time to send " << counter << " objects: " << time << std::endl;

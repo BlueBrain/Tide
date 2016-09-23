@@ -40,11 +40,10 @@
 #ifndef FPSCOUNTER_H
 #define FPSCOUNTER_H
 
-#include <QString>
-
+#include <chrono>
 #include <vector>
 
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <QString>
 
 class FpsCounter
 {
@@ -54,7 +53,8 @@ public:
     QString toString() const;
 
 private:
-    std::vector<boost::posix_time::ptime> _history;
+    using clock = std::chrono::system_clock;
+    std::vector<clock::time_point> _history;
 };
 
 #endif

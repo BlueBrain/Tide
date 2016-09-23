@@ -144,6 +144,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   QtImage.h
   ReceiveBuffer.h
   StatePreview.h
+  serialization/chrono.h
   serialization/deflectTypes.h
   serialization/includes.h
   serialization/qtTypes.h
