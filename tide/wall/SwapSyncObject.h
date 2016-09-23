@@ -40,10 +40,10 @@
 #ifndef SWAPSYNCOBJECT_H
 #define SWAPSYNCOBJECT_H
 
-#include <boost/function/function1.hpp>
+#include <functional>
 
 /** Function to be used to synchronize the swapping. */
-typedef boost::function< bool( const uint64_t ) > SyncFunction;
+typedef std::function< bool( const uint64_t ) > SyncFunction;
 
 /**
  * Encapsulate an object to be swapped synchronously accross processes.
@@ -53,7 +53,7 @@ class SwapSyncObject
 {
 public:
     /** Callback function after synchronization. */
-    typedef boost::function< void ( T ) > SyncCallbackFunction;
+    typedef std::function< void ( T ) > SyncCallbackFunction;
 
     /** Default constructor. */
     SwapSyncObject()

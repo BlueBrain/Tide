@@ -41,6 +41,7 @@
 
 #include "log.h"
 #include "MPIChannel.h"
+#include "ReceiveBuffer.h"
 #include "serialization/utils.h"
 
 #include <QProcess>
@@ -52,6 +53,8 @@ ProcessForker::ProcessForker( MPIChannelPtr mpiChannel )
 
 void ProcessForker::run()
 {
+    ReceiveBuffer buffer;
+
     while( _processMessages )
     {
         const ProbeResult result = _mpiChannel->probe();
@@ -61,15 +64,15 @@ void ProcessForker::run()
             continue;
         }
 
-        _buffer.setSize( result.size );
-        _mpiChannel->receive( _buffer.data(), result.size, result.src,
+        buffer.setSize( result.size );
+        _mpiChannel->receive( buffer.data(), result.size, result.src,
                               result.message );
 
         switch( result.message )
         {
         case MPI_MESSAGE_TYPE_START_PROCESS:
         {
-            const auto string = serialization::get<QString>( _buffer );
+            const auto string = serialization::get<QString>( buffer );
             const auto args = string.split( '#' );
             if( args.length() != 3 )
             {

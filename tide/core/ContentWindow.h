@@ -375,7 +375,7 @@ private:
     ContentWindow::WindowState _windowState;
     bool _controlsVisible;
 
-    boost::scoped_ptr<ContentInteractionDelegate> _interactionDelegate;
+    std::unique_ptr<ContentInteractionDelegate> _interactionDelegate;
 };
 
 BOOST_CLASS_VERSION( ContentWindow, 3 )

@@ -42,8 +42,8 @@
 #include "ContentWindow.h"
 #include "MovieContent.h"
 #include "MovieUpdater.h"
+#include "network/WallToWallChannel.h"
 #include "Tile.h"
-#include "WallToWallChannel.h"
 
 MovieSynchronizer::MovieSynchronizer( const QString& uri )
     : ContentSynchronizer()

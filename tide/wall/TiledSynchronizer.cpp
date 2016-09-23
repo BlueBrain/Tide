@@ -41,7 +41,7 @@
 
 #include "DataSource.h"
 #include "Tile.h"
-#include "WallToWallChannel.h"
+#include "network/WallToWallChannel.h"
 
 TiledSynchronizer::TiledSynchronizer( const TileSwapPolicy policy )
     : _lod( 0 )

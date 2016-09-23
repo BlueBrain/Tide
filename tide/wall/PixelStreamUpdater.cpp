@@ -39,23 +39,21 @@
 
 #include "PixelStreamUpdater.h"
 
-#include "WallToWallChannel.h"
-
 #include "log.h"
+#include "network/WallToWallChannel.h"
 #include "StreamImage.h"
 
 #include <deflect/Frame.h>
 #include <deflect/SegmentDecoder.h>
-#include <boost/bind.hpp>
+
 #include <QImage>
 #include <QThreadStorage>
 
 PixelStreamUpdater::PixelStreamUpdater()
     : _readyToSwap( true )
 {
-    _swapSyncFrame.setCallback( boost::bind(
-                                    &PixelStreamUpdater::_onFrameSwapped,
-                                    this, _1 ));
+    _swapSyncFrame.setCallback( std::bind( &PixelStreamUpdater::_onFrameSwapped,
+                                           this, std::placeholders::_1 ));
 }
 
 void PixelStreamUpdater::synchronizeFramesSwap( WallToWallChannel& channel )
@@ -63,9 +61,8 @@ void PixelStreamUpdater::synchronizeFramesSwap( WallToWallChannel& channel )
     if( !_readyToSwap )
         return;
 
-    const SyncFunction& versionCheckFunc =
-        boost::bind( &WallToWallChannel::checkVersion, &channel, _1 );
-
+    const auto versionCheckFunc = std::bind( &WallToWallChannel::checkVersion,
+                                             &channel, std::placeholders::_1 );
     _swapSyncFrame.sync( versionCheckFunc );
 }
 

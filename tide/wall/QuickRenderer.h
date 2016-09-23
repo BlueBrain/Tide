@@ -41,8 +41,8 @@
 #define QUICKRENDERER_H
 
 #include "types.h"
-#include "WallToWallChannel.h"
 
+#include <QObject>
 #include <QMutex>
 #include <QWaitCondition>
 
@@ -106,4 +106,4 @@ private:
     QWaitCondition _cond;
 };
 
-#endif // QUICKRENDERER_H
+#endif

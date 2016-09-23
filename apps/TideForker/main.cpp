@@ -39,11 +39,9 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
+#include "localstreamer/ProcessForker.h"
 #include "log.h"
 #include "MPIChannel.h"
-#include "ProcessForker.h"
-
-#include <QString>
 
 int main( int argc, char* argv[] )
 {

@@ -39,20 +39,17 @@
 
 #include "WallApplication.h"
 
-#include "log.h"
 #include "CommandLineParameters.h"
-
-#include "MPIChannel.h"
-#include "RenderController.h"
-#include "WallFromMasterChannel.h"
-#include "WallToMasterChannel.h"
-#include "WallToWallChannel.h"
-#include "WallWindow.h"
-#include "QmlTypeRegistration.h"
-
-#include "WallConfiguration.h"
-
 #include "DataProvider.h"
+#include "log.h"
+#include "MPIChannel.h"
+#include "network/WallFromMasterChannel.h"
+#include "network/WallToMasterChannel.h"
+#include "network/WallToWallChannel.h"
+#include "QmlTypeRegistration.h"
+#include "RenderController.h"
+#include "WallConfiguration.h"
+#include "WallWindow.h"
 
 #include <stdexcept>
 

@@ -41,13 +41,12 @@
 
 #include "DisplayGroup.h"
 #include "DisplayGroupRenderer.h"
+#include "network/WallToWallChannel.h"
 #include "Options.h"
-#include "WallToWallChannel.h"
-#include "WallWindow.h"
 #include "TextureUploader.h"
+#include "WallWindow.h"
 
 #include <boost/make_shared.hpp>
-#include <boost/bind.hpp>
 
 RenderController::RenderController( WallWindow& window )
     : _window( window )
@@ -59,12 +58,12 @@ RenderController::RenderController( WallWindow& window )
     , _idleRedrawTimer( 0 )
     , _needRedraw( false )
 {
-    _syncDisplayGroup.setCallback( boost::bind( &WallWindow::setDisplayGroup,
-                                                &_window, _1 ));
-    _syncMarkers.setCallback( boost::bind( &WallWindow::setMarkers,
-                                           &_window, _1 ));
-    _syncOptions.setCallback( boost::bind( &WallWindow::setRenderOptions,
-                                           &_window, _1 ));
+    _syncDisplayGroup.setCallback( std::bind( &WallWindow::setDisplayGroup,
+                                              &_window, std::placeholders::_1));
+    _syncMarkers.setCallback( std::bind( &WallWindow::setMarkers,
+                                         &_window, std::placeholders::_1 ));
+    _syncOptions.setCallback( std::bind( &WallWindow::setRenderOptions,
+                                         &_window, std::placeholders::_1 ));
 
     connect( &window.getUploader(), &TextureUploader::uploaded,
              this, [this] { _needRedraw = true; }, Qt::QueuedConnection );
@@ -108,9 +107,8 @@ void RenderController::requestRender()
 void RenderController::_syncAndRender()
 {
     WallToWallChannel& wallChannel = _window.getWallChannel();
-    const SyncFunction& versionCheckFunc =
-        boost::bind( &WallToWallChannel::checkVersion, &wallChannel, _1 );
-
+    auto versionCheckFunc = std::bind( &WallToWallChannel::checkVersion,
+                                       &wallChannel, std::placeholders::_1 );
     _syncQuit.sync( versionCheckFunc );
     if( _syncQuit.get( ))
     {

@@ -133,8 +133,6 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   LodTools.h
   log.h
   Markers.h
-  MasterFromWallChannel.h
-  MasterToWallChannel.h
   MPIChannel.h
   MPIContext.h
   MPINospin.h
@@ -165,8 +163,6 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   thumbnail/ThumbnailProvider.h
   types.h
   VectorialContent.h
-  WallFromMasterChannel.h
-  WallToMasterChannel.h
   ZoomHelper.h
   ZoomInteractionDelegate.h
 )
@@ -191,8 +187,6 @@ list(APPEND TIDECORE_SOURCES
   LodTools.cpp
   log.cpp
   Markers.cpp
-  MasterFromWallChannel.cpp
-  MasterToWallChannel.cpp
   MetaTypeRegistration.cpp
   MPIChannel.cpp
   MPIContext.cpp
@@ -214,8 +208,6 @@ list(APPEND TIDECORE_SOURCES
   thumbnail/ThumbnailGeneratorFactory.cpp
   thumbnail/ThumbnailProvider.cpp
   VectorialContent.cpp
-  WallFromMasterChannel.cpp
-  WallToMasterChannel.cpp
   ZoomHelper.cpp
   ZoomInteractionDelegate.cpp
   resources/core.qrc

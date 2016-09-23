@@ -38,6 +38,8 @@
 /*********************************************************************/
 
 #include "QuickRenderer.h"
+
+#include "network/WallToWallChannel.h"
 #include "WallWindow.h"
 
 #include <QCoreApplication>

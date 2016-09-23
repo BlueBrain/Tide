@@ -42,10 +42,10 @@
 #include "FFMPEGFrame.h"
 #include "FFMPEGMovie.h"
 #include "FFMPEGPicture.h"
-#include "MovieContent.h"
-#include "WallToWallChannel.h"
-
 #include "log.h"
+#include "MovieContent.h"
+#include "network/WallToWallChannel.h"
+
 
 MovieUpdater::MovieUpdater( const QString& uri )
     : _ffmpegMovie( new FFMPEGMovie( uri ))

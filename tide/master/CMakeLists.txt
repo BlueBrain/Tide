@@ -14,72 +14,78 @@ set(TIDEMASTER_LINK_LIBRARIES
 )
 
 list(APPEND TIDEMASTER_PUBLIC_HEADERS
-  BackgroundWidget.h
   ContentLoader.h
   DisplayGroupController.h
-  DisplayGroupListWidget.h
-  DisplayGroupView.h
   localstreamer/CommandLineOptions.h
   localstreamer/PixelStreamerLauncher.h
   localstreamer/PixelStreamerType.h
+  localstreamer/ProcessForker.h
   localstreamer/QmlKeyInjector.h
   LoggingUtility.h
   MasterApplication.h
   MasterConfiguration.h
-  MasterToForkerChannel.h
-  MasterWindow.h
   multitouch/DoubleTapDetector.h
   multitouch/MathUtils.h
+  multitouch/MultitouchArea.h
   multitouch/PanDetector.h
   multitouch/PinchDetector.h
   multitouch/SwipeDetector.h
   multitouch/TapAndHoldDetector.h
   multitouch/TapDetector.h
-  MultitouchArea.h
+  network/MasterFromWallChannel.h
+  network/MasterToForkerChannel.h
+  network/MasterToWallChannel.h
   PixelStreamWindowManager.h
-  ProcessForker.h
   QmlTypeRegistration.h
   State.h
   StateSerializationHelper.h
+  ui/BackgroundWidget.h
+  ui/ContentWindowListWidgetItem.h
+  ui/DisplayGroupListWidget.h
+  ui/DisplayGroupView.h
+  ui/BackgroundWidget.h
+  ui/MasterWindow.h
 )
 
 list(APPEND TIDEMASTER_SOURCES
-  BackgroundWidget.cpp
   ContentLoader.cpp
-  ContentWindowListWidgetItem.cpp
   DisplayGroupController.cpp
-  DisplayGroupListWidget.cpp
-  DisplayGroupView.cpp
   localstreamer/CommandLineOptions.cpp
   localstreamer/PixelStreamerLauncher.cpp
   localstreamer/PixelStreamerType.cpp
+  localstreamer/ProcessForker.cpp
   localstreamer/QmlKeyInjector.cpp
   LoggingUtility.cpp
   MasterApplication.cpp
   MasterConfiguration.cpp
-  MasterToForkerChannel.cpp
-  MasterWindow.cpp
   multitouch/DoubleTapDetector.cpp
   multitouch/MathUtils.cpp
+  multitouch/MultitouchArea.cpp
   multitouch/PanDetector.cpp
   multitouch/PinchDetector.cpp
   multitouch/SwipeDetector.cpp
   multitouch/TapAndHoldDetector.cpp
   multitouch/TapDetector.cpp
-  MultitouchArea.cpp
+  network/MasterFromWallChannel.cpp
+  network/MasterToForkerChannel.cpp
+  network/MasterToWallChannel.cpp
   PixelStreamWindowManager.cpp
-  ProcessForker.cpp
   State.cpp
   StateSerializationHelper.cpp
   resources/master.qrc
+  ui/BackgroundWidget.cpp
+  ui/ContentWindowListWidgetItem.cpp
+  ui/DisplayGroupListWidget.cpp
+  ui/DisplayGroupView.cpp
+  ui/MasterWindow.cpp
 )
 
 if(TARGET Qt5::WebEngine)
   list(APPEND TIDEMASTER_PUBLIC_HEADERS
-    WebbrowserWidget.h
+    ui/WebbrowserWidget.h
   )
   list(APPEND TIDEMASTER_SOURCES
-    WebbrowserWidget.cpp
+    ui/WebbrowserWidget.cpp
   )
 elseif(TARGET Qt5::WebKitWidgets)
   list(APPEND TIDEMASTER_PUBLIC_HEADERS
@@ -88,14 +94,14 @@ elseif(TARGET Qt5::WebKitWidgets)
     localstreamer/WebkitAuthenticationHelper.h
     localstreamer/WebkitHtmlSelectReplacer.h
     localstreamer/WebkitPixelStreamer.h
-    WebbrowserWidget.h
+    ui/WebbrowserWidget.h
   )
   list(APPEND TIDEMASTER_SOURCES
     localstreamer/PixelStreamerFactory.cpp
     localstreamer/WebkitAuthenticationHelper.cpp
     localstreamer/WebkitHtmlSelectReplacer.cpp
     localstreamer/WebkitPixelStreamer.cpp
-    WebbrowserWidget.cpp
+    ui/WebbrowserWidget.cpp
   )
   list(APPEND TIDEMASTER_LINK_LIBRARIES PRIVATE Qt5::WebKitWidgets)
 endif()

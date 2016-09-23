@@ -41,7 +41,7 @@
 #define WALLWINDOW_H
 
 #include "types.h"
-#include "WallToWallChannel.h"
+#include "network/WallToWallChannel.h"
 
 #include <QQuickWindow>
 

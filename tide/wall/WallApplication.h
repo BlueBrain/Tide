@@ -77,13 +77,13 @@ public:
     virtual ~WallApplication();
 
 private:
-    boost::scoped_ptr<WallConfiguration> _config;
+    std::unique_ptr<WallConfiguration> _config;
     WallWindow* _window; // deleteLater from syncQuit in RenderController
-    boost::scoped_ptr<RenderController> _renderController;
+    std::unique_ptr<RenderController> _renderController;
 
-    boost::scoped_ptr<WallFromMasterChannel> _fromMasterChannel;
-    boost::scoped_ptr<WallToMasterChannel> _toMasterChannel;
-    boost::scoped_ptr<WallToWallChannel> _wallChannel;
+    std::unique_ptr<WallFromMasterChannel> _fromMasterChannel;
+    std::unique_ptr<WallToMasterChannel> _toMasterChannel;
+    std::unique_ptr<WallToWallChannel> _wallChannel;
 
     QThread _mpiSendThread;
     QThread _mpiReceiveThread;
@@ -93,4 +93,4 @@ private:
     void _initMPIConnection( MPIChannelPtr worldChannel );
 };
 
-#endif // WALLAPPLICATION_H
+#endif
