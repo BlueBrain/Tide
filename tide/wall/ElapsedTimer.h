@@ -40,9 +40,7 @@
 #ifndef ELAPSEDTIMER_H
 #define ELAPSEDTIMER_H
 
-#ifndef Q_MOC_RUN
-#include <boost/date_time/posix_time/posix_time.hpp>
-#endif
+#include <chrono>
 
 /**
  * Simple timer to mesures time differences.
@@ -50,24 +48,26 @@
 class ElapsedTimer
 {
 public:
+    using clock = std::chrono::high_resolution_clock;
+
     /** Constructor. */
     ElapsedTimer();
 
     /** Set the current time. */
-    void setCurrentTime( const boost::posix_time::ptime& time);
+    void setCurrentTime( const clock::time_point& time );
 
     /** Reset any elapsed time. */
-    void resetTime( const boost::posix_time::ptime& time );
+    void resetTime( const clock::time_point& time );
 
     /** Get the elapsed time between the last two calls to setCurrentTime(). */
-    boost::posix_time::time_duration getElapsedTime() const;
+    clock::duration getElapsedTime() const;
 
-    static double toSeconds( boost::posix_time::time_duration time );
-    static boost::posix_time::time_duration toTimeDuration( double seconds );
+    /** Get the elapsed time in seconds (convenience function). */
+    double getElapsedTimeInSeconds() const;
 
 private:
-    boost::posix_time::ptime _currentTime;
-    boost::posix_time::ptime _previousTime;
+    clock::time_point _currentTime;
+    clock::time_point _previousTime;
 };
 
 #endif

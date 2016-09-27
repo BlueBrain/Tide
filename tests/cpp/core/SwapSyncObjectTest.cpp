@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
 /*                     Daniel Nachbaur<daniel.nachbaur@epfl.ch>      */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -43,20 +44,16 @@
 
 #include "SwapSyncObject.h"
 
-#include <boost/bind.hpp>
-
+using IntPtr = std::shared_ptr< int >;
 
 BOOST_AUTO_TEST_CASE( testSwapSyncObjectDefaultConstruction )
 {
-    typedef boost::shared_ptr< int > IntPtr;
-
     const SwapSyncObject< IntPtr > syncObject;
     BOOST_CHECK_EQUAL( syncObject.get(), IntPtr( ));
 }
 
 BOOST_AUTO_TEST_CASE( testSwapSyncObjectValueConstruction )
 {
-    typedef boost::shared_ptr< int > IntPtr;
     IntPtr ptr( new int );
     *ptr = 5;
 
@@ -64,38 +61,8 @@ BOOST_AUTO_TEST_CASE( testSwapSyncObjectValueConstruction )
     BOOST_CHECK_EQUAL( syncObject.get(), ptr );
 }
 
-namespace
-{
-bool oddNumberSync( const uint64_t version )
-{
-    return version % 2 != 0;
-}
-
-bool alwaysSync( const uint64_t )
-{
-    return true;
-}
-
-template< typename T >
-struct CallbackResult
-{
-    void callMe( T object )
-    {
-        result = object;
-    }
-    T getResult() const
-    {
-        return result;
-    }
-
-private:
-    T result;
-};
-}
-
 BOOST_AUTO_TEST_CASE( testUpdateAndSyncOddNumber )
 {
-    typedef boost::shared_ptr< int > IntPtr;
     IntPtr ptr( new int );
     *ptr = 5;
 
@@ -106,21 +73,30 @@ BOOST_AUTO_TEST_CASE( testUpdateAndSyncOddNumber )
     syncObject.update( otherPtr );
     BOOST_CHECK_EQUAL( syncObject.get(), ptr );
 
-    BOOST_CHECK( syncObject.sync( boost::bind( &oddNumberSync, _1 )));
-    BOOST_CHECK( !syncObject.sync( boost::bind( &oddNumberSync, _1 )));
+    const auto oddNumberSync = []( const uint64_t version )
+    {
+        return version % 2 != 0;
+    };
+
+    BOOST_CHECK( syncObject.sync( oddNumberSync ));
+    BOOST_CHECK( !syncObject.sync( oddNumberSync ));
     BOOST_CHECK_EQUAL( syncObject.get(), otherPtr );
 
     *ptr = 12345;
     syncObject.update( ptr );
     BOOST_CHECK_EQUAL( syncObject.get(), otherPtr );
 
-    BOOST_CHECK( !syncObject.sync( boost::bind( &oddNumberSync, _1 )));
+    BOOST_CHECK( !syncObject.sync( oddNumberSync ));
     BOOST_CHECK_EQUAL( syncObject.get(), otherPtr );
+}
+
+namespace
+{
+const auto alwaysSync = []( const uint64_t ) { return true; };
 }
 
 BOOST_AUTO_TEST_CASE( testUpdateAndSyncAlways )
 {
-    typedef boost::shared_ptr< int > IntPtr;
     IntPtr ptr( new int );
     *ptr = 5;
 
@@ -131,30 +107,29 @@ BOOST_AUTO_TEST_CASE( testUpdateAndSyncAlways )
     syncObject.update( otherPtr );
     BOOST_CHECK_EQUAL( syncObject.get(), ptr );
 
-    BOOST_CHECK( syncObject.sync( boost::bind( &alwaysSync, _1 )));
-    BOOST_CHECK( !syncObject.sync( boost::bind( &alwaysSync, _1 )));
+    BOOST_CHECK( syncObject.sync( alwaysSync ));
+    BOOST_CHECK( !syncObject.sync( alwaysSync ));
     BOOST_CHECK_EQUAL( syncObject.get(), otherPtr );
 
     *ptr = 12345;
     syncObject.update( ptr );
     BOOST_CHECK_EQUAL( syncObject.get(), otherPtr );
 
-    BOOST_CHECK( syncObject.sync( boost::bind( &alwaysSync, _1 )));
-    BOOST_CHECK( !syncObject.sync( boost::bind( &alwaysSync, _1 )));
+    BOOST_CHECK( syncObject.sync( alwaysSync ));
+    BOOST_CHECK( !syncObject.sync( alwaysSync ));
     BOOST_CHECK_EQUAL( syncObject.get(), ptr );
 }
 
 BOOST_AUTO_TEST_CASE( testUpdateAndSyncAlwaysWithCallback )
 {
-    typedef boost::shared_ptr< int > IntPtr;
     IntPtr ptr( new int );
     *ptr = 5;
 
-    typedef CallbackResult< IntPtr > CallbackResultT;
-    CallbackResultT result;
     SwapSyncObject< IntPtr > syncObject;
-    syncObject.setCallback( boost::bind( &CallbackResultT::callMe, boost::ref(result), _1 ));
+    IntPtr result;
+    syncObject.setCallback( [&result]( IntPtr object ){ result = object; } );
     syncObject.update( ptr );
-    BOOST_REQUIRE( syncObject.sync( boost::bind( &alwaysSync, _1 )));
-    BOOST_CHECK_EQUAL( *result.getResult(), *ptr );
+    BOOST_REQUIRE( syncObject.sync( alwaysSync ));
+    BOOST_CHECK_EQUAL( *result, *ptr );
+    BOOST_CHECK_EQUAL( result.get(), ptr.get( ));
 }

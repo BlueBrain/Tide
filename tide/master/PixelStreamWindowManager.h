@@ -41,14 +41,15 @@
 #ifndef PIXEL_STREAM_WINDOW_MANAGER_H
 #define PIXEL_STREAM_WINDOW_MANAGER_H
 
+#include "types.h"
+
+#include <deflect/SizeHints.h>
+
 #include <QObject>
 #include <QPointF>
 #include <QSize>
 #include <QUuid>
 #include <map>
-
-#include "types.h"
-#include <deflect/SizeHints.h>
 
 /**
  * Handles window creation, association and updates for pixel streamers, both

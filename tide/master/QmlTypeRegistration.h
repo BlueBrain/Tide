@@ -41,7 +41,7 @@
 #define MASTER_QMLTYPEREGISTRATION_H
 
 #include "tide/core/QmlTypeRegistration.h"
-#include "MultitouchArea.h"
+#include "multitouch/MultitouchArea.h"
 
 #include <QtQml>
 

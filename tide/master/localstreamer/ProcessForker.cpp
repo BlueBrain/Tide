@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,75 +37,79 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef WALLTOWALLCHANNEL_H
-#define WALLTOWALLCHANNEL_H
+#include "ProcessForker.h"
 
-#include "types.h"
+#include "log.h"
+#include "MPIChannel.h"
 #include "ReceiveBuffer.h"
+#include "serialization/utils.h"
 
-#include <QObject>
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <QProcess>
 
-/**
- * Communication channel between the Wall processes.
- */
-class WallToWallChannel : public QObject
+ProcessForker::ProcessForker( MPIChannelPtr mpiChannel )
+    : _mpiChannel( mpiChannel )
+    , _processMessages( true )
+{}
+
+void ProcessForker::run()
 {
-    Q_OBJECT
-    Q_DISABLE_COPY( WallToWallChannel )
+    ReceiveBuffer buffer;
 
-public:
-    /** Constructor */
-    WallToWallChannel( MPIChannelPtr mpiChannel );
+    while( _processMessages )
+    {
+        const ProbeResult result = _mpiChannel->probe();
+        if( !result.isValid( ))
+        {
+            put_flog( LOG_ERROR, "Invalid probe result size: %d", result.size );
+            continue;
+        }
 
-    /** @return The rank of this process. */
-    int getRank() const;
+        buffer.setSize( result.size );
+        _mpiChannel->receive( buffer.data(), result.size, result.src,
+                              result.message );
 
-    /**
-     * Get the sum of the given local values across all processes.
-     * @param localValue The value to sum
-     * @return the sum of the localValues
-     */
-    int globalSum( int localValue ) const;
+        switch( result.message )
+        {
+        case MPI_MESSAGE_TYPE_START_PROCESS:
+        {
+            const auto string = serialization::get<QString>( buffer );
+            const auto args = string.split( '#' );
+            if( args.length() != 3 )
+            {
+                put_flog( LOG_WARN, "Invalid command: '%d'",
+                          string.toLocal8Bit().constData( ));
+                break;
+            }
+            _launch( args[0], args[1], args[2].split( ';' ));
+            break;
+        }
+        case MPI_MESSAGE_TYPE_QUIT:
+            _processMessages = false;
+            break;
+        default:
+            put_flog( LOG_WARN, "Invalid message type: '%d'", result.message );
+            break;
+        }
+    }
+}
 
-    /** Check if all processes are ready to perform a common action. */
-    bool allReady( bool isReady ) const;
+void ProcessForker::_launch( const QString& command, const QString& workingDir,
+                             const QStringList& env )
+{
+    for( const QString& var : env )
+    {
+        // Know Qt bug: QProcess::setProcessEnvironment() does not work with
+        // startDetached(). Calling qputenv() directly as a workaround.
+        const QStringList kv = var.split( "=" );
+        if( kv.length() == 2 && !qputenv( kv[0].toLocal8Bit().constData(),
+                                          kv[1].toLocal8Bit( )))
+        {
+            put_flog( LOG_ERROR, "Setting %s ENV variable failed.",
+                      var.toLocal8Bit().constData( ));
+        }
+    }
 
-    /** Get the current timestamp, synchronized accross processes. */
-    boost::posix_time::ptime getTime() const;
-
-    /** Synchronize clock time across all processes. */
-    void synchronizeClock();
-
-    /** Block execution until all programs have reached the barrier. */
-    void globalBarrier() const;
-
-    /** Check that all processes have the same version of an object. */
-    bool checkVersion( uint64_t version ) const;
-
-    /**
-     * Elect a leader amongst wall processes.
-     * @param isCandidate Is this process a candidate.
-     * @return the rank of the leader, or -1 if no leader could be elected.
-     */
-    int electLeader( bool isCandidate );
-
-    /**
-     * Broadcast a timestamp.
-     * All other processes must recieve it with receiveTimestampBroadcast().
-     */
-    void broadcast( boost::posix_time::time_duration timestamp );
-
-    /** Receive a timestamp broadcasted by broadcast(timestamp). */
-    boost::posix_time::time_duration receiveTimestampBroadcast( int src );
-
-private:
-    MPIChannelPtr _mpiChannel;
-    ReceiveBuffer _buffer;
-    boost::posix_time::ptime _timestamp;
-
-    void _sendClock();
-    void _receiveClock();
-};
-
-#endif
+    QProcess* process = new QProcess();
+    process->setWorkingDirectory( workingDir );
+    process->startDetached( command );
+}

@@ -56,6 +56,9 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   ImageSynchronizer.h
   LodSynchronizer.h
   LodTiler.h
+  network/WallFromMasterChannel.h
+  network/WallToMasterChannel.h
+  network/WallToWallChannel.h
   PixelStreamSynchronizer.h
   PixelStreamUpdater.h
   QmlWindowRenderer.h
@@ -74,7 +77,6 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   VisibilityHelper.h
   WallApplication.h
   WallConfiguration.h
-  WallToWallChannel.h
   WallWindow.h
 )
 
@@ -89,6 +91,9 @@ list(APPEND TIDEWALL_SOURCES
   ImageSynchronizer.cpp
   LodSynchronizer.cpp
   LodTiler.cpp
+  network/WallFromMasterChannel.cpp
+  network/WallToMasterChannel.cpp
+  network/WallToWallChannel.cpp
   PixelStreamSynchronizer.cpp
   PixelStreamUpdater.cpp
   QmlWindowRenderer.cpp
@@ -107,7 +112,6 @@ list(APPEND TIDEWALL_SOURCES
   VisibilityHelper.cpp
   WallApplication.cpp
   WallConfiguration.cpp
-  WallToWallChannel.cpp
   WallWindow.cpp
   resources/wall.qrc
 )

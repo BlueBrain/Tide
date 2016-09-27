@@ -42,8 +42,7 @@
 #include "log.h"
 #include "MPIChannel.h"
 #include "serialization/utils.h"
-
-#include <boost/date_time/posix_time/time_serialize.hpp>
+#include "serialization/chrono.h"
 
 #define RANK0 0
 
@@ -67,7 +66,7 @@ bool WallToWallChannel::allReady( const bool isReady ) const
     return _mpiChannel->globalSum( isReady ? 1 : 0 ) == _mpiChannel->getSize();
 }
 
-boost::posix_time::ptime WallToWallChannel::getTime() const
+WallToWallChannel::clock::time_point WallToWallChannel::getTime() const
 {
     return _timestamp;
 }
@@ -115,14 +114,13 @@ int WallToWallChannel::electLeader( const bool isCandidate )
     return leader;
 }
 
-void WallToWallChannel::broadcast( boost::posix_time::time_duration timestamp )
+void WallToWallChannel::broadcast( const double timestamp )
 {
     _mpiChannel->broadcast( MPI_MESSAGE_TYPE_TIMESTAMP,
                             serialization::toBinary( timestamp ));
 }
 
-boost::posix_time::time_duration
-WallToWallChannel::receiveTimestampBroadcast( const int src )
+double WallToWallChannel::receiveTimestampBroadcast( const int src )
 {
     MPIHeader header = _mpiChannel->receiveHeader( src );
     assert( header.type == MPI_MESSAGE_TYPE_TIMESTAMP );
@@ -130,15 +128,14 @@ WallToWallChannel::receiveTimestampBroadcast( const int src )
     _buffer.setSize( header.size );
     _mpiChannel->receiveBroadcast( _buffer.data(), _buffer.size(), src );
 
-    return serialization::get<boost::posix_time::time_duration>( _buffer );
+    return serialization::get<double>( _buffer );
 }
 
 void WallToWallChannel::_sendClock()
 {
     assert( _mpiChannel->getRank() == RANK0 );
 
-    _timestamp = boost::posix_time::ptime(
-                     boost::posix_time::microsec_clock::universal_time( ));
+    _timestamp = clock::now();
 
     _mpiChannel->broadcast( MPI_MESSAGE_TYPE_FRAME_CLOCK,
                             serialization::toBinary( _timestamp ));
@@ -154,5 +151,5 @@ void WallToWallChannel::_receiveClock()
     _buffer.setSize( header.size );
     _mpiChannel->receiveBroadcast( _buffer.data(), _buffer.size(), RANK0 );
 
-    _timestamp = serialization::get<boost::posix_time::ptime>( _buffer );
+    _timestamp = serialization::get<clock::time_point>( _buffer );
 }

@@ -13,8 +13,8 @@ set(TIDE_INCLUDE_NAME tide)
 set(TIDE_DESCRIPTION "A Tiled Interactive DisplayWall Environment")
 set(TIDE_MAINTAINER "Blue Brain Project <bbp-open-source@googlegroups.com>")
 set(TIDE_LICENSE BSD)
-set(TIDE_DEB_DEPENDS  libboost-date-time-dev libboost-program-options-dev
-  libboost-serialization-dev libboost-test-dev libopenmpi-dev openmpi-bin
+set(TIDE_DEB_DEPENDS libopenmpi-dev openmpi-bin
+  libboost-program-options-dev libboost-serialization-dev libboost-test-dev
   qtbase5-dev qtbase5-private-dev qtdeclarative5-dev qtdeclarative5-private-dev
   libqt5svg5-dev libqt5webkit5-dev libqt5xmlpatterns5-dev libqt5x11extras5-dev
   qml-module-qtquick-controls
@@ -24,8 +24,8 @@ set(TIDE_PORT_DEPENDS boost ffmpeg mpich-devel qt5)
 
 include(Common)
 
-common_find_package(Boost REQUIRED COMPONENTS date_time program_options
-  serialization unit_test_framework)
+common_find_package(Boost REQUIRED COMPONENTS program_options serialization
+  unit_test_framework)
 common_find_package(Deflect REQUIRED)
 common_find_package(MPI REQUIRED)
 common_find_package(Qt5Concurrent REQUIRED)

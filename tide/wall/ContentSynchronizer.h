@@ -41,10 +41,8 @@
 #define CONTENTSYNCHRONIZER_H
 
 #include "types.h"
-#include "ContentType.h"
 
 #include <QObject>
-#include <QImage>
 #include <memory> // std::enable_shared_from_this
 
 /**
@@ -125,4 +123,4 @@ signals:
     void zoomContextTileChanged();
 };
 
-#endif // CONTENTSYNCHRONIZER_H
+#endif

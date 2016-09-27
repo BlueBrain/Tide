@@ -40,7 +40,7 @@
 #include "LoggingUtility.h"
 #include "ContentWindow.h"
 
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <chrono>
 
 size_t LoggingUtility::getAccumulatedWindowCount() const
 {
@@ -114,11 +114,22 @@ void LoggingUtility::_incrementWindowCount()
     ++_windowCounter;
 }
 
+uint _getMilliseconds( std::chrono::system_clock::duration timePoint )
+{
+    timePoint -= std::chrono::duration_cast<std::chrono::seconds>( timePoint );
+    return timePoint.count();
+}
+
 QString LoggingUtility::_getTimeStamp() const
 {
-    using namespace boost::posix_time;
-    ptime t = microsec_clock::local_time();
-    return QString::fromStdString( to_iso_extended_string( t ));
+    // ISO extended format: "2016-09-23T10:31:36.776385"
+    const auto now = std::chrono::system_clock::now();
+    std::time_t now_c = std::chrono::system_clock::to_time_t( now );
+
+    std::vector<char> buf( 21 );
+    std::strftime( buf.data(), buf.size(), "%FT%T", std::localtime( &now_c ));
+    const auto ms = _getMilliseconds( now.time_since_epoch( ));
+    return QString{ buf.data() } + '.' + QString::number( ms ).left( 6 );
 }
 
 void LoggingUtility::_log( const QString& s )

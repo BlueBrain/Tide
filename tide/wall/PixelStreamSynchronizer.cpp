@@ -40,9 +40,9 @@
 #include "PixelStreamSynchronizer.h"
 
 #include "ContentWindow.h"
+#include "network/WallToWallChannel.h"
 #include "PixelStreamUpdater.h"
 #include "Tile.h"
-#include "WallToWallChannel.h"
 #include "ZoomHelper.h"
 
 PixelStreamSynchronizer::PixelStreamSynchronizer()
