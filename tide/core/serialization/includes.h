@@ -44,6 +44,8 @@
 #include "serialization/qtTypes.h"
 #include "serialization/xmlMacros.h"
 
+#include <boost/version.hpp>
+
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/archive/xml_archive_exception.hpp>
