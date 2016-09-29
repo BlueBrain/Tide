@@ -79,7 +79,15 @@ void WallFromMasterChannel::receiveMessage()
         emit received( receiveQObjectBroadcast<MarkersPtr>( mh.size ));
         break;
     case MPI_MESSAGE_TYPE_PIXELSTREAM:
+#if BOOST_VERSION >= 106000
         emit received( receiveBroadcast<deflect::FramePtr>( mh.size ));
+#else
+        // WAR missing support for std::shared_ptr
+        // The copy of the Frame object is not too expensive because its
+        // Segments are QByteArray (implicitly shared).
+        emit received( std::make_shared<deflect::Frame>(
+                           receiveBroadcast<deflect::Frame>( mh.size )));
+#endif
         break;
     case MPI_MESSAGE_TYPE_QUIT:
         _processMessages = false;

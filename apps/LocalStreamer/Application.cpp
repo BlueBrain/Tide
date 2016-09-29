@@ -96,7 +96,7 @@ bool Application::initialize( const CommandLineOptions& options )
     _deflectStream->registerForEvents();
 
     // Make sure to quit the application if the connection is closed.
-    _deflectStream->disconnected.connect( QApplication::quit );
+    _deflectStream->setDisconnectedCallback( QApplication::quit );
 
     // Use a timer to process Event received from the deflect::Stream
     QTimer* timer = new QTimer( this );

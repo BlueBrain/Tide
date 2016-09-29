@@ -89,7 +89,12 @@ void MasterToWallChannel::sendAsync( MarkersPtr markers )
 void MasterToWallChannel::send( deflect::FramePtr frame )
 {
     assert( !frame->segments.empty() && "received an empty frame" );
+#if BOOST_VERSION >= 106000
     broadcast( frame, MPI_MESSAGE_TYPE_PIXELSTREAM );
+#else
+    // WAR missing support for std::shared_ptr
+    broadcast( *frame, MPI_MESSAGE_TYPE_PIXELSTREAM );
+#endif
 }
 
 void MasterToWallChannel::sendQuit()
