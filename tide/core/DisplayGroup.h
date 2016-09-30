@@ -76,6 +76,8 @@ class DisplayGroup : public Coordinates,
                 NOTIFY hasFocusedWindowsChanged )
     Q_PROPERTY( bool hasFullscreenWindows READ hasFullscreenWindows
                 NOTIFY hasFullscreenWindowsChanged )
+    Q_PROPERTY( ContentWindow* fullscreenWindow READ getFullscreenWindow
+                NOTIFY hasFullscreenWindowsChanged )
 
 public:
     /** Constructor */
@@ -128,6 +130,9 @@ public:
 
     /** Is there a fullscreen window. */
     bool hasFullscreenWindows() const;
+
+    /** Get the fullscreen window (if any). */
+    ContentWindow* getFullscreenWindow() const;
 
     /** Focus a window. */
     Q_INVOKABLE void focus( const QUuid& id );
@@ -210,11 +215,7 @@ signals:
     void hasFullscreenWindowsChanged();
     //@}
 
-private slots:
-    void _sendDisplayGroup();
-
 private:
-
     friend class boost::serialization::access;
 
     /** No-argument constructor required for serialization. */
@@ -247,7 +248,6 @@ private:
         serialize_members_xml( ar, version );
         for( ContentWindowPtr window : _contentWindows )
         {
-            _assignController( *window );
             if( window->isFocused( ))
                 _focusedWindows.insert( window );
             // Make sure windows are not in an undefined state
@@ -262,8 +262,8 @@ private:
         serialize_members_xml( ar, version );
     }
 
+    void _sendDisplayGroup();
     void _watchChanges( ContentWindowPtr contentWindow );
-    void _assignController( ContentWindow& window );
     void _removeFocusedWindow( ContentWindowPtr window );
     void _updateFocusedWindowsCoordinates();
 

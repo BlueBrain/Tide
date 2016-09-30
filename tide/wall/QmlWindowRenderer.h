@@ -97,4 +97,4 @@ private:
     QQuickItem* _createQmlItem( const QUrl& url );
 };
 
-#endif // QMLWINDOWRENDERER_H
+#endif

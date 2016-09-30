@@ -55,20 +55,6 @@ const int WIDTH = 512;
 const int HEIGHT = 512;
 }
 
-BOOST_AUTO_TEST_CASE( testControllerCreationByDisplayGroup )
-{
-    ContentPtr content( new DummyContent );
-    content->setDimensions( QSize( WIDTH, HEIGHT ));
-    ContentWindowPtr window = boost::make_shared<ContentWindow>( content );
-
-    BOOST_CHECK( !window->getController( ));
-
-    DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
-    displayGroup->addContentWindow( window );
-
-    BOOST_CHECK( window->getController( ));
-}
-
 BOOST_AUTO_TEST_CASE( testFocusWindows )
 {
     ContentPtr content( new DummyContent );

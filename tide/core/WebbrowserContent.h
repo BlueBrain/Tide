@@ -151,7 +151,7 @@ private:
     friend class boost::serialization::access;
 
     // Default constructor required for boost::serialization
-    WebbrowserContent() {}
+    WebbrowserContent();
 
     /** Serialize for sending to Wall applications. */
     template< class Archive >

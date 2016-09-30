@@ -209,9 +209,8 @@ void DisplayGroupRenderer::_setBackground( ContentPtr content )
         return;
 
     ContentWindowPtr window = boost::make_shared<ContentWindow>( content );
-    window->setController(
-               make_unique<ContentWindowController>( *window, *_displayGroup ));
-    window->getController()->adjustSize( SIZE_FULLSCREEN );
+    ContentWindowController( *window,
+                             *_displayGroup ).adjustSize( SIZE_FULLSCREEN );
     _backgroundWindowItem.reset( new QmlWindowRenderer( _engine,
                                                         _provider,
                                                         *_displayGroupItem,

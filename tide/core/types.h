@@ -127,9 +127,19 @@ inline bool operator < ( const QSizeF& a, const QSizeF& b )
     return (a.width() < b.width() || a.height() < b.height());
 }
 
+inline bool operator <= ( const QSizeF& a, const QSizeF& b )
+{
+    return (a.width() <= b.width() || a.height() <= b.height());
+}
+
 inline bool operator > ( const QSizeF& a, const QSizeF& b )
 {
     return (a.width() > b.width() || a.height() > b.height());
+}
+
+inline bool operator >= ( const QSizeF& a, const QSizeF& b )
+{
+    return (a.width() >= b.width() || a.height() >= b.height());
 }
 
 inline std::ostream& operator << ( std::ostream& str, const QSizeF& s )

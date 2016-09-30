@@ -59,7 +59,7 @@ public:
     CONTENT_TYPE getType() const override;
 
     /**
-     * Reaad PDF informations from the source URI.
+     * Read PDF informations from the source URI.
      * @return true on success, false if the URI is invalid or an error occured.
     **/
     bool readMetadata() override;

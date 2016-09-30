@@ -46,7 +46,6 @@
 
 #include "Coordinates.h"             // base class
 #include "Content.h"                 // needed for serialization
-#include "ContentWindowController.h" // needed for serialization
 #include "serialization/includes.h"
 
 #include <QUuid>
@@ -63,8 +62,6 @@ class ContentWindow : public Coordinates
     Q_PROPERTY( bool isPanel READ isPanel CONSTANT )
     Q_PROPERTY( Content* content READ getContentPtr CONSTANT )
     Q_PROPERTY( ContentInteractionDelegate* delegate READ getInteractionDelegate
-                CONSTANT )
-    Q_PROPERTY( ContentWindowController* controller READ getController
                 CONSTANT )
     Q_PROPERTY( WindowMode mode READ getMode WRITE setMode
                 NOTIFY modeChanged )
@@ -163,20 +160,6 @@ public:
     void setContent( ContentPtr content );
 
 
-    /** @return the controller for this window, or 0 if the window has not been
-     *          added to a DisplayGroup.
-     */
-    ContentWindowController* getController();
-
-    /** @return the controller for this window, or 0 if the window has not been
-     *          added to a DisplayGroup.
-     */
-    const ContentWindowController* getController() const;
-
-    /** Assign a controller. */
-    void setController( ContentWindowControllerPtr controller );
-
-
     /** Set the coordinates in pixel units. */
     void setCoordinates( const QRectF& coordinates );
 
@@ -209,8 +192,11 @@ public:
     /** Set the fullscreen coordinates of this window. */
     void setFullscreenCoordinates( const QRectF& coordinates );
 
-    /** @return the actual display coordinates of (depending on the mode). */
+    /** @return the actual display coordinates (depending on the mode). */
     const QRectF& getDisplayCoordinates() const;
+
+    /** Set the actual display coordinates (depending on the mode). */
+    void setDisplayCoordinates( const QRectF& coordinates );
 
 
     /** Get the current state. */
@@ -294,7 +280,6 @@ private:
         ar & _type;
         ar & _uuid;
         ar & _content;
-        ar & _controller;
         ar & _activeHandle;
         ar & _resizePolicy;
         ar & _mode;
@@ -366,7 +351,6 @@ private:
     QUuid _uuid;
     WindowType _type;
     ContentPtr _content;
-    ContentWindowController* _controller; // child QObject, don't delete
     ContentWindow::ResizeHandle _activeHandle;
     ContentWindow::ResizePolicy _resizePolicy;
     ContentWindow::WindowMode _mode;

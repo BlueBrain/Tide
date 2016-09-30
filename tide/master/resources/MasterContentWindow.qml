@@ -12,7 +12,7 @@ BaseContentWindow {
 
     property bool contentActive: contentwindow.content.captureInteraction &&
                                  contentwindow.state === ContentWindow.NONE
-    property bool windowActive: contentwindow.mode === ContentWindow.STANDARD
+    property bool windowActive: contentwindow.mode !== ContentWindow.FOCUSED
 
     function closeWindow() {
         displaygroup.removeWindowLater(contentwindow.id)
@@ -48,16 +48,11 @@ BaseContentWindow {
         toggleFullscreenMode()
     }
 
-    function moveWindow(delta) {
-        contentwindow.controller.moveTo(Qt.point(contentwindow.x + delta.x,
-                                                 contentwindow.y + delta.y))
-    }
-
     function scaleWindow(center, pixelDelta) {
         var sign = pixelDelta.x + pixelDelta.y > 0 ? 1.0 : -1.0;
         var delta = Math.sqrt(pixelDelta.x * pixelDelta.x +
                               pixelDelta.y * pixelDelta.y)
-        contentwindow.controller.scale(center, sign * delta)
+        controller.scale(center, sign * delta)
     }
 
     focus: contentwindow.content.captureInteraction
@@ -108,7 +103,7 @@ BaseContentWindow {
         }
         onPan: {
             if(windowActive && contentwindow.state === ContentWindow.MOVING)
-                moveWindow(delta)
+                controller.moveBy(delta)
         }
         onPanEnded: {
             if(windowActive && contentwindow.state === ContentWindow.MOVING)
@@ -169,7 +164,11 @@ BaseContentWindow {
                 toggleControlsVisibility()
         }
         onDoubleTap: {
-            if(!contentActive && !contentwindow.fullscreen)
+            if(contentActive)
+                contentwindow.delegate.doubleTap(pos, numPoints)
+            else if(contentwindow.fullscreen)
+                controller.toogleFullscreenMaxSize()
+            else
                 (numPoints > 1) ? toggleFullscreenMode() : toggleFocusMode()
         }
         onTapAndHold: {
@@ -187,7 +186,7 @@ BaseContentWindow {
             if(contentActive)
                 contentwindow.delegate.pan(pos, Qt.point(delta.x, delta.y), numPoints)
             else if(windowActive && contentwindow.state === ContentWindow.MOVING)
-                moveWindow(delta)
+                controller.moveBy(delta)
         }
         onPanEnded: {
             if(!contentActive && windowActive && contentwindow.state === ContentWindow.MOVING)
@@ -240,7 +239,7 @@ BaseContentWindow {
             MultitouchArea {
                 anchors.fill: parent
                 onTap: {
-                    contentwindow.controller.adjustSizeOneToOne()
+                    controller.adjustSizeOneToOne()
                     contentwindow.content.resetZoom()
                 }
             }
@@ -282,7 +281,7 @@ BaseContentWindow {
                 else
                     contentwindow.resizePolicy = ContentWindow.KEEP_ASPECT_RATIO
             }
-            onPan: contentwindow.controller.resizeRelative(delta)
+            onPan: controller.resizeRelative(delta)
             onTouchEnded: {
                 contentwindow.state = ContentWindow.NONE
                 contentwindow.activeHandle = ContentWindow.NOHANDLE
@@ -329,7 +328,7 @@ BaseContentWindow {
                 return
             var newSize = Qt.size(mouse.x - startMousePos.x + startSize.width,
                                   mouse.y - startMousePos.y + startSize.height)
-            contentwindow.controller.resize(newSize)
+            controller.resize(newSize)
         }
         mousearea.onReleased: contentwindow.state = ContentWindow.NONE
     }

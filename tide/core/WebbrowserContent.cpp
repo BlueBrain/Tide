@@ -48,14 +48,20 @@ IMPLEMENT_SERIALIZE_FOR_XML( WebbrowserContent )
 namespace
 {
 #if TIDE_USE_QT5WEBKITWIDGETS
+const bool showKeyboardAction = true;
 const QString WEBBROWSER_CONTROLS( "qrc:///qml/core/WebbrowserControls.qml" );
 #else
+const bool showKeyboardAction = false;
 const QString WEBBROWSER_CONTROLS;
 #endif
 }
 
 WebbrowserContent::WebbrowserContent( const QString& uri )
-    : PixelStreamContent( uri )
+    : PixelStreamContent( uri, showKeyboardAction )
+{}
+
+WebbrowserContent::WebbrowserContent()
+    : PixelStreamContent( showKeyboardAction )
 {}
 
 CONTENT_TYPE WebbrowserContent::getType() const
