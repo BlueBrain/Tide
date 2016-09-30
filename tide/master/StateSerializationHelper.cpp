@@ -40,8 +40,8 @@
 #include "StateSerializationHelper.h"
 
 #include "ContentFactory.h"
+#include "control/DisplayGroupController.h"
 #include "DisplayGroup.h"
-#include "DisplayGroupController.h"
 #include "log.h"
 #include "serialization/utils.h"
 #include "State.h"
@@ -148,6 +148,7 @@ DisplayGroupConstPtr _load( const QString& filename, DisplayGroupConstPtr target
     _validateContents( *group );
 
     DisplayGroupController controller( *group );
+    controller.updateFocusedWindowsCoordinates();
 
     if( state.getVersion() < FIRST_PIXEL_COORDINATES_FILE_VERSION )
         controller.denormalize( targetGroup->getCoordinates().size( ));
@@ -188,7 +189,7 @@ StateSerializationHelper::load( const QString& filename )
 
 void _generatePreview( const DisplayGroup& group, const QString& filename )
 {
-    const QSize size = group.getCoordinates().size().toSize();
+    const QSize size = group.size().toSize();
     const ContentWindowPtrs& windows = group.getContentWindows();
 
     StatePreview filePreview( filename );

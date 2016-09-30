@@ -66,6 +66,9 @@ public:
     qreal width() const;
     qreal height() const;
 
+    QSizeF size() const;
+    QPointF center() const;
+
     void setX( const qreal x );
     void setY( const qreal y );
     void setWidth( const qreal w );

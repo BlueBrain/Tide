@@ -41,7 +41,7 @@
 #define WALLFROMMASTERCHANNEL_H
 
 #include "types.h"
-#include "ReceiveBuffer.h"
+#include "network/ReceiveBuffer.h"
 
 #include <QObject>
 

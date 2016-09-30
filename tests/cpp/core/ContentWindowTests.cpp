@@ -41,7 +41,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "ContentWindow.h"
-#include "ZoomInteractionDelegate.h"
+#include "control/ZoomController.h"
 
 #include "MinimalGlobalQtApp.h"
 BOOST_GLOBAL_FIXTURE( MinimalGlobalQtApp );
@@ -178,9 +178,10 @@ BOOST_AUTO_TEST_CASE( testWindowResizePolicyNonZoomableContent )
                        ContentWindow::ResizePolicy::KEEP_ASPECT_RATIO );
 
     // Non-zoomable, fixed aspect ratio contents can't be adjusted
+    static_cast<DummyContent*>( content.get( ))->zoomable = false;
     BOOST_REQUIRE( content->hasFixedAspectRatio( ));
-    auto delegate = window.getInteractionDelegate();
-    BOOST_REQUIRE( !dynamic_cast<ZoomInteractionDelegate*>( delegate ));
+    auto controller = ContentController::create( window );
+    BOOST_REQUIRE( !dynamic_cast<ZoomController*>( controller.get( )));
     BOOST_CHECK( !window.setResizePolicy(
                      ContentWindow::ResizePolicy::ADJUST_CONTENT ));
     BOOST_CHECK_EQUAL( window.getResizePolicy(),
@@ -208,8 +209,9 @@ BOOST_AUTO_TEST_CASE( testWindowResizePolicyZoomableContent )
 
     // Zoomable, fixed aspect ratio contents can be adjusted
     BOOST_REQUIRE( content->hasFixedAspectRatio( ));
-    auto delegate = window.getInteractionDelegate();
-    BOOST_REQUIRE( dynamic_cast<ZoomInteractionDelegate*>( delegate ));
+    BOOST_REQUIRE( content->canBeZoomed( ));
+    auto controller = ContentController::create( window );
+    BOOST_REQUIRE( dynamic_cast<ZoomController*>( controller.get( )));
     BOOST_CHECK( window.setResizePolicy(
                      ContentWindow::ResizePolicy::ADJUST_CONTENT ));
     BOOST_CHECK_EQUAL( window.getResizePolicy(),

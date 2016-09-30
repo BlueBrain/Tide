@@ -41,8 +41,8 @@
 #define MASTERFROMWALLCHANNEL_H
 
 #include "types.h"
-#include "MPIHeader.h"
-#include "ReceiveBuffer.h"
+#include "network/MPIHeader.h"
+#include "network/ReceiveBuffer.h"
 
 #include <QObject>
 

@@ -65,6 +65,11 @@ bool ImagePyramidContent::readMetadata()
     return true;
 }
 
+bool ImagePyramidContent::canBeZoomed() const
+{
+    return true;
+}
+
 const QStringList& ImagePyramidContent::getSupportedExtensions()
 {
     static QStringList extensions;

@@ -138,7 +138,7 @@ BOOST_AUTO_TEST_CASE( testWindowCountDecrement )
     QObject::connect( displayGroup.get(), &DisplayGroup::contentWindowRemoved,
                       logger.get(), &LoggingUtility::contentWindowRemoved );
     displayGroup->removeContentWindow( window1 );
-    BOOST_CHECK( logger.get()->getWindowCount() == 0);
+    BOOST_CHECK( logger.get()->getWindowCount() == 0 );
 }
 
 BOOST_AUTO_TEST_CASE( testInteractionCounter )
@@ -150,15 +150,14 @@ BOOST_AUTO_TEST_CASE( testInteractionCounter )
     ContentWindowPtr window2 = boost::make_shared<ContentWindow>( content );
     std::unique_ptr<LoggingUtility> logger = make_unique<LoggingUtility>();
 
-    BOOST_CHECK( logger.get()->getInteractionCount() == 0);
+    BOOST_CHECK( logger.get()->getInteractionCount() == 0 );
 
     QObject::connect( displayGroup.get(), &DisplayGroup::contentWindowAdded,
                       logger.get(), &LoggingUtility::contentWindowAdded );
 
     displayGroup->addContentWindow( window1 );
-    displayGroup->focus( window1->getID());
-    BOOST_CHECK( logger.get()->getInteractionCount() == 2);
-
+    displayGroup->addFocusedWindow( window1 );
+    BOOST_CHECK( logger.get()->getInteractionCount() == 2 );
 }
 
 BOOST_AUTO_TEST_CASE( testLastInteraction )
@@ -168,15 +167,14 @@ BOOST_AUTO_TEST_CASE( testLastInteraction )
 
     ContentWindowPtr window1 = boost::make_shared<ContentWindow>( content );
     std::unique_ptr<LoggingUtility> logger = make_unique<LoggingUtility>();
-    BOOST_CHECK( logger.get()->getLastInteraction() == "");
+    BOOST_CHECK( logger.get()->getLastInteraction() == "" );
 
     QObject::connect( displayGroup.get(), &DisplayGroup::contentWindowAdded,
                       logger.get(), &LoggingUtility::contentWindowAdded );
 
     displayGroup->addContentWindow( window1 );
-    displayGroup->focus( window1->getID());
-    BOOST_CHECK( logger.get()->getLastInteraction() == "mode changed");
-
+    displayGroup->addFocusedWindow( window1 );
+    BOOST_CHECK( logger.get()->getLastInteraction() == "mode changed" );
 }
 
 BOOST_AUTO_TEST_CASE( hideLauncher )

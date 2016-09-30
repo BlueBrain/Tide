@@ -42,7 +42,7 @@
 #include "CommandLineParameters.h"
 #include "DataProvider.h"
 #include "log.h"
-#include "MPIChannel.h"
+#include "network/MPIChannel.h"
 #include "network/WallFromMasterChannel.h"
 #include "network/WallToMasterChannel.h"
 #include "network/WallToWallChannel.h"

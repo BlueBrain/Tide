@@ -61,10 +61,7 @@ class ContentWindow : public Coordinates
     Q_PROPERTY( QUuid id READ getID CONSTANT )
     Q_PROPERTY( bool isPanel READ isPanel CONSTANT )
     Q_PROPERTY( Content* content READ getContentPtr CONSTANT )
-    Q_PROPERTY( ContentInteractionDelegate* delegate READ getInteractionDelegate
-                CONSTANT )
-    Q_PROPERTY( WindowMode mode READ getMode WRITE setMode
-                NOTIFY modeChanged )
+    Q_PROPERTY( WindowMode mode READ getMode NOTIFY modeChanged )
     Q_PROPERTY( bool focused READ isFocused NOTIFY modeChanged )
     Q_PROPERTY( QRectF focusedCoordinates READ getFocusedCoordinates
                 NOTIFY focusedCoordinatesChanged )
@@ -173,6 +170,9 @@ public:
     /** Get the current state. */
     ContentWindow::WindowMode getMode() const;
 
+    /** Set the current mode. */
+    void setMode( const ContentWindow::WindowMode mode );
+
     /** Is the window focused. */
     bool isFocused() const;
 
@@ -212,12 +212,6 @@ public:
     bool isHidden() const;
 
 
-    /**
-     * Get the interaction delegate.
-     * @note Rank0 only.
-     */
-    ContentInteractionDelegate* getInteractionDelegate();
-
     /** Get the label for the window */
     QString getLabel() const;
 
@@ -228,9 +222,6 @@ public:
     void setControlsVisible( bool value );
 
 public slots:
-    /** Set the current state. */
-    void setMode( const ContentWindow::WindowMode mode );
-
     /** Set the current active resize handle. */
     void setActiveHandle( ContentWindow::ResizeHandle handle );
 
@@ -346,7 +337,6 @@ private:
     }
 
     void _init();
-    void _createInteractionDelegate();
 
     QUuid _uuid;
     WindowType _type;
@@ -358,8 +348,6 @@ private:
     QRectF _fullscreenCoordinates;
     ContentWindow::WindowState _windowState;
     bool _controlsVisible;
-
-    std::unique_ptr<ContentInteractionDelegate> _interactionDelegate;
 };
 
 BOOST_CLASS_VERSION( ContentWindow, 3 )

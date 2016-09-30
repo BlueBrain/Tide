@@ -41,8 +41,10 @@
 
 #include "DisplayGroupView.h"
 
+#include "control/ContentController.h"
+#include "control/ContentWindowController.h"
+#include "control/DisplayGroupController.h"
 #include "ContentWindow.h"
-#include "ContentWindowController.h"
 #include "DisplayGroup.h"
 #include "Options.h"
 #include "MasterConfiguration.h"
@@ -100,11 +102,18 @@ void DisplayGroupView::setDataModel( DisplayGroupPtr displayGroup )
 
     rootContext()->setContextProperty( "displaygroup", _displayGroup.get( ));
 
+    auto controller = make_unique<DisplayGroupController>( *_displayGroup );
+    rootContext()->setContextProperty( "groupcontroller", controller.get( ));
+
     QQmlComponent component( engine(), QML_DISPLAYGROUP_URL );
     qmlCheckOrThrow( component );
     _displayGroupItem = qobject_cast< QQuickItem* >( component.create( ));
     auto wallObject = rootObject()->findChild<QQuickItem*>( WALL_OBJECT_NAME );
     _displayGroupItem->setParentItem( wallObject );
+
+    // Transfer ownership of the controller to qml item
+    controller->setParent( _displayGroupItem );
+    controller.release();
 
     connect( _displayGroupItem, SIGNAL( launcherControlPressed( )),
              this, SIGNAL( launcherControlPressed( )));
@@ -198,16 +207,19 @@ bool DisplayGroupView::event( QEvent *evt )
     return QQuickView::event( evt );
 }
 
-void DisplayGroupView::_add( ContentWindowPtr contentWindow )
+void DisplayGroupView::_add( ContentWindowPtr window )
 {
     // New Context for the window, ownership retained by the windowItem
     QQmlContext* windowContext = new QQmlContext( rootContext( ));
-    windowContext->setContextProperty( "contentwindow", contentWindow.get( ));
+    windowContext->setContextProperty( "contentwindow", window.get( ));
 
-    auto controller = new ContentWindowController( *contentWindow,
-                                                   *_displayGroup );
+    auto controller = new ContentWindowController( *window, *_displayGroup );
     controller->setParent( windowContext );
     windowContext->setContextProperty( "controller", controller );
+
+    auto contentController = ContentController::create( *window ).release();
+    contentController->setParent( windowContext );
+    windowContext->setContextProperty( "contentcontroller", contentController );
 
     QQmlComponent component( engine(), QML_CONTENTWINDOW_URL );
     qmlCheckOrThrow( component );
@@ -215,7 +227,7 @@ void DisplayGroupView::_add( ContentWindowPtr contentWindow )
     windowContext->setParent( windowItem );
 
     // Store a reference to the window and add it to the scene
-    const QUuid& id = contentWindow->getID();
+    const QUuid& id = window->getID();
     _uuidToWindowMap[ id ] = qobject_cast<QQuickItem*>( windowItem );
     _uuidToWindowMap[ id ]->setParentItem( _displayGroupItem );
 }

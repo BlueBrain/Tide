@@ -39,7 +39,7 @@
 
 #include "MasterToForkerChannel.h"
 
-#include "MPIChannel.h"
+#include "network/MPIChannel.h"
 #include "serialization/utils.h"
 
 namespace

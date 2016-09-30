@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,38 +37,77 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "PDFInteractionDelegate.h"
+#ifndef GEOMETRY_H
+#define GEOMETRY_H
 
-#include "ContentWindow.h"
-#include "PDFContent.h"
+#include <QRectF>
 
-PDFInteractionDelegate::PDFInteractionDelegate( ContentWindow& contentWindow )
-    : ZoomInteractionDelegate( contentWindow )
+/**
+ * Set of geometry functions.
+ */
+namespace geometry
 {
-    assert( _contentWindow.getContent()->getType() == CONTENT_TYPE_PDF );
+
+/**
+ * Get the size of a surface scaled to fit inside another one
+ * @param source the source size
+ * @param target the target size
+ * @return the adjusted size
+ */
+template <typename Source, typename Target>
+inline QSizeF getAdjustedSize( const Source& source, const Target& target )
+{
+    auto size = QSizeF( source.width(), source.height( ));
+    return size.scaled( target.size(), Qt::KeepAspectRatio );
 }
 
-void PDFInteractionDelegate::swipeLeft()
+/**
+ * Get the size of a surface scaled to fit around another one
+ * @param source the source size
+ * @param target the target size
+ * @return the adjusted size
+ */
+template <typename Source, typename Target>
+inline QSizeF getExpandedSize( const Source& source, const Target& target )
 {
-    nextPage();
+    auto size = QSizeF( source.width(), source.height( ));
+    return size.scaled( target.size(), Qt::KeepAspectRatioByExpanding );
 }
 
-void PDFInteractionDelegate::swipeRight()
+/**
+ * Adjust a surface to exactly fit inside another one, preserving aspect ratio
+ * @param source the source surface
+ * @param target the destination surface
+ * @return the adjusted rectangle
+ */
+template <typename Source, typename Target>
+QRectF adjustAndCenter( const Source& source, const Target& target )
 {
-    prevPage();
+    auto rect = QRectF{ QPointF(), getAdjustedSize( source, target ) };
+    rect.moveCenter( target.center( ));
+    return rect;
 }
 
-void PDFInteractionDelegate::prevPage()
-{
-    _getPDFContent().previousPage();
+/**
+ * Resize a rectangle around a point of interest.
+ *
+ * @param rect the rectangle to resize
+ * @param position the point of interest to resize around
+ * @param size the new absolute size to resize to
+ * @return the resized rectangle
+ */
+QRectF resizeAroundPosition( const QRectF& rect, const QPointF& position,
+                             const QSizeF& size );
+
+/**
+ * Constrain a size between min and max values.
+ * @param size the size to constrain
+ * @param min the minimum size (ignored if not valid)
+ * @param max the maximum size (ignored if not valid)
+ * @return the size comprised between min and max
+ */
+QSizeF constrain( const QSizeF& size, const QSizeF& min, const QSizeF& max );
+
 }
 
-void PDFInteractionDelegate::nextPage()
-{
-    _getPDFContent().nextPage();
-}
-
-PDFContent& PDFInteractionDelegate::_getPDFContent()
-{
-    return static_cast<PDFContent&>( *_contentWindow.getContent( ));
-}
+#endif

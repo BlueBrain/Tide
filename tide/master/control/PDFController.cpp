@@ -37,20 +37,38 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "ContentInteractionDelegate.h"
+#include "PDFController.h"
 
 #include "ContentWindow.h"
+#include "PDFContent.h"
 
-ContentInteractionDelegate::ContentInteractionDelegate( ContentWindow& window )
-    : _contentWindow( window )
-{}
-
-ContentInteractionDelegate::~ContentInteractionDelegate() {}
-
-QPointF
-ContentInteractionDelegate::getNormalizedPoint( const QPointF& point ) const
+PDFController::PDFController( ContentWindow& contentWindow )
+    : ZoomController( contentWindow )
 {
-    const QRectF& window = _contentWindow.getDisplayCoordinates();
-    return QPointF( point.x() / window.width(),
-                    point.y() / window.height( ));
+    assert( _contentWindow.getContent()->getType() == CONTENT_TYPE_PDF );
+}
+
+void PDFController::swipeLeft()
+{
+    nextPage();
+}
+
+void PDFController::swipeRight()
+{
+    prevPage();
+}
+
+void PDFController::prevPage()
+{
+    _getPDFContent().previousPage();
+}
+
+void PDFController::nextPage()
+{
+    _getPDFContent().nextPage();
+}
+
+PDFContent& PDFController::_getPDFContent()
+{
+    return static_cast<PDFContent&>( *_contentWindow.getContent( ));
 }

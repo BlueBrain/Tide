@@ -44,7 +44,6 @@
 
 #include <QApplication>
 #include <QThread>
-#include <boost/scoped_ptr.hpp>
 
 class RenderController;
 class WallFromMasterChannel;

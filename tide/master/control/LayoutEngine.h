@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,82 +37,35 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef CONTENTINTERACTIONDELEGATE_H
-#define CONTENTINTERACTIONDELEGATE_H
+#ifndef LAYOUTENGINE_H
+#define LAYOUTENGINE_H
 
 #include "types.h"
 
-#include <QObject>
-
 /**
- * Handle user interaction with the Content of a ContentWindow.
- *
- * This class is abstract and should be reimplemented for the
- * different Content type.
+ * Layout engine for positionning windows on the wall.
  */
-class ContentInteractionDelegate : public QObject
+class LayoutEngine
 {
-    Q_OBJECT
-
 public:
-    /** Construct a default interaction delegate that does nothing. */
-    explicit ContentInteractionDelegate( ContentWindow& window );
+    LayoutEngine( const DisplayGroup& group );
+    ~LayoutEngine();
 
-    /** Virtual destructor. */
-    virtual ~ContentInteractionDelegate();
+    /** @return the focused coordinates for the window. */
+    QRectF getFocusedCoord( const ContentWindow& window ) const;
 
-    /** @name Touch gesture handlers. */
-    //@{
-    Q_INVOKABLE virtual void touchBegin( QPointF position )
-    { Q_UNUSED( position ) }
-    Q_INVOKABLE virtual void touchEnd( QPointF position )
-    { Q_UNUSED( position ) }
-
-    Q_INVOKABLE virtual void addTouchPoint( int id, QPointF position )
-    { Q_UNUSED( id ) Q_UNUSED( position ) }
-    Q_INVOKABLE virtual void updateTouchPoint( int id, QPointF position )
-    { Q_UNUSED( id ) Q_UNUSED( position ) }
-    Q_INVOKABLE virtual void removeTouchPoint( int id, QPointF position )
-    { Q_UNUSED( id ) Q_UNUSED( position ) }
-
-    Q_INVOKABLE virtual void tap( QPointF position, uint numPoints )
-    { Q_UNUSED( position ) Q_UNUSED( numPoints ) }
-    Q_INVOKABLE virtual void doubleTap( QPointF position, uint numPoints )
-    { Q_UNUSED( position ) Q_UNUSED( numPoints ) }
-    Q_INVOKABLE virtual void tapAndHold( QPointF position, uint numPoints )
-    { Q_UNUSED( position ) Q_UNUSED( numPoints ) }
-    Q_INVOKABLE virtual void pan( QPointF position, QPointF delta,
-                                  uint numPoints )
-    { Q_UNUSED( position ) Q_UNUSED( delta ) Q_UNUSED( numPoints ) }
-    Q_INVOKABLE virtual void pinch( QPointF position, QPointF pixelDelta )
-    { Q_UNUSED( position ) Q_UNUSED( pixelDelta ) }
-    Q_INVOKABLE virtual void swipeLeft() {}
-    Q_INVOKABLE virtual void swipeRight() {}
-    Q_INVOKABLE virtual void swipeUp() {}
-    Q_INVOKABLE virtual void swipeDown() {}
-    //@}
-
-    /** @name Keyboard event handlers. */
-    //@{
-    Q_INVOKABLE virtual void keyPress( int key, int modifiers, QString text )
-    { Q_UNUSED( key ) Q_UNUSED( modifiers ) Q_UNUSED( text ) }
-    Q_INVOKABLE virtual void keyRelease( int key, int modifiers, QString text )
-    { Q_UNUSED( key ) Q_UNUSED( modifiers ) Q_UNUSED( text ) }
-    //@}
-
-    /** @name UI event handlers. */
-    //@{
-    Q_INVOKABLE virtual void prevPage() {}
-    Q_INVOKABLE virtual void nextPage() {}
-    //@}
-
-protected:
-    ContentWindow& _contentWindow;
-
-    QPointF getNormalizedPoint( const QPointF& point ) const;
+    /** Update the focused coordinates for the set of windows. */
+    void updateFocusedCoord( ContentWindowSet& windows ) const;
 
 private:
-    Q_DISABLE_COPY( ContentInteractionDelegate )
+    const DisplayGroup& _displayGroup;
+
+    /** @return the focused coordinates for the window. */
+    QRectF _getFocusedCoord( const ContentWindow& window,
+                             const ContentWindowSet& focusedWindows ) const;
+    QRectF _getNominalCoord( const ContentWindow& window ) const;
+    void _constrainFullyInside( QRectF& window ) const;
+    qreal _getInsideMargin() const;
 };
 
 #endif

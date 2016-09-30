@@ -47,8 +47,10 @@ endif()
 
 list(APPEND TIDEWALL_PUBLIC_HEADERS
   BasicSynchronizer.h
+  CachedDataSource.h
   ContentSynchronizer.h
   DataProvider.h
+  DataSource.h
   DisplayGroupRenderer.h
   ElapsedTimer.h
   FpsCounter.h
@@ -56,6 +58,7 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   ImageSynchronizer.h
   LodSynchronizer.h
   LodTiler.h
+  LodTools.h
   network/WallFromMasterChannel.h
   network/WallToMasterChannel.h
   network/WallToWallChannel.h
@@ -82,6 +85,7 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
 
 list(APPEND TIDEWALL_SOURCES
   BasicSynchronizer.cpp
+  CachedDataSource.cpp
   ContentSynchronizer.cpp
   DataProvider.cpp
   DisplayGroupRenderer.cpp
@@ -91,6 +95,7 @@ list(APPEND TIDEWALL_SOURCES
   ImageSynchronizer.cpp
   LodSynchronizer.cpp
   LodTiler.cpp
+  LodTools.cpp
   network/WallFromMasterChannel.cpp
   network/WallToMasterChannel.cpp
   network/WallToWallChannel.cpp

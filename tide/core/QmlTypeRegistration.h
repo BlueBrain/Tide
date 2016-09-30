@@ -41,8 +41,6 @@
 #define CORE_QMLTYPEREGISTRATION_H
 
 #include "ContentActionsModel.h"
-#include "ContentInteractionDelegate.h"
-#include "ContentWindowController.h"
 #include "ContentWindow.h"
 #include "KeyboardState.h"
 #include "Markers.h"
@@ -70,14 +68,6 @@ void registerQmlTypes()
     qmlRegisterUncreatableType<ContentWindow>(
                 QML_MODULE, 1, 0, "ContentWindow",
                 "This exports enums to QML" );
-    qmlRegisterUncreatableType<ContentWindowController>(
-                QML_MODULE, 1, 0, "ContentWindowController",
-                "ContentWindowController is linked to a ContentWindow "
-                "and read-only in QML" );
-    qmlRegisterUncreatableType<ContentInteractionDelegate>(
-                QML_MODULE, 1, 0, "ContentInteractionDelegate",
-                "ContentInteractionDelegate is linked to a ContentWindow "
-                "and read-only in QML" );
 }
 
 }

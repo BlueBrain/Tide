@@ -109,7 +109,7 @@ public:
     qreal getSkipPosition() const;
 
 private:
-    MoviePtr _ffmpegMovie;
+    std::unique_ptr<FFMPEGMovie> _ffmpegMovie;
     FpsCounter _fpsCounter;
 
     bool _paused = false;

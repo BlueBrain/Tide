@@ -40,14 +40,15 @@
 
 #include "PixelStreamWindowManager.h"
 
-#include "log.h"
 #include "ContentFactory.h"
-#include "ContentInteractionDelegate.h"
 #include "ContentWindow.h"
-#include "ContentWindowController.h"
+#include "control/ContentController.h"
+#include "control/ContentWindowController.h"
+#include "control/DisplayGroupController.h"
 #include "DisplayGroup.h"
-#include "PixelStreamContent.h"
 #include "localstreamer/PixelStreamerLauncher.h"
+#include "log.h"
+#include "PixelStreamContent.h"
 
 #include <deflect/EventReceiver.h>
 #include <deflect/Frame.h>
@@ -128,7 +129,7 @@ void PixelStreamWindowManager::openWindow( const QString& uri,
     _displayGroup.addContentWindow( window );
 
     if( _autoFocusNewWindows && !webbrowser )
-        _displayGroup.focus( window->getID( ));
+        DisplayGroupController{ _displayGroup }.focus( window->getID( ));
 }
 
 void PixelStreamWindowManager::openPixelStreamWindow( const QString uri )
@@ -143,7 +144,7 @@ void PixelStreamWindowManager::closePixelStreamWindow( const QString uri )
 
     ContentWindowPtr window = getContentWindow( uri );
     if( window )
-        _displayGroup.removeContentWindow( window );
+        DisplayGroupController{ _displayGroup }.remove( window->getID( ));
 }
 
 void PixelStreamWindowManager::registerEventReceiver( const QString uri,
@@ -166,9 +167,8 @@ void PixelStreamWindowManager::registerEventReceiver( const QString uri,
     auto& content = dynamic_cast<PixelStreamContent&>( *window->getContent( ));
     if( !exclusive || !content.hasEventReceivers( ))
     {
-        success = connect( window->getInteractionDelegate(),
-                           SIGNAL( notify( deflect::Event )),
-                           receiver, SLOT( processEvent( deflect::Event )));
+        success = connect( &content, &PixelStreamContent::notify,
+                           receiver, &deflect::EventReceiver::processEvent );
         if( success )
             content.incrementEventReceiverCount();
         else
@@ -205,6 +205,8 @@ void PixelStreamWindowManager::updateStreamDimensions( deflect::FramePtr frame )
         controller.resize( size, CENTER );
     }
     window->getContent()->setDimensions( size );
+    if( window->isFocused( ))
+        DisplayGroupController{_displayGroup}.updateFocusedWindowsCoordinates();
 }
 
 void PixelStreamWindowManager::sendDataToWindow( const QString uri,

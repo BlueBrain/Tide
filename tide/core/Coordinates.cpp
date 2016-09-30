@@ -79,6 +79,16 @@ qreal Coordinates::height() const
     return _coordinates.height();
 }
 
+QSizeF Coordinates::size() const
+{
+    return _coordinates.size();
+}
+
+QPointF Coordinates::center() const
+{
+    return _coordinates.center();
+}
+
 void Coordinates::setX( const qreal x_ )
 {
     if( x_ == _coordinates.x( ))

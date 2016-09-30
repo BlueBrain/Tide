@@ -56,6 +56,9 @@ public:
     /** @return the max dimensions, used to constrain resize/scale. */
     QSize getMaxDimensions() const override;
 
+    /** @return true */
+    bool canBeZoomed() const final;
+
     /** Set the maximum factor for zoom and resize; value times base size */
     static void setMaxScale( qreal value );
 

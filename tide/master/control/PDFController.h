@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,43 +37,29 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef DISPLAYGROUPCONTROLLER_H
-#define DISPLAYGROUPCONTROLLER_H
+#ifndef PDFCONTROLLER_H
+#define PDFCONTROLLER_H
 
-#include "types.h"
+#include "ZoomController.h"
 
-/** Controller for rescaling and adjusting DisplayGroup. */
-class DisplayGroupController
+class PDFContent;
+
+/**
+ * Control user interaction with a PDF document.
+ */
+class PDFController : public ZoomController
 {
 public:
-    /** Constructor */
-    DisplayGroupController( DisplayGroup& group );
+    PDFController( ContentWindow& contentWindow );
 
-    /** Scale the DisplayGroup and its windows by the given x and y factors. */
-    void scale( const QSizeF& factor );
+    void swipeLeft() override;
+    void swipeRight() override;
 
-    /** Rescale to fit inside the given size, preserving aspect ratio. */
-    void adjust( const QSizeF& maxGroupSize );
-
-    /** Reshape to fit inside the given size, scaling and centering windows. */
-    void reshape( const QSizeF& newSize );
-
-    /** Transform from normalized coordinates to pixel coordinates. */
-    void denormalize( const QSizeF& targetSize );
-
-    /** Resize windows in place so that their aspect ratio matches content's. */
-    void adjustWindowsAspectRatioToContent();
-
-    /** Estimate the surface covered by the windows in the group. */
-    QRectF estimateSurface() const;
+    void prevPage() override;
+    void nextPage() override;
 
 private:
-    DisplayGroup& _group;
-
-    /** Extend the DisplayGroup surface, keeping the windows centered. */
-    void _extend( const QSizeF& newSize );
-
-    qreal _estimateAspectRatio() const;
+    PDFContent& _getPDFContent();
 };
 
-#endif // DISPLAYGROUPCONTROLLER_H
+#endif

@@ -69,12 +69,12 @@ BOOST_AUTO_TEST_CASE( testFocusWindows )
     DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
     displayGroup->addContentWindow( window );
     displayGroup->addContentWindow( panel );
-    displayGroup->focus( window->getID( ));
+    displayGroup->addFocusedWindow( window );
 
     BOOST_CHECK( window->isFocused( ));
     BOOST_CHECK( !panel->isFocused( ));
 
-    displayGroup->unfocus( window->getID( ));
+    displayGroup->removeFocusedWindow( window );
     BOOST_CHECK( !window->isFocused( ));
 }
 

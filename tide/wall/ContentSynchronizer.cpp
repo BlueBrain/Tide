@@ -58,7 +58,8 @@
 
 ContentSynchronizer::~ContentSynchronizer() {}
 
-ContentSynchronizerPtr ContentSynchronizer::create( ContentPtr content )
+std::unique_ptr<ContentSynchronizer>
+ContentSynchronizer::create( ContentPtr content )
 {
     const QString& uri = content->getURI();
     switch( content->getType( ))

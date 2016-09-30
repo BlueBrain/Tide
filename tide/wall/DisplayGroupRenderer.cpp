@@ -39,14 +39,14 @@
 
 #include "DisplayGroupRenderer.h"
 
-#include "DisplayGroup.h"
 #include "ContentWindow.h"
-#include "ContentWindowController.h"
-#include "Options.h"
+#include "DisplayGroup.h"
+#include "geometry.h"
 #include "Markers.h"
+#include "Options.h"
+#include "qmlUtils.h"
 #include "VisibilityHelper.h"
 #include "WallWindow.h"
-#include "qmlUtils.h"
 
 #include <deflect/Frame.h>
 
@@ -135,16 +135,13 @@ void DisplayGroupRenderer::setDisplayGroup( DisplayGroupPtr displayGroup )
     }
 
     // Remove old windows
-    QmlWindows::iterator it = _windowItems.begin();
+    auto it = _windowItems.begin();
     while( it != _windowItems.end( ))
     {
         if( updatedWindows.contains( it.key( )))
             ++it;
         else
-        {
-            emit windowRemoved( *it );
             it = _windowItems.erase( it );
-        }
     }
 
     // Retain the new DisplayGroup
@@ -187,7 +184,6 @@ void DisplayGroupRenderer::_createWindowQmlItem( ContentWindowPtr window )
     _windowItems[id].reset( new QmlWindowRenderer( _engine, _provider,
                                                    *_displayGroupItem,
                                                    window ));
-    emit windowAdded( _windowItems[id] );
 }
 
 bool DisplayGroupRenderer::_hasBackgroundChanged( const QString& newUri ) const
@@ -209,8 +205,8 @@ void DisplayGroupRenderer::_setBackground( ContentPtr content )
         return;
 
     ContentWindowPtr window = boost::make_shared<ContentWindow>( content );
-    ContentWindowController( *window,
-                             *_displayGroup ).adjustSize( SIZE_FULLSCREEN );
+    window->setCoordinates( geometry::adjustAndCenter( *window,
+                                                       *_displayGroup ));
     _backgroundWindowItem.reset( new QmlWindowRenderer( _engine,
                                                         _provider,
                                                         *_displayGroupItem,

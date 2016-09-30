@@ -37,58 +37,45 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "WebbrowserInteractionDelegate.h"
+#ifndef WEBBROWSERCONTROLLER_H
+#define WEBBROWSERCONTROLLER_H
 
-#include "ContentWindow.h"
-#include "WebbrowserContent.h"
+#include "PixelStreamController.h"
 
-WebbrowserInteractionDelegate::WebbrowserInteractionDelegate( ContentWindow&
-                                                              contentWindow )
-    : PixelStreamInteractionDelegate( contentWindow )
-{}
+class WebbrowserContent;
 
-void WebbrowserInteractionDelegate::touchBegin( const QPointF position )
+/**
+ * Controller which forwards events to the Webbrowser or to its address bar.
+ */
+class WebbrowserController : public PixelStreamController
 {
-    getWebContent().setAddressBarFocused( false );
+    Q_OBJECT
 
-    PixelStreamInteractionDelegate::touchBegin( position );
-}
+public:
+    /** Constructor */
+    explicit WebbrowserController( ContentWindow& contentWindow );
 
-void WebbrowserInteractionDelegate::keyPress( const int key,
-                                              const int modifiers,
-                                              const QString text )
-{
-    if( getWebContent().isAddressBarFocused( ))
-        return;
+    /** @name Touch gesture handlers. */
+    //@{
+    void touchBegin( QPointF position ) final;
+    //@}
 
-    PixelStreamInteractionDelegate::keyPress( key, modifiers, text );
-}
+    /** @name Keyboard gesture handlers. */
+    //@{
+    void keyPress( int key, int modifiers, QString text ) final;
+    void keyRelease( int key, int modifiers, QString text ) final;
+    //@}
 
-void WebbrowserInteractionDelegate::keyRelease( const int key,
-                                                const int modifiers,
-                                                const QString text )
-{
-    if( getWebContent().isAddressBarFocused( ))
-    {
-        switch( key )
-        {
-        case Qt::Key_Enter:
-            emit enterKeyPressed();
-            break;
-        case Qt::Key_Backspace:
-            emit deleteKeyPressed();
-            break;
-        default:
-            emit keyboardInput( text );
-            break;
-        }
-        return;
-    }
+signals:
+    /** @name Forward keyboard events to the Qml address bar. */
+    //@{
+    void keyboardInput( QString text );
+    void deleteKeyPressed();
+    void enterKeyPressed();
+    //@}
 
-    PixelStreamInteractionDelegate::keyRelease( key, modifiers, text );
-}
+private:
+    WebbrowserContent& getWebContent();
+};
 
-WebbrowserContent& WebbrowserInteractionDelegate::getWebContent()
-{
-    return dynamic_cast<WebbrowserContent&>( *_contentWindow.getContent( ));
-}
+#endif

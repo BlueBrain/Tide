@@ -86,7 +86,7 @@ public:
     virtual TilePtr getZoomContextTile() const { return TilePtr(); }
 
     /** @return a ContentSynchronizer for the given content. */
-    static ContentSynchronizerPtr create( ContentPtr content );
+    static std::unique_ptr<ContentSynchronizer> create( ContentPtr content );
 
 public slots:
     /**

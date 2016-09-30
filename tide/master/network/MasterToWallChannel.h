@@ -41,7 +41,7 @@
 #define MASTERTOWALLCHANNEL_H
 
 #include "types.h"
-#include "MPIHeader.h"
+#include "network/MPIHeader.h"
 
 #include <QObject>
 

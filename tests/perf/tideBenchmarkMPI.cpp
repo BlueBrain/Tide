@@ -37,8 +37,8 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "MPIChannel.h"
-#include "ReceiveBuffer.h"
+#include "network/MPIChannel.h"
+#include "network/ReceiveBuffer.h"
 #include "serialization/utils.h"
 
 #include <chrono>

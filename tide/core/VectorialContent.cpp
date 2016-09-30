@@ -50,6 +50,11 @@ QSize VectorialContent::getMaxDimensions() const
     return getDimensions() * getMaxScale();
 }
 
+bool VectorialContent::canBeZoomed() const
+{
+    return true;
+}
+
 qreal VectorialContent::getMaxScale()
 {
     return _maxScale;

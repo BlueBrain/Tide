@@ -40,7 +40,7 @@
 #include "LayoutEngine.h"
 
 #include "ContentWindow.h"
-#include "ContentWindowController.h"
+#include "control/ContentWindowController.h"
 #include "DisplayGroup.h"
 
 #include <QTransform>
@@ -94,9 +94,21 @@ void _scaleAroundCenter( QRectF& rect, const qreal factor )
 
 QRectF LayoutEngine::getFocusedCoord( const ContentWindow& window ) const
 {
+    return _getFocusedCoord( window, _displayGroup.getFocusedWindows( ));
+}
+
+void LayoutEngine::updateFocusedCoord( ContentWindowSet& windows ) const
+{
+    for( auto& window : windows )
+        window->setFocusedCoordinates( _getFocusedCoord( *window, windows ));
+}
+
+QRectF
+LayoutEngine::_getFocusedCoord( const ContentWindow& window,
+                                const ContentWindowSet& focusedWindows ) const
+{
     QRectF winCoord = _getNominalCoord( window );
 
-    const auto& focusedWindows = _displayGroup.getFocusedWindows();
     if( focusedWindows.size() < 2 )
         return winCoord;
 
@@ -148,17 +160,18 @@ QRectF LayoutEngine::_getNominalCoord( const ContentWindow& window ) const
 {
     const qreal margin = 2.0 * _getInsideMargin();
     const QSizeF margins( margin + WINDOW_CONTROLS_MARGIN_PX, margin );
-    const QSizeF& wallSize = _displayGroup.getCoordinates().size();
+    const QSizeF wallSize = _displayGroup.size();
     const QSizeF maxSize = wallSize.boundedTo( wallSize - margins );
 
-    QSizeF size = window.getCoordinates().size();
+    QSizeF size = window.size();
     size.scale( maxSize, Qt::KeepAspectRatio );
+
     ContentWindowController( const_cast<ContentWindow&>( window ),
                              _displayGroup,
                              ContentWindowController::Coordinates::STANDARD
                              ).constrainSize( size );
 
-    const qreal x = window.getCoordinates().center().x();
+    const qreal x = window.center().x();
     QRectF coord( QPointF(), size );
     coord.moveCenter( QPointF( x, wallSize.height() * 0.5 ));
     _constrainFullyInside( coord );

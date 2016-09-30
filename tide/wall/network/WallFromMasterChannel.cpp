@@ -39,10 +39,10 @@
 
 #include "WallFromMasterChannel.h"
 
-#include "DisplayGroup.h"
 #include "ContentWindow.h"
+#include "DisplayGroup.h"
 #include "Markers.h"
-#include "MPIChannel.h"
+#include "network/MPIChannel.h"
 #include "Options.h"
 #include "serialization/utils.h"
 

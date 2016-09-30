@@ -42,23 +42,15 @@
 #include "DisplayGroup.h"
 
 #include "ContentWindow.h"
-#include "ContentWindowController.h"
-#include "LayoutEngine.h"
 #include "log.h"
 
 IMPLEMENT_SERIALIZE_FOR_XML( DisplayGroup )
 
-DisplayGroup::DisplayGroup()
-    : _showWindowTitlesInSavedSession( true )
-    , _fullscreenWindowPrevMode( ContentWindow::WindowMode::STANDARD )
-{
-}
+DisplayGroup::DisplayGroup() {}
 
-DisplayGroup::DisplayGroup( const QSizeF& size )
-    : _showWindowTitlesInSavedSession( true )
-    , _fullscreenWindowPrevMode( ContentWindow::WindowMode::STANDARD )
+DisplayGroup::DisplayGroup( const QSizeF& size_ )
 {
-    _coordinates.setSize( size );
+    _coordinates.setSize( size_ );
 }
 
 DisplayGroup::~DisplayGroup() {}
@@ -81,70 +73,45 @@ void DisplayGroup::addContentWindow( ContentWindowPtr contentWindow )
     _sendDisplayGroup();
 }
 
-void DisplayGroup::removeWindowLater( const QUuid windowId )
+void DisplayGroup::removeContentWindow( ContentWindowPtr window )
 {
-    auto window = getContentWindow( windowId );
-    QMetaObject::invokeMethod( this, "removeContentWindow",
-                               Qt::QueuedConnection,
-                               Q_ARG( ContentWindowPtr, window ));
-}
-
-void DisplayGroup::removeContentWindow( ContentWindowPtr contentWindow )
-{
-    ContentWindowPtrs::iterator it = find( _contentWindows.begin(),
-                                           _contentWindows.end(),
-                                           contentWindow );
+    auto it = find( _contentWindows.begin(), _contentWindows.end(), window );
     if( it == _contentWindows.end( ))
         return;
 
     if( *it == _fullscreenWindow )
-        exitFullscreen();
+        setFullscreenWindow( ContentWindowPtr( ));
 
-    _removeFocusedWindow( *it );
+    removeFocusedWindow( *it );
     _contentWindows.erase( it );
 
     // disconnect any existing connections with the window
-    disconnect( contentWindow.get(), 0, this, 0 );
+    disconnect( window.get(), 0, this, 0 );
 
-    emit( contentWindowRemoved( contentWindow ));
+    emit( contentWindowRemoved( window ));
     _sendDisplayGroup();
 }
 
-void DisplayGroup::moveContentWindowToFront( const QUuid id )
+void DisplayGroup::moveContentWindowToFront( ContentWindowPtr window )
 {
-    moveContentWindowToFront( getContentWindow( id ));
-}
-
-void DisplayGroup::moveContentWindowToFront( ContentWindowPtr contentWindow )
-{
-    if( contentWindow == _contentWindows.back( ))
+    if( !window || window == _contentWindows.back( ))
         return;
 
-    ContentWindowPtrs::iterator it = find( _contentWindows.begin(),
-                                           _contentWindows.end(),
-                                           contentWindow );
+    auto it = find( _contentWindows.begin(), _contentWindows.end(), window );
     if( it == _contentWindows.end( ))
         return;
 
     // move it to end of the list (last item rendered is on top)
     _contentWindows.erase( it );
-    _contentWindows.push_back( contentWindow );
+    _contentWindows.push_back( window );
 
-    emit( contentWindowMovedToFront( contentWindow ));
+    emit( contentWindowMovedToFront( window ));
     _sendDisplayGroup();
 }
 
 bool DisplayGroup::isEmpty() const
 {
     return _contentWindows.empty();
-}
-
-ContentWindowPtr DisplayGroup::getActiveWindow() const
-{
-    if( isEmpty( ))
-        return ContentWindowPtr();
-
-    return _contentWindows.back();
 }
 
 const ContentWindowPtrs& DisplayGroup::getContentWindows() const
@@ -172,8 +139,36 @@ void DisplayGroup::setContentWindows( ContentWindowPtrs contentWindows )
         if( window->isFocused( ))
             _focusedWindows.insert( window );
     }
-    _updateFocusedWindowsCoordinates();
     _sendDisplayGroup();
+}
+
+void DisplayGroup::clear()
+{
+    if( _contentWindows.empty( ))
+        return;
+
+    // Close regular windows but hide panels (instead of removing them)
+    ContentWindowPtrs removeSet;
+    for( auto window : _contentWindows )
+    {
+        if( window->isPanel( ))
+            window->setState( ContentWindow::HIDDEN );
+        else
+            removeSet.push_back( window );
+    }
+
+    put_flog( LOG_INFO, "removing %i windows", removeSet.size( ));
+
+    // Do this before removeContentWindow because removeFocusedWindow() resets
+    // the state of the focused windows which interfers with xml session loading
+    if( !_focusedWindows.empty( ))
+    {
+        _focusedWindows.clear();
+        emit hasFocusedWindowsChanged();
+    }
+
+    for( auto window : removeSet )
+        removeContentWindow( window );
 }
 
 int DisplayGroup::getZindex( ContentWindowPtr window ) const
@@ -193,14 +188,16 @@ bool DisplayGroup::hasFullscreenWindows() const
     return static_cast<bool>( _fullscreenWindow );
 }
 
-void DisplayGroup::focus( const QUuid& id )
+const ContentWindowSet& DisplayGroup::getFocusedWindows() const
 {
-    ContentWindowPtr window = getContentWindow( id );
-    if( !window || window->isPanel() || _focusedWindows.count( window ))
+    return _focusedWindows;
+}
+
+void DisplayGroup::addFocusedWindow( ContentWindowPtr window )
+{
+    if( !_focusedWindows.insert( window ).second )
         return;
 
-    _focusedWindows.insert( window );
-    _updateFocusedWindowsCoordinates();
     window->setMode( ContentWindow::WindowMode::FOCUSED );
 
     if( _focusedWindows.size() == 1 )
@@ -209,65 +206,16 @@ void DisplayGroup::focus( const QUuid& id )
     _sendDisplayGroup();
 }
 
-void DisplayGroup::unfocus( const QUuid& id )
+void DisplayGroup::removeFocusedWindow( ContentWindowPtr window )
 {
-    ContentWindowPtr window = getContentWindow( id );
-    if( !window || !_focusedWindows.count( window ))
+    if( !_focusedWindows.erase( window ))
         return;
 
     window->setMode( ContentWindow::WindowMode::STANDARD );
-    _removeFocusedWindow( window );
-    // Make sure the window dimensions are re-adjusted to the new zoom level
-    const auto center = window->getCoordinates().center();
-    ContentWindowController{ *window, *this }.scale( center, 0.0 );
 
-    _sendDisplayGroup();
-}
+    if( _focusedWindows.empty( ))
+        emit hasFocusedWindowsChanged();
 
-void DisplayGroup::unfocusAll()
-{
-    while( !_focusedWindows.empty( ))
-        unfocus( (*_focusedWindows.begin())->getID( ));
-}
-
-const ContentWindowSet& DisplayGroup::getFocusedWindows() const
-{
-    return _focusedWindows;
-}
-
-void DisplayGroup::showFullscreen( const QUuid& id )
-{
-    ContentWindowPtr window = getContentWindow( id );
-    if( !window )
-        return;
-
-    exitFullscreen();
-    _fullscreenWindow = window;
-
-    // backup window state
-    _fullscreenWindowPrevMode = window->getMode();
-    _fullscreenWindowPrevZoom = window->getContent()->getZoomRect();
-
-    const auto target = ContentWindowController::Coordinates::FULLSCREEN;
-    ContentWindowController controller( *window, *this, target );
-    controller.adjustSize( SizeState::SIZE_FULLSCREEN );
-    window->setMode( ContentWindow::WindowMode::FULLSCREEN );
-
-    emit hasFullscreenWindowsChanged();
-    _sendDisplayGroup();
-}
-
-void DisplayGroup::exitFullscreen()
-{
-    if( !_fullscreenWindow )
-        return;
-
-    // restore window state
-    _fullscreenWindow->setMode( _fullscreenWindowPrevMode );
-    _fullscreenWindow->getContent()->setZoomRect( _fullscreenWindowPrevZoom );
-
-    _fullscreenWindow.reset();
-    emit hasFullscreenWindowsChanged();
     _sendDisplayGroup();
 }
 
@@ -297,33 +245,34 @@ ContentWindow* DisplayGroup::getFullscreenWindow() const
     return _fullscreenWindow.get();
 }
 
-void DisplayGroup::setShowWindowTitles( const bool set )
+void DisplayGroup::setFullscreenWindow( ContentWindowPtr window )
 {
-    if( _showWindowTitlesInSavedSession == set )
+    if( _fullscreenWindow == window )
         return;
 
-    _showWindowTitlesInSavedSession = set;
-}
-
-void DisplayGroup::clear()
-{
-    if( _contentWindows.empty( ))
-        return;
-
-    // Close regular windows but hide panels (instead of removing them)
-    ContentWindowPtrs removeSet;
-    for( auto window : _contentWindows )
+    // restore window state
+    if( _fullscreenWindow )
     {
-        if( window->isPanel( ))
-            window->setState( ContentWindow::HIDDEN );
-        else
-            removeSet.push_back( window );
+        _fullscreenWindow->setMode( _fullscreenWindowPrevMode );
+        _fullscreenWindow->getContent()->setZoomRect( _fullscreenWindowPrevZoom );
     }
 
-    put_flog( LOG_INFO, "removing %i windows", removeSet.size( ));
+    // backup window state
+    if( window )
+    {
+        _fullscreenWindowPrevMode = window->getMode();
+        _fullscreenWindowPrevZoom = window->getContent()->getZoomRect();
+        window->setMode( ContentWindow::WindowMode::FULLSCREEN );
+    }
 
-    for( auto window : removeSet )
-        removeContentWindow( window );
+    _fullscreenWindow = window;
+    emit hasFullscreenWindowsChanged();
+    _sendDisplayGroup();
+}
+
+void DisplayGroup::setShowWindowTitles( const bool set )
+{
+    _showWindowTitlesInSavedSession = set;
 }
 
 void DisplayGroup::_sendDisplayGroup()
@@ -337,27 +286,5 @@ void DisplayGroup::_watchChanges( ContentWindowPtr contentWindow )
              this, &DisplayGroup::_sendDisplayGroup );
 
     connect( contentWindow.get(), &ContentWindow::contentModified,
-             this, [this]()
-    {
-        _updateFocusedWindowsCoordinates();
-        _sendDisplayGroup();
-    } );
-}
-
-void DisplayGroup::_removeFocusedWindow( ContentWindowPtr window )
-{
-    if( _focusedWindows.erase( window ))
-    {
-        _updateFocusedWindowsCoordinates();
-
-        if( _focusedWindows.empty( ))
-            emit hasFocusedWindowsChanged();
-    }
-}
-
-void DisplayGroup::_updateFocusedWindowsCoordinates()
-{
-    LayoutEngine engine( *this );
-    for( auto window : _focusedWindows )
-        window->setFocusedCoordinates( engine.getFocusedCoord( *window ));
+             this, &DisplayGroup::_sendDisplayGroup );
 }

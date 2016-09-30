@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,29 +37,83 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef LAYOUTENGINE_H
-#define LAYOUTENGINE_H
+#ifndef DISPLAYGROUPCONTROLLER_H
+#define DISPLAYGROUPCONTROLLER_H
 
 #include "types.h"
 
-/**
- * Layout engine for positionning windows on the wall.
- */
-class LayoutEngine
-{
-public:
-    LayoutEngine( const DisplayGroup& group );
-    ~LayoutEngine();
+#include "ContentWindow.h"
 
-    /** @return the focused coordinates for the window. */
-    QRectF getFocusedCoord( const ContentWindow& window ) const;
+#include <QObject>
+
+/** Controller for rescaling and adjusting DisplayGroup. */
+class DisplayGroupController : public QObject
+{
+    Q_OBJECT
+    Q_DISABLE_COPY( DisplayGroupController );
+
+public:
+    /** Constructor */
+    DisplayGroupController( DisplayGroup& group );
+
+    /** Remove a content window. */
+    Q_INVOKABLE void remove( QUuid windowId );
+
+    /** Remove a content window later (using a Qt::QueuedConnection). */
+    Q_INVOKABLE void removeWindowLater( QUuid windowId );
+
+    /**
+     * Show a window in fullscreen.
+     *
+     * Only one window can be fullscreen at a time. If another window was
+     * already fullscreen it will be restored to its previous state.
+     * @param id window identifier
+     */
+    Q_INVOKABLE void showFullscreen( const QUuid& id );
+
+    /** Leave fullscreen mode, restoring the window to its previous state. */
+    Q_INVOKABLE void exitFullscreen();
+
+    /** Focus a window. */
+    Q_INVOKABLE void focus( const QUuid& id );
+
+    /** Unfocus a window. */
+    Q_INVOKABLE void unfocus( const QUuid& id );
+
+    /** Unfocus all focused windows. */
+    Q_INVOKABLE void unfocusAll();
+
+    /** Move a content window to the front. */
+    Q_INVOKABLE void moveWindowToFront( QUuid id );
+
+    /** Scale the DisplayGroup and its windows by the given x and y factors. */
+    void scale( const QSizeF& factor );
+
+    /** Rescale to fit inside the given size, preserving aspect ratio. */
+    void adjust( const QSizeF& maxGroupSize );
+
+    /** Reshape to fit inside the given size, scaling and centering windows. */
+    void reshape( const QSizeF& newSize );
+
+    /** Transform from normalized coordinates to pixel coordinates. */
+    void denormalize( const QSizeF& targetSize );
+
+    /** Resize windows in place so that their aspect ratio matches content's. */
+    void adjustWindowsAspectRatioToContent();
+
+    /** Estimate the surface covered by the windows in the group. */
+    QRectF estimateSurface() const;
+
+    /** Update the coordinates of the focused windows to fit the group. */
+    void updateFocusedWindowsCoordinates();
 
 private:
-    const DisplayGroup& _displayGroup;
+    DisplayGroup& _group;
 
-    QRectF _getNominalCoord( const ContentWindow& window ) const;
-    void _constrainFullyInside( QRectF& window ) const;
-    qreal _getInsideMargin() const;
+    /** Extend the DisplayGroup surface, keeping the windows centered. */
+    void _extend( const QSizeF& newSize );
+
+    qreal _estimateAspectRatio() const;
 };
 
-#endif // LAYOUTENGINE_H
+#endif
