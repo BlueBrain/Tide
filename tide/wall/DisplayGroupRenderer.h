@@ -87,10 +87,6 @@ public slots:
     /** Increment number of rendered/swapped frames for FPS display. */
     void updateRenderedFrames();
 
-signals:
-    void windowAdded( QmlWindowPtr qmlWindow );
-    void windowRemoved( QmlWindowPtr qmlWindow );
-
 private:
     Q_DISABLE_COPY( DisplayGroupRenderer )
 
@@ -99,8 +95,8 @@ private:
     DisplayGroupPtr _displayGroup;
     QQuickItem* _displayGroupItem;
 
-    typedef QMap<QUuid,QmlWindowPtr> QmlWindows;
-    QmlWindows _windowItems;
+    using QmlWindowPtr = std::shared_ptr<QmlWindowRenderer>;
+    QMap<QUuid, QmlWindowPtr> _windowItems;
     QmlWindowPtr _backgroundWindowItem;
 
     OptionsPtr _options;
@@ -115,4 +111,4 @@ private:
     void _adjustBackgroundTo( const DisplayGroup& displayGroup );
 };
 
-#endif // DISPLAYGROUPRENDERER_H
+#endif

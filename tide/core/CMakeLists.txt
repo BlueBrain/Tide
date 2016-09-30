@@ -55,7 +55,6 @@ if(TIDE_ENABLE_PDF_SUPPORT)
   list(APPEND TIDECORE_SOURCES
     PDF.cpp
     PDFContent.cpp
-    PDFInteractionDelegate.cpp
     thumbnail/PDFThumbnailGenerator.cpp
   )
   if(TIDE_USE_CAIRO AND TIDE_USE_POPPLER_GLIB)
@@ -112,37 +111,32 @@ if(TIDE_USE_TIFF)
 endif()
 
 list(APPEND TIDECORE_PUBLIC_HEADERS
-  CachedDataSource.h
   CommandLineParameters.h
   Configuration.h
   ContentAction.h
   ContentActionsModel.h
   ContentFactory.h
   Content.h
-  ContentInteractionDelegate.h
   ContentType.h
-  ContentWindowController.h
   ContentWindow.h
   Coordinates.h
-  DataSource.h
   DisplayGroup.h
   DynamicTextureContent.h
+  geometry.h
   Image.h
   KeyboardState.h
-  LayoutEngine.h
-  LodTools.h
   log.h
   Markers.h
-  MPIChannel.h
-  MPIContext.h
-  MPINospin.h
+  network/MPIChannel.h
+  network/MPIContext.h
+  network/MPIHeader.h
+  network/MPINospin.h
+  network/ReceiveBuffer.h
   Options.h
   PixelStreamContent.h
-  PixelStreamInteractionDelegate.h
   QmlTypeRegistration.h
   qmlUtils.h
   QtImage.h
-  ReceiveBuffer.h
   StatePreview.h
   serialization/chrono.h
   serialization/deflectTypes.h
@@ -165,36 +159,30 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   types.h
   VectorialContent.h
   ZoomHelper.h
-  ZoomInteractionDelegate.h
 )
 
 list(APPEND TIDECORE_SOURCES
-  CachedDataSource.cpp
   CommandLineParameters.cpp
   Configuration.cpp
   ContentAction.cpp
   ContentActionsModel.cpp
   Content.cpp
   ContentFactory.cpp
-  ContentInteractionDelegate.cpp
   ContentType.cpp
-  ContentWindowController.cpp
   ContentWindow.cpp
   Coordinates.cpp
   DisplayGroup.cpp
   DynamicTextureContent.cpp
+  geometry.cpp
   KeyboardState.cpp
-  LayoutEngine.cpp
-  LodTools.cpp
   log.cpp
   Markers.cpp
   MetaTypeRegistration.cpp
-  MPIChannel.cpp
-  MPIContext.cpp
-  MPINospin.cpp
+  network/MPIChannel.cpp
+  network/MPIContext.cpp
+  network/MPINospin.cpp
   Options.cpp
   PixelStreamContent.cpp
-  PixelStreamInteractionDelegate.cpp
   QtImage.cpp
   StatePreview.cpp
   SVG.cpp
@@ -210,7 +198,6 @@ list(APPEND TIDECORE_SOURCES
   thumbnail/ThumbnailProvider.cpp
   VectorialContent.cpp
   ZoomHelper.cpp
-  ZoomInteractionDelegate.cpp
   resources/core.qrc
 )
 
@@ -218,12 +205,10 @@ if(TARGET Qt5::WebKitWidgets OR TARGET Qt5::WebEngine)
   list(APPEND TIDECORE_PUBLIC_HEADERS
     WebbrowserContent.h
     WebbrowserHistory.h
-    WebbrowserInteractionDelegate.h
   )
   list(APPEND TIDECORE_SOURCES
     WebbrowserContent.cpp
     WebbrowserHistory.cpp
-    WebbrowserInteractionDelegate.cpp
   )
 endif()
 if(TARGET Qt5::WebKitWidgets)

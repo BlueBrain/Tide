@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,29 +37,33 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef PDFINTERACTIONDELEGATE_H
-#define PDFINTERACTIONDELEGATE_H
+#include "geometry.h"
 
-#include "ZoomInteractionDelegate.h"
+#include "types.h"
 
-class PDFContent;
+#include <QTransform>
 
-/**
- * Control user interaction with a PDF document.
- */
-class PDFInteractionDelegate : public ZoomInteractionDelegate
+QRectF geometry::resizeAroundPosition( const QRectF& rect,
+                                       const QPointF& position,
+                                       const QSizeF& size )
 {
-public:
-    PDFInteractionDelegate( ContentWindow& contentWindow );
+    QTransform transform;
+    transform.translate( position.x(), position.y( ));
+    transform.scale( size.width() / rect.width(),
+                     size.height() / rect.height( ));
+    transform.translate( -position.x(), -position.y( ));
 
-    void swipeLeft() override;
-    void swipeRight() override;
+    return transform.mapRect( rect );
+}
 
-    void prevPage() override;
-    void nextPage() override;
+QSizeF geometry::constrain( const QSizeF& size, const QSizeF& min,
+                            const QSizeF& max )
+{
+    if( max.isValid() && ( min > max || size > max ))
+        return size.scaled( max, Qt::KeepAspectRatio );
 
-private:
-    PDFContent& _getPDFContent();
-};
+    if( min.isValid() && size < min )
+        return size.scaled( min, Qt::KeepAspectRatioByExpanding );
 
-#endif
+    return size;
+}

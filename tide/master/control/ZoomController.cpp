@@ -38,33 +38,34 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "ZoomInteractionDelegate.h"
-#include "ContentWindow.h"
-#include "ContentWindowController.h"
-#include "ZoomHelper.h"
+#include "ZoomController.h"
 
-#include <QTransform>
+#include "ContentWindow.h"
+#include "geometry.h"
+#include "ZoomHelper.h"
 
 #define MIN_ZOOM 1.0
 
-ZoomInteractionDelegate::ZoomInteractionDelegate( ContentWindow& contentWindow )
-    : ContentInteractionDelegate( contentWindow )
+ZoomController::ZoomController( ContentWindow& contentWindow )
+    : ContentController( contentWindow )
+{
+    if( !contentWindow.getContent()->canBeZoomed( ))
+        throw std::invalid_argument( "Content cannot be zoomed!" );
+}
+
+ZoomController::~ZoomController()
 {
 }
 
-ZoomInteractionDelegate::~ZoomInteractionDelegate()
-{
-}
-
-void ZoomInteractionDelegate::pan( const QPointF position, const QPointF delta,
-                                   const uint numPoints )
+void ZoomController::pan( const QPointF position, const QPointF delta,
+                          const uint numPoints )
 {
     Q_UNUSED( position );
     Q_UNUSED( numPoints );
     _moveZoomRect( delta );
 }
 
-void ZoomInteractionDelegate::pinch( QPointF position, const QPointF pixelDelta )
+void ZoomController::pinch( QPointF position, const QPointF pixelDelta )
 {
     const ZoomHelper zoomHelper( _contentWindow );
     QRectF contentRect = zoomHelper.getContentRect();
@@ -77,13 +78,12 @@ void ZoomInteractionDelegate::pinch( QPointF position, const QPointF pixelDelta 
     QSizeF newSize = contentRect.size();
     newSize.scale( newSize + QSizeF( pixelDelta.x(), pixelDelta.y( )), mode );
 
-    contentRect = ContentWindowController::scaleRectAroundPosition( contentRect,
-                                                                    position,
-                                                                    newSize );
+    contentRect = geometry::resizeAroundPosition( contentRect, position,
+                                                  newSize );
     _checkAndApply( zoomHelper.toZoomRect( contentRect ));
 }
 
-void ZoomInteractionDelegate::adjustZoomToContentAspectRatio()
+void ZoomController::adjustZoomToContentAspectRatio()
 {
     const ZoomHelper zoomHelper( _contentWindow );
     QRectF contentRect = zoomHelper.getContentRect();
@@ -95,14 +95,14 @@ void ZoomInteractionDelegate::adjustZoomToContentAspectRatio()
     _checkAndApply( zoomHelper.toZoomRect( contentRect ));
 }
 
-void ZoomInteractionDelegate::_checkAndApply( QRectF zoomRect )
+void ZoomController::_checkAndApply( QRectF zoomRect )
 {
     _constrainZoomLevel( zoomRect );
     _constraintPosition( zoomRect );
     _contentWindow.getContent()->setZoomRect( zoomRect );
 }
 
-void ZoomInteractionDelegate::_moveZoomRect( const QPointF& sceneDelta )
+void ZoomController::_moveZoomRect( const QPointF& sceneDelta )
 {
     const ZoomHelper zoomHelper( _contentWindow );
     QRectF contentRect = zoomHelper.getContentRect();
@@ -110,7 +110,7 @@ void ZoomInteractionDelegate::_moveZoomRect( const QPointF& sceneDelta )
     _checkAndApply( zoomHelper.toZoomRect( contentRect ));
 }
 
-void ZoomInteractionDelegate::_constrainZoomLevel( QRectF& zoomRect ) const
+void ZoomController::_constrainZoomLevel( QRectF& zoomRect ) const
 {
     const QSizeF maxZoom = _getMaxZoom();
 
@@ -127,7 +127,7 @@ void ZoomInteractionDelegate::_constrainZoomLevel( QRectF& zoomRect ) const
         zoomRect.setHeight( minZoom.height( ));
 }
 
-void ZoomInteractionDelegate::_constraintPosition( QRectF& zoomRect ) const
+void ZoomController::_constraintPosition( QRectF& zoomRect ) const
 {
     if( zoomRect.left() < 0.0 )
         zoomRect.moveLeft( 0.0 );
@@ -139,7 +139,7 @@ void ZoomInteractionDelegate::_constraintPosition( QRectF& zoomRect ) const
         zoomRect.moveBottom( 1.0 );
 }
 
-QSizeF ZoomInteractionDelegate::_getMaxZoom() const
+QSizeF ZoomController::_getMaxZoom() const
 {
     const QSizeF content( _contentWindow.getContent()->getMaxDimensions( ));
     const QSizeF window( _contentWindow.getDisplayCoordinates().size( ));
@@ -147,7 +147,7 @@ QSizeF ZoomInteractionDelegate::_getMaxZoom() const
                    window.height() / content.height( ));
 }
 
-QSizeF ZoomInteractionDelegate::_getMinZoom() const
+QSizeF ZoomController::_getMinZoom() const
 {
     const QSizeF window( _contentWindow.getDisplayCoordinates().size( ));
     QSizeF content( _contentWindow.getContent()->getDimensions( ));

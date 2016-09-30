@@ -37,16 +37,24 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#define BOOST_TEST_MODULE ContentInteractionDelegateTests
+#define BOOST_TEST_MODULE ContentControllerTests
 #include <boost/test/unit_test.hpp>
 
-#include "ContentWindow.h"
-#include "ContentInteractionDelegate.h"
-#include "PDFInteractionDelegate.h"
-#include "PixelStreamInteractionDelegate.h"
-#include "ZoomInteractionDelegate.h"
-
 #include "DummyContent.h"
+
+#include "config.h"
+#include "ContentFactory.h"
+#include "ContentWindow.h"
+
+#include "control/ContentController.h"
+#if TIDE_ENABLE_PDF_SUPPORT
+#  include "control/PDFController.h"
+#endif
+#if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
+#  include "control/WebbrowserController.h"
+#endif
+#include "control/ZoomController.h"
+
 
 namespace
 {
@@ -54,11 +62,11 @@ const int WIDTH = 512;
 const int HEIGHT = 256;
 }
 
-class TestDelegate : public ContentInteractionDelegate
+class TestController : public ContentController
 {
 public:
-    explicit TestDelegate( ContentWindow& window )
-        : ContentInteractionDelegate( window )
+    explicit TestController( ContentWindow& window )
+        : ContentController( window )
     {}
 
     QPointF normalize( const QPointF& point ) const
@@ -67,18 +75,68 @@ public:
     }
 };
 
+BOOST_AUTO_TEST_CASE( testFactoryMethod )
+{
+    ContentPtr content( new DummyContent );
+    content->setDimensions( QSize( WIDTH, HEIGHT ));
+    ContentWindow window( content );
+
+    auto& dummyContent = dynamic_cast<DummyContent&>( *content );
+
+    auto controller = ContentController::create( window );
+    BOOST_CHECK( dynamic_cast<ContentController*>( controller.get( )));
+
+    dummyContent.type = CONTENT_TYPE_PIXEL_STREAM;
+    BOOST_CHECK_THROW( ContentController::create( window ),
+                       std::bad_cast );
+    ContentWindow streamWin( ContentFactory::getPixelStreamContent( "xyz" ));
+    BOOST_CHECK_NO_THROW( controller = ContentController::create( streamWin ));
+    BOOST_CHECK( dynamic_cast<PixelStreamController*>( controller.get( )));
+
+#if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
+    dummyContent.type = CONTENT_TYPE_WEBBROWSER;
+    BOOST_CHECK_THROW( ContentController::create( window ),
+                       std::bad_cast );
+    ContentWindow webWindow( ContentFactory::getWebbrowserContent( "abc" ));
+    BOOST_CHECK_NO_THROW( controller = ContentController::create( webWindow ));
+    BOOST_CHECK( dynamic_cast<WebbrowserController*>( controller.get( )));
+#endif
+
+#if TIDE_ENABLE_PDF_SUPPORT
+    dummyContent.type = CONTENT_TYPE_PDF;
+    controller = ContentController::create( window );
+    BOOST_CHECK( dynamic_cast<PDFController*>( controller.get( )));
+#endif
+
+    dummyContent.type = CONTENT_TYPE_IMAGE_PYRAMID;
+    controller = ContentController::create( window );
+    BOOST_CHECK( dynamic_cast<ZoomController*>( controller.get( )));
+
+    dummyContent.type = CONTENT_TYPE_TEXTURE;
+    controller = ContentController::create( window );
+    BOOST_CHECK( dynamic_cast<ZoomController*>( controller.get( )));
+
+    dummyContent.type = CONTENT_TYPE_SVG;
+    controller = ContentController::create( window );
+    BOOST_CHECK( dynamic_cast<ContentController*>( controller.get( )));
+
+    dummyContent.type = CONTENT_TYPE_MOVIE;
+    controller = ContentController::create( window );
+    BOOST_CHECK( dynamic_cast<ContentController*>( controller.get( )));
+}
+
 BOOST_AUTO_TEST_CASE( testNormalizedPosition )
 {
     ContentPtr content( new DummyContent );
     content->setDimensions( QSize( WIDTH, HEIGHT ));
     ContentWindow window( content );
 
-    TestDelegate delegate( window );
+    TestController controller( window );
     const QPointF point( WIDTH * 0.5, HEIGHT * 0.25 );
     const QPointF zero( 0.0, 0.0 );
     const QPointF one( WIDTH, HEIGHT );
 
-    BOOST_CHECK_EQUAL( delegate.normalize( point ), QPointF( 0.5, 0.25 ));
-    BOOST_CHECK_EQUAL( delegate.normalize( zero ), QPointF( 0.0, 0.0 ));
-    BOOST_CHECK_EQUAL( delegate.normalize( one ), QPointF( 1.0, 1.0 ));
+    BOOST_CHECK_EQUAL( controller.normalize( point ), QPointF( 0.5, 0.25 ));
+    BOOST_CHECK_EQUAL( controller.normalize( zero ), QPointF( 0.0, 0.0 ));
+    BOOST_CHECK_EQUAL( controller.normalize( one ), QPointF( 1.0, 1.0 ));
 }

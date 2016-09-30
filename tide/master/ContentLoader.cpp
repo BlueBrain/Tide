@@ -42,7 +42,7 @@
 #include "DisplayGroup.h"
 #include "ContentWindow.h"
 #include "ContentFactory.h"
-#include "ContentWindowController.h"
+#include "control/ContentWindowController.h"
 #include "log.h"
 
 ContentLoader::ContentLoader( DisplayGroupPtr displayGroup )

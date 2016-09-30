@@ -39,13 +39,102 @@
 
 #include "DisplayGroupController.h"
 
+#include "ContentWindowController.h"
 #include "DisplayGroup.h"
+#include "LayoutEngine.h"
 
 #include <QTransform>
 
 DisplayGroupController::DisplayGroupController( DisplayGroup& group )
     : _group( group )
 {}
+
+void DisplayGroupController::remove( const QUuid windowId )
+{
+    auto window = _group.getContentWindow( windowId );
+    if( !window )
+        return;
+
+    const auto focused = window->isFocused();
+    _group.removeContentWindow( window );
+    if( focused )
+        updateFocusedWindowsCoordinates();
+}
+
+void DisplayGroupController::removeWindowLater( const QUuid windowId )
+{
+    auto window = _group.getContentWindow( windowId );
+    if( !window )
+        return;
+
+    if( window->isFocused( ))
+    {
+        _group.removeFocusedWindow( window );
+        updateFocusedWindowsCoordinates();
+    }
+
+    QMetaObject::invokeMethod( &_group, "removeContentWindow",
+                               Qt::QueuedConnection,
+                               Q_ARG( ContentWindowPtr, window ));
+}
+
+void DisplayGroupController::showFullscreen( const QUuid& id )
+{
+    ContentWindowPtr window = _group.getContentWindow( id );
+    if( !window )
+        return;
+
+    exitFullscreen();
+
+    const auto target = ContentWindowController::Coordinates::FULLSCREEN;
+    ContentWindowController controller( *window, _group, target );
+    controller.adjustSize( SizeState::SIZE_FULLSCREEN );
+
+    _group.setFullscreenWindow( window );
+}
+
+void DisplayGroupController::exitFullscreen()
+{
+    _group.setFullscreenWindow( ContentWindowPtr( ));
+}
+
+void DisplayGroupController::focus( const QUuid& id )
+{
+    auto window = _group.getContentWindow( id );
+    if( !window || window->isPanel() || _group.getFocusedWindows().count( window ))
+        return;
+
+    // Update focused windows coordinates BEFORE adding it for proper transition
+    auto focusedWindows = _group.getFocusedWindows();
+    focusedWindows.insert( window );
+    LayoutEngine{ _group }.updateFocusedCoord( focusedWindows );
+
+    _group.addFocusedWindow( window );
+}
+
+void DisplayGroupController::unfocus( const QUuid& id )
+{
+    auto window = _group.getContentWindow( id );
+    if( !window || !_group.getFocusedWindows().count( window ))
+        return;
+
+    _group.removeFocusedWindow( window );
+    updateFocusedWindowsCoordinates();
+
+    // Make sure the window dimensions are re-adjusted to the new zoom level
+    ContentWindowController{ *window, _group }.scale( window->center(), 0.0 );
+}
+
+void DisplayGroupController::unfocusAll()
+{
+    while( !_group.getFocusedWindows().empty( ))
+        unfocus( (*_group.getFocusedWindows().begin( ))->getID( ));
+}
+
+void DisplayGroupController::moveWindowToFront( const QUuid id )
+{
+    _group.moveContentWindowToFront( _group.getContentWindow( id ));
+}
 
 void DisplayGroupController::scale( const QSizeF& factor )
 {
@@ -60,8 +149,7 @@ void DisplayGroupController::scale( const QSizeF& factor )
 
 void DisplayGroupController::adjust( const QSizeF& maxGroupSize )
 {
-    QSizeF targetSize = _group.getCoordinates().size();
-    targetSize.scale( maxGroupSize, Qt::KeepAspectRatio );
+    auto targetSize = _group.size().scaled( maxGroupSize, Qt::KeepAspectRatio );
     const qreal scaleFactor = targetSize.width() / _group.width();
     scale( QSizeF( scaleFactor, scaleFactor ));
 }
@@ -105,6 +193,11 @@ QRectF DisplayGroupController::estimateSurface() const
     area.setTopLeft( QPointF( 0.0, 0.0 ));
 
     return area;
+}
+
+void DisplayGroupController::updateFocusedWindowsCoordinates()
+{
+    LayoutEngine{ _group }.updateFocusedCoord( _group.getFocusedWindows( ));
 }
 
 void DisplayGroupController::_extend( const QSizeF& newSize )

@@ -46,7 +46,6 @@
 #include <mpi.h>
 
 class MPIContext;
-typedef boost::shared_ptr<MPIContext> MPIContextPtr;
 
 /**
  * The result of an MPIChannel::probe() operation
@@ -183,7 +182,7 @@ public:
     std::vector<uint64_t> gatherAll( uint64_t value );
 
 private:
-    MPIContextPtr _mpiContext;
+    std::shared_ptr<MPIContext> _mpiContext;
     MPI_Comm _mpiComm;
     int _mpiRank;
     int _mpiSize;
@@ -192,4 +191,4 @@ private:
     void _send( const MPIHeader& header, const int dest );
 };
 
-#endif // MPICHANNEL_H
+#endif

@@ -90,7 +90,7 @@ signals:
     //@}
 
 private:
-    MovieUpdaterSharedPtr _updater;
+    std::unique_ptr<MovieUpdater> _updater;
 
     bool _tileAdded;
     bool _swapReady;

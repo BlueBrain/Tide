@@ -69,9 +69,6 @@ public:
 
     ~WallWindow();
 
-    /** @return the display group renderer. */
-    DisplayGroupRenderer& getDisplayGroupRenderer();
-
     /** Update and synchronize scene objects and trigger frame rendering. */
     bool syncAndRender();
 

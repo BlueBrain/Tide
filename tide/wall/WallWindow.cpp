@@ -188,11 +188,6 @@ void WallWindow::_startQuick( const WallConfiguration& config )
     _testPattern->setPosition( -screenRect.topLeft( ));
 }
 
-DisplayGroupRenderer& WallWindow::getDisplayGroupRenderer()
-{
-    return *_displayGroupRenderer;
-}
-
 bool WallWindow::syncAndRender()
 {
     if( !_rendererInitialized )

@@ -40,8 +40,8 @@
 #include "ProcessForker.h"
 
 #include "log.h"
-#include "MPIChannel.h"
-#include "ReceiveBuffer.h"
+#include "network/MPIChannel.h"
+#include "network/ReceiveBuffer.h"
 #include "serialization/utils.h"
 
 #include <QProcess>

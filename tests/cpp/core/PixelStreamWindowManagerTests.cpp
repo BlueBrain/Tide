@@ -45,10 +45,10 @@
 #include <deflect/EventReceiver.h>
 
 #include "ContentWindow.h"
+#include "control/PixelStreamController.h"
 #include "DisplayGroup.h"
 #include "Options.h"
 #include "PixelStreamContent.h"
-#include "PixelStreamInteractionDelegate.h"
 #include "PixelStreamWindowManager.h"
 
 #include "MinimalGlobalQtApp.h"
@@ -128,11 +128,12 @@ BOOST_AUTO_TEST_CASE( testEventReceiver )
     DummyEventReceiver receiver;
     BOOST_REQUIRE( !receiver.success );
 
-    PixelStreamInteractionDelegate* delegate =
-            dynamic_cast<PixelStreamInteractionDelegate*>(
-                window->getInteractionDelegate( ));
-    BOOST_REQUIRE( delegate );
-    delegate->notify( deflect::Event( ));
+    auto controller = ContentController::create( *window );
+    auto streamController =
+            dynamic_cast<PixelStreamController*>( controller.get( ));
+    BOOST_REQUIRE( streamController );
+
+    streamController->notify( deflect::Event( ));
     BOOST_CHECK( !receiver.success );
 
     QString registeredUri;
@@ -153,7 +154,7 @@ BOOST_AUTO_TEST_CASE( testEventReceiver )
                        Content::Interaction::ON );
     BOOST_CHECK( !receiver.success );
 
-    delegate->notify( deflect::Event( ));
+    streamController->notify( deflect::Event( ));
     BOOST_CHECK( receiver.success );
 }
 

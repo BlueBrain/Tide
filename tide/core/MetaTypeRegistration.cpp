@@ -41,7 +41,7 @@
 #include "types.h"
 
 #include "ContentWindow.h"
-#include "MPIHeader.h"
+#include "network/MPIHeader.h"
 
 #include <QMetaType>
 

@@ -37,22 +37,26 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "PixelStreamInteractionDelegate.h"
+#include "PixelStreamController.h"
 
 #include "ContentWindow.h"
+#include "PixelStreamContent.h"
 
-PixelStreamInteractionDelegate::PixelStreamInteractionDelegate( ContentWindow&
-                                                                contentWindow )
-    : ContentInteractionDelegate( contentWindow )
+PixelStreamController::PixelStreamController( ContentWindow& window )
+    : ContentController( window )
 {
-    connect( &contentWindow, &ContentWindow::coordinatesChanged,
-             this, &PixelStreamInteractionDelegate::_sendSizeChangedEvent );
-    connect( &contentWindow, &ContentWindow::modeChanged,
-             this, &PixelStreamInteractionDelegate::_sendSizeChangedEvent );
+    connect( &window, &ContentWindow::coordinatesChanged,
+             this, &PixelStreamController::_sendSizeChangedEvent );
+    connect( &window, &ContentWindow::modeChanged,
+             this, &PixelStreamController::_sendSizeChangedEvent );
+
+    auto& content = dynamic_cast<PixelStreamContent&>( *window.getContent( ));
+    connect( this, &PixelStreamController::notify,
+             &content, &PixelStreamContent::notify );
 }
 
-void PixelStreamInteractionDelegate::addTouchPoint( const int id,
-                                                    const QPointF position )
+void PixelStreamController::addTouchPoint( const int id,
+                                           const QPointF position )
 {
     deflect::Event deflectEvent = _getNormEvent( position );
     deflectEvent.type = deflect::Event::EVT_TOUCH_ADD;
@@ -61,8 +65,8 @@ void PixelStreamInteractionDelegate::addTouchPoint( const int id,
     emit notify( deflectEvent );
 }
 
-void PixelStreamInteractionDelegate::updateTouchPoint( const int id,
-                                                       const QPointF position )
+void PixelStreamController::updateTouchPoint( const int id,
+                                              const QPointF position )
 {
     deflect::Event deflectEvent = _getNormEvent( position );
     deflectEvent.type = deflect::Event::EVT_TOUCH_UPDATE;
@@ -71,8 +75,8 @@ void PixelStreamInteractionDelegate::updateTouchPoint( const int id,
     emit notify( deflectEvent );
 }
 
-void PixelStreamInteractionDelegate::removeTouchPoint( const int id,
-                                                       const QPointF position )
+void PixelStreamController::removeTouchPoint( const int id,
+                                              const QPointF position )
 {
     deflect::Event deflectEvent = _getNormEvent( position );
     deflectEvent.type = deflect::Event::EVT_TOUCH_REMOVE;
@@ -81,7 +85,7 @@ void PixelStreamInteractionDelegate::removeTouchPoint( const int id,
     emit notify( deflectEvent );
 }
 
-void PixelStreamInteractionDelegate::touchBegin( const QPointF position )
+void PixelStreamController::touchBegin( const QPointF position )
 {
     deflect::Event deflectEvent = _getNormEvent( position );
     deflectEvent.type = deflect::Event::EVT_PRESS;
@@ -89,7 +93,7 @@ void PixelStreamInteractionDelegate::touchBegin( const QPointF position )
     emit notify( deflectEvent );
 }
 
-void PixelStreamInteractionDelegate::touchEnd( const QPointF position )
+void PixelStreamController::touchEnd( const QPointF position )
 {
     deflect::Event deflectEvent = _getNormEvent( position );
     deflectEvent.type = deflect::Event::EVT_RELEASE;
@@ -97,8 +101,7 @@ void PixelStreamInteractionDelegate::touchEnd( const QPointF position )
     emit notify( deflectEvent );
 }
 
-void PixelStreamInteractionDelegate::tap( const QPointF position,
-                                          const uint numPoints )
+void PixelStreamController::tap( const QPointF position, const uint numPoints )
 {
     deflect::Event deflectEvent = _getNormEvent( position );
     deflectEvent.type = deflect::Event::EVT_CLICK;
@@ -107,8 +110,8 @@ void PixelStreamInteractionDelegate::tap( const QPointF position,
     emit notify( deflectEvent );
 }
 
-void PixelStreamInteractionDelegate::doubleTap( const QPointF position,
-                                                const uint numPoints )
+void PixelStreamController::doubleTap( const QPointF position,
+                                       const uint numPoints )
 {
     deflect::Event deflectEvent = _getNormEvent( position );
     deflectEvent.type = deflect::Event::EVT_DOUBLECLICK;
@@ -117,8 +120,8 @@ void PixelStreamInteractionDelegate::doubleTap( const QPointF position,
     emit notify( deflectEvent );
 }
 
-void PixelStreamInteractionDelegate::tapAndHold( const QPointF position,
-                                                 const uint numPoints )
+void PixelStreamController::tapAndHold( const QPointF position,
+                                        const uint numPoints )
 {
     deflect::Event deflectEvent = _getNormEvent( position );
     deflectEvent.type = deflect::Event::EVT_TAP_AND_HOLD;
@@ -127,9 +130,8 @@ void PixelStreamInteractionDelegate::tapAndHold( const QPointF position,
     emit notify( deflectEvent );
 }
 
-void PixelStreamInteractionDelegate::pan( const QPointF position,
-                                          const QPointF delta,
-                                          const uint numPoints )
+void PixelStreamController::pan( const QPointF position, const QPointF delta,
+                                 const uint numPoints )
 {
     deflect::Event deflectEvent = _getNormEvent( position );
     if( numPoints == 1 )
@@ -147,8 +149,8 @@ void PixelStreamInteractionDelegate::pan( const QPointF position,
     emit notify( deflectEvent );
 }
 
-void PixelStreamInteractionDelegate::pinch( const QPointF position,
-                                            const QPointF pixelDelta )
+void PixelStreamController::pinch( const QPointF position,
+                                   const QPointF pixelDelta )
 {
     deflect::Event deflectEvent = _getNormEvent( position );
     deflectEvent.type = deflect::Event::EVT_PINCH;
@@ -168,39 +170,38 @@ deflect::Event swipeEvent( deflect::Event::EventType type )
     return event;
 }
 
-void PixelStreamInteractionDelegate::swipeLeft()
+void PixelStreamController::swipeLeft()
 {
     emit notify( swipeEvent( deflect::Event::EVT_SWIPE_LEFT ));
 }
 
-void PixelStreamInteractionDelegate::swipeRight()
+void PixelStreamController::swipeRight()
 {
     emit notify( swipeEvent( deflect::Event::EVT_SWIPE_RIGHT ));
 }
 
-void PixelStreamInteractionDelegate::swipeUp()
+void PixelStreamController::swipeUp()
 {
     emit notify( swipeEvent( deflect::Event::EVT_SWIPE_UP ));
 }
 
-void PixelStreamInteractionDelegate::swipeDown()
+void PixelStreamController::swipeDown()
 {
     emit notify( swipeEvent( deflect::Event::EVT_SWIPE_DOWN ));
 }
 
-void PixelStreamInteractionDelegate::prevPage()
+void PixelStreamController::prevPage()
 {
     swipeLeft();
 }
 
-void PixelStreamInteractionDelegate::nextPage()
+void PixelStreamController::nextPage()
 {
     swipeRight();
 }
 
-void PixelStreamInteractionDelegate::keyPress( const int key,
-                                               const int modifiers,
-                                               const QString text )
+void PixelStreamController::keyPress( const int key, const int modifiers,
+                                      const QString text )
 {
     deflect::Event deflectEvent;
     deflectEvent.type = deflect::Event::EVT_KEY_PRESS;
@@ -212,9 +213,8 @@ void PixelStreamInteractionDelegate::keyPress( const int key,
     emit notify( deflectEvent );
 }
 
-void PixelStreamInteractionDelegate::keyRelease( const int key,
-                                                 const int modifiers,
-                                                 const QString text )
+void PixelStreamController::keyRelease( const int key, const int modifiers,
+                                        const QString text )
 {
     deflect::Event deflectEvent;
     deflectEvent.type = deflect::Event::EVT_KEY_RELEASE;
@@ -226,7 +226,7 @@ void PixelStreamInteractionDelegate::keyRelease( const int key,
     emit notify( deflectEvent );
 }
 
-void PixelStreamInteractionDelegate::_sendSizeChangedEvent()
+void PixelStreamController::_sendSizeChangedEvent()
 {
     const QRectF& win = _contentWindow.getDisplayCoordinates();
 
@@ -238,8 +238,8 @@ void PixelStreamInteractionDelegate::_sendSizeChangedEvent()
     emit notify( deflectEvent );
 }
 
-deflect::Event PixelStreamInteractionDelegate::_getNormEvent( const QPointF&
-                                                              position ) const
+deflect::Event
+PixelStreamController::_getNormEvent( const QPointF& position ) const
 {
     const QRectF& win = _contentWindow.getDisplayCoordinates();
 

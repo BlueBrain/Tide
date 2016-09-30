@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,78 +37,39 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef WALLTOWALLCHANNEL_H
-#define WALLTOWALLCHANNEL_H
+#ifndef ZOOMCONTROLLER_H
+#define ZOOMCONTROLLER_H
 
-#include "types.h"
-#include "network/ReceiveBuffer.h"
-
-#include <QObject>
-
-#include <chrono>
+#include "ContentController.h"
 
 /**
- * Communication channel between the Wall processes.
+ * Handle user interaction with a zoomable content.
  */
-class WallToWallChannel : public QObject
+class ZoomController : public ContentController
 {
-    Q_OBJECT
-    Q_DISABLE_COPY( WallToWallChannel )
-
 public:
-    using clock = std::chrono::high_resolution_clock;
-
     /** Constructor */
-    WallToWallChannel( MPIChannelPtr mpiChannel );
+    ZoomController( ContentWindow& contentWindow );
 
-    /** @return The rank of this process. */
-    int getRank() const;
+    /** Destructor */
+    virtual ~ZoomController();
 
-    /**
-     * Get the sum of the given local values across all processes.
-     * @param localValue The value to sum
-     * @return the sum of the localValues
-     */
-    int globalSum( int localValue ) const;
+    /** @name Touch gesture handlers. */
+    //@{
+    void pan( QPointF position, QPointF delta, uint numPoints ) override;
+    void pinch( QPointF position, QPointF pixelDelta ) override;
+    //@}
 
-    /** Check if all processes are ready to perform a common action. */
-    bool allReady( bool isReady ) const;
-
-    /** Get the current timestamp, synchronized accross processes. */
-    clock::time_point getTime() const;
-
-    /** Synchronize clock time across all processes. */
-    void synchronizeClock();
-
-    /** Block execution until all programs have reached the barrier. */
-    void globalBarrier() const;
-
-    /** Check that all processes have the same version of an object. */
-    bool checkVersion( uint64_t version ) const;
-
-    /**
-     * Elect a leader amongst wall processes.
-     * @param isCandidate Is this process a candidate.
-     * @return the rank of the leader, or -1 if no leader could be elected.
-     */
-    int electLeader( bool isCandidate );
-
-    /**
-     * Broadcast a timestamp.
-     * All other processes must recieve it with receiveTimestampBroadcast().
-     */
-    void broadcast( double timestamp );
-
-    /** Receive a timestamp broadcasted by broadcast(timestamp). */
-    double receiveTimestampBroadcast( int src );
+    /** Adjust the zoom of the window to the aspect ratio of the content. */
+    void adjustZoomToContentAspectRatio();
 
 private:
-    MPIChannelPtr _mpiChannel;
-    ReceiveBuffer _buffer;
-    clock::time_point _timestamp;
-
-    void _sendClock();
-    void _receiveClock();
+    void _checkAndApply( QRectF zoomRect );
+    void _moveZoomRect( const QPointF& sceneDelta );
+    void _constrainZoomLevel( QRectF& zoomRect ) const;
+    void _constraintPosition( QRectF& zoomRect ) const;
+    QSizeF _getMaxZoom() const;
+    QSizeF _getMinZoom() const;
 };
 
 #endif

@@ -41,18 +41,6 @@
 
 #include "ContentWindow.h"
 
-#include "config.h"
-#include "log.h"
-
-#if TIDE_ENABLE_PDF_SUPPORT
-#  include "PDFInteractionDelegate.h"
-#endif
-#include "PixelStreamInteractionDelegate.h"
-#if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
-#  include "WebbrowserInteractionDelegate.h"
-#endif
-#include "ZoomInteractionDelegate.h"
-
 IMPLEMENT_SERIALIZE_FOR_XML( ContentWindow )
 
 ContentWindow::ContentWindow( ContentPtr content, const WindowType type )
@@ -155,7 +143,7 @@ bool ContentWindow::setResizePolicy( const ContentWindow::ResizePolicy policy )
         return true;
 
     if( policy == ADJUST_CONTENT && _content->hasFixedAspectRatio() &&
-            !dynamic_cast<ZoomInteractionDelegate*>( getInteractionDelegate( )))
+            !_content->canBeZoomed( ))
     {
         return false;
     }
@@ -208,6 +196,7 @@ void ContentWindow::setFocusedCoordinates( const QRectF& coordinates )
 
     _focusedCoordinates = coordinates;
     emit focusedCoordinatesChanged();
+    emit modified();
 }
 
 const QRectF& ContentWindow::getFullscreenCoordinates() const
@@ -290,11 +279,6 @@ bool ContentWindow::isHidden() const
     return _windowState == HIDDEN;
 }
 
-ContentInteractionDelegate* ContentWindow::getInteractionDelegate()
-{
-    return _interactionDelegate.get();
-}
-
 QString ContentWindow::getLabel() const
 {
     return _content->getURI().section( "/", -1, -1 );
@@ -320,37 +304,4 @@ void ContentWindow::_init()
     setResizePolicy( _content->hasFixedAspectRatio() ? KEEP_ASPECT_RATIO :
                                                        ADJUST_CONTENT );
     connect( _content.get(), SIGNAL( modified( )), SIGNAL( contentModified( )));
-    _createInteractionDelegate();
-}
-
-void ContentWindow::_createInteractionDelegate()
-{
-    assert( _content );
-
-    switch ( _content->getType( ))
-    {
-    case CONTENT_TYPE_PIXEL_STREAM:
-        _interactionDelegate.reset( new PixelStreamInteractionDelegate( *this ));
-        break;
-#if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
-    case CONTENT_TYPE_WEBBROWSER:
-        _interactionDelegate.reset( new WebbrowserInteractionDelegate( *this ));
-        break;
-#endif
-#if TIDE_ENABLE_PDF_SUPPORT
-    case CONTENT_TYPE_PDF:
-        _interactionDelegate.reset( new PDFInteractionDelegate( *this ));
-        break;
-#endif
-    case CONTENT_TYPE_IMAGE_PYRAMID:
-    case CONTENT_TYPE_TEXTURE:
-    case CONTENT_TYPE_SVG:
-        _interactionDelegate.reset( new ZoomInteractionDelegate( *this ));
-        break;
-    case CONTENT_TYPE_MOVIE:
-    case CONTENT_TYPE_ANY:
-    default:
-        _interactionDelegate.reset( new ContentInteractionDelegate( *this ));
-        break;
-    }
 }

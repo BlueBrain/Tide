@@ -44,9 +44,9 @@
 #include <boost/make_shared.hpp>
 
 #include "ContentWindow.h"
+#include "control/ContentWindowController.h"
+#include "control/LayoutEngine.h"
 #include "DisplayGroup.h"
-#include "ContentWindowController.h"
-#include "LayoutEngine.h"
 
 #include "MinimalGlobalQtApp.h"
 BOOST_GLOBAL_FIXTURE( MinimalGlobalQtApp );
@@ -463,7 +463,7 @@ BOOST_AUTO_TEST_CASE( testLayoutEngineOneWindow )
 
     DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
     displayGroup->addContentWindow( window );
-    displayGroup->focus( window->getID( ));
+    displayGroup->addFocusedWindow( window );
 
     LayoutEngine engine( *displayGroup );
     const QRectF coords = engine.getFocusedCoord( *window );
@@ -493,8 +493,8 @@ BOOST_AUTO_TEST_CASE( testLayoutEngineTwoWindows )
     DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
     displayGroup->addContentWindow( window1 );
     displayGroup->addContentWindow( window2 );
-    displayGroup->focus( window1->getID( ));
-    displayGroup->focus( window2->getID( ));
+    displayGroup->addFocusedWindow( window1 );
+    displayGroup->addFocusedWindow( window2 );
 
     LayoutEngine engine( *displayGroup );
     const QRectF coords1 = engine.getFocusedCoord( *window1 );

@@ -40,7 +40,7 @@
 #include "MasterFromWallChannel.h"
 
 #include "log.h"
-#include "MPIChannel.h"
+#include "network/MPIChannel.h"
 #include "serialization/utils.h"
 
 MasterFromWallChannel::MasterFromWallChannel( MPIChannelPtr mpiChannel )

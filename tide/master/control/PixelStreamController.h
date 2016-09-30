@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,45 +37,66 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef WEBBROWSERINTERACTIONDELEGATE_H
-#define WEBBROWSERINTERACTIONDELEGATE_H
+#ifndef PIXELSTREAMCONTROLLER_H
+#define PIXELSTREAMCONTROLLER_H
 
-#include "PixelStreamInteractionDelegate.h"
+#include "ContentController.h"
 
-class WebbrowserContent;
+#include <deflect/Event.h>
 
 /**
- * Delegate which forwards events to the Webbrowser or to its address bar.
+ * Forward user actions to a deflect::Stream using Deflect events.
  */
-class WebbrowserInteractionDelegate : public PixelStreamInteractionDelegate
+class PixelStreamController : public ContentController
 {
     Q_OBJECT
 
 public:
     /** Constructor */
-    explicit WebbrowserInteractionDelegate( ContentWindow& contentWindow );
+    explicit PixelStreamController( ContentWindow& contentWindow );
 
     /** @name Touch gesture handlers. */
     //@{
-    void touchBegin( QPointF position ) final;
+    void touchBegin( QPointF position ) override;
+    void touchEnd( QPointF position ) override;
+
+    void addTouchPoint( int id, QPointF position ) override;
+    void updateTouchPoint( int id, QPointF position ) override;
+    void removeTouchPoint( int id, QPointF position ) override;
+
+    void tap( QPointF position, uint numPoints ) override;
+    void doubleTap( QPointF position, uint numPoints ) override;
+    void tapAndHold( QPointF position, uint numPoints ) override;
+    void pan( QPointF position, QPointF delta, uint numPoints ) override;
+    void pinch( QPointF position, QPointF pixelDelta ) override;
+
+    void swipeLeft() override;
+    void swipeRight() override;
+    void swipeUp() override;
+    void swipeDown() override;
     //@}
 
-    /** @name Keyboard gesture handlers. */
+    /** @name Keyboard event handlers. */
     //@{
-    void keyPress( int key, int modifiers, QString text ) final;
-    void keyRelease( int key, int modifiers, QString text ) final;
+    void keyPress( int key, int modifiers, QString text ) override;
+    void keyRelease( int key, int modifiers, QString text ) override;
+    //@}
+
+    /** @name UI event handlers. */
+    //@{
+    void prevPage() override;
+    void nextPage() override;
     //@}
 
 signals:
-    /** @name Forward keyboard events to the Qml address bar. */
-    //@{
-    void keyboardInput( QString text );
-    void deleteKeyPressed();
-    void enterKeyPressed();
-    //@}
+    /** Emitted when an Event occured. */
+    void notify( deflect::Event event );
+
+private slots:
+    void _sendSizeChangedEvent();
 
 private:
-    WebbrowserContent& getWebContent();
+    deflect::Event _getNormEvent( const QPointF& position ) const;
 };
 
 #endif

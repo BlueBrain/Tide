@@ -32,7 +32,7 @@ DisplayGroup {
         anchors.fill: parent
         visible: displaygroup.hasFullscreenWindows
         z: Style.fullscreenBackgroundZorder
-        onTap: displaygroup.exitFullscreen()
+        onTap: groupcontroller.exitFullscreen()
     }
 
     sideControl.buttonDelegate: MultitouchArea {
@@ -40,9 +40,9 @@ DisplayGroup {
             if(buttonIndex == 0)
                 launcherControlPressed();
             else if(buttonIndex == 1)
-                displaygroup.unfocusAll();
+                groupcontroller.unfocusAll();
             else if(buttonIndex == 2)
-                displaygroup.exitFullscreen();
+                groupcontroller.exitFullscreen();
             else if(buttonIndex == 3)
                 settingsControlsPressed();
         }

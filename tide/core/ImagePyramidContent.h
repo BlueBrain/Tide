@@ -60,6 +60,9 @@ public:
     **/
     bool readMetadata() final;
 
+    /** @return true */
+    bool canBeZoomed() const final;
+
     static const QStringList& getSupportedExtensions();
 
 private:

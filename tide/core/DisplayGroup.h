@@ -89,19 +89,17 @@ public:
     /** Add a content window. */
     void addContentWindow( ContentWindowPtr contentWindow );
 
+    /** Remove a content window. */
+    Q_INVOKABLE void removeContentWindow( ContentWindowPtr contentWindow );
+
+    /** Move a content window to the front. */
+    void moveContentWindowToFront( ContentWindowPtr contentWindow );
+
     /**
      * Is the DisplayGroup empty.
      * @return true if the DisplayGroup has no ContentWindow, false otherwise.
      */
     bool isEmpty() const;
-
-    /**
-     * Get the active window.
-     * @return A shared pointer to the active window. Can be empty if there is
-     *         no Window available.
-     * @see isEmpty().
-     */
-    ContentWindowPtr getActiveWindow() const;
 
     /** Get all windows. */
     const ContentWindowPtrs& getContentWindows() const;
@@ -113,8 +111,10 @@ public:
      * Replace the content windows.
      * @param contentWindows The list of windows to set.
      */
-    Q_INVOKABLE void setContentWindows( ContentWindowPtrs contentWindows );
+    void setContentWindows( ContentWindowPtrs contentWindows );
 
+    /** Clear all ContentWindows. */
+    void clear();
 
     /**
      * Get the z index of a window
@@ -124,39 +124,28 @@ public:
      */
     int getZindex( ContentWindowPtr window ) const;
 
-
     /** Are there focused windows. */
     bool hasFocusedWindows() const;
 
     /** Is there a fullscreen window. */
     bool hasFullscreenWindows() const;
 
+
     /** Get the fullscreen window (if any). */
     ContentWindow* getFullscreenWindow() const;
 
-    /** Focus a window. */
-    Q_INVOKABLE void focus( const QUuid& id );
+    /** Set the fullscreen window. */
+    void setFullscreenWindow( ContentWindowPtr window );
 
-    /** Unfocus a window. */
-    Q_INVOKABLE void unfocus( const QUuid& id );
-
-    /** Unfocus all focused windows. */
-    Q_INVOKABLE void unfocusAll();
 
     /** Get the set of focused windows. */
     const ContentWindowSet& getFocusedWindows() const;
 
-    /**
-     * Show a window in fullscreen.
-     *
-     * Only one window can be fullscreen at a time. If another window was
-     * already fullscreen it will be restored to its previous state.
-     * @param id window identifier
-     */
-    Q_INVOKABLE void showFullscreen( const QUuid& id );
+    /** Add a window to the set of focused windows. */
+    void addFocusedWindow( ContentWindowPtr window );
 
-    /** Leave fullscreen mode, restoring the window to its previous state. */
-    Q_INVOKABLE void exitFullscreen();
+    /** Remove a window from the set of focused windows. */
+    void removeFocusedWindow( ContentWindowPtr window );
 
     /**
      * Move this object and its member QObjects to the given QThread.
@@ -174,24 +163,8 @@ public:
     bool getShowWindowTitles() const;
 
     /** Enable/Disable visibility of window titles when saving the session. */
-    Q_INVOKABLE void setShowWindowTitles( bool set );
+    void setShowWindowTitles( bool set );
     //@}
-
-public slots:
-    /** Clear all ContentWindows. */
-    void clear();
-
-    /** Remove a content window later (using a Qt::QueuedConnection). */
-    void removeWindowLater( QUuid windowId );
-
-    /** Remove a content window. */
-    void removeContentWindow( ContentWindowPtr contentWindow );
-
-    /** Remove a content window. */
-    void moveContentWindowToFront( QUuid id );
-
-    /** Move a content window to the front. */
-    void moveContentWindowToFront( ContentWindowPtr contentWindow );
 
 signals:
     /** Emitted whenever the DisplayGroup is modified */
@@ -264,14 +237,14 @@ private:
 
     void _sendDisplayGroup();
     void _watchChanges( ContentWindowPtr contentWindow );
-    void _removeFocusedWindow( ContentWindowPtr window );
-    void _updateFocusedWindowsCoordinates();
 
-    bool _showWindowTitlesInSavedSession;
+    bool _showWindowTitlesInSavedSession = true;
     ContentWindowPtrs _contentWindows;
     ContentWindowSet _focusedWindows;
     ContentWindowPtr _fullscreenWindow;
-    ContentWindow::WindowMode _fullscreenWindowPrevMode;
+
+    ContentWindow::WindowMode _fullscreenWindowPrevMode =
+            ContentWindow::WindowMode::STANDARD;
     QRectF _fullscreenWindowPrevZoom;
 };
 

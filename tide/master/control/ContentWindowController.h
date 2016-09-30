@@ -132,19 +132,6 @@ public:
     /** Constrain the given size between getMinSize() and getMaxSize(). */
     void constrainSize( QSizeF& windowSize ) const;
 
-    /**
-     * Helper function to resize a rectangle (window, zoom rectangle) around a
-     * point of interest (pinch center, mouse wheel position).
-     *
-     * @param rect the current rectangle
-     * @param position the point of interest to scale/resize around
-     * @param size the new absolute size to resize to
-     * @return the scaled rectangle
-     */
-    static QRectF scaleRectAroundPosition( const QRectF& rect,
-                                           const QPointF& position,
-                                           const QSizeF& size );
-
 private:
     /**
      * Resize the window around a given center point.

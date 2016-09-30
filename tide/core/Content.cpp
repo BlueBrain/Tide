@@ -83,6 +83,16 @@ QSize Content::getDimensions() const
     return _size;
 }
 
+int Content::width() const
+{
+    return _size.width();
+}
+
+int Content::height() const
+{
+    return _size.height();
+}
+
 QSize Content::getMinDimensions() const
 {
     if( _sizeHints.minWidth == deflect::SizeHints::UNSPECIFIED_SIZE ||
@@ -176,6 +186,7 @@ void Content::setDimensions( const QSize& dimensions )
         return;
 
     _size = dimensions;
+    emit dimensionsChanged();
     emit modified();
 }
 
@@ -184,6 +195,11 @@ qreal Content::getAspectRatio() const
     if( _size.height() == 0 )
         return 0.0;
     return (qreal)_size.width() / (qreal)_size.height();
+}
+
+bool Content::canBeZoomed() const
+{
+    return false;
 }
 
 bool Content::hasFixedAspectRatio() const
@@ -198,7 +214,7 @@ const QRectF& Content::getZoomRect() const
 
 void Content::setZoomRect( const QRectF& zoomRect )
 {
-    if( _zoomRect == zoomRect )
+    if( !canBeZoomed() || _zoomRect == zoomRect )
         return;
 
     _zoomRect = zoomRect;

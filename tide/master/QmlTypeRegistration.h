@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2015-2016, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -41,6 +41,9 @@
 #define MASTER_QMLTYPEREGISTRATION_H
 
 #include "tide/core/QmlTypeRegistration.h"
+
+#include "control/ContentController.h"
+#include "control/ContentWindowController.h"
 #include "multitouch/MultitouchArea.h"
 
 #include <QtQml>
@@ -58,6 +61,13 @@ void registerQmlTypes()
     ::core::registerQmlTypes();
 
     qmlRegisterType<MultitouchArea>( MASTER_QML_MODULE, 1, 0, "MultitouchArea");
+
+    qmlRegisterUncreatableType<ContentWindowController>(
+                QML_MODULE, 1, 0, "ContentWindowController",
+                "ContentWindowController is exposed as a context property" );
+    qmlRegisterUncreatableType<ContentController>(
+                QML_MODULE, 1, 0, "ContentController",
+                "ContentController is exposed as a context property" );
 }
 
 }

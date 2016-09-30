@@ -64,6 +64,11 @@ bool TextureContent::readMetadata()
     return true;
 }
 
+bool TextureContent::canBeZoomed() const
+{
+    return true;
+}
+
 const QStringList& TextureContent::getSupportedExtensions()
 {
     static QStringList extensions;

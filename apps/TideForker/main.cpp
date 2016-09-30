@@ -41,7 +41,7 @@
 
 #include "localstreamer/ProcessForker.h"
 #include "log.h"
-#include "MPIChannel.h"
+#include "network/MPIChannel.h"
 
 int main( int argc, char* argv[] )
 {

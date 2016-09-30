@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,39 +37,59 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef ZOOMINTERACTIONDELEGATE_H
-#define ZOOMINTERACTIONDELEGATE_H
+#include "ContentController.h"
 
-#include "ContentInteractionDelegate.h"
+#include "config.h"
+#include "ContentWindow.h"
 
-/**
- * Handle user interaction with a zoomable content.
- */
-class ZoomInteractionDelegate : public ContentInteractionDelegate
-{
-public:
-    /** Constructor */
-    ZoomInteractionDelegate( ContentWindow& contentWindow );
-
-    /** Destructor */
-    virtual ~ZoomInteractionDelegate();
-
-    /** @name Touch gesture handlers. */
-    //@{
-    void pan( QPointF position, QPointF delta, uint numPoints ) override;
-    void pinch( QPointF position, QPointF pixelDelta ) override;
-    //@}
-
-    /** Adjust the zoom of the window to the aspect ratio of the content. */
-    void adjustZoomToContentAspectRatio();
-
-private:
-    void _checkAndApply( QRectF zoomRect );
-    void _moveZoomRect( const QPointF& sceneDelta );
-    void _constrainZoomLevel( QRectF& zoomRect ) const;
-    void _constraintPosition( QRectF& zoomRect ) const;
-    QSizeF _getMaxZoom() const;
-    QSizeF _getMinZoom() const;
-};
-
+#if TIDE_ENABLE_PDF_SUPPORT
+#  include "PDFController.h"
 #endif
+#include "PixelStreamController.h"
+#if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
+#  include "WebbrowserController.h"
+#endif
+#include "ZoomController.h"
+
+
+std::unique_ptr<ContentController>
+ContentController::create( ContentWindow& window )
+{
+    assert( window.getContent( ));
+
+    switch ( window.getContent()->getType( ))
+    {
+    case CONTENT_TYPE_PIXEL_STREAM:
+        return make_unique<PixelStreamController>( window );
+#if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
+    case CONTENT_TYPE_WEBBROWSER:
+        return make_unique<WebbrowserController>( window );
+#endif
+#if TIDE_ENABLE_PDF_SUPPORT
+    case CONTENT_TYPE_PDF:
+        return make_unique<PDFController>( window );
+#endif
+    case CONTENT_TYPE_IMAGE_PYRAMID:
+    case CONTENT_TYPE_TEXTURE:
+    case CONTENT_TYPE_SVG:
+        return make_unique<ZoomController>( window );
+    case CONTENT_TYPE_MOVIE:
+    case CONTENT_TYPE_ANY:
+    default:
+        return make_unique<ContentController>( window );
+    }
+}
+
+ContentController::ContentController( ContentWindow& window )
+    : _contentWindow( window )
+{}
+
+ContentController::~ContentController() {}
+
+QPointF
+ContentController::getNormalizedPoint( const QPointF& point ) const
+{
+    const QRectF& window = _contentWindow.getDisplayCoordinates();
+    return QPointF( point.x() / window.width(),
+                    point.y() / window.height( ));
+}

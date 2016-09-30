@@ -42,12 +42,11 @@
 #ifndef CONTENT_H
 #define CONTENT_H
 
-#include "types.h"
 #include "ContentType.h"
 #include "ContentActionsModel.h"
 #include "KeyboardState.h"
-
 #include "serialization/includes.h"
+#include "types.h"
 
 #include <deflect/SizeHints.h>
 
@@ -64,7 +63,9 @@
 class Content : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY( QSize size READ getDimensions CONSTANT )
+    Q_DISABLE_COPY( Content )
+
+    Q_PROPERTY( QSize size READ getDimensions NOTIFY dimensionsChanged )
     Q_PROPERTY( qreal aspectRatio READ getAspectRatio CONSTANT )
     Q_PROPERTY( bool hasFixedAspectRatio READ hasFixedAspectRatio CONSTANT )
     Q_PROPERTY( QRectF zoomRect READ getZoomRect CONSTANT )
@@ -105,6 +106,12 @@ public:
     /** Get the dimensions. */
     QSize getDimensions() const;
 
+    /** Get the width. */
+    int width() const;
+
+    /** Get the height. */
+    int height() const;
+
     /** @return the min dimensions, used to constrain resize/scale. */
     QSize getMinDimensions() const;
 
@@ -122,6 +129,9 @@ public:
 
     /** @return true if the content has a fixed aspect ratio. */
     virtual bool hasFixedAspectRatio() const;
+
+    /** @return true if the content can be zoomed. */
+    virtual bool canBeZoomed() const;
 
     /** Get the zoom rectangle in normalized coordinates, [0,0,1,1] default */
     const QRectF& getZoomRect() const;
@@ -164,14 +174,13 @@ signals:
     //@{
     void interactionPolicyChanged();
     void captureInteractionChanged();
+    void dimensionsChanged();
     //@}
 
     /** Emitted by any Content subclass when its state has been modified */
     void modified();
 
 protected:
-    Q_DISABLE_COPY( Content )
-
     friend class boost::serialization::access;
 
     // Default constructor required for boost::serialization

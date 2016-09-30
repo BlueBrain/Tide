@@ -15,7 +15,7 @@ BaseContentWindow {
     property bool windowActive: contentwindow.mode !== ContentWindow.FOCUSED
 
     function closeWindow() {
-        displaygroup.removeWindowLater(contentwindow.id)
+        groupcontroller.removeWindowLater(contentwindow.id)
     }
 
     function toggleControlsVisibility() {
@@ -28,23 +28,23 @@ BaseContentWindow {
         if(contentwindow.isPanel)
             return
         if(contentwindow.focused)
-            displaygroup.unfocus(contentwindow.id)
+            groupcontroller.unfocus(contentwindow.id)
         else
-            displaygroup.focus(contentwindow.id)
+            groupcontroller.focus(contentwindow.id)
     }
 
     function toggleFullscreenMode() {
         if(contentwindow.isPanel)
             return
         if(contentwindow.fullscreen)
-            displaygroup.exitFullscreen()
+            groupcontroller.exitFullscreen()
         else
-            displaygroup.showFullscreen(contentwindow.id)
+            groupcontroller.showFullscreen(contentwindow.id)
     }
 
     function toggleMode() {
         if(contentwindow.focused)
-            displaygroup.unfocus(contentwindow.id)
+            groupcontroller.unfocus(contentwindow.id)
         toggleFullscreenMode()
     }
 
@@ -57,11 +57,11 @@ BaseContentWindow {
 
     focus: contentwindow.content.captureInteraction
     Keys.onPressed: {
-        contentwindow.delegate.keyPress(event.key, event.modifiers, event.text)
+        contentcontroller.keyPress(event.key, event.modifiers, event.text)
         event.accepted = true;
     }
     Keys.onReleased: {
-        contentwindow.delegate.keyRelease(event.key, event.modifiers, event.text)
+        contentcontroller.keyRelease(event.key, event.modifiers, event.text)
         event.accepted = true;
     }
 
@@ -70,8 +70,8 @@ BaseContentWindow {
         virtualKeyboard.item.hideKeyPressed.connect(function() {
             contentwindow.content.keyboard.visible = false
         })
-        virtualKeyboard.item.keyPressed.connect(contentwindow.delegate.keyPress)
-        virtualKeyboard.item.keyReleased.connect(contentwindow.delegate.keyRelease)
+        virtualKeyboard.item.keyPressed.connect(contentcontroller.keyPress)
+        virtualKeyboard.item.keyReleased.connect(contentcontroller.keyRelease)
         // Distribute keyboard state to the wall processes
         // use wrapper functions because the notifyChanged signals don't include the new value
         virtualKeyboard.item.shiftActiveChanged.connect(function() {
@@ -89,7 +89,7 @@ BaseContentWindow {
         anchors.fill: parent
         referenceItem: windowRect.parent
 
-        onTouchStarted: displaygroup.moveContentWindowToFront(contentwindow.id)
+        onTouchStarted: groupcontroller.moveWindowToFront(contentwindow.id)
         onTap: if(windowActive) { toggleControlsVisibility() }
         onTapAndHold: {
             if(contentwindow.isPanel) // force toggle
@@ -136,36 +136,36 @@ BaseContentWindow {
 
         /** Tap, pan and pinch gestures are used by either content or window. */
         onTouchStarted: {
-            displaygroup.moveContentWindowToFront(contentwindow.id)
+            groupcontroller.moveWindowToFront(contentwindow.id)
             if(contentActive)
-                contentwindow.delegate.touchBegin(pos)
+                contentcontroller.touchBegin(pos)
         }
         onTouchEnded: {
             if(contentActive)
-                contentwindow.delegate.touchEnd(pos)
+                contentcontroller.touchEnd(pos)
             contentwindow.content.captureInteraction = false
         }
         onTouchPointAdded: {
             if(contentActive)
-                contentwindow.delegate.addTouchPoint(id, pos)
+                contentcontroller.addTouchPoint(id, pos)
         }
         onTouchPointUpdated: {
             if(contentActive)
-                contentwindow.delegate.updateTouchPoint(id, pos)
+                contentcontroller.updateTouchPoint(id, pos)
         }
         onTouchPointRemoved: {
             if(contentActive)
-                contentwindow.delegate.removeTouchPoint(id, pos)
+                contentcontroller.removeTouchPoint(id, pos)
         }
         onTap: {
             if(contentActive)
-               contentwindow.delegate.tap(pos, numPoints)
+               contentcontroller.tap(pos, numPoints)
             else if(windowActive)
                 toggleControlsVisibility()
         }
         onDoubleTap: {
             if(contentActive)
-                contentwindow.delegate.doubleTap(pos, numPoints)
+                contentcontroller.doubleTap(pos, numPoints)
             else if(contentwindow.fullscreen)
                 controller.toogleFullscreenMaxSize()
             else
@@ -173,7 +173,7 @@ BaseContentWindow {
         }
         onTapAndHold: {
             if(contentActive)
-                contentwindow.delegate.tapAndHold(pos, numPoints)
+                contentcontroller.tapAndHold(pos, numPoints)
             else
                 contentwindow.content.captureInteraction = true
         }
@@ -184,7 +184,7 @@ BaseContentWindow {
         }
         onPan: {
             if(contentActive)
-                contentwindow.delegate.pan(pos, Qt.point(delta.x, delta.y), numPoints)
+                contentcontroller.pan(pos, Qt.point(delta.x, delta.y), numPoints)
             else if(windowActive && contentwindow.state === ContentWindow.MOVING)
                 controller.moveBy(delta)
         }
@@ -199,7 +199,7 @@ BaseContentWindow {
         }
         onPinch: {
             if(contentActive)
-                contentwindow.delegate.pinch(pos, pixelDelta)
+                contentcontroller.pinch(pos, pixelDelta)
             else if(windowActive && contentwindow.state === ContentWindow.RESIZING)
                 scaleWindow(pos, pixelDelta)
         }
@@ -209,22 +209,22 @@ BaseContentWindow {
         }
         /** END shared gestures. */
 
-        onSwipeLeft: contentwindow.delegate.swipeLeft()
-        onSwipeRight: contentwindow.delegate.swipeRight()
-        onSwipeUp: contentwindow.delegate.swipeUp()
-        onSwipeDown: contentwindow.delegate.swipeDown()
+        onSwipeLeft: contentcontroller.swipeLeft()
+        onSwipeRight: contentcontroller.swipeRight()
+        onSwipeUp: contentcontroller.swipeUp()
+        onSwipeDown: contentcontroller.swipeDown()
     }
 
     previousButton.delegate: Triangle {
         MultitouchArea {
             anchors.fill: parent
-            onTap: contentwindow.delegate.prevPage()
+            onTap: contentcontroller.prevPage()
         }
     }
     nextButton.delegate: Triangle {
         MultitouchArea {
             anchors.fill: parent
-            onTap: contentwindow.delegate.nextPage()
+            onTap: contentcontroller.nextPage()
         }
     }
 

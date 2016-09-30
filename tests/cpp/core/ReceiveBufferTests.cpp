@@ -41,7 +41,7 @@
 #define BOOST_TEST_MODULE ReceiveBufferTests
 #include <boost/test/unit_test.hpp>
 
-#include "ReceiveBuffer.h"
+#include "network/ReceiveBuffer.h"
 #include "serialization/utils.h"
 
 

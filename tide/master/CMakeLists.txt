@@ -15,7 +15,12 @@ set(TIDEMASTER_LINK_LIBRARIES
 
 list(APPEND TIDEMASTER_PUBLIC_HEADERS
   ContentLoader.h
-  DisplayGroupController.h
+  control/ContentController.h
+  control/ContentWindowController.h
+  control/DisplayGroupController.h
+  control/LayoutEngine.h
+  control/PixelStreamController.h
+  control/ZoomController.h
   localstreamer/CommandLineOptions.h
   localstreamer/PixelStreamerLauncher.h
   localstreamer/PixelStreamerType.h
@@ -49,7 +54,12 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
 
 list(APPEND TIDEMASTER_SOURCES
   ContentLoader.cpp
-  DisplayGroupController.cpp
+  control/ContentController.cpp
+  control/ContentWindowController.cpp
+  control/DisplayGroupController.cpp
+  control/LayoutEngine.cpp
+  control/PixelStreamController.cpp
+  control/ZoomController.cpp
   localstreamer/CommandLineOptions.cpp
   localstreamer/PixelStreamerLauncher.cpp
   localstreamer/PixelStreamerType.cpp
@@ -82,13 +92,16 @@ list(APPEND TIDEMASTER_SOURCES
 
 if(TARGET Qt5::WebEngine)
   list(APPEND TIDEMASTER_PUBLIC_HEADERS
+    control/WebbrowserController.h
     ui/WebbrowserWidget.h
   )
   list(APPEND TIDEMASTER_SOURCES
+    control/WebbrowserController.cpp
     ui/WebbrowserWidget.cpp
   )
 elseif(TARGET Qt5::WebKitWidgets)
   list(APPEND TIDEMASTER_PUBLIC_HEADERS
+    control/WebbrowserController.h
     localstreamer/PixelStreamerFactory.h
     localstreamer/PixelStreamer.h
     localstreamer/WebkitAuthenticationHelper.h
@@ -97,6 +110,7 @@ elseif(TARGET Qt5::WebKitWidgets)
     ui/WebbrowserWidget.h
   )
   list(APPEND TIDEMASTER_SOURCES
+    control/WebbrowserController.cpp
     localstreamer/PixelStreamerFactory.cpp
     localstreamer/WebkitAuthenticationHelper.cpp
     localstreamer/WebkitHtmlSelectReplacer.cpp
@@ -104,6 +118,15 @@ elseif(TARGET Qt5::WebKitWidgets)
     ui/WebbrowserWidget.cpp
   )
   list(APPEND TIDEMASTER_LINK_LIBRARIES PRIVATE Qt5::WebKitWidgets)
+endif()
+
+if(TIDE_ENABLE_PDF_SUPPORT)
+  list(APPEND TIDEMASTER_PUBLIC_HEADERS
+    control/PDFController.h
+  )
+  list(APPEND TIDEMASTER_SOURCES
+    control/PDFController.cpp
+  )
 endif()
 
 if(TIDE_ENABLE_TUIO_TOUCH_LISTENER)

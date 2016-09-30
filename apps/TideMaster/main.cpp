@@ -42,7 +42,7 @@
 #include "log.h"
 
 #include "MasterApplication.h"
-#include "MPIChannel.h"
+#include "network/MPIChannel.h"
 
 #include <memory>
 #include <stdexcept>

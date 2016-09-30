@@ -44,6 +44,8 @@
 
 #include "Content.h"
 
+#include <deflect/Event.h>
+
 class PixelStreamContent : public Content
 {
     Q_OBJECT
@@ -76,6 +78,10 @@ public:
 
     /** Parse data received from the deflect::Stream. */
     virtual void parseData( QByteArray data ) { Q_UNUSED( data ); }
+
+signals:
+    /** Emitted when an Event occured. */
+    void notify( deflect::Event event );
 
 protected:
     // Default constructor required for boost::serialization
