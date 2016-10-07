@@ -39,7 +39,7 @@
 
 #include "ImagePyramidDataSource.h"
 
-#include "TiffPyramidReader.h"
+#include "data/TiffPyramidReader.h"
 
 std::pair<QSize, uint> _getLodParameters( const QString& uri )
 {

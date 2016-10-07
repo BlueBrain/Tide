@@ -55,9 +55,9 @@
 #  include "PDFThumbnailGenerator.h"
 #endif
 #if TIDE_USE_TIFF
+#  include "data/TiffPyramidReader.h"
 #  include "scene/ImagePyramidContent.h"
 #  include "ImagePyramidThumbnailGenerator.h"
-#  include "TiffPyramidReader.h"
 #endif
 
 #include <QDir>

@@ -39,7 +39,7 @@
 
 #include "CachedDataSource.h"
 
-#include "QtImage.h"
+#include "data/QtImage.h"
 
 ImagePtr CachedDataSource::getTileImage( const uint tileId ) const
 {

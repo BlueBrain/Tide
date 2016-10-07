@@ -39,8 +39,8 @@
 
 #include "MovieThumbnailGenerator.h"
 
-#include "FFMPEGMovie.h"
-#include "FFMPEGPicture.h"
+#include "data/FFMPEGMovie.h"
+#include "data/FFMPEGPicture.h"
 
 #define PREVIEW_RELATIVE_POSITION  0.5
 

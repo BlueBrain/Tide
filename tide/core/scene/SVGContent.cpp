@@ -41,7 +41,7 @@
 
 #include "SVGContent.h"
 
-#include "SVG.h"
+#include "data/SVG.h"
 
 #include <QFileInfo>
 

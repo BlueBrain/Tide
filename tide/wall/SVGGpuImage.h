@@ -40,7 +40,7 @@
 #ifndef SVGGPUIMAGE_H
 #define SVGGPUIMAGE_H
 
-#include "Image.h"
+#include "data/Image.h"
 
 #include "SVGTiler.h"
 

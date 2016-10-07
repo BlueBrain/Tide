@@ -39,9 +39,9 @@
 
 #include "MovieUpdater.h"
 
-#include "FFMPEGFrame.h"
-#include "FFMPEGMovie.h"
-#include "FFMPEGPicture.h"
+#include "data/FFMPEGFrame.h"
+#include "data/FFMPEGMovie.h"
+#include "data/FFMPEGPicture.h"
 #include "log.h"
 #include "network/WallToWallChannel.h"
 #include "scene/MovieContent.h"

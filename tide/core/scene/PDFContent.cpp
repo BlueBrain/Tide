@@ -39,7 +39,7 @@
 
 #include "PDFContent.h"
 
-#include "PDF.h"
+#include "data/PDF.h"
 
 BOOST_CLASS_EXPORT_IMPLEMENT( PDFContent )
 

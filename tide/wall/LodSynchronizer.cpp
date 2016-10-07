@@ -40,7 +40,6 @@
 #include "LodSynchronizer.h"
 
 #include "DataSource.h"
-#include "QtImage.h"
 #include "scene/ContentWindow.h"
 #include "Tile.h"
 #include "ZoomHelper.h"

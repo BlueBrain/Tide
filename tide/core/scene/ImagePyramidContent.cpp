@@ -39,7 +39,7 @@
 
 #include "ImagePyramidContent.h"
 
-#include "TiffPyramidReader.h"
+#include "data/TiffPyramidReader.h"
 
 BOOST_CLASS_EXPORT_GUID( ImagePyramidContent, "ImagePyramidContent" )
 
