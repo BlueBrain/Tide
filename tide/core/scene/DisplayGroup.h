@@ -43,9 +43,8 @@
 #define DISPLAYGROUP_H
 
 #include "types.h"
-#include "Coordinates.h"     // Base class
-#include "ContentWindow.h"   // needed for serialization
-
+#include "Rectangle.h"       // Base class
+#include "ContentWindow.h"   // member, needed for serialization
 #include "serialization/includes.h"
 
 #include <boost/enable_shared_from_this.hpp>
@@ -66,7 +65,7 @@ enum DisplayGroupVersion
  *
  * Can be serialized and distributed to the Wall applications.
  */
-class DisplayGroup : public Coordinates,
+class DisplayGroup : public Rectangle,
         public boost::enable_shared_from_this<DisplayGroup>
 {
     Q_OBJECT

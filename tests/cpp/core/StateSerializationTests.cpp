@@ -40,16 +40,17 @@
 #define BOOST_TEST_MODULE StateSerializationTests
 #include <boost/test/unit_test.hpp>
 
-#include "types.h"
-#include "Content.h"
-#include "ContentFactory.h"
-#include "ContentWindow.h"
-#include "DisplayGroup.h"
-#include "DummyContent.h"
+#include "scene/Content.h"
+#include "scene/ContentFactory.h"
+#include "scene/ContentWindow.h"
+#include "scene/DisplayGroup.h"
+#include "scene/TextureContent.h"
 #include "serialization/utils.h"
 #include "State.h"
 #include "StateSerializationHelper.h"
-#include "TextureContent.h"
+#include "types.h"
+
+#include "DummyContent.h"
 
 #include <QtCore/QDir>
 #include <QtGui/QImage>

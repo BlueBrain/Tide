@@ -22,21 +22,21 @@ set(TIDECORE_LINK_LIBRARIES
 
 if(TIDE_ENABLE_MOVIE_SUPPORT)
   list(APPEND TIDECORE_PUBLIC_HEADERS
+    scene/MovieContent.h
     FFMPEGFrame.h
     FFMPEGMovie.h
     FFMPEGPicture.h
     FFMPEGVideoFrameConverter.h
     FFMPEGVideoStream.h
-    MovieContent.h
     thumbnail/MovieThumbnailGenerator.h
   )
   list(APPEND TIDECORE_SOURCES
+    scene/MovieContent.cpp
     FFMPEGFrame.cpp
     FFMPEGMovie.cpp
     FFMPEGPicture.cpp
     FFMPEGVideoFrameConverter.cpp
     FFMPEGVideoStream.cpp
-    MovieContent.cpp
     thumbnail/MovieThumbnailGenerator.cpp
   )
 endif()
@@ -49,12 +49,12 @@ endif()
 
 if(TIDE_ENABLE_PDF_SUPPORT)
   list(APPEND TIDECORE_PUBLIC_HEADERS
+    scene/PDFContent.h
     PDFBackend.h
-    PDFContent.h
   )
   list(APPEND TIDECORE_SOURCES
+    scene/PDFContent.cpp
     PDF.cpp
-    PDFContent.cpp
     thumbnail/PDFThumbnailGenerator.cpp
   )
   if(TIDE_USE_CAIRO AND TIDE_USE_POPPLER_GLIB)
@@ -95,14 +95,14 @@ endif()
 
 if(TIDE_USE_TIFF)
   list(APPEND TIDECORE_PUBLIC_HEADERS
-    ImagePyramidContent.h
-    TiffPyramidReader.h
+    scene/ImagePyramidContent.h
     thumbnail/ImagePyramidThumbnailGenerator.h
+    TiffPyramidReader.h
   )
   list(APPEND TIDECORE_SOURCES
-    ImagePyramidContent.cpp
-    TiffPyramidReader.cpp
+    scene/ImagePyramidContent.cpp
     thumbnail/ImagePyramidThumbnailGenerator.cpp
+    TiffPyramidReader.cpp
   )
   list(APPEND TIDECORE_LINK_LIBRARIES
     PRIVATE
@@ -113,31 +113,34 @@ endif()
 list(APPEND TIDECORE_PUBLIC_HEADERS
   CommandLineParameters.h
   Configuration.h
-  ContentAction.h
-  ContentActionsModel.h
-  ContentFactory.h
-  Content.h
-  ContentType.h
-  ContentWindow.h
-  Coordinates.h
-  DisplayGroup.h
-  DynamicTextureContent.h
   geometry.h
   Image.h
-  KeyboardState.h
   log.h
-  Markers.h
   network/MPIChannel.h
   network/MPIContext.h
   network/MPIHeader.h
   network/MPINospin.h
   network/ReceiveBuffer.h
-  Options.h
-  PixelStreamContent.h
   QmlTypeRegistration.h
   qmlUtils.h
   QtImage.h
   StatePreview.h
+  scene/ContentAction.h
+  scene/ContentActionsModel.h
+  scene/ContentFactory.h
+  scene/Content.h
+  scene/ContentType.h
+  scene/ContentWindow.h
+  scene/DisplayGroup.h
+  scene/DynamicTextureContent.h
+  scene/KeyboardState.h
+  scene/Markers.h
+  scene/Options.h
+  scene/PixelStreamContent.h
+  scene/Rectangle.h
+  scene/SVGContent.h
+  scene/TextureContent.h
+  scene/VectorialContent.h
   serialization/chrono.h
   serialization/deflectTypes.h
   serialization/includes.h
@@ -146,9 +149,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   serialization/xmlMacros.h
   SVG.h
   SVGBackend.h
-  SVGContent.h
   SVGQtGpuBackend.h
-  TextureContent.h
   thumbnail/DefaultThumbnailGenerator.h
   thumbnail/FolderThumbnailGenerator.h
   thumbnail/ImageThumbnailGenerator.h
@@ -157,38 +158,38 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   thumbnail/ThumbnailGenerator.h
   thumbnail/ThumbnailProvider.h
   types.h
-  VectorialContent.h
   ZoomHelper.h
 )
 
 list(APPEND TIDECORE_SOURCES
   CommandLineParameters.cpp
   Configuration.cpp
-  ContentAction.cpp
-  ContentActionsModel.cpp
-  Content.cpp
-  ContentFactory.cpp
-  ContentType.cpp
-  ContentWindow.cpp
-  Coordinates.cpp
-  DisplayGroup.cpp
-  DynamicTextureContent.cpp
   geometry.cpp
-  KeyboardState.cpp
   log.cpp
-  Markers.cpp
   MetaTypeRegistration.cpp
   network/MPIChannel.cpp
   network/MPIContext.cpp
   network/MPINospin.cpp
-  Options.cpp
-  PixelStreamContent.cpp
   QtImage.cpp
+  scene/ContentAction.cpp
+  scene/ContentActionsModel.cpp
+  scene/Content.cpp
+  scene/ContentFactory.cpp
+  scene/ContentType.cpp
+  scene/ContentWindow.cpp
+  scene/DisplayGroup.cpp
+  scene/DynamicTextureContent.cpp
+  scene/KeyboardState.cpp
+  scene/PixelStreamContent.cpp
+  scene/Markers.cpp
+  scene/Options.cpp
+  scene/Rectangle.cpp
+  scene/SVGContent.cpp
+  scene/TextureContent.cpp
+  scene/VectorialContent.cpp
   StatePreview.cpp
   SVG.cpp
-  SVGContent.cpp
   SVGQtGpuBackend.cpp
-  TextureContent.cpp
   thumbnail/DefaultThumbnailGenerator.cpp
   thumbnail/FolderThumbnailGenerator.cpp
   thumbnail/ImageThumbnailGenerator.cpp
@@ -196,19 +197,18 @@ list(APPEND TIDECORE_SOURCES
   thumbnail/ThumbnailGenerator.cpp
   thumbnail/ThumbnailGeneratorFactory.cpp
   thumbnail/ThumbnailProvider.cpp
-  VectorialContent.cpp
   ZoomHelper.cpp
   resources/core.qrc
 )
 
 if(TARGET Qt5::WebKitWidgets OR TARGET Qt5::WebEngine)
   list(APPEND TIDECORE_PUBLIC_HEADERS
-    WebbrowserContent.h
-    WebbrowserHistory.h
+    scene/WebbrowserContent.h
+    scene/WebbrowserHistory.h
   )
   list(APPEND TIDECORE_SOURCES
-    WebbrowserContent.cpp
-    WebbrowserHistory.cpp
+    scene/WebbrowserContent.cpp
+    scene/WebbrowserHistory.cpp
   )
 endif()
 if(TARGET Qt5::WebKitWidgets)

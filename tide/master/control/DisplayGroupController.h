@@ -42,8 +42,6 @@
 
 #include "types.h"
 
-#include "ContentWindow.h"
-
 #include <QObject>
 
 /** Controller for rescaling and adjusting DisplayGroup. */

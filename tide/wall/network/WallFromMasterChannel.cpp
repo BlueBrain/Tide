@@ -39,18 +39,21 @@
 
 #include "WallFromMasterChannel.h"
 
-#include "ContentWindow.h"
-#include "DisplayGroup.h"
-#include "Markers.h"
 #include "network/MPIChannel.h"
-#include "Options.h"
+#include "scene/ContentWindow.h"
+#include "scene/DisplayGroup.h"
+#include "scene/Markers.h"
+#include "scene/Options.h"
 #include "serialization/utils.h"
 
 #include <deflect/Frame.h>
 
 #include <QApplication>
 
-#define RANK0 0
+namespace
+{
+const int RANK0 = 0;
+}
 
 WallFromMasterChannel::WallFromMasterChannel( MPIChannelPtr mpiChannel )
     : _mpiChannel( mpiChannel )

@@ -43,9 +43,6 @@
 #include "DummyContent.h"
 
 #include "config.h"
-#include "ContentFactory.h"
-#include "ContentWindow.h"
-
 #include "control/ContentController.h"
 #if TIDE_ENABLE_PDF_SUPPORT
 #  include "control/PDFController.h"
@@ -54,6 +51,8 @@
 #  include "control/WebbrowserController.h"
 #endif
 #include "control/ZoomController.h"
+#include "scene/ContentFactory.h"
+#include "scene/ContentWindow.h"
 
 
 namespace

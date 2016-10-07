@@ -39,10 +39,10 @@
 
 #include "RenderController.h"
 
-#include "DisplayGroup.h"
 #include "DisplayGroupRenderer.h"
 #include "network/WallToWallChannel.h"
-#include "Options.h"
+#include "scene/DisplayGroup.h"
+#include "scene/Options.h"
 #include "TextureUploader.h"
 #include "WallWindow.h"
 

@@ -44,8 +44,8 @@
 
 #include "types.h"
 
-#include "Coordinates.h"             // base class
-#include "Content.h"                 // needed for serialization
+#include "Rectangle.h"               // base class
+#include "Content.h"                 // member, needed for serialization
 #include "serialization/includes.h"
 
 #include <QUuid>
@@ -55,7 +55,7 @@
  *
  * Can be serialized and distributed to the Wall applications.
  */
-class ContentWindow : public Coordinates
+class ContentWindow : public Rectangle
 {
     Q_OBJECT
     Q_PROPERTY( QUuid id READ getID CONSTANT )

@@ -55,7 +55,7 @@ public:
     QRectF getFocusedCoord( const ContentWindow& window ) const;
 
     /** Update the focused coordinates for the set of windows. */
-    void updateFocusedCoord( ContentWindowSet& windows ) const;
+    void updateFocusedCoord( const ContentWindowSet& windows ) const;
 
 private:
     const DisplayGroup& _displayGroup;

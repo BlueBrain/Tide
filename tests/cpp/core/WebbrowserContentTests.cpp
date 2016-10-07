@@ -40,9 +40,9 @@
 #define BOOST_TEST_MODULE WebbrowserContent
 #include <boost/test/unit_test.hpp>
 
+#include "scene/WebbrowserContent.h"
+#include "scene/WebbrowserHistory.h"
 #include "serialization/utils.h"
-#include "WebbrowserContent.h"
-#include "WebbrowserHistory.h"
 
 namespace
 {

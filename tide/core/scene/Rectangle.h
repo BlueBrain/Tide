@@ -37,8 +37,8 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef COORDINATES_H
-#define COORDINATES_H
+#ifndef RECTANGLE_H
+#define RECTANGLE_H
 
 #include <QObject>
 #include <QRectF>
@@ -46,18 +46,20 @@
 /**
  * Exposes the coordinates of a rectangle as QProperties for QML binding.
  */
-class Coordinates : public QObject
+class Rectangle : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY( Rectangle )
+
     Q_PROPERTY( qreal x READ x WRITE setX NOTIFY xChanged )
     Q_PROPERTY( qreal y READ y WRITE setY NOTIFY yChanged )
     Q_PROPERTY( qreal width READ width WRITE setWidth NOTIFY widthChanged )
     Q_PROPERTY( qreal height READ height WRITE setHeight NOTIFY heightChanged )
 
 public:
-    Coordinates();
-    Coordinates( const QRectF& coordinates );
-    virtual ~Coordinates();
+    Rectangle();
+    Rectangle( const QRectF& coordinates );
+    virtual ~Rectangle();
 
     const QRectF& getCoordinates() const;
 
@@ -84,9 +86,6 @@ signals:
 
 protected:
     QRectF _coordinates;
-
-private:
-    Q_DISABLE_COPY( Coordinates )
 };
 
-#endif // COORDINATES_H
+#endif

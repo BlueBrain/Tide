@@ -39,9 +39,9 @@
 
 #include "PixelStreamSynchronizer.h"
 
-#include "ContentWindow.h"
 #include "network/WallToWallChannel.h"
 #include "PixelStreamUpdater.h"
+#include "scene/ContentWindow.h"
 #include "Tile.h"
 #include "ZoomHelper.h"
 

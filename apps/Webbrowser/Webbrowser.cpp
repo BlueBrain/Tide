@@ -39,10 +39,11 @@
 
 #include "Webbrowser.h"
 
+#include "tide/core/scene/WebbrowserContent.h"
+#include "tide/core/scene/WebbrowserHistory.h"
+
 #include "tide/master/localstreamer/CommandLineOptions.h"
 #include "tide/master/localstreamer/QmlKeyInjector.h"
-#include "WebbrowserContent.h"
-#include "WebbrowserHistory.h"
 
 #include <QQmlProperty>
 

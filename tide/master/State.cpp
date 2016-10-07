@@ -40,8 +40,8 @@
 
 #include "State.h"
 
-#include "ContentFactory.h"
 #include "log.h"
+#include "scene/ContentFactory.h"
 
 #include <QtXml/QtXml>
 #include <QtXmlPatterns/QXmlQuery>

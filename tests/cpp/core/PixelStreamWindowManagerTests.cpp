@@ -44,12 +44,12 @@
 #include <deflect/Frame.h>
 #include <deflect/EventReceiver.h>
 
-#include "ContentWindow.h"
 #include "control/PixelStreamController.h"
-#include "DisplayGroup.h"
-#include "Options.h"
-#include "PixelStreamContent.h"
 #include "PixelStreamWindowManager.h"
+#include "scene/ContentWindow.h"
+#include "scene/DisplayGroup.h"
+#include "scene/Options.h"
+#include "scene/PixelStreamContent.h"
 
 #include "MinimalGlobalQtApp.h"
 BOOST_GLOBAL_FIXTURE( MinimalGlobalQtApp );

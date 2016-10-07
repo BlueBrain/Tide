@@ -41,7 +41,7 @@
 
 #include "Configuration.h"
 
-#include "VectorialContent.h"
+#include "scene/VectorialContent.h"
 
 #include <QtXmlPatterns>
 

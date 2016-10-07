@@ -41,10 +41,9 @@
 
 #include "DisplayGroupListWidget.h"
 
-#include "DisplayGroup.h"
-#include "ContentWindow.h"
-#include "Content.h"
 #include "ContentWindowListWidgetItem.h"
+#include "scene/ContentWindow.h"
+#include "scene/DisplayGroup.h"
 
 #include <QListWidget>
 

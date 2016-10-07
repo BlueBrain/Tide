@@ -43,7 +43,7 @@
 
 #include "types.h"
 
-#include "DisplayGroup.h"
+#include "scene/DisplayGroup.h"     // member, needed for serialization
 #include "serialization/includes.h"
 
 /**

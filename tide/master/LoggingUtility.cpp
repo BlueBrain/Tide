@@ -38,7 +38,8 @@
 /*********************************************************************/
 
 #include "LoggingUtility.h"
-#include "ContentWindow.h"
+
+#include "scene/ContentWindow.h"
 
 #include <chrono>
 

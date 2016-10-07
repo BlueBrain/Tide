@@ -37,59 +37,55 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "Coordinates.h"
+#include "Rectangle.h"
 
-Coordinates::Coordinates()
-{
-}
+Rectangle::Rectangle() {}
 
-Coordinates::~Coordinates()
-{
-}
+Rectangle::~Rectangle() {}
 
 // false-positive on qt signals
 // cppcheck-suppress uninitMemberVar
-Coordinates::Coordinates( const QRectF& coordinates )
+Rectangle::Rectangle( const QRectF& coordinates )
     : _coordinates( coordinates )
 {
 }
 
-const QRectF& Coordinates::getCoordinates() const
+const QRectF& Rectangle::getCoordinates() const
 {
     return _coordinates;
 }
 
-qreal Coordinates::x() const
+qreal Rectangle::x() const
 {
     return _coordinates.x();
 }
 
-qreal Coordinates::y() const
+qreal Rectangle::y() const
 {
     return _coordinates.y();
 }
 
-qreal Coordinates::width() const
+qreal Rectangle::width() const
 {
     return _coordinates.width();
 }
 
-qreal Coordinates::height() const
+qreal Rectangle::height() const
 {
     return _coordinates.height();
 }
 
-QSizeF Coordinates::size() const
+QSizeF Rectangle::size() const
 {
     return _coordinates.size();
 }
 
-QPointF Coordinates::center() const
+QPointF Rectangle::center() const
 {
     return _coordinates.center();
 }
 
-void Coordinates::setX( const qreal x_ )
+void Rectangle::setX( const qreal x_ )
 {
     if( x_ == _coordinates.x( ))
         return;
@@ -98,7 +94,7 @@ void Coordinates::setX( const qreal x_ )
     emit xChanged();
 }
 
-void Coordinates::setY( const qreal y_ )
+void Rectangle::setY( const qreal y_ )
 {
     if( y_ == _coordinates.y( ))
         return;
@@ -107,7 +103,7 @@ void Coordinates::setY( const qreal y_ )
     emit yChanged();
 }
 
-void Coordinates::setWidth( const qreal w )
+void Rectangle::setWidth( const qreal w )
 {
     if( w == _coordinates.width( ))
         return;
@@ -116,7 +112,7 @@ void Coordinates::setWidth( const qreal w )
     emit widthChanged();
 }
 
-void Coordinates::setHeight( const qreal h )
+void Rectangle::setHeight( const qreal h )
 {
     if( h == _coordinates.height( ))
         return;
@@ -125,7 +121,7 @@ void Coordinates::setHeight( const qreal h )
     emit heightChanged();
 }
 
-void Coordinates::setCoordinates( const QRectF& coordinates )
+void Rectangle::setCoordinates( const QRectF& coordinates )
 {
     setX( coordinates.x( ));
     setY( coordinates.y( ));

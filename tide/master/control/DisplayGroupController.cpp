@@ -40,8 +40,9 @@
 #include "DisplayGroupController.h"
 
 #include "ContentWindowController.h"
-#include "DisplayGroup.h"
 #include "LayoutEngine.h"
+#include "scene/ContentWindow.h"
+#include "scene/DisplayGroup.h"
 
 #include <QTransform>
 
