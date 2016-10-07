@@ -45,6 +45,16 @@
 
 /**
  * Reader for TIFF image pyramid files.
+ *
+ * TIFF image pyramids start at level 0 (full resolution). The dimensions of
+ * each level above has half the dimensions of the level beneath it.
+ * The top of the pyramid is a single image, whose dimensions are equal to (or
+ * directly smaller than) the size of a single tile.
+ *
+ * Example pyramid for an image of size (512x512) with tile size (128x128):
+ * level 2   /-\     <-- top    (128x128),  1 tile
+ * level 1  /---\               (256x256),  4 tiles
+ * level 0 /-----\   <-- base   (512x512), 16 tiles
  */
 class TiffPyramidReader
 {
@@ -68,14 +78,26 @@ public:
     /** Get the number of bytes by pixel. */
     int getBytesPerPixel() const;
 
-    /** Find the index of the top LOD of the image pyramid. */
-    int findTopPyramidLevel();
+    /** Find the index of the top level of the pyramid. */
+    uint findTopPyramidLevel();
 
-    /** Read a tile for the given indices and level of detail. */
-    QImage readTile( int i, int j, int lod );
+    /**
+     * Find the level of the pyramid whose dimensions are equal to or directly
+     * smaller than the target image size.
+     */
+    uint findLevel( const QSize& imageSize );
+
+    /** Read a tile at the given indices and level of detail. */
+    QImage readTile( int i, int j, uint lod );
 
     /** Read the image at the top of the pyramid (i.e. <= tileSize). */
     QImage readTopLevelImage();
+
+    /** Get the size of the pyramid at a certain level of detail. */
+    QSize readSize( uint lod );
+
+    /** Read an entire level of the pyramid as a single image. */
+    QImage readImage( uint lod );
 
 private:
     struct Impl;
