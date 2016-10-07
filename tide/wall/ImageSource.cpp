@@ -39,7 +39,7 @@
 
 #include "ImageSource.h"
 
-#include "QtImage.h"
+#include "data/QtImage.h"
 
 #include <QImageReader>
 

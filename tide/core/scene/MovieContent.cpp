@@ -41,7 +41,7 @@
 
 #include "MovieContent.h"
 
-#include "FFMPEGMovie.h"
+#include "data/FFMPEGMovie.h"
 
 #include <QtCore/QFileInfo>
 

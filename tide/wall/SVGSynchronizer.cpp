@@ -39,7 +39,7 @@
 
 #include "SVGSynchronizer.h"
 
-#include "SVG.h"
+#include "data/SVG.h"
 #include "SVGGpuImage.h"
 #include "SVGTiler.h"
 

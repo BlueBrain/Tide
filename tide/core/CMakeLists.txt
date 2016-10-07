@@ -22,47 +22,47 @@ set(TIDECORE_LINK_LIBRARIES
 
 if(TIDE_ENABLE_MOVIE_SUPPORT)
   list(APPEND TIDECORE_PUBLIC_HEADERS
+    data/FFMPEGFrame.h
+    data/FFMPEGMovie.h
+    data/FFMPEGPicture.h
+    data/FFMPEGVideoFrameConverter.h
+    data/FFMPEGVideoStream.h
     scene/MovieContent.h
-    FFMPEGFrame.h
-    FFMPEGMovie.h
-    FFMPEGPicture.h
-    FFMPEGVideoFrameConverter.h
-    FFMPEGVideoStream.h
     thumbnail/MovieThumbnailGenerator.h
   )
   list(APPEND TIDECORE_SOURCES
+    data/FFMPEGFrame.cpp
+    data/FFMPEGMovie.cpp
+    data/FFMPEGPicture.cpp
+    data/FFMPEGVideoFrameConverter.cpp
+    data/FFMPEGVideoStream.cpp
     scene/MovieContent.cpp
-    FFMPEGFrame.cpp
-    FFMPEGMovie.cpp
-    FFMPEGPicture.cpp
-    FFMPEGVideoFrameConverter.cpp
-    FFMPEGVideoStream.cpp
     thumbnail/MovieThumbnailGenerator.cpp
   )
 endif()
 
 if(TIDE_USE_CAIRO)
   list(APPEND TIDECORE_PUBLIC_HEADERS
-    CairoWrappers.h
+    data/CairoWrappers.h
   )
 endif()
 
 if(TIDE_ENABLE_PDF_SUPPORT)
   list(APPEND TIDECORE_PUBLIC_HEADERS
+    data/PDFBackend.h
     scene/PDFContent.h
-    PDFBackend.h
   )
   list(APPEND TIDECORE_SOURCES
+    data/PDF.cpp
     scene/PDFContent.cpp
-    PDF.cpp
     thumbnail/PDFThumbnailGenerator.cpp
   )
   if(TIDE_USE_CAIRO AND TIDE_USE_POPPLER_GLIB)
     list(APPEND TIDECORE_PUBLIC_HEADERS
-      PDFPopplerCairoBackend.h
+      data/PDFPopplerCairoBackend.h
     )
     list(APPEND TIDECORE_SOURCES
-      PDFPopplerCairoBackend.cpp
+      data/PDFPopplerCairoBackend.cpp
     )
     list(APPEND TIDECORE_LINK_LIBRARIES
       PRIVATE ${poppler-glib_LIBRARIES}
@@ -70,10 +70,10 @@ if(TIDE_ENABLE_PDF_SUPPORT)
   endif()
   if(TIDE_USE_POPPLER_QT5)
     list(APPEND TIDECORE_PUBLIC_HEADERS
-      PDFPopplerQtBackend.h
+      data/PDFPopplerQtBackend.h
     )
     list(APPEND TIDECORE_SOURCES
-      PDFPopplerQtBackend.cpp
+      data/PDFPopplerQtBackend.cpp
     )
     list(APPEND TIDECORE_LINK_LIBRARIES
       PRIVATE ${poppler-qt5_LIBRARIES}
@@ -83,10 +83,10 @@ endif()
 
 if(TIDE_USE_CAIRO AND TIDE_USE_RSVG)
   list(APPEND TIDECORE_PUBLIC_HEADERS
-    SVGCairoRSVGBackend.h
+    data/SVGCairoRSVGBackend.h
   )
   list(APPEND TIDECORE_SOURCES
-    SVGCairoRSVGBackend.cpp
+    data/SVGCairoRSVGBackend.cpp
   )
   list(APPEND TIDECORE_LINK_LIBRARIES
     PRIVATE ${RSVG_LIBRARIES}
@@ -95,14 +95,14 @@ endif()
 
 if(TIDE_USE_TIFF)
   list(APPEND TIDECORE_PUBLIC_HEADERS
+    data/TiffPyramidReader.h
     scene/ImagePyramidContent.h
     thumbnail/ImagePyramidThumbnailGenerator.h
-    TiffPyramidReader.h
   )
   list(APPEND TIDECORE_SOURCES
+    data/TiffPyramidReader.cpp
     scene/ImagePyramidContent.cpp
     thumbnail/ImagePyramidThumbnailGenerator.cpp
-    TiffPyramidReader.cpp
   )
   list(APPEND TIDECORE_LINK_LIBRARIES
     PRIVATE
@@ -113,8 +113,12 @@ endif()
 list(APPEND TIDECORE_PUBLIC_HEADERS
   CommandLineParameters.h
   Configuration.h
+  data/Image.h
+  data/QtImage.h
+  data/SVG.h
+  data/SVGBackend.h
+  data/SVGQtGpuBackend.h
   geometry.h
-  Image.h
   log.h
   network/MPIChannel.h
   network/MPIContext.h
@@ -123,7 +127,6 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   network/ReceiveBuffer.h
   QmlTypeRegistration.h
   qmlUtils.h
-  QtImage.h
   StatePreview.h
   scene/ContentAction.h
   scene/ContentActionsModel.h
@@ -147,9 +150,6 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   serialization/qtTypes.h
   serialization/utils.h
   serialization/xmlMacros.h
-  SVG.h
-  SVGBackend.h
-  SVGQtGpuBackend.h
   thumbnail/DefaultThumbnailGenerator.h
   thumbnail/FolderThumbnailGenerator.h
   thumbnail/ImageThumbnailGenerator.h
@@ -164,13 +164,15 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
 list(APPEND TIDECORE_SOURCES
   CommandLineParameters.cpp
   Configuration.cpp
+  data/QtImage.cpp
+  data/SVG.cpp
+  data/SVGQtGpuBackend.cpp
   geometry.cpp
   log.cpp
   MetaTypeRegistration.cpp
   network/MPIChannel.cpp
   network/MPIContext.cpp
   network/MPINospin.cpp
-  QtImage.cpp
   scene/ContentAction.cpp
   scene/ContentActionsModel.cpp
   scene/Content.cpp
@@ -188,8 +190,6 @@ list(APPEND TIDECORE_SOURCES
   scene/TextureContent.cpp
   scene/VectorialContent.cpp
   StatePreview.cpp
-  SVG.cpp
-  SVGQtGpuBackend.cpp
   thumbnail/DefaultThumbnailGenerator.cpp
   thumbnail/FolderThumbnailGenerator.cpp
   thumbnail/ImageThumbnailGenerator.cpp

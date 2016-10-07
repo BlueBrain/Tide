@@ -45,7 +45,7 @@
 #include "Content.h"
 #if TIDE_USE_TIFF
 #  include "ImagePyramidContent.h"
-#  include "TiffPyramidReader.h"
+#  include "data/TiffPyramidReader.h"
 #endif
 #if TIDE_ENABLE_MOVIE_SUPPORT
 #  include "MovieContent.h"

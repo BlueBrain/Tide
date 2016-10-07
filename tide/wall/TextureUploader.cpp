@@ -39,11 +39,10 @@
 
 #include "TextureUploader.h"
 
-#include "MovieUpdater.h"
-#include "Image.h"
-#include "Tile.h"
-
+#include "data/Image.h"
 #include "log.h"
+#include "MovieUpdater.h"
+#include "Tile.h"
 
 #include <QOffscreenSurface>
 #include <QOpenGLContext>

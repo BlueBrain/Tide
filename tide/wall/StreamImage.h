@@ -40,7 +40,7 @@
 #ifndef STREAMIMAGE_H
 #define STREAMIMAGE_H
 
-#include "Image.h"
+#include "data/Image.h"
 
 #include <deflect/types.h>
 

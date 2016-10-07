@@ -42,7 +42,7 @@
 
 #include "LodTiler.h"
 
-#include "PDF.h" // member
+#include "data/PDF.h" // member
 
 /**
  * Represent a PDF document as a multi-LOD tiled data source.

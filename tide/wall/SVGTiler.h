@@ -42,7 +42,7 @@
 
 #include "LodTiler.h"
 
-#include "SVG.h"
+#include "data/SVG.h"
 
 /**
  * Represent an SVG image as a multi-LOD tiled data source.

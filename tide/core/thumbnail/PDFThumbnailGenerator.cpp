@@ -39,7 +39,7 @@
 
 #include "PDFThumbnailGenerator.h"
 
-#include "PDF.h"
+#include "data/PDF.h"
 #include "log.h"
 
 #include <QFileInfo>
