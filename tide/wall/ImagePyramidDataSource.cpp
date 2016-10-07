@@ -41,6 +41,11 @@
 
 #include "data/TiffPyramidReader.h"
 
+namespace
+{
+const QSize previewSize{ 1920, 1920 };
+}
+
 std::pair<QSize, uint> _getLodParameters( const QString& uri )
 {
     const TiffPyramidReader tif{ uri };
@@ -55,12 +60,29 @@ ImagePyramidDataSource::ImagePyramidDataSource( const QString& uri )
     , _uri{ uri }
 {}
 
+
+QRect ImagePyramidDataSource::getTileRect( const uint tileId ) const
+{
+    if( tileId == 0 )
+    {
+        TiffPyramidReader tif{ _uri };
+        return { QPoint(), tif.readSize( tif.findLevel( previewSize )) };
+    }
+    return LodTiler::getTileRect( tileId );
+}
+
 QImage ImagePyramidDataSource::getCachableTileImage( const uint tileId ) const
 {
-    const auto index = _lodTool.getTileIndex( tileId );
-
     TiffPyramidReader tif{ _uri };
-    QImage image = tif.readTile( index.x, index.y, index.lod );
+
+    QImage image;
+    if( tileId == 0 )
+        image = tif.readImage( tif.findLevel( previewSize ));
+    else
+    {
+        const auto index = _lodTool.getTileIndex( tileId );
+        image = tif.readTile( index.x, index.y, index.lod );
+    }
 
     // TIFF tiles all have a fixed size. Those at the top of the pyramid
     // (or at the borders) are padded, but Tide expects to get tiles of the

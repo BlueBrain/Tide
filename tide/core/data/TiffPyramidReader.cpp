@@ -43,6 +43,7 @@
 #include "types.h"
 
 #include <tiffio.h>
+#include <QPainter>
 
 struct TIFFDeleter
 {
@@ -93,14 +94,19 @@ int TiffPyramidReader::getBytesPerPixel() const
     return value;
 }
 
-int TiffPyramidReader::findTopPyramidLevel()
+uint TiffPyramidReader::findTopPyramidLevel()
 {
-    const QSize tileSize = getTileSize();
+    return findLevel( getTileSize( ));
+}
+
+uint TiffPyramidReader::findLevel( const QSize& imageSize )
+{
     TIFFSetDirectory( _impl->tif.get(), 0 );
 
-    int level = 0;
-    while( getImageSize() > tileSize && TIFFReadDirectory( _impl->tif.get( )))
+    uint level = 0;
+    while( getImageSize() > imageSize && TIFFReadDirectory( _impl->tif.get( )))
         ++level;
+
     return level;
 }
 
@@ -123,13 +129,13 @@ QImage::Format _getImageFormat( const int bytesPerPixel )
     }
 }
 
-QImage TiffPyramidReader::readTile( const int i, const int j, const int lod )
+QImage TiffPyramidReader::readTile( const int i, const int j, const uint lod )
 {
     const QSize tileSize = getTileSize();
 
     if( !TIFFSetDirectory( _impl->tif.get(), lod ))
     {
-        put_flog( LOG_WARN, "Invalid pyramid layer: %d", lod );
+        put_flog( LOG_WARN, "Invalid pyramid level: %d", lod );
         return QImage();
     }
 
@@ -151,5 +157,39 @@ QImage TiffPyramidReader::readTopLevelImage()
     const QSize croppedSize = getImageSize(); // assume directory is unchanged
     if( image.size() != croppedSize )
         image = image.copy( QRect( QPoint(), croppedSize ));
+    return image;
+}
+
+QSize TiffPyramidReader::readSize( const uint lod )
+{
+    if( !TIFFSetDirectory( _impl->tif.get(), lod ))
+    {
+        put_flog( LOG_WARN, "Invalid pyramid level: %d", lod );
+        return QSize();
+    }
+    return getImageSize();
+}
+
+QImage TiffPyramidReader::readImage( const uint lod )
+{
+    if( !TIFFSetDirectory( _impl->tif.get(), lod ))
+    {
+        put_flog( LOG_WARN, "Invalid pyramid level: %d", lod );
+        return QImage();
+    }
+
+    const auto format = _getImageFormat( getBytesPerPixel( ));
+    QImage tile{ getTileSize(), format };
+    QImage image{ getImageSize(), format };
+    QPainter painter{ &image };
+
+    for( int y = 0; y < image.height(); y += tile.height( ))
+    {
+        for( int x = 0; x < image.width(); x += tile.width( ))
+        {
+            TIFFReadTile( _impl->tif.get(), tile.bits(), x, y, 0, 0 );
+            painter.drawImage( x, y, tile );
+        }
+    }
     return image;
 }

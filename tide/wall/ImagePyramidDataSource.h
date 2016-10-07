@@ -51,6 +51,9 @@ public:
     /** Constructor. */
     explicit ImagePyramidDataSource( const QString& uri );
 
+    /** @copydoc DataSource::getTileRect */
+    QRect getTileRect( uint tileId ) const final;
+
 private:
     const QString _uri;
 
