@@ -39,10 +39,10 @@
 
 #include "MovieSynchronizer.h"
 
-#include "ContentWindow.h"
-#include "MovieContent.h"
 #include "MovieUpdater.h"
 #include "network/WallToWallChannel.h"
+#include "scene/ContentWindow.h"
+#include "scene/MovieContent.h"
 #include "Tile.h"
 
 MovieSynchronizer::MovieSynchronizer( const QString& uri )

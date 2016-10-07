@@ -39,8 +39,8 @@
 
 #include "VisibilityHelper.h"
 
-#include "DisplayGroup.h"
-#include "ContentWindow.h"
+#include "scene/ContentWindow.h"
+#include "scene/DisplayGroup.h"
 
 VisibilityHelper::VisibilityHelper( const DisplayGroup& displayGroup,
                                     const QRect& visibleArea )

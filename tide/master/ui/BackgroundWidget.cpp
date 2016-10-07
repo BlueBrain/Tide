@@ -42,7 +42,7 @@
 #include <QtWidgets>
 
 #include "MasterConfiguration.h"
-#include "ContentFactory.h"
+#include "scene/ContentFactory.h"
 
 BackgroundWidget::BackgroundWidget( MasterConfiguration& configuration,
                                     QWidget* parent_ )

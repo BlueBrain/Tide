@@ -39,20 +39,18 @@
 
 #include "MasterWindow.h"
 
-#include "log.h"
-#include "Options.h"
-#include "MasterConfiguration.h"
 
+#include "BackgroundWidget.h"
 #include "ContentLoader.h"
-#include "ContentFactory.h"
-#include "StateSerializationHelper.h"
-
-#include "DisplayGroup.h"
-#include "ContentWindow.h"
-
 #include "DisplayGroupView.h"
 #include "DisplayGroupListWidget.h"
-#include "BackgroundWidget.h"
+#include "log.h"
+#include "MasterConfiguration.h"
+#include "scene/ContentFactory.h"
+#include "scene/ContentWindow.h"
+#include "scene/DisplayGroup.h"
+#include "scene/Options.h"
+#include "StateSerializationHelper.h"
 #if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
 #  include "WebbrowserWidget.h"
 #endif

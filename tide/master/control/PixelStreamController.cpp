@@ -39,8 +39,8 @@
 
 #include "PixelStreamController.h"
 
-#include "ContentWindow.h"
-#include "PixelStreamContent.h"
+#include "scene/ContentWindow.h"
+#include "scene/PixelStreamContent.h"
 
 PixelStreamController::PixelStreamController( ContentWindow& window )
     : ContentController( window )

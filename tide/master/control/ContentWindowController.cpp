@@ -40,9 +40,9 @@
 
 #include "ContentWindowController.h"
 
-#include "ContentWindow.h"
-#include "DisplayGroup.h"
 #include "geometry.h"
+#include "scene/ContentWindow.h"
+#include "scene/DisplayGroup.h"
 #include "ZoomController.h"
 
 namespace

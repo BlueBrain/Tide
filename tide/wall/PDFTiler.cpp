@@ -39,8 +39,8 @@
 
 #include "PDFTiler.h"
 
-#include "VectorialContent.h"
 #include "LodTools.h"
+#include "scene/VectorialContent.h"
 
 #include <QThread>
 

@@ -40,8 +40,8 @@
 #include "config.h"
 #include "types.h"
 
-#include "ContentWindow.h"
 #include "network/MPIHeader.h"
+#include "scene/ContentWindow.h"
 
 #include <QMetaType>
 

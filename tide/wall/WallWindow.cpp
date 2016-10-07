@@ -41,13 +41,13 @@
 
 #include "DataProvider.h"
 #include "DisplayGroupRenderer.h"
-#include "Options.h"
+#include "log.h"
+#include "qmlUtils.h"
 #include "QuickRenderer.h"
+#include "scene/Options.h"
 #include "TestPattern.h"
 #include "TextureUploader.h"
 #include "WallConfiguration.h"
-#include "log.h"
-#include "qmlUtils.h"
 
 #include <QOpenGLContext>
 #include <QQmlEngine>

@@ -40,8 +40,8 @@
 #define BOOST_TEST_MODULE ContentWindowTests
 #include <boost/test/unit_test.hpp>
 
-#include "ContentWindow.h"
 #include "control/ZoomController.h"
+#include "scene/ContentWindow.h"
 
 #include "MinimalGlobalQtApp.h"
 BOOST_GLOBAL_FIXTURE( MinimalGlobalQtApp );

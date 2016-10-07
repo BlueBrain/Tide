@@ -39,8 +39,8 @@
 
 #include "WebbrowserController.h"
 
-#include "ContentWindow.h"
-#include "WebbrowserContent.h"
+#include "scene/ContentWindow.h"
+#include "scene/WebbrowserContent.h"
 
 WebbrowserController::WebbrowserController( ContentWindow& contentWindow )
     : PixelStreamController( contentWindow )

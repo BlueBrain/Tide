@@ -40,7 +40,7 @@
 #ifndef DUMMYCONTENT_H
 #define DUMMYCONTENT_H
 
-#include "Content.h"
+#include "scene/Content.h"
 
 class DummyContent : public Content
 {

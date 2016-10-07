@@ -43,8 +43,8 @@
 #include "MinimalGlobalQtApp.h"
 
 #include "MasterConfiguration.h"
+#include "scene/VectorialContent.h"
 #include "WallConfiguration.h"
-#include "VectorialContent.h"
 
 #include <QDir>
 

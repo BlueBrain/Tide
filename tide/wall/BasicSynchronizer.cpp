@@ -39,7 +39,7 @@
 
 #include "BasicSynchronizer.h"
 
-#include "ContentWindow.h"
+#include "scene/ContentWindow.h"
 #include "Tile.h"
 
 BasicSynchronizer::BasicSynchronizer()

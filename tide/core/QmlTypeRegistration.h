@@ -40,10 +40,10 @@
 #ifndef CORE_QMLTYPEREGISTRATION_H
 #define CORE_QMLTYPEREGISTRATION_H
 
-#include "ContentActionsModel.h"
-#include "ContentWindow.h"
-#include "KeyboardState.h"
-#include "Markers.h"
+#include "scene/ContentActionsModel.h"
+#include "scene/ContentWindow.h"
+#include "scene/KeyboardState.h"
+#include "scene/Markers.h"
 
 #include <QtQml>
 

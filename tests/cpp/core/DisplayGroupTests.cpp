@@ -41,8 +41,8 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "ContentWindow.h"
-#include "DisplayGroup.h"
+#include "scene/ContentWindow.h"
+#include "scene/DisplayGroup.h"
 
 #include "DummyContent.h"
 

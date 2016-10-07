@@ -37,13 +37,12 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-
 #define BOOST_TEST_MODULE VisibilityHelperTests
 #include <boost/test/unit_test.hpp>
 
+#include "scene/ContentWindow.h"
+#include "scene/DisplayGroup.h"
 #include "VisibilityHelper.h"
-#include "DisplayGroup.h"
-#include "ContentWindow.h"
 
 #include "DummyContent.h"
 

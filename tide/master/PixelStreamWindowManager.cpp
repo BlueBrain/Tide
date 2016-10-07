@@ -40,15 +40,15 @@
 
 #include "PixelStreamWindowManager.h"
 
-#include "ContentFactory.h"
-#include "ContentWindow.h"
 #include "control/ContentController.h"
 #include "control/ContentWindowController.h"
 #include "control/DisplayGroupController.h"
-#include "DisplayGroup.h"
 #include "localstreamer/PixelStreamerLauncher.h"
 #include "log.h"
-#include "PixelStreamContent.h"
+#include "scene/ContentFactory.h"
+#include "scene/ContentWindow.h"
+#include "scene/DisplayGroup.h"
+#include "scene/PixelStreamContent.h"
 
 #include <deflect/EventReceiver.h>
 #include <deflect/Frame.h>

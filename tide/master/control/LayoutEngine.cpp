@@ -39,9 +39,9 @@
 
 #include "LayoutEngine.h"
 
-#include "ContentWindow.h"
 #include "control/ContentWindowController.h"
-#include "DisplayGroup.h"
+#include "scene/ContentWindow.h"
+#include "scene/DisplayGroup.h"
 
 #include <QTransform>
 
@@ -97,7 +97,7 @@ QRectF LayoutEngine::getFocusedCoord( const ContentWindow& window ) const
     return _getFocusedCoord( window, _displayGroup.getFocusedWindows( ));
 }
 
-void LayoutEngine::updateFocusedCoord( ContentWindowSet& windows ) const
+void LayoutEngine::updateFocusedCoord( const ContentWindowSet& windows ) const
 {
     for( auto& window : windows )
         window->setFocusedCoordinates( _getFocusedCoord( *window, windows ));

@@ -43,21 +43,22 @@
 #include "DefaultThumbnailGenerator.h"
 #include "FolderThumbnailGenerator.h"
 #include "ImageThumbnailGenerator.h"
+#include "scene/TextureContent.h"
+#include "StateThumbnailGenerator.h"
+
 #if TIDE_ENABLE_MOVIE_SUPPORT
-#include "MovieContent.h"
+#include "scene/MovieContent.h"
 #include "MovieThumbnailGenerator.h"
 #endif
 #if TIDE_ENABLE_PDF_SUPPORT
-#  include "PDFContent.h"
+#  include "scene/PDFContent.h"
 #  include "PDFThumbnailGenerator.h"
 #endif
 #if TIDE_USE_TIFF
-#  include "ImagePyramidContent.h"
+#  include "scene/ImagePyramidContent.h"
 #  include "ImagePyramidThumbnailGenerator.h"
 #  include "TiffPyramidReader.h"
 #endif
-#include "StateThumbnailGenerator.h"
-#include "TextureContent.h"
 
 #include <QDir>
 

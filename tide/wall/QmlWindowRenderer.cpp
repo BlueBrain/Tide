@@ -40,11 +40,11 @@
 #include "QmlWindowRenderer.h"
 
 #include "ContentSynchronizer.h"
-#include "PixelStreamSynchronizer.h"
-#include "ContentWindow.h"
 #include "DataProvider.h"
-#include "Tile.h"
+#include "PixelStreamSynchronizer.h"
 #include "qmlUtils.h"
+#include "scene/ContentWindow.h"
+#include "Tile.h"
 
 #include <QQmlComponent>
 

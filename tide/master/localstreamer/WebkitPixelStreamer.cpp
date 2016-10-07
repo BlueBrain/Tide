@@ -39,11 +39,11 @@
 
 #include "WebkitPixelStreamer.h"
 
-#include "WebbrowserContent.h"
-#include "WebbrowserHistory.h"
+#include "log.h"
+#include "scene/WebbrowserContent.h"
+#include "scene/WebbrowserHistory.h"
 #include "WebkitAuthenticationHelper.h"
 #include "WebkitHtmlSelectReplacer.h"
-#include "log.h"
 
 #ifdef TIDE_USE_ZEROEQ
 #  include "rest/RestCommand.h"

@@ -41,9 +41,8 @@
 
 #include <QRectF>
 
-#include "ContentWindow.h"
 #include "log.h"
-
+#include "scene/ContentWindow.h"
 #include "thumbnail/ThumbnailGeneratorFactory.h"
 #include "thumbnail/ThumbnailGenerator.h"
 

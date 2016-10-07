@@ -39,12 +39,12 @@
 
 #include "DisplayGroupRenderer.h"
 
-#include "ContentWindow.h"
-#include "DisplayGroup.h"
 #include "geometry.h"
-#include "Markers.h"
-#include "Options.h"
 #include "qmlUtils.h"
+#include "scene/ContentWindow.h"
+#include "scene/DisplayGroup.h"
+#include "scene/Markers.h"
+#include "scene/Options.h"
 #include "VisibilityHelper.h"
 #include "WallWindow.h"
 

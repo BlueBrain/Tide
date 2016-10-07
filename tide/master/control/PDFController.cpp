@@ -39,8 +39,8 @@
 
 #include "PDFController.h"
 
-#include "ContentWindow.h"
-#include "PDFContent.h"
+#include "scene/ContentWindow.h"
+#include "scene/PDFContent.h"
 
 PDFController::PDFController( ContentWindow& contentWindow )
     : ZoomController( contentWindow )

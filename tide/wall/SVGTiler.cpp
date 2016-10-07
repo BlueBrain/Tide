@@ -39,7 +39,7 @@
 
 #include "SVGTiler.h"
 
-#include "VectorialContent.h"
+#include "scene/VectorialContent.h"
 
 #include <QThread>
 

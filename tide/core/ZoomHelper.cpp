@@ -39,7 +39,7 @@
 
 #include "ZoomHelper.h"
 
-#include "ContentWindow.h"
+#include "scene/ContentWindow.h"
 
 ZoomHelper::ZoomHelper( const ContentWindow& window )
     : _contentWindow( window )

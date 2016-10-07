@@ -44,11 +44,11 @@
 #include "control/ContentController.h"
 #include "control/ContentWindowController.h"
 #include "control/DisplayGroupController.h"
-#include "ContentWindow.h"
-#include "DisplayGroup.h"
-#include "Options.h"
 #include "MasterConfiguration.h"
 #include "qmlUtils.h"
+#include "scene/ContentWindow.h"
+#include "scene/DisplayGroup.h"
+#include "scene/Options.h"
 
 #include <QQmlComponent>
 #include <QQmlContext>

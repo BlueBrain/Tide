@@ -41,8 +41,8 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "Options.h"
 #include "rest/JsonOptions.h"
+#include "scene/Options.h"
 
 #include <boost/make_shared.hpp>
 

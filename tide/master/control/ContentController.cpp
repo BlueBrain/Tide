@@ -40,7 +40,7 @@
 #include "ContentController.h"
 
 #include "config.h"
-#include "ContentWindow.h"
+#include "scene/ContentWindow.h"
 
 #if TIDE_ENABLE_PDF_SUPPORT
 #  include "PDFController.h"

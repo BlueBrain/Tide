@@ -40,7 +40,7 @@
 #include "ContentSynchronizer.h"
 
 #include "config.h"
-#include "Content.h"
+#include "scene/Content.h"
 
 #include "BasicSynchronizer.h"
 #include "ImageSynchronizer.h"

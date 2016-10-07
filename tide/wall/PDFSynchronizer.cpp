@@ -39,8 +39,8 @@
 
 #include "PDFSynchronizer.h"
 
-#include "ContentWindow.h"
-#include "PDFContent.h"
+#include "scene/ContentWindow.h"
+#include "scene/PDFContent.h"
 #include "Tile.h"
 #include "ZoomHelper.h"
 

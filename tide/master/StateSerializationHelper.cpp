@@ -39,10 +39,10 @@
 
 #include "StateSerializationHelper.h"
 
-#include "ContentFactory.h"
 #include "control/DisplayGroupController.h"
-#include "DisplayGroup.h"
 #include "log.h"
+#include "scene/ContentFactory.h"
+#include "scene/DisplayGroup.h"
 #include "serialization/utils.h"
 #include "State.h"
 #include "StatePreview.h"

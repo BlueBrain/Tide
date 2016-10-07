@@ -39,11 +39,11 @@
 
 #include "ContentLoader.h"
 
-#include "DisplayGroup.h"
-#include "ContentWindow.h"
-#include "ContentFactory.h"
 #include "control/ContentWindowController.h"
 #include "log.h"
+#include "scene/DisplayGroup.h"
+#include "scene/ContentWindow.h"
+#include "scene/ContentFactory.h"
 
 ContentLoader::ContentLoader( DisplayGroupPtr displayGroup )
     : _displayGroup( displayGroup )

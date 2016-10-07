@@ -40,7 +40,7 @@
 
 #include "Launcher.h"
 
-#include "tide/core/ContentFactory.h"
+#include "tide/core/scene/ContentFactory.h"
 #include "tide/core/thumbnail/ThumbnailProvider.h"
 
 #include "tide/master/localstreamer/CommandLineOptions.h"

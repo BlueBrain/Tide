@@ -43,10 +43,10 @@
 
 #include <boost/make_shared.hpp>
 
-#include "ContentWindow.h"
 #include "control/ContentWindowController.h"
 #include "control/LayoutEngine.h"
-#include "DisplayGroup.h"
+#include "scene/ContentWindow.h"
+#include "scene/DisplayGroup.h"
 
 #include "MinimalGlobalQtApp.h"
 BOOST_GLOBAL_FIXTURE( MinimalGlobalQtApp );

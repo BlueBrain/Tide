@@ -39,8 +39,8 @@
 
 #include "JsonOptions.h"
 
-#include "Options.h"
 #include "log.h"
+#include "scene/Options.h"
 
 #include <QJsonDocument>
 #include <QJsonObject>

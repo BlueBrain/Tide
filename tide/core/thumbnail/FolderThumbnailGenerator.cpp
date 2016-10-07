@@ -39,10 +39,10 @@
 
 #include "FolderThumbnailGenerator.h"
 
-#include "ContentFactory.h"
+#include "log.h"
+#include "scene/ContentFactory.h"
 #include "ThumbnailGeneratorFactory.h"
 #include "ThumbnailGenerator.h"
-#include "log.h"
 
 #include <QDir>
 #include <QPainter>

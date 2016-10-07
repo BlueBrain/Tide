@@ -43,8 +43,8 @@
 #include "FFMPEGMovie.h"
 #include "FFMPEGPicture.h"
 #include "log.h"
-#include "MovieContent.h"
 #include "network/WallToWallChannel.h"
+#include "scene/MovieContent.h"
 
 
 MovieUpdater::MovieUpdater( const QString& uri )
