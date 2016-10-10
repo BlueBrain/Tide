@@ -15,9 +15,8 @@ set(TIDE_MAINTAINER "Blue Brain Project <bbp-open-source@googlegroups.com>")
 set(TIDE_LICENSE BSD)
 set(TIDE_DEB_DEPENDS libopenmpi-dev openmpi-bin
   libboost-program-options-dev libboost-serialization-dev libboost-test-dev
-  qtbase5-dev qtbase5-private-dev qtdeclarative5-dev qtdeclarative5-private-dev
-  libqt5svg5-dev libqt5webkit5-dev libqt5xmlpatterns5-dev libqt5x11extras5-dev
-  qml-module-qtquick-controls
+  qtbase5-dev qtdeclarative5-dev libqt5svg5-dev libqt5webkit5-dev
+  libqt5xmlpatterns5-dev libqt5x11extras5-dev qml-module-qtquick-controls
   libpoppler-glib-dev libcairo2-dev libpoppler-qt5-dev librsvg2-dev libtiff5-dev
   libavutil-dev libavformat-dev libavcodec-dev libswscale-dev)
 set(TIDE_PORT_DEPENDS boost ffmpeg mpich-devel qt5)
