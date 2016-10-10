@@ -193,17 +193,18 @@ void PixelStreamWindowManager::updateStreamDimensions( deflect::FramePtr frame )
 {
     const QSize size( frame->computeDimensions( ));
 
-    ContentWindowPtr contentWindow = getContentWindow( frame->uri );
-    if( !contentWindow )
+    auto window = getContentWindow( frame->uri );
+    if( !window )
         return;
 
     // External streamers might not have reported an initial size yet
-    if( contentWindow->getContent()->getDimensions().isEmpty( ))
+    if( window->getContent()->getDimensions().isEmpty( ))
     {
-        ContentWindowController controller( *contentWindow, _displayGroup );
+        const auto target = ContentWindowController::Coordinates::STANDARD;
+        ContentWindowController controller{ *window, _displayGroup, target };
         controller.resize( size, CENTER );
     }
-    contentWindow->getContent()->setDimensions( size );
+    window->getContent()->setDimensions( size );
 }
 
 void PixelStreamWindowManager::sendDataToWindow( const QString uri,
@@ -230,22 +231,21 @@ void PixelStreamWindowManager::setAutoFocusNewWindows( const bool set )
 void PixelStreamWindowManager::updateSizeHints( const QString uri,
                                                 const deflect::SizeHints hints )
 {
-    ContentWindowPtr contentWindow = getContentWindow( uri );
-    if( !contentWindow )
+    auto window = getContentWindow( uri );
+    if( !window )
         return;
 
-    contentWindow->getContent()->setSizeHints( hints );
+    window->getContent()->setSizeHints( hints );
 
     const QSize size( hints.preferredWidth, hints.preferredHeight );
     if( size.isEmpty( ))
         return;
 
    // External streamers might not have reported an initial size yet
-    if( contentWindow->getContent()->getDimensions().isEmpty( ))
-        contentWindow->getContent()->setDimensions( size );
+    if( window->getContent()->getDimensions().isEmpty( ))
+        window->getContent()->setDimensions( size );
 
-    ContentWindowController controller( *contentWindow, _displayGroup );
-    controller.adjustSize( SIZE_1TO1 );
+    ContentWindowController{ *window, _displayGroup }.adjustSize( SIZE_1TO1 );
 }
 
 bool PixelStreamWindowManager::_isPanel( const QString& uri ) const

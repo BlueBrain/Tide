@@ -50,11 +50,13 @@ namespace
 const QString ICON_KEYBOARD( "qrc:///img/keyboard.svg" );
 }
 
-PixelStreamContent::PixelStreamContent( const QString& uri )
+PixelStreamContent::PixelStreamContent( const QString& uri,
+                                        const bool keyboard )
     : Content( uri )
     , _eventReceiversCount( 0 )
 {
-    _createActions();
+    if( keyboard )
+        _createActions();
 }
 
 CONTENT_TYPE PixelStreamContent::getType() const

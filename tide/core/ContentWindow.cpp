@@ -41,19 +41,17 @@
 
 #include "ContentWindow.h"
 
-#include "ContentWindowController.h"
-
 #include "config.h"
 #include "log.h"
 
-#include "PixelStreamInteractionDelegate.h"
-#include "ZoomInteractionDelegate.h"
 #if TIDE_ENABLE_PDF_SUPPORT
 #  include "PDFInteractionDelegate.h"
 #endif
+#include "PixelStreamInteractionDelegate.h"
 #if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
 #  include "WebbrowserInteractionDelegate.h"
 #endif
+#include "ZoomInteractionDelegate.h"
 
 IMPLEMENT_SERIALIZE_FOR_XML( ContentWindow )
 
@@ -61,7 +59,6 @@ ContentWindow::ContentWindow( ContentPtr content, const WindowType type )
     : _uuid( QUuid::createUuid( ))
     , _type( type )
     , _content( content )
-    , _controller( nullptr )
     , _activeHandle( NOHANDLE )
     , _resizePolicy( KEEP_ASPECT_RATIO )
     , _mode( WindowMode::STANDARD )
@@ -76,7 +73,6 @@ ContentWindow::ContentWindow( ContentPtr content, const WindowType type )
 ContentWindow::ContentWindow()
     : _uuid( QUuid::createUuid( ))
     , _type( WindowType::DEFAULT )
-    , _controller( nullptr )
     , _activeHandle( NOHANDLE )
     , _resizePolicy( KEEP_ASPECT_RATIO )
     , _mode( WindowMode::STANDARD )
@@ -116,25 +112,6 @@ void ContentWindow::setContent( ContentPtr content )
     content->moveToThread( thread( ));
     _content = content;
     _init();
-}
-
-ContentWindowController* ContentWindow::getController()
-{
-    return _controller;
-}
-
-const ContentWindowController* ContentWindow::getController() const
-{
-    return _controller;
-}
-
-void ContentWindow::setController( ContentWindowControllerPtr controller )
-{
-    if( _controller )
-        delete _controller;
-
-    controller->setParent( this );
-    _controller = controller.release();
 }
 
 void ContentWindow::setCoordinates( const QRectF& coordinates )
@@ -245,6 +222,7 @@ void ContentWindow::setFullscreenCoordinates( const QRectF& coordinates )
 
     _fullscreenCoordinates = coordinates;
     emit fullscreenCoordinatesChanged();
+    emit modified();
 }
 
 const QRectF& ContentWindow::getDisplayCoordinates() const
@@ -258,6 +236,23 @@ const QRectF& ContentWindow::getDisplayCoordinates() const
     case WindowMode::STANDARD:
     default:
         return getCoordinates();
+    }
+}
+
+void ContentWindow::setDisplayCoordinates( const QRectF& coordinates )
+{
+    switch( getMode( ))
+    {
+    case WindowMode::FULLSCREEN:
+        setFullscreenCoordinates( coordinates );
+        break;
+    case WindowMode::FOCUSED:
+        setFocusedCoordinates( coordinates );
+        break;
+    case WindowMode::STANDARD:
+    default:
+        setCoordinates( coordinates );
+        break;
     }
 }
 

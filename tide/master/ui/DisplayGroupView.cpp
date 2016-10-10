@@ -42,6 +42,7 @@
 #include "DisplayGroupView.h"
 
 #include "ContentWindow.h"
+#include "ContentWindowController.h"
 #include "DisplayGroup.h"
 #include "Options.h"
 #include "MasterConfiguration.h"
@@ -202,6 +203,11 @@ void DisplayGroupView::_add( ContentWindowPtr contentWindow )
     // New Context for the window, ownership retained by the windowItem
     QQmlContext* windowContext = new QQmlContext( rootContext( ));
     windowContext->setContextProperty( "contentwindow", contentWindow.get( ));
+
+    auto controller = new ContentWindowController( *contentWindow,
+                                                   *_displayGroup );
+    controller->setParent( windowContext );
+    windowContext->setContextProperty( "controller", controller );
 
     QQmlComponent component( engine(), QML_CONTENTWINDOW_URL );
     qmlCheckOrThrow( component );

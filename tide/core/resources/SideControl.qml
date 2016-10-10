@@ -39,14 +39,38 @@ SideButton {
                 anchors.horizontalCenter: parent.horizontalCenter
             }
         }
-        Clock {
-            displayedHeight: parent.width
-            anchors.horizontalCenter: parent.horizontalCenter
-            showSeconds: false
-            Loader {
-                property int buttonIndex: 3
+        Item {
+            id: bottomItem
+            width: parent.width
+            height: width
+            ListView {
+                id: contentActionButton
                 anchors.fill: parent
-                sourceComponent: buttonDelegate
+                orientation: ListView.Vertical
+                interactive: false // disable flickable behaviour
+                visible: count > 0
+                delegate: WindowControlsDelegate {
+                    width: bottomItem.width
+                    height: bottomItem.height
+                    imageRelSize: 1.0 // remove padding
+                    MouseArea {
+                        anchors.fill: parent
+                        onClicked: action.trigger()
+                    }
+                }
+                model: displaygroup.fullscreenWindow ?
+                           displaygroup.fullscreenWindow.content.actions : undefined
+            }
+            Clock {
+                displayedHeight: parent.width
+                anchors.horizontalCenter: parent.horizontalCenter
+                showSeconds: false
+                visible: !contentActionButton.visible
+                Loader {
+                    property int buttonIndex: 3
+                    anchors.fill: parent
+                    sourceComponent: buttonDelegate
+                }
             }
         }
     }

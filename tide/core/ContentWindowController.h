@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -42,8 +42,6 @@
 
 #include "types.h"
 
-#include "serialization/includes.h"
-
 #include <QObject>
 
 /** Common window size states. */
@@ -52,7 +50,8 @@ enum SizeState
     SIZE_1TO1,
     SIZE_1TO1_FITTING,
     SIZE_LARGE,
-    SIZE_FULLSCREEN
+    SIZE_FULLSCREEN,
+    SIZE_FULLSCREEN_MAX
 };
 
 /** Window point, used for affine transforms of the window. */
@@ -71,8 +70,26 @@ class ContentWindowController : public QObject
     Q_DISABLE_COPY( ContentWindowController )
 
 public:
+    /**
+     * The set of window coordinates that the controller acts upon.
+     */
+    enum class Coordinates
+    {
+        STANDARD,   // window standard mode coordinates
+        FOCUSED,    // window focused mode coordinates
+        FULLSCREEN, // window fullscreen mode coordinates
+        AUTO        // window current mode's coordinates
+    };
+
+    /**
+     * Create a controller for a window.
+     * @param contentWindow the target window
+     * @param displayGroup the display group to which the window belongs
+     * @param target the set of coordinates to modify (default: AUTO)
+     */
     ContentWindowController( ContentWindow& contentWindow,
-                             const DisplayGroup& displayGroup );
+                             const DisplayGroup& displayGroup,
+                             Coordinates target = Coordinates::AUTO );
 
     /** Resize the window. */
     Q_INVOKABLE void resize( QSizeF size, WindowPoint fixedPoint = TOP_LEFT );
@@ -89,6 +106,9 @@ public:
     /** Adjust the window coordinates to match the Content dimensions. */
     Q_INVOKABLE void adjustSizeOneToOne() { adjustSize( SIZE_1TO1 ); }
 
+    /** Toggle between SIZE_FULLSCREEN and SIZE_FULLSCREEN_MAX. */
+    Q_INVOKABLE void toogleFullscreenMaxSize();
+
     /** Move the window to the desired position. */
     Q_INVOKABLE void moveTo( const QPointF& position,
                              WindowPoint handle = TOP_LEFT );
@@ -99,15 +119,15 @@ public:
         moveTo( position, CENTER );
     }
 
+    /** Move the window by the given delta. */
+    Q_INVOKABLE void moveBy( const QPointF& delta );
+
     /** @return the minimum size of the window, 5% of wall size or 300px. */
     QSizeF getMinSize() const;
 
     /** @return the maximum size of the window, considering max size of content,
      *          wall size and current content zoom. */
     QSizeF getMaxSize() const;
-
-    /** @return the maximum size of the content, considering wall size. */
-    QSizeF getMaxContentSize() const;
 
     /** Constrain the given size between getMinSize() and getMaxSize(). */
     void constrainSize( QSizeF& windowSize ) const;
@@ -126,19 +146,6 @@ public:
                                            const QSizeF& size );
 
 private:
-    friend class boost::serialization::access;
-
-    /** No-argument constructor required for serialization. */
-    ContentWindowController();
-
-    /** Serialize for sending to Wall applications. */
-    template< class Archive >
-    void serialize( Archive & ar, const unsigned int )
-    {
-        ar & _contentWindow;
-        ar & _displayGroup;
-    }
-
     /**
      * Resize the window around a given center point.
      * @param center the center of scaling
@@ -152,9 +159,13 @@ private:
     void _constrainPosition( QRectF& window ) const;
     QRectF _getCenteredCoordinates( const QSizeF& size ) const;
 
-    // Storing pointers because references cannot be serialized with boost
-    ContentWindow* _contentWindow;
-    const DisplayGroup* _displayGroup;
+    bool _targetIsFullscreen() const;
+    const QRectF& _getCoordinates() const;
+    void _apply( const QRectF& coordinates );
+
+    ContentWindow& _contentWindow;
+    const DisplayGroup& _displayGroup;
+    Coordinates _target;
 };
 
 #endif

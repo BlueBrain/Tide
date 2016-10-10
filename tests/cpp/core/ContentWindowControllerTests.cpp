@@ -274,6 +274,25 @@ BOOST_AUTO_TEST_CASE( testLargeSize )
     BOOST_CHECK_EQUAL( coords.height(), 0.75 * wallSize.width() / CONTENT_AR );
 }
 
+
+void _checkFullscreen( const QRectF& coords )
+{
+    // full screen, center on wall
+    BOOST_CHECK_EQUAL( coords.x(), 0.0 );
+    BOOST_CHECK_EQUAL( coords.y(), 125.0 );
+    BOOST_CHECK_EQUAL( coords.width(), wallSize.width( ));
+    BOOST_CHECK_EQUAL( coords.height(), wallSize.width() / CONTENT_AR );
+}
+
+void _checkFullscreenMax( const QRectF& coords )
+{
+    // full screen maximized, centered on wall
+    BOOST_CHECK_CLOSE( coords.x(), -166.66666, 0.00001 );
+    BOOST_CHECK_EQUAL( coords.y(), 0.0 );
+    BOOST_CHECK_EQUAL( coords.width(), wallSize.height() * CONTENT_AR );
+    BOOST_CHECK_EQUAL( coords.height(), wallSize.height( ));
+}
+
 BOOST_AUTO_TEST_CASE( testFullScreenSize )
 {
     ContentPtr content( new DummyContent );
@@ -285,16 +304,87 @@ BOOST_AUTO_TEST_CASE( testFullScreenSize )
     ContentWindowController controller( window, *displayGroup );
 
     controller.adjustSize( SIZE_FULLSCREEN );
-    const QRectF& coords = window.getFullscreenCoordinates();
-
-    // full screen, center on wall
-    BOOST_CHECK_EQUAL( coords.x(), 0.0 );
-    BOOST_CHECK_EQUAL( coords.y(),  125 );
-    BOOST_CHECK_EQUAL( coords.width(), wallSize.width( ));
-    BOOST_CHECK_EQUAL( coords.height(), wallSize.width() / CONTENT_AR );
-
+    _checkFullscreen( window.getCoordinates( ));
     // zoom reset
     BOOST_CHECK_EQUAL( content->getZoomRect(), UNIT_RECTF );
+}
+
+BOOST_AUTO_TEST_CASE( testFullScreenMaxSize )
+{
+    ContentPtr content( new DummyContent );
+    content->setDimensions( CONTENT_SIZE );
+    content->setZoomRect( QRectF( 0.25, 0.25, 0.5, 0.5 ));
+    ContentWindow window( content );
+
+    DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
+    ContentWindowController controller( window, *displayGroup );
+
+    controller.adjustSize( SIZE_FULLSCREEN_MAX );
+    _checkFullscreenMax( window.getCoordinates( ));
+    // zoom reset
+    BOOST_CHECK_EQUAL( content->getZoomRect(), UNIT_RECTF );
+}
+
+BOOST_AUTO_TEST_CASE( testToggleFullScreenMaxSize )
+{
+    ContentPtr content( new DummyContent );
+    content->setDimensions( CONTENT_SIZE );
+    content->setZoomRect( QRectF( 0.25, 0.25, 0.5, 0.5 ));
+    ContentWindow window( content );
+
+    DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
+    ContentWindowController controller( window, *displayGroup );
+
+    // No effect if window is not in fullscreen
+    const auto originalCoord = window.getDisplayCoordinates();
+    controller.toogleFullscreenMaxSize();
+    BOOST_CHECK_EQUAL( originalCoord, window.getDisplayCoordinates( ));
+
+    // Toggle between two modes when in fullscreen
+    window.setMode( ContentWindow::WindowMode::FULLSCREEN );
+    controller.toogleFullscreenMaxSize();
+    _checkFullscreenMax( window.getFullscreenCoordinates( ));
+    controller.toogleFullscreenMaxSize();
+    _checkFullscreen( window.getFullscreenCoordinates( ));
+    controller.toogleFullscreenMaxSize();
+    _checkFullscreenMax( window.getFullscreenCoordinates( ));
+    controller.toogleFullscreenMaxSize();
+    _checkFullscreen( window.getFullscreenCoordinates( ));
+}
+
+BOOST_AUTO_TEST_CASE( testResizeAndMoveInFullScreenMode )
+{
+    ContentPtr content( new DummyContent );
+    content->setDimensions( CONTENT_SIZE );
+    content->setZoomRect( QRectF( 0.25, 0.25, 0.5, 0.5 ));
+    ContentWindow window( content );
+
+    DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
+    ContentWindowController controller( window, *displayGroup );
+
+    window.setMode( ContentWindow::WindowMode::FULLSCREEN );
+    controller.adjustSize( SIZE_FULLSCREEN );
+    _checkFullscreen( window.getDisplayCoordinates( ));
+
+    // Window cannot move or scale down while in "FULLSCREEN"
+    controller.moveBy( { 10.0, 20.0 });
+    controller.scale( window.getDisplayCoordinates().center(), -15.0 );
+    _checkFullscreen( window.getDisplayCoordinates( ));
+
+    // Window can only move along the direction where it exceeds the displaywall
+    controller.adjustSize( SIZE_FULLSCREEN_MAX );
+    _checkFullscreenMax( window.getDisplayCoordinates( ));
+    controller.moveBy( { 100.0, 100.0 });
+    const auto& coords = window.getDisplayCoordinates();
+    BOOST_CHECK_CLOSE( coords.x(), -66.66666, 0.0001 );
+    BOOST_CHECK_EQUAL( coords.y(), 0.0 );
+    controller.moveBy( { 100.0, 100.0 });
+    BOOST_CHECK_EQUAL( coords.x(), 0.0 );
+    BOOST_CHECK_EQUAL( coords.y(), 0.0 );
+
+    // Window goes back to "FULLSCREEN" coordinates when scaling it down
+    controller.scale( window.getDisplayCoordinates().center(), -500.0 );
+    _checkFullscreen( window.getDisplayCoordinates( ));
 }
 
 BOOST_AUTO_TEST_CASE( testResizeRelativeToBorder )

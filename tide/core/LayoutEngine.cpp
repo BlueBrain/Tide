@@ -40,6 +40,7 @@
 #include "LayoutEngine.h"
 
 #include "ContentWindow.h"
+#include "ContentWindowController.h"
 #include "DisplayGroup.h"
 
 #include <QTransform>
@@ -152,7 +153,10 @@ QRectF LayoutEngine::_getNominalCoord( const ContentWindow& window ) const
 
     QSizeF size = window.getCoordinates().size();
     size.scale( maxSize, Qt::KeepAspectRatio );
-    window.getController()->constrainSize( size );
+    ContentWindowController( const_cast<ContentWindow&>( window ),
+                             _displayGroup,
+                             ContentWindowController::Coordinates::STANDARD
+                             ).constrainSize( size );
 
     const qreal x = window.getCoordinates().center().x();
     QRectF coord( QPointF(), size );

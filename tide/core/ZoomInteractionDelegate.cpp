@@ -40,6 +40,7 @@
 
 #include "ZoomInteractionDelegate.h"
 #include "ContentWindow.h"
+#include "ContentWindowController.h"
 #include "ZoomHelper.h"
 
 #include <QTransform>
@@ -138,16 +139,9 @@ void ZoomInteractionDelegate::_constraintPosition( QRectF& zoomRect ) const
         zoomRect.moveBottom( 1.0 );
 }
 
-QSizeF getMaxContentSize( const ContentWindow& window )
-{
-    if( window.getController( ))
-        return window.getController()->getMaxContentSize();
-    return window.getContent()->getMaxDimensions();
-}
-
 QSizeF ZoomInteractionDelegate::_getMaxZoom() const
 {
-    const QSizeF content( getMaxContentSize( _contentWindow ));
+    const QSizeF content( _contentWindow.getContent()->getMaxDimensions( ));
     const QSizeF window( _contentWindow.getDisplayCoordinates().size( ));
     return QSizeF( window.width() / content.width(),
                    window.height() / content.height( ));

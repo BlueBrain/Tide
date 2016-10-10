@@ -76,7 +76,6 @@ void DisplayGroup::addContentWindow( ContentWindowPtr contentWindow )
 
     _contentWindows.push_back( contentWindow );
     _watchChanges( contentWindow );
-    _assignController( *contentWindow );
 
     emit( contentWindowAdded( contentWindow ));
     _sendDisplayGroup();
@@ -219,7 +218,8 @@ void DisplayGroup::unfocus( const QUuid& id )
     window->setMode( ContentWindow::WindowMode::STANDARD );
     _removeFocusedWindow( window );
     // Make sure the window dimensions are re-adjusted to the new zoom level
-    window->getController()->scale( window->getCoordinates().center(), 0.0 );
+    const auto center = window->getCoordinates().center();
+    ContentWindowController{ *window, *this }.scale( center, 0.0 );
 
     _sendDisplayGroup();
 }
@@ -248,7 +248,9 @@ void DisplayGroup::showFullscreen( const QUuid& id )
     _fullscreenWindowPrevMode = window->getMode();
     _fullscreenWindowPrevZoom = window->getContent()->getZoomRect();
 
-    window->getController()->adjustSize( SizeState::SIZE_FULLSCREEN );
+    const auto target = ContentWindowController::Coordinates::FULLSCREEN;
+    ContentWindowController controller( *window, *this, target );
+    controller.adjustSize( SizeState::SIZE_FULLSCREEN );
     window->setMode( ContentWindow::WindowMode::FULLSCREEN );
 
     emit hasFullscreenWindowsChanged();
@@ -288,6 +290,11 @@ void DisplayGroup::moveToThread( QThread* thread )
 bool DisplayGroup::getShowWindowTitles() const
 {
     return _showWindowTitlesInSavedSession;
+}
+
+ContentWindow* DisplayGroup::getFullscreenWindow() const
+{
+    return _fullscreenWindow.get();
 }
 
 void DisplayGroup::setShowWindowTitles( const bool set )
@@ -335,11 +342,6 @@ void DisplayGroup::_watchChanges( ContentWindowPtr contentWindow )
         _updateFocusedWindowsCoordinates();
         _sendDisplayGroup();
     } );
-}
-
-void DisplayGroup::_assignController( ContentWindow& window )
-{
-    window.setController( make_unique<ContentWindowController>( window, *this));
 }
 
 void DisplayGroup::_removeFocusedWindow( ContentWindowPtr window )

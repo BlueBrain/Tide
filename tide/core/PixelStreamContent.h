@@ -52,8 +52,9 @@ public:
     /**
      * Constructor.
      * @param uri The unique stream identifier.
+     * @param keyboard Show the keyboard action.
      */
-    explicit PixelStreamContent( const QString& uri );
+    explicit PixelStreamContent( const QString& uri, bool keyboard = true );
 
     /** Get the content type **/
     CONTENT_TYPE getType() const override;
@@ -78,7 +79,11 @@ public:
 
 protected:
     // Default constructor required for boost::serialization
-    PixelStreamContent() { _createActions(); }
+    PixelStreamContent( const bool keyboard = true )
+    {
+        if( keyboard )
+            _createActions();
+    }
 
 private:
     friend class boost::serialization::access;

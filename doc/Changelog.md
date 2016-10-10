@@ -3,6 +3,15 @@ Changelog {#changelog}
 
 # Release 1.2 (git master)
 
+* [90](https://github.com/BlueBrain/Tide/pull/90):
+  The fullscreen mode has some new features:
+  - Users can now enlarge and pan contents (without the need to use the zoom)
+  - A double-tap toggles between *adjusted* and *maximized* fullscreen
+    coordinates
+  - Movies can be played/paused from the side control bar
+  - The keyboard can be opened from the side control bar for streamed contents
+  Also, the keyboard icon is no longer shown for the new WebEngine-based
+  webbrowsers who use their own integrated keyboard.
 * [85](https://github.com/BlueBrain/Tide/pull/85):
   Fix issues affecting Qt 5.7 caused by a conflict with Tide's virtual keyboard.
 * [84](https://github.com/BlueBrain/Tide/pull/84):
