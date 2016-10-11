@@ -51,8 +51,8 @@
 
 FFMPEGVideoStream::FFMPEGVideoStream( AVFormatContext& avFormatContext )
     : _avFormatContext( avFormatContext )
-    , _videoCodecContext( 0 ) // allocated if USE_NEW_FFMPEG_API, else shortcut
-    , _videoStream( 0 )  // shortcut to _avFormatContext->streams[i]; don't free
+    , _videoCodecContext( nullptr )
+    , _videoStream( nullptr ) // ptr to _avFormatContext->streams[i]; don't free
     // Seeking parameters
     , _numFrames( 0 )
     , _frameDuration( 0.0 )
@@ -287,15 +287,12 @@ void FFMPEGVideoStream::_openVideoStreamDecoder()
     if( error < 0 )
         throw std::runtime_error( "Could not init context from parameters" );
 #else
-    // Contains information about the codec that the stream is using
-    _videoCodecContext = _videoStream->codec; // Shortcut - don't free
-
-    codec = avcodec_find_decoder( _videoCodecContext->codec_id );
-    if( !codec )
+    if( !( codec = avcodec_find_decoder( _videoStream->codec->codec_id )))
         throw std::runtime_error( "No decoder found for video stream" );
+
+    _videoCodecContext = _videoStream->codec; // ptr, allocated by avcodec_open2
 #endif
 
-    // open codec
     const int ret = avcodec_open2( _videoCodecContext, codec, NULL );
     if( ret < 0 )
     {
