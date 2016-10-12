@@ -46,6 +46,8 @@
 
 #include <QGuiApplication>
 
+class HtmlSelectReplacer;
+
 /**
  * Offscreen application which streams a Qml Webbrowser using deflect::Qt API.
  */
@@ -64,6 +66,7 @@ private slots:
 private:
     std::unique_ptr<deflect::qt::QmlStreamer> _qmlStreamer;
     QQuickItem* _webengine = nullptr; // reference, don't free
+    std::unique_ptr<HtmlSelectReplacer> _selectReplacer;
 
     bool event( QEvent* event ) final;
 };

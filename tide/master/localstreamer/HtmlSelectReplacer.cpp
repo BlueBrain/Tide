@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,44 +37,71 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef WEBKITHTMLSELECTREPLACER_H
-#define WEBKITHTMLSELECTREPLACER_H
-
 #include "HtmlSelectReplacer.h"
-#include <QWebView>
 
-/**
- * Substitutes all \<select\> elements on a webpage by equivalent HTML lists.
- *
- * This class is useful for offscreen webbrowsers where the system list elements
- * are not working and may even cause a crash.
- *
- * It works by modifying the DOM using Javascript after the page has finished
- * loading.
- */
-class WebkitHtmlSelectReplacer
+#include <QFile>
+#include <QRegExp>
+
+namespace
 {
-public:
-    /**
-     * Constructor.
-     * @param webView The QWebView on which to operate.
-     */
-    WebkitHtmlSelectReplacer( QWebView& webView );
+const QString JQUERY_FILE =          { ":/selectboxit/jquery.min.js" };
+const QString JQUERY_UI_FILE =       { ":/selectboxit/jquery-ui.min.js" };
+const QString SELECTBOXIT_JS_FILE  = { ":/selectboxit/jquery.selectBoxIt.min.js" };
+const QString SELECTBOXIT_CSS_FILE = { ":/selectboxit/selectboxit.css" };
+const QString SELECTBOXIT_REPLACE =  { "var selectBox = $(\"select\").selectBoxIt();" };
+}
 
-    /**
-     * Replace all \<select\> elements by HTML equivalents.
-     *
-     * It is only useful to call this if new \<select\> elements have been
-     * dynamically added *after* the page was loaded.
-     */
-    void replaceAllSelectElements();
+QString _read( const QString& jsFile )
+{
+    QFile file( jsFile );
+    file.open( QIODevice::ReadOnly );
+    const auto js = file.readAll();
+    file.close();
+    return js;
+}
 
-private:
-    QWebView& _webView;
-    HtmlSelectReplacer _replacer;
+QString _readCss()
+{
+    QFile file{ SELECTBOXIT_CSS_FILE };
+    file.open( QIODevice::ReadOnly );
+    auto cssStyle = QString{ file.readAll() };
+    file.close();
+    cssStyle.remove( QRegExp{ "[\\n\\t\\r]" } );
+    return QString{ "loadCSS = function(href) {"
+                    "  var cssStyle = $(\"<style> %1 </style>\");"
+                    "  $(\"head\").append(cssStyle);"
+                    "};"
+                    "loadCSS();" }.arg( cssStyle );
+}
 
-    void _loadScripts();
-    QVariant _evaluateJavascript( const QString& script );
-};
+HtmlSelectReplacer::HtmlSelectReplacer()
+    : _jQuery( _read( JQUERY_FILE ))
+    , _jQueryUI( _read( JQUERY_UI_FILE ))
+    , _selectboxit( _read( SELECTBOXIT_JS_FILE ))
+    , _selectboxitCss( _readCss( ))
+{}
 
-#endif
+const QString& HtmlSelectReplacer::getJQuery() const
+{
+    return _jQuery;
+}
+
+const QString& HtmlSelectReplacer::getJQueryUI() const
+{
+    return _jQueryUI;
+}
+
+const QString& HtmlSelectReplacer::getSelectboxit() const
+{
+    return _selectboxit;
+}
+
+const QString& HtmlSelectReplacer::getSelectboxitCss() const
+{
+    return _selectboxitCss;
+}
+
+const QString& HtmlSelectReplacer::getSelectboxitReplace() const
+{
+    return SELECTBOXIT_REPLACE;
+}

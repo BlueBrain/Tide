@@ -43,8 +43,10 @@
 #include "tide/core/scene/WebbrowserHistory.h"
 
 #include "tide/master/localstreamer/CommandLineOptions.h"
+#include "tide/master/localstreamer/HtmlSelectReplacer.h"
 #include "tide/master/localstreamer/QmlKeyInjector.h"
 
+#include <QQmlContext>
 #include <QQmlProperty>
 
 namespace
@@ -57,6 +59,7 @@ const QString searchUrl( "https://www.google.com/search?q=%1" );
 
 Webbrowser::Webbrowser( int& argc, char* argv[] )
     : QGuiApplication( argc, argv )
+    , _selectReplacer( new HtmlSelectReplacer )
 {
     const CommandLineOptions options( argc, argv );
 
@@ -67,6 +70,9 @@ Webbrowser::Webbrowser( int& argc, char* argv[] )
 
     connect( _qmlStreamer.get(), &deflect::qt::QmlStreamer::streamClosed,
              this, &QCoreApplication::quit );
+
+    auto context = _qmlStreamer->getQmlEngine()->rootContext();
+    context->setContextProperty( "htmlselect", _selectReplacer.get( ));
 
     auto item = _qmlStreamer->getRootItem();
 
@@ -119,23 +125,34 @@ void Webbrowser::_processAddressBarInput( const QString url )
     QQmlProperty::write( _webengine, "url", address );
 }
 
-void Webbrowser::_sendData()
+WebbrowserHistory _getNavigationHistory( const QQuickItem* webengine )
 {
-    // WebEngineHistory is only available from QtWebEngine 1.1 (Qt >= 5.5)
-    // Make a "fake" history with the available information
-    const auto url = QQmlProperty::read( _webengine, "url" ).toString();
-    const auto prev = QQmlProperty::read( _webengine, "canGoBack" ).toBool();
-    const auto next = QQmlProperty::read( _webengine, "canGoForward" ).toBool();
+    const auto history = qvariant_cast<QObject*>(
+                             QQmlProperty::read( webengine,
+                                                 "navigationHistory" ));
+
+    const auto itemsModel = qvariant_cast<QAbstractListModel*>(
+                                history->property( "items" ));
+    const auto itemsCount = itemsModel->rowCount();
+    const auto urlRole = itemsModel->roleNames().key( "url" );
 
     auto urls = std::vector<QString>();
-    if( prev )
-        urls.push_back( QString( ));
-    urls.push_back( url );
-    if( next )
-        urls.push_back( QString( ));
-    const auto history = WebbrowserHistory{ std::move( urls ), prev ? 1 : 0 };
+    urls.reserve( itemsCount );
+    for( int i = 0; i < itemsCount; ++i )
+        urls.push_back( itemsModel->index( i, 0 ).data( urlRole ).toString( ));
 
-    const auto data = WebbrowserContent::serializeData( history, 0 );
+    const auto backItemsModel = qvariant_cast<QAbstractListModel*>(
+                                    history->property( "backItems" ));
+    const auto currentIndex = size_t( backItemsModel->rowCount( ));
+
+    return { std::move( urls ), currentIndex };
+}
+
+void Webbrowser::_sendData()
+{
+    const auto history = _getNavigationHistory( _webengine );
+    const auto restPort = 0; // no rest interface
+    const auto data = WebbrowserContent::serializeData( history, restPort );
     if( !_qmlStreamer->sendData( data ))
             QGuiApplication::quit();
 }

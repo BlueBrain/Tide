@@ -52,11 +52,10 @@ WebbrowserHistory::WebbrowserHistory( const QWebHistory& history )
 #endif
 
 WebbrowserHistory::WebbrowserHistory( std::vector<QString>&& items_,
-                                      const int currentItemIndex_ )
-{
-    _items = items_;
-    _currentItemIndex = currentItemIndex_;
-}
+                                      const size_t currentItemIndex_ )
+    : _items{ items_ }
+    , _currentItemIndex{ currentItemIndex_ }
+{}
 
 size_t WebbrowserHistory::currentItemIndex() const
 {

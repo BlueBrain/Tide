@@ -2,13 +2,14 @@
 //                     Raphael Dumusc <raphael.dumusc@epfl.ch>
 
 import QtQuick 2.0
-import QtWebEngine 1.0
+import QtWebEngine 1.1
 import QtQuick.Controls 1.2
 import QtQuick.Controls.Styles 1.2
 import QtGraphicalEffects 1.0
 
 import "qrc:/qml/core/."
 import "qrc:/qml/core/style.js" as Style
+import "HtmlSelectReplacer.js" as HSR
 
 Item {
     width: 640
@@ -75,10 +76,21 @@ Item {
         anchors.left: parent.left
         anchors.right: parent.right
 
+        settings.localContentCanAccessRemoteUrls: true
+        settings.pluginsEnabled: true
+
         Connections {
             target: deflectgestures
             onSwipeLeft: webengine.goBack()
             onSwipeRight: webengine.goForward()
+        }
+
+        property var replacer: ({})
+        Component.onCompleted: replacer = new HSR.HtmlSelectReplacer(webengine)
+
+        onLoadingChanged: {
+            if (loadRequest.status === WebEngineView.LoadSucceededStatus)
+                webengine.replacer.process()
         }
     }
 
