@@ -3,6 +3,11 @@ Changelog {#changelog}
 
 # Release 1.2 (git master)
 
+* [92](https://github.com/BlueBrain/Tide/pull/92):
+  Improvements to the WebEngine webbrowser (Qt 5.6 or later):
+  - Plugins enabled (flash)
+  - Replace "select" system drop-down lists with html equivalents (as was
+    already done for the Webkit webbrowser)
 * [90](https://github.com/BlueBrain/Tide/pull/90):
   The fullscreen mode has some new features:
   - Users can now enlarge and pan contents (without the need to use the zoom)

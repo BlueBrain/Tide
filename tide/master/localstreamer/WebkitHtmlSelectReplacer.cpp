@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,97 +39,54 @@
 
 #include "WebkitHtmlSelectReplacer.h"
 
+#include <QObject>
 #include <QWebPage>
 #include <QWebFrame>
-#include <QFile>
 
-// The SelectBoxIt scripts are developed and released by Greg Franko under
-// MIT license. Project page: http://gregfranko.com/jquery.selectBoxIt.js/
-#define JQUERY_RESOURCE_FILE           ":/selectboxit/jquery.min.js"
-#define JQUERY_UI_RESOURCE_FILE        ":/selectboxit/jquery-ui.min.js"
-#define SELECTBOXIT_JS_RESOURCE_FILE   ":/selectboxit/jquery.selectBoxIt.min.js"
-#define SELECTBOXIT_CSS_RESOURCE_FILE  ":/selectboxit/selectboxit.css"
+namespace
+{
+const QString hasJQuery = { "var hasJquery = false;"
+                            "if( window.jQuery ) {"
+                            "  hasJquery = true;"
+                            "}" };
+const QString hasJQueryUI = { "var hasJqueryUi = false;"
+                              "if( window.jQuery.ui ) {"
+                              "  hasJqueryUi = true;"
+                              "}" };
+}
 
 WebkitHtmlSelectReplacer::WebkitHtmlSelectReplacer( QWebView& webView )
     : _webView( webView )
 {
-    connect( &_webView, SIGNAL( loadFinished( bool )),
-             this, SLOT( pageLoaded( bool )));
-}
-
-void WebkitHtmlSelectReplacer::pageLoaded( const bool success )
-{
-    if( !success )
-        return;
-
-    _loadScripts();
-
-    replaceAllSelectElements();
+    QObject::connect( &_webView, &QWebView::loadFinished,
+                      [this]( const bool success )
+    {
+        if( success )
+        {
+            _loadScripts();
+            replaceAllSelectElements();
+        }
+    } );
 }
 
 void WebkitHtmlSelectReplacer::replaceAllSelectElements()
 {
-    const QString js( "var selectBox = $(\"select\").selectBoxIt();" );
-
-    _webView.page()->mainFrame()->evaluateJavaScript( js );
+    _evaluateJavascript( _replacer.getSelectboxitReplace( ));
 }
 
 void WebkitHtmlSelectReplacer::_loadScripts()
 {
-    if( !_hasJQuery( ))
-        _loadJavascript( JQUERY_RESOURCE_FILE );
+    if( !_evaluateJavascript( hasJQuery ).toBool())
+        _evaluateJavascript( _replacer.getJQuery( ));
 
-    if( !_hasJQueryUi( ))
-        _loadJavascript( JQUERY_UI_RESOURCE_FILE );
+    if( !_evaluateJavascript( hasJQueryUI ).toBool())
+        _evaluateJavascript( _replacer.getJQueryUI( ));
 
-    _loadJavascript( SELECTBOXIT_JS_RESOURCE_FILE );
-    _loadCssUsingJQuery( SELECTBOXIT_CSS_RESOURCE_FILE );
+    _evaluateJavascript( _replacer.getSelectboxit( ));
+    _evaluateJavascript( _replacer.getSelectboxitCss( ));
 }
 
-bool WebkitHtmlSelectReplacer::_hasJQuery()
+QVariant WebkitHtmlSelectReplacer::_evaluateJavascript( const QString& script )
 {
-    const QString js( "var hasJquery = false;"
-                      "if( window.jQuery ) {"
-                      "  hasJquery = true;"
-                      "}" );
-
-    return _webView.page()->mainFrame()->evaluateJavaScript( js ).toBool();
-}
-
-bool WebkitHtmlSelectReplacer::_hasJQueryUi()
-{
-    const QString js( "var hasJqueryUi = false;"
-                      "if( window.jQuery.ui ) {"
-                      "  hasJqueryUi = true;"
-                      "}" );
-
-    return _webView.page()->mainFrame()->evaluateJavaScript( js ).toBool();
-}
-
-void WebkitHtmlSelectReplacer::_loadJavascript( const QString& jsFile )
-{
-    QFile file( jsFile );
-    file.open( QIODevice::ReadOnly );
-    QString jQuery = file.readAll();
-    file.close();
-
-    _webView.page()->mainFrame()->evaluateJavaScript( jQuery );
-}
-
-void WebkitHtmlSelectReplacer::_loadCssUsingJQuery( const QString& cssFile )
-{
-    QFile file( cssFile );
-    file.open( QIODevice::ReadOnly );
-    QString cssStyle = file.readAll();
-    file.close();
-
-    cssStyle.remove( QRegExp( "[\\n\\t\\r]" ));
-
-    const QString js = QString( "loadCSS = function(href) {"
-                                "  var cssStyle = $(\"<style> %1 </style>\");"
-                                "  $(\"head\").append(cssStyle);"
-                                "};"
-                                "loadCSS();" ).arg( cssStyle );
-
-    _webView.page()->mainFrame()->evaluateJavaScript( js );
+    return _webView.page()->mainFrame()->evaluateJavaScript( script );
 }

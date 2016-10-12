@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/qml">
         <file>qml/Webengine.qml</file>
+        <file>qml/HtmlSelectReplacer.js</file>
     </qresource>
 </RCC>

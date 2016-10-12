@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,44 +37,41 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef WEBKITHTMLSELECTREPLACER_H
-#define WEBKITHTMLSELECTREPLACER_H
+#ifndef HTMLSELECTREPLACER_H
+#define HTMLSELECTREPLACER_H
 
-#include "HtmlSelectReplacer.h"
-#include <QWebView>
+#include <QObject>
+#include <QString>
 
 /**
- * Substitutes all \<select\> elements on a webpage by equivalent HTML lists.
- *
- * This class is useful for offscreen webbrowsers where the system list elements
- * are not working and may even cause a crash.
- *
- * It works by modifying the DOM using Javascript after the page has finished
- * loading.
+ * This class provides the necessary scripts (based on jQuery and SelectBoxIt)
+ * to substitute all \<select\> elements on a webpage by equivalent HTML lists.
  */
-class WebkitHtmlSelectReplacer
+class HtmlSelectReplacer : public QObject
 {
-public:
-    /**
-     * Constructor.
-     * @param webView The QWebView on which to operate.
-     */
-    WebkitHtmlSelectReplacer( QWebView& webView );
+    Q_OBJECT
+    Q_DISABLE_COPY( HtmlSelectReplacer )
 
-    /**
-     * Replace all \<select\> elements by HTML equivalents.
-     *
-     * It is only useful to call this if new \<select\> elements have been
-     * dynamically added *after* the page was loaded.
-     */
-    void replaceAllSelectElements();
+    Q_PROPERTY( QString jQuery READ getJQuery CONSTANT )
+    Q_PROPERTY( QString jQueryUI READ getJQueryUI CONSTANT )
+    Q_PROPERTY( QString selectboxit READ getSelectboxit CONSTANT )
+    Q_PROPERTY( QString selectboxitCss READ getSelectboxitCss CONSTANT )
+    Q_PROPERTY( QString selectboxitReplace READ getSelectboxitReplace CONSTANT )
+
+public:
+    HtmlSelectReplacer();
+
+    const QString& getJQuery() const;
+    const QString& getJQueryUI() const;
+    const QString& getSelectboxit() const;
+    const QString& getSelectboxitCss() const;
+    const QString& getSelectboxitReplace() const;
 
 private:
-    QWebView& _webView;
-    HtmlSelectReplacer _replacer;
-
-    void _loadScripts();
-    QVariant _evaluateJavascript( const QString& script );
+    QString _jQuery;
+    QString _jQueryUI;
+    QString _selectboxit;
+    QString _selectboxitCss;
 };
 
 #endif

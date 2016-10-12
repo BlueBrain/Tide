@@ -56,7 +56,7 @@ public:
 #ifdef TIDE_USE_QT5WEBKITWIDGETS
     explicit WebbrowserHistory( const QWebHistory& history );
 #endif
-    WebbrowserHistory( std::vector<QString>&& items, int currentItemIndex );
+    WebbrowserHistory( std::vector<QString>&& items, size_t currentItemIndex );
 
     const std::vector<QString>& items() const;
     size_t currentItemIndex() const;
