@@ -108,6 +108,13 @@ public:
     const QString& getWebBrowserDefaultURL() const;
 
     /**
+     * Get the folder used for saving whiteboard images
+     * @return The URL defined in the configuration file, or a default value if
+     * none is found.
+     */
+    const QString& getWhiteboardSaveFolder() const;
+
+    /**
      * Get the URI to the Content to be used as background
      * @return empty string if unspecified
      */
@@ -150,6 +157,7 @@ private:
     void loadLauncherSettings( QXmlQuery& query );
     void loadSessionsDirectory( QXmlQuery& query );
     void loadWebService( QXmlQuery& query );
+    void loadWhiteboard( QXmlQuery& query );
     void loadAppLauncher( QXmlQuery& query );
     void loadWebBrowserStartURL( QXmlQuery& query );
     void loadBackgroundProperties( QXmlQuery& query );
@@ -161,6 +169,7 @@ private:
     QString _launcherDisplay;
     QString _demoServiceUrl;
     QString _demoServiceImageFolder;
+    QString _whiteboardSaveUrl;
 
     int _webServicePort;
     QString _webBrowserDefaultURL;

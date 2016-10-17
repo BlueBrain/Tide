@@ -85,6 +85,9 @@ public slots:
     /** Open the Qml launcher. */
     void openLauncher();
 
+    /** Open the Qml whiteboard. */
+    void openWhiteboard();
+
     /** Hide the Qml Launcher. */
     void hideLauncher();
 
@@ -104,9 +107,11 @@ private:
     PixelStreamWindowManager& _windowManager;
     const MasterConfiguration& _config;
 
+    QPointF _getDefaultWindowPosition() const;
     QString _getLocalStreamerBin() const;
     QString _getLauncherBin() const;
     QString _getWebbrowserBin() const;
+    QString _getWhiteboardBin() const;
 };
 
 #endif

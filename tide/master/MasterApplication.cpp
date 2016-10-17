@@ -395,6 +395,12 @@ void MasterApplication::_initRestInterface()
                   uri.toLocal8Bit().constData( ));
 #endif
     });
+
+    connect( _restInterface.get(), &RestInterface::whiteboard, [this]()
+    {
+        _pixelStreamerLauncher->openWhiteboard();
+    });
+
     connect( _restInterface.get(), &RestInterface::open, [this]( QString uri )
     {
         ContentLoader( _displayGroup ).load( uri );

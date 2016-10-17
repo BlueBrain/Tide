@@ -1,6 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/*                     Pawel Podhajski  <pawel.podhajski@epfl.ch>    */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,66 +37,40 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef RESTINTERFACE_H
-#define RESTINTERFACE_H
+#include "Whiteboard.h"
 
-#include "types.h"
-#include "LoggingUtility.h"
-#include "RestLogger.h"
+#include "tide/master/localstreamer/CommandLineOptions.h"
+#include "tide/master/localstreamer/QmlKeyInjector.h"
+#include "tide/master/MasterConfiguration.h"
 
-#include <QObject>
-#include <memory>
-
-/**
- * Enables remote control of Tide through a REST API.
- *
- * It listens for http PUT requests on 'http://hostname:port/tide/\<command\>'
- * and emits the corresponding \<command\> signal on success.
- *
- * Example command:
- * curl -i -X PUT -d '{"uri": "image.png"}' http://localhost:8888/tide/open
- *
- * It also exposes a simple html index page on 'http://hostname:port/tide'.
- */
-class RestInterface : public QObject
+namespace
 {
-    Q_OBJECT
+const std::string deflectHost( "localhost" );
+const QString deflectQmlFile( "qrc:/qml/qml/whiteboard.qml" );
+}
 
-public:
-    /**
-     * Construct a REST interface.
-     * @param port the port for listening to REST requests
-     * @param options the application's options to expose in the interface
-     */
-    RestInterface( int port, OptionsPtr options );
+Whiteboard::Whiteboard( int& argc, char* argv[] )
+    : QGuiApplication( argc, argv )
+{
+    const CommandLineOptions options( argc, argv );
+    const MasterConfiguration config( options.getConfiguration( ));
 
-    /** Out-of-line destructor. */
-    ~RestInterface();
+    const auto deflectStreamname = options.getStreamname().toStdString();
+    _qmlStreamer.reset( new deflect::qt::QmlStreamer( deflectQmlFile,
+                                                      deflectHost,
+                                                      deflectStreamname ));
 
-    void setLogger(const LoggingUtility& logger) const;
+    connect( _qmlStreamer.get(), &deflect::qt::QmlStreamer::streamClosed,
+             this, &QCoreApplication::quit );
 
-signals:
-    /** Open a content. */
-    void open( QString uri );
+    auto item = _qmlStreamer->getRootItem();
+    item->setProperty( "saveURL", config.getWhiteboardSaveFolder() );
 
-    /** Load a session. */
-    void load( QString uri );
+}
 
-    /** Save a session to the given file. */
-    void save( QString uri );
-
-    /** Clear all contents. */
-    void clear();
-
-    /** Open a whiteboard. */
-    void whiteboard();
-
-    /** Browse a website. */
-    void browse( QString uri );
-
-private:
-    class Impl;
-    std::unique_ptr<Impl> _impl;
-};
-
-#endif
+bool Whiteboard::event( QEvent* event_ )
+{
+    if( auto inputEvent = dynamic_cast<QInputMethodEvent*>( event_ ))
+        return QmlKeyInjector::send( inputEvent, _qmlStreamer->getRootItem( ));
+    return QGuiApplication::event( event_ );
+}

@@ -2,7 +2,11 @@ Changelog {#changelog}
 ============
 
 # Release 1.2 (git master)
-
+* [93](https://github.com/BlueBrain/Tide/pull/93):
+  Adding a whiteboard application [DISCL-137] :
+  - Drawing in multiple colors and with different brush sizes
+  - Saving an image to a png file
+  - Extending/shrinking a canvas on the size change of applications window
 * [92](https://github.com/BlueBrain/Tide/pull/92):
   Improvements to the WebEngine webbrowser (Qt 5.6 or later):
   - Plugins enabled (flash)

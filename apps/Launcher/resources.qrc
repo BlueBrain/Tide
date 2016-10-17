@@ -25,5 +25,6 @@
         <file>images/listview.svg</file>
         <file>images/settings.svg</file>
         <file>images/star.svg</file>
+        <file>images/whiteboard.svg</file>
     </qresource>
 </RCC>
