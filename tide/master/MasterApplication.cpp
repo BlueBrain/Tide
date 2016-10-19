@@ -85,6 +85,7 @@ MasterApplication::MasterApplication( int& argc_, char** argv_,
     , _masterToForkerChannel( new MasterToForkerChannel( forkChannel ))
     , _masterToWallChannel( new MasterToWallChannel( worldChannel ))
     , _masterFromWallChannel( new MasterFromWallChannel( worldChannel ))
+    , _options( new Options )
     , _markers( new Markers )
 {
     master::registerQmlTypes();
@@ -132,7 +133,7 @@ void MasterApplication::_init()
 {
     _displayGroup.reset( new DisplayGroup( _config->getTotalSize( )));
 
-    _masterWindow.reset( new MasterWindow( _displayGroup, *_config ));
+    _masterWindow.reset( new MasterWindow( _displayGroup, _options, *_config ));
     _pixelStreamWindowManager.reset(
                 new PixelStreamWindowManager( *_displayGroup ));
 
@@ -145,8 +146,7 @@ void MasterApplication::_init()
 
         _displayGroup->setContentWindows( group->getContentWindows( ));
         _displayGroup->setShowWindowTitles( group->getShowWindowTitles( ));
-        _masterWindow->getOptions()->setShowWindowTitles(
-                    group->getShowWindowTitles( ));
+        _options->setShowWindowTitles( group->getShowWindowTitles( ));
     });
 
     _initPixelStreamLauncher();
@@ -213,8 +213,7 @@ void MasterApplication::_startDeflectServer()
 
 void MasterApplication::_restoreBackground()
 {
-    OptionsPtr options = _masterWindow->getOptions();
-    options->setBackgroundColor( _config->getBackgroundColor( ));
+    _options->setBackgroundColor( _config->getBackgroundColor( ));
 
     const QString& uri = _config->getBackgroundUri();
     if( !uri.isEmpty( ))
@@ -222,7 +221,7 @@ void MasterApplication::_restoreBackground()
         ContentPtr content = ContentFactory::getContent( uri );
         if( !content )
             content = ContentFactory::getErrorContent();
-        options->setBackgroundContent( content );
+        _options->setBackgroundContent( content );
     }
 }
 
@@ -235,10 +234,13 @@ void MasterApplication::_initPixelStreamLauncher()
              &MasterWindow::openWebBrowser,
              _pixelStreamerLauncher.get(),
              &PixelStreamerLauncher::openWebBrowser );
-    connect( _masterWindow.get(), &MasterWindow::openLauncher,
+
+    connect( _masterWindow->getDisplayGroupView(),
+             &DisplayGroupView::openLauncher,
              _pixelStreamerLauncher.get(),
              &PixelStreamerLauncher::openLauncher );
-    connect( _masterWindow.get(), &MasterWindow::hideLauncher,
+    connect( _masterWindow->getDisplayGroupView(),
+             &DisplayGroupView::hideLauncher,
              _pixelStreamerLauncher.get(),
              &PixelStreamerLauncher::hideLauncher );
 }
@@ -258,7 +260,7 @@ void MasterApplication::_initMPIConnection()
                 { _masterToWallChannel->sendAsync( displayGroup ); },
              Qt::DirectConnection );
 
-    connect( _masterWindow->getOptions().get(), &Options::updated,
+    connect( _options.get(), &Options::updated,
              _masterToWallChannel.get(),
              [this]( OptionsPtr options )
                 { _masterToWallChannel->sendAsync( options ); },
@@ -302,8 +304,8 @@ void MasterApplication::_initMPIConnection()
              &deflect::FrameDispatcher::requestFrame );
 
     _pixelStreamWindowManager->setAutoFocusNewWindows(
-                _masterWindow->getOptions()->getAutoFocusPixelStreams( ));
-    connect( _masterWindow->getOptions().get(),
+                _options->getAutoFocusPixelStreams( ));
+    connect( _options.get(),
              &Options::autoFocusPixelStreamsChanged,
              _pixelStreamWindowManager.get(),
              &PixelStreamWindowManager::setAutoFocusNewWindows );
@@ -380,7 +382,7 @@ void MasterApplication::_initTouchListener()
 void MasterApplication::_initRestInterface()
 {
     _restInterface = make_unique<RestInterface>( _config->getWebServicePort(),
-                                                 _masterWindow->getOptions( ));
+                                                 _options );
     _logger = make_unique<LoggingUtility>();
 
     connect( _restInterface.get(), &RestInterface::browse, [this]( QString uri )
@@ -403,7 +405,12 @@ void MasterApplication::_initRestInterface()
 
     connect( _restInterface.get(), &RestInterface::open, [this]( QString uri )
     {
-        ContentLoader( _displayGroup ).load( uri );
+        auto loader = ContentLoader{ _displayGroup };
+        auto window = loader.findWindow( uri );
+        if( window )
+            _displayGroup->moveToFront( window );
+        else
+            loader.load( uri );
     });
     connect( _restInterface.get(), &RestInterface::load, [this]( QString uri )
     {
@@ -412,8 +419,7 @@ void MasterApplication::_initRestInterface()
     });
     connect( _restInterface.get(), &RestInterface::save, [this]( QString uri )
     {
-        _displayGroup->setShowWindowTitles(
-                    _masterWindow->getOptions()->getShowWindowTitles( ));
+        _displayGroup->setShowWindowTitles( _options->getShowWindowTitles( ));
         _saveSessionOp.setFuture(
                     StateSerializationHelper( _displayGroup ).save( uri ));
     });

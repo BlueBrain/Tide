@@ -90,7 +90,7 @@ void PixelStreamWindowManager::showWindow( const QString& uri )
         return;
 
     window->setState( ContentWindow::NONE );
-    _displayGroup.moveContentWindowToFront( window );
+    _displayGroup.moveToFront( window );
 }
 
 void PixelStreamWindowManager::openWindow( const QString& uri,

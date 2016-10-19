@@ -15,8 +15,8 @@ SideButton {
         anchors.fill: parent
         anchors.margins: sideControl.innerMargin * parent.width
         Image {
-            source: displaygroup.hasFullscreenWindows ? "qrc:/img/exit.svg" :
-                    displaygroup.hasFocusedWindows ? "qrc:/img/focus.svg" :
+            source: displaygroup.hasFullscreenWindows ||
+                    displaygroup.hasFocusedWindows ? "qrc:/img/exit.svg" :
                                                      "qrc:/img/launch.svg"
             width: parent.width
             height: width

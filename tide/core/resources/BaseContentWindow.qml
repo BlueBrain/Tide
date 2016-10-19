@@ -31,7 +31,7 @@ Rectangle {
     y: contentArea.posY - yOffset
     width: contentArea.width + border.width * 2
     height: contentArea.height + border.width + yOffset // top + bottom padding
-    z: isBackground ? Style.backgroundZOrder : 0
+    z: isBackground ? Style.backgroundZOrder : contentwindow.isPanel ? Style.fullscreenZorder : 0
 
     Loader {
         id: backgroundLoader

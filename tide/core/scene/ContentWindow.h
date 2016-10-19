@@ -144,7 +144,7 @@ public:
     /** @return the unique identifier for this window. */
     const QUuid& getID() const;
 
-    /** Is the window a panel */
+    /** Is the window a panel. */
     bool isPanel() const;
 
     /** Get the content from QML. */

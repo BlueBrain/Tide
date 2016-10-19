@@ -55,21 +55,27 @@ DisplayGroup::DisplayGroup( const QSizeF& size_ )
 
 DisplayGroup::~DisplayGroup() {}
 
-void DisplayGroup::addContentWindow( ContentWindowPtr contentWindow )
+void DisplayGroup::addContentWindow( ContentWindowPtr window )
 {
     for( ContentWindowPtr existingWindow : _contentWindows )
     {
-        if( contentWindow->getID() == existingWindow->getID( ))
+        if( window->getID() == existingWindow->getID( ))
         {
             put_flog( LOG_DEBUG, "A window with the same id already exists!" );
             return;
         }
     }
 
-    _contentWindows.push_back( contentWindow );
-    _watchChanges( contentWindow );
+    _contentWindows.push_back( window );
+    _watchChanges( *window );
 
-    emit( contentWindowAdded( contentWindow ));
+    if( window->isPanel( ))
+    {
+        _panels.insert( window );
+        emit hasVisiblePanelsChanged();
+    }
+
+    emit( contentWindowAdded( window ));
     _sendDisplayGroup();
 }
 
@@ -82,6 +88,12 @@ void DisplayGroup::removeContentWindow( ContentWindowPtr window )
     if( *it == _fullscreenWindow )
         setFullscreenWindow( ContentWindowPtr( ));
 
+    if( window->isPanel( ))
+    {
+        _panels.erase( window );
+        emit hasVisiblePanelsChanged();
+    }
+
     removeFocusedWindow( *it );
     _contentWindows.erase( it );
 
@@ -92,7 +104,7 @@ void DisplayGroup::removeContentWindow( ContentWindowPtr window )
     _sendDisplayGroup();
 }
 
-void DisplayGroup::moveContentWindowToFront( ContentWindowPtr window )
+void DisplayGroup::moveToFront( ContentWindowPtr window )
 {
     if( !window || window == _contentWindows.back( ))
         return;
@@ -129,16 +141,23 @@ ContentWindowPtr DisplayGroup::getContentWindow( const QUuid& id ) const
     return ContentWindowPtr();
 }
 
-void DisplayGroup::setContentWindows( ContentWindowPtrs contentWindows )
+void DisplayGroup::setContentWindows( ContentWindowPtrs windows )
 {
     clear();
 
-    for( ContentWindowPtr window : contentWindows )
+    for( const auto& window : windows )
     {
         addContentWindow( window );
         if( window->isFocused( ))
             _focusedWindows.insert( window );
+        if( window->isPanel( ))
+            _panels.insert( window );
     }
+    if( !_focusedWindows.empty( ))
+        emit hasFocusedWindowsChanged();
+    if( !_panels.empty( ))
+        emit hasVisiblePanelsChanged();
+
     _sendDisplayGroup();
 }
 
@@ -188,6 +207,14 @@ bool DisplayGroup::hasFullscreenWindows() const
     return static_cast<bool>( _fullscreenWindow );
 }
 
+bool DisplayGroup::hasVisiblePanels() const
+{
+    for( const auto& window : _panels )
+        if( !window->isHidden( ))
+            return true;
+    return false;
+}
+
 const ContentWindowSet& DisplayGroup::getFocusedWindows() const
 {
     return _focusedWindows;
@@ -217,6 +244,11 @@ void DisplayGroup::removeFocusedWindow( ContentWindowPtr window )
         emit hasFocusedWindowsChanged();
 
     _sendDisplayGroup();
+}
+
+const ContentWindowSet& DisplayGroup::getPanels() const
+{
+    return _panels;
 }
 
 #pragma GCC diagnostic push
@@ -280,11 +312,15 @@ void DisplayGroup::_sendDisplayGroup()
     emit modified( shared_from_this( ));
 }
 
-void DisplayGroup::_watchChanges( ContentWindowPtr contentWindow )
+void DisplayGroup::_watchChanges( ContentWindow& window )
 {
-    connect( contentWindow.get(), &ContentWindow::modified,
+    connect( &window, &ContentWindow::modified,
              this, &DisplayGroup::_sendDisplayGroup );
 
-    connect( contentWindow.get(), &ContentWindow::contentModified,
+    connect( &window, &ContentWindow::contentModified,
              this, &DisplayGroup::_sendDisplayGroup );
+
+    if( window.isPanel( ))
+        connect( &window, &ContentWindow::hiddenChanged,
+                 this, &DisplayGroup::hasVisiblePanelsChanged );
 }

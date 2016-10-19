@@ -104,12 +104,12 @@ BOOST_AUTO_TEST_CASE( testWindowZorder )
 
     BOOST_CHECK_EQUAL( group->getZindex( window2 ), 2 );
 
-    group->moveContentWindowToFront( window1 );
+    group->moveToFront( window1 );
     BOOST_CHECK_EQUAL( group->getZindex( window0 ), 0 );
     BOOST_CHECK_EQUAL( group->getZindex( window2 ), 1 );
     BOOST_CHECK_EQUAL( group->getZindex( window1 ), 2 );
 
-    group->moveContentWindowToFront( window0 );
+    group->moveToFront( window0 );
     BOOST_CHECK_EQUAL( group->getZindex( window2 ), 0 );
     BOOST_CHECK_EQUAL( group->getZindex( window1 ), 1 );
     BOOST_CHECK_EQUAL( group->getZindex( window0 ), 2 );

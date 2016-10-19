@@ -96,7 +96,14 @@ void DisplayGroupController::showFullscreen( const QUuid& id )
 
 void DisplayGroupController::exitFullscreen()
 {
+    auto window = _group.getFullscreenWindow();
+    if( !window )
+        return;
+
     _group.setFullscreenWindow( ContentWindowPtr( ));
+
+    if( !window->isFocused( ))
+        window->setControlsVisible( false );
 }
 
 void DisplayGroupController::focus( const QUuid& id )
@@ -120,21 +127,56 @@ void DisplayGroupController::unfocus( const QUuid& id )
         return;
 
     _group.removeFocusedWindow( window );
-    updateFocusedWindowsCoordinates();
+    _readjustToNewZoomLevel( *window );
+    window->setControlsVisible( false );
 
-    // Make sure the window dimensions are re-adjusted to the new zoom level
-    ContentWindowController{ *window, _group }.scale( window->center(), 0.0 );
+    updateFocusedWindowsCoordinates();
+}
+
+void DisplayGroupController::focusSelected()
+{
+    unfocusAll(); // ensure precondition, but should already be empty
+
+    auto focusedWindows = ContentWindowSet{};
+
+    for( const auto& window : _group.getContentWindows( ))
+        if( window->getControlsVisible( ))
+            focusedWindows.insert( window );
+
+    // Update focused coordinates BEFORE adding windows for proper transition
+    LayoutEngine{ _group }.updateFocusedCoord( focusedWindows );
+    for( const auto& window : focusedWindows )
+        _group.addFocusedWindow( window );
 }
 
 void DisplayGroupController::unfocusAll()
 {
-    while( !_group.getFocusedWindows().empty( ))
-        unfocus( (*_group.getFocusedWindows().begin( ))->getID( ));
+    const auto focusedWindows = _group.getFocusedWindows();
+
+    for( const auto& window : focusedWindows )
+    {
+        _group.removeFocusedWindow( window );
+        _readjustToNewZoomLevel( *window );
+    }
+
+    updateFocusedWindowsCoordinates();
+}
+
+void DisplayGroupController::deselectAll()
+{
+    for( const auto& window : _group.getContentWindows( ))
+        window->setControlsVisible( false );
+}
+
+void DisplayGroupController::hidePanels()
+{
+    for( const auto& panel : _group.getPanels( ))
+        panel->setState( ContentWindow::HIDDEN );
 }
 
 void DisplayGroupController::moveWindowToFront( const QUuid id )
 {
-    _group.moveContentWindowToFront( _group.getContentWindow( id ));
+    _group.moveToFront( _group.getContentWindow( id ));
 }
 
 void DisplayGroupController::scale( const QSizeF& factor )
@@ -224,4 +266,9 @@ qreal DisplayGroupController::_estimateAspectRatio() const
     }
     averageAR /= _group.getContentWindows().size();
     return averageAR;
+}
+
+void DisplayGroupController::_readjustToNewZoomLevel( ContentWindow& window )
+{
+    ContentWindowController{ window, _group }.scale( window.center(), 0.0 );
 }

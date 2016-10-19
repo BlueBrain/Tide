@@ -163,7 +163,7 @@ BOOST_FIXTURE_TEST_CASE( testUnderlyingWindow, Fixture )
     BOOST_CHECK_EQUAL( helper.getVisibleArea( *window ), QRectF( ));
     BOOST_CHECK_EQUAL( helper.getVisibleArea( *otherWindow ), coord );
 
-    group->moveContentWindowToFront( window );
+    group->moveToFront( window );
     BOOST_CHECK_EQUAL( helper.getVisibleArea( *otherWindow ), QRectF( ));
     BOOST_CHECK_EQUAL( helper.getVisibleArea( *window ), coord );
 }

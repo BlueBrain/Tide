@@ -6,6 +6,7 @@ Item {
     id: displaygroupitem
 
     property alias showFocusContext: focuscontext.visible
+    property alias focusContextZorder: focuscontext.z
     property alias sideControl: sideControl
 
     width: displaygroup.width
@@ -42,6 +43,15 @@ Item {
             PropertyChanges {
                 target: focuscontext
                 opacity: Style.focusContextFullscreenOpacity
+                z: Style.fullscreenBackgroundZorder
+            }
+        },
+        State {
+            name: "panels"
+            when: displaygroup.hasVisiblePanels
+            PropertyChanges {
+                target: focuscontext
+                opacity: Style.focusContextPanelsOpacity
                 z: Style.fullscreenBackgroundZorder
             }
         },

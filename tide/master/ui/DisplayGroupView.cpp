@@ -115,10 +115,10 @@ void DisplayGroupView::setDataModel( DisplayGroupPtr displayGroup )
     controller->setParent( _displayGroupItem );
     controller.release();
 
-    connect( _displayGroupItem, SIGNAL( launcherControlPressed( )),
-             this, SIGNAL( launcherControlPressed( )));
-    connect( _displayGroupItem, SIGNAL( settingsControlsPressed( )),
-             this, SIGNAL( settingsControlsPressed( )));
+    connect( _displayGroupItem, SIGNAL( openLauncher( )),
+             this, SIGNAL( openLauncher( )));
+    connect( _displayGroupItem, SIGNAL( hideLauncher( )),
+             this, SIGNAL( hideLauncher( )));
 
     ContentWindowPtrs contentWindows = _displayGroup->getContentWindows();
     for( ContentWindowPtr contentWindow : contentWindows )
@@ -137,16 +137,15 @@ void DisplayGroupView::setDataModel( DisplayGroupPtr displayGroup )
 
 QPointF DisplayGroupView::mapToWallPos( const QPointF& normalizedPos ) const
 {
-    const float scale = QQmlProperty::read( _wallObject, "scale" ).toFloat();
-    const float offsetX = QQmlProperty::read( _wallObject, "offsetX" ).toFloat();
-    const float offsetY = QQmlProperty::read( _wallObject, "offsetY" ).toFloat();
+    const auto scale = QQmlProperty::read( _wallObject, "scale" ).toFloat();
+    const auto offsetX = QQmlProperty::read( _wallObject, "offsetX" ).toFloat();
+    const auto offsetY = QQmlProperty::read( _wallObject, "offsetY" ).toFloat();
 
-    const float screenPosX = normalizedPos.x() * _displayGroup->width() *
-                             scale + offsetX;
-    const float screenPosY = normalizedPos.y() * _displayGroup->height() *
-                             scale + offsetY;
-
-    return QPointF( screenPosX, screenPosY );
+    const auto screenPosX = normalizedPos.x() * _displayGroup->width() *
+                            scale + offsetX;
+    const auto screenPosY = normalizedPos.y() * _displayGroup->height() *
+                            scale + offsetY;
+    return { screenPosX, screenPosY };
 }
 
 void DisplayGroupView::_clearScene()
@@ -155,9 +154,9 @@ void DisplayGroupView::_clearScene()
 
     if( _displayGroupItem )
     {
-        _displayGroupItem->setParentItem( 0 );
+        _displayGroupItem->setParentItem( nullptr );
         delete _displayGroupItem;
-        _displayGroupItem = 0;
+        _displayGroupItem = nullptr;
     }
 }
 
