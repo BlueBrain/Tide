@@ -82,13 +82,13 @@ public:
         , options{ options_ }
     {
         auto& server = httpServer.get();
-        server.register_( indexPage );
-        server.subscribe( browseCmd );
-        server.subscribe( openCmd );
-        server.subscribe( loadCmd );
-        server.subscribe( saveCmd );
-        server.subscribe( whiteboardCmd );
-        server.add( options );
+        server.handleGET( indexPage );
+        server.handlePUT( browseCmd );
+        server.handlePUT( openCmd );
+        server.handlePUT( loadCmd );
+        server.handlePUT( saveCmd );
+        server.handlePUT( whiteboardCmd );
+        server.handle( options );
     }
 
     RestServer httpServer;
@@ -131,5 +131,5 @@ RestInterface::~RestInterface() {}
 void RestInterface::setLogger( const LoggingUtility& logger ) const
 {
     _impl->logContent.reset( new RestLogger( logger ));
-    _impl->httpServer.get().register_( *(_impl->logContent.get( )));
+    _impl->httpServer.get().handleGET( *(_impl->logContent.get( )));
 }

@@ -67,7 +67,7 @@ class RestInterface
 public:
     RestInterface()
     {
-        _httpServer.get().subscribe( loadCmd );
+        _httpServer.get().handlePUT( loadCmd );
     }
     int getPort() const
     {

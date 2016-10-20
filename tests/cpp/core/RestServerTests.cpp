@@ -86,7 +86,7 @@ BOOST_AUTO_TEST_CASE( testServerReturnsSimpleContent )
     BOOST_REQUIRE_GT( server.getPort(), 0 );
 
     StaticContent testPage{ "test", "Hello World!" };
-    server.get().register_( testPage );
+    server.get().handleGET( testPage );
 
     const auto url = QString( "http://localhost:%1/test" ).arg(
                          server.getPort( ));
