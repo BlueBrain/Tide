@@ -61,6 +61,14 @@ class PixelStreamWindowManager : public QObject
 
 public:
     /**
+     * Different types of stream used to determine content type and its focus upon opening
+     */
+    enum StreamType {
+        WEBBROWSER,
+        WHITEBOARD,
+        STANDARD
+    };
+    /**
      * Create a window manager that handles windows for streamers.
      *
      * @param displayGroup the content windows of streamers will be added
@@ -97,10 +105,11 @@ public:
      * @param pos the desired position for the center of the window in pixels.
      *        If pos.isNull(), the window is centered on the DisplayGroup.
      * @param size the desired size of the window in pixels.
-     * @param webbrowser create a webbrowser window.
+     * @param stream the type of window to create
      */
+
     void openWindow( const QString& uri, const QPointF& pos, const QSize& size,
-                     bool webbrowser = false );
+                     const StreamType stream = STANDARD );
 
     /** Check if new windows open in focus mode. */
     bool getAutoFocusNewWindows() const;
@@ -205,6 +214,7 @@ private:
     bool _autoFocusNewWindows;
 
     bool _isPanel( const QString& uri ) const;
+
 };
 
 #endif

@@ -14,6 +14,7 @@ Rectangle {
     signal showOptionsPanel()
     signal showDemosPanel()
     signal startWebbrowser()
+    signal startWhiteboard()
 
     color: Style.menuColor
 
@@ -72,6 +73,13 @@ Rectangle {
             image: "qrc:/images/settings.svg"
             category: "Options"
             isPanel: true
+        }
+        ListElement {
+            action: "startWhiteboard"
+            name: "Whiteboard"
+            image: "qrc:/images/whiteboard.svg"
+            category: "Applications"
+            isPanel: false
         }
         ListElement {
             action: "startWebbrowser"

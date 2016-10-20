@@ -35,6 +35,7 @@ Rectangle {
             demoItemVisible: demoServiceUrl && demoServiceImageFolder && demoServiceDeflectHost
             onClearSession: sendRestCommand("load", "");
             onStartWebbrowser: sendRestCommand("browse", "");
+            onStartWhiteboard: sendRestCommand("whiteboard", "");
             onShowFilesPanel: centralWidget.sourceComponent = fileBrowser
             onShowSessionsPanel: centralWidget.sourceComponent = sessionsBrowser
             onShowSaveSessionPanel: centralWidget.sourceComponent = saveSessionPanel

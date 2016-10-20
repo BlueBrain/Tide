@@ -96,7 +96,7 @@ void PixelStreamWindowManager::showWindow( const QString& uri )
 void PixelStreamWindowManager::openWindow( const QString& uri,
                                            const QPointF& pos,
                                            const QSize& size,
-                                           const bool webbrowser )
+                                           const StreamType stream)
 {
     if( getContentWindow( uri ))
     {
@@ -111,10 +111,9 @@ void PixelStreamWindowManager::openWindow( const QString& uri,
 
     const auto type = _isPanel( uri ) ? ContentWindow::PANEL :
                                         ContentWindow::DEFAULT;
-
-    ContentPtr content = webbrowser ?
-                ContentFactory::getWebbrowserContent( uri ) :
-                ContentFactory::getPixelStreamContent( uri );
+    ContentPtr content = (stream == PixelStreamWindowManager::WEBBROWSER) ?
+                                    ContentFactory::getWebbrowserContent( uri ) :
+                                    ContentFactory::getPixelStreamContent( uri );
 
     if( size.isValid( ))
         content->setDimensions( size );
@@ -128,7 +127,7 @@ void PixelStreamWindowManager::openWindow( const QString& uri,
     _streamerWindows[ uri ] = window->getID();
     _displayGroup.addContentWindow( window );
 
-    if( _autoFocusNewWindows && !webbrowser )
+    if( _autoFocusNewWindows && stream == PixelStreamWindowManager::STANDARD )
         DisplayGroupController{ _displayGroup }.focus( window->getID( ));
 }
 

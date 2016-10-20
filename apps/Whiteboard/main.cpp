@@ -1,6 +1,7 @@
 /*********************************************************************/
 /* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -34,102 +35,26 @@
 /* The views and conclusions contained in the software and           */
 /* documentation are those of the authors and should not be          */
 /* interpreted as representing official policies, either expressed   */
-/* or implied, of The University of Texas at Austin.                 */
+/* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "RestInterface.h"
+#include "Whiteboard.h"
+#include "tide/core/log.h"
 
-#include "JsonOptions.h"
-#include "RestCommand.h"
-#include "RestLogger.h"
-#include "RestServer.h"
-#include "StaticContent.h"
-
-#include <tide/master/version.h>
-
-#include <QDateTime>
-#include <QHostInfo>
-
-namespace
+int main( int argc, char** argv )
 {
-const QString indexpage = QString(
-"\
-<!DOCTYPE html> \
-<html> \
-<head> \
-<meta charset='UTF-8'> \
-<title>Tide</title> \
-</head> \
-<body> \
-<h1>Tide %1</h1> \
-<p>Revision: <a href='https://github.com/BlueBrain/Tide/commit/%3'>%3</a></p> \
-<p>Running on: %2</p> \
-<p>Up since: %4</p> \
-</body> \
-</html> \
-") \
-.arg( QString::fromStdString( tide::Version::getString( ))) \
-.arg( QHostInfo::localHostName( )) \
-.arg( QString::number( tide::Version::getRevision(), 16 )) \
-.arg( QDateTime::currentDateTime().toString( ));
-}
+    logger_id = "whiteboard";
+    qInstallMessageHandler( qtMessageLogger );
 
-class RestInterface::Impl
-{
-public:
-    Impl( const int port, OptionsPtr options_ )
-        : httpServer{ port }
-        , options{ options_ }
+    std::unique_ptr<Whiteboard> whiteboard;
+    try
     {
-        auto& server = httpServer.get();
-        server.register_( indexPage );
-        server.subscribe( browseCmd );
-        server.subscribe( openCmd );
-        server.subscribe( loadCmd );
-        server.subscribe( saveCmd );
-        server.subscribe( whiteboardCmd );
-        server.add( options );
+        whiteboard.reset( new Whiteboard( argc, argv ));
     }
-
-    RestServer httpServer;
-    StaticContent indexPage{ "tide", indexpage.toStdString( )};
-    RestCommand browseCmd{ "tide::browse" };
-    RestCommand openCmd{ "tide::open" };
-    RestCommand loadCmd{ "tide::load" };
-    RestCommand saveCmd{ "tide::save" };
-    RestCommand whiteboardCmd{ "tide::whiteboard" };
-    JsonOptions options;
-    std::unique_ptr<RestLogger> logContent;
-};
-
-RestInterface::RestInterface( const int port, OptionsPtr options )
-    : _impl( new Impl( port, options ))
-{
-    connect( &_impl->browseCmd, &RestCommand::received,
-             this, &RestInterface::browse );
-
-    connect( &_impl->whiteboardCmd, &RestCommand::received,
-             this, &RestInterface::whiteboard );
-
-    connect( &_impl->openCmd, &RestCommand::received,
-             this, &RestInterface::open );
-
-    connect( &_impl->loadCmd, &RestCommand::received, [this](const QString uri)
+    catch( const std::runtime_error& exception )
     {
-        if( uri.isEmpty( ))
-            emit clear();
-        else
-            emit load( uri );
-    });
-
-    connect( &_impl->saveCmd, &RestCommand::received,
-             this, &RestInterface::save );
-}
-
-RestInterface::~RestInterface() {}
-
-void RestInterface::setLogger( const LoggingUtility& logger ) const
-{
-    _impl->logContent.reset( new RestLogger( logger ));
-    _impl->httpServer.get().register_( *(_impl->logContent.get( )));
+        put_flog( LOG_ERROR, "failed to start: %s", exception.what( ));
+        return EXIT_FAILURE;
+    }
+    return whiteboard->exec();
 }

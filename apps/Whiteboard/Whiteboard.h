@@ -1,6 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/*                     Pawel Podhajski  <pawel.podhajski@epfl.ch>    */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,66 +37,28 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef RESTINTERFACE_H
-#define RESTINTERFACE_H
+#ifndef WHITEBOARD_H
+#define WHITEBOARD_H
 
-#include "types.h"
-#include "LoggingUtility.h"
-#include "RestLogger.h"
-
-#include <QObject>
 #include <memory>
 
+#include <QGuiApplication>
+#include <deflect/qt/QmlStreamer.h>
+
 /**
- * Enables remote control of Tide through a REST API.
- *
- * It listens for http PUT requests on 'http://hostname:port/tide/\<command\>'
- * and emits the corresponding \<command\> signal on success.
- *
- * Example command:
- * curl -i -X PUT -d '{"uri": "image.png"}' http://localhost:8888/tide/open
- *
- * It also exposes a simple html index page on 'http://hostname:port/tide'.
+ * Separate application which streams a whiteboard using deflect::Qt API.
  */
-class RestInterface : public QObject
+class Whiteboard : public QGuiApplication
 {
     Q_OBJECT
 
 public:
-    /**
-     * Construct a REST interface.
-     * @param port the port for listening to REST requests
-     * @param options the application's options to expose in the interface
-     */
-    RestInterface( int port, OptionsPtr options );
-
-    /** Out-of-line destructor. */
-    ~RestInterface();
-
-    void setLogger(const LoggingUtility& logger) const;
-
-signals:
-    /** Open a content. */
-    void open( QString uri );
-
-    /** Load a session. */
-    void load( QString uri );
-
-    /** Save a session to the given file. */
-    void save( QString uri );
-
-    /** Clear all contents. */
-    void clear();
-
-    /** Open a whiteboard. */
-    void whiteboard();
-
-    /** Browse a website. */
-    void browse( QString uri );
+    Whiteboard( int& argc, char* argv[] );
 
 private:
-    class Impl;
-    std::unique_ptr<Impl> _impl;
+    std::unique_ptr<deflect::qt::QmlStreamer> _qmlStreamer;
+
+    bool event( QEvent* event ) final;
 };
 
 #endif

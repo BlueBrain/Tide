@@ -65,6 +65,8 @@
 #define CONFIG_EXPECTED_DEFAULT_WEBSERVICE_PORT 8888
 #define CONFIG_EXPECTED_URL "http://bbp.epfl.ch"
 #define CONFIG_EXPECTED_DEFAULT_URL "http://www.google.com"
+#define CONFIG_EXPECTED_WHITEBOARD_SAVE_FOLDER "/nfs4/bbp.epfl.ch/media/DisplayWall/whiteboard/"
+#define CONFIG_EXPECTED_DEFAULT_WHITEBOARD_SAVE_FOLDER "/tmp/"
 
 #define CONFIG_EXPECTED_APPLAUNCHER "/some/path/to/launcher.qml"
 #define CONFIG_EXPECTED_DEFAULT_APPLAUNCHER ""
@@ -132,6 +134,9 @@ BOOST_AUTO_TEST_CASE( test_master_configuration )
     BOOST_CHECK_EQUAL( config.getBackgroundUri().toStdString(), CONFIG_EXPECTED_BACKGROUND );
 
     BOOST_CHECK_EQUAL( config.getAppLauncherFile().toStdString(), CONFIG_EXPECTED_APPLAUNCHER );
+
+    BOOST_CHECK_EQUAL( config.getWhiteboardSaveFolder().toStdString(), CONFIG_EXPECTED_WHITEBOARD_SAVE_FOLDER );
+
 }
 
 BOOST_AUTO_TEST_CASE( test_master_configuration_default_values )
@@ -143,6 +148,8 @@ BOOST_AUTO_TEST_CASE( test_master_configuration_default_values )
     BOOST_CHECK_EQUAL( config.getWebServicePort(), CONFIG_EXPECTED_DEFAULT_WEBSERVICE_PORT );
     BOOST_CHECK_EQUAL( config.getWebBrowserDefaultURL().toStdString(), CONFIG_EXPECTED_DEFAULT_URL );
     BOOST_CHECK_EQUAL( config.getAppLauncherFile().toStdString(), CONFIG_EXPECTED_DEFAULT_APPLAUNCHER );
+    BOOST_CHECK_EQUAL( config.getWhiteboardSaveFolder().toStdString(), CONFIG_EXPECTED_DEFAULT_WHITEBOARD_SAVE_FOLDER );
+
 }
 
 BOOST_AUTO_TEST_CASE( test_save_configuration )

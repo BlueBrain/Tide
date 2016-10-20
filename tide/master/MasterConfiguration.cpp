@@ -50,6 +50,7 @@ namespace
 const int DEFAULT_WEBSERVICE_PORT = 8888;
 const QRegExp TRIM_REGEX( "[\\n\\t\\r]" );
 const QString DEFAULT_URL( "http://www.google.com" );
+const QString DEFAULT_WHITEBOARD_SAVE_FOLDER( "/tmp/" );
 }
 
 MasterConfiguration::MasterConfiguration( const QString& filename )
@@ -73,6 +74,7 @@ void MasterConfiguration::loadMasterSettings()
     loadWebService( query );
     loadAppLauncher( query );
     loadWebBrowserStartURL( query );
+    loadWhiteboard( query );
     loadBackgroundProperties( query );
 }
 
@@ -117,6 +119,16 @@ void MasterConfiguration::loadWebService( QXmlQuery& query )
 {
     query.setQuery( "string(/configuration/webservice/@port)" );
     getInt( query, _webServicePort );
+}
+
+void MasterConfiguration::loadWhiteboard( QXmlQuery& query )
+{
+    QString queryResult;
+    query.setQuery( "string(/configuration/whiteboard/@saveUrl)" );
+    if( query.evaluateTo( &queryResult ))
+        _whiteboardSaveUrl = queryResult.remove( QRegExp( TRIM_REGEX ));
+    if( _whiteboardSaveUrl.isEmpty( ))
+        _whiteboardSaveUrl = DEFAULT_WHITEBOARD_SAVE_FOLDER;
 }
 
 void MasterConfiguration::loadAppLauncher( QXmlQuery& query )
@@ -193,6 +205,11 @@ int MasterConfiguration::getWebServicePort() const
 const QString& MasterConfiguration::getWebBrowserDefaultURL() const
 {
     return _webBrowserDefaultURL;
+}
+
+const QString& MasterConfiguration::getWhiteboardSaveFolder() const
+{
+    return _whiteboardSaveUrl;
 }
 
 const QString& MasterConfiguration::getBackgroundUri() const
