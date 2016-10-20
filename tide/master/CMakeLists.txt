@@ -157,7 +157,7 @@ if(TIDE_ENABLE_REST_INTERFACE)
     rest/StaticContent.cpp
   )
   # Servus PUBLIC because servus::Serializable is a base class of public headers
-  list(APPEND TIDEMASTER_LINK_LIBRARIES PUBLIC Servus PRIVATE ZeroEQ)
+  list(APPEND TIDEMASTER_LINK_LIBRARIES PUBLIC Servus PRIVATE ZeroEQHTTP)
 endif()
 
 common_library(TideMaster)
