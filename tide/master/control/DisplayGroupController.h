@@ -78,8 +78,17 @@ public:
     /** Unfocus a window. */
     Q_INVOKABLE void unfocus( const QUuid& id );
 
+    /** Focus all selected windows. */
+    Q_INVOKABLE void focusSelected();
+
     /** Unfocus all focused windows. */
     Q_INVOKABLE void unfocusAll();
+
+    /** Deselect all selected windows. */
+    Q_INVOKABLE void deselectAll();
+
+    /** Hide all panels. */
+    Q_INVOKABLE void hidePanels();
 
     /** Move a content window to the front. */
     Q_INVOKABLE void moveWindowToFront( QUuid id );
@@ -112,6 +121,7 @@ private:
     void _extend( const QSizeF& newSize );
 
     qreal _estimateAspectRatio() const;
+    void _readjustToNewZoomLevel( ContentWindow& window );
 };
 
 #endif

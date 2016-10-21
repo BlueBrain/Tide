@@ -18,10 +18,10 @@ BaseContentWindow {
         groupcontroller.removeWindowLater(contentwindow.id)
     }
 
-    function toggleControlsVisibility() {
+    function toggleSelected() {
         if(contentwindow.isPanel)
             return
-        contentwindow.controlsVisible = !contentwindow.controlsVisible
+        contentwindow.selected = !contentwindow.selected
     }
 
     function toggleFocusMode() {
@@ -30,7 +30,7 @@ BaseContentWindow {
         if(contentwindow.focused)
             groupcontroller.unfocus(contentwindow.id)
         else
-            groupcontroller.focus(contentwindow.id)
+            groupcontroller.focusSelected()
     }
 
     function toggleFullscreenMode() {
@@ -40,12 +40,6 @@ BaseContentWindow {
             groupcontroller.exitFullscreen()
         else
             groupcontroller.showFullscreen(contentwindow.id)
-    }
-
-    function toggleMode() {
-        if(contentwindow.focused)
-            groupcontroller.unfocus(contentwindow.id)
-        toggleFullscreenMode()
     }
 
     function scaleWindow(center, pixelDelta) {
@@ -90,12 +84,12 @@ BaseContentWindow {
         referenceItem: windowRect.parent
 
         onTouchStarted: groupcontroller.moveWindowToFront(contentwindow.id)
-        onTap: if(windowActive) { toggleControlsVisibility() }
+        onTap: if(windowActive) { toggleSelected() }
         onTapAndHold: {
             if(contentwindow.isPanel) // force toggle
-                contentwindow.controlsVisible = !contentwindow.controlsVisible
+                contentwindow.selected = !contentwindow.selected
         }
-        onDoubleTap: (numPoints > 1) ? toggleFullscreenMode() : toggleFocusMode()
+        onDoubleTap: (numPoints > 1) ? toggleFocusMode() : toggleFullscreenMode()
 
         onPanStarted: {
             if(windowActive && contentwindow.state === ContentWindow.NONE)
@@ -161,7 +155,7 @@ BaseContentWindow {
             if(contentActive)
                contentcontroller.tap(pos, numPoints)
             else if(windowActive)
-                toggleControlsVisibility()
+                toggleSelected()
         }
         onDoubleTap: {
             if(contentActive)
@@ -169,7 +163,7 @@ BaseContentWindow {
             else if(contentwindow.fullscreen)
                 controller.toogleFullscreenMaxSize()
             else
-                (numPoints > 1) ? toggleFullscreenMode() : toggleFocusMode()
+                (numPoints > 1) ? toggleFocusMode() : toggleFullscreenMode()
         }
         onTapAndHold: {
             if(contentActive)
@@ -299,14 +293,6 @@ BaseContentWindow {
         anchors.top: parent.top
         anchors.right: parent.right
         mousearea.onClicked: closeWindow()
-    }
-
-    ContentWindowButton {
-        source: "qrc:///img/master/maximize.svg"
-        anchors.bottom: parent.bottom
-        anchors.left: parent.left
-        mousearea.onClicked: toggleMode()
-        visible: !contentwindow.isPanel
     }
 
     ContentWindowButton {

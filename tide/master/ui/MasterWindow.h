@@ -61,7 +61,8 @@ class MasterWindow : public QMainWindow
 
 public:
     /** Constructor. */
-    MasterWindow( DisplayGroupPtr displayGroup, MasterConfiguration& config );
+    MasterWindow( DisplayGroupPtr displayGroup, OptionsPtr options,
+                  MasterConfiguration& config );
 
     /** Destructor. */
     ~MasterWindow();
@@ -69,18 +70,9 @@ public:
     /** Get the GraphicsView used for touch interaction. */
     DisplayGroupView* getDisplayGroupView();
 
-    /** Get the display options that change during runtime. */
-    OptionsPtr getOptions() const;
-
 signals:
     /** Emitted when users want to open a webbrowser. */
     void openWebBrowser( QPointF pos, QSize size, QString url );
-
-    /** Emitted when users want to open the launcher. */
-    void openLauncher();
-
-    /** Emitted when users want to hide the launcher. */
-    void hideLauncher();
 
 protected:
     /** @name Drag events re-implemented from QMainWindow */

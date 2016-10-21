@@ -62,7 +62,7 @@ public:
 private slots:
     void _addContentWindow( ContentWindowPtr window );
     void _removeContentWindow( ContentWindowPtr window );
-    void _moveContentWindowToFront( ContentWindowPtr window );
+    void _moveToFront( ContentWindowPtr window );
     void _moveListWidgetItemToFront( QListWidgetItem* listWidgetItem );
 
 private:

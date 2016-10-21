@@ -105,6 +105,7 @@ private:
     QFutureWatcher<bool> _saveSessionOp;
 
     DisplayGroupPtr _displayGroup;
+    OptionsPtr _options;
     MarkersPtr _markers;
 
     QThread _mpiSendThread;

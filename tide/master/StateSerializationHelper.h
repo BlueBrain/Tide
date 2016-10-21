@@ -76,7 +76,6 @@ public:
 
 private:
     DisplayGroupPtr _displayGroup;
-    DisplayGroupPtr _copyDisplayGroup() const;
 };
 
 #endif

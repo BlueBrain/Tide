@@ -2,8 +2,16 @@ Changelog {#changelog}
 ============
 
 # Release 1.2 (git master)
+
+* [95](https://github.com/BlueBrain/Tide/pull/95):
+  More consistent and intuitive user experience:
+  - Double-tap a window to make it fullscreen
+  - To present multiple contents side by side, select them on the Desktop with a
+    single tap then press any of their "eye" icons.
+  - Tap the background to exit any presentation mode.
+  - On the Desktop, tap the background to unselect all windows.
 * [93](https://github.com/BlueBrain/Tide/pull/93):
-  Adding a whiteboard application [DISCL-137] :
+  Added a whiteboard application with support for:
   - Drawing in multiple colors and with different brush sizes
   - Saving an image to a png file
   - Extending/shrinking a canvas on the size change of applications window

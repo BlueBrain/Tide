@@ -151,7 +151,8 @@ void DisplayGroupRenderer::setDisplayGroup( DisplayGroupPtr displayGroup )
     // of the focus context may not always be restored to its original value.
     // See JIRA issue: DISCL-305
     if( !displayGroup->hasFocusedWindows() &&
-            !displayGroup->hasFullscreenWindows( ))
+        !displayGroup->hasFullscreenWindows() &&
+        !displayGroup->hasVisiblePanels( ))
     {
         for( QQuickItem* child : _displayGroupItem->childItems( ))
         {

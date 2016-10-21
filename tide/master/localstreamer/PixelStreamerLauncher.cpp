@@ -84,10 +84,11 @@ void PixelStreamerLauncher::openWebBrowser( QPointF pos, const QSize size,
     const QString& uri = QString( "WebBrowser_%1" ).arg( webbrowserCounter++ );
     const QSize viewportSize = !size.isEmpty() ? size : WEBBROWSER_DEFAULT_SIZE;
 
-    if ( pos.isNull() )
-      pos = _getDefaultWindowPosition();
+    if( pos.isNull( ))
+        pos = _getDefaultWindowPosition();
 
-    _windowManager.openWindow( uri, pos, viewportSize, PixelStreamWindowManager::WEBBROWSER );
+    _windowManager.openWindow( uri, pos, viewportSize,
+                               PixelStreamWindowManager::WEBBROWSER );
 
     CommandLineOptions options;
 #ifdef TIDE_USE_QT5WEBKITWIDGETS

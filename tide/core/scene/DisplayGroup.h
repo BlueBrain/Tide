@@ -77,6 +77,8 @@ class DisplayGroup : public Rectangle,
                 NOTIFY hasFullscreenWindowsChanged )
     Q_PROPERTY( ContentWindow* fullscreenWindow READ getFullscreenWindow
                 NOTIFY hasFullscreenWindowsChanged )
+    Q_PROPERTY( bool hasVisiblePanels READ hasVisiblePanels
+                NOTIFY hasVisiblePanelsChanged )
 
 public:
     /** Constructor */
@@ -86,13 +88,13 @@ public:
     virtual ~DisplayGroup();
 
     /** Add a content window. */
-    void addContentWindow( ContentWindowPtr contentWindow );
+    void addContentWindow( ContentWindowPtr window );
 
     /** Remove a content window. */
-    Q_INVOKABLE void removeContentWindow( ContentWindowPtr contentWindow );
+    Q_INVOKABLE void removeContentWindow( ContentWindowPtr window );
 
     /** Move a content window to the front. */
-    void moveContentWindowToFront( ContentWindowPtr contentWindow );
+    void moveToFront( ContentWindowPtr window );
 
     /**
      * Is the DisplayGroup empty.
@@ -108,9 +110,9 @@ public:
 
     /**
      * Replace the content windows.
-     * @param contentWindows The list of windows to set.
+     * @param windows the list of windows to set.
      */
-    void setContentWindows( ContentWindowPtrs contentWindows );
+    void setContentWindows( ContentWindowPtrs windows );
 
     /** Clear all ContentWindows. */
     void clear();
@@ -129,6 +131,9 @@ public:
     /** Is there a fullscreen window. */
     bool hasFullscreenWindows() const;
 
+    /** Is there any visible panel window(s). */
+    bool hasVisiblePanels() const;
+
 
     /** Get the fullscreen window (if any). */
     ContentWindow* getFullscreenWindow() const;
@@ -145,6 +150,10 @@ public:
 
     /** Remove a window from the set of focused windows. */
     void removeFocusedWindow( ContentWindowPtr window );
+
+
+    /** Get the set of panels. */
+    const ContentWindowSet& getPanels() const;
 
     /**
      * Move this object and its member QObjects to the given QThread.
@@ -185,6 +194,9 @@ signals:
 
     /** Notifier for the hasFullscreenWindows property. */
     void hasFullscreenWindowsChanged();
+
+    /** Notifier for the hasVisiblePanels property. */
+    void hasVisiblePanelsChanged();
     //@}
 
 private:
@@ -200,6 +212,7 @@ private:
         ar & _contentWindows;
         ar & _focusedWindows;
         ar & _fullscreenWindow;
+        ar & _panels;
     }
 
     /** Serialize for saving to an xml file */
@@ -218,10 +231,12 @@ private:
                             const unsigned int version)
     {
         serialize_members_xml( ar, version );
-        for( ContentWindowPtr window : _contentWindows )
+        for( const auto& window : _contentWindows )
         {
             if( window->isFocused( ))
                 _focusedWindows.insert( window );
+            if( window->isPanel( ))
+                _panels.insert( window );
             // Make sure windows are not in an undefined state
             window->setState( ContentWindow::NONE );
         }
@@ -235,12 +250,13 @@ private:
     }
 
     void _sendDisplayGroup();
-    void _watchChanges( ContentWindowPtr contentWindow );
+    void _watchChanges( ContentWindow& window );
 
     bool _showWindowTitlesInSavedSession = true;
     ContentWindowPtrs _contentWindows;
     ContentWindowSet _focusedWindows;
     ContentWindowPtr _fullscreenWindow;
+    ContentWindowSet _panels;
 
     ContentWindow::WindowMode _fullscreenWindowPrevMode =
             ContentWindow::WindowMode::STANDARD;

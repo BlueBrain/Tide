@@ -72,17 +72,11 @@ public:
     QPointF mapToWallPos( const QPointF& normalizedPos ) const;
 
 signals:
-    /** Emitted when a user taps the background. */
-    void backgroundTap( QPointF pos );
+    /** Emitted when a user taps the launcher control to open it. */
+    void openLauncher();
 
-    /** Emitted when a user taps and holds the background. */
-    void backgroundTapAndHold( QPointF pos );
-
-    /** Emitted when a user taps the launcher control. */
-    void launcherControlPressed();
-
-    /** Emitted when a user taps the settings control. */
-    void settingsControlsPressed();
+    /** Emitted when a user taps the launcher control to hide it. */
+    void hideLauncher();
 
     /** @name Emitted when a user interactacts with the mouse. */
     //@{

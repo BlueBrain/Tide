@@ -91,10 +91,20 @@ bool ContentLoader::load( const QString& filename,
 
 bool ContentLoader::isAlreadyOpen( const QString& filename ) const
 {
-    for( const ContentWindowPtr& window : _displayGroup->getContentWindows( ))
+    for( const auto& window : _displayGroup->getContentWindows( ))
     {
         if( window->getContent()->getURI() == filename )
             return true;
     }
     return false;
+}
+
+ContentWindowPtr ContentLoader::findWindow( const QString& filename ) const
+{
+    for( const auto& window : _displayGroup->getContentWindows( ))
+    {
+        if( window->getContent()->getURI() == filename )
+            return window;
+    }
+    return {};
 }

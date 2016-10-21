@@ -66,11 +66,11 @@ const QString SESSION_FILES_FILTER( "Session files (*.dcx)" );
 const QSize DEFAULT_WINDOW_SIZE( 800, 600 );
 }
 
-MasterWindow::MasterWindow( DisplayGroupPtr displayGroup,
+MasterWindow::MasterWindow( DisplayGroupPtr displayGroup, OptionsPtr options,
                             MasterConfiguration& config )
     : QMainWindow()
     , _displayGroup( displayGroup )
-    , _options( new Options )
+    , _options( options )
     , _backgroundWidget( new BackgroundWidget( config, this ))
 #if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
     , _webbrowserWidget( new WebbrowserWidget( config, this ))
@@ -104,7 +104,7 @@ MasterWindow::MasterWindow( DisplayGroupPtr displayGroup,
 
         _displayGroup->setContentWindows( group->getContentWindows( ));
         _displayGroup->setShowWindowTitles( group->getShowWindowTitles( ));
-        getOptions()->setShowWindowTitles( group->getShowWindowTitles( ));
+        _options->setShowWindowTitles( group->getShowWindowTitles( ));
     });
 
     connect( &_saveSessionOp, &QFutureWatcher<bool>::finished, [this]() {
@@ -126,11 +126,6 @@ MasterWindow::~MasterWindow() {}
 DisplayGroupView* MasterWindow::getDisplayGroupView()
 {
     return _displayGroupView;
-}
-
-OptionsPtr MasterWindow::getOptions() const
-{
-    return _options;
 }
 
 void MasterWindow::_setupMasterWindowUI()
@@ -365,32 +360,6 @@ void MasterWindow::_setupMasterWindowUI()
                                                        mainWidget );
     mainWidget->addTab( wrapper, "Display group 0" );
 
-    // Forward background touch events
-    connect( _displayGroupView, &DisplayGroupView::backgroundTap,
-             this, &MasterWindow::hideLauncher );
-    connect( _displayGroupView, &DisplayGroupView::backgroundTapAndHold,
-             this, &MasterWindow::openLauncher );
-
-    // Forward controls touch events
-    connect( _displayGroupView, &DisplayGroupView::launcherControlPressed,
-             [this]()
-    {
-        for( auto win : _displayGroup->getContentWindows( ))
-        {
-            if( win->isPanel() && !win->isHidden( ))
-            {
-                emit hideLauncher();
-                return;
-            }
-        }
-        emit openLauncher();
-    });
-    connect( _displayGroupView, &DisplayGroupView::settingsControlsPressed,
-             [this]()
-    {
-        _options->setShowClock( !_options->getShowClock( ));
-    });
-
     // create contents dock widget
     QDockWidget* contentsDockWidget = new QDockWidget( "Contents", this );
     QWidget* contentsWidget = new QWidget();
@@ -521,7 +490,7 @@ void MasterWindow::_saveSession()
 
     _sessionFolder = QFileInfo( filename ).absoluteDir().path();
 
-    _displayGroup->setShowWindowTitles( getOptions()->getShowWindowTitles( ));
+    _displayGroup->setShowWindowTitles( _options->getShowWindowTitles( ));
     _saveSessionOp.setFuture(
                 StateSerializationHelper( _displayGroup ).save( filename ));
 }

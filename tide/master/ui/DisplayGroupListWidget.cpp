@@ -69,7 +69,7 @@ void DisplayGroupListWidget::setDataModel( DisplayGroupPtr displayGroup )
     connect( _displayGroup.get(), &DisplayGroup::contentWindowRemoved,
              this, &DisplayGroupListWidget::_removeContentWindow );
     connect( _displayGroup.get(), &DisplayGroup::contentWindowMovedToFront,
-             this, &DisplayGroupListWidget::_moveContentWindowToFront );
+             this, &DisplayGroupListWidget::_moveToFront );
 }
 
 void DisplayGroupListWidget::_addContentWindow( ContentWindowPtr contentWindow )
@@ -97,7 +97,7 @@ void DisplayGroupListWidget::_removeContentWindow( ContentWindowPtr
     }
 }
 
-void DisplayGroupListWidget::_moveContentWindowToFront( ContentWindowPtr
+void DisplayGroupListWidget::_moveToFront( ContentWindowPtr
                                                         contentWindow )
 {
     for( int i = 0; i < count(); ++i )
@@ -120,5 +120,5 @@ void DisplayGroupListWidget::_moveListWidgetItemToFront( QListWidgetItem*
     ContentWindowListWidgetItem* windowItem =
             dynamic_cast< ContentWindowListWidgetItem* >( listWidgetItem );
     if( windowItem )
-        _displayGroup->moveContentWindowToFront( windowItem->getContentWindow( ));
+        _displayGroup->moveToFront( windowItem->getContentWindow( ));
 }

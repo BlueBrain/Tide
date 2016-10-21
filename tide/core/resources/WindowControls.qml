@@ -10,7 +10,7 @@ Rectangle {
     width: buttons.width + radius + (Style.buttonsSize * (1.0 - Style.buttonsImageRelSize))
     height: buttons.height + (Style.buttonsSize * (1.0 - Style.buttonsImageRelSize))
     color: Style.controlsDefaultColor
-    border.color: Style.controlsDefaultColor
+    border.color: color
     border.width: Style.controlsBorderWidth
     radius: Style.controlsRadius
     anchors.right: parent.left
@@ -53,18 +53,13 @@ Rectangle {
             when: contentwindow.focused
             extend: "opaque"
             PropertyChanges {
-                target: windowControls
-                color: Style.controlsFocusedColor
-                border.color: Style.controlsFocusedColor
-            }
-            PropertyChanges {
                 target: buttons
                 fixed_buttons_count: 3
             }
         },
         State {
             name: "opaque"
-            when: contentwindow.controlsVisible &&
+            when: contentwindow.selected &&
                   contentwindow.state !== ContentWindow.RESIZING &&
                   !contentwindow.fullscreen
             PropertyChanges {
@@ -82,8 +77,6 @@ Rectangle {
                 duration: Style.focusTransitionTime
                 easing.type: Easing.InOutQuad
             }
-            ColorAnimation { duration: Style.focusTransitionTime }
-            ColorAnimation { target: border; duration: Style.focusTransitionTime }
         }
     ]
 }

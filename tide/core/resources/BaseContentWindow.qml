@@ -31,7 +31,7 @@ Rectangle {
     y: contentArea.posY - yOffset
     width: contentArea.width + border.width * 2
     height: contentArea.height + border.width + yOffset // top + bottom padding
-    z: isBackground ? Style.backgroundZOrder : 0
+    z: isBackground ? Style.backgroundZOrder : contentwindow.isPanel ? Style.panelsZorder : 0
 
     Loader {
         id: backgroundLoader
@@ -166,7 +166,7 @@ Rectangle {
         delegate: Triangle {
         }
         delegateOverflow: windowRect.border.width
-        visible: (contentwindow.controlsVisible || contentwindow.focused ||
+        visible: (contentwindow.selected || contentwindow.focused ||
                   contentwindow.fullscreen) &&
                  contentwindow.content.page !== undefined &&
                  contentwindow.content.page > 0
@@ -181,7 +181,7 @@ Rectangle {
         }
         delegateOverflow: windowRect.border.width
         flipRight: true
-        visible: (contentwindow.controlsVisible || contentwindow.focused ||
+        visible: (contentwindow.selected || contentwindow.focused ||
                   contentwindow.fullscreen) &&
                  contentwindow.content.page !== undefined &&
                  contentwindow.content.page < contentwindow.content.pageCount - 1
@@ -190,6 +190,7 @@ Rectangle {
     WindowControls {
         id: windowControls
         contentActionsVisible: !controlBar.visible
+        color: windowRect.border.color
     }
 
     ResizeCircles {
@@ -234,6 +235,14 @@ Rectangle {
             }
         },
         State {
+            name: "selected"
+            when: contentwindow.selected
+            PropertyChanges {
+                target: windowRect
+                border.color: Style.windowBorderSelectedColor
+            }
+        },
+        State {
             name: "moving"
             when: contentwindow.state === ContentWindow.MOVING
             PropertyChanges {
@@ -269,7 +278,7 @@ Rectangle {
     transitions: [
         Transition {
             from: "focused"
-            to: ""
+            to: "selected,"     // selected AND default state ""
             id: unfocusTransition
             SequentialAnimation {
                 // Slide behind other focused windows for the transition

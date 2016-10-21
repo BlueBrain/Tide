@@ -63,7 +63,8 @@ class Options : public QObject, public boost::enable_shared_from_this<Options>
     Q_DISABLE_COPY( Options )
     Q_PROPERTY( bool alphaBlending READ isAlphaBlendingEnabled
                 NOTIFY alphaBlendingEnabledChanged )
-    Q_PROPERTY( bool showClock READ getShowClock NOTIFY showClockChanged )
+    Q_PROPERTY( bool showClock READ getShowClock WRITE setShowClock
+                NOTIFY showClockChanged )
     Q_PROPERTY( bool showContentTiles READ getShowContentTiles
                 NOTIFY showContentTilesChanged )
     Q_PROPERTY( bool showControlArea READ getShowControlArea
@@ -75,7 +76,7 @@ class Options : public QObject, public boost::enable_shared_from_this<Options>
     Q_PROPERTY( bool showWindowBorders READ getShowWindowBorders
                 NOTIFY showWindowBordersChanged )
     Q_PROPERTY( bool showWindowTitles READ getShowWindowTitles
-                WRITE setShowWindowTitles NOTIFY showWindowTitlesChanged )
+                NOTIFY showWindowTitlesChanged )
     Q_PROPERTY( bool showZoomContext READ getShowZoomContext
                 NOTIFY showZoomContextChanged )
 
