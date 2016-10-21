@@ -106,7 +106,7 @@ QRectF VisibilityHelper::getVisibleArea( const ContentWindow& window ) const
     bool isAbove = false;
     for( auto win : _displayGroup.getContentWindows( ))
     {
-        if( win->getID() == window.getID( ))
+        if( win->getID() == window.getID( ) && !window.isPanel( ))
         {
             isAbove = true;
             continue;

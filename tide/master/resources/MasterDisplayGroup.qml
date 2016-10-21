@@ -34,10 +34,10 @@ DisplayGroup {
         function goToDesktop() {
             if (displaygroup.hasFullscreenWindows)
                 groupcontroller.exitFullscreen()
+            else if (displaygroup.hasFocusedWindows)
+                groupcontroller.unfocusAll()
             else if (displaygroup.hasVisiblePanels)
                 groupcontroller.hidePanels()
-            else
-                groupcontroller.unfocusAll()
         }
         onTap: goToDesktop()
     }

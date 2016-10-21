@@ -47,20 +47,20 @@ Item {
             }
         },
         State {
-            name: "panels"
-            when: displaygroup.hasVisiblePanels
-            PropertyChanges {
-                target: focuscontext
-                opacity: Style.focusContextPanelsOpacity
-                z: Style.fullscreenBackgroundZorder
-            }
-        },
-        State {
             name: "focused"
             when: displaygroup.hasFocusedWindows
             PropertyChanges {
                 target: focuscontext
                 opacity: Style.focusContextOpacity
+            }
+        },
+        State {
+            name: "panels"
+            when: displaygroup.hasVisiblePanels
+            PropertyChanges {
+                target: focuscontext
+                opacity: Style.focusContextPanelsOpacity
+                z: Style.panelsBackgroundZorder
             }
         }
     ]

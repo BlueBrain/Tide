@@ -8,6 +8,8 @@ var contrastColor = "black"; // black
 
 // General
 var backgroundZOrder = -1;
+var panelsBackgroundZorder = 96;
+var panelsZorder = 97;
 var focusBackgroundZorder = 98;
 var unfocusZorder = 99;
 var focusZorder = 100;
@@ -65,7 +67,7 @@ var transparentContentsBackgroundColor = "black";
 
 var windowBorderWidth = 24;
 var windowBorderDefaultColor = baseColor;
-var windowBorderSelectedColor = baseColor;
+var windowBorderSelectedColor = activeColor;
 var windowBorderFocusedColor = activeColor;
 var windowBorderMovingColor = baseColor;
 var windowBorderResizingColor = baseColor;
