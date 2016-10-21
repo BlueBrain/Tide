@@ -51,7 +51,7 @@ ContentWindow::ContentWindow( ContentPtr content, const WindowType type )
     , _resizePolicy( KEEP_ASPECT_RATIO )
     , _mode( WindowMode::STANDARD )
     , _windowState( NONE )
-    , _controlsVisible( false )
+    , _selected( false )
 {
     assert( content );
     _init();
@@ -65,7 +65,7 @@ ContentWindow::ContentWindow()
     , _resizePolicy( KEEP_ASPECT_RATIO )
     , _mode( WindowMode::STANDARD )
     , _windowState( NONE )
-    , _controlsVisible( false )
+    , _selected( false )
 {}
 
 ContentWindow::~ContentWindow() {}
@@ -284,18 +284,18 @@ QString ContentWindow::getLabel() const
     return _content->getURI().section( "/", -1, -1 );
 }
 
-bool ContentWindow::getControlsVisible() const
+bool ContentWindow::isSelected() const
 {
-    return _controlsVisible;
+    return _selected;
 }
 
-void ContentWindow::setControlsVisible( const bool value )
+void ContentWindow::setSelected( const bool value )
 {
-    if( value == _controlsVisible )
+    if( value == _selected )
         return;
 
-    _controlsVisible = value;
-    emit controlsVisibleChanged();
+    _selected = value;
+    emit selectedChanged();
     emit modified();
 }
 

@@ -9,7 +9,7 @@ Rectangle {
     property alias delegate: repeater.delegate
 
     visible: !contentwindow.isPanel
-             && contentwindow.controlsVisible
+             && contentwindow.selected
              && contentwindow.mode === ContentWindow.STANDARD
     opacity: Style.resizeCircleOpacity
 

@@ -103,7 +103,7 @@ void DisplayGroupController::exitFullscreen()
     _group.setFullscreenWindow( ContentWindowPtr( ));
 
     if( !window->isFocused( ))
-        window->setControlsVisible( false );
+        window->setSelected( false );
 }
 
 void DisplayGroupController::focus( const QUuid& id )
@@ -128,7 +128,7 @@ void DisplayGroupController::unfocus( const QUuid& id )
 
     _group.removeFocusedWindow( window );
     _readjustToNewZoomLevel( *window );
-    window->setControlsVisible( false );
+    window->setSelected( false );
 
     updateFocusedWindowsCoordinates();
 }
@@ -140,7 +140,7 @@ void DisplayGroupController::focusSelected()
     auto focusedWindows = ContentWindowSet{};
 
     for( const auto& window : _group.getContentWindows( ))
-        if( window->getControlsVisible( ))
+        if( window->isSelected( ))
             focusedWindows.insert( window );
 
     // Update focused coordinates BEFORE adding windows for proper transition
@@ -165,7 +165,7 @@ void DisplayGroupController::unfocusAll()
 void DisplayGroupController::deselectAll()
 {
     for( const auto& window : _group.getContentWindows( ))
-        window->setControlsVisible( false );
+        window->setSelected( false );
 }
 
 void DisplayGroupController::hidePanels()

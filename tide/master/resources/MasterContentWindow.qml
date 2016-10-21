@@ -18,10 +18,10 @@ BaseContentWindow {
         groupcontroller.removeWindowLater(contentwindow.id)
     }
 
-    function toggleControlsVisibility() {
+    function toggleSelected() {
         if(contentwindow.isPanel)
             return
-        contentwindow.controlsVisible = !contentwindow.controlsVisible
+        contentwindow.selected = !contentwindow.selected
     }
 
     function toggleFocusMode() {
@@ -84,10 +84,10 @@ BaseContentWindow {
         referenceItem: windowRect.parent
 
         onTouchStarted: groupcontroller.moveWindowToFront(contentwindow.id)
-        onTap: if(windowActive) { toggleControlsVisibility() }
+        onTap: if(windowActive) { toggleSelected() }
         onTapAndHold: {
             if(contentwindow.isPanel) // force toggle
-                contentwindow.controlsVisible = !contentwindow.controlsVisible
+                contentwindow.selected = !contentwindow.selected
         }
         onDoubleTap: (numPoints > 1) ? toggleFocusMode() : toggleFullscreenMode()
 
@@ -155,7 +155,7 @@ BaseContentWindow {
             if(contentActive)
                contentcontroller.tap(pos, numPoints)
             else if(windowActive)
-                toggleControlsVisibility()
+                toggleSelected()
         }
         onDoubleTap: {
             if(contentActive)

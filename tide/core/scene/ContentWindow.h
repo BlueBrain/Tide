@@ -75,8 +75,8 @@ class ContentWindow : public Rectangle
     Q_PROPERTY( ResizePolicy resizePolicy READ getResizePolicy
                 WRITE setResizePolicy NOTIFY resizePolicyChanged )
     Q_PROPERTY( QString label READ getLabel NOTIFY labelChanged )
-    Q_PROPERTY( bool controlsVisible READ getControlsVisible
-                WRITE setControlsVisible NOTIFY controlsVisibleChanged )
+    Q_PROPERTY( bool selected READ isSelected
+                WRITE setSelected NOTIFY selectedChanged )
 
 public:
     /** The current active resize handle. */
@@ -125,7 +125,8 @@ public:
     enum WindowType
     {
         DEFAULT,    // A regular window
-        PANEL       // A panel window - always interative, cannot be focused
+        PANEL       // An overlay window without a control bar, cannot be
+                    // focused or fullscreen
     };
     Q_ENUMS( WindowType )
 
@@ -144,7 +145,7 @@ public:
     /** @return the unique identifier for this window. */
     const QUuid& getID() const;
 
-    /** Is the window a panel. */
+    /** @return true if window is a panel. */
     bool isPanel() const;
 
     /** Get the content from QML. */
@@ -215,11 +216,11 @@ public:
     /** Get the label for the window */
     QString getLabel() const;
 
-    /** Get the visibility of the window control buttons. */
-    bool getControlsVisible() const;
+    /** @return true if the window is selected. */
+    bool isSelected() const;
 
-    /** Set the visibility of the window control buttons. */
-    void setControlsVisible( bool value );
+    /** Select or deselect the window. */
+    void setSelected( bool value );
 
 public slots:
     /** Set the current active resize handle. */
@@ -253,7 +254,7 @@ signals:
     void fullscreenCoordinatesChanged();
     void stateChanged();
     void labelChanged();
-    void controlsVisibleChanged();
+    void selectedChanged();
     void hiddenChanged( bool hidden );
     //@}
 
@@ -277,7 +278,7 @@ private:
         ar & _focusedCoordinates;
         ar & _fullscreenCoordinates;
         ar & _windowState;
-        ar & _controlsVisible;
+        ar & _selected;
     }
 
     /** Serialize members to and from xml. */
@@ -347,7 +348,7 @@ private:
     QRectF _focusedCoordinates;
     QRectF _fullscreenCoordinates;
     ContentWindow::WindowState _windowState;
-    bool _controlsVisible;
+    bool _selected;
 };
 
 BOOST_CLASS_VERSION( ContentWindow, 3 )

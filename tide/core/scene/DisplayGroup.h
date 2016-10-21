@@ -110,7 +110,7 @@ public:
 
     /**
      * Replace the content windows.
-     * @param contentWindows The list of windows to set.
+     * @param windows the list of windows to set.
      */
     void setContentWindows( ContentWindowPtrs windows );
 
@@ -152,7 +152,7 @@ public:
     void removeFocusedWindow( ContentWindowPtr window );
 
 
-    /** Get the set of focused windows. */
+    /** Get the set of panels. */
     const ContentWindowSet& getPanels() const;
 
     /**

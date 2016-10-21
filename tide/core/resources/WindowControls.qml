@@ -64,7 +64,7 @@ Rectangle {
         },
         State {
             name: "opaque"
-            when: contentwindow.controlsVisible &&
+            when: contentwindow.selected &&
                   contentwindow.state !== ContentWindow.RESIZING &&
                   !contentwindow.fullscreen
             PropertyChanges {
