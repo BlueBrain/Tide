@@ -65,6 +65,7 @@ class Content : public QObject
     Q_OBJECT
     Q_DISABLE_COPY( Content )
 
+    Q_PROPERTY( QString title READ getTitle NOTIFY titleChanged )
     Q_PROPERTY( QSize size READ getDimensions NOTIFY dimensionsChanged )
     Q_PROPERTY( qreal aspectRatio READ getAspectRatio CONSTANT )
     Q_PROPERTY( bool hasFixedAspectRatio READ hasFixedAspectRatio CONSTANT )
@@ -95,6 +96,9 @@ public:
 
     /** Get the content type **/
     virtual CONTENT_TYPE getType() const = 0;
+
+    /** Get the title of the content */
+    virtual QString getTitle() const;
 
     /**
      * Read content metadata from the data source.
@@ -172,6 +176,7 @@ public:
 signals:
     /** @name QProperty notifiers */
     //@{
+    void titleChanged( QString title );
     void interactionPolicyChanged();
     void captureInteractionChanged();
     void dimensionsChanged();

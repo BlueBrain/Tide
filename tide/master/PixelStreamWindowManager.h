@@ -52,22 +52,25 @@
 #include <map>
 
 /**
+ * The different types of stream windows that can be created.
+ */
+enum class StreamType
+{
+    STANDARD,
+    WEBBROWSER,
+    WHITEBOARD
+};
+
+/**
  * Handles window creation, association and updates for pixel streamers, both
  * local and external. The association is one streamer to one window.
  */
 class PixelStreamWindowManager : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY( PixelStreamWindowManager )
 
 public:
-    /**
-     * Different types of stream used to determine content type and its focus upon opening
-     */
-    enum StreamType {
-        WEBBROWSER,
-        WHITEBOARD,
-        STANDARD
-    };
     /**
      * Create a window manager that handles windows for streamers.
      *
@@ -82,7 +85,7 @@ public:
      * @note this function is public only for the purpose of unit testing.
      * @internal
      */
-    ContentWindowPtr getContentWindow( const QString& uri ) const;
+    ContentWindowPtr getWindow( const QString& uri ) const;
 
     /**
      * Hide the associated content window of the stream.
@@ -107,27 +110,25 @@ public:
      * @param size the desired size of the window in pixels.
      * @param stream the type of window to create
      */
-
     void openWindow( const QString& uri, const QPointF& pos, const QSize& size,
-                     const StreamType stream = STANDARD );
+                     const StreamType stream = StreamType::STANDARD );
 
     /** Check if new windows open in focus mode. */
     bool getAutoFocusNewWindows() const;
 
-public slots:
     /**
-     * Open a window for a new external PixelStream.
+     * Handle the begining of a stream, opening a window if needed.
      *
      * @param uri the URI of the streamer
      */
-    void openPixelStreamWindow( QString uri );
+    void handleStreamStart( QString uri );
 
     /**
-     * Close the window of a PixelStream.
+     * Handle the end of a stream, closing its window.
      *
      * @param uri the URI of the streamer
      */
-    void closePixelStreamWindow( QString uri );
+    void handleStreamEnd( QString uri );
 
     /**
      * Is called when the streamer wants to enable event handling. This will
@@ -172,7 +173,7 @@ signals:
      *
      * @param uri the URI of the streamer
      */
-    void pixelStreamWindowClosed( QString uri );
+    void streamWindowClosed( QString uri );
 
     /**
      * Is emitted after registerEventReceiver() was executed.
@@ -183,38 +184,27 @@ signals:
     void eventRegistrationReply( QString uri, bool success );
 
     /**
-     * Emitted when openPixelStreamWindow is called for a stream which already
-     * has a window, such as the Launcher or Webbrowser.
+     * Emitted when handleStreamStart is called for a stream which already has a
+     * window, such as the Launcher or a Webbrowser.
      *
-     * Normally, the requestFrame signal comes from the Wall processes when
-     * the window has been opened. For such streamers, however, the window is
-     * opened before the deflect::Stream is started so the
-     * deflect::FrameDispatcher discards it and no frames are being displayed.
+     * For external streamers, the requestFrame signal comes from the Wall
+     * processes when the window has been opened. For local streamers, however,
+     * the window is opened before the deflect::Stream is started so the
+     * deflect::FrameDispatcher discards it and no frames would be displayed
+     * otherwise.
      *
      * @param uri the URI of the streamer
      */
     void requestFirstFrame( QString uri );
 
-private slots:
-    /**
-     * This will close the streamer that is associated with the given window.
-     *
-     * @param window the content window that might be associated to a streamer
-     */
-    void onContentWindowRemoved( ContentWindowPtr window );
-
 private:
-    Q_DISABLE_COPY( PixelStreamWindowManager )
-
     DisplayGroup& _displayGroup;
+    std::map< QString, QUuid > _streamWindows;
+    bool _autoFocusNewWindows = true;
 
-    typedef std::map< QString, QUuid > ContentWindowMap;
-    ContentWindowMap _streamerWindows;
-
-    bool _autoFocusNewWindows;
-
-    bool _isPanel( const QString& uri ) const;
-
+    bool _isWindowOpen( const QString& uri ) const;
+    void _onWindowAdded( ContentWindowPtr window );
+    void _onWindowRemoved( ContentWindowPtr window );
 };
 
 #endif

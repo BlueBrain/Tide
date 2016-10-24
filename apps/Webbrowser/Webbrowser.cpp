@@ -63,10 +63,10 @@ Webbrowser::Webbrowser( int& argc, char* argv[] )
 {
     const CommandLineOptions options( argc, argv );
 
-    const auto deflectStreamname = options.getStreamname().toStdString();
+    const auto deflectStreamId = options.getStreamId().toStdString();
     _qmlStreamer.reset( new deflect::qt::QmlStreamer( deflectQmlFile,
                                                       deflectHost,
-                                                      deflectStreamname ));
+                                                      deflectStreamId ));
 
     connect( _qmlStreamer.get(), &deflect::qt::QmlStreamer::streamClosed,
              this, &QCoreApplication::quit );
@@ -90,6 +90,7 @@ Webbrowser::Webbrowser( int& argc, char* argv[] )
     _webengine->setProperty( "url", options.getUrl( ));
 
     connect( _webengine, SIGNAL( urlChanged( )), this, SLOT( _sendData( )));
+    connect( _webengine, SIGNAL( titleChanged( )), this, SLOT( _sendData( )));
 }
 
 Webbrowser::~Webbrowser() {}
@@ -151,8 +152,10 @@ WebbrowserHistory _getNavigationHistory( const QQuickItem* webengine )
 void Webbrowser::_sendData()
 {
     const auto history = _getNavigationHistory( _webengine );
+    const auto title = QQmlProperty::read( _webengine, "title" ).toString();
     const auto restPort = 0; // no rest interface
-    const auto data = WebbrowserContent::serializeData( history, restPort );
+    const auto data = WebbrowserContent::serializeData( history, title,
+                                                        restPort );
     if( !_qmlStreamer->sendData( data ))
             QGuiApplication::quit();
 }

@@ -47,7 +47,8 @@
 #if TIDE_ENABLE_PDF_SUPPORT
 #  include "control/PDFController.h"
 #endif
-#if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
+#include "control/PixelStreamController.h"
+#if TIDE_USE_QT5WEBKITWIDGETS
 #  include "control/WebbrowserController.h"
 #endif
 #include "control/ZoomController.h"
@@ -98,7 +99,11 @@ BOOST_AUTO_TEST_CASE( testFactoryMethod )
                        std::bad_cast );
     ContentWindow webWindow( ContentFactory::getWebbrowserContent( "abc" ));
     BOOST_CHECK_NO_THROW( controller = ContentController::create( webWindow ));
+#endif
+#if TIDE_USE_QT5WEBKITWIDGETS
     BOOST_CHECK( dynamic_cast<WebbrowserController*>( controller.get( )));
+#elif TIDE_USE_QT5WEBENGINE
+    BOOST_CHECK( dynamic_cast<PixelStreamController*>( controller.get( )));
 #endif
 
 #if TIDE_ENABLE_PDF_SUPPORT

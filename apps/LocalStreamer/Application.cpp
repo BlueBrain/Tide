@@ -84,7 +84,7 @@ bool Application::initialize( const CommandLineOptions& options )
              this, &Application::sendData );
 
     // Connect to Tide
-    _deflectStream = new deflect::Stream( options.getStreamname().toStdString(),
+    _deflectStream = new deflect::Stream( options.getStreamId().toStdString(),
                                           TIDE_STREAM_HOST_ADDRESS );
     if( !_deflectStream->isConnected( ))
     {

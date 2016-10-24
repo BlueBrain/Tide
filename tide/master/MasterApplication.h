@@ -112,6 +112,7 @@ private:
     QThread _mpiReceiveThread;
 
     void _init();
+    void _apply( DisplayGroupConstPtr group );
     bool _createConfig( const QString& filename );
     void _startDeflectServer();
     void _restoreBackground();

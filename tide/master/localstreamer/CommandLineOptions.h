@@ -71,7 +71,7 @@ public:
     bool getHelp() const;
     PixelStreamerType getPixelStreamerType() const;
     const QString& getUrl() const;
-    const QString& getStreamname() const;
+    const QString& getStreamId() const;
     unsigned int getWidth() const;
     unsigned int getHeight() const;
     const QString& getConfiguration() const;
@@ -82,7 +82,7 @@ public:
     void setHelp( bool set );
     void setPixelStreamerType( PixelStreamerType type );
     void setUrl( const QString& url );
-    void setStreamname( const QString& name );
+    void setStreamId( const QString& name );
     void setWidth( unsigned int width );
     void setHeight( unsigned int height );
     void setConfiguration( const QString& file );
@@ -92,14 +92,15 @@ private:
     void _initDesc();
     void _parseCommandLineArguments( int& argc, char** argv );
 
-    bool _getHelp;
-    PixelStreamerType _streamerType;
+    bool _getHelp = false;
+    PixelStreamerType _streamerType = PS_UNKNOWN;
     QString _url;
-    QString _streamname;
-    unsigned int _width, _height;
+    QString _streamId;
+    uint _width = 0;
+    uint _height = 0;
     QString _configuration;
 
-    boost::program_options::options_description _desc;
+    boost::program_options::options_description _desc = { "Allowed options" };
 };
 
 #endif

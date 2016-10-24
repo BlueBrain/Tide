@@ -94,11 +94,9 @@ list(APPEND TIDEMASTER_SOURCES
 
 if(TARGET Qt5::WebEngine)
   list(APPEND TIDEMASTER_PUBLIC_HEADERS
-    control/WebbrowserController.h
     ui/WebbrowserWidget.h
   )
   list(APPEND TIDEMASTER_SOURCES
-    control/WebbrowserController.cpp
     ui/WebbrowserWidget.cpp
   )
 elseif(TARGET Qt5::WebKitWidgets)

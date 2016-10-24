@@ -63,10 +63,6 @@ bool _canBeRestored( const CONTENT_TYPE type )
     if( type == CONTENT_TYPE_PIXEL_STREAM )
         return false;
 
-    // Webbrowsers are not supported yet, don't restore them.
-    if( type == CONTENT_TYPE_WEBBROWSER )
-        return false;
-
     return true;
 }
 
@@ -134,7 +130,8 @@ void _validateContents( DisplayGroup& group )
     group.setContentWindows( windows.toStdVector( ));
 }
 
-DisplayGroupConstPtr _load( const QString& filename, DisplayGroupConstPtr targetGroup )
+DisplayGroupConstPtr _load( const QString& filename,
+                            DisplayGroupConstPtr referenceGroup )
 {
     State state;
     // For backward compatibility, try to load the file as a legacy xml first
@@ -151,7 +148,7 @@ DisplayGroupConstPtr _load( const QString& filename, DisplayGroupConstPtr target
     controller.updateFocusedWindowsCoordinates();
 
     if( state.getVersion() < FIRST_PIXEL_COORDINATES_FILE_VERSION )
-        controller.denormalize( targetGroup->getCoordinates().size( ));
+        controller.denormalize( referenceGroup->size( ));
     else if( state.getVersion() == FIRST_PIXEL_COORDINATES_FILE_VERSION )
     {
         // Approximation; only applies to FIRST_PIXEL_COORDINATES_FILE_VERSION
@@ -162,28 +159,28 @@ DisplayGroupConstPtr _load( const QString& filename, DisplayGroupConstPtr target
 
     // Reshape the new DisplayGroup only if it doesn't fit (legacy behaviour).
     // If the saved group was smaller, resize it but don't modify its windows.
-    if( !targetGroup->getCoordinates().contains( group->getCoordinates( )))
-        controller.reshape( targetGroup->getCoordinates().size( ));
+    if( !referenceGroup->getCoordinates().contains( group->getCoordinates( )))
+        controller.reshape( referenceGroup->size( ));
     else
     {
-        group->setWidth( targetGroup->width( ));
-        group->setHeight( targetGroup->height( ));
+        group->setWidth( referenceGroup->width( ));
+        group->setHeight( referenceGroup->height( ));
     }
-    group->moveToThread( targetGroup->thread( ));
+    group->moveToThread( referenceGroup->thread( ));
 
     return group;
 }
 
 QFuture<DisplayGroupConstPtr>
-StateSerializationHelper::load( const QString& filename )
+StateSerializationHelper::load( const QString& filename ) const
 {
     put_flog( LOG_INFO, "Restoring session: '%s'",
               filename.toStdString().c_str( ));
 
-    DisplayGroupConstPtr targetGroup = _displayGroup;
-    return QtConcurrent::run([targetGroup, filename]()
+    DisplayGroupConstPtr referenceGroup = _displayGroup;
+    return QtConcurrent::run([referenceGroup, filename]()
     {
-        return _load( filename, targetGroup );
+        return _load( filename, referenceGroup );
     });
 }
 

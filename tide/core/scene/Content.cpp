@@ -78,6 +78,11 @@ const QString& Content::getURI() const
     return _uri;
 }
 
+QString Content::getTitle() const
+{
+    return getURI().section( "/", -1, -1 );
+}
+
 QSize Content::getDimensions() const
 {
     return _size;

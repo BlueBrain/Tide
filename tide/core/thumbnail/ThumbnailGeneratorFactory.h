@@ -46,20 +46,13 @@
 #include <QString>
 
 class ThumbnailGenerator;
-class FolderThumbnailGenerator;
-
-typedef std::unique_ptr<ThumbnailGenerator> ThumbnailGeneratorPtr;
-typedef std::unique_ptr<FolderThumbnailGenerator> FolderThumbnailGeneratorPtr;
+using ThumbnailGeneratorPtr = std::unique_ptr<ThumbnailGenerator>;
 
 class ThumbnailGeneratorFactory
 {
 public:
     static ThumbnailGeneratorPtr getGenerator( const QString& filename,
                                                const QSize& size );
-
-    static ThumbnailGeneratorPtr getDefaultGenerator( const QSize& size );
-
-    static FolderThumbnailGeneratorPtr getFolderGenerator( const QSize& size );
 };
 
 #endif

@@ -154,6 +154,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   thumbnail/FolderThumbnailGenerator.h
   thumbnail/ImageThumbnailGenerator.h
   thumbnail/StateThumbnailGenerator.h
+  thumbnail/thumbnail.h
   thumbnail/ThumbnailGeneratorFactory.h
   thumbnail/ThumbnailGenerator.h
   thumbnail/ThumbnailProvider.h
@@ -194,6 +195,7 @@ list(APPEND TIDECORE_SOURCES
   thumbnail/FolderThumbnailGenerator.cpp
   thumbnail/ImageThumbnailGenerator.cpp
   thumbnail/StateThumbnailGenerator.cpp
+  thumbnail/thumbnail.cpp
   thumbnail/ThumbnailGenerator.cpp
   thumbnail/ThumbnailGeneratorFactory.cpp
   thumbnail/ThumbnailProvider.cpp
@@ -205,13 +207,21 @@ if(TARGET Qt5::WebKitWidgets OR TARGET Qt5::WebEngine)
   list(APPEND TIDECORE_PUBLIC_HEADERS
     scene/WebbrowserContent.h
     scene/WebbrowserHistory.h
+    thumbnail/WebbrowserThumbnailGenerator.h
   )
   list(APPEND TIDECORE_SOURCES
     scene/WebbrowserContent.cpp
     scene/WebbrowserHistory.cpp
+    thumbnail/WebbrowserThumbnailGenerator.cpp
   )
 endif()
 if(TARGET Qt5::WebKitWidgets)
+  list(APPEND TIDECORE_PUBLIC_HEADERS
+    scene/AddressBar.h
+  )
+  list(APPEND TIDECORE_SOURCES
+    scene/AddressBar.cpp
+  )
   list(APPEND TIDECORE_LINK_LIBRARIES PRIVATE Qt5::WebKitWidgets)
 endif()
 

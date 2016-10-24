@@ -43,8 +43,7 @@
 
 #include "log.h"
 #include "scene/ContentWindow.h"
-#include "thumbnail/ThumbnailGeneratorFactory.h"
-#include "thumbnail/ThumbnailGenerator.h"
+#include "thumbnail/thumbnail.h"
 
 #include <QFileInfo>
 #include <QPainter>
@@ -89,37 +88,24 @@ QString StatePreview::previewFilename() const
 void StatePreview::generateImage( const QSize& wallDimensions,
                                   const ContentWindowPtrs& contentWindows )
 {
-    QSize previewDimension( wallDimensions );
-    previewDimension.scale( PREVIEW_IMAGE_SIZE, Qt::KeepAspectRatio );
-
+    const auto previewDimension = wallDimensions.scaled( PREVIEW_IMAGE_SIZE,
+                                                         Qt::KeepAspectRatio );
     // Transparent image
     QImage preview( previewDimension, QImage::Format_ARGB32 );
     preview.fill( qRgba( 0, 0, 0, 0 ));
 
-    QPainter painter( &preview );
-
     // Paint all Contents at their correct location
+    QPainter painter{ &preview };
     for( const auto& window : contentWindows )
     {
-        if( window->getContent()->getType() == CONTENT_TYPE_PIXEL_STREAM ||
-            window->getContent()->getType() == CONTENT_TYPE_WEBBROWSER )
-            continue;
-
-        const QRectF& winCoord = window->getCoordinates();
-        const qreal ratio = (qreal)previewDimension.width() /
-                            (qreal)wallDimensions.width();
-        const QRectF area( winCoord.topLeft() * ratio,
-                           winCoord.size() * ratio );
-
-        const QString& filename = window->getContent()->getURI();
-        ThumbnailGeneratorPtr generator =
-            ThumbnailGeneratorFactory::getGenerator( filename,
-                                                     area.size().toSize( ));
-        const QImage image = generator->generate( filename );
-
-        painter.drawImage( area, image );
+        const auto ratio = (qreal)previewDimension.width() /
+                           (qreal)wallDimensions.width();
+        const auto area = QRectF{ window->getCoordinates().topLeft() * ratio,
+                                  window->size() * ratio };
+        const auto thumbnail = thumbnail::create( *window->getContent(),
+                                                  area.size().toSize( ));
+        painter.drawImage( area, thumbnail );
     }
-
     painter.end();
 
     _previewImage = preview;

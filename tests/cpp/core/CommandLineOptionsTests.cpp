@@ -52,7 +52,7 @@ BOOST_AUTO_TEST_CASE( testCommandLineDefaults )
     CommandLineOptions options;
 
     BOOST_CHECK( !options.getHelp() );
-    BOOST_CHECK_EQUAL( options.getStreamname().toStdString(), "" );
+    BOOST_CHECK_EQUAL( options.getStreamId().toStdString(), "" );
     BOOST_CHECK_EQUAL( options.getPixelStreamerType(), PS_UNKNOWN );
     BOOST_CHECK_EQUAL( options.getUrl().toStdString(), "" );
     BOOST_CHECK_EQUAL( options.getConfiguration().toStdString(), "" );
@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_CASE( testCommandLineDefaults )
 void setOptionParameters( CommandLineOptions& options )
 {
     options.setHelp( true );
-    options.setStreamname( "MyStreamer" );
+    options.setStreamId( "MyStreamer" );
     options.setPixelStreamerType( PS_WEBKIT );
     options.setUrl( "http://www.perdu.com" );
     options.setHeight( 640 );
@@ -78,7 +78,7 @@ void setOptionParameters( CommandLineOptions& options )
 void checkOptionParameters( const CommandLineOptions& options )
 {
     BOOST_CHECK( options.getHelp() );
-    BOOST_CHECK_EQUAL( options.getStreamname().toStdString(), "MyStreamer" );
+    BOOST_CHECK_EQUAL( options.getStreamId().toStdString(), "MyStreamer" );
     BOOST_CHECK_EQUAL( options.getPixelStreamerType(), PS_WEBKIT );
     BOOST_CHECK_EQUAL( options.getUrl().toStdString(), "http://www.perdu.com" );
     BOOST_CHECK_EQUAL( options.getHeight(), 640 );

@@ -105,8 +105,10 @@ WebkitPixelStreamer::WebkitPixelStreamer( const QSize& webpageSize,
     connect( &_webView, &QWebView::urlChanged, [this]()
     {
         const auto history = WebbrowserHistory{ *_webView.history( )};
+        const auto title = _webView.title();
         const auto port = _restInterface ? _restInterface->getPort() : 0;
-        emit stateChanged( WebbrowserContent::serializeData( history, port ));
+        emit stateChanged( WebbrowserContent::serializeData( history, title,
+                                                             port ));
     });
 
     setUrl( url );

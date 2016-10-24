@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,68 +37,82 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "ThumbnailGeneratorFactory.h"
+#include "AddressBar.h"
 
-#include "config.h"
-#include "DefaultThumbnailGenerator.h"
-#include "FolderThumbnailGenerator.h"
-#include "ImageThumbnailGenerator.h"
-#include "scene/TextureContent.h"
-#include "StateThumbnailGenerator.h"
+AddressBar::AddressBar( QObject* parentObject )
+    : QObject( parentObject )
+{}
 
-#if TIDE_ENABLE_MOVIE_SUPPORT
-#include "scene/MovieContent.h"
-#include "MovieThumbnailGenerator.h"
-#endif
-#if TIDE_ENABLE_PDF_SUPPORT
-#  include "scene/PDFContent.h"
-#  include "PDFThumbnailGenerator.h"
-#endif
-#if TIDE_USE_TIFF
-#  include "data/TiffPyramidReader.h"
-#  include "scene/ImagePyramidContent.h"
-#  include "ImagePyramidThumbnailGenerator.h"
-#endif
-
-#include <QDir>
-
-ThumbnailGeneratorPtr
-ThumbnailGeneratorFactory::getGenerator( const QString& filename,
-                                         const QSize& size )
+bool AddressBar::isFocused() const
 {
-    if( !filename.isEmpty() && QDir( filename ).exists( ))
-        return ThumbnailGeneratorPtr( new FolderThumbnailGenerator( size ));
+    return _focused;
+}
 
-    const auto extension = QFileInfo( filename ).suffix().toLower();
+void AddressBar::setFocused( const bool set )
+{
+    if( _focused == set )
+        return;
 
-    if( extension == "dcx" )
-        return ThumbnailGeneratorPtr( new StateThumbnailGenerator( size ));
+    _focused = set;
+    emit focusedChanged();
+    emit modified();
+}
 
-#if TIDE_ENABLE_MOVIE_SUPPORT
-    if( MovieContent::getSupportedExtensions().contains( extension ))
-        return ThumbnailGeneratorPtr( new MovieThumbnailGenerator( size ));
-#endif
+int AddressBar::getCursorPosition() const
+{
+    return _cursorPosition;
+}
 
-#if TIDE_USE_TIFF
-    if( ImagePyramidContent::getSupportedExtensions().contains( extension ))
-    {
-        try
-        {
-            TiffPyramidReader tif{ filename };
-            return ThumbnailGeneratorPtr(
-                        new ImagePyramidThumbnailGenerator( size ));
-        }
-        catch( ... ) { /* not a pyramid file, pass */ }
-    }
-#endif
+void AddressBar::setCursorPosition( const int arg )
+{
+    if( _cursorPosition == arg )
+        return;
 
-    if( TextureContent::getSupportedExtensions().contains( extension ))
-        return ThumbnailGeneratorPtr( new ImageThumbnailGenerator( size ));
+    _cursorPosition = arg;
+    emit cursorPositionChanged();
+}
 
-#if TIDE_ENABLE_PDF_SUPPORT
-    if( PDFContent::getSupportedExtensions().contains( extension ))
-        return ThumbnailGeneratorPtr( new PDFThumbnailGenerator( size ));
-#endif
+int AddressBar::getSelectionStart() const
+{
+    return _selectionStart;
+}
 
-    return ThumbnailGeneratorPtr( new DefaultThumbnailGenerator( size ));
+void AddressBar::setSelectionStart( const int pos )
+{
+    if( _selectionStart == pos )
+        return;
+
+    _selectionStart = pos;
+    emit selectionStartChanged();
+    emit modified();
+}
+
+int AddressBar::getSelectionEnd() const
+{
+    return _selectionEnd;
+}
+
+void AddressBar::setSelectionEnd( const int pos )
+{
+    if( _selectionEnd == pos )
+        return;
+
+    _selectionEnd = pos;
+    emit selectionEndChanged();
+    emit modified();
+}
+
+QString AddressBar::getUrl() const
+{
+    return _url;
+}
+
+void AddressBar::setUrl( const QString url )
+{
+    if( getUrl() == url )
+        return;
+
+    _url = url;
+    emit urlChanged();
+    emit modified();
 }

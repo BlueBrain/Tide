@@ -1,6 +1,5 @@
 /*********************************************************************/
 /* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Ahmet Bilgili <ahmet.bilgili@epfl.ch>         */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -38,80 +37,97 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "ThumbnailProvider.h"
+#ifndef ADDRESSBAR_H
+#define ADDRESSBAR_H
 
-#include "thumbnail.h"
+#include "serialization/includes.h"
 
-#include <QDateTime>
-#include <QFileInfo>
-#include <QImageReader>
+#include <QObject>
 
-#include <cassert>
-
-namespace
+/**
+ * Serializable address bar state, for use in a web browser window.
+ */
+class AddressBar : public QObject
 {
-const int cacheMaxSize = 200;
-const QString cacheModificationDateKey( "lastModificationDate" );
-const char* folderImg = "qrc:/img/folder.png";
-const char* unknownFileImg = "qrc:/img/unknownfile.png";
-}
+    Q_OBJECT
+    Q_DISABLE_COPY( AddressBar )
 
-ThumbnailProvider::ThumbnailProvider( const QSize defaultSize )
-    : QQuickImageProvider( QQuickImageProvider::Image,
-                           QQuickImageProvider::ForceAsynchronousImageLoading )
-    , _defaultSize( defaultSize )
-{
-    _cache.setMaxCost( cacheMaxSize );
-}
+    Q_PROPERTY( bool focused READ isFocused WRITE setFocused
+                NOTIFY focusedChanged )
+    Q_PROPERTY( int cursorPosition READ getCursorPosition
+                WRITE setCursorPosition NOTIFY cursorPositionChanged )
+    Q_PROPERTY( int selectionStart READ getSelectionStart
+                WRITE setSelectionStart NOTIFY selectionStartChanged )
+    Q_PROPERTY( int selectionEnd READ getSelectionEnd
+                WRITE setSelectionEnd NOTIFY selectionEndChanged )
+    Q_PROPERTY( QString url READ getUrl WRITE setUrl NOTIFY urlChanged )
 
-QImage ThumbnailProvider::requestImage( const QString& filename, QSize* size,
-                                        const QSize& requestedSize )
-{
-    const QSize newSize( requestedSize.height() > 0 ?
-                             requestedSize.height() : _defaultSize.height(),
-                         requestedSize.width() > 0 ?
-                             requestedSize.width() : _defaultSize.width( ));
-    if( size )
-        *size = newSize;
+public:
+    /** Constructor */
+    explicit AddressBar( QObject* parentObject = nullptr );
 
-    if( _isImageInCache( filename ))
-        return *_cache[filename];
+    /** @return true if the address bar has focus (capture keyboard events). */
+    bool isFocused() const;
 
-    const auto image = thumbnail::create( filename, newSize );
-    if( !image.isNull( ))
+    /** Give the keyboard focus to the address bar. */
+    void setFocused( bool set );
+
+    /** Get the position (index) of the cursor. */
+    int getCursorPosition() const;
+
+    /** Set the position (index) of the cursor. */
+    void setCursorPosition( int index );
+
+    /** Get the start position of the selection in the address bar. */
+    int getSelectionStart() const;
+
+    /** Set the start position of the selection in the address bar. */
+    void setSelectionStart( int pos );
+
+    /** Get the end position of the selection in the address bar. */
+    int getSelectionEnd() const;
+
+    /** Set the end position of the selection in the address bar. */
+    void setSelectionEnd( int pos );
+
+    /** Get the url in the address bar. */
+    QString getUrl() const;
+
+    /** Set the url in the address bar. */
+    void setUrl( QString url );
+
+signals:
+    /** @name QProperty notifiers */
+    //@{
+    void focusedChanged();
+    void cursorPositionChanged();
+    void selectionStartChanged();
+    void selectionEndChanged();
+    void urlChanged();
+    //@}
+
+    void modified();
+
+private:
+    friend class boost::serialization::access;
+
+    /** Serialize for sending to Wall applications. */
+    template< class Archive >
+    void serialize( Archive & ar, const unsigned int /*version*/ )
     {
-        // QCache requires a <T>* and takes ownership, a new QImage is required
-        QImage* cacheImage = new QImage( image );
-        cacheImage->setText( cacheModificationDateKey,
-                             QFileInfo( filename ).lastModified().toString( ));
-        _cache.insert( filename, cacheImage );
-        return image;
+        ar & _focused;
+        ar & _cursorPosition;
+        ar & _selectionStart;
+        ar & _selectionEnd;
+        ar & _url;
     }
 
-    // Thumbnail generation failed, return a placeholder
-    const QFileInfo fileInfo( filename );
-    if( fileInfo.isFile( ))
-    {
-        static QImage im( unknownFileImg );
-        assert( !im.isNull( ));
-        return im;
-    }
-    if( fileInfo.isDir( ))
-    {
-        static QImage im( folderImg );
-        assert( !im.isNull( ));
-        return im;
-    }
+    /** State of the address bar on master shared with the wall processes. */
+    bool _focused = false;
+    int _cursorPosition = 0;
+    int _selectionStart = 0;
+    int _selectionEnd = 0;
+    QString _url;
+};
 
-    return image; // Silence compiler warning
-}
-
-bool ThumbnailProvider::_isImageInCache( const QString& filename ) const
-{
-    if( !_cache.contains( filename ))
-        return false;
-
-    const QFileInfo info( filename );
-    return info.lastModified().toString() ==
-            _cache.object( filename )->text( cacheModificationDateKey );
-}
+#endif

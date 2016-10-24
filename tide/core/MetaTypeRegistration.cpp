@@ -58,6 +58,7 @@ struct MetaTypeRegistration
         qRegisterMetaType< ContentWindow::WindowState >( "ContentWindow::WindowState" );
         qRegisterMetaType< ContentSynchronizerSharedPtr >( "ContentSynchronizerSharedPtr" );
         qRegisterMetaType< DisplayGroupPtr >( "DisplayGroupPtr" );
+        qRegisterMetaType< DisplayGroupConstPtr >( "DisplayGroupConstPtr" );
         qRegisterMetaType< ImagePtr >( "ImagePtr" );
         qRegisterMetaType< MarkersPtr >( "MarkersPtr" );
         qRegisterMetaType< MPIMessageType >( "MPIMessageType" );

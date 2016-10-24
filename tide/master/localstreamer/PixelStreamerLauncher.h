@@ -58,15 +58,16 @@
 class PixelStreamerLauncher : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY( PixelStreamerLauncher )
 
 public:
     /**
      * Create a new PixelStreamerLauncher
      *
-     * @param windowManager Manages the windows of the streamers
+     * @param manager Manages the windows of the streamers
      * @param config The configuration for the default parameters
      */
-    PixelStreamerLauncher( PixelStreamWindowManager& windowManager,
+    PixelStreamerLauncher( PixelStreamWindowManager& manager,
                            const MasterConfiguration& config );
 
     static const QString launcherUri;
@@ -82,6 +83,9 @@ public slots:
      */
     void openWebBrowser( QPointF pos, QSize size, QString url );
 
+    /** Start a webbrowser for an existing window. */
+    void launch( const WebbrowserContent& webbrowser );
+
     /** Open the Qml launcher. */
     void openLauncher();
 
@@ -95,23 +99,13 @@ signals:
     /** Request the launch of a command in a working directory and given ENV. */
     void start( QString command, QString workingDir, QStringList env );
 
-private slots:
-    void _dereferenceLocalStreamer( QString uri );
-
 private:
-    Q_DISABLE_COPY( PixelStreamerLauncher )
-
-    typedef std::set<QString> Streamers;
-    Streamers _processes;
-
     PixelStreamWindowManager& _windowManager;
     const MasterConfiguration& _config;
+    std::set<QString> _processes;
 
+    void _dereferenceLocalStreamer( QString uri );
     QPointF _getDefaultWindowPosition() const;
-    QString _getLocalStreamerBin() const;
-    QString _getLauncherBin() const;
-    QString _getWebbrowserBin() const;
-    QString _getWhiteboardBin() const;
 };
 
 #endif

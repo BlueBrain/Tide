@@ -42,6 +42,7 @@
 
 #include <deflect/types.h>
 #include <boost/shared_ptr.hpp>
+#include <boost/make_shared.hpp>
 #include <QtCore/QRectF>
 #include <future>
 #include <iostream>
@@ -77,6 +78,7 @@ class Tile;
 class WallConfiguration;
 class WallToWallChannel;
 class WallWindow;
+class WebbrowserContent;
 
 typedef boost::shared_ptr< Content > ContentPtr;
 typedef std::shared_ptr<ContentSynchronizer> ContentSynchronizerSharedPtr;
