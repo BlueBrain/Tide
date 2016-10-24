@@ -167,13 +167,13 @@ Item {
                 width: viewColor.model.count * (viewColor.buttonWidth + colorTools.spacing)
                 height: 75
                 anchors.rightMargin: 75
-
                 ListView {
                     anchors.fill: parent
                     id: viewColor
                     model: colorModel
                     delegate: colorDelegate
                     spacing: 5
+                    boundsBehavior: Flickable.StopAtBounds
                     property int buttonWidth: 75
                     orientation: ListView.Horizontal
                     highlight: Rectangle {
@@ -196,6 +196,7 @@ Item {
                     model: brushModel
                     delegate: brushDelegate
                     spacing: 5
+                    boundsBehavior: Flickable.StopAtBounds
                     property int buttonWidth: 75
                     orientation: ListView.Horizontal
                     highlight: Rectangle {
@@ -236,6 +237,16 @@ Item {
         anchors.bottom: parent.bottom
         width: root.width
         height: root.height - headerHeight
+        Rectangle {
+            id: freezePane
+            anchors.fill: parent
+            anchors.topMargin: saveMenu.height
+            color: "lightsteelblue"
+            visible: false
+            opacity: 0.5
+            z: 99
+        }
+
         Text {
             id: infoBox
             text: ""
@@ -270,8 +281,9 @@ Item {
                     ctx.lineWidth = singleCurve[2]
 
                     if (singleCurve[0].length < 4) {
-                        ctx.arc(singleCurve[0][0][0], singleCurve[0][0][1], 1,
-                                0, Math.PI * 2, false)
+                        ctx.arc(singleCurve[0][0][0] + singleCurve[3][0],
+                                singleCurve[0][0][1] + singleCurve[3][1], 1, 0,
+                                Math.PI * 2, false)
                     } else {
                         for (var i = 0; i < singleCurve[0].length - 1; i++) {
                             ctx.moveTo(singleCurve[0][i][0] + singleCurve[3][0],
@@ -286,37 +298,40 @@ Item {
                 }
             }
 
-
             MultiPointTouchArea {
                 id: area
+                enabled: true
                 anchors.fill: parent
                 property var paths: []
-                touchPoints: TouchPoint {
-                    id: point1
-                }
-
+                touchPoints: [
+                    TouchPoint {
+                        id: point0
+                    }
+                ]
                 onPressed: {
-                    singleLine = new Array(0)
-                    lastX = point1.x
-                    lastY = point1.y
-                    singleLine.push([point1.x, point1.y])
+                    if (touchPoints[0] === point0) {
+                        singleLine = new Array(0)
+                        lastX = point0.x
+                        lastY = point0.y
+                        singleLine.push([point0.x, point0.y])
+                    }
                 }
-                onTouchUpdated: {
-                    singleLine.push([point1.x, point1.y])
+                onUpdated: {
+                    singleLine.push([point0.x, point0.y])
                     canvasTmp.requestPaint()
                 }
                 onReleased: {
-                    var singleCurve = new Array(0)
-                    singleCurve.push(singleLine)
-                    singleCurve.push(brushColor)
-                    singleCurve.push(brushSize)
-                    singleCurve.push([0, 0])
-
-                    allCurves.push(singleCurve)
-                    canvas.requestPaint()
-
-                    paths = []
-                    canvasTmp.getContext("2d").reset()
+                    if (touchPoints[0] === point0) {
+                        var singleCurve = new Array(0)
+                        singleCurve.push(singleLine)
+                        singleCurve.push(brushColor)
+                        singleCurve.push(brushSize)
+                        singleCurve.push([0, 0])
+                        allCurves.push(singleCurve)
+                        canvas.requestPaint()
+                        paths = []
+                        canvasTmp.getContext("2d").reset()
+                    }
                 }
             }
 
@@ -330,8 +345,8 @@ Item {
                     ctx2.strokeStyle = brushColor
                     ctx2.beginPath()
                     ctx2.moveTo(lastX, lastY)
-                    lastX = point1.x
-                    lastY = point1.y
+                    lastX = point0.x
+                    lastY = point0.y
                     ctx2.lineTo(lastX, lastY)
                     ctx2.stroke()
                     ctx2.closePath()
@@ -342,10 +357,17 @@ Item {
         Rectangle {
             color: "#e7edf5"
             function toggle() {
-                if (saveMenu.state == "on")
+                if (saveMenu.state == "on") {
                     saveMenu.state = "off"
-                else
+                    area.enabled = true
+                    freezePane.visible = false
+
+                } else {
                     saveMenu.state = "on"
+                    area.enabled = false
+                    freezePane.visible = true
+
+                }
             }
             id: saveMenu
             width: root.width
