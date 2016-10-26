@@ -40,7 +40,7 @@
 #ifndef WHITEBOARD_H
 #define WHITEBOARD_H
 
-#include <memory>
+#include "tide/master/FileInfoHelper.h"
 
 #include <QGuiApplication>
 #include <deflect/qt/QmlStreamer.h>
@@ -59,6 +59,7 @@ private:
     std::unique_ptr<deflect::qt::QmlStreamer> _qmlStreamer;
 
     bool event( QEvent* event ) final;
+    FileInfoHelper _fileInfoHelper;
 };
 
 #endif

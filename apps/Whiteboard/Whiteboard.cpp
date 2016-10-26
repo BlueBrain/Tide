@@ -43,6 +43,8 @@
 #include "tide/master/localstreamer/QmlKeyInjector.h"
 #include "tide/master/MasterConfiguration.h"
 
+#include <QQmlContext>
+
 namespace
 {
 const std::string deflectHost( "localhost" );
@@ -67,6 +69,8 @@ Whiteboard::Whiteboard( int& argc, char* argv[] )
     auto item = _qmlStreamer->getRootItem();
     item->setProperty( "saveURL", config.getWhiteboardSaveFolder() );
 
+    QQmlEngine* engine = _qmlStreamer->getQmlEngine();
+    engine->rootContext()->setContextProperty( "fileInfo", &_fileInfoHelper );
 }
 
 bool Whiteboard::event( QEvent* event_ )

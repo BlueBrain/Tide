@@ -9,7 +9,7 @@ Changelog {#changelog}
   Webbrowsers can be saved and restored from sessions and display the page title
   in their title bar.
 * [96](https://github.com/BlueBrain/Tide/pull/96):
-  Bug fixes in Whiteboard application
+  Bug fixes in Whiteboard application.
 * [95](https://github.com/BlueBrain/Tide/pull/95):
   More consistent and intuitive user experience:
   - Double-tap a window to make it fullscreen

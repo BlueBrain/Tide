@@ -41,11 +41,9 @@
 #define CONTENTFACTORY_H
 
 #include "types.h"
-#include "ContentType.h"
+#include "scene/ContentType.h"
 
 #include <QStringList>
-
-class Content;
 
 class ContentFactory
 {
@@ -54,10 +52,8 @@ public:
     static ContentPtr getContent( const QString& uri );
 
     /** Special case: PixelStreamContent type cannot be derived from its uri. */
-    static ContentPtr getPixelStreamContent( const QString& uri );
-
-    /** Create a Webbrowser Content (special type of PixelStream). */
-    static ContentPtr getWebbrowserContent( const QString& uri );
+    static ContentPtr getPixelStreamContent( const QString& uri,
+                                    StreamType stream = StreamType::EXTERNAL );
 
     /** Get a Content object representing a loading error. */
     static ContentPtr getErrorContent( const QSize& size = QSize( ));

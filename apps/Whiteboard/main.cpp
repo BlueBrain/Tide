@@ -46,6 +46,9 @@ int main( int argc, char** argv )
     logger_id = "whiteboard";
     qInstallMessageHandler( qtMessageLogger );
 
+    // Load virtualkeyboard input context plugin
+    qputenv( "QT_IM_MODULE", QByteArray( "virtualkeyboard" ));
+
     std::unique_ptr<Whiteboard> whiteboard;
     try
     {

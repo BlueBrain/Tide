@@ -97,7 +97,8 @@ BOOST_AUTO_TEST_CASE( testFactoryMethod )
     dummyContent.type = CONTENT_TYPE_WEBBROWSER;
     BOOST_CHECK_THROW( ContentController::create( window ),
                        std::bad_cast );
-    ContentWindow webWindow( ContentFactory::getWebbrowserContent( "abc" ));
+    ContentWindow webWindow(
+       ContentFactory::getPixelStreamContent( "abc", StreamType::WEBBROWSER ));
     BOOST_CHECK_NO_THROW( controller = ContentController::create( webWindow ));
 #endif
 #if TIDE_USE_QT5WEBKITWIDGETS

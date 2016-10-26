@@ -4,7 +4,6 @@
 #                     Raphael Dumusc <raphael.dumusc@epfl.ch>
 
 set(TIDELAUNCHER_HEADERS
-  FileInfoHelper.h
   Launcher.h
 )
 
