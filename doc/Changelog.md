@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.2 (git master)
 
+* [100](https://github.com/BlueBrain/Tide/pull/100):
+  The Launcher can generate thumbnails much faster (requires Qt 5.6.3 or 5.7.1).
 * [97](https://github.com/BlueBrain/Tide/pull/97):
   Webbrowsers can be saved and restored from sessions and display the page title
   in their title bar.

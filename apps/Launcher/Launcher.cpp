@@ -87,7 +87,11 @@ Launcher::Launcher( int& argc, char* argv[] )
     item->setProperty( "rootSessionsFolder", config.getSessionsDir( ));
 
     QQmlEngine* engine = _qmlStreamer->getQmlEngine();
+#if TIDE_ASYNC_THUMBNAIL_PROVIDER
+    engine->addImageProvider( thumbnailProviderId, new AsyncThumbnailProvider );
+#else
     engine->addImageProvider( thumbnailProviderId, new ThumbnailProvider );
+#endif
     engine->rootContext()->setContextProperty( "fileInfo", &_fileInfoHelper );
 
     // DemoLauncher setup
