@@ -41,8 +41,10 @@
 #ifndef THUMBNAILPROVIDER_H
 #define THUMBNAILPROVIDER_H
 
+#include <memory>
 #include <QtQuick/QQuickImageProvider>
-#include <QCache>
+
+class ThumbnailCache;
 
 /**
  * Provide thumbnails for files and folders to the Qml FileBrowser.
@@ -68,9 +70,35 @@ public:
 
 private:
     const QSize _defaultSize;
-    QCache<QString, QImage> _cache;
-
-    bool _isImageInCache( const QString& filename ) const;
+    std::unique_ptr<ThumbnailCache> _cache;
 };
+
+// Need at least Qt 5.6.3 or 5.7.1 because of the following segfault bug:
+// https://bugreports.qt.io/browse/QTBUG-56056
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 6, 3)) && \
+    (QT_VERSION != QT_VERSION_CHECK(5, 7, 0))
+#define TIDE_ASYNC_THUMBNAIL_PROVIDER 1
+#include <mutex>
+
+/**
+ * Provide thumbnails for files and folders to the Qml FileBrowser.
+ *
+ * This is a multi-threaded version of the ThumbnailProvider.
+ */
+class AsyncThumbnailProvider : public QQuickAsyncImageProvider
+{
+public:
+    AsyncThumbnailProvider( const QSize defaultSize = QSize( 512, 512 ));
+
+    QQuickImageResponse* requestImageResponse( const QString& filename,
+                                               const QSize& size ) final;
+
+private:
+    const QSize _defaultSize;
+    std::unique_ptr<ThumbnailCache> _cache;
+    std::mutex _mutex;
+};
+
+#endif
 
 #endif
