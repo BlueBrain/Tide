@@ -9,6 +9,7 @@ set(TIDEWALL_LINK_LIBRARIES
     TideCore
     Qt5::Widgets
   PRIVATE
+    DeflectQt
     Qt5::Svg
 )
 
@@ -66,7 +67,6 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   PixelStreamUpdater.h
   QmlWindowRenderer.h
   QuadLineNode.h
-  QuickRenderer.h
   RenderController.h
   StreamImage.h
   SVGGpuImage.h
@@ -103,7 +103,6 @@ list(APPEND TIDEWALL_SOURCES
   PixelStreamUpdater.cpp
   QmlWindowRenderer.cpp
   QuadLineNode.cpp
-  QuickRenderer.cpp
   RenderController.cpp
   StreamImage.cpp
   SVGGpuImage.cpp

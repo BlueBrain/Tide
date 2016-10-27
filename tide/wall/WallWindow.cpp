@@ -43,13 +43,14 @@
 #include "DisplayGroupRenderer.h"
 #include "log.h"
 #include "qmlUtils.h"
-#include "QuickRenderer.h"
 #include "scene/Options.h"
 #include "TestPattern.h"
 #include "TextureUploader.h"
 #include "WallConfiguration.h"
 
+#include <deflect/qt/QuickRenderer.h>
 #include <QOpenGLContext>
+#include <QOpenGLFunctions>
 #include <QQmlEngine>
 #include <QQuickRenderControl>
 #include <QThread>
@@ -66,9 +67,8 @@ WallWindow::WallWindow( const WallConfiguration& config,
     , _displayGroupRenderer( nullptr )
     , _testPattern( nullptr )
     , _wallChannel( wallChannel )
-    , _glContext( new QOpenGLContext )
     , _renderControl( renderControl )
-    , _quickRenderer( new QuickRenderer( *this ))
+    , _quickRenderer( new deflect::qt::QuickRenderer( *this, *_renderControl ))
     , _quickRendererThread( new QThread )
     , _qmlEngine( new QQmlEngine )
     , _qmlComponent( nullptr )
@@ -117,7 +117,6 @@ WallWindow::~WallWindow()
     delete _displayGroupRenderer;
     delete _qmlComponent;
     delete _qmlEngine;
-    delete _glContext;
     delete _quickRenderer;
     delete _uploader;
 }
@@ -129,13 +128,6 @@ void WallWindow::exposeEvent( QExposeEvent* )
         // Initialize the renderer once the window is shown for correct GL context
         // realisiation
 
-        QSurfaceFormat format_;
-        format_.setDepthBufferSize( 16 );
-        format_.setStencilBufferSize( 8 );
-
-        _glContext->setFormat( format_ );
-        _glContext->create();
-
     #if QT_VERSION >= 0x050500
         // Call required to make QtGraphicalEffects work in the initial scene.
         _renderControl->prepareThread( _quickRendererThread );
@@ -145,7 +137,6 @@ void WallWindow::exposeEvent( QExposeEvent* )
                              "QtGraphicalEffects." );
     #endif
 
-        _glContext->moveToThread( _quickRendererThread );
         _quickRenderer->moveToThread( _quickRendererThread );
 
         _quickRendererThread->setObjectName( "Render" );
@@ -157,7 +148,7 @@ void WallWindow::exposeEvent( QExposeEvent* )
         _uploadThread->setObjectName( "Upload" );
         _uploadThread->start();
 
-        _uploader->init( _glContext );
+        _uploader->init( _quickRenderer->context( ));
 
         _wallChannel.globalBarrier();
         _rendererInitialized = true;
@@ -180,9 +171,16 @@ void WallWindow::_startQuick( const WallConfiguration& config )
     const QRect& screenRect = config.getScreenRect( screenIndex );
     _displayGroupRenderer = new DisplayGroupRenderer( *this, *_provider,
                                                       screenRect );
-    connect( _quickRenderer, &QuickRenderer::frameSwapped,
-             _displayGroupRenderer,
-             &DisplayGroupRenderer::updateRenderedFrames );
+    connect( _quickRenderer, &deflect::qt::QuickRenderer::afterRender,
+             [&]
+             {
+                _wallChannel.globalBarrier();
+                _quickRenderer->context()->swapBuffers( this );
+                _quickRenderer->context()->functions()->glFlush();
+                QMetaObject::invokeMethod( _displayGroupRenderer,
+                                           "updateRenderedFrames",
+                                           Qt::QueuedConnection );
+             });
 
     _testPattern = new TestPattern( config, _rootItem );
     _testPattern->setPosition( -screenRect.topLeft( ));
@@ -235,16 +233,6 @@ QQmlEngine* WallWindow::engine() const
 QQuickItem*	WallWindow::rootObject() const
 {
     return _rootItem;
-}
-
-QOpenGLContext& WallWindow::getOpenGLContext()
-{
-    return *_glContext;
-}
-
-QQuickRenderControl& WallWindow::getRenderControl()
-{
-    return *_renderControl;
 }
 
 WallToWallChannel& WallWindow::getWallChannel()

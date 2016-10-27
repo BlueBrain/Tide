@@ -59,6 +59,7 @@ Whiteboard::Whiteboard( int& argc, char* argv[] )
     _qmlStreamer.reset( new deflect::qt::QmlStreamer( deflectQmlFile,
                                                       deflectHost,
                                                       deflectStreamId ));
+    _qmlStreamer->useAsyncSend( true );
 
     connect( _qmlStreamer.get(), &deflect::qt::QmlStreamer::streamClosed,
              this, &QCoreApplication::quit );
