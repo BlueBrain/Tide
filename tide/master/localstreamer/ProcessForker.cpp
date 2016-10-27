@@ -109,6 +109,12 @@ void ProcessForker::_launch( const QString& command, const QString& workingDir,
         }
     }
 
+    // forcefully disable touch point compression to ensure every touch point
+    // update is received on the QML side (e.g. necessary for the whiteboard).
+    // See undocumented QML_NO_TOUCH_COMPRESSION env variable in
+    // <qt5-source>/qtdeclarative/src/quick/items/qquickwindow.cpp
+    qputenv( "QML_NO_TOUCH_COMPRESSION", "1" );
+
     QProcess* process = new QProcess();
     process->setWorkingDirectory( workingDir );
     process->startDetached( command );
