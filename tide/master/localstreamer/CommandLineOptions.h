@@ -82,7 +82,7 @@ public:
     void setHelp( bool set );
     void setPixelStreamerType( PixelStreamerType type );
     void setUrl( const QString& url );
-    void setStreamId( const QString& name );
+    void setStreamId( const QString& id );
     void setWidth( unsigned int width );
     void setHeight( unsigned int height );
     void setConfiguration( const QString& file );

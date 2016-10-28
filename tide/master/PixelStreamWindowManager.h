@@ -56,7 +56,7 @@
  */
 enum class StreamType
 {
-    STANDARD,
+    EXTERNAL,
     WEBBROWSER,
     WHITEBOARD
 };
@@ -108,10 +108,10 @@ public:
      * @param pos the desired position for the center of the window in pixels.
      *        If pos.isNull(), the window is centered on the DisplayGroup.
      * @param size the desired size of the window in pixels.
-     * @param stream the type of window to create
+     * @param stream the type of stream for the window.
      */
     void openWindow( const QString& uri, const QPointF& pos, const QSize& size,
-                     const StreamType stream = StreamType::STANDARD );
+                     const StreamType stream = StreamType::EXTERNAL );
 
     /** Check if new windows open in focus mode. */
     bool getAutoFocusNewWindows() const;

@@ -48,9 +48,20 @@
 class ThumbnailGenerator;
 using ThumbnailGeneratorPtr = std::unique_ptr<ThumbnailGenerator>;
 
+/**
+ * Factory for thumbnail generators.
+ */
 class ThumbnailGeneratorFactory
 {
 public:
+    /**
+     * Get the generator for a given file type.
+     *
+     * @param filename the file to open.
+     * @param size the desired size for the thumbnails.
+     * @return the generator for the file type if it exists, otherwise a default
+     *         generator.
+     */
     static ThumbnailGeneratorPtr getGenerator( const QString& filename,
                                                const QSize& size );
 };

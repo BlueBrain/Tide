@@ -60,7 +60,7 @@ void CommandLineOptions::_initDesc()
 {
     _desc.add_options()
         ("help", "produce help message")
-        ("streamname", po::value<std::string>()->default_value( "" ),
+        ("streamid", po::value<std::string>()->default_value( "" ),
          "unique identifier for this stream")
         ("type", po::value<std::string>()->default_value( "" ),
          "streamer type [webkit]")
@@ -125,9 +125,9 @@ void CommandLineOptions::setUrl( const QString& url )
     _url = url;
 }
 
-void CommandLineOptions::setStreamId( const QString& name )
+void CommandLineOptions::setStreamId( const QString& id )
 {
-    _streamId = name;
+    _streamId = id;
 }
 
 void CommandLineOptions::setConfiguration( const QString& file )
@@ -167,7 +167,7 @@ QStringList CommandLineOptions::getCommandLineArguments() const
         arguments << "--help";
 
     if( !_streamId.isEmpty( ))
-        arguments << "--streamname" << _streamId;
+        arguments << "--streamid" << _streamId;
 
     if( !_url.isEmpty( ))
         arguments << "--url" << _url;
@@ -193,7 +193,7 @@ void CommandLineOptions::_parseCommandLineArguments( int& argc, char** argv )
     }
 
     _getHelp = vm.count( "help" );
-    _streamId = vm["streamname"].as<std::string>().c_str();
+    _streamId = vm["streamid"].as<std::string>().c_str();
     _streamerType = getStreamerType(vm["type"].as<std::string>().c_str());
     _url = vm["url"].as<std::string>().c_str();
     _width = vm["width"].as<unsigned int>();

@@ -42,11 +42,22 @@
 
 #include "ThumbnailGenerator.h"
 
+/**
+ * Generate placeholder images for webbrowser windows.
+ */
 class WebbrowserThumbnailGenerator : public ThumbnailGenerator
 {
 public:
+    /** @copydoc ThumbnailGenerator::ThumbnailGenerator */
     WebbrowserThumbnailGenerator( const QSize& size );
 
+    /**
+     * Generate a thumbnail for a webbrowser window.
+     *
+     * @param url the url of the web page.
+     * @return a placeholder image showing the host part of the url, for example
+     *         "google.com".
+     */
     QImage generate( const QString& url ) const final;
 };
 

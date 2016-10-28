@@ -129,7 +129,7 @@ void PixelStreamWindowManager::openWindow( const QString& uri,
 
     _displayGroup.addContentWindow( window );
 
-    if( _autoFocusNewWindows && stream == StreamType::STANDARD )
+    if( _autoFocusNewWindows && stream == StreamType::EXTERNAL )
         DisplayGroupController{ _displayGroup }.focus( window->getID( ));
 }
 

@@ -44,11 +44,23 @@
 
 #include <QFileInfoList>
 
+/**
+ * Generate thumbnails for folders.
+ */
 class FolderThumbnailGenerator : public ThumbnailGenerator
 {
 public:
+    /** @copydoc ThumbnailGenerator::ThumbnailGenerator */
     FolderThumbnailGenerator( const QSize& size );
 
+    /**
+     * Generate a thumbnail for a folder.
+     *
+     * @param filename the path to an existing folder.
+     * @return a thumbnail with up to 4 miniatures of supported files from the
+     *         folder, or a placeholder image if the filename does not
+     *         correspond to a directory or an error occured.
+     */
     QImage generate( const QString& filename ) const final;
 
 private:

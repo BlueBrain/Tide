@@ -42,11 +42,22 @@
 
 #include "ThumbnailGenerator.h"
 
+/**
+ * Generate thumbnails for Tide session files.
+ */
 class StateThumbnailGenerator : public ThumbnailGenerator
 {
 public:
+    /** @copydoc ThumbnailGenerator::ThumbnailGenerator */
     StateThumbnailGenerator( const QSize& size );
 
+    /**
+     * Generate a thumbnail for a saved session file.
+     *
+     * @param filename the session file.
+     * @return the session thumbnail, or a placeholder image if the session
+     *         preview image can't be found or an error occured.
+     */
     QImage generate( const QString& filename ) const final;
 
 private:

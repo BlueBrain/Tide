@@ -88,7 +88,7 @@ void checkOptionParameters( const CommandLineOptions& options )
 
     BOOST_CHECK_EQUAL( options.getCommandLine().toStdString(),
                        "--type webkit --width 480 --height 640 --help "
-                       "--streamname MyStreamer --url http://www.perdu.com "
+                       "--streamid MyStreamer --url http://www.perdu.com "
                        "--config /path/to/configuration.xml" );
 }
 
