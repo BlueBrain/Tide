@@ -44,8 +44,6 @@
 #include "rest/JsonOptions.h"
 #include "scene/Options.h"
 
-#include <boost/make_shared.hpp>
-
 namespace
 {
 const std::string defaultJson{

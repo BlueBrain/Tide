@@ -98,17 +98,17 @@ BOOST_AUTO_TEST_CASE( testNoStreamerWindowCreation )
     const QSize size( testWindowSize );
 
     windowManager.openWindow( uri, pos, size );
-    ContentWindowPtr window = windowManager.getContentWindow( uri );
+    ContentWindowPtr window = windowManager.getWindow( uri );
     BOOST_REQUIRE( window );
 
-    BOOST_CHECK_EQUAL( window, windowManager.getContentWindow( uri ));
+    BOOST_CHECK_EQUAL( window, windowManager.getWindow( uri ));
 
     const QRectF& coords = window->getCoordinates();
     BOOST_CHECK_EQUAL( coords.center(), pos );
     BOOST_CHECK_EQUAL( coords.size(), size );
 
-    windowManager.closePixelStreamWindow( uri );
-    BOOST_CHECK( !windowManager.getContentWindow( uri ));
+    windowManager.handleStreamEnd( uri );
+    BOOST_CHECK( !windowManager.getWindow( uri ));
 }
 
 BOOST_AUTO_TEST_CASE( testEventReceiver )
@@ -116,7 +116,7 @@ BOOST_AUTO_TEST_CASE( testEventReceiver )
     DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
     PixelStreamWindowManager windowManager( *displayGroup );
     windowManager.openWindow( CONTENT_URI, testWindowPos, testWindowSize );
-    ContentWindowPtr window = windowManager.getContentWindow( CONTENT_URI );
+    ContentWindowPtr window = windowManager.getWindow( CONTENT_URI );
     BOOST_REQUIRE( window );
 
     auto content = dynamic_cast<PixelStreamContent*>( window->getContentPtr( ));
@@ -168,15 +168,15 @@ BOOST_AUTO_TEST_CASE( testExplicitWindowCreation )
     const QSize size( testWindowSize );
 
     windowManager.openWindow( uri, pos, size );
-    ContentWindowPtr window = windowManager.getContentWindow( uri );
+    ContentWindowPtr window = windowManager.getWindow( uri );
     BOOST_REQUIRE( window );
 
-    BOOST_CHECK_EQUAL( window, windowManager.getContentWindow( uri ));
+    BOOST_CHECK_EQUAL( window, windowManager.getWindow( uri ));
     BOOST_CHECK_EQUAL( window,
                        displayGroup->getContentWindow( window->getID( )));
 
-    windowManager.openPixelStreamWindow( uri );
-    BOOST_CHECK_EQUAL( window, windowManager.getContentWindow( uri ));
+    windowManager.handleStreamStart( uri );
+    BOOST_CHECK_EQUAL( window, windowManager.getWindow( uri ));
 
     ContentPtr content = window->getContent();
     BOOST_REQUIRE( content );
@@ -193,8 +193,8 @@ BOOST_AUTO_TEST_CASE( testExplicitWindowCreation )
     BOOST_CHECK_EQUAL( coords.center(), pos );
     BOOST_CHECK_EQUAL( coords.size(), size );
 
-    windowManager.closePixelStreamWindow( uri );
-    BOOST_CHECK( !windowManager.getContentWindow( uri ));
+    windowManager.handleStreamEnd( uri );
+    BOOST_CHECK( !windowManager.getWindow( uri ));
     BOOST_CHECK( !displayGroup->getContentWindow( window->getID( )));
 }
 
@@ -208,8 +208,8 @@ BOOST_AUTO_TEST_CASE( testImplicitWindowCreation )
     const QPointF pos( wallSize.width() * 0.5, wallSize.height() * 0.5 );
     const QSize size( defaultPixelStreamWindowSize );
 
-    windowManager.openPixelStreamWindow( uri );
-    ContentWindowPtr window = windowManager.getContentWindow( uri );
+    windowManager.handleStreamStart( uri );
+    ContentWindowPtr window = windowManager.getWindow( uri );
     BOOST_REQUIRE( window );
     BOOST_CHECK_EQUAL( window,
                        displayGroup->getContentWindow( window->getID( )));
@@ -236,8 +236,8 @@ BOOST_AUTO_TEST_CASE( testImplicitWindowCreation )
     BOOST_CHECK_EQUAL( coords.center(), pos );
     BOOST_CHECK_EQUAL( coords.size(), testFrameSize );
 
-    windowManager.closePixelStreamWindow( uri );
-    BOOST_CHECK( !windowManager.getContentWindow( uri ));
+    windowManager.handleStreamEnd( uri );
+    BOOST_CHECK( !windowManager.getWindow( uri ));
     BOOST_CHECK( !displayGroup->getContentWindow( window->getID( )));
 }
 
@@ -246,8 +246,8 @@ BOOST_AUTO_TEST_CASE( testSizeHints )
     DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
     PixelStreamWindowManager windowManager( *displayGroup );
     const QString uri = CONTENT_URI;
-    windowManager.openPixelStreamWindow( uri );
-    ContentWindowPtr window = windowManager.getContentWindow( uri );
+    windowManager.handleStreamStart( uri );
+    ContentWindowPtr window = windowManager.getWindow( uri );
     ContentPtr content = window->getContent();
 
     BOOST_CHECK_EQUAL( content->getDimensions(), QSizeF( ));
@@ -279,8 +279,8 @@ BOOST_AUTO_TEST_CASE( hideAndShowWindow )
     PixelStreamWindowManager windowManager( *displayGroup );
 
     const QString uri = CONTENT_URI;
-    windowManager.openPixelStreamWindow( uri );
-    ContentWindowPtr window = windowManager.getContentWindow( uri );
+    windowManager.handleStreamStart( uri );
+    ContentWindowPtr window = windowManager.getWindow( uri );
 
     BOOST_REQUIRE( !window->isHidden( ));
     BOOST_REQUIRE( !window->isPanel( ));
@@ -298,8 +298,8 @@ BOOST_AUTO_TEST_CASE( hideAndShowPanel )
     PixelStreamWindowManager windowManager( *displayGroup );
 
     const QString uri = PANEL_URI;
-    windowManager.openPixelStreamWindow( uri );
-    ContentWindowPtr panel = windowManager.getContentWindow( uri );
+    windowManager.handleStreamStart( uri );
+    ContentWindowPtr panel = windowManager.getWindow( uri );
 
     BOOST_REQUIRE( panel->isPanel( ));
     BOOST_REQUIRE( !panel->isHidden( ));

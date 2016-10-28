@@ -74,28 +74,29 @@ signals:
     /** Emitted when users want to open a webbrowser. */
     void openWebBrowser( QPointF pos, QSize size, QString url );
 
+    /** Emitted when a session has been successfully loaded. */
+    void sessionLoaded( DisplayGroupConstPtr group );
+
 protected:
     /** @name Drag events re-implemented from QMainWindow */
     //@{
-    void dragEnterEvent( QDragEnterEvent* event ) override;
-    void dropEvent( QDropEvent* event ) override;
+    void dragEnterEvent( QDragEnterEvent* event ) final;
+    void dropEvent( QDropEvent* event ) final;
     //@}
-
-private slots:
-    void _openContent();
-    void _openContentsDirectory();
-
-    void _openSession();
-    void _saveSession();
-
-    void _openAboutWidget();
 
 private:
     void _setupMasterWindowUI();
 
+    void _openContent();
     void _addContentDirectory( const QString& directoryName,
                                unsigned int gridX = 0, unsigned int gridY = 0 );
+    void _openContentsDirectory();
+
+    void _openSession();
+    void _saveSession();
     void _loadSession( const QString& filename );
+
+    void _openAboutWidget();
 
     void _estimateGridSize( unsigned int numElem, unsigned int& gridX,
                             unsigned int& gridY );
@@ -109,9 +110,10 @@ private:
     QFutureWatcher<DisplayGroupConstPtr> _loadSessionOp;
     QFutureWatcher<bool> _saveSessionOp;
 
-    BackgroundWidget* _backgroundWidget;
-    WebbrowserWidget* _webbrowserWidget;
-    DisplayGroupView* _displayGroupView;
+    BackgroundWidget* _backgroundWidget; // child QObject
+    WebbrowserWidget* _webbrowserWidget; // child QObject
+
+    DisplayGroupView* _displayGroupView; // child QObject of the QWidget wrapper
 
     QString _contentFolder;
     QString _sessionFolder;

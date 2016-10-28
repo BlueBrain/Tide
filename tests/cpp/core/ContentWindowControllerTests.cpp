@@ -41,8 +41,6 @@
 #define BOOST_TEST_MODULE ContentWindowControllerTests
 #include <boost/test/unit_test.hpp>
 
-#include <boost/make_shared.hpp>
-
 #include "control/ContentWindowController.h"
 #include "control/LayoutEngine.h"
 #include "scene/ContentWindow.h"

@@ -54,7 +54,7 @@ public:
     /**
      * Constructor
      *
-     * @param group The DisplayGroup to be saved or restored.
+     * @param group The group to be saved, or used as a reference for loading.
      */
     StateSerializationHelper( DisplayGroupPtr group );
 
@@ -72,7 +72,7 @@ public:
      *
      * @return the loaded display group on success, nullptr on failure.
      */
-    QFuture<DisplayGroupConstPtr> load( const QString& filename );
+    QFuture<DisplayGroupConstPtr> load( const QString& filename ) const;
 
 private:
     DisplayGroupPtr _displayGroup;

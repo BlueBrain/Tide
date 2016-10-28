@@ -46,8 +46,6 @@
 #include "TextureUploader.h"
 #include "WallWindow.h"
 
-#include <boost/make_shared.hpp>
-
 RenderController::RenderController( WallWindow& window )
     : _window( window )
     , _syncQuit( false )

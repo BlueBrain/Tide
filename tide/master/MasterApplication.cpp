@@ -52,6 +52,7 @@
 #include "scene/DisplayGroup.h"
 #include "scene/Options.h"
 #include "scene/Markers.h"
+#include "scene/WebbrowserContent.h"
 #include "StateSerializationHelper.h"
 #include "QmlTypeRegistration.h"
 #include "ui/DisplayGroupView.h"
@@ -140,13 +141,8 @@ void MasterApplication::_init()
     connect( &_loadSessionOp, &QFutureWatcher<DisplayGroupConstPtr>::finished,
              [this]()
     {
-        auto group = _loadSessionOp.result();
-        if( !group )
-            return;
-
-        _displayGroup->setContentWindows( group->getContentWindows( ));
-        _displayGroup->setShowWindowTitles( group->getShowWindowTitles( ));
-        _options->setShowWindowTitles( group->getShowWindowTitles( ));
+        if( auto group = _loadSessionOp.result( ))
+            _apply( group );
     });
 
     _initPixelStreamLauncher();
@@ -167,6 +163,19 @@ void MasterApplication::_init()
 #if TIDE_ENABLE_REST_INTERFACE
     _initRestInterface();
 #endif
+}
+
+void MasterApplication::_apply( DisplayGroupConstPtr group )
+{
+    _displayGroup->setContentWindows( group->getContentWindows( ));
+    _displayGroup->setShowWindowTitles( group->getShowWindowTitles( ));
+    _options->setShowWindowTitles( group->getShowWindowTitles( ));
+
+    // Restore webbrowsers
+    using WebContent = const WebbrowserContent*;
+    for( const auto& window : group->getContentWindows( ))
+        if( auto browser = dynamic_cast<WebContent>( window->getContentPtr( )))
+            _pixelStreamerLauncher->launch( *browser );
 }
 
 bool MasterApplication::_createConfig( const QString& filename )
@@ -202,12 +211,12 @@ void MasterApplication::_startDeflectServer()
 
     connect( &dispatcher, &deflect::FrameDispatcher::openPixelStream,
              _pixelStreamWindowManager.get(),
-             &PixelStreamWindowManager::openPixelStreamWindow );
+             &PixelStreamWindowManager::handleStreamStart );
     connect( &dispatcher, &deflect::FrameDispatcher::deletePixelStream,
              _pixelStreamWindowManager.get(),
-             &PixelStreamWindowManager::closePixelStreamWindow );
+             &PixelStreamWindowManager::handleStreamEnd );
     connect( _pixelStreamWindowManager.get(),
-             &PixelStreamWindowManager::pixelStreamWindowClosed,
+             &PixelStreamWindowManager::streamWindowClosed,
              &dispatcher, &deflect::FrameDispatcher::deleteStream );
 }
 
@@ -230,10 +239,11 @@ void MasterApplication::_initPixelStreamLauncher()
     _pixelStreamerLauncher.reset(
              new PixelStreamerLauncher( *_pixelStreamWindowManager, *_config ));
 
-    connect( _masterWindow.get(),
-             &MasterWindow::openWebBrowser,
+    connect( _masterWindow.get(), &MasterWindow::openWebBrowser,
              _pixelStreamerLauncher.get(),
              &PixelStreamerLauncher::openWebBrowser );
+    connect( _masterWindow.get(), &MasterWindow::sessionLoaded,
+             this, &MasterApplication::_apply );
 
     connect( _masterWindow->getDisplayGroupView(),
              &DisplayGroupView::openLauncher,
@@ -292,7 +302,7 @@ void MasterApplication::_initMPIConnection()
              &PixelStreamWindowManager::sendDataToWindow );
 
     connect( _pixelStreamWindowManager.get(),
-             &PixelStreamWindowManager::pixelStreamWindowClosed,
+             &PixelStreamWindowManager::streamWindowClosed,
              _deflectServer.get(), &deflect::Server::onPixelStreamerClosed );
     connect( _pixelStreamWindowManager.get(),
              &PixelStreamWindowManager::eventRegistrationReply,

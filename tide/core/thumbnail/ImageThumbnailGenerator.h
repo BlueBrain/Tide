@@ -42,11 +42,22 @@
 
 #include "ThumbnailGenerator.h"
 
+/**
+ * Generate thumbnails for regular image files.
+ */
 class ImageThumbnailGenerator : public ThumbnailGenerator
 {
 public:
+    /** @copydoc ThumbnailGenerator::ThumbnailGenerator */
     ImageThumbnailGenerator( const QSize& size );
 
+    /**
+     * Generate a thumbnail of an image.
+     *
+     * @param filename the filename of the image.
+     * @return the desired thumbnail, or a placeholder if the file is too large
+     *         (>100MB) or an error occured.
+     */
     QImage generate( const QString& filename ) const final;
 
 private:

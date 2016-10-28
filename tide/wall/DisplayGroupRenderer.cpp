@@ -50,8 +50,6 @@
 
 #include <deflect/Frame.h>
 
-#include <boost/make_shared.hpp>
-
 #include <QQmlContext>
 #include <QQmlComponent>
 #include <QQuickItem>

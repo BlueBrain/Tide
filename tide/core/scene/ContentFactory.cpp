@@ -65,8 +65,6 @@
 #include <QImageReader>
 #include <QTextStream>
 
-#include <boost/make_shared.hpp>
-
 #define ERROR_IMAGE_FILENAME ":/img/error.png"
 
 namespace

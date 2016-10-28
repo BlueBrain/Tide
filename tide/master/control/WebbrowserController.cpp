@@ -48,7 +48,7 @@ WebbrowserController::WebbrowserController( ContentWindow& contentWindow )
 
 void WebbrowserController::touchBegin( const QPointF position )
 {
-    getWebContent().setAddressBarFocused( false );
+    getWebContent().getAddressBar()->setFocused( false );
 
     PixelStreamController::touchBegin( position );
 }
@@ -56,7 +56,7 @@ void WebbrowserController::touchBegin( const QPointF position )
 void WebbrowserController::keyPress( const int key, const int modifiers,
                                      const QString text )
 {
-    if( getWebContent().isAddressBarFocused( ))
+    if( getWebContent().getAddressBar()->isFocused( ))
         return;
 
     PixelStreamController::keyPress( key, modifiers, text );
@@ -65,7 +65,7 @@ void WebbrowserController::keyPress( const int key, const int modifiers,
 void WebbrowserController::keyRelease( const int key, const int modifiers,
                                        const QString text )
 {
-    if( getWebContent().isAddressBarFocused( ))
+    if( getWebContent().getAddressBar()->isFocused( ))
     {
         switch( key )
         {

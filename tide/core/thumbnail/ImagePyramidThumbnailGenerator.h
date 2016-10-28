@@ -42,11 +42,21 @@
 
 #include "ThumbnailGenerator.h"
 
+/**
+ * Generate thumbnails for image pyramids.
+ */
 class ImagePyramidThumbnailGenerator : public ThumbnailGenerator
 {
 public:
+    /** @copydoc ThumbnailGenerator::ThumbnailGenerator */
     ImagePyramidThumbnailGenerator( const QSize& size );
 
+    /**
+     * Generate a thumbnail of a TIFF image pyramid.
+     *
+     * @param filename the image pyramid file.
+     * @return the desired thumbnail, or a placeholder if an error occured.
+     */
     QImage generate( const QString& filename ) const final;
 };
 

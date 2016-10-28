@@ -27,14 +27,16 @@ else()
   )
 endif()
 
-if(NOT TARGET Qt5::WebEngine AND X11_FOUND AND TARGET Qt5::WebKitWidgets)
+if(X11_FOUND AND TARGET Qt5::WebKitWidgets)
   list(APPEND TEST_LIBRARIES ${X11_LIBRARIES} Qt5::WebKitWidgets)
 else()
   list(APPEND EXCLUDE_FROM_TESTS
     core/LocalPixelStreamerTests.cpp
-    core/WebbrowserTests.cpp
-    core/WebbrowserContentTests.cpp
+    core/WebkitTests.cpp
     core/WebkitHtmlSelectReplacementTests.cpp)
+endif()
+if(NOT TARGET Qt5::WebEngine AND NOT TARGET Qt5::WebKitWidgets)
+  list(APPEND EXCLUDE_FROM_TESTS core/WebbrowserContentTests.cpp)
 endif()
 
 # Recursively compile unit tests for *.cpp files in the current folder,

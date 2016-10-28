@@ -41,8 +41,7 @@
 
 DefaultThumbnailGenerator::DefaultThumbnailGenerator( const QSize& size )
     : ThumbnailGenerator( size )
-{
-}
+{}
 
 QImage DefaultThumbnailGenerator::generate( const QString& ) const
 {

@@ -74,7 +74,6 @@ class ContentWindow : public Rectangle
                 WRITE setActiveHandle NOTIFY activeHandleChanged )
     Q_PROPERTY( ResizePolicy resizePolicy READ getResizePolicy
                 WRITE setResizePolicy NOTIFY resizePolicyChanged )
-    Q_PROPERTY( QString label READ getLabel NOTIFY labelChanged )
     Q_PROPERTY( bool selected READ isSelected
                 WRITE setSelected NOTIFY selectedChanged )
 
@@ -213,9 +212,6 @@ public:
     bool isHidden() const;
 
 
-    /** Get the label for the window */
-    QString getLabel() const;
-
     /** @return true if the window is selected. */
     bool isSelected() const;
 
@@ -253,7 +249,6 @@ signals:
     void focusedCoordinatesChanged();
     void fullscreenCoordinatesChanged();
     void stateChanged();
-    void labelChanged();
     void selectedChanged();
     void hiddenChanged( bool hidden );
     //@}

@@ -42,7 +42,7 @@ Item {
         color: Style.windowFocusGlowColor
         glowRadius: Style.windowFocusGlowRadius
         spread: Style.windowFocusGlowSpread
-        visible: contentwindow.content.addressBarFocused
+        visible: contentwindow.content.addressBar.focused
         onVisibleChanged: {
             contentwindow.content.keyboard.visible = visible
             addressBar.focus = visible
@@ -60,7 +60,7 @@ Item {
 
         readOnly: true
         placeholderText: "enter url"
-        text: contentwindow.content.url
+        text: contentwindow.content.addressBar.url
 
         Rectangle {
             color: "white"
@@ -85,54 +85,54 @@ Item {
         }
 
         function activateAddressBar() {
-            contentwindow.content.addressBarFocused = true
+            contentwindow.content.addressBar.focused = true
         }
         function deactivateAddressBar() {
-            contentwindow.content.addressBarFocused = false
+            contentwindow.content.addressBar.focused = false
             focus = false
         }
 
         onCursorPositionChanged: {
             if (!isWall && focus) {
                 activateAddressBar()
-                contentwindow.content.cursorPosition = cursorPosition
+                contentwindow.content.addressBar.cursorPosition = cursorPosition
             }
         }
         onSelectionStartChanged: {
             if (!isWall)
-                contentwindow.content.selectionStart = selectionStart
+                contentwindow.content.addressBar.selectionStart = selectionStart
         }
         onSelectionEndChanged: {
             if (!isWall)
-                contentwindow.content.selectionEnd = selectionEnd
+                contentwindow.content.addressBar.selectionEnd = selectionEnd
         }
-        property int selectionStartProxy: contentwindow.content.selectionStart
+        property int selectionStartProxy: contentwindow.content.addressBar.selectionStart
         onSelectionStartProxyChanged: {
             if (isWall)
                 addressBar.select(selectionStartProxy, selectionEndProxy)
         }
-        property int selectionEndProxy: contentwindow.content.selectionEnd
+        property int selectionEndProxy: contentwindow.content.addressBar.selectionEnd
         onSelectionEndProxyChanged: {
             if (isWall)
                 addressBar.select(selectionStartProxy, selectionEndProxy)
         }
         Component.onCompleted: {
             if (!isWall) {
-                contentwindow.delegate.keyboardInput.connect(keyboardInput)
-                contentwindow.delegate.deleteKeyPressed.connect(deleteKeyPressed)
-                contentwindow.delegate.enterKeyPressed.connect(enterKeyPressed)
+                contentcontroller.keyboardInput.connect(keyboardInput)
+                contentcontroller.deleteKeyPressed.connect(deleteKeyPressed)
+                contentcontroller.enterKeyPressed.connect(enterKeyPressed)
             }
         }
         function keyboardInput(key) {
             if (selectionEnd > selectionStart) {
                 var positionBackup = selectionStart
-                contentwindow.content.url = text.substring(0,selectionStart) + key +
-                                            text.substring(selectionEnd,text.length)
+                contentwindow.content.addressBar.url = text.substring(0,selectionStart) + key +
+                                                       text.substring(selectionEnd,text.length)
             }
             else {
                 var positionBackup = cursorPosition
-                contentwindow.content.url = text.substring(0,cursorPosition) + key +
-                                            text.substring(cursorPosition,text.length)
+                contentwindow.content.addressBar.url = text.substring(0,cursorPosition) + key +
+                                                       text.substring(cursorPosition,text.length)
             }
             cursorPosition = positionBackup + key.length
         }
@@ -141,13 +141,13 @@ Item {
                 keyboardInput("")
             else {
                 var positionBackup = cursorPosition
-                contentwindow.content.url = text.substring(0,cursorPosition-1) +
-                                            text.substring(cursorPosition,text.length)
+                contentwindow.content.addressBar.url = text.substring(0,cursorPosition-1) +
+                                                       text.substring(cursorPosition,text.length)
                 cursorPosition = positionBackup - 1
             }
         }
         function enterKeyPressed() {
-            sendRestCommand("load", contentwindow.content.url, deactivateAddressBar)
+            sendRestCommand("load", contentwindow.content.addressBar.url, deactivateAddressBar)
         }
     }
     function sendRestCommand(action, file, callback) {

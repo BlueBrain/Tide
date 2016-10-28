@@ -55,10 +55,10 @@ Whiteboard::Whiteboard( int& argc, char* argv[] )
     const CommandLineOptions options( argc, argv );
     const MasterConfiguration config( options.getConfiguration( ));
 
-    const auto deflectStreamname = options.getStreamname().toStdString();
+    const auto deflectStreamId = options.getStreamId().toStdString();
     _qmlStreamer.reset( new deflect::qt::QmlStreamer( deflectQmlFile,
                                                       deflectHost,
-                                                      deflectStreamname ));
+                                                      deflectStreamId ));
 
     connect( _qmlStreamer.get(), &deflect::qt::QmlStreamer::streamClosed,
              this, &QCoreApplication::quit );

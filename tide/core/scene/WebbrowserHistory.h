@@ -65,16 +65,29 @@ public:
 private:
     friend class boost::serialization::access;
 
-    template<class Archive>
-    void serialize( Archive & ar, const unsigned int )
-    {
-        ar & boost::serialization::make_nvp( "items", _items );
-        ar & boost::serialization::make_nvp( "currentItemIndex",
-                                             _currentItemIndex );
-    }
-
     std::vector<QString> _items;
     size_t _currentItemIndex = 0;
+
+    template<class Archive>
+    void save( Archive& ar, const unsigned int ) const
+    {
+        ar & _items;
+        ar & _currentItemIndex;
+    }
+
+    template<class Archive>
+    void load( Archive& ar, const unsigned int )
+    {
+#if BOOST_VERSION == 105800
+        // WAR bug for std::vector of strings affecting Boost 1.58 only
+        // https://bugs.launchpad.net/ubuntu/+source/boost/+bug/1583805
+        _items.clear();
+#endif
+        ar & _items;
+        ar & _currentItemIndex;
+    }
+
+    BOOST_SERIALIZATION_SPLIT_MEMBER()
 };
 
 #endif

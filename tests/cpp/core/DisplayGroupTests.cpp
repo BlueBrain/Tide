@@ -46,8 +46,6 @@
 
 #include "DummyContent.h"
 
-#include <boost/make_shared.hpp>
-
 namespace
 {
 const QSize wallSize( 1000, 1000 );

@@ -41,8 +41,7 @@
 
 #include "log.h"
 #include "scene/ContentFactory.h"
-#include "ThumbnailGeneratorFactory.h"
-#include "ThumbnailGenerator.h"
+#include "thumbnail.h"
 
 #include <QDir>
 #include <QPainter>
@@ -103,20 +102,14 @@ void FolderThumbnailGenerator::_paintThumbnailsMosaic( QImage& img,
     QPainter painter( &img );
     for( int i = 0; i < numPreviews; ++i )
     {
-        QFileInfo fileInfo = fileList.at( i );
-        const QString& filename = fileInfo.absoluteFilePath();
+        const auto filename = fileList.at( i ).absoluteFilePath();
 
         QImage thumbnail;
         // Avoid recursion into subfolders
         if( QDir( filename ).exists( ))
             thumbnail = _createFolderImage( QDir( filename ), false );
         else
-        {
-            const auto size = rect[i].size().toSize();
-            auto generator =
-                    ThumbnailGeneratorFactory::getGenerator( filename, size );
-            thumbnail = generator->generate( filename );
-        }
+            thumbnail = thumbnail::create( filename, rect[i].size().toSize( ));
 
         // Draw the thumbnail centered in its rectangle, preserving aspect ratio
         QSizeF paintedSize( thumbnail.size( ));

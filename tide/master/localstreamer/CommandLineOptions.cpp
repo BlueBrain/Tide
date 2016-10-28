@@ -46,21 +46,11 @@
 namespace po = boost::program_options;
 
 CommandLineOptions::CommandLineOptions()
-    : _getHelp( false )
-    , _streamerType( PS_UNKNOWN )
-    , _width( 0 )
-    , _height( 0 )
-    , _desc( "Allowed options" )
 {
     _initDesc();
 }
 
 CommandLineOptions::CommandLineOptions( int& argc, char** argv )
-    : _getHelp( false )
-    , _streamerType( PS_UNKNOWN )
-    , _width( 0 )
-    , _height( 0 )
-    , _desc( "Allowed options" )
 {
     _initDesc();
     _parseCommandLineArguments( argc, argv );
@@ -70,7 +60,7 @@ void CommandLineOptions::_initDesc()
 {
     _desc.add_options()
         ("help", "produce help message")
-        ("streamname", po::value<std::string>()->default_value( "" ),
+        ("streamid", po::value<std::string>()->default_value( "" ),
          "unique identifier for this stream")
         ("type", po::value<std::string>()->default_value( "" ),
          "streamer type [webkit]")
@@ -100,9 +90,9 @@ const QString& CommandLineOptions::getUrl() const
     return _url;
 }
 
-const QString& CommandLineOptions::getStreamname() const
+const QString& CommandLineOptions::getStreamId() const
 {
-    return _streamname;
+    return _streamId;
 }
 
 unsigned int CommandLineOptions::getWidth() const
@@ -135,9 +125,9 @@ void CommandLineOptions::setUrl( const QString& url )
     _url = url;
 }
 
-void CommandLineOptions::setStreamname( const QString& name )
+void CommandLineOptions::setStreamId( const QString& id )
 {
-    _streamname = name;
+    _streamId = id;
 }
 
 void CommandLineOptions::setConfiguration( const QString& file )
@@ -176,8 +166,8 @@ QStringList CommandLineOptions::getCommandLineArguments() const
     if( _getHelp )
         arguments << "--help";
 
-    if( !_streamname.isEmpty( ))
-        arguments << "--streamname" << _streamname;
+    if( !_streamId.isEmpty( ))
+        arguments << "--streamid" << _streamId;
 
     if( !_url.isEmpty( ))
         arguments << "--url" << _url;
@@ -203,7 +193,7 @@ void CommandLineOptions::_parseCommandLineArguments( int& argc, char** argv )
     }
 
     _getHelp = vm.count( "help" );
-    _streamname = vm["streamname"].as<std::string>().c_str();
+    _streamId = vm["streamid"].as<std::string>().c_str();
     _streamerType = getStreamerType(vm["type"].as<std::string>().c_str());
     _url = vm["url"].as<std::string>().c_str();
     _width = vm["width"].as<unsigned int>();

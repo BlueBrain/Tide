@@ -279,11 +279,6 @@ bool ContentWindow::isHidden() const
     return _windowState == HIDDEN;
 }
 
-QString ContentWindow::getLabel() const
-{
-    return _content->getURI().section( "/", -1, -1 );
-}
-
 bool ContentWindow::isSelected() const
 {
     return _selected;

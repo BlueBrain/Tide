@@ -37,11 +37,14 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef WEBBROWSER_CONTENT_H
-#define WEBBROWSER_CONTENT_H
+#ifndef WEBBROWSERCONTENT_H
+#define WEBBROWSERCONTENT_H
 
 #include "PixelStreamContent.h" // Base class
 #include "WebbrowserHistory.h"  // Member
+#if TIDE_USE_QT5WEBKITWIDGETS
+#  include "AddressBar.h"       // Member
+#endif
 
 /**
  * The Webbrowser is a PixelStream extended with history navigation.
@@ -49,18 +52,12 @@
 class WebbrowserContent : public PixelStreamContent
 {
     Q_OBJECT
-    Q_PROPERTY( int cursorPosition READ getCursorPosition
-                WRITE setCursorPosition NOTIFY cursorPositionChanged )
     Q_PROPERTY( int page READ getPage NOTIFY pageChanged )
     Q_PROPERTY( int pageCount READ getPageCount NOTIFY pageCountChanged )
     Q_PROPERTY( int restPort READ getRestPort NOTIFY restPortChanged )
-    Q_PROPERTY( int selectionStart READ getSelectionStart
-                WRITE setSelectionStart NOTIFY selectionStartChanged )
-    Q_PROPERTY( int selectionEnd READ getSelectionEnd
-                WRITE setSelectionEnd NOTIFY selectionEndChanged )
-    Q_PROPERTY( QString url READ getUrl WRITE setUrl NOTIFY urlChanged )
-    Q_PROPERTY( bool addressBarFocused READ isAddressBarFocused
-                WRITE setAddressBarFocused NOTIFY addressBarFocusedChanged )
+#if TIDE_USE_QT5WEBKITWIDGETS
+    Q_PROPERTY( QObject* addressBar READ getAddressBar CONSTANT )
+#endif
 
 public:
     /**
@@ -71,6 +68,9 @@ public:
 
     /** Get the content type **/
     CONTENT_TYPE getType() const final;
+
+    /** Get the title for the web page. **/
+    QString getTitle() const final;
 
     /** @return false, webbrowsers can adjust their aspect ratio. */
     bool hasFixedAspectRatio() const final;
@@ -87,35 +87,15 @@ public:
     /** Get the port number of the webbrowser's REST interface. */
     int getRestPort() const;
 
-    /** Get the position (index) of the cursor. */
-    int getCursorPosition() const;
-
-    /** Set the position (index) of the cursor. */
-    void setCursorPosition( int index );
-
-    /** Get the start position of the selection in the address bar. */
-    int getSelectionStart() const;
-
-    /** Set the start position of the selection in the address bar. */
-    void setSelectionStart( int pos );
-
-    /** Get the end position of the selection in the address bar. */
-    int getSelectionEnd() const;
-
-    /** Set the end position of the selection in the address bar. */
-    void setSelectionEnd( int pos );
-
     /** Get the url of the current webpage. */
     QString getUrl() const;
 
-    /** Set the url in the address bar. */
-    void setUrl( QString url );
+    /** Replace the navigation history with a single url. */
+    void setUrl( const QString& url );
 
-    /** @return true if the address bar has focus (capture keyboard events). */
-    bool isAddressBarFocused() const;
-
-    /** Give the keyboard focus to the address bar. */
-    void setAddressBarFocused( bool set );
+#if TIDE_USE_QT5WEBKITWIDGETS
+    AddressBar* getAddressBar() const;
+#endif
 
     /**
      * Parse data received from the deflect::Stream.
@@ -128,10 +108,12 @@ public:
      * Serialize webbrowser data for sending through the deflect::Stream.
      *
      * @param history the navigation history
+     * @param pageTitle the title of the current web page
      * @param restPort the port of the REST interface to send commands to
      * @return a serialized data buffer that can be parsed by parseData()
      */
     static QByteArray serializeData( const WebbrowserHistory& history,
+                                     const QString& pageTitle,
                                      int restPort );
 
 signals:
@@ -140,11 +122,6 @@ signals:
     void pageChanged();
     void pageCountChanged();
     void restPortChanged();
-    void cursorPositionChanged();
-    void selectionStartChanged();
-    void selectionEndChanged();
-    void urlChanged();
-    void addressBarFocusedChanged();
     //@}
 
 private:
@@ -159,46 +136,41 @@ private:
     {
         ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP( PixelStreamContent );
         ar & _history;
-        ar & _addressBarFocused;
-        ar & _addressBarUrl;
-        ar & _cursorPosition;
-        ar & _selectionStart;
-        ar & _selectionEnd;
-    }
-
-    /** Serialize for saving to an xml file. */
-    template< class Archive >
-    void serialize_members_xml( Archive & ar, const unsigned int /*version*/ )
-    {
-        // serialize base class information (with NVP for xml archives)
-        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP( PixelStreamContent );
-        ar & boost::serialization::make_nvp( "history", _history );
+        ar & _pageTitle;
+#if TIDE_USE_QT5WEBKITWIDGETS
+        ar & _addressBar;
+        _addressBar->setParent( this );
+#endif
     }
 
     /** Loading from xml. */
     void serialize_for_xml( boost::archive::xml_iarchive& ar,
-                            const unsigned int version )
+                            const unsigned int )
     {
-        serialize_members_xml( ar, version );
+        ar >> BOOST_SERIALIZATION_BASE_OBJECT_NVP( PixelStreamContent );
+        QString url;
+        ar >> boost::serialization::make_nvp( "url", url );
+        setUrl( url );
     }
 
     /** Saving to xml. */
     void serialize_for_xml( boost::archive::xml_oarchive& ar,
-                            const unsigned int version )
+                            const unsigned int )
     {
-        serialize_members_xml( ar, version );
+        ar << BOOST_SERIALIZATION_BASE_OBJECT_NVP( PixelStreamContent );
+        const auto url = getUrl();
+        ar << boost::serialization::make_nvp( "url", url );
     }
 
     /** Information received from the Webbrowser PixelStreamer. */
     WebbrowserHistory _history;
+    QString _pageTitle;
     int _restPort = 0;
 
     /** State of the address bar on master shared with the wall processes. */
-    bool _addressBarFocused = false;
-    QString _addressBarUrl;
-    int _cursorPosition = 0;
-    int _selectionStart = 0;
-    int _selectionEnd = 0;
+#if TIDE_USE_QT5WEBKITWIDGETS
+    AddressBar* _addressBar; // child QObject
+#endif
 };
 
 DECLARE_SERIALIZE_FOR_XML( WebbrowserContent )

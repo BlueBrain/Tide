@@ -73,36 +73,50 @@ BOOST_AUTO_TEST_CASE( testDefaultState )
 
     BOOST_CHECK_EQUAL( content.getType(), CONTENT_TYPE_WEBBROWSER );
     BOOST_CHECK_EQUAL( content.getURI().toStdString(), "Webbrowser_1" );
+    BOOST_CHECK_EQUAL( content.getTitle().toStdString(), "Web Browser" );
 
     BOOST_CHECK_EQUAL( content.hasFixedAspectRatio(), false );
+
+#if TIDE_USE_QT5WEBKITWIDGETS
     BOOST_CHECK( !content.getQmlControls().isEmpty( ));
+#else
+    BOOST_CHECK( content.getQmlControls().isEmpty( ));
+#endif
 
     BOOST_CHECK_EQUAL( content.getUrl().toStdString(), "" );
     BOOST_CHECK_EQUAL( content.getPage(), 0 );
     BOOST_CHECK_EQUAL( content.getPageCount(), 0 );
     BOOST_CHECK_EQUAL( content.getRestPort(), 0 );
 
-    BOOST_CHECK_EQUAL( content.getCursorPosition(), 0 );
-    BOOST_CHECK_EQUAL( content.getSelectionStart(), 0 );
-    BOOST_CHECK_EQUAL( content.getSelectionEnd(), 0 );
-    BOOST_CHECK_EQUAL( content.isAddressBarFocused(), false );
+#if TIDE_USE_QT5WEBKITWIDGETS
+    BOOST_CHECK_EQUAL( content.getAddressBar()->getCursorPosition(), 0 );
+    BOOST_CHECK_EQUAL( content.getAddressBar()->getSelectionStart(), 0 );
+    BOOST_CHECK_EQUAL( content.getAddressBar()->getSelectionEnd(), 0 );
+    BOOST_CHECK_EQUAL( content.getAddressBar()->isFocused(), false );
+#endif
 }
 
 BOOST_AUTO_TEST_CASE( testSetters )
 {
     WebbrowserContent content{ "Webbrowser_1" };
 
-    content.setAddressBarFocused( true );
-    content.setSelectionStart( 2 );
-    content.setCursorPosition( 4 );
-    content.setSelectionEnd( 6 );
     content.setUrl( "some_url" );
 
-    BOOST_CHECK_EQUAL( content.isAddressBarFocused(), true );
-    BOOST_CHECK_EQUAL( content.getCursorPosition(), 4 );
-    BOOST_CHECK_EQUAL( content.getSelectionStart(), 2 );
-    BOOST_CHECK_EQUAL( content.getSelectionEnd(), 6 );
+#if TIDE_USE_QT5WEBKITWIDGETS
+    content.getAddressBar()->setFocused( true );
+    content.getAddressBar()->setSelectionStart( 2 );
+    content.getAddressBar()->setCursorPosition( 4 );
+    content.getAddressBar()->setSelectionEnd( 6 );
+#endif
+
     BOOST_CHECK_EQUAL( content.getUrl().toStdString(), "some_url" );
+
+#if TIDE_USE_QT5WEBKITWIDGETS
+    BOOST_CHECK_EQUAL( content.getAddressBar()->isFocused(), true );
+    BOOST_CHECK_EQUAL( content.getAddressBar()->getCursorPosition(), 4 );
+    BOOST_CHECK_EQUAL( content.getAddressBar()->getSelectionStart(), 2 );
+    BOOST_CHECK_EQUAL( content.getAddressBar()->getSelectionEnd(), 6 );
+#endif
 }
 
 BOOST_AUTO_TEST_CASE( testDataSerialization )
@@ -110,10 +124,13 @@ BOOST_AUTO_TEST_CASE( testDataSerialization )
     WebbrowserContent content{ "Webbrowser_1" };
     content.setUrl( "erase_me" );
 
-    const auto data = WebbrowserContent::serializeData( history, 12345 );
+    const auto data = WebbrowserContent::serializeData( history, "Some Title",
+                                                        12345 );
     BOOST_CHECK( !data.isEmpty( ));
     content.parseData( data );
 
+    BOOST_CHECK_EQUAL( content.getTitle().toStdString(),
+                       "Web Browser - Some Title" );
     BOOST_CHECK_EQUAL( content.getUrl().toStdString(), "url2" );
     BOOST_CHECK_EQUAL( content.getPage(), 1 );
     BOOST_CHECK_EQUAL( content.getPageCount(), 3 );
@@ -125,24 +142,35 @@ BOOST_AUTO_TEST_CASE( testBinarySerialization )
     using WebbrowserContentPtr = boost::shared_ptr<WebbrowserContent>;
 
     WebbrowserContentPtr source{ new WebbrowserContent{ "Webbrowser_1" }};
-    source->parseData( WebbrowserContent::serializeData( history, 12345 ));
-    source->setAddressBarFocused( true );
-    source->setSelectionStart( 2 );
-    source->setCursorPosition( 4 );
-    source->setSelectionEnd( 6 );
+    source->parseData( WebbrowserContent::serializeData( history, "Some Title",
+                                                         12345 ));
+    // Set url resets history
     source->setUrl( "some_url" );
+    BOOST_CHECK_EQUAL( source->getPage(), 0 );
+    BOOST_CHECK_EQUAL( source->getPageCount(), 1 );
+
+#if TIDE_USE_QT5WEBKITWIDGETS
+    source->getAddressBar()->setFocused( true );
+    source->getAddressBar()->setSelectionStart( 2 );
+    source->getAddressBar()->setCursorPosition( 4 );
+    source->getAddressBar()->setSelectionEnd( 6 );
+#endif
 
     const auto copy = serialization::binaryCopy( source );
     BOOST_REQUIRE( copy );
     const auto& content = *copy;
 
-    BOOST_CHECK_EQUAL( content.isAddressBarFocused(), true );
-    BOOST_CHECK_EQUAL( content.getCursorPosition(), 4 );
-    BOOST_CHECK_EQUAL( content.getSelectionStart(), 2 );
-    BOOST_CHECK_EQUAL( content.getSelectionEnd(), 6 );
-
+    BOOST_CHECK_EQUAL( content.getTitle().toStdString(),
+                       "Web Browser - Some Title" );
     BOOST_CHECK_EQUAL( content.getUrl().toStdString(), "some_url" );
 
-    BOOST_CHECK_EQUAL( content.getPage(), 1 );
-    BOOST_CHECK_EQUAL( content.getPageCount(), 3 );
+    BOOST_CHECK_EQUAL( content.getPage(), 0 );
+    BOOST_CHECK_EQUAL( content.getPageCount(), 1 );
+
+#if TIDE_USE_QT5WEBKITWIDGETS
+    BOOST_CHECK_EQUAL( content.getAddressBar()->isFocused(), true );
+    BOOST_CHECK_EQUAL( content.getAddressBar()->getCursorPosition(), 4 );
+    BOOST_CHECK_EQUAL( content.getAddressBar()->getSelectionStart(), 2 );
+    BOOST_CHECK_EQUAL( content.getAddressBar()->getSelectionEnd(), 6 );
+#endif
 }

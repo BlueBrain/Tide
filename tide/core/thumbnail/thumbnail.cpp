@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,68 +37,36 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "ThumbnailGeneratorFactory.h"
+#include "thumbnail.h"
 
 #include "config.h"
-#include "DefaultThumbnailGenerator.h"
-#include "FolderThumbnailGenerator.h"
-#include "ImageThumbnailGenerator.h"
-#include "scene/TextureContent.h"
-#include "StateThumbnailGenerator.h"
+#include "ThumbnailGeneratorFactory.h"
 
-#if TIDE_ENABLE_MOVIE_SUPPORT
-#include "scene/MovieContent.h"
-#include "MovieThumbnailGenerator.h"
-#endif
-#if TIDE_ENABLE_PDF_SUPPORT
-#  include "scene/PDFContent.h"
-#  include "PDFThumbnailGenerator.h"
-#endif
-#if TIDE_USE_TIFF
-#  include "data/TiffPyramidReader.h"
-#  include "scene/ImagePyramidContent.h"
-#  include "ImagePyramidThumbnailGenerator.h"
+#if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
+#include "scene/WebbrowserContent.h"
+#include "WebbrowserThumbnailGenerator.h"
 #endif
 
-#include <QDir>
-
-ThumbnailGeneratorPtr
-ThumbnailGeneratorFactory::getGenerator( const QString& filename,
-                                         const QSize& size )
+namespace thumbnail
 {
-    if( !filename.isEmpty() && QDir( filename ).exists( ))
-        return ThumbnailGeneratorPtr( new FolderThumbnailGenerator( size ));
 
-    const auto extension = QFileInfo( filename ).suffix().toLower();
+QImage create( const Content& content, const QSize& size )
+{
+    if( content.getType() == CONTENT_TYPE_PIXEL_STREAM )
+        return {};
 
-    if( extension == "dcx" )
-        return ThumbnailGeneratorPtr( new StateThumbnailGenerator( size ));
-
-#if TIDE_ENABLE_MOVIE_SUPPORT
-    if( MovieContent::getSupportedExtensions().contains( extension ))
-        return ThumbnailGeneratorPtr( new MovieThumbnailGenerator( size ));
+#if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
+    if( auto web = dynamic_cast<const WebbrowserContent*>( &content ))
+        return WebbrowserThumbnailGenerator{ size }.generate( web->getUrl( ));
 #endif
 
-#if TIDE_USE_TIFF
-    if( ImagePyramidContent::getSupportedExtensions().contains( extension ))
-    {
-        try
-        {
-            TiffPyramidReader tif{ filename };
-            return ThumbnailGeneratorPtr(
-                        new ImagePyramidThumbnailGenerator( size ));
-        }
-        catch( ... ) { /* not a pyramid file, pass */ }
-    }
-#endif
+    return create( content.getURI(), size );
+}
 
-    if( TextureContent::getSupportedExtensions().contains( extension ))
-        return ThumbnailGeneratorPtr( new ImageThumbnailGenerator( size ));
+QImage create( const QString& filename, const QSize& size )
+{
+    auto generator = ThumbnailGeneratorFactory::getGenerator( filename, size );
+    return generator->generate( filename );
+}
 
-#if TIDE_ENABLE_PDF_SUPPORT
-    if( PDFContent::getSupportedExtensions().contains( extension ))
-        return ThumbnailGeneratorPtr( new PDFThumbnailGenerator( size ));
-#endif
-
-    return ThumbnailGeneratorPtr( new DefaultThumbnailGenerator( size ));
 }

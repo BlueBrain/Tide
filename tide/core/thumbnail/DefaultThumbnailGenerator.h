@@ -42,11 +42,21 @@
 
 #include "ThumbnailGenerator.h"
 
+/**
+ * Generate thumbnails for unsupported file types.
+ */
 class DefaultThumbnailGenerator : public ThumbnailGenerator
 {
 public:
+    /** @copydoc ThumbnailGenerator::ThumbnailGenerator */
     DefaultThumbnailGenerator( const QSize& size );
 
+    /**
+     * Generate a thumbnail for an unsupported file type.
+     *
+     * @param filename the path to file.
+     * @return a placeholder image for the file.
+     */
     QImage generate( const QString& filename ) const final;
 };
 

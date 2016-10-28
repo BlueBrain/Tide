@@ -45,21 +45,49 @@
 #include <QSize>
 #include <QString>
 
+/**
+ * Abstract class for generating thumbnails for various content types.
+ */
 class ThumbnailGenerator
 {
 public:
+    /**
+     * Constructor.
+     *
+     * @param size target size for the generated thumbnails.
+     */
     ThumbnailGenerator( const QSize& size );
+
+    /** Virtual destructor. */
     virtual ~ThumbnailGenerator() {}
 
+    /**
+     * Generate a thumbnail for a given file.
+     *
+     * Derived classes are expected to always return an image of the correct
+     * size. The image can be a placeholder in case of error, but it should not
+     * be null.
+     *
+     * @param filename the content to generate the image for.
+     * @return thumbnail the desired thumbnail, or a placeholder image.
+     */
     virtual QImage generate( const QString& filename ) const = 0;
 
 protected:
+    /** Target size for the thumbnails. */
     const QSize _size;
+
+    /** Aspect ratio policy for the thumbnails. */
     const Qt::AspectRatioMode _aspectRatioMode;
 
+    /** Create a generic placeholder image indicating that an error occured. */
     QImage createErrorImage( const QString& message ) const;
+
+    /** Create a gradient image, can be used as background for a placeholder. */
     QImage createGradientImage( const QColor& bgcolor1,
                                 const QColor& bgcolor2 ) const;
+
+    /** Paint text over an image, for example on top of a placeholder image. */
     void paintText( QImage& img, const QString& text ) const;
 };
 

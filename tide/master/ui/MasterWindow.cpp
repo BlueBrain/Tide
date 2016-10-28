@@ -39,7 +39,6 @@
 
 #include "MasterWindow.h"
 
-
 #include "BackgroundWidget.h"
 #include "ContentLoader.h"
 #include "DisplayGroupView.h"
@@ -57,8 +56,8 @@
 
 #include <tide/core/version.h>
 
-#include <QtWidgets>
 #include <sstream>
+#include <QtWidgets>
 
 namespace
 {
@@ -94,17 +93,11 @@ MasterWindow::MasterWindow( DisplayGroupPtr displayGroup, OptionsPtr options,
     connect( &_loadSessionOp, &QFutureWatcher<DisplayGroupConstPtr>::finished,
              [this]()
     {
-        auto group = _loadSessionOp.result();
-        if( !group )
-        {
+        if( auto group = _loadSessionOp.result( ))
+            emit sessionLoaded( group );
+        else
             QMessageBox::warning( this, "Error", "Could not load session file.",
                                   QMessageBox::Ok, QMessageBox::Ok );
-            return;
-        }
-
-        _displayGroup->setContentWindows( group->getContentWindows( ));
-        _displayGroup->setShowWindowTitles( group->getShowWindowTitles( ));
-        _options->setShowWindowTitles( group->getShowWindowTitles( ));
     });
 
     connect( &_saveSessionOp, &QFutureWatcher<bool>::finished, [this]() {
@@ -354,11 +347,11 @@ void MasterWindow::_setupMasterWindowUI()
     QTabWidget* mainWidget = new QTabWidget();
     setCentralWidget( mainWidget );
 
-    // add the local renderer group
-    _displayGroupView->setDataModel( _displayGroup );
-    QWidget* wrapper = QWidget::createWindowContainer( _displayGroupView,
-                                                       mainWidget );
+    // the wrapper retains ownership to the _displayGroupView as its new parent
+    auto wrapper = QWidget::createWindowContainer( _displayGroupView,
+                                                   mainWidget );
     mainWidget->addTab( wrapper, "Display group 0" );
+    _displayGroupView->setDataModel( _displayGroup );
 
     // create contents dock widget
     QDockWidget* contentsDockWidget = new QDockWidget( "Contents", this );
@@ -429,8 +422,8 @@ void MasterWindow::_addContentDirectory( const QString& directoryName,
 
     unsigned int contentIndex = 0;
 
-    const QSizeF win( _displayGroup->getCoordinates().width() / (qreal)gridX,
-                      _displayGroup->getCoordinates().height() / (qreal)gridY );
+    const QSizeF win( _displayGroup->width() / (qreal)gridX,
+                      _displayGroup->height() / (qreal)gridY );
 
     ContentLoader contentLoader( _displayGroup );
 

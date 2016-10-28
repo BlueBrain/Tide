@@ -321,7 +321,7 @@ BaseContentWindow {
 
     Text {
         visible: !parent.titleBar.visible
-        text: contentwindow.label
+        text: contentwindow.content.title
         font.pixelSize: 48
         width: Math.min(paintedWidth, parent.width)
         anchors.top: contentArea.top

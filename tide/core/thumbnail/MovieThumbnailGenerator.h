@@ -42,11 +42,22 @@
 
 #include "ThumbnailGenerator.h"
 
+/**
+ * Generate thumbnails for movies.
+ */
 class MovieThumbnailGenerator : public ThumbnailGenerator
 {
 public:
+    /** @copydoc ThumbnailGenerator::ThumbnailGenerator */
     MovieThumbnailGenerator( const QSize& size );
 
+    /**
+     * Generate a thumbnail of a movie.
+     *
+     * @param filename the filename of the movie.
+     * @return a preview taken at the middle of the movie, or a placeholder
+     *         image if an error occured.
+     */
     QImage generate( const QString& filename ) const final;
 };
 

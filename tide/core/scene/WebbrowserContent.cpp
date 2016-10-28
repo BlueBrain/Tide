@@ -49,24 +49,46 @@ namespace
 {
 #if TIDE_USE_QT5WEBKITWIDGETS
 const bool showKeyboardAction = true;
-const QString WEBBROWSER_CONTROLS( "qrc:///qml/core/WebbrowserControls.qml" );
+const QString WEBBROWSER_CONTROLS{ "qrc:///qml/core/WebbrowserControls.qml" };
 #else
 const bool showKeyboardAction = false;
 const QString WEBBROWSER_CONTROLS;
 #endif
+const QString title{ "Web Browser" };
 }
 
 WebbrowserContent::WebbrowserContent( const QString& uri )
     : PixelStreamContent( uri, showKeyboardAction )
+#if TIDE_USE_QT5WEBKITWIDGETS
+    , _addressBar( new AddressBar( this ))
+{
+    connect( _addressBar, &AddressBar::modified, this, &Content::modified );
+}
+#else
 {}
+#endif
 
 WebbrowserContent::WebbrowserContent()
     : PixelStreamContent( showKeyboardAction )
+#if TIDE_USE_QT5WEBKITWIDGETS
+    , _addressBar( new AddressBar( this ))
+{
+    connect( _addressBar, &AddressBar::modified, this, &Content::modified );
+}
+#else
 {}
+#endif
 
 CONTENT_TYPE WebbrowserContent::getType() const
 {
     return CONTENT_TYPE_WEBBROWSER;
+}
+
+QString WebbrowserContent::getTitle() const
+{
+    if( _pageTitle.isEmpty( ))
+        return title;
+    return QString( "%1 - %2" ).arg( title, _pageTitle );
 }
 
 bool WebbrowserContent::hasFixedAspectRatio() const
@@ -94,95 +116,46 @@ int WebbrowserContent::getRestPort() const
     return _restPort;
 }
 
-int WebbrowserContent::getCursorPosition() const
-{
-    return _cursorPosition;
-}
-
-void WebbrowserContent::setCursorPosition( const int arg )
-{
-    if( _cursorPosition == arg )
-        return;
-
-    _cursorPosition = arg;
-    emit cursorPositionChanged();
-}
-
-int WebbrowserContent::getSelectionStart() const
-{
-    return _selectionStart;
-}
-
-void WebbrowserContent::setSelectionStart( const int pos )
-{
-    if( _selectionStart == pos )
-        return;
-
-    _selectionStart = pos;
-    emit selectionStartChanged();
-    emit modified();
-}
-
-int WebbrowserContent::getSelectionEnd() const
-{
-    return _selectionEnd;
-}
-
-void WebbrowserContent::setSelectionEnd( const int pos )
-{
-    if( _selectionEnd == pos )
-        return;
-
-    _selectionEnd = pos;
-    emit selectionEndChanged();
-    emit modified();
-}
-
 QString WebbrowserContent::getUrl() const
 {
-    return _addressBarUrl;
+    return _history.currentItem();
 }
 
-void WebbrowserContent::setUrl( const QString url )
+void WebbrowserContent::setUrl( const QString& url )
 {
-    if( getUrl() == url )
-        return;
+    _history = WebbrowserHistory( { url }, 0 );
 
-    _addressBarUrl = url;
-    emit urlChanged();
+    emit pageChanged();
+    emit pageCountChanged();
     emit modified();
 }
 
-bool WebbrowserContent::isAddressBarFocused() const
+#if TIDE_USE_QT5WEBKITWIDGETS
+AddressBar* WebbrowserContent::getAddressBar() const
 {
-    return _addressBarFocused;
+    return _addressBar;
 }
-
-void WebbrowserContent::setAddressBarFocused( const bool set )
-{
-    if( _addressBarFocused == set )
-        return;
-
-    _addressBarFocused = set;
-    emit addressBarFocusedChanged();
-    emit modified();
-}
+#endif
 
 void WebbrowserContent::parseData( const QByteArray data )
 {
-    serialization::fromBinary( data.toStdString(), _history, _restPort );
-    _addressBarUrl = _history.currentItem();
+    serialization::fromBinary( data.toStdString(), _history, _pageTitle,
+                               _restPort );
+#if TIDE_USE_QT5WEBKITWIDGETS
+    _addressBar->setUrl( _history.currentItem( ));
+#endif
 
     emit pageChanged();
     emit pageCountChanged();
     emit restPortChanged();
-    emit urlChanged();
+    emit titleChanged( getTitle( ));
     emit modified();
 }
 
 QByteArray WebbrowserContent::serializeData( const WebbrowserHistory& history,
+                                             const QString& pageTitle,
                                              const int restPort )
 {
-    const auto string = serialization::toBinary( history, restPort );
+    const auto string = serialization::toBinary( history, pageTitle, restPort );
     return QByteArray::fromStdString( string );
 }
