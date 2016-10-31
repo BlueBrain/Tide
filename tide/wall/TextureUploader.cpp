@@ -139,7 +139,7 @@ void TextureUploader::_upload( const Image& image, const uint textureID )
     // which originates from glFinish() in upload & render thread. For now
     // we use 'slow&easy' texture upload. This probably points out the problem
     // and a potential solution:
-    // http://stackoverflow.com/questions/31941385/opengl-driver-seems-to-be-ridiculously-slow-from-glunmapbuffer-this-cant-be-ri
+    // http://stackoverflow.com/questions/31941385
 #if 0
     // make PBO big enough
     _gl->glBindBuffer( GL_PIXEL_UNPACK_BUFFER, _pbo );

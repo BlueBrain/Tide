@@ -45,7 +45,6 @@
 
 #include <QQuickWindow>
 
-class QuickRenderer;
 class QQuickRenderControl;
 class QQmlEngine;
 class QQmlComponent;
@@ -93,12 +92,6 @@ public:
     /** @return the communication channel to synchronize with other windows. */
     WallToWallChannel& getWallChannel();
 
-    /** @return the OpenGL context. */
-    QOpenGLContext& getOpenGLContext();
-
-    /** @return the Qt quick render control. */
-    QQuickRenderControl& getRenderControl();
-
     /** @return the texture uploader. */
     TextureUploader& getUploader();
 
@@ -111,9 +104,8 @@ private:
     TestPattern* _testPattern;
     WallToWallChannel& _wallChannel;
 
-    QOpenGLContext* _glContext;
     QQuickRenderControl* _renderControl;
-    QuickRenderer* _quickRenderer;
+    deflect::qt::QuickRenderer* _quickRenderer;
     QThread* _quickRendererThread;
     QQmlEngine* _qmlEngine;
     QQmlComponent* _qmlComponent;
