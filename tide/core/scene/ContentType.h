@@ -56,6 +56,16 @@ enum CONTENT_TYPE
     CONTENT_TYPE_IMAGE_PYRAMID
 };
 
+/**
+ * The different types of pixel streams that can be created.
+ */
+enum class StreamType
+{
+    EXTERNAL,
+    WEBBROWSER,
+    WHITEBOARD
+};
+
 QString getContentTypeString( const CONTENT_TYPE type );
 
 CONTENT_TYPE getContentType( const QString& typeString );

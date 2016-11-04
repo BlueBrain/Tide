@@ -9,7 +9,6 @@ import QtQuick.Controls.Styles 1.2
 
 Item {
     id: root
-
     objectName: "Whiteboard"
 
     width: 1920
@@ -27,10 +26,48 @@ Item {
     property int lastY
     property int offsetY: 0
     property int offsetX: 0
-
+    property var path
     property var singleTouchPoint: []
     property var singleLine: []
     property var allCurves: []
+    property var fileList: []
+    property bool pathAvail: false
+
+    function checkFileExists() {
+        if (textInput.text != "") {
+            path = saveURL + textInput.text + ".png"
+            if (fileInfo.fileExists(path)) {
+                infoBox.z = 2
+                infoText.text = "Are you sure? File already exists"
+                textInput.focus = false
+                buttonOK.visible = true
+            } else {
+                saveCanvas()
+            }
+        }
+    }
+
+    function saveCanvas() {
+        buttonOK.visible = false
+        if (canvas.save(path))
+            infoText.text = "Saved as: \n" + path
+        else
+            infoText.text = "Error saving as: \n" + path
+        infoBox.z = 2
+    }
+
+    function cancelSave() {
+        buttonOK.visible = false
+        infoText.text = "Save canceled"
+        infoBox.z = 2
+    }
+
+    function toggleSavePanel() {
+        if (savePanel.state == "on")
+            savePanel.state = "off"
+        else
+            savePanel.state = "on"
+    }
 
     onWidthChanged: {
         offsetX = (width - oldWidth) / 2
@@ -119,6 +156,7 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 anchors.horizontalCenter: parent.horizontalCenter
                 color: "black"
+                radius: width * 0.5
             }
             MouseArea {
                 anchors.fill: parent
@@ -136,7 +174,6 @@ Item {
         height: headerHeight
         color: "lightsteelblue"
         anchors.top: parent.top
-
         Row {
             id: colorTools
             spacing: 5
@@ -157,9 +194,7 @@ Item {
                 anchors.leftMargin: 75
                 MouseArea {
                     anchors.fill: parent
-                    onClicked: {
-                        saveMenu.toggle()
-                    }
+                    onClicked: toggleSavePanel()
                 }
             }
 
@@ -167,13 +202,13 @@ Item {
                 width: viewColor.model.count * (viewColor.buttonWidth + colorTools.spacing)
                 height: 75
                 anchors.rightMargin: 75
-
                 ListView {
                     anchors.fill: parent
                     id: viewColor
                     model: colorModel
                     delegate: colorDelegate
                     spacing: 5
+                    boundsBehavior: Flickable.StopAtBounds
                     property int buttonWidth: 75
                     orientation: ListView.Horizontal
                     highlight: Rectangle {
@@ -196,6 +231,7 @@ Item {
                     model: brushModel
                     delegate: brushDelegate
                     spacing: 5
+                    boundsBehavior: Flickable.StopAtBounds
                     property int buttonWidth: 75
                     orientation: ListView.Horizontal
                     highlight: Rectangle {
@@ -236,18 +272,6 @@ Item {
         anchors.bottom: parent.bottom
         width: root.width
         height: root.height - headerHeight
-        Text {
-            id: infoBox
-            text: ""
-            font.family: "Helvetica"
-            font.pointSize: 60
-            color: "red"
-
-            anchors.top: saveMenu.bottom
-            anchors.horizontalCenter: parent.horizontalCenter
-            z: 100
-            visible: false
-        }
 
         Canvas {
             id: canvas
@@ -264,14 +288,11 @@ Item {
                     ctx.beginPath()
                     ctx.strokeStyle = singleCurve[1]
                     ctx.lineWidth = singleCurve[2]
-                    ctx.lineCap = "round"
-                    ctx.beginPath()
-                    ctx.strokeStyle = singleCurve[1]
-                    ctx.lineWidth = singleCurve[2]
 
                     if (singleCurve[0].length < 4) {
-                        ctx.arc(singleCurve[0][0][0], singleCurve[0][0][1], 1,
-                                0, Math.PI * 2, false)
+                        ctx.arc(singleCurve[0][0][0] + singleCurve[3][0],
+                                singleCurve[0][0][1] + singleCurve[3][1], 1, 0,
+                                Math.PI * 2, false)
                     } else {
                         for (var i = 0; i < singleCurve[0].length - 1; i++) {
                             ctx.moveTo(singleCurve[0][i][0] + singleCurve[3][0],
@@ -285,38 +306,58 @@ Item {
                     ctx.save()
                 }
             }
-
-
+            MultiPointTouchArea {
+                id: savePanelBackground
+                anchors.fill: parent
+                enabled: false
+                onTouchUpdated: {
+                    if (savePanel.visible)
+                        toggleSavePanel()
+                }
+                Rectangle {
+                    anchors.fill: parent
+                    color: "lightsteelblue"
+                    opacity: 0.3
+                    visible: parent.enabled
+                }
+            }
             MultiPointTouchArea {
                 id: area
+                enabled: !savePanelBackground.enabled
                 anchors.fill: parent
                 property var paths: []
-                touchPoints: TouchPoint {
-                    id: point1
-                }
+
+
+                touchPoints: [
+                    TouchPoint {
+                        id: point0
+                    }
+                ]
 
                 onPressed: {
-                    singleLine = new Array(0)
-                    lastX = point1.x
-                    lastY = point1.y
-                    singleLine.push([point1.x, point1.y])
+                    if (touchPoints[0] === point0) {
+                        singleLine = new Array(0)
+                        lastX = point0.x
+                        lastY = point0.y
+                        singleLine.push([point0.x, point0.y])
+                    }
                 }
-                onTouchUpdated: {
-                    singleLine.push([point1.x, point1.y])
+                onUpdated: {
+                    singleLine.push([point0.x, point0.y])
                     canvasTmp.requestPaint()
                 }
                 onReleased: {
-                    var singleCurve = new Array(0)
-                    singleCurve.push(singleLine)
-                    singleCurve.push(brushColor)
-                    singleCurve.push(brushSize)
-                    singleCurve.push([0, 0])
-
-                    allCurves.push(singleCurve)
-                    canvas.requestPaint()
-
-                    paths = []
-                    canvasTmp.getContext("2d").reset()
+                    if (touchPoints[0] === point0) {
+                        var singleCurve = new Array(0)
+                        singleCurve.push(singleLine)
+                        singleCurve.push(brushColor)
+                        singleCurve.push(brushSize)
+                        singleCurve.push([0, 0])
+                        allCurves.push(singleCurve)
+                        canvas.requestPaint()
+                        paths = []
+                        canvasTmp.getContext("2d").reset()
+                    }
                 }
             }
 
@@ -330,8 +371,8 @@ Item {
                     ctx2.strokeStyle = brushColor
                     ctx2.beginPath()
                     ctx2.moveTo(lastX, lastY)
-                    lastX = point1.x
-                    lastY = point1.y
+                    lastX = point0.x
+                    lastY = point0.y
                     ctx2.lineTo(lastX, lastY)
                     ctx2.stroke()
                     ctx2.closePath()
@@ -340,113 +381,167 @@ Item {
         }
 
         Rectangle {
-            color: "#e7edf5"
-            function toggle() {
-                if (saveMenu.state == "on")
-                    saveMenu.state = "off"
-                else
-                    saveMenu.state = "on"
-            }
-            id: saveMenu
-            width: root.width
-            height: 50
-            anchors.top: parent.top
+            id: savePanel
+            width: 800
+            height: 250
+            anchors.verticalCenter: parent.verticalCenter
+            anchors.horizontalCenter: parent.horizontalCenter
+
             visible: false
             states: [
                 State {
                     name: "on"
                     PropertyChanges {
-                        target: saveMenu
+                        target: savePanel
                         visible: true
                     }
                     PropertyChanges {
                         target: imgSave
                         opacity: 0.1
                     }
+                    PropertyChanges {
+                        target: savePanelBackground
+                        enabled: true
+                    }
+                    PropertyChanges {
+                        target: textInput
+                        focus: true
+                    }
+                    PropertyChanges {
+                        target: infoBox
+                        z: 0
+                    }
                 },
                 State {
                     name: "off"
                     PropertyChanges {
-                        target: saveMenu
+                        target: savePanel
                         visible: false
+                    }
+                    PropertyChanges {
+                        target: savePanelBackground
+                        enabled: false
+                    }
+                    PropertyChanges {
+                        target: textInput
+                        focus: false
                     }
                 }
             ]
 
-            Rectangle {
-                color: "#e7edf5"
-                anchors.centerIn: parent
-                width: 600
-                height: parent.height
-
-                Rectangle {
-                    color: "#7b899b"
-                    anchors.centerIn: parent
-                    id: rect5
-                    anchors.fill: parent
-                    anchors.leftMargin: 50
-                    anchors.rightMargin: 50
-                    height: parent.height
-                    TextInput {
-                        wrapMode: TextInput.Wrap
-                        verticalAlignment: TextInput.AlignVCenter
-                        horizontalAlignment: TextInput.AlignHCenter
-                        id: inputFileName
-                        color: "black"
-                        font.pixelSize: 24
-                        text: ""
-                        anchors.fill: parent
-                        focus: true
+            TextField {
+                id: textInput
+                placeholderText: "File name"
+                focus: false
+                width: 700
+                height: 50
+                z: 1
+                anchors.left: parent.left
+                style: TextFieldStyle {
+                    font.pointSize: control.height * 0.5
+                }
+                onFocusChanged: {
+                    if (focus)
+                        Qt.inputMethod.show()
+                    else
+                        Qt.inputMethod.hide()
+                }
+                selectByMouse: true
+                validator: RegExpValidator {
+                    regExp: /[\w.]*/
+                }
+                onAccepted: {
+                   checkFileExists()
+                   if (textInput.text == "")
+                   Qt.inputMethod.show()
+                }
+                Button {
+                    anchors.left: textInput.right
+                    text: "Save"
+                    implicitWidth: 100
+                    implicitHeight: 50
+                    onClicked: {
+                        checkFileExists()
                     }
-
-                    Button {
-                        anchors.left: inputFileName.right
-                        text: "Save!"
-                        onClicked: {
-                            if (inputFileName.text != "") {
-                                var path = saveURL + inputFileName.text + ".png"
-                                if (canvas.save(path)) {
-                                    infoBox.text = "SAVED as " + path
-                                    infoBox.visible = true
-                                    timer1.start()
-                                } else {
-                                    infoBox.text = "Error saving!"
-                                    infoBox.visible = true
-                                    timer1.start()
-                                }
-                            }
-                        }
-
-                        style: ButtonStyle {
-                            background: Rectangle {
-                                implicitWidth: 100
-                                implicitHeight: 50
-                                border.width: 0
-                                border.color: "#7b899b"
-                                radius: 0
-                                gradient: Gradient {
-                                    GradientStop {
-                                        position: 0
-                                        color: control.pressed ? "#7b899b" : "#b0c4de"
-                                    }
-                                    GradientStop {
-                                        position: 1
-                                        color: control.pressed ? "#b0c4de" : "#7b899b"
-                                    }
-                                }
-                            }
-                        }
-
-                        Timer {
-                            id: timer1
-                            interval: 750
-                            running: false
-                            repeat: false
-                            onTriggered: infoBox.visible = false
+                    enabled: (textInput.text == "") ? false : true
+                    style: ButtonStyle {
+                        label: Text {
+                            renderType: Text.NativeRendering
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                            font.pointSize: control.height * 0.4
+                            text: control.text
+                            color: control.enabled ? "black" : "gray"
                         }
                     }
                 }
             }
+            Rectangle {
+                id: infoBox
+                anchors.fill: parent
+                width: 800
+                height: 250
+                color: "black"
+                Text {
+                    id: infoText
+                    anchors.fill: parent
+                    anchors.margins: 10
+                    text: ""
+                    font.family: "Verdana"
+                    font.pointSize: 35
+                    color: "white"
+                    wrapMode: Text.Wrap
+                }
+                Row {
+                	anchors.verticalCenter: parent.verticalCenter
+                	anchors.horizontalCenter: parent.horizontalCenter
+                	spacing: 10
+                	height: 50
+
+	                Button {
+	                    id: buttonOK
+	                    implicitWidth: 100
+	                    implicitHeight: 50
+	                    style: ButtonStyle {
+	                        label: Text {
+	                            renderType: Text.NativeRendering
+	                            horizontalAlignment: Text.AlignHCenter
+	                            font.pointSize: control.height * 0.3
+	                            verticalAlignment: Text.AlignVCenter
+	                            text: "OK"
+	                            color: control.enabled ? "black" : "gray"
+	                        }
+	                    }
+	                    onClicked: saveCanvas()
+	                }
+	                Button {
+	                    id: buttonCancel
+	                    visible: buttonOK.visible
+	                    implicitWidth: 100
+	                    implicitHeight: 50
+	                    style: ButtonStyle {
+	                        label: Text {
+	                            renderType: Text.NativeRendering
+	                            font.pointSize: control.height * 0.3
+	                            horizontalAlignment: Text.AlignHCenter
+	                            verticalAlignment: Text.AlignVCenter
+	                            text: "Cancel"
+	                            color: control.enabled ? "black" : "gray"
+	                        }
+	                    }
+	                    onClicked: cancelSave()
+	                }
+	            }
+            }
+        }
+        Loader {
+            id: virtualKeyboard
+            source: "qrc:/virtualkeyboard/InputPanel.qml"
+            anchors.top: textInput.bottom
+            anchors.right: savePanel.right
+            anchors.left: savePanel.left
+            anchors.bottom: savePanel.bottom
+            visible: Qt.inputMethod.visible ? true : false
         }
     }
 }

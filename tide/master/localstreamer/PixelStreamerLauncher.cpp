@@ -41,8 +41,9 @@
 
 #include "log.h"
 #include "CommandLineOptions.h"
-#include "PixelStreamWindowManager.h"
 #include "MasterConfiguration.h"
+#include "PixelStreamWindowManager.h"
+#include "scene/ContentType.h"
 #include "scene/ContentWindow.h"
 #include "scene/WebbrowserContent.h"
 

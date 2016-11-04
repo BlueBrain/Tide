@@ -46,6 +46,7 @@
 #include "localstreamer/PixelStreamerLauncher.h"
 #include "log.h"
 #include "scene/ContentFactory.h"
+#include "scene/ContentType.h"
 #include "scene/ContentWindow.h"
 #include "scene/DisplayGroup.h"
 #include "scene/PixelStreamContent.h"
@@ -97,10 +98,10 @@ bool _isPanel( const QString& uri )
 }
 
 ContentWindowPtr _makeStreamWindow( const QString& uri, const QSize& size,
-                                    const bool webbrowser )
+                                    const StreamType stream )
 {
-    auto content = webbrowser ? ContentFactory::getWebbrowserContent( uri ) :
-                                ContentFactory::getPixelStreamContent( uri );
+    auto content = ContentFactory::getPixelStreamContent( uri, stream );
+
     if( size.isValid( ))
         content->setDimensions( size );
 
@@ -120,8 +121,7 @@ void PixelStreamWindowManager::openWindow( const QString& uri,
     put_flog( LOG_INFO, "opening pixel stream window: '%s'",
               uri.toLocal8Bit().constData( ));
 
-    const auto webbrowser = (stream == StreamType::WEBBROWSER);
-    auto window = _makeStreamWindow( uri, size, webbrowser );
+    auto window = _makeStreamWindow( uri, size, stream );
 
     ContentWindowController controller{ *window, _displayGroup };
     controller.resize( size.isValid() ? size : EMPTY_STREAM_SIZE );

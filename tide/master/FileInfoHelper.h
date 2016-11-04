@@ -55,6 +55,11 @@ public:
     {
         return QFileInfo( filePath ).completeBaseName();
     }
+
+    Q_INVOKABLE bool fileExists( const QString& filePath ) const
+    {
+        return QFileInfo( filePath ).exists();
+    }
 };
 
 #endif

@@ -158,19 +158,23 @@ ContentPtr ContentFactory::getContent( const QString& uri )
     return ContentPtr();
 }
 
-ContentPtr ContentFactory::getPixelStreamContent( const QString& uri )
+ContentPtr ContentFactory::getPixelStreamContent( const QString& uri,
+                                                  StreamType stream )
 {
-    return ContentPtr( new PixelStreamContent( uri ));
-}
-
-ContentPtr ContentFactory::getWebbrowserContent( const QString& uri )
-{
+    if ( stream == StreamType::WEBBROWSER )
+    {
 #if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
-    return ContentPtr( new WebbrowserContent( uri ));
+        return ContentPtr( new WebbrowserContent( uri ));
 #else
-    Q_UNUSED( uri );
-    throw std::runtime_error( "Tide was compiled without WebbrowserContent!" );
+        Q_UNUSED( uri );
+        throw std::runtime_error( "Tide compiled without WebbrowserContent!" );
 #endif
+    }
+    else
+    {
+        const auto keyboard = stream == StreamType::EXTERNAL;
+        return ContentPtr( new PixelStreamContent( uri, keyboard ));
+    }
 }
 
 ContentPtr ContentFactory::getErrorContent( const QSize& size )

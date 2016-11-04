@@ -21,6 +21,7 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   control/LayoutEngine.h
   control/PixelStreamController.h
   control/ZoomController.h
+  FileInfoHelper.h
   localstreamer/HtmlSelectReplacer.h
   localstreamer/CommandLineOptions.h
   localstreamer/PixelStreamerLauncher.h

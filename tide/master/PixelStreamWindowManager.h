@@ -42,6 +42,7 @@
 #define PIXEL_STREAM_WINDOW_MANAGER_H
 
 #include "types.h"
+#include "scene/ContentType.h"
 
 #include <deflect/SizeHints.h>
 
@@ -50,16 +51,6 @@
 #include <QSize>
 #include <QUuid>
 #include <map>
-
-/**
- * The different types of stream windows that can be created.
- */
-enum class StreamType
-{
-    EXTERNAL,
-    WEBBROWSER,
-    WHITEBOARD
-};
 
 /**
  * Handles window creation, association and updates for pixel streamers, both
