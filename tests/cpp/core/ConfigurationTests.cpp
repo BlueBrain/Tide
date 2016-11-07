@@ -120,6 +120,8 @@ BOOST_AUTO_TEST_CASE( test_master_configuration )
 {
     MasterConfiguration config( CONFIG_TEST_FILENAME );
 
+    BOOST_CHECK_EQUAL( config.getHeadless(), true );
+
     BOOST_CHECK_EQUAL( config.getContentDir().toStdString(), CONFIG_EXPECTED_CONTENT_DIR );
     BOOST_CHECK_EQUAL( config.getSessionsDir().toStdString(), CONFIG_EXPECTED_SESSIONS_DIR );
 
@@ -143,6 +145,7 @@ BOOST_AUTO_TEST_CASE( test_master_configuration_default_values )
 {
     MasterConfiguration config( CONFIG_TEST_FILENAME_II );
 
+    BOOST_CHECK_EQUAL( config.getHeadless(), false );
     BOOST_CHECK_EQUAL( config.getContentDir().toStdString(), QDir::homePath().toStdString() );
     BOOST_CHECK_EQUAL( config.getSessionsDir().toStdString(), QDir::homePath().toStdString() );
     BOOST_CHECK_EQUAL( config.getWebServicePort(), CONFIG_EXPECTED_DEFAULT_WEBSERVICE_PORT );

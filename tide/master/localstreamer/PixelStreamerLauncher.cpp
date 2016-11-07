@@ -186,11 +186,6 @@ void PixelStreamerLauncher::openWhiteboard()
     emit start( command, QDir::currentPath(), {} );
 }
 
-void PixelStreamerLauncher::hideLauncher()
-{
-    _windowManager.hideWindow( launcherUri );
-}
-
 void PixelStreamerLauncher::_dereferenceLocalStreamer( const QString uri )
 {
     _processes.erase( uri );

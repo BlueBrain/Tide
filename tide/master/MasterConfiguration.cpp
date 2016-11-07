@@ -68,6 +68,7 @@ void MasterConfiguration::loadMasterSettings()
         throw std::runtime_error( "Invalid configuration file: " +
                                   _filename.toStdString( ));
 
+    loadMasterProcessInfo( query );
     loadContentDirectory( query );
     loadSessionsDirectory( query );
     loadLauncherSettings( query );
@@ -76,6 +77,12 @@ void MasterConfiguration::loadMasterSettings()
     loadWebBrowserStartURL( query );
     loadWhiteboard( query );
     loadBackgroundProperties( query );
+}
+
+void MasterConfiguration::loadMasterProcessInfo( QXmlQuery& query )
+{
+    query.setQuery( "string(/configuration/masterProcess/@headless)" );
+    getBool( query, _headless );
 }
 
 void MasterConfiguration::loadContentDirectory( QXmlQuery& query )
@@ -165,6 +172,11 @@ void MasterConfiguration::loadBackgroundProperties( QXmlQuery& query )
         if( newColor.isValid( ))
             _backgroundColor = newColor;
     }
+}
+
+bool MasterConfiguration::getHeadless() const
+{
+    return _headless;
 }
 
 const QString& MasterConfiguration::getContentDir() const

@@ -47,6 +47,11 @@
 
 #include <stdexcept>
 
+namespace
+{
+const QRegExp TRIM_REGEX( "[\\n\\t\\r]" );
+}
+
 Configuration::Configuration( const QString& filename )
     : _filename( filename )
     , _totalScreenCountX( 0 )
@@ -194,4 +199,24 @@ bool Configuration::getInt( const QXmlQuery& query, int& value ) const
     if( ok )
         value = tmp;
     return ok;
+}
+
+bool Configuration::getBool( const QXmlQuery& query, bool& value ) const
+{
+    QString queryResult;
+    if( !query.evaluateTo( &queryResult ))
+        return false;
+
+    queryResult = queryResult.remove( QRegExp( TRIM_REGEX ));
+    if( queryResult == "true" )
+    {
+        value = true;
+        return true;
+    }
+    if( queryResult == "false" )
+    {
+        value = false;
+        return true;
+    }
+    return false;
 }

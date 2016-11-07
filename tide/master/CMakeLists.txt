@@ -31,6 +31,7 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   LoggingUtility.h
   MasterApplication.h
   MasterConfiguration.h
+  MasterDisplayGroupRenderer.h
   multitouch/DoubleTapDetector.h
   multitouch/MathUtils.h
   multitouch/MultitouchArea.h
@@ -49,7 +50,7 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   ui/BackgroundWidget.h
   ui/ContentWindowListWidgetItem.h
   ui/DisplayGroupListWidget.h
-  ui/DisplayGroupView.h
+  ui/MasterQuickView.h
   ui/BackgroundWidget.h
   ui/MasterWindow.h
 )
@@ -71,6 +72,7 @@ list(APPEND TIDEMASTER_SOURCES
   LoggingUtility.cpp
   MasterApplication.cpp
   MasterConfiguration.cpp
+  MasterDisplayGroupRenderer.cpp
   multitouch/DoubleTapDetector.cpp
   multitouch/MathUtils.cpp
   multitouch/MultitouchArea.cpp
@@ -89,7 +91,7 @@ list(APPEND TIDEMASTER_SOURCES
   ui/BackgroundWidget.cpp
   ui/ContentWindowListWidgetItem.cpp
   ui/DisplayGroupListWidget.cpp
-  ui/DisplayGroupView.cpp
+  ui/MasterQuickView.cpp
   ui/MasterWindow.cpp
 )
 

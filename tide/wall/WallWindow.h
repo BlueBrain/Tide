@@ -107,10 +107,11 @@ private:
     QQuickRenderControl* _renderControl;
     deflect::qt::QuickRenderer* _quickRenderer;
     QThread* _quickRendererThread;
+    bool _rendererInitialized;
+
     QQmlEngine* _qmlEngine;
     QQmlComponent* _qmlComponent;
     QQuickItem* _rootItem;
-    bool _rendererInitialized;
 
     QThread* _uploadThread;
     TextureUploader* _uploader;

@@ -49,7 +49,7 @@ int main( int argc, char** argv )
     // Load virtualkeyboard input context plugin
     qputenv( "QT_IM_MODULE", QByteArray( "virtualkeyboard" ));
 
-    // Equivalent to QtWebEngine::initialize() inside to application.
+    // Equivalent to QtWebEngine::initialize() inside the application.
     QGuiApplication::setAttribute( Qt::AA_ShareOpenGLContexts );
 
     std::unique_ptr<Webbrowser> webbrowser;

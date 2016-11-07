@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,84 +37,45 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef MASTERWINDOW_H
-#define MASTERWINDOW_H
+#ifndef MASTERDISPLAYGROUPRENDERER_H
+#define MASTERDISPLAYGROUPRENDERER_H
 
 #include "types.h"
 
-#include <QFutureWatcher>
-#include <QMainWindow>
-#include <QMimeData>
-
-class BackgroundWidget;
-class MasterQuickView;
-class WebbrowserWidget;
+#include <QQuickItem>
+#include <QUuid>
 
 /**
- * The main UI window for Master applications.
- *
- * It lets users control the contents displayed on the wall.
+ * A view of the display group in the master application.
  */
-class MasterWindow : public QMainWindow
+class MasterDisplayGroupRenderer : public QObject
 {
     Q_OBJECT
 
 public:
     /** Constructor. */
-    MasterWindow( DisplayGroupPtr displayGroup, OptionsPtr options,
-                  MasterConfiguration& config );
+    MasterDisplayGroupRenderer( DisplayGroupPtr group, QQmlEngine* engine,
+                                QQuickItem* parentItem );
 
-    /** @return the quick view. */
-    MasterQuickView* getQuickView();
+    /** Destructor */
+    ~MasterDisplayGroupRenderer();
 
 signals:
-    /** Emitted when users want to open a webbrowser. */
-    void openWebBrowser( QPointF pos, QSize size, QString url );
-
-    /** Emitted when a session has been successfully loaded. */
-    void sessionLoaded( DisplayGroupConstPtr group );
-
-protected:
-    /** @name Drag events re-implemented from QMainWindow */
-    //@{
-    void dragEnterEvent( QDragEnterEvent* event ) final;
-    void dropEvent( QDropEvent* event ) final;
-    //@}
+    /** Emitted when a user taps the launcher control to open it. */
+    void openLauncher();
 
 private:
-    void _setupMasterWindowUI( std::unique_ptr<MasterQuickView>
-                               masterQuickView );
-
-    void _openContent();
-    void _addContentDirectory( const QString& directoryName,
-                               unsigned int gridX = 0, unsigned int gridY = 0 );
-    void _openContentsDirectory();
-
-    void _openSession();
-    void _saveSession();
-    void _loadSession( const QString& filename );
-
-    void _openAboutWidget();
-
-    void _estimateGridSize( unsigned int numElem, unsigned int& gridX,
-                            unsigned int& gridY );
-
-    QStringList _extractValidContentUrls( const QMimeData* mimeData );
-    QStringList _extractFolderUrls( const QMimeData* mimeData );
-    QString _extractSessionFile( const QMimeData* mimeData );
-
     DisplayGroupPtr _displayGroup;
-    OptionsPtr _options;
+    QQmlEngine* _engine = nullptr;
+    QQuickItem* _parentItem = nullptr;
 
-    QFutureWatcher<DisplayGroupConstPtr> _loadSessionOp;
-    QFutureWatcher<bool> _saveSessionOp;
+    QQuickItem* _displayGroupItem = nullptr;
+    typedef QMap<QUuid, QQuickItem*> UuidToWindowMap;
+    UuidToWindowMap _uuidToWindowMap;
 
-    BackgroundWidget* _backgroundWidget; // child QObject
-    WebbrowserWidget* _webbrowserWidget; // child QObject
-    MasterQuickView* _quickView;         // child QObject
-
-    QString _contentFolder;
-    QString _sessionFolder;
+    void _add( ContentWindowPtr contentWindow );
+    void _remove( ContentWindowPtr contentWindow );
+    void _moveToFront( ContentWindowPtr contentWindow );
 };
 
 #endif

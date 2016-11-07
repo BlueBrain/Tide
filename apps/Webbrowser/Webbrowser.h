@@ -42,8 +42,6 @@
 
 #include <deflect/qt/QmlStreamer.h>
 
-#include <memory>
-
 #include <QGuiApplication>
 
 class HtmlSelectReplacer;

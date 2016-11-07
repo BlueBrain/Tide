@@ -41,10 +41,10 @@
 
 #include "BackgroundWidget.h"
 #include "ContentLoader.h"
-#include "DisplayGroupView.h"
 #include "DisplayGroupListWidget.h"
 #include "log.h"
 #include "MasterConfiguration.h"
+#include "MasterQuickView.h"
 #include "scene/ContentFactory.h"
 #include "scene/ContentWindow.h"
 #include "scene/DisplayGroup.h"
@@ -65,7 +65,8 @@ const QString SESSION_FILES_FILTER( "Session files (*.dcx)" );
 const QSize DEFAULT_WINDOW_SIZE( 800, 600 );
 }
 
-MasterWindow::MasterWindow( DisplayGroupPtr displayGroup, OptionsPtr options,
+MasterWindow::MasterWindow( DisplayGroupPtr displayGroup,
+                            OptionsPtr options,
                             MasterConfiguration& config )
     : QMainWindow()
     , _displayGroup( displayGroup )
@@ -74,7 +75,6 @@ MasterWindow::MasterWindow( DisplayGroupPtr displayGroup, OptionsPtr options,
 #if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
     , _webbrowserWidget( new WebbrowserWidget( config, this ))
 #endif
-    , _displayGroupView( new DisplayGroupView( _options, config ))
     , _contentFolder( config.getContentDir( ))
     , _sessionFolder( config.getSessionsDir( ))
 {
@@ -109,19 +109,18 @@ MasterWindow::MasterWindow( DisplayGroupPtr displayGroup, OptionsPtr options,
     resize( DEFAULT_WINDOW_SIZE );
     setAcceptDrops( true );
 
-    _setupMasterWindowUI();
+    _setupMasterWindowUI( make_unique<MasterQuickView>( _options, config ));
 
     show();
 }
 
-MasterWindow::~MasterWindow() {}
-
-DisplayGroupView* MasterWindow::getDisplayGroupView()
+MasterQuickView* MasterWindow::getQuickView()
 {
-    return _displayGroupView;
+    return _quickView;
 }
 
-void MasterWindow::_setupMasterWindowUI()
+void MasterWindow::_setupMasterWindowUI( std::unique_ptr<MasterQuickView>
+                                         quickView )
 {
     // create menus in menu bar
     QMenu* fileMenu = menuBar()->addMenu( "&File" );
@@ -347,11 +346,13 @@ void MasterWindow::_setupMasterWindowUI()
     QTabWidget* mainWidget = new QTabWidget();
     setCentralWidget( mainWidget );
 
-    // the wrapper retains ownership to the _displayGroupView as its new parent
-    auto wrapper = QWidget::createWindowContainer( _displayGroupView,
-                                                   mainWidget );
-    mainWidget->addTab( wrapper, "Display group 0" );
-    _displayGroupView->setDataModel( _displayGroup );
+    // The QWidget wrapper *has* to retain ownership to the masterQuickView.
+    // It is not possible to detach the masterQuickView from its parent wrapper
+    // in the MasterWindow destructor. The parentChanged event doesn't have
+    // time to be processed correctly resulting in a double-delete.
+    _quickView = quickView.get(); // keep a reference
+    mainWidget->addTab( QWidget::createWindowContainer(
+                            quickView.release( )), "Display group 0" );
 
     // create contents dock widget
     QDockWidget* contentsDockWidget = new QDockWidget( "Contents", this );

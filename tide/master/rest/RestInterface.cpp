@@ -98,7 +98,7 @@ public:
     RestCommand openCmd{ "tide::open" };
     RestCommand loadCmd{ "tide::load" };
     RestCommand saveCmd{ "tide::save" };
-    RestCommand whiteboardCmd{ "tide::whiteboard" };
+    RestCommand whiteboardCmd{ "tide::whiteboard", false };
     RestCommand exitCmd{ "tide::exit", false };
     JsonOptions options;
     std::unique_ptr<RestLogger> logContent;

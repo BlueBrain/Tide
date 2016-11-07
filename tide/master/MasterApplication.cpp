@@ -44,6 +44,7 @@
 #include "localstreamer/PixelStreamerLauncher.h"
 #include "log.h"
 #include "MasterConfiguration.h"
+#include "MasterDisplayGroupRenderer.h"
 #include "network/MasterToForkerChannel.h"
 #include "network/MasterToWallChannel.h"
 #include "network/MasterFromWallChannel.h"
@@ -55,7 +56,7 @@
 #include "scene/WebbrowserContent.h"
 #include "StateSerializationHelper.h"
 #include "QmlTypeRegistration.h"
-#include "ui/DisplayGroupView.h"
+#include "ui/MasterQuickView.h"
 #include "ui/MasterWindow.h"
 
 #if TIDE_ENABLE_TUIO_TOUCH_LISTENER
@@ -70,13 +71,16 @@
 
 #include <deflect/EventReceiver.h>
 #include <deflect/FrameDispatcher.h>
+#include <deflect/qt/QuickRenderer.h>
 #include <deflect/Server.h>
 
 #include <stdexcept>
+#include <QQuickRenderControl>
 
 namespace
 {
 const int MOUSE_MARKER_ID = INT_MAX; // TUIO touch point IDs start at 0
+const QUrl QML_OFFSCREEN_ROOT_COMPONENT( "qrc:/qml/master/OffscreenRoot.qml" );
 }
 
 MasterApplication::MasterApplication( int& argc_, char** argv_,
@@ -86,8 +90,8 @@ MasterApplication::MasterApplication( int& argc_, char** argv_,
     , _masterToForkerChannel( new MasterToForkerChannel( forkChannel ))
     , _masterToWallChannel( new MasterToWallChannel( worldChannel ))
     , _masterFromWallChannel( new MasterFromWallChannel( worldChannel ))
-    , _options( new Options )
     , _markers( new Markers )
+    , _options( new Options )
 {
     master::registerQmlTypes();
 
@@ -95,16 +99,16 @@ MasterApplication::MasterApplication( int& argc_, char** argv_,
     setAttribute( Qt::AA_SynthesizeTouchForUnhandledMouseEvents, false );
     setAttribute( Qt::AA_SynthesizeMouseForUnhandledTouchEvents, false );
 
-    CommandLineParameters options( argc_, argv_ );
-    if( options.getHelp( ))
-        options.showSyntax();
+    const CommandLineParameters commandLine( argc_, argv_ );
+    if( commandLine.getHelp( ))
+        commandLine.showSyntax();
 
-    if( !_createConfig( options.getConfigFilename( )))
+    if( !_createConfig( commandLine.getConfigFilename( )))
         throw std::runtime_error( "MasterApplication: initialization failed." );
 
     _init();
 
-    const QString& session = options.getSessionFilename();
+    const QString& session = commandLine.getSessionFilename();
     if( !session.isEmpty( ))
         _loadSessionOp.setFuture(
                     StateSerializationHelper( _displayGroup ).load( session ));
@@ -130,54 +134,6 @@ MasterApplication::~MasterApplication()
     _mpiReceiveThread.wait();
 }
 
-void MasterApplication::_init()
-{
-    _displayGroup.reset( new DisplayGroup( _config->getTotalSize( )));
-
-    _masterWindow.reset( new MasterWindow( _displayGroup, _options, *_config ));
-    _pixelStreamWindowManager.reset(
-                new PixelStreamWindowManager( *_displayGroup ));
-
-    connect( &_loadSessionOp, &QFutureWatcher<DisplayGroupConstPtr>::finished,
-             [this]()
-    {
-        if( auto group = _loadSessionOp.result( ))
-            _apply( group );
-    });
-
-    _initPixelStreamLauncher();
-    _startDeflectServer();
-    _initMPIConnection();
-
-    // send initial display group to wall processes so that they at least the
-    // real display group size to compute correct sizes for full screen etc.
-    // which is vital for the following restoreBackground().
-    _masterToWallChannel->sendAsync( _displayGroup );
-
-    _restoreBackground();
-
-#if TIDE_ENABLE_TUIO_TOUCH_LISTENER
-    _initTouchListener();
-#endif
-
-#if TIDE_ENABLE_REST_INTERFACE
-    _initRestInterface();
-#endif
-}
-
-void MasterApplication::_apply( DisplayGroupConstPtr group )
-{
-    _displayGroup->setContentWindows( group->getContentWindows( ));
-    _displayGroup->setShowWindowTitles( group->getShowWindowTitles( ));
-    _options->setShowWindowTitles( group->getShowWindowTitles( ));
-
-    // Restore webbrowsers
-    using WebContent = const WebbrowserContent*;
-    for( const auto& window : group->getContentWindows( ))
-        if( auto browser = dynamic_cast<WebContent>( window->getContentPtr( )))
-            _pixelStreamerLauncher->launch( *browser );
-}
-
 bool MasterApplication::_createConfig( const QString& filename )
 {
     try
@@ -190,6 +146,104 @@ bool MasterApplication::_createConfig( const QString& filename )
         return false;
     }
     return true;
+}
+
+void MasterApplication::_init()
+{
+    _displayGroup.reset( new DisplayGroup( _config->getTotalSize( )));
+    _pixelStreamWindowManager.reset(
+                new PixelStreamWindowManager( *_displayGroup ));
+    _pixelStreamerLauncher.reset(
+             new PixelStreamerLauncher( *_pixelStreamWindowManager, *_config ));
+
+    if( _config->getHeadless( ))
+        _initOffscreenView();
+    else
+        _initMasterWindow();
+
+    connect( _masterGroupRenderer.get(),
+             &MasterDisplayGroupRenderer::openLauncher,
+             _pixelStreamerLauncher.get(),
+             &PixelStreamerLauncher::openLauncher );
+
+    connect( &_loadSessionOp, &QFutureWatcher<DisplayGroupConstPtr>::finished,
+             [this]()
+    {
+        if( auto group = _loadSessionOp.result( ))
+            _apply( group );
+    });
+
+#if TIDE_ENABLE_REST_INTERFACE
+    _initRestInterface();
+#endif
+
+    _startDeflectServer();
+    _setupMPIConnections();
+
+    // send initial display group to wall processes so that they at least the
+    // real display group size to compute correct sizes for full screen etc.
+    // which is vital for the following restoreBackground().
+    _masterToWallChannel->sendAsync( _displayGroup );
+    _restoreBackground();
+}
+
+void MasterApplication::_initMasterWindow()
+{
+    _masterWindow.reset( new MasterWindow( _displayGroup, _options, *_config ));
+
+    connect( _masterWindow.get(), &MasterWindow::openWebBrowser,
+             _pixelStreamerLauncher.get(),
+             &PixelStreamerLauncher::openWebBrowser );
+
+    connect( _masterWindow.get(), &MasterWindow::sessionLoaded,
+             this, &MasterApplication::_apply );
+
+    auto view = _masterWindow->getQuickView();
+    connect( view, &MasterQuickView::mousePressed, [this]( const QPointF pos )
+    {
+        _markers->addMarker( MOUSE_MARKER_ID, pos );
+    });
+    connect( view, &MasterQuickView::mouseMoved, [this]( const QPointF pos )
+    {
+        _markers->updateMarker( MOUSE_MARKER_ID, pos );
+    });
+    connect( view, &MasterQuickView::mouseReleased, [this]( const QPointF )
+    {
+        _markers->removeMarker( MOUSE_MARKER_ID );
+    });
+
+#if TIDE_ENABLE_TUIO_TOUCH_LISTENER
+    auto mapFunc = std::bind( &MasterQuickView::mapToWallPos, view,
+                              std::placeholders::_1 );
+    _touchInjector.reset( new deflect::qt::TouchInjector{ *view, mapFunc } );
+    _initTouchListener();
+#endif
+
+    auto engine = view->engine();
+    auto item = view->wallItem();
+    _masterGroupRenderer.reset( new MasterDisplayGroupRenderer{ _displayGroup,
+                                                                engine, item });
+}
+
+void MasterApplication::_initOffscreenView()
+{
+    _offscreenQuickView.reset( new deflect::qt::OffscreenQuickView{
+                                   make_unique<QQuickRenderControl>(),
+                                   deflect::qt::RenderMode::DISABLED } );
+    _offscreenQuickView->getRootContext()->setContextProperty( "options",
+                                                               _options.get( ));
+    _offscreenQuickView->load( QML_OFFSCREEN_ROOT_COMPONENT ).wait();
+    _offscreenQuickView->resize( _config->getTotalSize( ));
+
+#if TIDE_ENABLE_TUIO_TOUCH_LISTENER
+    _touchInjector = deflect::qt::TouchInjector::create( *_offscreenQuickView );
+    _initTouchListener();
+#endif
+
+    auto engine = _offscreenQuickView->getEngine();
+    auto item = _offscreenQuickView->getRootItem();
+    _masterGroupRenderer.reset( new MasterDisplayGroupRenderer{ _displayGroup,
+                                                                engine, item });
 }
 
 void MasterApplication::_startDeflectServer()
@@ -206,8 +260,7 @@ void MasterApplication::_startDeflectServer()
         return;
     }
 
-    deflect::FrameDispatcher& dispatcher =
-            _deflectServer->getPixelStreamDispatcher();
+    auto& dispatcher = _deflectServer->getPixelStreamDispatcher();
 
     connect( &dispatcher, &deflect::FrameDispatcher::openPixelStream,
              _pixelStreamWindowManager.get(),
@@ -220,42 +273,7 @@ void MasterApplication::_startDeflectServer()
              &dispatcher, &deflect::FrameDispatcher::deleteStream );
 }
 
-void MasterApplication::_restoreBackground()
-{
-    _options->setBackgroundColor( _config->getBackgroundColor( ));
-
-    const QString& uri = _config->getBackgroundUri();
-    if( !uri.isEmpty( ))
-    {
-        ContentPtr content = ContentFactory::getContent( uri );
-        if( !content )
-            content = ContentFactory::getErrorContent();
-        _options->setBackgroundContent( content );
-    }
-}
-
-void MasterApplication::_initPixelStreamLauncher()
-{
-    _pixelStreamerLauncher.reset(
-             new PixelStreamerLauncher( *_pixelStreamWindowManager, *_config ));
-
-    connect( _masterWindow.get(), &MasterWindow::openWebBrowser,
-             _pixelStreamerLauncher.get(),
-             &PixelStreamerLauncher::openWebBrowser );
-    connect( _masterWindow.get(), &MasterWindow::sessionLoaded,
-             this, &MasterApplication::_apply );
-
-    connect( _masterWindow->getDisplayGroupView(),
-             &DisplayGroupView::openLauncher,
-             _pixelStreamerLauncher.get(),
-             &PixelStreamerLauncher::openLauncher );
-    connect( _masterWindow->getDisplayGroupView(),
-             &DisplayGroupView::hideLauncher,
-             _pixelStreamerLauncher.get(),
-             &PixelStreamerLauncher::hideLauncher );
-}
-
-void MasterApplication::_initMPIConnection()
+void MasterApplication::_setupMPIConnections()
 {
     _masterToForkerChannel->moveToThread( &_mpiSendThread );
     _masterToWallChannel->moveToThread( &_mpiSendThread );
@@ -336,10 +354,6 @@ void MasterApplication::_initMPIConnection()
 #if TIDE_ENABLE_TUIO_TOUCH_LISTENER
 void MasterApplication::_initTouchListener()
 {
-    DisplayGroupView* view = _masterWindow->getDisplayGroupView();
-    auto mapFunc = std::bind( &DisplayGroupView::mapToWallPos, view,
-                              std::placeholders::_1 );
-    _touchInjector.reset( new deflect::qt::TouchInjector{ *view, mapFunc } );
     _touchListener.reset( new MultitouchListener( ));
 
     connect( _touchListener.get(), &MultitouchListener::touchPointAdded,
@@ -371,19 +385,6 @@ void MasterApplication::_initTouchListener()
              [this]( const int id, const QPointF )
     {
         _markers->removeMarker( id );
-    });
-
-    connect( view, &DisplayGroupView::mousePressed, [this]( const QPointF pos )
-    {
-        _markers->addMarker( MOUSE_MARKER_ID, pos );
-    });
-    connect( view, &DisplayGroupView::mouseMoved, [this]( const QPointF pos )
-    {
-        _markers->updateMarker( MOUSE_MARKER_ID, pos );
-    });
-    connect( view, &DisplayGroupView::mouseReleased, [this]( const QPointF )
-    {
-        _markers->removeMarker( MOUSE_MARKER_ID );
     });
 }
 #endif
@@ -451,3 +452,30 @@ void MasterApplication::_initRestInterface()
     _restInterface.get()->exposeStatistics( *(_logger.get()) );
 }
 #endif
+
+void MasterApplication::_restoreBackground()
+{
+    _options->setBackgroundColor( _config->getBackgroundColor( ));
+
+    const QString& uri = _config->getBackgroundUri();
+    if( !uri.isEmpty( ))
+    {
+        ContentPtr content = ContentFactory::getContent( uri );
+        if( !content )
+            content = ContentFactory::getErrorContent();
+        _options->setBackgroundContent( content );
+    }
+}
+
+void MasterApplication::_apply( DisplayGroupConstPtr group )
+{
+    _displayGroup->setContentWindows( group->getContentWindows( ));
+    _displayGroup->setShowWindowTitles( group->getShowWindowTitles( ));
+    _options->setShowWindowTitles( group->getShowWindowTitles( ));
+
+    // Restore webbrowsers
+    using WebContent = const WebbrowserContent*;
+    for( const auto& window : group->getContentWindows( ))
+        if( auto browser = dynamic_cast<WebContent>( window->getContentPtr( )))
+            _pixelStreamerLauncher->launch( *browser );
+}
