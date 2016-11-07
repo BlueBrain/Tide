@@ -7,7 +7,7 @@
     <webbrowser defaultURL="http://bbp.epfl.ch" />
     <whiteboard saveUrl="/nfs4/bbp.epfl.ch/media/DisplayWall/whiteboard/" />
     <applauncher qml="/some/path/to/launcher.qml" />
-    <masterProcess display=":1" host="bbplxviz03i" />
+    <masterProcess display=":1" host="bbplxviz03i" headless="true" />
     <content maxScale="4.0" maxScaleVectorial="8.0" />
     <process display=":0.2" host="bbplxviz03i">
         <screen x="0" y="0" i="0" j="0"/>

@@ -92,9 +92,6 @@ public slots:
     /** Open the Qml whiteboard. */
     void openWhiteboard();
 
-    /** Hide the Qml Launcher. */
-    void hideLauncher();
-
 signals:
     /** Request the launch of a command in a working directory and given ENV. */
     void start( QString command, QString workingDir, QStringList env );

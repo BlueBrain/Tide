@@ -9,7 +9,6 @@ DisplayGroup {
     showFocusContext: false
 
     signal openLauncher()
-    signal hideLauncher()
 
     MultitouchArea {
         anchors.fill: parent
@@ -46,7 +45,7 @@ DisplayGroup {
         onTap: {
             if(buttonIndex == 0) {
                 if (displaygroup.hasVisiblePanels)
-                    hideLauncher()
+                    groupcontroller.hidePanels()
                 else
                     openLauncher()
             }

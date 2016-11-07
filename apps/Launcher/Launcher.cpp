@@ -101,11 +101,7 @@ Launcher::Launcher( int& argc, char* argv[] )
     item->setProperty( "demoServiceDeflectHost", QHostInfo::localHostName( ));
 }
 
-Launcher::~Launcher()
-{
-    QQmlEngine* engine = _qmlStreamer->getQmlEngine();
-    engine->removeImageProvider( thumbnailProviderId );
-}
+Launcher::~Launcher() {}
 
 bool Launcher::event( QEvent* event_ )
 {

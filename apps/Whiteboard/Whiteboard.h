@@ -57,9 +57,9 @@ public:
 
 private:
     std::unique_ptr<deflect::qt::QmlStreamer> _qmlStreamer;
+    FileInfoHelper _fileInfoHelper;
 
     bool event( QEvent* event ) final;
-    FileInfoHelper _fileInfoHelper;
 };
 
 #endif

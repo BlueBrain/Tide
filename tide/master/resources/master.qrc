@@ -1,10 +1,11 @@
 <RCC>
     <qresource prefix="/"/>
     <qresource prefix="/qml/master">
-        <file>MasterContentWindow.qml</file>
         <file>ContentWindowButton.qml</file>
+        <file>MasterContentWindow.qml</file>
         <file>MasterDisplayGroup.qml</file>
-        <file>DisplayGroupBackground.qml</file>
+        <file>OffscreenRoot.qml</file>
+        <file>Root.qml</file>
         <file>Wall.qml</file>
     </qresource>
     <qresource prefix="/img/master">

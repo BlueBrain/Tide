@@ -43,6 +43,7 @@
 #include "config.h"
 #include "types.h"
 
+#include <deflect/qt/OffscreenQuickView.h>
 #if TIDE_ENABLE_TUIO_TOUCH_LISTENER
 #include <deflect/qt/TouchInjector.h>
 #endif
@@ -51,6 +52,8 @@
 #include <QFutureWatcher>
 #include <QThread>
 
+class MasterDisplayGroupRenderer;
+class MasterQuickView;
 class MasterToWallChannel;
 class MasterToForkerChannel;
 class MasterFromWallChannel;
@@ -88,42 +91,50 @@ private:
     std::unique_ptr<MasterToForkerChannel> _masterToForkerChannel;
     std::unique_ptr<MasterToWallChannel> _masterToWallChannel;
     std::unique_ptr<MasterFromWallChannel> _masterFromWallChannel;
-    std::unique_ptr<MasterWindow> _masterWindow;
+    QThread _mpiSendThread;
+    QThread _mpiReceiveThread;
+
+    DisplayGroupPtr _displayGroup;
+    MarkersPtr _markers;
+    OptionsPtr _options;
+
     std::unique_ptr<MasterConfiguration> _config;
+    std::unique_ptr<MasterWindow> _masterWindow;
+    std::unique_ptr<deflect::qt::OffscreenQuickView> _offscreenQuickView;
+    std::unique_ptr<MasterDisplayGroupRenderer> _masterGroupRenderer;
+
     std::unique_ptr<deflect::Server> _deflectServer;
     std::unique_ptr<PixelStreamerLauncher> _pixelStreamerLauncher;
     std::unique_ptr<PixelStreamWindowManager> _pixelStreamWindowManager;
+
 #if TIDE_ENABLE_TUIO_TOUCH_LISTENER
     std::unique_ptr<MultitouchListener> _touchListener;
     std::unique_ptr<deflect::qt::TouchInjector> _touchInjector;
 #endif
+
 #if TIDE_ENABLE_REST_INTERFACE
     std::unique_ptr<RestInterface> _restInterface;
     std::unique_ptr<LoggingUtility> _logger;
 #endif
+
     QFutureWatcher<DisplayGroupConstPtr> _loadSessionOp;
     QFutureWatcher<bool> _saveSessionOp;
 
-    DisplayGroupPtr _displayGroup;
-    OptionsPtr _options;
-    MarkersPtr _markers;
-
-    QThread _mpiSendThread;
-    QThread _mpiReceiveThread;
-
-    void _init();
-    void _apply( DisplayGroupConstPtr group );
     bool _createConfig( const QString& filename );
+    void _init();
+    void _initMasterWindow();
+    void _initOffscreenView();
     void _startDeflectServer();
-    void _restoreBackground();
-    void _initPixelStreamLauncher();
-    void _initMPIConnection();
+    void _setupMPIConnections();
 #if TIDE_ENABLE_TUIO_TOUCH_LISTENER
+    using MapToSceneFunc = deflect::qt::TouchInjector::MapToSceneFunc;
     void _initTouchListener();
 #endif
 #if TIDE_ENABLE_REST_INTERFACE
     void _initRestInterface();
 #endif
+    void _restoreBackground();
+    void _apply( DisplayGroupConstPtr group );
 };
 
 #endif

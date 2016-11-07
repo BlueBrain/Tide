@@ -59,6 +59,11 @@ public:
     MasterConfiguration( const QString& filename );
 
     /**
+     * @return true if the master application is headless (no visible window)
+     */
+    bool getHeadless() const;
+
+    /**
      * Get the root directory for opening contents.
      * @return directory path
      */
@@ -153,6 +158,7 @@ public:
 
 private:
     void loadMasterSettings();
+    void loadMasterProcessInfo( QXmlQuery& query );
     void loadContentDirectory( QXmlQuery& query );
     void loadLauncherSettings( QXmlQuery& query );
     void loadSessionsDirectory( QXmlQuery& query );
@@ -162,6 +168,7 @@ private:
     void loadWebBrowserStartURL( QXmlQuery& query );
     void loadBackgroundProperties( QXmlQuery& query );
 
+    bool _headless = false;
     QString _contentDir;
     QString _sessionsDir;
     QString _appLauncherFile;
@@ -178,4 +185,4 @@ private:
     QColor _backgroundColor;
 };
 
-#endif // MASTERCONFIGURATION_H
+#endif

@@ -57,7 +57,7 @@
 
 namespace
 {
-const QUrl QML_BACKGROUND_URL( "qrc:/qml/wall/Background.qml" );
+const QUrl QML_ROOT_COMPONENT( "qrc:/qml/wall/Background.qml" );
 }
 
 WallWindow::WallWindow( const WallConfiguration& config,
@@ -70,10 +70,10 @@ WallWindow::WallWindow( const WallConfiguration& config,
     , _renderControl( renderControl )
     , _quickRenderer( new deflect::qt::QuickRenderer( *this, *_renderControl ))
     , _quickRendererThread( new QThread )
+    , _rendererInitialized( false )
     , _qmlEngine( new QQmlEngine )
     , _qmlComponent( nullptr )
     , _rootItem( nullptr )
-    , _rendererInitialized( false )
     , _uploadThread( new QThread )
     , _uploader( new TextureUploader )
     , _provider( new DataProvider )
@@ -157,7 +157,7 @@ void WallWindow::exposeEvent( QExposeEvent* )
 
 void WallWindow::_startQuick( const WallConfiguration& config )
 {
-    _qmlComponent = new QQmlComponent( _qmlEngine, QML_BACKGROUND_URL );
+    _qmlComponent = new QQmlComponent( _qmlEngine, QML_ROOT_COMPONENT );
     qmlCheckOrThrow( *_qmlComponent );
     QObject* rootObject_ = _qmlComponent->create();
     _rootItem = qobject_cast< QQuickItem* >( rootObject_ );

@@ -1,8 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael.Dumusc@epfl.ch                        */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,45 +37,39 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef DISPLAY_GROUP_VIEW_H
-#define DISPLAY_GROUP_VIEW_H
+#ifndef MASTERQUICKVIEW_H
+#define MASTERQUICKVIEW_H
 
 #include "types.h"
 
-#include <QUuid>
+class MasterDisplayGroupRenderer;
 
 #include <QGesture>
 #include <QGestureEvent>
-
 #include <QQuickView>
+#include <QUuid>
 
 /**
- * An interactive graphical view of a DisplayGroup's ContentWindows.
+ * A view of the display wall inside the master window.
  */
-class DisplayGroupView : public QQuickView
+class MasterQuickView : public QQuickView
 {
     Q_OBJECT
 
 public:
     /** Constructor. */
-    DisplayGroupView( OptionsPtr options, const MasterConfiguration& config );
+    MasterQuickView( OptionsPtr options, const MasterConfiguration& config );
 
     /** Destructor */
-    virtual ~DisplayGroupView();
+    ~MasterQuickView();
 
-    /** Set the DisplayGroup model that this view should present. */
-    void setDataModel( DisplayGroupPtr displayGroup );
+    /** Get the wall qml item. */
+    QQuickItem* wallItem();
 
     /** Map a normalized touch event on the wall to this view's coordinates. */
     QPointF mapToWallPos( const QPointF& normalizedPos ) const;
 
 signals:
-    /** Emitted when a user taps the launcher control to open it. */
-    void openLauncher();
-
-    /** Emitted when a user taps the launcher control to hide it. */
-    void hideLauncher();
-
     /** @name Emitted when a user interactacts with the mouse. */
     //@{
     void mousePressed( QPointF pos );
@@ -85,26 +77,11 @@ signals:
     void mouseReleased( QPointF pos );
     //@}
 
-protected:
-    /** Re-implement QWindow event to capture tab key. */
-    bool event( QEvent* event ) override;
-
-private slots:
-    void _add( ContentWindowPtr contentWindow );
-    void _remove( ContentWindowPtr contentWindow );
-    void _moveToFront( ContentWindowPtr contentWindow );
-
 private:
-    void _clearScene();
-    QPointF _getScenePos( const QPointF& pos ) const;
+    /** Re-implement QWindow event to capture tab key. */
+    bool event( QEvent* event ) final;
 
-    DisplayGroupPtr _displayGroup;
-
-    QQuickItem* _displayGroupItem;
-    QObject* _wallObject;
-
-    typedef QMap<QUuid, QQuickItem*> UuidToWindowMap;
-    UuidToWindowMap _uuidToWindowMap;
+    QQuickItem* _wallItem = nullptr;
 };
 
 #endif

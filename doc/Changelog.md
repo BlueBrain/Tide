@@ -3,6 +3,11 @@ Changelog {#changelog}
 
 # Release 1.2 (git master)
 
+* [105](https://github.com/BlueBrain/Tide/pull/105):
+  Tide can now be started in "headless" mode, without a visible control window.
+  This simplifies the deployment on installations where no dedicated control
+  monitor is available, where previously the master window had to be run inside
+  a VNC server.
 * [104](https://github.com/BlueBrain/Tide/pull/104):
   Tide can be controlled from the python BBP viztools.
 * [100](https://github.com/BlueBrain/Tide/pull/100):
