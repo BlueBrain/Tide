@@ -316,8 +316,8 @@ Item {
                 }
                 Rectangle {
                     anchors.fill: parent
-                    color: "lightsteelblue"
-                    opacity: 0.3
+                    color: "black"
+                    opacity: 0.7
                     visible: parent.enabled
                 }
             }
@@ -493,55 +493,55 @@ Item {
                     wrapMode: Text.Wrap
                 }
                 Row {
-                	anchors.verticalCenter: parent.verticalCenter
-                	anchors.horizontalCenter: parent.horizontalCenter
-                	spacing: 10
-                	height: 50
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    spacing: 10
+                    height: 50
 
-	                Button {
-	                    id: buttonOK
-	                    implicitWidth: 100
-	                    implicitHeight: 50
-	                    style: ButtonStyle {
-	                        label: Text {
-	                            renderType: Text.NativeRendering
-	                            horizontalAlignment: Text.AlignHCenter
-	                            font.pointSize: control.height * 0.3
-	                            verticalAlignment: Text.AlignVCenter
-	                            text: "OK"
-	                            color: control.enabled ? "black" : "gray"
-	                        }
-	                    }
-	                    onClicked: saveCanvas()
-	                }
-	                Button {
-	                    id: buttonCancel
-	                    visible: buttonOK.visible
-	                    implicitWidth: 100
-	                    implicitHeight: 50
-	                    style: ButtonStyle {
-	                        label: Text {
-	                            renderType: Text.NativeRendering
-	                            font.pointSize: control.height * 0.3
-	                            horizontalAlignment: Text.AlignHCenter
-	                            verticalAlignment: Text.AlignVCenter
-	                            text: "Cancel"
-	                            color: control.enabled ? "black" : "gray"
-	                        }
-	                    }
-	                    onClicked: cancelSave()
-	                }
-	            }
+                    Button {
+                        id: buttonOK
+                        implicitWidth: 100
+                        implicitHeight: 50
+                        style: ButtonStyle {
+                            label: Text {
+                                renderType: Text.NativeRendering
+                                horizontalAlignment: Text.AlignHCenter
+                                font.pointSize: control.height * 0.3
+                                verticalAlignment: Text.AlignVCenter
+                                text: "OK"
+                                color: control.enabled ? "black" : "gray"
+                            }
+                        }
+                        onClicked: saveCanvas()
+                    }
+                    Button {
+                        id: buttonCancel
+                        visible: buttonOK.visible
+                        implicitWidth: 100
+                        implicitHeight: 50
+                        style: ButtonStyle {
+                            label: Text {
+                                renderType: Text.NativeRendering
+                                font.pointSize: control.height * 0.3
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                                text: "Cancel"
+                                color: control.enabled ? "black" : "gray"
+                            }
+                        }
+                        onClicked: cancelSave()
+                    }
+                }
             }
-        }
-        Loader {
-            id: virtualKeyboard
-            source: "qrc:/virtualkeyboard/InputPanel.qml"
-            anchors.top: textInput.bottom
-            anchors.right: savePanel.right
-            anchors.left: savePanel.left
-            anchors.bottom: savePanel.bottom
-            visible: Qt.inputMethod.visible ? true : false
+            Loader {
+                id: virtualKeyboard
+                source: "qrc:/virtualkeyboard/InputPanel.qml"
+                anchors.top: textInput.bottom
+                anchors.right: savePanel.right
+                anchors.left: savePanel.left
+                anchors.bottom: savePanel.bottom
+                visible: Qt.inputMethod.visible ? true : false
+            }
         }
     }
 }
