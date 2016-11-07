@@ -47,6 +47,11 @@ MasterFromWallChannel::MasterFromWallChannel( MPIChannelPtr mpiChannel )
     : _mpiChannel( mpiChannel )
     , _processMessages( true )
 {
+    if( _mpiChannel->getSize() < 2 )
+    {
+        put_flog( LOG_WARN, "Channel has no Wall receiver" );
+        _processMessages = false;
+    }
 }
 
 void MasterFromWallChannel::processMessages()
