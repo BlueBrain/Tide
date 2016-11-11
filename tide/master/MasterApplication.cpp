@@ -437,6 +437,7 @@ void MasterApplication::_initRestInterface()
     {
         _displayGroup->clear();
     });
+    connect( _restInterface.get(), &RestInterface::exit, [this]() { exit(); });
 
     connect( _displayGroup.get(), &DisplayGroup::contentWindowAdded,
              _logger.get(), &LoggingUtility::contentWindowAdded );

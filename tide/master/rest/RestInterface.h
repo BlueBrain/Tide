@@ -94,6 +94,9 @@ signals:
     /** Browse a website. */
     void browse( QString uri );
 
+    /** Exit the application. */
+    void exit();
+
 private:
     class Impl;
     std::unique_ptr<Impl> _impl;

@@ -10,6 +10,7 @@ DefaultPanel {
     id: optionsPanel
 
     signal buttonClicked(string optionName, bool value)
+    signal exitClicked()
     signal refreshOptions()
 
     property int checkboxHeight: height * 0.025
@@ -57,6 +58,49 @@ DefaultPanel {
             text: "Transparent Windows"
             onClicked: buttonClicked("alphaBlending", checked)
             style: checkboxScalingStyle
+        }
+    }
+
+    Rectangle {
+        id: exitSlider
+        color: Style.exitSliderBackgroundColor
+        radius: height * Style.exitSliderRadius
+        anchors.top: optionsGrid.bottom
+        anchors.topMargin: height
+        anchors.horizontalCenter: parent.horizontalCenter
+
+        height: checkboxHeight * 2
+        width: height * Style.exitSliderRelWidth
+
+        Text {
+            text : "Slide to exit"
+            anchors.centerIn: parent
+            font.pointSize: checkboxHeight
+            color: Style.exitSliderTextColor
+            opacity: slider.opacity
+        }
+
+        Rectangle {
+            id: slider
+            width: height
+            height: parent.height
+            radius: height * Style.exitSliderRadius
+            color: Style.exitSliderColor
+            opacity: (exitSlider.width - slider.x) / exitSlider.width
+            MouseArea {
+                anchors.fill: parent
+                drag.target: slider
+                drag.axis: Drag.XAxis
+                drag.minimumX: 0
+                drag.maximumX: exitSlider.width - slider.width
+                onReleased: {
+                    if (slider.x >= drag.maximumX)
+                        exitClicked()
+                    else
+                        slider.x = 0.0
+                }
+            }
+            Behavior on x { PropertyAnimation {} }
         }
     }
 
