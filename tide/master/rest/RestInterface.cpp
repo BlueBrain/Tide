@@ -87,6 +87,7 @@ public:
         server.handlePUT( openCmd );
         server.handlePUT( loadCmd );
         server.handlePUT( saveCmd );
+        server.handlePUT( exitCmd );
         server.handlePUT( whiteboardCmd );
         server.handle( options );
     }
@@ -97,6 +98,7 @@ public:
     RestCommand openCmd{ "tide::open" };
     RestCommand loadCmd{ "tide::load" };
     RestCommand saveCmd{ "tide::save" };
+    RestCommand exitCmd{ "tide::exit" };
     RestCommand whiteboardCmd{ "tide::whiteboard" };
     JsonOptions options;
     std::unique_ptr<RestLogger> logContent;
@@ -124,6 +126,9 @@ RestInterface::RestInterface( const int port, OptionsPtr options )
 
     connect( &_impl->saveCmd, &RestCommand::received,
              this, &RestInterface::save );
+
+    connect( &_impl->exitCmd, &RestCommand::received,
+             this, &RestInterface::exit );
 }
 
 RestInterface::~RestInterface() {}

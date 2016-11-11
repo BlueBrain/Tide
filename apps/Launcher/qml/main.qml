@@ -97,6 +97,7 @@ Rectangle {
         id: optionsPanel
         OptionsPanel {
             onButtonClicked: sendRestOption(optionName, value)
+            onExitClicked: sendRestCommand("exit", "")
             onRefreshOptions: getRestOptions(updateCheckboxes)
         }
     }

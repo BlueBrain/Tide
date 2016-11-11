@@ -13,6 +13,12 @@ var menuRelTextSize = 0.1
 var defaultPanelColor = "darkgrey"
 var defaultPanelTextColor = "white"
 
+var exitSliderBackgroundColor = menuColor
+var exitSliderColor = defaultPanelTextColor
+var exitSliderTextColor = defaultPanelColor
+var exitSliderRadius = 0.25
+var exitSliderRelWidth = 8.0
+
 var titleBarRelHeight = 0.1
 var mainPanelRelMargin = 0.25
 
