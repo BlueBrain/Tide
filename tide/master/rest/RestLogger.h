@@ -45,24 +45,23 @@
 #include "LoggingUtility.h"
 
 /**
- * Exposes usage statistics content to ZeroEQ http server gathered by LoggingUtility.
+ * Exposes usage statistics to the ZeroEQ REST interface.
  */
 class RestLogger : public servus::Serializable
 {
 public:
     /**
-     * Construct dynamic content used by REST interface.
+     * Constructor.
      *
-     * @param logger LoggingUtility object which is exposed.
+     * @param logger which contains the statistics to expose.
      */
     RestLogger( const LoggingUtility& logger );
 
     /** @return the string used as an endpoint by REST interface. */
     std::string getTypeName() const final;
+    std::string getSchema() const final;
 
 private:
-
-    const std::string _name = "tide::stats";
     const LoggingUtility& _logger ;
 
     std::string _toJSON() const final;

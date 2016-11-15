@@ -37,69 +37,100 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "RestCommand.h"
-
 #include "jsonschema.h"
-#include "log.h"
 
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QStringList>
 
-namespace
-{
-const QString description = "Command '%1' of Tide application";
-}
+// forward declaration
+QJsonObject _getPropertySchema( const QString& name, const QJsonValue& value );
 
-std::string _makeSchema( const std::string& name, const bool takesValue )
+QString _toString( const QJsonValue::Type type )
 {
-    const auto data = QString::fromStdString( name ).split( "::" );
-    if( data.size() != 2 )
+    switch( type )
+    {
+    case QJsonValue::Null:
+        return "null";
+    case QJsonValue::Bool:
+        return "boolean";
+    case QJsonValue::Double:
+        return "number";
+    case QJsonValue::String:
+        return "string";
+    case QJsonValue::Array:
+        return "array";
+    case QJsonValue::Object:
+        return "object";
+    case QJsonValue::Undefined:
+    default:
         return "";
-
-    QJsonObject obj;
-    if( takesValue )
-        obj["uri"] = QString();
-
-    return jsonschema::create( data[1], obj, description.arg( data[1] ));
-}
-
-RestCommand::RestCommand( const std::string& name, const bool takesValue )
-    : _name{ name }
-    , _schema{ _makeSchema( name, takesValue ) }
-    , _takesValue( takesValue )
-{}
-
-std::string RestCommand::getTypeName() const
-{
-    return _name;
-}
-
-std::string RestCommand::getSchema() const
-{
-    return _schema;
-}
-
-bool RestCommand::_fromJSON( const std::string& string )
-{
-    const QByteArray input = QString::fromStdString( string ).toUtf8();
-    const QJsonDocument doc = QJsonDocument::fromJson( input );
-    if( doc.isNull() || !doc.isObject( ))
-    {
-        put_flog( LOG_INFO, "Error parsing JSON string: '%s'", string.c_str( ));
-        return false;
     }
+}
 
-    if( !_takesValue )
+QJsonObject _getValueSchema( const QJsonValue::Type type )
+{
+    QJsonObject valueSchema;
+    valueSchema["type"] = _toString( type );
+    return valueSchema;
+}
+
+QJsonObject _getArraySchema( const QString& name, const QJsonArray& array )
+{
+    if( array.isEmpty( ))
+        return {};
+
+    QJsonObject arraySchema;
+    arraySchema["type"] = "array";
+    arraySchema["items"] = _getPropertySchema( name+"_items", array.first( ));
+    return arraySchema;
+}
+
+QJsonObject _getObjectSchema( const QString& title, const QJsonObject& object,
+                              const QString& description )
+{
+    QJsonObject schema;
+    schema["$schema"] = "http://json-schema.org/schema#";
+    schema["title"] = title;
+    schema["description"] = description;
+    schema["type"] = "object";
+    schema["additionalProperties"] = false;
+    QJsonObject properties;
+    for( auto it = object.begin(); it != object.end(); ++it )
+        properties[it.key()] = _getPropertySchema( it.key(), it.value( ));
+    schema["properties"] = properties;
+    return schema;
+}
+
+QJsonObject _getPropertySchema( const QString& name, const QJsonValue& value )
+{
+    switch( value.type( ))
     {
-        emit received( "" );
-        return true;
+    case QJsonValue::Bool:
+    case QJsonValue::Double:
+    case QJsonValue::String:
+        return _getValueSchema( value.type( ));
+    case QJsonValue::Array:
+        return _getArraySchema( name, value.toArray( ));
+    case QJsonValue::Object:
+        return _getObjectSchema( name, value.toObject(), name+" object" );
+    case QJsonValue::Null:
+    case QJsonValue::Undefined:
+    default:
+        return {};
     }
+}
 
-    const QJsonValue value = doc.object()["uri"];
-    if( !value.isString( ))
-        return false;
+namespace jsonschema
+{
 
-    emit received( value.toString( ));
-    return true;
+std::string create( const QString& title, const QJsonObject& object,
+                    const QString& description )
+{
+    const QJsonObject obj = _getObjectSchema( title, object, description );
+    const QJsonDocument doc{ obj };
+    return doc.toJson( QJsonDocument::JsonFormat::Compact ).toStdString();
+}
+
 }

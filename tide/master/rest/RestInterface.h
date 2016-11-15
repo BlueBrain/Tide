@@ -73,7 +73,8 @@ public:
     /** Out-of-line destructor. */
     ~RestInterface();
 
-    void setLogger(const LoggingUtility& logger) const;
+    /** Expose the statistics gathered by the given logging utility. */
+    void exposeStatistics( const LoggingUtility& logger ) const;
 
 signals:
     /** Open a content. */

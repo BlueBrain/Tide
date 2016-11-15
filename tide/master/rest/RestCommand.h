@@ -56,18 +56,25 @@ public:
      *
      * @param name The name of the command exposed through the REST interface,
      *        separated by '::' instead of '/' (e.g. "restapi::mycommand").
+     * @param takesValue indicates if the command expects a value.
      */
-    explicit RestCommand( const std::string& name );
+    explicit RestCommand( const std::string& name, bool takesValue = true );
 
     /** @return the name of the command passed in the constructor. */
     std::string getTypeName() const final;
 
+    /** @return the json schema used by the Viztools python bindings. */
+    std::string getSchema() const final;
+
 signals:
     /** Emitted when the command has been received. */
-    void received( QString uri );
+    void received( QString value );
 
 private:
-    std::string _name;
+    const std::string _name;
+    const std::string _schema;
+    const bool _takesValue;
+
     bool _fromJSON( const std::string& json ) final;
 };
 

@@ -39,11 +39,29 @@
 
 #include "RestLogger.h"
 
+#include "jsonschema.h"
+
 #include <iostream>
 #include <string>
 #include <QJsonDocument>
 #include <QJsonObject>
 
+
+QJsonObject _makeJsonObject( const LoggingUtility& logger )
+{
+    QJsonObject obj;
+    QJsonObject event;
+    event["last_event"] = logger.getLastInteraction();
+    event["last_event_date"] = logger.getLastInteractionTime();
+    event["count"] = int( logger.getInteractionCount() );
+    obj["event"] = event;
+    QJsonObject window;
+    window["count"] = int(logger.getWindowCount());
+    window["date_set"] = logger.getCounterModificationTime();
+    window["accumulated_count"] = int(logger.getAccumulatedWindowCount());
+    obj["window"] = window;
+    return obj;
+}
 
 RestLogger::RestLogger( const LoggingUtility& logger )
     : _logger( logger )
@@ -51,27 +69,18 @@ RestLogger::RestLogger( const LoggingUtility& logger )
 
 std::string RestLogger::getTypeName() const
 {
-    return _name;
+    return "tide::stats";
+}
+
+std::string RestLogger::getSchema() const
+{
+    return jsonschema::create( "Stats", _makeJsonObject( _logger ),
+                               "Usage statistics of the Tide application" );
 }
 
 std::string RestLogger::_toJSON() const
 {
-    std::string content;
-
-    QJsonObject obj;
-    QJsonObject event;
-    event["last_event"] = _logger.getLastInteraction();
-    event["last_event_date"] = _logger.getLastInteractionTime();
-    event["count"] = static_cast<int>( _logger.getInteractionCount() );
-    obj["event"] = event;
-    QJsonObject window;
-    window["count"] =  static_cast<int>(_logger.getWindowCount());
-    window["date_set"] = _logger.getCounterModificationTime();
-    window["accumulated_count"] = static_cast<int>( _logger.getAccumulatedWindowCount() );
-    obj["window"] = window;
-    QJsonDocument doc(obj);
-    QString strJson( doc.toJson( QJsonDocument::Indented ) );
-    content.append( strJson.toStdString() );
-
-    return content;
+    QJsonObject obj{ _makeJsonObject( _logger ) };
+    QJsonDocument doc{ obj };
+    return doc.toJson().toStdString();
 }

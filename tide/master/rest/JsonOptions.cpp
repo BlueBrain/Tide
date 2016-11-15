@@ -39,11 +39,31 @@
 
 #include "JsonOptions.h"
 
+#include "jsonschema.h"
 #include "log.h"
 #include "scene/Options.h"
 
 #include <QJsonDocument>
 #include <QJsonObject>
+
+QJsonObject _makeJsonObject( const Options& options )
+{
+    QJsonObject obj;
+    obj.insert( "alphaBlending", options.isAlphaBlendingEnabled( ));
+    obj.insert( "autoFocusStreamers", options.getAutoFocusPixelStreams( ));
+    obj.insert( "backgroundColor", options.getBackgroundColor().name( ));
+    obj.insert( "background", options.getBackgroundUri( ));
+    obj.insert( "clock", options.getShowClock( ));
+    obj.insert( "contentTiles", options.getShowContentTiles( ));
+    obj.insert( "controlArea", options.getShowControlArea( ));
+    obj.insert( "statistics", options.getShowStatistics( ));
+    obj.insert( "testPattern", options.getShowTestPattern( ));
+    obj.insert( "touchPoints", options.getShowTouchPoints( ));
+    obj.insert( "windowBorders", options.getShowWindowBorders( ));
+    obj.insert( "windowTitles", options.getShowWindowTitles( ));
+    obj.insert( "zoomContext", options.getShowZoomContext( ));
+    return obj;
+}
 
 JsonOptions::JsonOptions( OptionsPtr options )
     : _options( options )
@@ -54,27 +74,19 @@ std::string JsonOptions::getTypeName() const
     return "tide::options";
 }
 
+std::string JsonOptions::getSchema() const
+{
+    return jsonschema::create( "Options", _makeJsonObject( *_options ),
+                               "Options of the Tide application" );
+}
+
 std::string JsonOptions::_toJSON() const
 {
     if( !_options )
         return std::string();
 
-    QJsonObject obj;
-    obj.insert( "alphaBlending", _options->isAlphaBlendingEnabled( ));
-    obj.insert( "autoFocusStreamers", _options->getAutoFocusPixelStreams( ));
-    obj.insert( "backgroundColor", _options->getBackgroundColor().name( ));
-    obj.insert( "background", _options->getBackgroundUri( ));
-    obj.insert( "clock", _options->getShowClock( ));
-    obj.insert( "contentTiles", _options->getShowContentTiles( ));
-    obj.insert( "controlArea", _options->getShowControlArea( ));
-    obj.insert( "statistics", _options->getShowStatistics( ));
-    obj.insert( "testPattern", _options->getShowTestPattern( ));
-    obj.insert( "touchPoints", _options->getShowTouchPoints( ));
-    obj.insert( "windowBorders", _options->getShowWindowBorders( ));
-    obj.insert( "windowTitles", _options->getShowWindowTitles( ));
-    obj.insert( "zoomContext", _options->getShowZoomContext( ));
-
-    const QJsonDocument doc( obj );
+    const QJsonObject obj{ _makeJsonObject( *_options ) };
+    const QJsonDocument doc{ obj };
     return doc.toJson().constData();
 }
 
