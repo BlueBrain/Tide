@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.2 (git master)
 
+* [104](https://github.com/BlueBrain/Tide/pull/104):
+  Tide can be controlled from the python BBP viztools.
 * [100](https://github.com/BlueBrain/Tide/pull/100):
   The Launcher can generate thumbnails much faster (requires Qt 5.6.3 or 5.7.1).
 * [97](https://github.com/BlueBrain/Tide/pull/97):

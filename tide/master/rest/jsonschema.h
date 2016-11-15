@@ -37,69 +37,27 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "RestCommand.h"
+#ifndef JSONSCHEMA_H
+#define JSONSCHEMA_H
 
-#include "jsonschema.h"
-#include "log.h"
+#include <QString>
 
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QStringList>
+class QJsonObject;
 
-namespace
+namespace jsonschema
 {
-const QString description = "Command '%1' of Tide application";
+
+/**
+ * Create a JSON schema for a JSON object.
+ *
+ * @param title the name given to the root JSON object
+ * @param object a source JSON object
+ * @param description of what the JSON object represents
+ * @return the generated schema for the input object
+ */
+std::string create( const QString& title, const QJsonObject& object,
+                    const QString& description );
+
 }
 
-std::string _makeSchema( const std::string& name, const bool takesValue )
-{
-    const auto data = QString::fromStdString( name ).split( "::" );
-    if( data.size() != 2 )
-        return "";
-
-    QJsonObject obj;
-    if( takesValue )
-        obj["uri"] = QString();
-
-    return jsonschema::create( data[1], obj, description.arg( data[1] ));
-}
-
-RestCommand::RestCommand( const std::string& name, const bool takesValue )
-    : _name{ name }
-    , _schema{ _makeSchema( name, takesValue ) }
-    , _takesValue( takesValue )
-{}
-
-std::string RestCommand::getTypeName() const
-{
-    return _name;
-}
-
-std::string RestCommand::getSchema() const
-{
-    return _schema;
-}
-
-bool RestCommand::_fromJSON( const std::string& string )
-{
-    const QByteArray input = QString::fromStdString( string ).toUtf8();
-    const QJsonDocument doc = QJsonDocument::fromJson( input );
-    if( doc.isNull() || !doc.isObject( ))
-    {
-        put_flog( LOG_INFO, "Error parsing JSON string: '%s'", string.c_str( ));
-        return false;
-    }
-
-    if( !_takesValue )
-    {
-        emit received( "" );
-        return true;
-    }
-
-    const QJsonValue value = doc.object()["uri"];
-    if( !value.isString( ))
-        return false;
-
-    emit received( value.toString( ));
-    return true;
-}
+#endif

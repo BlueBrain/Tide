@@ -98,8 +98,8 @@ public:
     RestCommand openCmd{ "tide::open" };
     RestCommand loadCmd{ "tide::load" };
     RestCommand saveCmd{ "tide::save" };
-    RestCommand exitCmd{ "tide::exit" };
     RestCommand whiteboardCmd{ "tide::whiteboard" };
+    RestCommand exitCmd{ "tide::exit", false };
     JsonOptions options;
     std::unique_ptr<RestLogger> logContent;
 };
@@ -133,7 +133,7 @@ RestInterface::RestInterface( const int port, OptionsPtr options )
 
 RestInterface::~RestInterface() {}
 
-void RestInterface::setLogger( const LoggingUtility& logger ) const
+void RestInterface::exposeStatistics( const LoggingUtility& logger ) const
 {
     _impl->logContent.reset( new RestLogger( logger ));
     _impl->httpServer.get().handleGET( *(_impl->logContent.get( )));

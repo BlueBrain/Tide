@@ -4,8 +4,8 @@
 CMakeLists.txt.user*
 build/
 CMake/common/
+cppnetlib/
 Deflect/
-httpxx/
 Servus/
 TUIO/
 VirtualKeyboard/

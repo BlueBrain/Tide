@@ -448,6 +448,6 @@ void MasterApplication::_initRestInterface()
     connect( _displayGroup.get(), &DisplayGroup::contentWindowMovedToFront,
            _logger.get(), &LoggingUtility::contentWindowMovedToFront );
 
-    _restInterface.get()->setLogger( *(_logger.get()) );
+    _restInterface.get()->exposeStatistics( *(_logger.get()) );
 }
 #endif
