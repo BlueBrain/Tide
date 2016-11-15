@@ -71,7 +71,7 @@ public:
 private:
     zeroeq::http::Server _httpServer;
     QSocketNotifier _socketNotifier{ _httpServer.getSocketDescriptor(),
-                                     QSocketNotifier::Read };
+                                     QSocketNotifier::Write };
 };
 
 #endif
