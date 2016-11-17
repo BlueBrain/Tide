@@ -48,43 +48,54 @@
 #include <QOpenGLContext>
 #include <QOpenGLFunctions>
 
-TextureUploader::TextureUploader()
-    : _glContext( nullptr )
-    , _offscreenSurface( nullptr )
-    , _gl( nullptr )
-    , _pbo( 0 )
-    , _bufferSize( 0 )
-{
-    connect( this, &TextureUploader::init, this,
-             &TextureUploader::_onInit, Qt::BlockingQueuedConnection );
-    connect( this, &TextureUploader::stop, this,
-             &TextureUploader::_onStop, Qt::BlockingQueuedConnection );
-}
+TextureUploader::TextureUploader() {}
 
-void TextureUploader::_onInit( QOpenGLContext* shareContext )
-{
-    _glContext = new QOpenGLContext;
-    _glContext->setShareContext( shareContext );
-    _glContext->create();
+TextureUploader::~TextureUploader() {}
 
-    _offscreenSurface = new QOffscreenSurface;
+void TextureUploader::init( QOpenGLContext* shareContext )
+{
+    QMetaObject::invokeMethod( this, "_createGLContext",
+                               Qt::BlockingQueuedConnection,
+                               Q_ARG( QOpenGLContext*, shareContext ));
+
+    // OSX: The offscreen surface must be created on the main/GUI thread
+    // because it is backed by a real window.
+
+    _offscreenSurface.reset( new QOffscreenSurface );
     _offscreenSurface->setFormat( _glContext->format( ));
     _offscreenSurface->create();
 
-    _glContext->makeCurrent( _offscreenSurface );
-    _gl = _glContext->functions();
+    QMetaObject::invokeMethod( this, "_createPbo",
+                               Qt::BlockingQueuedConnection );
+}
 
+void TextureUploader::stop()
+{
+    QMetaObject::invokeMethod( this, "_onStop", Qt::BlockingQueuedConnection );
+    _offscreenSurface.reset();
+}
+
+void TextureUploader::_createGLContext( QOpenGLContext* shareContext )
+{
+    _glContext.reset( new QOpenGLContext );
+    _glContext->setShareContext( shareContext );
+    _glContext->create();
+}
+
+void TextureUploader::_createPbo()
+{
+    _glContext->makeCurrent( _offscreenSurface.get( ));
+    _gl = _glContext->functions();
     _gl->glGenBuffers( 1, &_pbo );
 }
 
 void TextureUploader::_onStop()
 {
-    _glContext->makeCurrent( _offscreenSurface );
-
+    _glContext->makeCurrent( _offscreenSurface.get( ));
     _gl->glDeleteBuffers( 1, &_pbo );
-
-    delete _offscreenSurface;
-    delete _glContext;
+    _glContext->doneCurrent();
+    _gl = nullptr;
+    _glContext.reset();
 }
 
 void TextureUploader::uploadTexture( ImagePtr image, TileWeakPtr tile_ )
@@ -102,7 +113,7 @@ void TextureUploader::uploadTexture( ImagePtr image, TileWeakPtr tile_ )
         return;
     }
 
-    _glContext->makeCurrent( _offscreenSurface );
+    _glContext->makeCurrent( _offscreenSurface.get( ));
 
     if( image->isGpuImage() && !image->generateGpuImage( ))
     {
