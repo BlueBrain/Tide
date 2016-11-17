@@ -61,38 +61,43 @@ public:
     /** Construction does not need any OpenGL context. */
     TextureUploader();
 
+    /** Destruction should occur after stop. */
+    ~TextureUploader();
+
+    /**
+     * Does the necessary OpenGL setup. Needs to be called from the main thread
+     * after the uploader has been moved to the dedicated upload thread.
+     */
+    void init( QOpenGLContext* shareContext );
+
+    /**
+     * Does the necessary OpenGL teardown. Needs to be called before the
+     * dedicated upload thread is destroyed.
+     */
+    void stop();
+
 public slots:
     /** Performs the upload of pixels into the given tile's back texture. */
     void uploadTexture( ImagePtr image, TileWeakPtr tile );
 
 signals:
-    /**
-     * Does the necessary OpenGL setup, needs to be called from the dedicated
-     * upload thread.
-     */
-    void init( QOpenGLContext* shareContext );
-
-    /**
-     * Does the necessary OpenGL teardown, needs to be called from the dedicated
-     * upload thread.
-     */
-    void stop();
-
     /** Emitted after a texture was successfully uploaded. */
     void uploaded();
 
-private:
-    void _onInit( QOpenGLContext* shareContext );
+private slots:
+    void _createGLContext( QOpenGLContext* shareContext );
+    void _createPbo();
     void _onStop();
 
+private:
     void _upload( const Image& image, uint textureID );
 
-    QOpenGLContext* _glContext;
-    QOffscreenSurface* _offscreenSurface;
-    QOpenGLFunctions* _gl;
+    std::unique_ptr<QOpenGLContext> _glContext;
+    std::unique_ptr<QOffscreenSurface> _offscreenSurface;
+    QOpenGLFunctions* _gl = nullptr;
 
-    uint _pbo;
-    size_t _bufferSize;
+    uint _pbo = 0;
+    size_t _bufferSize = 0;
 };
 
-#endif // TEXTUREUPLOADER_H
+#endif
