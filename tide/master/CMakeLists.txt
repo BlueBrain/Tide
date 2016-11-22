@@ -144,6 +144,7 @@ if(TIDE_ENABLE_REST_INTERFACE)
   list(APPEND TIDEMASTER_PUBLIC_HEADERS
     rest/JsonOptions.h
     rest/jsonschema.h
+    rest/JsonSize.h
     rest/RestCommand.h
     rest/RestInterface.h
     rest/RestLogger.h
@@ -153,6 +154,7 @@ if(TIDE_ENABLE_REST_INTERFACE)
   list(APPEND TIDEMASTER_SOURCES
     rest/JsonOptions.cpp
     rest/jsonschema.cpp
+    rest/JsonSize.cpp
     rest/RestCommand.cpp
     rest/RestInterface.cpp
     rest/RestLogger.cpp

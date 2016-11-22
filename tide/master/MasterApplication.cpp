@@ -393,7 +393,7 @@ void MasterApplication::_initTouchListener()
 void MasterApplication::_initRestInterface()
 {
     _restInterface = make_unique<RestInterface>( _config->getWebServicePort(),
-                                                 _options );
+                                                 _options, *_config );
     _logger = make_unique<LoggingUtility>();
 
     connect( _restInterface.get(), &RestInterface::browse, [this]( QString uri )

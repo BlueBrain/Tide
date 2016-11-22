@@ -40,6 +40,7 @@
 #include "RestInterface.h"
 
 #include "JsonOptions.h"
+#include "MasterConfiguration.h"
 #include "RestCommand.h"
 #include "RestLogger.h"
 #include "RestServer.h"
@@ -75,9 +76,11 @@ const auto indexpage = QString(R"(
 class RestInterface::Impl
 {
 public:
-    Impl( const int port, OptionsPtr options_ )
+    Impl( const int port, OptionsPtr options_,
+          const MasterConfiguration& config )
         : httpServer{ port }
         , options{ options_ }
+        , sizeProperty{ config.getTotalSize() }
     {
         auto& server = httpServer.get();
         server.handleGET( indexPage );
@@ -88,6 +91,7 @@ public:
         server.handlePUT( exitCmd );
         server.handlePUT( whiteboardCmd );
         server.handle( options );
+        server.handleGET( sizeProperty );
     }
 
     RestServer httpServer;
@@ -99,11 +103,13 @@ public:
     RestCommand whiteboardCmd{ "tide::whiteboard", false };
     RestCommand exitCmd{ "tide::exit", false };
     JsonOptions options;
+    JsonSize sizeProperty;
     std::unique_ptr<RestLogger> logContent;
 };
 
-RestInterface::RestInterface( const int port, OptionsPtr options )
-    : _impl( new Impl( port, options ))
+RestInterface::RestInterface( const int port, OptionsPtr options,
+                              const MasterConfiguration& config )
+    : _impl( new Impl( port, options, config ))
 {
     connect( &_impl->browseCmd, &RestCommand::received,
              this, &RestInterface::browse );
