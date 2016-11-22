@@ -52,26 +52,24 @@
 
 namespace
 {
-const QString indexpage = QString(
-"\
-<!DOCTYPE html> \
-<html> \
-<head> \
-<meta charset='UTF-8'> \
-<title>Tide</title> \
-</head> \
-<body> \
-<h1>Tide %1</h1> \
-<p>Revision: <a href='https://github.com/BlueBrain/Tide/commit/%3'>%3</a></p> \
-<p>Running on: %2</p> \
-<p>Up since: %4</p> \
-</body> \
-</html> \
-") \
-.arg( QString::fromStdString( tide::Version::getString( ))) \
-.arg( QHostInfo::localHostName( )) \
-.arg( QString::number( tide::Version::getRevision(), 16 )) \
-.arg( QDateTime::currentDateTime().toString( ));
+const auto indexpage = QString(R"(
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='UTF-8'>
+<title>Tide</title>
+</head>
+<body>
+<h1>Tide %1</h1>
+<p>Revision: <a href='https://github.com/BlueBrain/Tide/commit/%3'>%3</a></p>
+<p>Running on: %2</p>
+<p>Up since: %4</p>
+</body>
+</html>
+)").arg( QString::fromStdString( tide::Version::getString( )),
+         QHostInfo::localHostName(),
+         QString::number( tide::Version::getRevision(), 16 ),
+         QDateTime::currentDateTime().toString( )).toStdString();
 }
 
 class RestInterface::Impl
@@ -93,7 +91,7 @@ public:
     }
 
     RestServer httpServer;
-    StaticContent indexPage{ "tide", indexpage.toStdString( )};
+    StaticContent indexPage{ "tide", indexpage };
     RestCommand browseCmd{ "tide::browse" };
     RestCommand openCmd{ "tide::open" };
     RestCommand loadCmd{ "tide::load" };
