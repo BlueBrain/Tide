@@ -37,40 +37,33 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef JSONSCHEMA_H
-#define JSONSCHEMA_H
+#ifndef JSONSIZE_H
+#define JSONSIZE_H
 
-#include <QString>
+#include <servus/serializable.h> // base class
 
-class QJsonArray;
-class QJsonObject;
+#include <QSize>
 
-namespace jsonschema
+/**
+ * Expose the size of the display wall to the ZeroEQ REST interface.
+ */
+class JsonSize : public servus::Serializable
 {
+public:
+    /**
+     * Constructor.
+     *
+     * @param size in pixels.
+     */
+    explicit JsonSize( const QSize& size );
 
-/**
- * Create a JSON schema for a JSON object.
- *
- * @param title the name given to the root JSON object
- * @param object a source JSON object
- * @param description of what the JSON object represents
- * @return the generated schema for the input object
- */
-std::string create( const QString& title, const QJsonObject& object,
-                    const QString& description );
+    std::string getTypeName() const final;
+    std::string getSchema() const final;
 
-/**
- * Create a JSON schema for a JSON array.
- *
- * @param title the name given to the root JSON array
- * @param array a source JSON array
- * @param description of what the JSON array represents
- * @param fixedSize indicates if the array has a fixed size
- * @return the generated schema for the input array
- */
-std::string create( const QString& title, const QJsonArray& object,
-                    const QString& description, bool fixedSize = false );
+private:
+    const QSize _size ;
 
-}
+    std::string _toJSON() const final;
+};
 
 #endif

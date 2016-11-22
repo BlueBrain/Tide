@@ -41,11 +41,11 @@
 #define RESTINTERFACE_H
 
 #include "types.h"
-#include "LoggingUtility.h"
+
+#include "JsonSize.h"
 #include "RestLogger.h"
 
 #include <QObject>
-#include <memory>
 
 /**
  * Enables remote control of Tide through a REST API.
@@ -67,8 +67,10 @@ public:
      * Construct a REST interface.
      * @param port the port for listening to REST requests
      * @param options the application's options to expose in the interface
+     * @param config the application's configuration
      */
-    RestInterface( int port, OptionsPtr options );
+    RestInterface( int port, OptionsPtr options,
+                   const MasterConfiguration& config );
 
     /** Out-of-line destructor. */
     ~RestInterface();

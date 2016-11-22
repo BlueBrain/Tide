@@ -37,40 +37,40 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef JSONSCHEMA_H
-#define JSONSCHEMA_H
+#include "JsonSize.h"
 
-#include <QString>
+#include "jsonschema.h"
 
-class QJsonArray;
-class QJsonObject;
+#include <iostream>
+#include <string>
+#include <QJsonArray>
+#include <QJsonDocument>
 
-namespace jsonschema
+QJsonArray _toJsonArray( const QSize& size )
 {
-
-/**
- * Create a JSON schema for a JSON object.
- *
- * @param title the name given to the root JSON object
- * @param object a source JSON object
- * @param description of what the JSON object represents
- * @return the generated schema for the input object
- */
-std::string create( const QString& title, const QJsonObject& object,
-                    const QString& description );
-
-/**
- * Create a JSON schema for a JSON array.
- *
- * @param title the name given to the root JSON array
- * @param array a source JSON array
- * @param description of what the JSON array represents
- * @param fixedSize indicates if the array has a fixed size
- * @return the generated schema for the input array
- */
-std::string create( const QString& title, const QJsonArray& object,
-                    const QString& description, bool fixedSize = false );
-
+    QJsonArray array;
+    array.append( size.width( ));
+    array.append( size.height( ));
+    return array;
 }
 
-#endif
+JsonSize::JsonSize( const QSize& size )
+    : _size( size )
+{}
+
+std::string JsonSize::getTypeName() const
+{
+    return "tide/size";
+}
+
+std::string JsonSize::getSchema() const
+{
+    return jsonschema::create(
+                "Size", _toJsonArray( _size ),
+                "Dimensions in pixels of the display wall", true );
+}
+
+std::string JsonSize::_toJSON() const
+{
+    return QJsonDocument{ _toJsonArray( _size ) }.toJson().toStdString();
+}

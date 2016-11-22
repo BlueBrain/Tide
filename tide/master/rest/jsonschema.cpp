@@ -83,17 +83,16 @@ QJsonObject _getArraySchema( const QString& name, const QJsonArray& array )
 
     QJsonObject arraySchema;
     arraySchema["type"] = "array";
+    arraySchema["title"] = name;
     arraySchema["items"] = _getPropertySchema( name+"_items", array.first( ));
     return arraySchema;
 }
 
-QJsonObject _getObjectSchema( const QString& title, const QJsonObject& object,
-                              const QString& description )
+QJsonObject _getObjectSchema( const QString& title, const QJsonObject& object )
 {
     QJsonObject schema;
     schema["$schema"] = "http://json-schema.org/schema#";
     schema["title"] = title;
-    schema["description"] = description;
     schema["type"] = "object";
     schema["additionalProperties"] = false;
     QJsonObject properties;
@@ -114,12 +113,18 @@ QJsonObject _getPropertySchema( const QString& name, const QJsonValue& value )
     case QJsonValue::Array:
         return _getArraySchema( name, value.toArray( ));
     case QJsonValue::Object:
-        return _getObjectSchema( name, value.toObject(), name+" object" );
+        return _getObjectSchema( name, value.toObject( ));
     case QJsonValue::Null:
     case QJsonValue::Undefined:
     default:
         return {};
     }
+}
+
+std::string _toString( const QJsonObject& schema )
+{
+    const QJsonDocument doc{ schema };
+    return doc.toJson( QJsonDocument::JsonFormat::Compact ).toStdString();
 }
 
 namespace jsonschema
@@ -128,9 +133,22 @@ namespace jsonschema
 std::string create( const QString& title, const QJsonObject& object,
                     const QString& description )
 {
-    const QJsonObject obj = _getObjectSchema( title, object, description );
-    const QJsonDocument doc{ obj };
-    return doc.toJson( QJsonDocument::JsonFormat::Compact ).toStdString();
+    auto schema = _getObjectSchema( title, object );
+    schema["description"] = description;
+    return _toString( schema );
+}
+
+std::string create( const QString& title, const QJsonArray& array,
+                    const QString& description, const bool fixedSize )
+{
+    auto schema = _getArraySchema( title, array );
+    schema["description"] = description;
+    if( fixedSize )
+    {
+        schema["minItems"] = array.size();
+        schema["maxItems"] = array.size();
+    }
+    return _toString( schema );
 }
 
 }
