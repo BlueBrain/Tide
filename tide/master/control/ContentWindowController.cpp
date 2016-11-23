@@ -211,10 +211,10 @@ void ContentWindowController::toogleFullscreenMaxSize()
         return;
 
     const auto windowSize = _getCoordinates().size();
-    if( windowSize < _displayGroup.size( ))
-        adjustSize( SizeState::SIZE_FULLSCREEN_MAX );
-    else
+    if( windowSize > _displayGroup.size( ))
         adjustSize( SizeState::SIZE_FULLSCREEN );
+    else
+        adjustSize( SizeState::SIZE_FULLSCREEN_MAX );
 }
 
 void ContentWindowController::moveTo( const QPointF& position,
