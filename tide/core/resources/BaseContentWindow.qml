@@ -127,21 +127,24 @@ Rectangle {
             }
         }
         Behavior on posX {
-            enabled: contentwindow.focused
+            id: transitionBehaviour
+            enabled: contentwindow.focused ||
+                     (contentwindow.fullscreen &&
+                      contentwindow.state === ContentWindow.NONE)
             NumberAnimation {
                 duration: Style.focusTransitionTime
                 easing.type: Easing.InOutQuad
             }
         }
         Behavior on posY {
-            enabled: contentwindow.focused
+            enabled: transitionBehaviour.enabled
             NumberAnimation {
                 duration: Style.focusTransitionTime
                 easing.type: Easing.InOutQuad
             }
         }
         Behavior on width {
-            enabled: contentwindow.focused
+            enabled: transitionBehaviour.enabled
             NumberAnimation {
                 id: widthAnimation
                 duration: Style.focusTransitionTime
@@ -149,7 +152,7 @@ Rectangle {
             }
         }
         Behavior on height {
-            enabled: contentwindow.focused
+            enabled: transitionBehaviour.enabled
             NumberAnimation {
                 id: heightAnimation
                 duration: Style.focusTransitionTime
