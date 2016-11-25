@@ -53,7 +53,7 @@ const QString description = "Command '%1' of Tide application";
 
 std::string _makeSchema( const std::string& name, const bool takesValue )
 {
-    const auto data = QString::fromStdString( name ).split( "::" );
+    const auto data = QString::fromStdString( name ).split( '/' );
     if( data.size() != 2 )
         return "";
 

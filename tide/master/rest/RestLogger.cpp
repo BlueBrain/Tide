@@ -69,7 +69,7 @@ RestLogger::RestLogger( const LoggingUtility& logger )
 
 std::string RestLogger::getTypeName() const
 {
-    return "tide::stats";
+    return "tide/stats";
 }
 
 std::string RestLogger::getSchema() const

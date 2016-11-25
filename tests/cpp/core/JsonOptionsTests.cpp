@@ -110,7 +110,7 @@ struct Fixture
 
 BOOST_FIXTURE_TEST_CASE( testTypeName, Fixture )
 {
-    BOOST_CHECK_EQUAL( jsonOptions.getTypeName(), "tide::options" );
+    BOOST_CHECK_EQUAL( jsonOptions.getTypeName(), "tide/options" );
 }
 
 BOOST_FIXTURE_TEST_CASE( testDefaultSerialization, Fixture )

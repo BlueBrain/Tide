@@ -96,12 +96,12 @@ public:
 
     RestServer httpServer;
     StaticContent indexPage{ "tide", indexpage };
-    RestCommand browseCmd{ "tide::browse" };
-    RestCommand openCmd{ "tide::open" };
-    RestCommand loadCmd{ "tide::load" };
-    RestCommand saveCmd{ "tide::save" };
-    RestCommand whiteboardCmd{ "tide::whiteboard", false };
-    RestCommand exitCmd{ "tide::exit", false };
+    RestCommand browseCmd{ "tide/browse" };
+    RestCommand openCmd{ "tide/open" };
+    RestCommand loadCmd{ "tide/load" };
+    RestCommand saveCmd{ "tide/save" };
+    RestCommand whiteboardCmd{ "tide/whiteboard", false };
+    RestCommand exitCmd{ "tide/exit", false };
     JsonOptions options;
     JsonSize sizeProperty;
     std::unique_ptr<RestLogger> logContent;
