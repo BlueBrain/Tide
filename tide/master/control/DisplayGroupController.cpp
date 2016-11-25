@@ -176,7 +176,9 @@ void DisplayGroupController::hidePanels()
 
 void DisplayGroupController::moveWindowToFront( const QUuid id )
 {
-    _group.moveToFront( _group.getContentWindow( id ));
+    const auto window = _group.getContentWindow( id );
+    if( window->getMode() == ContentWindow::WindowMode::STANDARD )
+        _group.moveToFront( window );
 }
 
 void DisplayGroupController::scale( const QSizeF& factor )
