@@ -55,7 +55,7 @@ public:
      * Construct a REST command which can be exposed by a ZeroEQ http server.
      *
      * @param name The name of the command exposed through the REST interface,
-     *        separated by '::' instead of '/' (e.g. "restapi::mycommand").
+     *        separated by '/' (e.g. "restapi/mycommand").
      * @param takesValue indicates if the command expects a value.
      */
     explicit RestCommand( const std::string& name, bool takesValue = true );

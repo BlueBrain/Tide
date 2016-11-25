@@ -71,7 +71,7 @@ JsonOptions::JsonOptions( OptionsPtr options )
 
 std::string JsonOptions::getTypeName() const
 {
-    return "tide::options";
+    return "tide/options";
 }
 
 std::string JsonOptions::getSchema() const
