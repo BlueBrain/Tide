@@ -23,6 +23,11 @@ Rectangle {
 
     property alias listViewMode: listViewButton.checked
 
+    Connections {
+        target: deflectgestures
+        onSwipeLeft: fileBrowser.goUp()
+    }
+
     function selectFile(file) {
         if (file !== "")
             itemSelected(file)
@@ -34,7 +39,8 @@ Rectangle {
 
     function goUp() {
         var path = folders.parentFolder;
-        if (path.toString().length === 0 || path.toString() === 'file:')
+        if (path.toString().length === 0 || path.toString() === 'file:' ||
+                folders.folder.toString() === folders.constRootFolder)
             return;
         folders.folder = path;
     }
