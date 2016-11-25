@@ -107,22 +107,22 @@ IS_MPICH3 = distutils.spawn.find_executable('mpichversion')
 if IS_MVAPICH:
     MPI_SPECIAL_FLAGS = '-env MV2_ENABLE_AFFINITY 0 -env IPATH_NO_CPUAFFINITY 1'
     MPI_PER_NODE_HOST = None
-    EXPORT_DISPLAY = '-env DISPLAY '
+    EXPORT_ENV_VAR = '-env {0} {1}'
     mpi_args += '-genvlist MPIEXEC_SIGNAL_PROPAGATION,LD_LIBRARY_PATH -hosts'
 elif IS_MPICH2:
     MPI_SPECIAL_FLAGS = '-env MV2_ENABLE_AFFINITY 0 -env IPATH_NO_CPUAFFINITY 1'
     MPI_PER_NODE_HOST = '-host'
-    EXPORT_DISPLAY = '-env DISPLAY '
+    EXPORT_ENV_VAR = '-env {0} {1}'
     mpi_args += '-genvlist LD_LIBRARY_PATH'
 elif IS_MPICH3:
     MPI_SPECIAL_FLAGS = '-env MV2_ENABLE_AFFINITY 0 -env IPATH_NO_CPUAFFINITY 1'
     MPI_PER_NODE_HOST = None
-    EXPORT_DISPLAY = '-env DISPLAY '
+    EXPORT_ENV_VAR = '-env {0} {1}'
     mpi_args += '-genvlist LD_LIBRARY_PATH -hosts'
 else:
     MPI_SPECIAL_FLAGS = '-x IPATH_NO_CPUAFFINITY=1'
     MPI_PER_NODE_HOST = None
-    EXPORT_DISPLAY = '-x DISPLAY='
+    EXPORT_ENV_VAR = '-x {0}={1}'
     mpi_args += '--mca hwloc_base_binding_policy none -x LD_LIBRARY_PATH -host'
     # "hwloc_base_binding_policy none" is equivalent to the new "--bind-to none"
     # option in OpenMPI >= 1.8, while being accepted by older versions as well.
@@ -181,11 +181,13 @@ try:
         hostlist.append(host) # master
         hostlist.append(host) # forker
 
-    rcmd = '%s %s%s %s -np 1 %s%s %s' % (MPI_SPECIAL_FLAGS, EXPORT_DISPLAY, display, node_host, VGLRUN_BIN, TIDEMASTER_BIN, TIDE_PARAMS)
-    runcommands.append(rcmd)
+    export_display = EXPORT_ENV_VAR.format('DISPLAY', display)
+    environment = '%s %s %s' % (MPI_SPECIAL_FLAGS, export_display, node_host)
+    mastercmd = '%s -np 1 %s%s %s' % (environment, VGLRUN_BIN, TIDEMASTER_BIN, TIDE_PARAMS)
+    runcommands.append(mastercmd)
 
     # add a separate 'forker' process on the same host as the master process
-    forkercmd = '%s %s%s %s -np 1 %s %s' % (MPI_SPECIAL_FLAGS, EXPORT_DISPLAY, display, node_host, TIDEFORKER_BIN, TIDE_PARAMS)
+    forkercmd = '%s -np 1 %s %s' % (environment, TIDEFORKER_BIN, TIDE_PARAMS)
 
     # parse the wall process elements
     for elem in XML_CONFIG.findall('.//process'):
@@ -209,8 +211,10 @@ try:
             node_host = ''
             hostlist.append(host)
 
-        rcmd = '%s %s%s %s -np 1 %s %s' % (MPI_SPECIAL_FLAGS, EXPORT_DISPLAY, display, node_host, TIDEWALL_BIN, TIDE_PARAMS)
-        runcommands.append(rcmd)
+        export_display = EXPORT_ENV_VAR.format('DISPLAY', display)
+        environment = '%s %s %s' % (MPI_SPECIAL_FLAGS, export_display, node_host)
+        wallcmd = '%s -np 1 %s %s' % (environment, TIDEWALL_BIN, TIDE_PARAMS)
+        runcommands.append(wallcmd)
 
     # the 'forker' process is the last one
     runcommands.append(forkercmd)
