@@ -116,14 +116,14 @@ int WallToWallChannel::electLeader( const bool isCandidate )
 
 void WallToWallChannel::broadcast( const double timestamp )
 {
-    _mpiChannel->broadcast( MPI_MESSAGE_TYPE_TIMESTAMP,
+    _mpiChannel->broadcast( MPIMessageType::TIMESTAMP,
                             serialization::toBinary( timestamp ));
 }
 
 double WallToWallChannel::receiveTimestampBroadcast( const int src )
 {
     MPIHeader header = _mpiChannel->receiveHeader( src );
-    assert( header.type == MPI_MESSAGE_TYPE_TIMESTAMP );
+    assert( header.type == MPIMessageType::TIMESTAMP );
 
     _buffer.setSize( header.size );
     _mpiChannel->receiveBroadcast( _buffer.data(), _buffer.size(), src );
@@ -137,7 +137,7 @@ void WallToWallChannel::_sendClock()
 
     _timestamp = clock::now();
 
-    _mpiChannel->broadcast( MPI_MESSAGE_TYPE_FRAME_CLOCK,
+    _mpiChannel->broadcast( MPIMessageType::FRAME_CLOCK,
                             serialization::toBinary( _timestamp ));
 }
 
@@ -146,7 +146,7 @@ void WallToWallChannel::_receiveClock()
     assert( _mpiChannel->getRank() != RANK0 );
 
     MPIHeader header = _mpiChannel->receiveHeader( RANK0 );
-    assert( header.type == MPI_MESSAGE_TYPE_FRAME_CLOCK );
+    assert( header.type == MPIMessageType::FRAME_CLOCK );
 
     _buffer.setSize( header.size );
     _mpiChannel->receiveBroadcast( _buffer.data(), _buffer.size(), RANK0 );

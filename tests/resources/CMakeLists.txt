@@ -1,5 +1,5 @@
 
-# Copyright (c) 2013-2014, EPFL/Blue Brain Project
+# Copyright (c) 2013-2016, EPFL/Blue Brain Project
 #                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>
 #                     Raphael Dumusc <raphael.dumusc@epfl.ch>
 #
@@ -12,6 +12,7 @@ set(TEST_RESOURCES
   configuration.xml
   configuration_default.xml
   legacy.dcx
+  reference_screenshot.png
   state_v0.dcx
   state_v0.dcxpreview
   state_v0_broken.dcx
@@ -19,16 +20,15 @@ set(TEST_RESOURCES
   state_v3_noTitles.dcx
   state_v4.dcx
   wall.png
-  dynamictexture.pyr
 )
 
-foreach(FILE ${TEST_RESOURCES})
-  file(COPY ${FILE} DESTINATION ${PROJECT_BINARY_DIR}/tests/cpp)
+foreach(_file ${TEST_RESOURCES})
+  file(COPY ${_file} DESTINATION ${PROJECT_BINARY_DIR}/tests/cpp)
 endforeach()
 
 # Performance test resources
 set(PERF_TEST_RESOURCES configuration.xml)
 
-foreach(FILE ${PERF_TEST_RESOURCES})
-  file(COPY ${FILE} DESTINATION ${PROJECT_BINARY_DIR}/tests/perf)
+foreach(_file ${PERF_TEST_RESOURCES})
+  file(COPY ${_file} DESTINATION ${PROJECT_BINARY_DIR}/tests/perf)
 endforeach()

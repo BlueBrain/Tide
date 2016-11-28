@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,96 +37,55 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef WALLWINDOW_H
-#define WALLWINDOW_H
+#define BOOST_TEST_MODULE ScreenshotAssembler
+#include <boost/test/unit_test.hpp>
 
-#include "types.h"
-#include "network/WallToWallChannel.h"
+#include "Configuration.h"
+#include "ScreenshotAssembler.h"
 
-#include <QQuickWindow>
+#include "imageCompare.h"
+#include "MinimalGlobalQtApp.h"
 
-class QQuickRenderControl;
-class QQmlEngine;
-class QQmlComponent;
-class QQuickItem;
+#define CONFIG_TEST_FILENAME "./configuration.xml"
+#define REFERENCE_SCREENSHOT "./reference_screenshot.png"
 
-class WallWindow : public QQuickWindow
+// Needed for relative path to resources to work
+BOOST_GLOBAL_FIXTURE( MinimalGlobalQtApp );
+
+BOOST_AUTO_TEST_CASE( test_assemble_screenshot )
 {
-    Q_OBJECT
+    const Configuration config{ CONFIG_TEST_FILENAME };
+    ScreenshotAssembler assembler{ config };
 
-public:
-    /**
-     * Create a wall window.
-     * @param config the wall configuration to setup this window wrt position,
-     *               size, etc.
-     * @param renderControl the Qt render control for QML scene rendering
-     * @param wallChannel to synchronize clocks and swapBuffers()
-     */
-    WallWindow( const WallConfiguration& config,
-                QQuickRenderControl* renderControl,
-                WallToWallChannel& wallChannel );
+    QImage screenshot;
+    assembler.connect( &assembler, &ScreenshotAssembler::screenshotComplete,
+                       [&screenshot]( const QImage image )
+    {
+        screenshot = image;
+    });
 
-    ~WallWindow();
+    const QSize screenSize{ config.getScreenWidth(), config.getScreenHeight() };
+    const auto screenCount = config.getTotalScreenCountY() *
+                             config.getTotalScreenCountX();
 
-    /**
-     * Update and synchronize scene objects and trigger frame rendering.
-     *
-     * @param grab indicate that the frame should be grabbed after rendering.
-     * @return true if none of the wall windows need to redraw.
-     */
-    bool syncAndRender( bool grab = false );
+    QImage screen{ screenSize, QImage::Format_RGB32 };
 
-    /** Set new render options. */
-    void setRenderOptions( OptionsPtr options );
+    for( auto y = 0; y < config.getTotalScreenCountY(); ++y )
+    {
+        for( auto x = 0; x < config.getTotalScreenCountX(); ++x )
+        {
+            const auto index = x + y * config.getTotalScreenCountX();
+            screen.fill( QColor{ x * 64, y * 64, 128 } );
+            assembler.addImage( screen, index );
+            if( index < screenCount - 1 )
+                BOOST_CHECK( screenshot.isNull( ));
+        }
+    }
 
-    /** Set new display group. */
-    void setDisplayGroup( DisplayGroupPtr displayGroup );
+    BOOST_CHECK( !screenshot.isNull( ));
+    BOOST_CHECK_EQUAL( screenshot.size(), config.getTotalSize( ));
 
-    /** Set new touchpoint's markers. */
-    void setMarkers( MarkersPtr markers );
-
-    /** @return the data provider. */
-    DataProvider& getDataProvider();
-
-    /** @return the QML engine. */
-    QQmlEngine* engine() const;
-
-    /** @return the root object of the QML scene. */
-    QQuickItem*	rootObject() const;
-
-    /** @return the communication channel to synchronize with other windows. */
-    WallToWallChannel& getWallChannel();
-
-    /** @return the texture uploader. */
-    TextureUploader& getUploader();
-
-signals:
-    /** Emitted after syncAndRender() has been called with grab set to true. */
-    void imageGrabbed( QImage image );
-
-private:
-    void exposeEvent( QExposeEvent* exposeEvent ) final;
-
-    void _startQuick( const WallConfiguration& config );
-
-    DisplayGroupRenderer* _displayGroupRenderer;
-    TestPattern* _testPattern;
-    WallToWallChannel& _wallChannel;
-
-    QQuickRenderControl* _renderControl;
-    deflect::qt::QuickRenderer* _quickRenderer;
-    QThread* _quickRendererThread;
-    bool _rendererInitialized;
-
-    QQmlEngine* _qmlEngine;
-    QQmlComponent* _qmlComponent;
-    QQuickItem* _rootItem;
-
-    QThread* _uploadThread;
-    TextureUploader* _uploader;
-    DataProvider* _provider;
-
-    bool _grabImage = false;
-};
-
-#endif
+    QImage reference;
+    BOOST_REQUIRE( reference.load( REFERENCE_SCREENSHOT ));
+    compareImages( screenshot, reference );
+}

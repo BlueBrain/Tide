@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.2 (git master)
 
+* [109](https://github.com/BlueBrain/Tide/pull/109):
+  New REST command to capture full resolution screenshot of the display wall.
 * [105](https://github.com/BlueBrain/Tide/pull/105):
   Tide can now be started in "headless" mode, without a visible control window.
   This simplifies the deployment on installations where no dedicated control

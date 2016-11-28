@@ -67,14 +67,18 @@ void MasterFromWallChannel::processMessages()
 
         _buffer.setSize( result.size );
         _mpiChannel->receive( _buffer.data(), result.size, result.src,
-                              result.message );
+                              int(result.message) );
 
         switch( result.message )
         {
-        case MPI_MESSAGE_TYPE_REQUEST_FRAME:
+        case MPIMessageType::REQUEST_FRAME:
             emit receivedRequestFrame( serialization::get<QString>( _buffer ));
             break;
-        case MPI_MESSAGE_TYPE_QUIT:
+        case MPIMessageType::IMAGE:
+            emit receivedScreenshot( serialization::get<QImage>( _buffer ),
+                                     result.src - 1 );
+            break;
+        case MPIMessageType::QUIT:
             _processMessages = false;
             break;
         default:

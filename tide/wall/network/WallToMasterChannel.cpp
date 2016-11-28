@@ -44,16 +44,21 @@
 
 WallToMasterChannel::WallToMasterChannel( MPIChannelPtr mpiChannel )
     : _mpiChannel( mpiChannel )
+{}
+
+void WallToMasterChannel::sendScreenshot( const QImage image )
 {
+    const auto data = serialization::toBinary( image );
+    _mpiChannel->send( MPIMessageType::IMAGE, data, 0 );
 }
 
 void WallToMasterChannel::sendRequestFrame( const QString uri )
 {
     const auto data = serialization::toBinary( uri );
-    _mpiChannel->send( MPI_MESSAGE_TYPE_REQUEST_FRAME, data, 0 );
+    _mpiChannel->send( MPIMessageType::REQUEST_FRAME, data, 0 );
 }
 
 void WallToMasterChannel::sendQuit()
 {
-    _mpiChannel->send( MPI_MESSAGE_TYPE_QUIT, "", 0 );
+    _mpiChannel->send( MPIMessageType::QUIT, "", 0 );
 }

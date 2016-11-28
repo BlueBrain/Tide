@@ -62,10 +62,14 @@ public:
 
 public slots:
     void updateQuit();
+    void updateRequestScreenshot();
     void updateDisplayGroup( DisplayGroupPtr displayGroup );
     void updateOptions( OptionsPtr options );
     void updateMarkers( MarkersPtr markers );
     void requestRender();
+
+signals:
+    void screenshotRendered( QImage image );
 
 private:
     void timerEvent( QTimerEvent* qtEvent ) final;
@@ -73,7 +77,8 @@ private:
 
     WallWindow& _window;
 
-    SwapSyncObject<bool> _syncQuit;
+    SwapSyncObject<bool> _syncQuit{ false };
+    SwapSyncObject<bool> _syncScreenshot{ false };
     SwapSyncObject<DisplayGroupPtr> _syncDisplayGroup;
     SwapSyncObject<OptionsPtr> _syncOptions;
     SwapSyncObject<MarkersPtr> _syncMarkers;
@@ -83,10 +88,10 @@ private:
 
     void _synchronizeObjects( const SyncFunction& versionCheckFunc );
 
-    int _renderTimer;
-    int _stopRenderingDelayTimer;
-    int _idleRedrawTimer;
-    bool _needRedraw;
+    int _renderTimer = 0;
+    int _stopRenderingDelayTimer = 0;
+    int _idleRedrawTimer = 0;
+    bool _needRedraw = false;
 };
 
-#endif // RENDERCONTROLLER_H
+#endif

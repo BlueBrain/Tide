@@ -73,33 +73,38 @@ void MasterToWallChannel::broadcastAsync( const T& object,
 
 void MasterToWallChannel::sendAsync( DisplayGroupPtr displayGroup )
 {
-    broadcastAsync( displayGroup, MPI_MESSAGE_TYPE_DISPLAYGROUP );
+    broadcastAsync( displayGroup, MPIMessageType::DISPLAYGROUP );
 }
 
 void MasterToWallChannel::sendAsync( OptionsPtr options )
 {
-    broadcastAsync( options, MPI_MESSAGE_TYPE_OPTIONS );
+    broadcastAsync( options, MPIMessageType::OPTIONS );
 }
 
 void MasterToWallChannel::sendAsync( MarkersPtr markers )
 {
-    broadcastAsync( markers, MPI_MESSAGE_TYPE_MARKERS );
+    broadcastAsync( markers, MPIMessageType::MARKERS );
 }
 
 void MasterToWallChannel::send( deflect::FramePtr frame )
 {
     assert( !frame->segments.empty() && "received an empty frame" );
 #if BOOST_VERSION >= 106000
-    broadcast( frame, MPI_MESSAGE_TYPE_PIXELSTREAM );
+    broadcast( frame, MPIMessageType::PIXELSTREAM );
 #else
     // WAR missing support for std::shared_ptr
-    broadcast( *frame, MPI_MESSAGE_TYPE_PIXELSTREAM );
+    broadcast( *frame, MPIMessageType::PIXELSTREAM );
 #endif
+}
+
+void MasterToWallChannel::sendRequestScreenshot()
+{
+    _mpiChannel->sendAll( MPIMessageType::IMAGE );
 }
 
 void MasterToWallChannel::sendQuit()
 {
-    _mpiChannel->sendAll( MPI_MESSAGE_TYPE_QUIT );
+    _mpiChannel->sendAll( MPIMessageType::QUIT );
 }
 
 // cppcheck-suppress passedByValue

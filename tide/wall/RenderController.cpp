@@ -48,13 +48,8 @@
 
 RenderController::RenderController( WallWindow& window )
     : _window( window )
-    , _syncQuit( false )
     , _syncDisplayGroup( boost::make_shared<DisplayGroup>( QSize( )))
     , _syncOptions( boost::make_shared<Options>( ))
-    , _renderTimer( 0 )
-    , _stopRenderingDelayTimer( 0 )
-    , _idleRedrawTimer( 0 )
-    , _needRedraw( false )
 {
     _syncDisplayGroup.setCallback( std::bind( &WallWindow::setDisplayGroup,
                                               &_window, std::placeholders::_1));
@@ -65,6 +60,9 @@ RenderController::RenderController( WallWindow& window )
 
     connect( &window.getUploader(), &TextureUploader::uploaded,
              this, [this] { _needRedraw = true; }, Qt::QueuedConnection );
+
+    connect( &window, &WallWindow::imageGrabbed,
+             this, &RenderController::screenshotRendered );
 }
 
 DisplayGroupPtr RenderController::getDisplayGroup() const
@@ -117,7 +115,12 @@ void RenderController::_syncAndRender()
     }
 
     _synchronizeObjects( versionCheckFunc );
-    if( !_window.syncAndRender() && wallChannel.allReady( !_needRedraw ))
+
+    const bool grab = _syncScreenshot.get();
+    if( grab )
+        _syncScreenshot = SwapSyncObject<bool>{ false };
+
+    if( !_window.syncAndRender( grab ) && wallChannel.allReady( !_needRedraw ))
     {
         if( _stopRenderingDelayTimer == 0 )
             _stopRenderingDelayTimer = startTimer( 5000 /*ms*/ );
@@ -131,6 +134,12 @@ void RenderController::_syncAndRender()
 void RenderController::updateQuit()
 {
     _syncQuit.update( true );
+    requestRender();
+}
+
+void RenderController::updateRequestScreenshot()
+{
+    _syncScreenshot.update( true );
     requestRender();
 }
 
@@ -155,6 +164,7 @@ void RenderController::updateMarkers( MarkersPtr markers )
 void RenderController::_synchronizeObjects( const SyncFunction&
                                             versionCheckFunc )
 {
+    _syncScreenshot.sync( versionCheckFunc );
     _syncDisplayGroup.sync( versionCheckFunc );
     _syncMarkers.sync( versionCheckFunc );
     _syncOptions.sync( versionCheckFunc );

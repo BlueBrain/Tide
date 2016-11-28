@@ -54,6 +54,7 @@
 #include "scene/Options.h"
 #include "scene/Markers.h"
 #include "scene/WebbrowserContent.h"
+#include "ScreenshotAssembler.h"
 #include "StateSerializationHelper.h"
 #include "QmlTypeRegistration.h"
 #include "ui/MasterQuickView.h"
@@ -155,6 +156,8 @@ void MasterApplication::_init()
                 new PixelStreamWindowManager( *_displayGroup ));
     _pixelStreamerLauncher.reset(
              new PixelStreamerLauncher( *_pixelStreamWindowManager, *_config ));
+
+    _screenshotAssembler.reset( new ScreenshotAssembler( *_config ));
 
     if( _config->getHeadless( ))
         _initOffscreenView();
@@ -343,6 +346,17 @@ void MasterApplication::_setupMPIConnections()
              &_deflectServer->getPixelStreamDispatcher(),
              &deflect::FrameDispatcher::requestFrame );
 
+    connect( _masterFromWallChannel.get(),
+             &MasterFromWallChannel::receivedScreenshot,
+             _screenshotAssembler.get(), &ScreenshotAssembler::addImage );
+
+    connect( _screenshotAssembler.get(),
+             &ScreenshotAssembler::screenshotComplete,
+             [this]( const QImage screenshot )
+    {
+        screenshot.save( _screenshotFilename );
+    });
+
     connect( &_mpiReceiveThread, &QThread::started,
              _masterFromWallChannel.get(),
              &MasterFromWallChannel::processMessages );
@@ -438,6 +452,14 @@ void MasterApplication::_initRestInterface()
     {
         _displayGroup->clear();
     });
+
+    connect( _restInterface.get(), &RestInterface::screenshot,
+             [this]( const QString filename )
+    {
+        _screenshotFilename = filename;
+        _masterToWallChannel->sendRequestScreenshot();
+    });
+
     connect( _restInterface.get(), &RestInterface::exit, [this]() { exit(); });
 
     connect( _displayGroup.get(), &DisplayGroup::contentWindowAdded,

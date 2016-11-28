@@ -64,6 +64,12 @@ public slots:
     void sendRequestFrame( QString uri );
 
     /**
+     * Send a screenshot to the master application
+     * @param image the rendered image
+     */
+    void sendScreenshot( QImage image );
+
+    /**
      * Send quit message to the master application to stop the receiver.
      */
     void sendQuit();

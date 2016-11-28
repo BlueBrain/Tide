@@ -51,6 +51,7 @@
 #include "types.h"
 
 #include "DummyContent.h"
+#include "imageCompare.h"
 
 #include <QtCore/QDir>
 #include <QtGui/QImage>
@@ -352,30 +353,6 @@ void cleanupTestDir()
                                                           QDir::Files );
     foreach( QString file, files )
         QFile::remove( TEST_DIR + "/" + file );
-}
-
-float compareImages( const QString& file1, const QString& file2 )
-{
-    QImage image1, image2;
-    BOOST_REQUIRE( image1.load( file1 ));
-    BOOST_REQUIRE( image2.load( file2 ));
-
-    BOOST_REQUIRE_EQUAL( image1.size(), image2.size( ));
-    BOOST_REQUIRE_EQUAL( image1.byteCount(), image2.byteCount( ));
-
-    // BOOST_CHECK_EQUAL_COLLECTION is too noisy so do a silent comparison
-    unsigned int errors = 0;
-    const uchar* it1 = image1.bits();
-    const uchar* it2 = image2.bits();
-    while( it1 < image1.bits() + image1.byteCount() &&
-           it2 < image2.bits() + image2.byteCount() )
-    {
-        if( *it1 != *it2 )
-            ++errors;
-        ++it1;
-        ++it2;
-    }
-    return (float)errors / (float)image1.byteCount();
 }
 
 BOOST_AUTO_TEST_CASE( testStateSerializationToFile )

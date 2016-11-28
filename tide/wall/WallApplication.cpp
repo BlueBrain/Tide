@@ -142,6 +142,11 @@ void WallApplication::_initMPIConnection( MPIChannelPtr worldChannel )
     connect( _fromMasterChannel.get(), SIGNAL( receivedQuit( )),
              _renderController.get(), SLOT( updateQuit( )));
 
+    connect( _fromMasterChannel.get(),
+             &WallFromMasterChannel::receivedScreenshotRequest,
+             _renderController.get(),
+             &RenderController::updateRequestScreenshot );
+
     connect( _fromMasterChannel.get(), SIGNAL( received( DisplayGroupPtr )),
              _renderController.get(), SLOT( updateDisplayGroup( DisplayGroupPtr )));
 
@@ -158,6 +163,9 @@ void WallApplication::_initMPIConnection( MPIChannelPtr worldChannel )
 
     connect( _fromMasterChannel.get(), SIGNAL( received( deflect::FramePtr )),
              _renderController.get(), SLOT( requestRender( )));
+
+    connect( _renderController.get(), &RenderController::screenshotRendered,
+             _toMasterChannel.get(), &WallToMasterChannel::sendScreenshot );
 
     if( _wallChannel->getRank() == 0 )
     {

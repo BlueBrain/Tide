@@ -63,6 +63,7 @@ class PixelStreamWindowManager;
 class MasterConfiguration;
 class MultitouchListener;
 class RestInterface;
+class ScreenshotAssembler;
 class LoggingUtility;
 
 /**
@@ -119,6 +120,9 @@ private:
 
     QFutureWatcher<DisplayGroupConstPtr> _loadSessionOp;
     QFutureWatcher<bool> _saveSessionOp;
+
+    std::unique_ptr<ScreenshotAssembler> _screenshotAssembler;
+    QString _screenshotFilename;
 
     bool _createConfig( const QString& filename );
     void _init();

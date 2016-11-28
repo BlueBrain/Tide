@@ -97,6 +97,11 @@ public slots:
     void send( deflect::FramePtr frame );
 
     /**
+     * Send a screenshot request to the wall processes.
+     */
+    void sendRequestScreenshot();
+
+    /**
      * Send quit message to the wall processes, terminating the application.
      */
     void sendQuit();
