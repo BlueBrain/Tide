@@ -114,7 +114,8 @@ BOOST_AUTO_TEST_CASE( test_wall_configuration )
 
     BOOST_CHECK_EQUAL( config.getDisplay().toStdString(), CONFIG_EXPECTED_DISPLAY );
     BOOST_CHECK( config.getGlobalScreenIndex() == QPoint( 0,0 ) );
-    BOOST_CHECK_EQUAL( config.getHost().toStdString(), CONFIG_EXPECTED_HOST_NAME );}
+    BOOST_CHECK_EQUAL( config.getHost().toStdString(), CONFIG_EXPECTED_HOST_NAME );
+}
 
 BOOST_AUTO_TEST_CASE( test_master_configuration )
 {
@@ -138,7 +139,6 @@ BOOST_AUTO_TEST_CASE( test_master_configuration )
     BOOST_CHECK_EQUAL( config.getAppLauncherFile().toStdString(), CONFIG_EXPECTED_APPLAUNCHER );
 
     BOOST_CHECK_EQUAL( config.getWhiteboardSaveFolder().toStdString(), CONFIG_EXPECTED_WHITEBOARD_SAVE_FOLDER );
-
 }
 
 BOOST_AUTO_TEST_CASE( test_master_configuration_default_values )
@@ -152,7 +152,6 @@ BOOST_AUTO_TEST_CASE( test_master_configuration_default_values )
     BOOST_CHECK_EQUAL( config.getWebBrowserDefaultURL().toStdString(), CONFIG_EXPECTED_DEFAULT_URL );
     BOOST_CHECK_EQUAL( config.getAppLauncherFile().toStdString(), CONFIG_EXPECTED_DEFAULT_APPLAUNCHER );
     BOOST_CHECK_EQUAL( config.getWhiteboardSaveFolder().toStdString(), CONFIG_EXPECTED_DEFAULT_WHITEBOARD_SAVE_FOLDER );
-
 }
 
 BOOST_AUTO_TEST_CASE( test_save_configuration )

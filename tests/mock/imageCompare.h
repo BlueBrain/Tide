@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,96 +37,37 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef WALLWINDOW_H
-#define WALLWINDOW_H
+#ifndef TIDEMOCK_IMAGECOMPARE_H
+#define TIDEMOCK_IMAGECOMPARE_H
 
-#include "types.h"
-#include "network/WallToWallChannel.h"
+#include <QImage>
 
-#include <QQuickWindow>
-
-class QQuickRenderControl;
-class QQmlEngine;
-class QQmlComponent;
-class QQuickItem;
-
-class WallWindow : public QQuickWindow
+float compareImages( const QImage& image1, const QImage& image2 )
 {
-    Q_OBJECT
+    BOOST_REQUIRE_EQUAL( image1.size(), image2.size( ));
+    BOOST_REQUIRE_EQUAL( image1.byteCount(), image2.byteCount( ));
 
-public:
-    /**
-     * Create a wall window.
-     * @param config the wall configuration to setup this window wrt position,
-     *               size, etc.
-     * @param renderControl the Qt render control for QML scene rendering
-     * @param wallChannel to synchronize clocks and swapBuffers()
-     */
-    WallWindow( const WallConfiguration& config,
-                QQuickRenderControl* renderControl,
-                WallToWallChannel& wallChannel );
+    // BOOST_CHECK_EQUAL_COLLECTION is too noisy so do a silent comparison
+    unsigned int errors = 0;
+    const uchar* it1 = image1.bits();
+    const uchar* it2 = image2.bits();
+    while( it1 < image1.bits() + image1.byteCount() &&
+           it2 < image2.bits() + image2.byteCount() )
+    {
+        if( *it1 != *it2 )
+            ++errors;
+        ++it1;
+        ++it2;
+    }
+    return (float)errors / (float)image1.byteCount();
+}
 
-    ~WallWindow();
-
-    /**
-     * Update and synchronize scene objects and trigger frame rendering.
-     *
-     * @param grab indicate that the frame should be grabbed after rendering.
-     * @return true if none of the wall windows need to redraw.
-     */
-    bool syncAndRender( bool grab = false );
-
-    /** Set new render options. */
-    void setRenderOptions( OptionsPtr options );
-
-    /** Set new display group. */
-    void setDisplayGroup( DisplayGroupPtr displayGroup );
-
-    /** Set new touchpoint's markers. */
-    void setMarkers( MarkersPtr markers );
-
-    /** @return the data provider. */
-    DataProvider& getDataProvider();
-
-    /** @return the QML engine. */
-    QQmlEngine* engine() const;
-
-    /** @return the root object of the QML scene. */
-    QQuickItem*	rootObject() const;
-
-    /** @return the communication channel to synchronize with other windows. */
-    WallToWallChannel& getWallChannel();
-
-    /** @return the texture uploader. */
-    TextureUploader& getUploader();
-
-signals:
-    /** Emitted after syncAndRender() has been called with grab set to true. */
-    void imageGrabbed( QImage image );
-
-private:
-    void exposeEvent( QExposeEvent* exposeEvent ) final;
-
-    void _startQuick( const WallConfiguration& config );
-
-    DisplayGroupRenderer* _displayGroupRenderer;
-    TestPattern* _testPattern;
-    WallToWallChannel& _wallChannel;
-
-    QQuickRenderControl* _renderControl;
-    deflect::qt::QuickRenderer* _quickRenderer;
-    QThread* _quickRendererThread;
-    bool _rendererInitialized;
-
-    QQmlEngine* _qmlEngine;
-    QQmlComponent* _qmlComponent;
-    QQuickItem* _rootItem;
-
-    QThread* _uploadThread;
-    TextureUploader* _uploader;
-    DataProvider* _provider;
-
-    bool _grabImage = false;
-};
+float compareImages( const QString& file1, const QString& file2 )
+{
+    QImage image1, image2;
+    BOOST_REQUIRE( image1.load( file1 ));
+    BOOST_REQUIRE( image2.load( file2 ));
+    return compareImages( image1, image2 );
+}
 
 #endif

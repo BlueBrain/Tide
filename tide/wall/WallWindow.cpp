@@ -180,19 +180,26 @@ void WallWindow::_startQuick( const WallConfiguration& config )
                 QMetaObject::invokeMethod( _displayGroupRenderer,
                                            "updateRenderedFrames",
                                            Qt::QueuedConnection );
+                if( _grabImage )
+                {
+                    emit imageGrabbed( _renderControl->grab( ));
+                    _grabImage = false;
+                }
              });
 
     _testPattern = new TestPattern( config, _rootItem );
     _testPattern->setPosition( -screenRect.topLeft( ));
 }
 
-bool WallWindow::syncAndRender()
+bool WallWindow::syncAndRender( const bool grab )
 {
     if( !_rendererInitialized )
         return true;
 
     _wallChannel.synchronizeClock();
     _displayGroupRenderer->synchronize( _wallChannel );
+
+    _grabImage = grab;
 
     _renderControl->polishItems();
     _quickRenderer->render();

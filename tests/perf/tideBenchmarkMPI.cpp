@@ -171,7 +171,7 @@ int main( int argc, char** argv )
     while( counter < options._packetsCount )
     {
         if( mpiChannel.getRank() == RANK0 )
-            mpiChannel.broadcast( MPI_MESSAGE_TYPE_NONE, serializedData );
+            mpiChannel.broadcast( MPIMessageType::NONE, serializedData );
         else
         {
             const MPIHeader header = mpiChannel.receiveHeader( RANK0 );

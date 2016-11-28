@@ -42,10 +42,12 @@
 #define SERIALIZATION_QTTYPES_H
 
 #include <QColor>
+#include <QImage>
 #include <QRectF>
 #include <QString>
 #include <QUuid>
 
+#include <boost/serialization/array.hpp>
 #include <boost/serialization/nvp.hpp>
 #include <boost/serialization/split_free.hpp>
 
@@ -104,9 +106,15 @@ void serialize( Archive& ar, QUuid& uuid, const unsigned int /*version*/ )
 template< class Archive >
 void serialize( Archive& ar, QPointF& point, const unsigned int )
 {
-    qreal t;
-    t = point.x(); ar & make_nvp( "x", t ); point.setX( t );
-    t = point.y(); ar & make_nvp( "y", t ); point.setY( t );
+    ar & make_nvp( "x", point.rx( ));
+    ar & make_nvp( "y", point.ry( ));
+}
+
+template< class Archive >
+void serialize( Archive& ar, QSize& size, const unsigned int )
+{
+    ar & make_nvp( "w", size.rwidth( ));
+    ar & make_nvp( "h", size.rheight( ));
 }
 
 template< class Archive >
@@ -117,6 +125,22 @@ void serialize( Archive& ar, QRectF& rect, const unsigned int )
     t = rect.y(); ar & make_nvp( "y", t ); rect.setY( t );
     t = rect.width(); ar & make_nvp( "w", t ); rect.setWidth( t );
     t = rect.height(); ar & make_nvp( "h", t ); rect.setHeight( t );
+}
+
+template< class Archive >
+void serialize( Archive& ar, QImage& image, const unsigned int )
+{
+    auto size = image.size();
+    ar & make_nvp( "size", size );
+
+    auto format = image.format();
+    ar & make_nvp( "format", format );
+
+    if( Archive::is_loading::value )
+        image = QImage{ size, format };
+
+    const size_t count = image.width() * image.height() * 4;
+    ar & make_nvp( "data", make_array( image.bits(), count ));
 }
 
 }

@@ -97,6 +97,9 @@ signals:
     /** Browse a website. */
     void browse( QString uri );
 
+    /** Take a screenshot. */
+    void screenshot( QString uri );
+
     /** Exit the application. */
     void exit();
 

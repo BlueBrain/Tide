@@ -45,6 +45,7 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   network/MasterToWallChannel.h
   PixelStreamWindowManager.h
   QmlTypeRegistration.h
+  ScreenshotAssembler.h
   State.h
   StateSerializationHelper.h
   ui/BackgroundWidget.h
@@ -85,6 +86,7 @@ list(APPEND TIDEMASTER_SOURCES
   network/MasterToForkerChannel.cpp
   network/MasterToWallChannel.cpp
   PixelStreamWindowManager.cpp
+  ScreenshotAssembler.cpp
   State.cpp
   StateSerializationHelper.cpp
   resources/master.qrc

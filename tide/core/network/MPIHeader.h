@@ -43,18 +43,19 @@
 #include <stdint.h>
 
 /** The type of MPI message. */
-enum MPIMessageType
+enum class MPIMessageType
 {
-    MPI_MESSAGE_TYPE_NONE,
-    MPI_MESSAGE_TYPE_FRAME_CLOCK,
-    MPI_MESSAGE_TYPE_QUIT,
-    MPI_MESSAGE_TYPE_DISPLAYGROUP,
-    MPI_MESSAGE_TYPE_PIXELSTREAM,
-    MPI_MESSAGE_TYPE_OPTIONS,
-    MPI_MESSAGE_TYPE_MARKERS,
-    MPI_MESSAGE_TYPE_REQUEST_FRAME,
-    MPI_MESSAGE_TYPE_TIMESTAMP,
-    MPI_MESSAGE_TYPE_START_PROCESS
+    NONE,
+    FRAME_CLOCK,
+    QUIT,
+    DISPLAYGROUP,
+    PIXELSTREAM,
+    OPTIONS,
+    MARKERS,
+    REQUEST_FRAME,
+    TIMESTAMP,
+    START_PROCESS,
+    IMAGE
 };
 
 /** Fixed-size message header. */
@@ -67,4 +68,4 @@ struct MPIHeader
     uint32_t size;
 };
 
-#endif // MPIHEADER_H
+#endif

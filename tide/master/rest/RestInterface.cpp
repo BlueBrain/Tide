@@ -88,8 +88,9 @@ public:
         server.handlePUT( openCmd );
         server.handlePUT( loadCmd );
         server.handlePUT( saveCmd );
-        server.handlePUT( exitCmd );
         server.handlePUT( whiteboardCmd );
+        server.handlePUT( screenshotCmd );
+        server.handlePUT( exitCmd );
         server.handle( options );
         server.handleGET( sizeProperty );
     }
@@ -101,6 +102,7 @@ public:
     RestCommand loadCmd{ "tide/load" };
     RestCommand saveCmd{ "tide/save" };
     RestCommand whiteboardCmd{ "tide/whiteboard", false };
+    RestCommand screenshotCmd{ "tide/screenshot" };
     RestCommand exitCmd{ "tide/exit", false };
     JsonOptions options;
     JsonSize sizeProperty;
@@ -111,6 +113,10 @@ RestInterface::RestInterface( const int port, OptionsPtr options,
                               const MasterConfiguration& config )
     : _impl( new Impl( port, options, config ))
 {
+    // Note: using same formatting as TUIO instead of put_flog() here
+    std::cout << "listening to REST messages on TCP port " <<
+                 _impl->httpServer.getPort() << std::endl;
+
     connect( &_impl->browseCmd, &RestCommand::received,
              this, &RestInterface::browse );
 
@@ -130,6 +136,9 @@ RestInterface::RestInterface( const int port, OptionsPtr options,
 
     connect( &_impl->saveCmd, &RestCommand::received,
              this, &RestInterface::save );
+
+    connect( &_impl->screenshotCmd, &RestCommand::received,
+             this, &RestInterface::screenshot );
 
     connect( &_impl->exitCmd, &RestCommand::received,
              this, &RestInterface::exit );

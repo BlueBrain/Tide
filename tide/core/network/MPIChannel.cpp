@@ -119,7 +119,7 @@ void MPIChannel::send( const MPIMessageType type,
 
     MPI_CHECK( MPI_Send_Nospin( (void*)serializedData.data(),
                                 serializedData.size(), MPI_BYTE, dest,
-                                type, _mpiComm ));
+                                int(type), _mpiComm ));
 }
 
 void MPIChannel::sendAll( const MPIMessageType type )

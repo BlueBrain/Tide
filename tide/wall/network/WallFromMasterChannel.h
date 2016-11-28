@@ -103,6 +103,12 @@ signals:
     void received( deflect::FramePtr frame );
 
     /**
+     * Emitted when a screenshot was requested.
+     * @see receiveMessage()
+     */
+    void receivedScreenshotRequest();
+
+    /**
      * Emitted when the quit message was recieved
      * @see receiveMessage()
      */

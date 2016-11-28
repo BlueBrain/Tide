@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,96 +37,34 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef WALLWINDOW_H
-#define WALLWINDOW_H
+#include "ScreenshotAssembler.h"
 
-#include "types.h"
-#include "network/WallToWallChannel.h"
+#include <QPainter>
 
-#include <QQuickWindow>
-
-class QQuickRenderControl;
-class QQmlEngine;
-class QQmlComponent;
-class QQuickItem;
-
-class WallWindow : public QQuickWindow
+ScreenshotAssembler::ScreenshotAssembler( const Configuration& config )
+    : _config( config )
+    , _screenshot{ _config.getTotalSize(), QImage::Format_RGB32 }
 {
-    Q_OBJECT
+    const size_t count = _config.getTotalScreenCountX() *
+                         _config.getTotalScreenCountY();
+    _imagesReceived.resize( count, false );
+}
 
-public:
-    /**
-     * Create a wall window.
-     * @param config the wall configuration to setup this window wrt position,
-     *               size, etc.
-     * @param renderControl the Qt render control for QML scene rendering
-     * @param wallChannel to synchronize clocks and swapBuffers()
-     */
-    WallWindow( const WallConfiguration& config,
-                QQuickRenderControl* renderControl,
-                WallToWallChannel& wallChannel );
+void ScreenshotAssembler::addImage( const QImage image, const int source )
+{
+    {
+        const auto x = source % _config.getTotalScreenCountX();
+        const auto y = source / _config.getTotalScreenCountX();
+        QPainter painter{ &_screenshot };
+        painter.drawImage( _config.getScreenRect( { x, y } ), image );
+    }
 
-    ~WallWindow();
+    _imagesReceived[source] = true;
+    for( const auto& received : _imagesReceived )
+        if( !received )
+            return;
 
-    /**
-     * Update and synchronize scene objects and trigger frame rendering.
-     *
-     * @param grab indicate that the frame should be grabbed after rendering.
-     * @return true if none of the wall windows need to redraw.
-     */
-    bool syncAndRender( bool grab = false );
+    std::fill( _imagesReceived.begin(), _imagesReceived.end(), false );
 
-    /** Set new render options. */
-    void setRenderOptions( OptionsPtr options );
-
-    /** Set new display group. */
-    void setDisplayGroup( DisplayGroupPtr displayGroup );
-
-    /** Set new touchpoint's markers. */
-    void setMarkers( MarkersPtr markers );
-
-    /** @return the data provider. */
-    DataProvider& getDataProvider();
-
-    /** @return the QML engine. */
-    QQmlEngine* engine() const;
-
-    /** @return the root object of the QML scene. */
-    QQuickItem*	rootObject() const;
-
-    /** @return the communication channel to synchronize with other windows. */
-    WallToWallChannel& getWallChannel();
-
-    /** @return the texture uploader. */
-    TextureUploader& getUploader();
-
-signals:
-    /** Emitted after syncAndRender() has been called with grab set to true. */
-    void imageGrabbed( QImage image );
-
-private:
-    void exposeEvent( QExposeEvent* exposeEvent ) final;
-
-    void _startQuick( const WallConfiguration& config );
-
-    DisplayGroupRenderer* _displayGroupRenderer;
-    TestPattern* _testPattern;
-    WallToWallChannel& _wallChannel;
-
-    QQuickRenderControl* _renderControl;
-    deflect::qt::QuickRenderer* _quickRenderer;
-    QThread* _quickRendererThread;
-    bool _rendererInitialized;
-
-    QQmlEngine* _qmlEngine;
-    QQmlComponent* _qmlComponent;
-    QQuickItem* _rootItem;
-
-    QThread* _uploadThread;
-    TextureUploader* _uploader;
-    DataProvider* _provider;
-
-    bool _grabImage = false;
-};
-
-#endif
+    emit screenshotComplete( _screenshot );
+}

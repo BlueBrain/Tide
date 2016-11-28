@@ -66,11 +66,11 @@ void ProcessForker::run()
 
         buffer.setSize( result.size );
         _mpiChannel->receive( buffer.data(), result.size, result.src,
-                              result.message );
+                              int(result.message) );
 
         switch( result.message )
         {
-        case MPI_MESSAGE_TYPE_START_PROCESS:
+        case MPIMessageType::START_PROCESS:
         {
             const auto string = serialization::get<QString>( buffer );
             const auto args = string.split( '#' );
@@ -83,7 +83,7 @@ void ProcessForker::run()
             _launch( args[0], args[1], args[2].split( ';' ));
             break;
         }
-        case MPI_MESSAGE_TYPE_QUIT:
+        case MPIMessageType::QUIT:
             _processMessages = false;
             break;
         default:

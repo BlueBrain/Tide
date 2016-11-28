@@ -58,10 +58,10 @@ void MasterToForkerChannel::sendStart( const QString command,
 {
     const QString string = command + sep + workingDir + sep + env.join( ';' );
     const auto data = serialization::toBinary( string );
-    _mpiChannel->send( MPI_MESSAGE_TYPE_START_PROCESS, data, forkerProcess );
+    _mpiChannel->send( MPIMessageType::START_PROCESS, data, forkerProcess );
 }
 
 void MasterToForkerChannel::sendQuit()
 {
-    _mpiChannel->send( MPI_MESSAGE_TYPE_QUIT, "", forkerProcess );
+    _mpiChannel->send( MPIMessageType::QUIT, "", forkerProcess );
 }

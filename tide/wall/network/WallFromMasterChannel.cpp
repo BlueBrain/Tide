@@ -72,16 +72,16 @@ void WallFromMasterChannel::receiveMessage()
 
     switch( mh.type )
     {
-    case MPI_MESSAGE_TYPE_DISPLAYGROUP:
+    case MPIMessageType::DISPLAYGROUP:
         emit received( receiveQObjectBroadcast<DisplayGroupPtr>( mh.size ));
         break;
-    case MPI_MESSAGE_TYPE_OPTIONS:
+    case MPIMessageType::OPTIONS:
         emit received( receiveQObjectBroadcast<OptionsPtr>( mh.size ));
         break;
-    case MPI_MESSAGE_TYPE_MARKERS:
+    case MPIMessageType::MARKERS:
         emit received( receiveQObjectBroadcast<MarkersPtr>( mh.size ));
         break;
-    case MPI_MESSAGE_TYPE_PIXELSTREAM:
+    case MPIMessageType::PIXELSTREAM:
 #if BOOST_VERSION >= 106000
         emit received( receiveBroadcast<deflect::FramePtr>( mh.size ));
 #else
@@ -92,7 +92,10 @@ void WallFromMasterChannel::receiveMessage()
                            receiveBroadcast<deflect::Frame>( mh.size )));
 #endif
         break;
-    case MPI_MESSAGE_TYPE_QUIT:
+    case MPIMessageType::IMAGE:
+        emit receivedScreenshotRequest();
+        break;
+    case MPIMessageType::QUIT:
         _processMessages = false;
         emit receivedQuit();
         break;
