@@ -83,6 +83,8 @@ public:
         , sizeProperty{ config.getTotalSize() }
     {
         auto& server = httpServer.get();
+        server.handleGET( "tide/version", tide::Version::getSchema(),
+                          &tide::Version::toJSON );
         server.handleGET( indexPage );
         server.handlePUT( browseCmd );
         server.handlePUT( openCmd );
