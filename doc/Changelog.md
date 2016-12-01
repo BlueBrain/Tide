@@ -3,6 +3,12 @@ Changelog {#changelog}
 
 # Release 1.2 (git master)
 
+* [111](https://github.com/BlueBrain/Tide/pull/111):
+  Multiple bugfixes:
+  - Fixed a bug that could cause focused windows to overlap.
+  - Corrected the global thread pool size in multi-node configurations.
+  - The application no longer blocks on startup if an error occurs, such as the
+    chosen REST port being already in use.
 * [109](https://github.com/BlueBrain/Tide/pull/109):
   New REST command to capture full resolution screenshot of the display wall.
 * [105](https://github.com/BlueBrain/Tide/pull/105):
