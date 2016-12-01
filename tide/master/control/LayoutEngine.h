@@ -42,6 +42,8 @@
 
 #include "types.h"
 
+struct WindowCoordinates;
+
 /**
  * Layout engine for positionning windows on the wall.
  */
@@ -49,7 +51,6 @@ class LayoutEngine
 {
 public:
     LayoutEngine( const DisplayGroup& group );
-    ~LayoutEngine();
 
     /** @return the focused coordinates for the window. */
     QRectF getFocusedCoord( const ContentWindow& window ) const;
@@ -58,12 +59,11 @@ public:
     void updateFocusedCoord( const ContentWindowSet& windows ) const;
 
 private:
-    const DisplayGroup& _displayGroup;
+    const DisplayGroup& _group;
 
-    /** @return the focused coordinates for the window. */
     QRectF _getFocusedCoord( const ContentWindow& window,
                              const ContentWindowSet& focusedWindows ) const;
-    QRectF _getNominalCoord( const ContentWindow& window ) const;
+    WindowCoordinates _getNominalCoord( const ContentWindow& window ) const;
     void _constrainFullyInside( QRectF& window ) const;
     qreal _getInsideMargin() const;
 };
