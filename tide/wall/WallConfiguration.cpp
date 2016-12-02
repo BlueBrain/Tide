@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -76,12 +76,18 @@ void WallConfiguration::_loadWallSettings( const int processIndex )
     else
         _display = QString( "default (:0)" ); // the default
 
+    int value = 0;
+
     // get number of tiles for my process
     query.setQuery( QString( "string(count(//process[%1]/screen))" ).arg( xpathIndex ));
-    if( !query.evaluateTo( &queryResult ) || queryResult.toInt() != 1 )
+    if( !getInt( query, value ) || value != 1 )
         throw std::runtime_error( "Expect exactly one screen per process" );
 
-    int value = 0;
+    // get number of wall processes on the same host
+    query.setQuery( QString( "string(count(//process[@host eq '%1']))" ).arg( _host ));
+    if( !getInt( query, value ) || value < 1 )
+        throw std::runtime_error( "Could not determine the number of wall processes on that host" );
+    _processCountForHost = value;
 
     query.setQuery( QString( "string(//process[%1]/screen/@x)" ).arg( xpathIndex ));
     if( getInt( query, value ))
@@ -100,6 +106,11 @@ void WallConfiguration::_loadWallSettings( const int processIndex )
         _screenGlobalIndex.setY( value );
 }
 
+int WallConfiguration::getProcessIndex() const
+{
+    return _processIndex;
+}
+
 const QString& WallConfiguration::getHost() const
 {
     return _host;
@@ -110,6 +121,11 @@ const QString& WallConfiguration::getDisplay() const
     return _display;
 }
 
+int WallConfiguration::getProcessCountForHost() const
+{
+    return _processCountForHost;
+}
+
 const QPoint& WallConfiguration::getGlobalScreenIndex() const
 {
     return _screenGlobalIndex;
@@ -118,9 +134,4 @@ const QPoint& WallConfiguration::getGlobalScreenIndex() const
 const QPoint& WallConfiguration::getWindowPos() const
 {
     return _screenPosition;
-}
-
-int WallConfiguration::getProcessIndex() const
-{
-    return _processIndex;
 }

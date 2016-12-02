@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -60,6 +60,9 @@ public:
      */
     WallConfiguration( const QString &filename, int processIndex );
 
+    /** Get the index of the process. */
+    int getProcessIndex() const;
+
     /** Get the name of the host on which this process is running. */
     const QString& getHost() const;
 
@@ -68,6 +71,9 @@ public:
      * DISPLAY env_var.
      */
     const QString& getDisplay() const;
+
+    /** @return the number of wall processes running on the same host. */
+    int getProcessCountForHost() const;
 
     /**
      * Get the global index for the screen.
@@ -78,18 +84,17 @@ public:
     /** Get the coordinates of the screen in pixel units. */
     const QPoint& getWindowPos() const;
 
-    /** Get the index of the process. */
-    int getProcessIndex() const;
-
 private:
+    const int _processIndex;
+
     QString _host;
     QString _display;
+    int _processCountForHost = 0;
 
-    const int _processIndex;
     QPoint _screenPosition;
     QPoint _screenGlobalIndex;
 
     void _loadWallSettings( int processIndex );
 };
 
-#endif // WALLCONFIGURATION_H
+#endif
