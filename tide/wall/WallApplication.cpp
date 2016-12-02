@@ -75,7 +75,7 @@ WallApplication::WallApplication( int& argc_, char** argv_,
         options.showSyntax();
 
     if ( !_createConfig( options.getConfigFilename(), worldChannel->getRank( )))
-        throw std::runtime_error(" WallApplication: initialization failed." );
+        throw std::runtime_error( "WallApplication: initialization failed." );
 
     _initWallWindow();
     _initMPIConnection( worldChannel );

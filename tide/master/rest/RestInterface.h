@@ -68,6 +68,8 @@ public:
      * @param port the port for listening to REST requests
      * @param options the application's options to expose in the interface
      * @param config the application's configuration
+     * @throw std::runtime_error if the port is already in use or a connection
+     *        issue occured.
      */
     RestInterface( int port, OptionsPtr options,
                    const MasterConfiguration& config );

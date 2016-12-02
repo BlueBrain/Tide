@@ -53,10 +53,18 @@ class StaticContent;
 class RestServer
 {
 public:
-    /** Start a server with an OS-chosen port. */
+    /**
+     * Start a server with an OS-chosen port.
+     * @throw std::runtime_error if a connection issue occured.
+     */
     RestServer();
 
-    /** Start a server on a defined port. */
+    /**
+     * Start a server on a defined port.
+     * @param port the TCP port to listen to.
+     * @throw std::runtime_error if the port is already in use or a connection
+     *        issue occured.
+     */
     explicit RestServer( int port );
 
     /** Stop the server. */

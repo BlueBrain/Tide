@@ -109,7 +109,13 @@ MasterApplication::MasterApplication( int& argc_, char** argv_,
 
     _init();
 
-    const QString& session = commandLine.getSessionFilename();
+    // send initial display group to wall processes so that they at least the
+    // real display group size to compute correct sizes for full screen etc.
+    // which is vital for the following restoreBackground().
+    _masterToWallChannel->sendAsync( _displayGroup );
+    _restoreBackground();
+
+    const auto& session = commandLine.getSessionFilename();
     if( !session.isEmpty( ))
         _loadSessionOp.setFuture(
                     StateSerializationHelper( _displayGroup ).load( session ));
@@ -182,12 +188,6 @@ void MasterApplication::_init()
 
     _startDeflectServer();
     _setupMPIConnections();
-
-    // send initial display group to wall processes so that they at least the
-    // real display group size to compute correct sizes for full screen etc.
-    // which is vital for the following restoreBackground().
-    _masterToWallChannel->sendAsync( _displayGroup );
-    _restoreBackground();
 }
 
 void MasterApplication::_initMasterWindow()

@@ -73,6 +73,12 @@ int main( int argc, char* argv[] )
         {
             put_flog( LOG_FATAL, "Could not initialize application. %s",
                       e.what( ));
+
+            // Avoid MPI deadlock, tell the other applications to quit
+            // (normally done by MasterApplication destructor).
+            localChannel->send( MPIMessageType::QUIT, "", 1 );
+            mainChannel->sendAll( MPIMessageType::QUIT );
+
             return EXIT_FAILURE;
         }
 
