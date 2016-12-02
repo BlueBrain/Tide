@@ -80,6 +80,12 @@ int main( int argc, char* argv[] )
         {
             put_flog( LOG_FATAL, "Could not initialize application. %s",
                       e.what( ));
+
+            // Always send QUIT to the master application that will wait on it
+            // to exit (normally done by WallApplication destructor).
+            if( localChannel->getRank() == 0 )
+                mainChannel->send( MPIMessageType::QUIT, "", 0 );
+
             return EXIT_FAILURE;
         }
         app->exec(); // enter Qt event loop
