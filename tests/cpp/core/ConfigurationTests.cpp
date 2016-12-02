@@ -58,8 +58,6 @@
 #define CONFIG_EXPECTED_LAUNCHER_DISPLAY ":0"
 #define CONFIG_EXPECTED_DEMO_SERVICE_URL "https://visualization-dev.humanbrainproject.eu/viz/rendering-resource-manager/v1"
 #define CONFIG_EXPECTED_DEMO_SERVICE_IMAGE_DIR "/nfs4/bbp.epfl.ch/visualization/resources/software/displaywall/demo_previews"
-#define CONFIG_EXPECTED_DISPLAY ":0.2"
-#define CONFIG_EXPECTED_HOST_NAME "bbplxviz03i"
 
 #define CONFIG_EXPECTED_WEBSERVICE_PORT 10000
 #define CONFIG_EXPECTED_DEFAULT_WEBSERVICE_PORT 8888
@@ -110,11 +108,15 @@ BOOST_AUTO_TEST_CASE( test_configuration )
 
 BOOST_AUTO_TEST_CASE( test_wall_configuration )
 {
-    WallConfiguration config( CONFIG_TEST_FILENAME, 1 );
+    const auto processIndex = 3; // note: starts from 1, not 0
+    WallConfiguration config( CONFIG_TEST_FILENAME, processIndex );
+    BOOST_REQUIRE_EQUAL( config.getProcessIndex(), processIndex );
 
-    BOOST_CHECK_EQUAL( config.getDisplay().toStdString(), CONFIG_EXPECTED_DISPLAY );
-    BOOST_CHECK( config.getGlobalScreenIndex() == QPoint( 0,0 ) );
-    BOOST_CHECK_EQUAL( config.getHost().toStdString(), CONFIG_EXPECTED_HOST_NAME );
+    BOOST_CHECK_EQUAL( config.getHost().toStdString(), "bbplxviz03i" );
+    BOOST_CHECK_EQUAL( config.getDisplay().toStdString(), ":0.1" );
+    BOOST_CHECK_EQUAL( config.getProcessCountForHost(), 3 );
+    BOOST_CHECK_EQUAL( config.getGlobalScreenIndex(), QPoint( 0, 2 ));
+    BOOST_CHECK_EQUAL( config.getWindowPos(), QPoint( 0, 2160 ));
 }
 
 BOOST_AUTO_TEST_CASE( test_master_configuration )

@@ -64,18 +64,18 @@ WallApplication::WallApplication( int& argc_, char** argv_,
 {
     core::registerQmlTypes();
 
-    // avoid overcommit for async content loading; consider number of processes
-    // on the same machine
-    const int maxThreads = std::max( QThread::idealThreadCount() /
-                                     wallChannel->getSize(), 2 );
-    QThreadPool::globalInstance()->setMaxThreadCount( maxThreads );
-
     CommandLineParameters options( argc_, argv_ );
     if( options.getHelp( ))
         options.showSyntax();
 
     if ( !_createConfig( options.getConfigFilename(), worldChannel->getRank( )))
         throw std::runtime_error( "WallApplication: initialization failed." );
+
+    // avoid overcommit for async content loading; consider number of processes
+    // on the same machine
+    const auto prCount = _config->getProcessCountForHost();
+    const int maxThreads = std::max( QThread::idealThreadCount() / prCount, 2 );
+    QThreadPool::globalInstance()->setMaxThreadCount( maxThreads );
 
     _initWallWindow();
     _initMPIConnection( worldChannel );
