@@ -20,7 +20,7 @@ functionalities such as rendering, serialization, file handling and network
 communication. Those dependencies are:
 * Boost 1.54 or later
 * MPI with MPI_THREAD_MULTIPLE support (openmpi 1.6.5 or later recommended)
-* Qt 5.4 or later
+* Qt 5.4 or later (5.7.1 or later recommended)
 
 In addition, it also depends on some external projects that are automatically
 cloned by CMake during the configure step. They come with their own additional

@@ -1,5 +1,5 @@
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef TIDE_CONFIG_H
+#define TIDE_CONFIG_H
 
 #cmakedefine01 TIDE_ENABLE_MOVIE_SUPPORT
 #cmakedefine01 TIDE_ENABLE_PDF_SUPPORT

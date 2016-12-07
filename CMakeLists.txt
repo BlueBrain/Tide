@@ -1,5 +1,5 @@
-# Copyright (c) 2013-2015, EPFL/Blue Brain Project
-#                     Raphael Dumusc <raphael.dumusc@epfl.ch>
+# Copyright (c) 2013-2016, EPFL/Blue Brain Project
+#                          Raphael Dumusc <raphael.dumusc@epfl.ch>
 
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 project(Tide VERSION 1.2.0)

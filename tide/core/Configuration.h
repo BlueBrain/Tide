@@ -48,6 +48,8 @@
 
 #include "types.h"
 
+class QXmlQuery;
+
 /**
  * The Configuration class manages all the settings needed by the Tide
  * application.
@@ -64,9 +66,6 @@
  * @note For historic reasons, both the words "screen" and "tile" are used in
  * xml configuration files and have the same meaning.
  */
-
-class QXmlQuery;
-
 class Configuration
 {
 public:

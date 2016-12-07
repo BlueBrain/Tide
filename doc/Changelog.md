@@ -1,7 +1,7 @@
 Changelog {#changelog}
 ============
 
-# Release 1.2 (git master)
+# Release 1.2 (09-12-2016)
 
 * [111](https://github.com/BlueBrain/Tide/pull/111):
   Multiple bugfixes:
