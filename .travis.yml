@@ -3,13 +3,6 @@ notifications:
     on_success: never
 language: cpp
 sudo: false
-cache:
-  ccache: true
-  pip: true
-  directories:
-  - /usr/local
-before_cache:
-  - brew cleanup
 os:
   - osx
 env:
@@ -32,4 +25,3 @@ script:
   - cd $BUILD_TYPE
   - cmake -GNinja -DCMAKE_INSTALL_PREFIX=$PWD/install -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
   - ninja all && ninja $PROJECT_NAME-tests && ninja install
-

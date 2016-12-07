@@ -1,4 +1,3 @@
-
 # Copyright (c) 2016, EPFL/Blue Brain Project
 #                     Pawel Podhajski <pawel.podhajski@epfl.ch>
 

@@ -1,4 +1,3 @@
-
 # Copyright (c) 2016, EPFL/Blue Brain Project
 #                     Ahmet Bilgili <ahmet.bilgili@epfl.ch>
 #                     Raphael Dumusc <raphael.dumusc@epfl.ch>

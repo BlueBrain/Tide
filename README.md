@@ -18,8 +18,8 @@ Tide provides the following features:
 Run 'tide' from the bin folder to launch the application. By default it launches
 three wall processes in a horizonal layout. Content can be opened from the
 control user interface or by interacting with touchpoints that are received via
-the TUIO protocol on port 1701. Tap-and-hold the background to open the launcher
-for content browsing.
+the TUIO protocol on port 1701. Click the rocket icon on the left control bar
+to browse for contents and applications.
 
 For more information see the
 [UserGuide](http://bluebrain.github.io/Tide-1.2/user_guide.html).
@@ -30,8 +30,8 @@ For more information see the
   git clone https://github.com/BlueBrain/Tide.git
   mkdir Tide/build
   cd Tide/build
-  cmake ..
-  make
+  cmake -GNinja ..
+  ninja
 ```
 
 For more information see

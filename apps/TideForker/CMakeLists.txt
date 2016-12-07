@@ -1,6 +1,5 @@
-
-# Copyright (c) 2013-2015, EPFL/Blue Brain Project
-#                     Raphael Dumusc <raphael.dumusc@epfl.ch>
+# Copyright (c) 2013-2016, EPFL/Blue Brain Project
+#                          Raphael Dumusc <raphael.dumusc@epfl.ch>
 
 include_directories(${PROJECT_SOURCE_DIR}/tide/master)
 
