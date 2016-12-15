@@ -87,7 +87,7 @@ private:
 
     void _openContent();
     void _addContentDirectory( const QString& directoryName,
-                               unsigned int gridX = 0, unsigned int gridY = 0 );
+                               const QSize& gridSize = QSize( ));
     void _openContentsDirectory();
 
     void _openSession();
@@ -95,9 +95,6 @@ private:
     void _loadSession( const QString& filename );
 
     void _openAboutWidget();
-
-    void _estimateGridSize( unsigned int numElem, unsigned int& gridX,
-                            unsigned int& gridY );
 
     QStringList _extractValidContentUrls( const QMimeData* mimeData );
     QStringList _extractFolderUrls( const QMimeData* mimeData );

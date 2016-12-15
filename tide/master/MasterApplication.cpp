@@ -430,10 +430,15 @@ void MasterApplication::_initRestInterface()
 
     connect( _restInterface.get(), &RestInterface::open, [this]( QString uri )
     {
+        if( uri.isEmpty( ))
+            return;
+
         auto loader = ContentLoader{ _displayGroup };
         auto window = loader.findWindow( uri );
         if( window )
             _displayGroup->moveToFront( window );
+        else if( QDir{ uri }.exists( ))
+            loader.loadDir( uri );
         else
             loader.load( uri );
     });

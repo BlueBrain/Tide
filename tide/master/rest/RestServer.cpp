@@ -48,15 +48,13 @@ const uint32_t TIMEOUT = 0; // non-blocking receive
 
 RestServer::RestServer()
 {
-    _socketNotifier.connect( &_socketNotifier, &QSocketNotifier::activated,
-                             [this]() { _httpServer.receive( TIMEOUT ); });
+    _init();
 }
 
 RestServer::RestServer( const int port )
     : _httpServer{ zeroeq::URI { QString(":%1").arg( port ).toStdString( )}}
 {
-    _socketNotifier.connect( &_socketNotifier, &QSocketNotifier::activated,
-                             [this]() { _httpServer.receive( TIMEOUT ); });
+    _init();
 }
 
 int RestServer::getPort() const
@@ -67,4 +65,10 @@ int RestServer::getPort() const
 zeroeq::http::Server& RestServer::get()
 {
     return _httpServer;
+}
+
+void RestServer::_init()
+{
+    _socketNotifier.connect( &_socketNotifier, &QSocketNotifier::activated,
+                             [this]() { _httpServer.receive( TIMEOUT ); });
 }

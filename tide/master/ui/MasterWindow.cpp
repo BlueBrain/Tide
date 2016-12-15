@@ -392,8 +392,7 @@ void MasterWindow::_openContent()
 }
 
 void MasterWindow::_addContentDirectory( const QString& directoryName,
-                                         unsigned int gridX,
-                                         unsigned int gridY )
+                                         const QSize& gridSize )
 {
     QDir directory( directoryName );
     directory.setFilter( QDir::Files );
@@ -408,39 +407,14 @@ void MasterWindow::_addContentDirectory( const QString& directoryName,
                       QString::number( list.size( )) +
                       " content elements. Are you sure you want to continue?";
 
-        typedef QMessageBox::StandardButton button;
-        const button reply = QMessageBox::question( this, "Warning", msg,
-                                                    QMessageBox::Yes |
-                                                    QMessageBox::No );
-        if ( reply != QMessageBox::Yes )
+        const auto reply = QMessageBox::question( this, "Warning", msg,
+                                                  QMessageBox::Yes |
+                                                  QMessageBox::No );
+        if( reply != QMessageBox::Yes )
             return;
     }
 
-    // If grid size is unspecified, compute one large enough to hold all the
-    // elements
-    if ( gridX == 0 || gridY == 0 )
-        _estimateGridSize( list.size(), gridX, gridY );
-
-    unsigned int contentIndex = 0;
-
-    const QSizeF win( _displayGroup->width() / (qreal)gridX,
-                      _displayGroup->height() / (qreal)gridY );
-
-    ContentLoader contentLoader( _displayGroup );
-
-    for( int i = 0; i < list.size() && contentIndex < gridX * gridY; ++i )
-    {
-        const QFileInfo& fileInfo = list.at(i);
-        const QString& filename = fileInfo.absoluteFilePath();
-
-        const unsigned int x_coord = contentIndex % gridX;
-        const unsigned int y_coord = contentIndex / gridX;
-        const QPointF position( x_coord * win.width() + 0.5 * win.width(),
-                                y_coord * win.height() + 0.5 * win.height( ));
-
-        if( contentLoader.load( filename, position, win ))
-            ++contentIndex;
-    }
+    ContentLoader{ _displayGroup }.loadDir( directoryName, gridSize );
 }
 
 void MasterWindow::_openContentsDirectory()
@@ -456,9 +430,7 @@ void MasterWindow::_openContentsDirectory()
                                             "Grid X dimension", 0, 0 );
     const int gridY = QInputDialog::getInt( this, "Grid Y dimension",
                                             "Grid Y dimension", 0, 0 );
-    assert( gridX >= 0 && gridY >= 0 );
-
-    _addContentDirectory( dirName, gridX, gridY );
+    _addContentDirectory( dirName, { gridX, gridY } );
 }
 
 void MasterWindow::_openSession()
@@ -505,15 +477,6 @@ void MasterWindow::_openAboutWidget()
     aboutMsg << "SCM revision: " << std::hex << revision << std::dec;
 
     QMessageBox::about( this, "About Tide", aboutMsg.str().c_str( ));
-}
-
-void MasterWindow::_estimateGridSize( unsigned int numElem, unsigned int& gridX,
-                                      unsigned int& gridY )
-{
-    assert( numElem > 0 );
-    gridX = (unsigned int)( ceil( sqrt( numElem )));
-    assert( gridX > 0 );
-    gridY = ( gridX * ( gridX-1 ) >= numElem ) ? gridX-1 : gridX;
 }
 
 QStringList MasterWindow::_extractValidContentUrls( const QMimeData* mimeData )

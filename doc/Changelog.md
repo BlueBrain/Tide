@@ -1,6 +1,18 @@
 Changelog {#changelog}
 ============
 
+# Release 1.2.1 (16-12-2016)
+
+* [113](https://github.com/BlueBrain/Tide/pull/113):
+  Fixed several issues linked to ZeroEQ with the 1.2 release:
+  - The REST interface was constantly polling, causing a 100% idle CPU load.
+  - This caused troubles with window animations in headless mode, resulting in
+    touch events hitting the background or some other window.
+  - cmake -DINSTALL_PACKAGES=1 did not install cppnetlib's dependencies.
+  Additionnally, the REST "open" command can be given a directory path to open
+  all the contents inside it. This feature was previously inaccessible in
+  headless mode.
+
 # Release 1.2 (09-12-2016)
 
 * [111](https://github.com/BlueBrain/Tide/pull/111):
