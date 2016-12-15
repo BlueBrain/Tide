@@ -45,6 +45,8 @@
 #include "scene/ContentWindow.h"
 #include "scene/ContentFactory.h"
 
+#include <QDir>
+
 ContentLoader::ContentLoader( DisplayGroupPtr displayGroup )
     : _displayGroup( displayGroup )
 {
@@ -87,6 +89,57 @@ bool ContentLoader::load( const QString& filename,
     _displayGroup->addContentWindow( contentWindow );
 
     return true;
+}
+
+
+QSize _estimateGridSize( const int numElem )
+{
+    if( numElem <= 0 )
+        return QSize();
+
+    const auto w = int( ceil( sqrt( numElem )));
+    return { w, ( w * ( w-1 ) >= numElem ) ? w-1 : w };
+}
+
+size_t ContentLoader::loadDir( const QString& dirName, QSize gridSize )
+{
+    put_flog( LOG_INFO, "opening directory: '%s'",
+              dirName.toLocal8Bit().constData( ));
+
+    QDir directory( dirName );
+    directory.setFilter( QDir::Files );
+    directory.setNameFilters( ContentFactory::getSupportedFilesFilter( ));
+
+    const auto list = directory.entryInfoList();
+    if( list.empty( ))
+        return 0;
+
+    if( gridSize.isEmpty( ))
+        gridSize = _estimateGridSize( list.size( ));
+
+    const QSizeF win( _displayGroup->width() / (qreal)gridSize.width(),
+                      _displayGroup->height() / (qreal)gridSize.height( ));
+
+    int contentIndex = 0;
+    for( const auto& fileinfo : list )
+    {
+        const auto filename = fileinfo.absoluteFilePath();
+        const auto x = contentIndex % gridSize.width();
+        const auto y = contentIndex / gridSize.width();
+        const auto position = QPointF{ x * win.width() + 0.5 * win.width(),
+                                       y * win.height() + 0.5 * win.height() };
+
+        if( load( filename, position, win ))
+            ++contentIndex;
+
+        if( contentIndex >= gridSize.width() * gridSize.height( ))
+            break; // should not happen if grid size is correct
+    }
+
+    put_flog( LOG_INFO, "done opening %d contents from directory: '%s'",
+              contentIndex, dirName.toLocal8Bit().constData( ));
+
+    return contentIndex;
 }
 
 bool ContentLoader::isAlreadyOpen( const QString& filename ) const

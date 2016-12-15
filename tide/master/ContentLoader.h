@@ -75,6 +75,18 @@ public:
                const QSizeF& windowSize = QSizeF( ));
 
     /**
+     * Load all the supported files from a directory.
+     *
+     * The contents are automatically arranged in a grid accross the entire
+     * DisplayGroup.
+     * @param dirName path to a directory
+     * @param gridSize size of the grid for the contents, will be automatically
+     *        determined if left empty.
+     * @return the number of contents that could be loaded
+     */
+    size_t loadDir( const QString& dirName, QSize gridSize = QSize{} );
+
+    /**
      * Check if a content is already open.
      *
      * @param filename The content file to search for.
