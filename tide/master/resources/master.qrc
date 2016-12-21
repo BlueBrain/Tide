@@ -13,4 +13,20 @@
         <file>maximize.svg</file>
         <file>resize.svg</file>
     </qresource>
+    <qresource prefix="/html">
+        <file>styles.css</file>
+        <file>index.html</file>
+        <file>tide.js</file>
+        <file>tideVars.js</file>
+        <file>jquery-3.1.1.min.js</file>
+        <file>jquery-ui.css</file>
+        <file>jquery-ui.min.js</file>
+        <file>underscore-min.js</file>
+        <file>sweetalert.min.js</file>
+        <file>sweetalert.min.css</file>
+        <file>img/close.svg</file>
+        <file>img/exit.svg</file>
+        <file>img/focus.svg</file>
+        <file>img/maximize.svg</file>
+    </qresource>
 </RCC>

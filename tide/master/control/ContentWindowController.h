@@ -132,6 +132,9 @@ public:
     /** Constrain the given size between getMinSize() and getMaxSize(). */
     void constrainSize( QSizeF& windowSize ) const;
 
+    /** @return the minimum size of the window respecting its aspect ratio. */
+    QSizeF getMinSizeAspectRatioCorrect() const;
+
 private:
     /**
      * Resize the window around a given center point.

@@ -189,6 +189,8 @@ BOOST_AUTO_TEST_CASE( testSizeLimitsBigContent )
     BOOST_CHECK_EQUAL( controller.getMinSize(), QSize( 300, 300 ));
     BOOST_CHECK_EQUAL( controller.getMaxSize(),
                        BIG_CONTENT_SIZE * Content::getMaxScale( ));
+    BOOST_CHECK_EQUAL( controller.getMinSizeAspectRatioCorrect(),
+                       QSize( 400, 300 ));
 
     const QSizeF normalMaxSize = controller.getMaxSize();
     window->getContent()->setZoomRect( QRectF( QPointF( 0.3, 0.1 ),
@@ -211,6 +213,8 @@ BOOST_AUTO_TEST_CASE( testSizeLimitsSmallContent )
 
     // Test controller and zoom limits
     BOOST_CHECK_EQUAL( controller.getMinSize(), QSize( 300, 300 ));
+    BOOST_CHECK_EQUAL( controller.getMinSizeAspectRatioCorrect(),
+                       QSize( 400, 300 ));
     BOOST_CHECK_EQUAL( controller.getMaxSize(),
                        SMALL_CONTENT_SIZE * Content::getMaxScale( ));
 
@@ -218,6 +222,71 @@ BOOST_AUTO_TEST_CASE( testSizeLimitsSmallContent )
     window->getContent()->setZoomRect( QRectF( QPointF( 0.3, 0.1 ),
                                                QSizeF( 0.25, 0.25 )));
     BOOST_CHECK_EQUAL( controller.getMaxSize(), 0.25 * normalMaxSize );
+}
+
+BOOST_AUTO_TEST_CASE( testAspectRatioMinSize )
+{
+    ContentWindowPtr window = makeDummyWindow();
+    DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
+    ContentWindowController controller( *window, *displayGroup );
+
+    // Make a content and validate MinSize keeps aspect ratio
+    ContentPtr content = window->getContent();
+    content->setDimensions( QSize( 400, 800 ));
+    BOOST_CHECK_EQUAL( controller.getMinSizeAspectRatioCorrect(),
+                       QSize( 300, 600 ));
+
+    content->setDimensions( QSize( 800, 1600) );
+    BOOST_CHECK_EQUAL( controller.getMinSizeAspectRatioCorrect(),
+                       QSize( 300 , 600 ));
+
+    content->setDimensions( QSize( 2000, 1500) );
+    BOOST_CHECK_EQUAL( controller.getMinSizeAspectRatioCorrect(),
+                       QSize( 400 , 300 ));
+
+    window->setMode( ContentWindow::FULLSCREEN );
+    content->setDimensions( QSize( 800, 1600) );
+    BOOST_CHECK_EQUAL( controller.getMinSizeAspectRatioCorrect(),
+                       QSize( 500 , 1000 ));
+
+    window->setMode( ContentWindow::STANDARD );
+    content->setDimensions( QSize( 800, 1600) );
+    BOOST_CHECK_EQUAL( controller.getMinSizeAspectRatioCorrect(),
+                       QSize( 300, 600 ));
+
+    window->setMode( ContentWindow::FULLSCREEN );
+    content->setDimensions( QSize( 2500, 1250) );
+    BOOST_CHECK_EQUAL( controller.getMinSizeAspectRatioCorrect(),
+                       QSize( 1000, 500 ));
+
+    window->setMode( ContentWindow::FOCUSED );
+    content->setDimensions( QSize( 2500, 1250 ));
+    BOOST_CHECK_EQUAL( controller.getMinSizeAspectRatioCorrect(),
+                       QSize( 600, 300 ));
+
+    window->setMode( ContentWindow::STANDARD );
+    const QSize maxSize( CONTENT_SIZE * 2);
+    const QSize minSize( CONTENT_SIZE / 2);
+    deflect::SizeHints hints;
+    hints.maxWidth = maxSize.width();
+    hints.maxHeight = maxSize.height();
+    hints.minWidth = minSize.width();
+    hints.minHeight = minSize.height();
+
+    content->setSizeHints( hints );
+    content->setDimensions( CONTENT_SIZE );
+
+    controller.resize( maxSize, CENTER );
+    BOOST_CHECK_EQUAL( controller.getMinSizeAspectRatioCorrect(),
+                       QSize( 400, 300 ));
+
+    window->setMode( ContentWindow::FULLSCREEN );
+    BOOST_CHECK_EQUAL( controller.getMinSizeAspectRatioCorrect(),
+                       QSize( 400, 300 ));
+
+    window->setMode( ContentWindow::FOCUSED );
+    BOOST_CHECK_EQUAL( controller.getMinSizeAspectRatioCorrect(),
+                       QSize( 400, 300 ));
 }
 
 BOOST_AUTO_TEST_CASE( testSizeHints )

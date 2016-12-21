@@ -37,87 +37,54 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef RESTINTERFACE_H
-#define RESTINTERFACE_H
+#ifndef RESTCONTROLLER_H
+#define RESTCONTROLLER_H
+
+#include "control/DisplayGroupController.h"
+#include "RestCommand.h"
+#include "scene/DisplayGroup.h"
 
 #include "types.h"
-#include "JsonSize.h"
-#include "RestLogger.h"
-
+#include <memory>
 #include <QObject>
+#include <zeroeq/http/server.h>
 
 /**
- * Enables remote control of Tide through a REST API.
- *
- * It listens for http PUT requests on 'http://hostname:port/tide/\<command\>'
- * and emits the corresponding \<command\> signal on success.
- *
- * Example command:
- * curl -i -X PUT -d '{"uri": "image.png"}' http://localhost:8888/tide/open
- *
- * It also exposes a control html interface on 'http://hostname:port'.
+ * Enable remote control of windows through a REST API
  */
-class RestInterface : public QObject
+class RestController : public QObject
 {
     Q_OBJECT
 
 public:
     /**
-     * Construct a REST interface.
-     * @param port the port for listening to REST requests
-     * @param options the application's options to expose in the interface
-     * @param config the application's configuration
-     * @throw std::runtime_error if the port is already in use or a connection
-     *        issue occured.
+     * Construct a window controller exposed by a ZeroEQ http server.
+     *
+     * @param server used to register HTTP endpoints.
+     * @param group target for control commands.
      */
-    RestInterface( int port, OptionsPtr options,
-                   const MasterConfiguration& config );
-
-    /** Out-of-line destructor. */
-    ~RestInterface();
-
-    /** Expose the statistics gathered by the given logging utility. */
-    void exposeStatistics( const LoggingUtility& logger ) const;
-
-    /**
-     * Set-up the HTML interface.
-     * @param displayGroup DisplayGroup exposed via interface
-     * @param config MasterConfiguration used to set-up the interface
-     */
-    void setupHtmlInterface( DisplayGroup& displayGroup,
-                             const MasterConfiguration& config );
-
-signals:
-    /** Open a content. */
-    void open( QString uri );
-
-    /** Load a session. */
-    void load( QString uri );
-
-    /** Save a session to the given file. */
-    void save( QString uri );
-
-    /** Clear all contents. */
-    void clear();
-
-    /** Open a whiteboard. */
-    void whiteboard();
-
-    /** Close a content. */
-    void close( QString uuid );
-
-    /** Browse a website. */
-    void browse( QString uri );
-
-    /** Take a screenshot. */
-    void screenshot( QString uri );
-
-    /** Exit the application. */
-    void exit();
+    RestController( zeroeq::http::Server& httpServer, DisplayGroup& group );
 
 private:
-    class Impl;
-    std::unique_ptr<Impl> _impl;
+    DisplayGroup& _group;
+
+    std::unique_ptr<DisplayGroupController> _controller;
+
+    RestCommand _toggleSelectWindow{ "tide/toggleSelectWindow" };
+    RestCommand _moveToFront{ "tide/moveWindowToFront" };
+    RestCommand _moveWindowtoFullscreen{ "tide/moveWindowToFullscreen" };
+    RestCommand _unfocusWindow{ "tide/unfocusWindow" };
+
+    bool _handleToggleSelectWindow( QString id );
+    bool _handleDeselectWindows();
+    bool _handleExitFullScreen();
+    bool _handleFocusWindows();
+    bool _handleMoveWindow( const std::string& payload );
+    bool _handleMoveWindowToFront( QString id );
+    bool _handleMoveWindowToFullscreen( QString id );
+    bool _handleResizeWindow( const std::string& payload );
+    bool _handleUnfocusWindow( const QString& id );
+    bool _handleUnfocusWindows();
 };
 
 #endif

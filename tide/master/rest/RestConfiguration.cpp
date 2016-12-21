@@ -1,6 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,87 +37,46 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef RESTINTERFACE_H
-#define RESTINTERFACE_H
+#include "RestConfiguration.h"
 
-#include "types.h"
-#include "JsonSize.h"
-#include "RestLogger.h"
+#include <tide/master/version.h>
 
-#include <QObject>
+#include <string>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QDateTime>
+#include <QHostInfo>
 
-/**
- * Enables remote control of Tide through a REST API.
- *
- * It listens for http PUT requests on 'http://hostname:port/tide/\<command\>'
- * and emits the corresponding \<command\> signal on success.
- *
- * Example command:
- * curl -i -X PUT -d '{"uri": "image.png"}' http://localhost:8888/tide/open
- *
- * It also exposes a control html interface on 'http://hostname:port'.
- */
-class RestInterface : public QObject
+namespace
 {
-    Q_OBJECT
+const QString _startTime = QDateTime::currentDateTime().toString();
+}
 
-public:
-    /**
-     * Construct a REST interface.
-     * @param port the port for listening to REST requests
-     * @param options the application's options to expose in the interface
-     * @param config the application's configuration
-     * @throw std::runtime_error if the port is already in use or a connection
-     *        issue occured.
-     */
-    RestInterface( int port, OptionsPtr options,
-                   const MasterConfiguration& config );
+RestConfiguration::RestConfiguration( const MasterConfiguration& config )
+    : _config( config )
+{}
 
-    /** Out-of-line destructor. */
-    ~RestInterface();
+std::string RestConfiguration::getTypeName() const
+{
+    return "tide/config";
+}
 
-    /** Expose the statistics gathered by the given logging utility. */
-    void exposeStatistics( const LoggingUtility& logger ) const;
+std::string RestConfiguration::_toJSON() const
+{
+    QJsonObject config;
+    config["hostname"] = QHostInfo::localHostName();
+    config["version"] = QString::fromStdString( tide::Version::getString( ));
+    config["revision"] = QString::number( tide::Version::getRevision(), 16 );
+    config["startTime"] = _startTime;
+    QJsonObject wallSize;
+    wallSize["width"] = _config.getTotalWidth();
+    wallSize["height"] = _config.getTotalHeight();
+    config["wallSize"] = wallSize;
+    config["backgroundColor"]=_config.getBackgroundColor().name();
+    config["contentDir"] = _config.getContentDir();
+    config["sessionDir"] = _config.getSessionsDir();
 
-    /**
-     * Set-up the HTML interface.
-     * @param displayGroup DisplayGroup exposed via interface
-     * @param config MasterConfiguration used to set-up the interface
-     */
-    void setupHtmlInterface( DisplayGroup& displayGroup,
-                             const MasterConfiguration& config );
-
-signals:
-    /** Open a content. */
-    void open( QString uri );
-
-    /** Load a session. */
-    void load( QString uri );
-
-    /** Save a session to the given file. */
-    void save( QString uri );
-
-    /** Clear all contents. */
-    void clear();
-
-    /** Open a whiteboard. */
-    void whiteboard();
-
-    /** Close a content. */
-    void close( QString uuid );
-
-    /** Browse a website. */
-    void browse( QString uri );
-
-    /** Take a screenshot. */
-    void screenshot( QString uri );
-
-    /** Exit the application. */
-    void exit();
-
-private:
-    class Impl;
-    std::unique_ptr<Impl> _impl;
-};
-
-#endif
+    QJsonObject obj;
+    obj["config"] = config;
+    return QJsonDocument{ obj }.toJson().toStdString();
+}

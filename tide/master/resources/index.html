@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Tide web interface</title>
+  <script src="js/jquery-3.1.1.min.js"></script>
+  <script src="js/jquery-ui.min.js"></script>
+  <script src="js/sweetalert.min.js"></script>
+  <script src="js/tide.js"></script>
+  <script src="js/underscore-min.js"></script>
+  <script src="js/tideVars.js"></script>
+  <link rel="stylesheet" href="css/sweetalert.min.css">
+  <link rel="stylesheet" href="css/jquery-ui.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <meta charset="utf-8"/>
+</head>
+<body>
+<div id="wallWrapper">
+  <div id="buttonContainer" >
+    <button id="refreshButton" onclick="updateWall()">REFRESH</button>
+    <button id="closeAllButton">CLOSE ALL</button>
+    <button id="exitFullscreenButton" >EXIT FULLSCREEN</button>
+    <button id="autoRefreshButton" onclick="autoRefresh()">AUTO-REFRESH</button>
+  </div>
+  <div id="wall">
+    <div id="wallOutline"></div>
+  </div>
+</div>
+</body>
+</html>

@@ -259,6 +259,18 @@ QSizeF ContentWindowController::getMinSize() const
     return std::max( minContentSize, minSize );
 }
 
+QSizeF ContentWindowController::getMinSizeAspectRatioCorrect() const
+{
+    const qreal contentAspectRatio =
+            _contentWindow.getContent()-> getAspectRatio();
+    const auto min = getMinSize();
+    const auto max = getMaxSize();
+    const auto aspectRatioCorrectSize = QSizeF( contentAspectRatio, 1.0 );
+    if( min > max )
+        return aspectRatioCorrectSize.scaled( max, Qt::KeepAspectRatio );
+    return aspectRatioCorrectSize.scaled( min, Qt::KeepAspectRatioByExpanding );
+}
+
 QSizeF ContentWindowController::getMaxSize() const
 {
     const QRectF& zoomRect = _contentWindow.getContent()->getZoomRect();
