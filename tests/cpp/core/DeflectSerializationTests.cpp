@@ -41,6 +41,7 @@
 #include <boost/test/unit_test.hpp>
 namespace ut = boost::unit_test;
 
+#include "serialization/includes.h"
 #include "serialization/deflectTypes.h"
 
 #include <boost/archive/binary_oarchive.hpp>
@@ -55,7 +56,6 @@ BOOST_AUTO_TEST_CASE( testSegementParametersSerialization )
     params.height = 32;
     params.width = 78;
     params.compressed = false;
-
 
     // serialize
     std::stringstream stream;
@@ -78,3 +78,31 @@ BOOST_AUTO_TEST_CASE( testSegementParametersSerialization )
     BOOST_CHECK_EQUAL( params.compressed, paramsDeserialized.compressed );
 }
 
+BOOST_AUTO_TEST_CASE( testFrameSerialization )
+{
+    deflect::Frame frame;
+    frame.segments.push_back( deflect::Segment() );
+    frame.segments.push_back( deflect::Segment() );
+    frame.uri = "SomeUri";
+    frame.view = deflect::View::right_eye;
+
+    // serialize
+    std::stringstream stream;
+    {
+        boost::archive::binary_oarchive oa( stream );
+        oa << frame;
+    }
+
+    // deserialize
+    deflect::Frame frameDeserialized;
+    {
+        boost::archive::binary_iarchive ia( stream );
+        ia >> frameDeserialized;
+    }
+
+    BOOST_CHECK_EQUAL( frame.segments.size(),
+                       frameDeserialized.segments.size( ));
+    BOOST_CHECK_EQUAL( frame.uri.toStdString(),
+                       frameDeserialized.uri.toStdString() );
+    BOOST_CHECK_EQUAL( (int)frame.view, (int)frameDeserialized.view );
+}

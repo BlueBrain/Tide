@@ -48,7 +48,9 @@
 #include <deflect/Frame.h>
 #include <QtConcurrent>
 
-DataProvider::DataProvider() {}
+DataProvider::DataProvider( const deflect::View view )
+    : _view{ view }
+{}
 
 DataProvider::~DataProvider()
 {
@@ -69,7 +71,7 @@ DataProvider::getStreamDataSource( const QString& uri )
 
     if( !updater )
     {
-        updater = std::make_shared<PixelStreamUpdater>();
+        updater = std::make_shared<PixelStreamUpdater>( _view );
         connect( updater.get(), &PixelStreamUpdater::requestFrame,
                  this, &DataProvider::requestFrame );
         _streamUpdaters[uri] = PixelStreamUpdaterWeakPtr( updater );

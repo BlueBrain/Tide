@@ -72,8 +72,10 @@ void MasterFromWallChannel::processMessages()
         switch( result.message )
         {
         case MPIMessageType::REQUEST_FRAME:
+        {
             emit receivedRequestFrame( serialization::get<QString>( _buffer ));
             break;
+        }
         case MPIMessageType::IMAGE:
             emit receivedScreenshot( serialization::get<QImage>( _buffer ),
                                      result.src - 1 );

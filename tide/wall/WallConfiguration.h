@@ -45,8 +45,7 @@
 #include <QPoint>
 
 /**
- * The WallConfiguration manages all the parameters needed to setup a Wall
- * process.
+ * Read the parameters needed to setup a Wall process from an xml file.
  *
  * @warning: this class can only be used AFTER creating a QApplication.
  */
@@ -85,6 +84,9 @@ public:
     /** Get the coordinates of the screen in pixel units. */
     const QPoint& getWindowPos() const;
 
+    /** @return the stereo mode for this process. */
+    deflect::View getStereoMode() const;
+
 private:
     const int _processIndex;
 
@@ -94,6 +96,8 @@ private:
 
     QPoint _screenPosition;
     QPoint _screenGlobalIndex;
+
+    deflect::View _stereoMode = deflect::View::mono;
 
     void _loadWallSettings( int processIndex );
 };

@@ -11,6 +11,7 @@ set(TEST_RESOURCES
   select_test.htm
   configuration.xml
   configuration_default.xml
+  configuration_stereo.xml
   legacy.dcx
   reference_screenshot.png
   state_v0.dcx

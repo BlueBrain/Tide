@@ -55,7 +55,13 @@ class DataProvider : public QObject
     Q_DISABLE_COPY( DataProvider )
 
 public:
-    DataProvider();
+    /**
+     * Construct a data provider.
+     * @param view to use for stereo contents.
+     */
+    explicit DataProvider( deflect::View view );
+
+    /** Destructor. */
     ~DataProvider();
 
     /** Get the data source for the given stream uri. */
@@ -76,6 +82,8 @@ signals:
     void requestFrame( QString uri );
 
 private:
+    const deflect::View _view;
+
     typedef QFutureWatcher<void> Watcher;
     QList<Watcher*> _watchers;
 

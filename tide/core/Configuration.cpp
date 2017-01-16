@@ -202,19 +202,28 @@ bool Configuration::getInt( const QXmlQuery& query, int& value ) const
     return ok;
 }
 
-bool Configuration::getBool( const QXmlQuery& query, bool& value ) const
+bool Configuration::getString( const QXmlQuery& query, QString& value ) const
 {
     QString queryResult;
     if( !query.evaluateTo( &queryResult ))
         return false;
 
-    queryResult = queryResult.remove( QRegExp( TRIM_REGEX ));
-    if( queryResult == "true" )
+    value = queryResult.remove( QRegExp( TRIM_REGEX ));
+    return true;
+}
+
+bool Configuration::getBool( const QXmlQuery& query, bool& value ) const
+{
+    QString result;
+    if( !getString( query, result ))
+        return false;
+
+    if( result == "true" )
     {
         value = true;
         return true;
     }
-    if( queryResult == "false" )
+    if( result == "false" )
     {
         value = false;
         return true;

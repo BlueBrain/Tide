@@ -48,7 +48,6 @@
 namespace
 {
 const int DEFAULT_WEBSERVICE_PORT = 8888;
-const QRegExp TRIM_REGEX( "[\\n\\t\\r]" );
 const QString DEFAULT_URL( "http://www.google.com" );
 const QString DEFAULT_WHITEBOARD_SAVE_FOLDER( "/tmp/" );
 }
@@ -87,39 +86,30 @@ void MasterConfiguration::loadMasterProcessInfo( QXmlQuery& query )
 
 void MasterConfiguration::loadContentDirectory( QXmlQuery& query )
 {
-    QString queryResult;
-
     query.setQuery( "string(/configuration/dock/@directory)" );
-    if( query.evaluateTo( &queryResult ))
-        _contentDir = queryResult.remove( QRegExp( TRIM_REGEX ));
+    getString( query, _contentDir );
     if( _contentDir.isEmpty( ))
         _contentDir = QDir::homePath();
 }
 
 void MasterConfiguration::loadSessionsDirectory( QXmlQuery& query )
 {
-    QString queryResult;
-
     query.setQuery( "string(/configuration/sessions/@directory)" );
-    if( query.evaluateTo( &queryResult ))
-        _sessionsDir = queryResult.remove( QRegExp( TRIM_REGEX ));
+    getString( query, _sessionsDir );
     if( _sessionsDir.isEmpty( ))
         _sessionsDir = QDir::homePath();
 }
 
 void MasterConfiguration::loadLauncherSettings( QXmlQuery& query )
 {
-    QString queryResult;
-
     query.setQuery( "string(/configuration/launcher/@display)" );
-    if( query.evaluateTo( &queryResult ))
-        _launcherDisplay = queryResult.remove( QRegExp( TRIM_REGEX ));
+    getString( query, _launcherDisplay );
+
     query.setQuery( "string(/configuration/launcher/@demoServiceUrl)" );
-    if( query.evaluateTo( &queryResult ))
-        _demoServiceUrl = queryResult.remove( QRegExp( TRIM_REGEX ));
+    getString( query, _demoServiceUrl );
+
     query.setQuery( "string(/configuration/launcher/@demoServiceImageFolder)" );
-    if( query.evaluateTo( &queryResult ))
-        _demoServiceImageFolder = queryResult.remove( QRegExp( TRIM_REGEX ));
+    getString( query, _demoServiceImageFolder );
 }
 
 void MasterConfiguration::loadWebService( QXmlQuery& query )
@@ -130,44 +120,35 @@ void MasterConfiguration::loadWebService( QXmlQuery& query )
 
 void MasterConfiguration::loadWhiteboard( QXmlQuery& query )
 {
-    QString queryResult;
     query.setQuery( "string(/configuration/whiteboard/@saveUrl)" );
-    if( query.evaluateTo( &queryResult ))
-        _whiteboardSaveUrl = queryResult.remove( QRegExp( TRIM_REGEX ));
+    getString( query, _whiteboardSaveUrl );
     if( _whiteboardSaveUrl.isEmpty( ))
         _whiteboardSaveUrl = DEFAULT_WHITEBOARD_SAVE_FOLDER;
 }
 
 void MasterConfiguration::loadAppLauncher( QXmlQuery& query )
 {
-    QString queryResult;
     query.setQuery( "string(/configuration/applauncher/@qml)" );
-    if( query.evaluateTo( &queryResult ))
-        _appLauncherFile = queryResult.remove( QRegExp( TRIM_REGEX ));
+    getString( query, _appLauncherFile );
 }
 
 void MasterConfiguration::loadWebBrowserStartURL( QXmlQuery& query )
 {
-    QString queryResult;
     query.setQuery( "string(/configuration/webbrowser/@defaultURL)");
-    if( query.evaluateTo( &queryResult ))
-        _webBrowserDefaultURL = queryResult.remove( QRegExp( TRIM_REGEX ));
+    getString( query, _webBrowserDefaultURL );
     if( _webBrowserDefaultURL.isEmpty( ))
         _webBrowserDefaultURL = DEFAULT_URL;
 }
 
 void MasterConfiguration::loadBackgroundProperties( QXmlQuery& query )
 {
-    QString queryResult;
     query.setQuery( "string(/configuration/background/@uri)" );
-    if( query.evaluateTo( &queryResult ))
-        _backgroundUri = queryResult.remove( QRegExp( TRIM_REGEX ));
+    getString( query, _backgroundUri );
 
+    QString queryResult;
     query.setQuery( "string(/configuration/background/@color)" );
-    if( query.evaluateTo( &queryResult ))
+    if( getString( query, queryResult ))
     {
-        queryResult.remove( QRegExp( TRIM_REGEX ));
-
         const QColor newColor( queryResult );
         if( newColor.isValid( ))
             _backgroundColor = newColor;

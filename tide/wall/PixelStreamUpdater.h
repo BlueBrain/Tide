@@ -57,8 +57,12 @@ class PixelStreamUpdater : public QObject, public DataSource
     Q_DISABLE_COPY( PixelStreamUpdater )
 
 public:
-    /** Constructor. */
-    PixelStreamUpdater();
+    /**
+     * Constructor.
+     * @param view which the data source provides. Left and right views also
+     *        include mono contents.
+     */
+    PixelStreamUpdater( deflect::View view );
 
     /**
      * @copydoc DataSource::getTileImage
@@ -97,11 +101,11 @@ signals:
     void requestFrame( QString uri );
 
 private:
-    typedef SwapSyncObject<deflect::FramePtr> SwapSyncFrame;
-    SwapSyncFrame _swapSyncFrame;
+    const deflect::View _view;
+    SwapSyncObject<deflect::FramePtr> _swapSyncFrame;
     deflect::FramePtr _currentFrame;
     mutable QReadWriteLock _mutex;
-    bool _readyToSwap;
+    bool _readyToSwap = true;
 
     void _onFrameSwapped( deflect::FramePtr frame );
 };

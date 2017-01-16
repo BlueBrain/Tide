@@ -1,0 +1,16 @@
+<configuration>
+    <dimensions numTilesWidth="2" numTilesHeight="1" screenWidth="960" screenHeight="540" mullionWidth="-60" mullionHeight="0"/>
+    <masterProcess host="localhost" display=":0" headless="false"/>
+    <process host="localhost" display=":0" stereo="left">
+        <screen x="0" y="0" i="0" j="0"/>
+    </process>
+    <process host="localhost" display=":0" stereo="right">
+        <screen x="0" y="800" i="0" j="0"/>
+    </process>
+    <process host="localhost" display=":0" stereo="left">
+        <screen x="900" y="0" i="1" j="0"/>
+    </process>
+    <process host="localhost" display=":0" stereo="right">
+        <screen x="900" y="800" i="1" j="0"/>
+    </process>
+</configuration>

@@ -50,6 +50,7 @@
 
 #define CONFIG_TEST_FILENAME "./configuration.xml"
 #define CONFIG_TEST_FILENAME_II "./configuration_default.xml"
+#define CONFIG_TEST_FILENAME_STEREO "./configuration_stereo.xml"
 
 #define CONFIG_EXPECTED_BACKGROUND "/nfs4/bbp.epfl.ch/visualization/DisplayWall/media/background.png"
 #define CONFIG_EXPECTED_BACKGROUND_COLOR "#242424"
@@ -117,6 +118,46 @@ BOOST_AUTO_TEST_CASE( test_wall_configuration )
     BOOST_CHECK_EQUAL( config.getProcessCountForHost(), 3 );
     BOOST_CHECK_EQUAL( config.getGlobalScreenIndex(), QPoint( 0, 2 ));
     BOOST_CHECK_EQUAL( config.getWindowPos(), QPoint( 0, 2160 ));
+    BOOST_CHECK( config.getStereoMode() == deflect::View::mono );
+}
+
+BOOST_AUTO_TEST_CASE( test_stereo_configuration )
+{
+    Configuration config( CONFIG_TEST_FILENAME_STEREO );
+
+    BOOST_CHECK_EQUAL( config.getMullionHeight(), 0 );
+    BOOST_CHECK_EQUAL( config.getMullionWidth(), -60 );
+
+    BOOST_CHECK_EQUAL( config.getScreenWidth(), 1920 );
+    BOOST_CHECK_EQUAL( config.getScreenHeight(), 1200 );
+
+    BOOST_CHECK_EQUAL( config.getTotalWidth(), 1920 * 2 - 60 );
+    BOOST_CHECK_EQUAL( config.getTotalHeight(), 1200 );
+
+    BOOST_CHECK_EQUAL( config.getTotalScreenCountX(), 2 );
+    BOOST_CHECK_EQUAL( config.getTotalScreenCountY(), 1 );
+
+    const auto processIndexLeft = 1; // note: starts from 1, not 0
+    WallConfiguration configLeft( CONFIG_TEST_FILENAME_STEREO, processIndexLeft );
+    BOOST_REQUIRE_EQUAL( configLeft.getProcessIndex(), processIndexLeft );
+
+    BOOST_CHECK_EQUAL( configLeft.getHost().toStdString(), "localhost" );
+    BOOST_CHECK_EQUAL( configLeft.getDisplay().toStdString(), ":0.0" );
+    BOOST_CHECK_EQUAL( configLeft.getProcessCountForHost(), 4 );
+    BOOST_CHECK_EQUAL( configLeft.getGlobalScreenIndex(), QPoint( 0, 0 ));
+    BOOST_CHECK_EQUAL( configLeft.getWindowPos(), QPoint( 0, 0 ));
+    BOOST_CHECK( configLeft.getStereoMode() == deflect::View::left_eye );
+
+    const auto processIndexRight = 2; // note: starts from 1, not 0
+    WallConfiguration configRight( CONFIG_TEST_FILENAME_STEREO, processIndexRight );
+    BOOST_REQUIRE_EQUAL( configRight.getProcessIndex(), processIndexRight );
+
+    BOOST_CHECK_EQUAL( configRight.getHost().toStdString(), "localhost" );
+    BOOST_CHECK_EQUAL( configRight.getDisplay().toStdString(), ":0.1" );
+    BOOST_CHECK_EQUAL( configRight.getProcessCountForHost(), 4 );
+    BOOST_CHECK_EQUAL( configRight.getGlobalScreenIndex(), QPoint( 0, 0 ));
+    BOOST_CHECK_EQUAL( configRight.getWindowPos(), QPoint( 0, 0 ));
+    BOOST_CHECK( configRight.getStereoMode() == deflect::View::right_eye );
 }
 
 BOOST_AUTO_TEST_CASE( test_master_configuration )
