@@ -70,7 +70,6 @@
 #endif
 
 #include <deflect/EventReceiver.h>
-#include <deflect/FrameDispatcher.h>
 #include <deflect/qt/QuickRenderer.h>
 #include <deflect/Server.h>
 
@@ -139,8 +138,15 @@ void MasterApplication::load( const QString sessionFile )
 void MasterApplication::_init()
 {
     _displayGroup.reset( new DisplayGroup( _config->getTotalSize( )));
+
     _pixelStreamWindowManager.reset(
                 new PixelStreamWindowManager( *_displayGroup ));
+    _pixelStreamWindowManager->setAutoFocusNewWindows(
+                _options->getAutoFocusPixelStreams( ));
+    connect( _options.get(), &Options::autoFocusPixelStreamsChanged,
+             _pixelStreamWindowManager.get(),
+             &PixelStreamWindowManager::setAutoFocusNewWindows );
+
     _pixelStreamerLauncher.reset(
              new PixelStreamerLauncher( *_pixelStreamWindowManager, *_config ));
 
@@ -244,17 +250,41 @@ void MasterApplication::_startDeflectServer()
         return;
     }
 
-    auto& dispatcher = _deflectServer->getPixelStreamDispatcher();
-
-    connect( &dispatcher, &deflect::FrameDispatcher::openPixelStream,
+    connect( _deflectServer.get(), &deflect::Server::pixelStreamOpened,
              _pixelStreamWindowManager.get(),
              &PixelStreamWindowManager::handleStreamStart );
-    connect( &dispatcher, &deflect::FrameDispatcher::deletePixelStream,
+
+    connect( _deflectServer.get(), &deflect::Server::pixelStreamClosed,
              _pixelStreamWindowManager.get(),
              &PixelStreamWindowManager::handleStreamEnd );
+
     connect( _pixelStreamWindowManager.get(),
              &PixelStreamWindowManager::streamWindowClosed,
-             &dispatcher, &deflect::FrameDispatcher::deleteStream );
+             _deflectServer.get(), &deflect::Server::closePixelStream );
+
+    connect( _deflectServer.get(), &deflect::Server::receivedFrame,
+             _pixelStreamWindowManager.get(),
+             &PixelStreamWindowManager::updateStreamDimensions );
+
+    connect( _pixelStreamWindowManager.get(),
+             &PixelStreamWindowManager::requestFirstFrame,
+             _deflectServer.get(), &deflect::Server::requestFrame );
+
+    connect( _deflectServer.get(), &deflect::Server::registerToEvents,
+             _pixelStreamWindowManager.get(),
+             &PixelStreamWindowManager::registerEventReceiver );
+
+    connect( _pixelStreamWindowManager.get(),
+             &PixelStreamWindowManager::eventRegistrationReply,
+             _deflectServer.get(), &deflect::Server::replyToEventRegistration );
+
+    connect( _deflectServer.get(), &deflect::Server::receivedSizeHints,
+             _pixelStreamWindowManager.get(),
+             &PixelStreamWindowManager::updateSizeHints );
+
+    connect( _deflectServer.get(), &deflect::Server::receivedData,
+             _pixelStreamWindowManager.get(),
+             &PixelStreamWindowManager::sendDataToWindow );
 }
 
 void MasterApplication::_setupMPIConnections()
@@ -284,48 +314,12 @@ void MasterApplication::_setupMPIConnections()
                 { _masterToWallChannel->sendAsync( markers ); },
              Qt::DirectConnection );
 
-    connect( &_deflectServer->getPixelStreamDispatcher(),
-             &deflect::FrameDispatcher::sendFrame,
-             _masterToWallChannel.get(),
-             &MasterToWallChannel::send );
-    connect( &_deflectServer->getPixelStreamDispatcher(),
-             &deflect::FrameDispatcher::sendFrame,
-             _pixelStreamWindowManager.get(),
-             &PixelStreamWindowManager::updateStreamDimensions );
-    connect( _deflectServer.get(),
-             &deflect::Server::registerToEvents,
-             _pixelStreamWindowManager.get(),
-             &PixelStreamWindowManager::registerEventReceiver );
-    connect( _deflectServer.get(), &deflect::Server::receivedSizeHints,
-             _pixelStreamWindowManager.get(),
-             &PixelStreamWindowManager::updateSizeHints );
-    connect( _deflectServer.get(), &deflect::Server::receivedData,
-             _pixelStreamWindowManager.get(),
-             &PixelStreamWindowManager::sendDataToWindow );
-
-    connect( _pixelStreamWindowManager.get(),
-             &PixelStreamWindowManager::streamWindowClosed,
-             _deflectServer.get(), &deflect::Server::onPixelStreamerClosed );
-    connect( _pixelStreamWindowManager.get(),
-             &PixelStreamWindowManager::eventRegistrationReply,
-             _deflectServer.get(),
-             &deflect::Server::onEventRegistrationReply );
-    connect( _pixelStreamWindowManager.get(),
-             &PixelStreamWindowManager::requestFirstFrame,
-             &_deflectServer->getPixelStreamDispatcher(),
-             &deflect::FrameDispatcher::requestFrame );
-
-    _pixelStreamWindowManager->setAutoFocusNewWindows(
-                _options->getAutoFocusPixelStreams( ));
-    connect( _options.get(),
-             &Options::autoFocusPixelStreamsChanged,
-             _pixelStreamWindowManager.get(),
-             &PixelStreamWindowManager::setAutoFocusNewWindows );
-
     connect( _masterFromWallChannel.get(),
              &MasterFromWallChannel::receivedRequestFrame,
-             &_deflectServer->getPixelStreamDispatcher(),
-             &deflect::FrameDispatcher::requestFrame );
+             _deflectServer.get(), &deflect::Server::requestFrame );
+
+    connect( _deflectServer.get(), &deflect::Server::receivedFrame,
+             _masterToWallChannel.get(), &MasterToWallChannel::send );
 
     connect( _masterFromWallChannel.get(),
              &MasterFromWallChannel::receivedScreenshot,

@@ -149,9 +149,9 @@ void WallApplication::_initMPIConnection( MPIChannelPtr worldChannel )
 
     if( _wallChannel->getRank() == 0 )
     {
-        connect( &_window->getDataProvider(),
-                 SIGNAL( requestFrame( QString )),
-                 _toMasterChannel.get(), SLOT( sendRequestFrame( QString )));
+        connect( &_window->getDataProvider(), &DataProvider::requestFrame,
+                 _toMasterChannel.get(),
+                 &WallToMasterChannel::sendRequestFrame );
     }
 
     connect( &_mpiReceiveThread, SIGNAL( started( )),

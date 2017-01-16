@@ -76,7 +76,7 @@ WallWindow::WallWindow( const WallConfiguration& config,
     , _rootItem( nullptr )
     , _uploadThread( new QThread )
     , _uploader( new TextureUploader )
-    , _provider( new DataProvider )
+    , _provider( new DataProvider{ config.getStereoMode() } )
 {
     connect( _provider, &DataProvider::imageLoaded,
              _uploader, &TextureUploader::uploadTexture );

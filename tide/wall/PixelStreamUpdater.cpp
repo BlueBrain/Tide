@@ -49,8 +49,8 @@
 #include <QImage>
 #include <QThreadStorage>
 
-PixelStreamUpdater::PixelStreamUpdater()
-    : _readyToSwap( true )
+PixelStreamUpdater::PixelStreamUpdater( deflect::View view )
+    : _view( view )
 {
     _swapSyncFrame.setCallback( std::bind( &PixelStreamUpdater::_onFrameSwapped,
                                            this, std::placeholders::_1 ));
@@ -97,7 +97,14 @@ ImagePtr PixelStreamUpdater::getTileImage( const uint tileIndex ) const
         // turbojpeg handles need to be per thread, and this function may be
         // called from multiple threads
         static QThreadStorage< deflect::SegmentDecoder > decoder;
-        decoder.localData().decode( segment );
+        try
+        {
+            decoder.localData().decode( segment );
+        }
+        catch( const std::runtime_error& e )
+        {
+            throw std::runtime_error( "Invalid stream tile" );
+        }
     }
 
     return std::make_shared<StreamImage>( _currentFrame, tileIndex );
@@ -133,7 +140,12 @@ void PixelStreamUpdater::getNextFrame()
 
 void PixelStreamUpdater::updatePixelStream( deflect::FramePtr frame )
 {
-    _swapSyncFrame.update( frame );
+    if( frame->view == _view || frame->view == deflect::View::mono ||
+        ( _view == deflect::View::mono &&
+          frame->view == deflect::View::left_eye ))
+    {
+        _swapSyncFrame.update( frame );
+    }
 }
 
 void PixelStreamUpdater::_onFrameSwapped( deflect::FramePtr frame )

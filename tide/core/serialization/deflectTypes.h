@@ -54,10 +54,11 @@ namespace serialization
 {
 
 template<class Archive>
-void serialize( Archive & ar, deflect::Frame& frame, const unsigned int )
+void serialize( Archive& ar, deflect::Frame& frame, const unsigned int )
 {
     ar & frame.segments;
     ar & frame.uri;
+    ar & frame.view;
 }
 
 template< class Archive >

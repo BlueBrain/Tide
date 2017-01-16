@@ -64,12 +64,12 @@ void WallConfiguration::_loadWallSettings( const int processIndex )
 
     QString queryResult;
 
-    // get host
+    // read host
     query.setQuery( QString( "string(//process[%1]/@host)").arg( xpathIndex ));
     if( query.evaluateTo( &queryResult ))
         _host = queryResult.remove( QRegExp("[\\n\\t\\r]" ));
 
-    // get display (optional attribute)
+    // read display (optional attribute)
     query.setQuery( QString( "string(//process[%1]/@display)" ).arg( xpathIndex ));
     if( query.evaluateTo( &queryResult ))
         _display = queryResult.remove( QRegExp( "[\\n\\t\\r]" ));
@@ -78,12 +78,12 @@ void WallConfiguration::_loadWallSettings( const int processIndex )
 
     int value = 0;
 
-    // get number of tiles for my process
+    // read number of tiles for this process
     query.setQuery( QString( "string(count(//process[%1]/screen))" ).arg( xpathIndex ));
     if( !getInt( query, value ) || value != 1 )
         throw std::runtime_error( "Expect exactly one screen per process" );
 
-    // get number of wall processes on the same host
+    // read number of wall processes on the same host
     query.setQuery( QString( "string(count(//process[@host eq '%1']))" ).arg( _host ));
     if( !getInt( query, value ) || value < 1 )
         throw std::runtime_error( "Could not determine the number of wall processes on that host" );
@@ -97,13 +97,25 @@ void WallConfiguration::_loadWallSettings( const int processIndex )
     if( getInt( query, value ))
         _screenPosition.setY( value );
 
-    query.setQuery( QString( "string(//process[%1]/screen/@i)" ).arg(xpathIndex));
+    query.setQuery( QString( "string(//process[%1]/screen/@i)" ).arg( xpathIndex ));
     if( getInt( query, value ))
         _screenGlobalIndex.setX( value );
 
     query.setQuery( QString( "string(//process[%1]/screen/@j)" ).arg( xpathIndex ));
     if( getInt( query, value ))
         _screenGlobalIndex.setY( value );
+
+    // read stereo mode
+    query.setQuery( QString( "string(//process[%1]/@stereo)" ).arg( xpathIndex ));
+    if( getString( query, queryResult ))
+    {
+        if( queryResult == "left" )
+            _stereoMode = deflect::View::left_eye;
+        else if( queryResult == "right" )
+            _stereoMode = deflect::View::right_eye;
+        else
+            _stereoMode = deflect::View::mono;
+    }
 }
 
 int WallConfiguration::getProcessIndex() const
@@ -134,4 +146,9 @@ const QPoint& WallConfiguration::getGlobalScreenIndex() const
 const QPoint& WallConfiguration::getWindowPos() const
 {
     return _screenPosition;
+}
+
+deflect::View WallConfiguration::getStereoMode() const
+{
+    return _stereoMode;
 }

@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.3 (git master)
 
+* [122](https://github.com/BlueBrain/Tide/pull/122):
+  Added passive stereo rendering mode for pixel streams sent by Deflect 0.13.
 * [121](https://github.com/BlueBrain/Tide/pull/121):
   Pretty print FFMPEG log messages using Tide log style and reduced verbosity.
 * [119](https://github.com/BlueBrain/Tide/pull/119):
