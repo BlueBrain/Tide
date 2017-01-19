@@ -1,6 +1,6 @@
-# Copyright (c) 2016, EPFL/Blue Brain Project
-#                     Ahmet Bilgili <ahmet.bilgili@epfl.ch>
-#                     Raphael Dumusc <raphael.dumusc@epfl.ch>
+# Copyright (c) 2016-2017, EPFL/Blue Brain Project
+#                          Ahmet Bilgili <ahmet.bilgili@epfl.ch>
+#                          Raphael Dumusc <raphael.dumusc@epfl.ch>
 
 set(TIDELAUNCHER_HEADERS
   Launcher.h
@@ -14,7 +14,8 @@ set(TIDELAUNCHER_SOURCES
 
 set(TIDELAUNCHER_LINK_LIBRARIES DeflectQt TideMaster)
 
-common_application(tideLauncher)
+common_application(tideLauncher NOHELP)
+
 if(TARGET VirtualKeyboard)
   add_dependencies(tideLauncher VirtualKeyboard)
 endif()

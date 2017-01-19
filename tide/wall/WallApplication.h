@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -65,18 +65,20 @@ public:
      * Constructor
      * @param argc Command line argument count (required by QApplication)
      * @param argv Command line arguments (required by QApplication)
+     * @param config The configuration file for the application
      * @param worldChannel The world MPI channel
      * @param wallChannel The wall MPI channel
      * @throw std::runtime_error if an error occured during initialization
      */
-    WallApplication( int &argc, char **argv, MPIChannelPtr worldChannel,
-                     MPIChannelPtr wallChannel );
+    WallApplication( int& argc, char** argv, const QString& config,
+                     MPIChannelPtr worldChannel, MPIChannelPtr wallChannel );
 
     /** Destructor */
     virtual ~WallApplication();
 
 private:
     std::unique_ptr<WallConfiguration> _config;
+
     WallWindow* _window; // deleteLater from syncQuit in RenderController
     std::unique_ptr<RenderController> _renderController;
 
@@ -87,7 +89,6 @@ private:
     QThread _mpiSendThread;
     QThread _mpiReceiveThread;
 
-    bool _createConfig( const QString& filename, const int rank );
     void _initWallWindow();
     void _initMPIConnection( MPIChannelPtr worldChannel );
 };

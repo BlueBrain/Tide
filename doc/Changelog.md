@@ -1,10 +1,15 @@
 Changelog {#changelog}
 ============
 
+# Release 1.3 (git master)
+
+* [115](https://github.com/BlueBrain/Tide/pull/115):
+  Improved command line parameters of all applications.
+
 # Release 1.2.2 (25-01-2017)
 
 * [116](https://github.com/BlueBrain/Tide/pull/116):
-  Bugfix: the application could crash when opening a session containing 
+  Bugfix: the application could crash when opening a session containing
   multiple video files for the first time.
 
 # Release 1.2.1 (16-12-2016)

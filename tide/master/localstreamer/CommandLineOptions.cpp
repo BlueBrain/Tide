@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -41,26 +41,38 @@
 
 #include <iostream>
 #include <QStringList>
-#include <boost/program_options.hpp>
 
 namespace po = boost::program_options;
 
 CommandLineOptions::CommandLineOptions()
 {
-    _initDesc();
+    _fillDesc();
 }
 
-CommandLineOptions::CommandLineOptions( int& argc, char** argv )
+CommandLineOptions::CommandLineOptions( const int argc, char** argv )
 {
-    _initDesc();
-    _parseCommandLineArguments( argc, argv );
+    _fillDesc();
+    parse( argc, argv );
 }
 
-void CommandLineOptions::_initDesc()
+void CommandLineOptions::parse( const int argc, char** argv )
 {
-    _desc.add_options()
-        ("help", "produce help message")
-        ("streamid", po::value<std::string>()->default_value( "" ),
+    CommandLineParser::parse( argc, argv );
+    if( getHelp( ))
+        return;
+
+    _streamId = vm["streamid"].as<std::string>().c_str();
+    _streamerType = getStreamerType(vm["type"].as<std::string>().c_str());
+    _url = vm["url"].as<std::string>().c_str();
+    _width = vm["width"].as<unsigned int>();
+    _height = vm["height"].as<unsigned int>();
+    _configuration = vm["config"].as<std::string>().c_str();
+}
+
+void CommandLineOptions::_fillDesc()
+{
+    desc.add_options()
+        ("streamid", po::value<std::string>()->required(),
          "unique identifier for this stream")
         ("type", po::value<std::string>()->default_value( "" ),
          "streamer type [webkit]")
@@ -75,9 +87,42 @@ void CommandLineOptions::_initDesc()
     ;
 }
 
-bool CommandLineOptions::getHelp() const
+void CommandLineOptions::showSyntax( const std::string& appName ) const
 {
-    return _getHelp;
+    CommandLineParser::showSyntax( appName );
+    std::cout << std::endl;
+    std::cout << "Normally launched as a subprocess by tideMaster, not "
+                 "intended to be run manually." << std::endl;
+}
+
+QString CommandLineOptions::getCommandLine() const
+{
+    return getCommandLineArguments().join( ' ' );
+}
+
+QStringList CommandLineOptions::getCommandLineArguments() const
+{
+    QStringList arguments;
+
+    if( _streamerType != PS_UNKNOWN )
+        arguments << "--type" << getStreamerTypeString( _streamerType );
+
+    if( _width > 0 )
+        arguments << "--width" << QString::number( _width );
+
+    if( _height > 0 )
+        arguments << "--height" << QString::number( _height );
+
+    if( !_streamId.isEmpty( ))
+        arguments << "--streamid" << _streamId;
+
+    if( !_url.isEmpty( ))
+        arguments << "--url" << _url;
+
+    if( !_configuration.isEmpty( ))
+        arguments << "--config" << _configuration;
+
+    return arguments;
 }
 
 PixelStreamerType CommandLineOptions::getPixelStreamerType() const
@@ -110,11 +155,6 @@ const QString& CommandLineOptions::getConfiguration() const
     return _configuration;
 }
 
-void CommandLineOptions::setHelp( const bool set )
-{
-    _getHelp = set;
-}
-
 void CommandLineOptions::setPixelStreamerType( const PixelStreamerType type )
 {
     _streamerType = type;
@@ -143,65 +183,4 @@ void CommandLineOptions::setWidth( const unsigned int width )
 void CommandLineOptions::setHeight( const unsigned int height )
 {
     _height = height;
-}
-
-QString CommandLineOptions::getCommandLine() const
-{
-    return getCommandLineArguments().join( ' ' );
-}
-
-QStringList CommandLineOptions::getCommandLineArguments() const
-{
-    QStringList arguments;
-
-    if( _streamerType != PS_UNKNOWN )
-        arguments << "--type" << getStreamerTypeString( _streamerType );
-
-    if( _width > 0 )
-        arguments << "--width" << QString::number( _width );
-
-    if( _height > 0 )
-        arguments << "--height" << QString::number( _height );
-
-    if( _getHelp )
-        arguments << "--help";
-
-    if( !_streamId.isEmpty( ))
-        arguments << "--streamid" << _streamId;
-
-    if( !_url.isEmpty( ))
-        arguments << "--url" << _url;
-
-    if( !_configuration.isEmpty( ))
-        arguments << "--config" << _configuration;
-
-    return arguments;
-}
-
-void CommandLineOptions::_parseCommandLineArguments( int& argc, char** argv )
-{
-    po::variables_map vm;
-    try
-    {
-        po::store( po::parse_command_line( argc, argv, _desc ), vm );
-        po::notify( vm );
-    }
-    catch( const std::exception& e )
-    {
-        std::cerr << e.what() << std::endl;
-        return;
-    }
-
-    _getHelp = vm.count( "help" );
-    _streamId = vm["streamid"].as<std::string>().c_str();
-    _streamerType = getStreamerType(vm["type"].as<std::string>().c_str());
-    _url = vm["url"].as<std::string>().c_str();
-    _width = vm["width"].as<unsigned int>();
-    _height = vm["height"].as<unsigned int>();
-    _configuration = vm["config"].as<std::string>().c_str();
-}
-
-void CommandLineOptions::showSyntax() const
-{
-    std::cout << _desc;
 }

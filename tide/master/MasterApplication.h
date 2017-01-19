@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -78,17 +78,26 @@ public:
      * Constructor
      * @param argc Command line argument count (required by QApplication)
      * @param argv Command line arguments (required by QApplication)
+     * @param config The configuration file for the application
      * @param worldChannel The world MPI channel
      * @param forkChannel The MPI channel for forking processes
      * @throw std::runtime_error if an error occured during initialization
      */
-    MasterApplication( int &argc, char **argv, MPIChannelPtr worldChannel,
-                       MPIChannelPtr forkChannel );
+    MasterApplication( int &argc, char **argv, const QString& config,
+                       MPIChannelPtr worldChannel, MPIChannelPtr forkChannel );
 
     /** Destructor */
     virtual ~MasterApplication();
 
+    /**
+     * Load a session.
+     * @param sessionFile a .dcx session file.
+     */
+    void load( QString sessionFile );
+
 private:
+    std::unique_ptr<MasterConfiguration> _config;
+
     std::unique_ptr<MasterToForkerChannel> _masterToForkerChannel;
     std::unique_ptr<MasterToWallChannel> _masterToWallChannel;
     std::unique_ptr<MasterFromWallChannel> _masterFromWallChannel;
@@ -99,7 +108,6 @@ private:
     MarkersPtr _markers;
     OptionsPtr _options;
 
-    std::unique_ptr<MasterConfiguration> _config;
     std::unique_ptr<MasterWindow> _masterWindow;
     std::unique_ptr<deflect::qt::OffscreenQuickView> _offscreenQuickView;
     std::unique_ptr<MasterDisplayGroupRenderer> _masterGroupRenderer;
@@ -124,7 +132,6 @@ private:
     std::unique_ptr<ScreenshotAssembler> _screenshotAssembler;
     QString _screenshotFilename;
 
-    bool _createConfig( const QString& filename );
     void _init();
     void _initMasterWindow();
     void _initOffscreenView();

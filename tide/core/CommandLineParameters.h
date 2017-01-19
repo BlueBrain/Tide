@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -40,39 +40,27 @@
 #ifndef COMMANDLINEPARAMETERS_H
 #define COMMANDLINEPARAMETERS_H
 
+#include "CommandLineParser.h"
+
 #include <QString>
-#include <boost/program_options/options_description.hpp>
 
 /**
- * Parse command line parameters for the Tide application.
+ * Parse command line parameters for tide a master/wall application.
  */
-class CommandLineParameters
+class CommandLineParameters : public CommandLineParser
 {
 public:
-    /** Construct from command line parameters */
-    CommandLineParameters( int& argc, char** argv );
+    /** Construct a command line parser. */
+    CommandLineParameters();
 
-    /** Was the --help flag given. */
-    bool getHelp() const;
-
-    /** Print syntax to std::out */
-    void showSyntax() const;
+    /** @copydoc CommandLineParser::showSyntax */
+    void showSyntax( const std::string& appName ) const final;
 
     /** Get the config filename */
-    const QString& getConfigFilename() const;
+    QString getConfigFilename() const;
 
     /** Get the config filename */
-    const QString& getSessionFilename() const;
-
-private:
-    void _initDesc();
-    void _parseCommandLineArguments( int& argc, char** argv );
-
-    boost::program_options::options_description _desc;
-    bool _getHelp;
-
-    QString _configFilename;
-    QString _sessionFilename;
+    QString getSessionFilename() const;
 };
 
 #endif

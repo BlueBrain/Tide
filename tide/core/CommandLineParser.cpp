@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,34 +37,41 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "Application.h"
-
-#include "log.h"
-#include "localstreamer/CommandLineOptions.h"
+#include "CommandLineParser.h"
 
 #include <iostream>
 
-#define INVALID_STREAMER_TYPE_ERROR_CODE     1
-#define FAILED_APP_INITIALIZATION_ERROR_CODE 2
+namespace po = boost::program_options;
 
-int main( int argc, char* argv[] )
+CommandLineParser::CommandLineParser()
 {
-    COMMAND_LINE_PARSER_CHECK( CommandLineOptions, "tideLocalstreamer" );
-
-    const PixelStreamerType type = commandLine.getPixelStreamerType();
-    if( type == PS_UNKNOWN )
-    {
-        std::cerr << "Invalid streamer type." << std::endl;
-        return INVALID_STREAMER_TYPE_ERROR_CODE;
-    }
-
-    logger_id = getStreamerTypeString( type ).toStdString();
-    qInstallMessageHandler( qtMessageLogger );
-
-    Application app( argc, argv );
-    if( !app.initialize( commandLine ))
-        return FAILED_APP_INITIALIZATION_ERROR_CODE;
-
-    return app.exec();
+    desc.add_options()("help,h", "produce help message");
 }
 
+CommandLineParser::~CommandLineParser() {}
+
+void CommandLineParser::parse( const int argc, char** argv )
+{
+    try
+    {
+        po::store( po::parse_command_line( argc, argv, desc ), vm );
+        po::notify( vm );
+    }
+    catch( const po::required_option& )
+    {
+        // ignore missing required argument when --help is given
+        if( !vm.count( "help" ))
+            throw;
+    }
+}
+
+bool CommandLineParser::getHelp() const
+{
+    return vm.count( "help" );
+}
+
+void CommandLineParser::showSyntax( const std::string& appName ) const
+{
+    std::cout << "Usage: " << appName << " [OPTIONS...]\n\n";
+    std::cout << desc;
+}

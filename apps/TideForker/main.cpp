@@ -1,6 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
 /*                     Raphael.Dumusc@epfl.ch                        */
 /*                     Daniel.Nachbaur@epfl.ch                       */
 /* All rights reserved.                                              */
@@ -39,14 +39,27 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "localstreamer/ProcessForker.h"
-#include "log.h"
-#include "network/MPIChannel.h"
+#include "tide/core/CommandLineParser.h"
+#include "tide/core/log.h"
+#include "tide/core/network/MPIChannel.h"
+#include "tide/master/localstreamer/ProcessForker.h"
+
+class CommandLineHelper : public CommandLineParser
+{
+public:
+    void showSyntax( const std::string& appName ) const final
+    {
+        std::cout << "Usage: " << appName << " is an internal subprocess of "
+                     "tideMaster, do not run manually." << std::endl;
+    }
+};
 
 int main( int argc, char* argv[] )
 {
     logger_id = "forker";
     qInstallMessageHandler( qtMessageLogger );
+
+    COMMAND_LINE_PARSER_CHECK( CommandLineHelper, "tideForker" );
 
     {
         MPIChannelPtr worldChannel( new MPIChannel( argc, argv ));

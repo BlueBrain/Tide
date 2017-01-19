@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2015, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -65,8 +65,8 @@ void MasterConfiguration::loadMasterSettings()
 {
     QXmlQuery query;
     if( !query.setFocus( QUrl( _filename )))
-        throw std::runtime_error( "Invalid configuration file: " +
-                                  _filename.toStdString( ));
+        throw std::runtime_error( "Invalid master configuration file: '" +
+                                  _filename.toStdString() + "'" );
 
     loadMasterProcessInfo( query );
     loadContentDirectory( query );

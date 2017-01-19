@@ -1,6 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
 /*                     Raphael.Dumusc@epfl.ch                        */
 /*                     Daniel.Nachbaur@epfl.ch                       */
 /* All rights reserved.                                              */
@@ -39,10 +39,11 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
+#include "CommandLineParameters.h"
 #include "log.h"
-
 #include "network/MPIChannel.h"
 #include "WallApplication.h"
+#include "WallConfiguration.h"
 
 #include <memory>
 #include <stdexcept>
@@ -50,16 +51,13 @@
 
 int main( int argc, char* argv[] )
 {
+    COMMAND_LINE_PARSER_CHECK( CommandLineParameters, "tideWall" );
+
     // Load virtualkeyboard input context plugin
     qputenv( "QT_IM_MODULE", QByteArray( "virtualkeyboard" ));
 
     {
         MPIChannelPtr worldChannel( new MPIChannel( argc, argv ));
-        const int rank = worldChannel->getRank();
-
-        logger_id = QString( "wall%1" ).arg( rank ).toStdString();
-        qInstallMessageHandler( qtMessageLogger );
-
         if( worldChannel->getSize() < 2 )
         {
             std::cerr << "MPI group size < 2 detected. Use tide script or check"
@@ -67,13 +65,18 @@ int main( int argc, char* argv[] )
             return EXIT_FAILURE;
         }
 
+        const int rank = worldChannel->getRank();
+        logger_id = QString( "wall%1" ).arg( rank ).toStdString();
+        qInstallMessageHandler( qtMessageLogger );
+
         MPIChannelPtr localChannel( new MPIChannel( *worldChannel, 1, rank ));
         MPIChannelPtr mainChannel( new MPIChannel( *worldChannel, 1, rank ));
 
         std::unique_ptr< WallApplication > app;
         try
         {
-            app.reset( new WallApplication( argc, argv, mainChannel,
+            const auto config = commandLine.getConfigFilename();
+            app.reset( new WallApplication( argc, argv, config, mainChannel,
                                             localChannel ));
         }
         catch( const std::runtime_error& e )

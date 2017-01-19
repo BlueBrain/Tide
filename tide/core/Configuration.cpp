@@ -1,6 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2015, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
 /*                     Raphael.Dumusc@epfl.ch                        */
 /*                     Daniel.Nachbaur@epfl.ch                       */
 /* All rights reserved.                                              */
@@ -74,7 +74,8 @@ void Configuration::_load()
 {
     QXmlQuery query;
     if( !query.setFocus( QUrl( _filename )))
-        throw std::runtime_error( "Invalid configuration file: " + _filename.toStdString( ));
+        throw std::runtime_error( "Invalid configuration file: '" +
+                                  _filename.toStdString( ) + "'" );
 
     query.setQuery( "string(/configuration/dimensions/@numTilesWidth)" );
     getInt( query, _totalScreenCountX );
