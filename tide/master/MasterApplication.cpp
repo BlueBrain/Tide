@@ -1,7 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/*                          Daniel.Nachbaur@epfl.ch                  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -40,7 +40,6 @@
 
 #include "MasterApplication.h"
 
-#include "CommandLineParameters.h"
 #include "localstreamer/PixelStreamerLauncher.h"
 #include "log.h"
 #include "MasterConfiguration.h"
@@ -85,9 +84,11 @@ const QUrl QML_OFFSCREEN_ROOT_COMPONENT( "qrc:/qml/master/OffscreenRoot.qml" );
 }
 
 MasterApplication::MasterApplication( int& argc_, char** argv_,
+                                      const QString& config,
                                       MPIChannelPtr worldChannel,
                                       MPIChannelPtr forkChannel )
     : QApplication( argc_, argv_ )
+    , _config( new MasterConfiguration( config ))
     , _masterToForkerChannel( new MasterToForkerChannel( forkChannel ))
     , _masterToWallChannel( new MasterToWallChannel( worldChannel ))
     , _masterFromWallChannel( new MasterFromWallChannel( worldChannel ))
@@ -100,13 +101,6 @@ MasterApplication::MasterApplication( int& argc_, char** argv_,
     setAttribute( Qt::AA_SynthesizeTouchForUnhandledMouseEvents, false );
     setAttribute( Qt::AA_SynthesizeMouseForUnhandledTouchEvents, false );
 
-    const CommandLineParameters commandLine( argc_, argv_ );
-    if( commandLine.getHelp( ))
-        commandLine.showSyntax();
-
-    if( !_createConfig( commandLine.getConfigFilename( )))
-        throw std::runtime_error( "MasterApplication: initialization failed." );
-
     _init();
 
     // send initial display group to wall processes so that they at least the
@@ -114,11 +108,6 @@ MasterApplication::MasterApplication( int& argc_, char** argv_,
     // which is vital for the following restoreBackground().
     _masterToWallChannel->sendAsync( _displayGroup );
     _restoreBackground();
-
-    const auto& session = commandLine.getSessionFilename();
-    if( !session.isEmpty( ))
-        _loadSessionOp.setFuture(
-                    StateSerializationHelper( _displayGroup ).load( session ));
 }
 
 MasterApplication::~MasterApplication()
@@ -141,18 +130,10 @@ MasterApplication::~MasterApplication()
     _mpiReceiveThread.wait();
 }
 
-bool MasterApplication::_createConfig( const QString& filename )
+void MasterApplication::load( const QString sessionFile )
 {
-    try
-    {
-        _config.reset( new MasterConfiguration( filename ));
-    }
-    catch( const std::runtime_error& e )
-    {
-        put_flog( LOG_FATAL, "Could not load configuration. '%s'", e.what( ));
-        return false;
-    }
-    return true;
+    _loadSessionOp.setFuture(
+                StateSerializationHelper( _displayGroup ).load( sessionFile ));
 }
 
 void MasterApplication::_init()
@@ -442,17 +423,17 @@ void MasterApplication::_initRestInterface()
         else
             loader.load( uri );
     });
-    connect( _restInterface.get(), &RestInterface::load, [this]( QString uri )
-    {
-        _loadSessionOp.setFuture(
-                    StateSerializationHelper( _displayGroup ).load( uri ));
-    });
+
+    connect( _restInterface.get(), &RestInterface::load,
+             this, &MasterApplication::load );
+
     connect( _restInterface.get(), &RestInterface::save, [this]( QString uri )
     {
         _displayGroup->setShowWindowTitles( _options->getShowWindowTitles( ));
         _saveSessionOp.setFuture(
                     StateSerializationHelper( _displayGroup ).save( uri ));
     });
+
     connect( _restInterface.get(), &RestInterface::clear, [this]()
     {
         _displayGroup->clear();

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -59,8 +59,8 @@ void WallConfiguration::_loadWallSettings( const int processIndex )
 
     QXmlQuery query;
     if( !query.setFocus( QUrl( _filename )))
-        throw std::runtime_error( "Invalid configuration file: " +
-                                  _filename.toStdString( ));
+        throw std::runtime_error( "Invalid configuration file: '" +
+                                  _filename.toStdString() + "'" );
 
     QString queryResult;
 

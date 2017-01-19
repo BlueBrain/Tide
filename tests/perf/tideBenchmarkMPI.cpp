@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,6 +37,7 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
+#include "CommandLineParser.h"
 #include "network/MPIChannel.h"
 #include "network/ReceiveBuffer.h"
 #include "serialization/utils.h"
@@ -44,8 +45,6 @@
 #include <chrono>
 #include <iostream>
 #include <string>
-
-#include <boost/program_options.hpp>
 
 #define MEGABYTE 1000000
 #define RANK0 0
@@ -65,10 +64,7 @@ class Timer
 public:
     using clock = std::chrono::high_resolution_clock;
 
-    void start()
-    {
-        _startTime = clock::now();
-    }
+    void start() { _startTime = clock::now(); }
 
     float elapsed() const
     {
@@ -82,61 +78,20 @@ private:
 
 namespace po = boost::program_options;
 
-struct BenchmarkOptions
+class BenchmarkOptions : public CommandLineParser
 {
-    BenchmarkOptions( int& argc, char** argv )
-        : _desc( "Allowed options" )
-        , _getHelp( true )
-        , _dataSize( 0 )
-        , _packetsCount( 0 )
+public:
+    BenchmarkOptions()
     {
-        initDesc();
-        parseCommandLineArguments( argc, argv );
-    }
-
-    void showSyntax() const
-    {
-        std::cout << _desc;
-    }
-
-    void initDesc()
-    {
-        _desc.add_options()
-            ("help", "produce help message")
-            ("datasize", po::value<float>()->default_value( 0 ),
-                     "Size of each data packet [MB]")
-            ("packets", po::value<unsigned int>()->default_value( 0 ),
-                     "number of packets to transmitt")
+        desc.add_options()
+            ("datasize,s", po::value<float>()->default_value( 0.f ),
+             "Size of each data packet [MB]")
+            ("packets,p", po::value<size_t>()->default_value( 0u ),
+             "number of packets to transmit")
         ;
     }
-
-    void parseCommandLineArguments( int& argc, char** argv )
-    {
-        if( argc <= 1 )
-            return;
-
-        po::variables_map vm;
-        try
-        {
-            po::store( po::parse_command_line( argc, argv, _desc ), vm );
-            po::notify( vm );
-        }
-        catch( const std::exception& e )
-        {
-            std::cerr << e.what() << std::endl;
-            return;
-        }
-
-        _getHelp = vm.count( "help" );
-        _dataSize = vm["datasize"].as<float>() * MEGABYTE;
-        _packetsCount = vm["packets"].as<unsigned int>();
-    }
-
-    po::options_description _desc;
-
-    bool _getHelp;
-    unsigned int _dataSize;
-    unsigned int _packetsCount;
+    size_t dataSize() const { return vm["datasize"].as<float>() * MEGABYTE; }
+    size_t packetsCount() const { return vm["packets"].as<size_t>(); }
 };
 }
 
@@ -145,17 +100,12 @@ struct BenchmarkOptions
  */
 int main( int argc, char** argv )
 {
-    BenchmarkOptions options( argc, argv );
-    if( options._getHelp )
-    {
-        options.showSyntax();
-        return 0;
-    }
+    COMMAND_LINE_PARSER_CHECK( BenchmarkOptions, "tideBenchmarkMPI" );
 
     MPIChannel mpiChannel( argc, argv );
 
     // Send buffer
-    std::vector<char> noiseBuffer( options._dataSize );
+    std::vector<char> noiseBuffer( commandLine.dataSize( ));
     for( auto& elem : noiseBuffer )
         elem = rand();
     const auto serializedData = serialization::toBinary( noiseBuffer );
@@ -168,7 +118,7 @@ int main( int argc, char** argv )
     mpiChannel.globalBarrier();
     timer.start();
 
-    while( counter < options._packetsCount )
+    while( counter < commandLine.packetsCount( ))
     {
         if( mpiChannel.getRank() == RANK0 )
             mpiChannel.broadcast( MPIMessageType::NONE, serializedData );
@@ -191,5 +141,5 @@ int main( int argc, char** argv )
         std::cout << "Throughput [Mbytes/sec]: " << counter * serializedData.size() / time / MEGABYTE << std::endl;
     }
 
-    return 0;
+    return EXIT_SUCCESS;
 }

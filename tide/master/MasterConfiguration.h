@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2015, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -45,8 +45,10 @@
 class QXmlQuery;
 
 /**
- * @brief The MasterConfiguration class manages all the parameters needed
- * to setup the Master process.
+ * The MasterConfiguration manages all the parameters needed to setup the
+ * Master process.
+ *
+ * @warning: this class can only be used AFTER creating a QApplication.
  */
 class MasterConfiguration : public Configuration
 {

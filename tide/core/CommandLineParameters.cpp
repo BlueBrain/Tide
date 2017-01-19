@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -40,65 +40,33 @@
 #include "CommandLineParameters.h"
 
 #include <iostream>
-#include <boost/program_options.hpp>
 
 namespace po = boost::program_options;
 
-CommandLineParameters::CommandLineParameters( int& argc, char** argv )
-    : _desc("Allowed options")
-    , _getHelp(false)
+CommandLineParameters::CommandLineParameters()
 {
-    _initDesc();
-    _parseCommandLineArguments(argc, argv);
-}
-
-
-bool CommandLineParameters::getHelp() const
-{
-    return _getHelp;
-}
-
-void CommandLineParameters::showSyntax() const
-{
-    std::cout << _desc;
-}
-
-void CommandLineParameters::_initDesc()
-{
-    _desc.add_options()
-        ("help", "produce help message")
-        ("config", po::value<std::string>()->default_value(""),
-                 "path to configuration file")
+    // using std::string because QString is not std::istream'able
+    desc.add_options()
+        ("config", po::value<std::string>()->required(),
+         "path to configuration file [required]")
         ("sessionfile", po::value<std::string>()->default_value(""),
-                 "path to an initial session file")
+         "path to an initial session file")
     ;
 }
 
-void CommandLineParameters::_parseCommandLineArguments( int& argc, char** argv )
+void CommandLineParameters::showSyntax( const std::string& appName ) const
 {
-    po::variables_map vm;
-    try
-    {
-        po::store(po::parse_command_line(argc, argv, _desc), vm);
-        po::notify(vm);
-    }
-    catch (const std::exception& e)
-    {
-        std::cerr << e.what() << std::endl;
-        return;
-    }
-
-    _getHelp = vm.count("help");
-    _configFilename = vm["config"].as<std::string>().c_str();
-    _sessionFilename = vm["sessionfile"].as<std::string>().c_str();
+    std::cout << "Usage: mpiexec " << appName << " --config FILE\n\n";
+    std::cout << desc << std::endl;
+    std::cout << "Do not launch manually, use 'tide' script instead.\n";
 }
 
-const QString& CommandLineParameters::getConfigFilename() const
+QString CommandLineParameters::getConfigFilename() const
 {
-    return _configFilename;
+    return QString::fromStdString( vm["config"].as<std::string>( ));
 }
 
-const QString& CommandLineParameters::getSessionFilename() const
+QString CommandLineParameters::getSessionFilename() const
 {
-    return _sessionFilename;
+    return QString::fromStdString( vm["sessionfile"].as<std::string>( ));
 }

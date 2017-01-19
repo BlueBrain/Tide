@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -53,12 +53,12 @@
 namespace
 {
 #ifdef _WIN32
-const QString LOCALSTREAMER_BIN( "localstreamer.exe" );
+const QString LOCALSTREAMER_BIN( "tideLocalstreamer.exe" );
 const QString LAUNCHER_BIN( "tideLauncher.exe" );
 const QString WEBBROWSER_BIN( "tideWebbrowser.exe" );
 const QString WHITEBOARD_BIN( "tideWhiteboard.exe" );
 #else
-const QString LOCALSTREAMER_BIN( "localstreamer" );
+const QString LOCALSTREAMER_BIN( "tideLocalstreamer" );
 const QString WHITEBOARD_BIN( "tideWhiteboard" );
 const QString LAUNCHER_BIN( "tideLauncher" );
 const QString WEBBROWSER_BIN( "tideWebbrowser" );

@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -40,11 +40,14 @@
 #include "Webbrowser.h"
 
 #include "tide/core/log.h"
+#include "tide/master/localstreamer/CommandLineOptions.h"
 
 int main( int argc, char** argv )
 {
     logger_id = "webbrowser";
     qInstallMessageHandler( qtMessageLogger );
+
+    COMMAND_LINE_PARSER_CHECK( CommandLineOptions, "tideWebbrowser" );
 
     // Load virtualkeyboard input context plugin
     qputenv( "QT_IM_MODULE", QByteArray( "virtualkeyboard" ));

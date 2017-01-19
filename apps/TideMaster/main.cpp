@@ -1,6 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
 /*                     Raphael.Dumusc@epfl.ch                        */
 /*                     Daniel.Nachbaur@epfl.ch                       */
 /* All rights reserved.                                              */
@@ -41,6 +41,7 @@
 
 #include "log.h"
 
+#include "CommandLineParameters.h"
 #include "MasterApplication.h"
 #include "network/MPIChannel.h"
 
@@ -53,20 +54,29 @@ int main( int argc, char* argv[] )
     logger_id = "master";
     qInstallMessageHandler( qtMessageLogger );
 
+    COMMAND_LINE_PARSER_CHECK( CommandLineParameters, "tideMaster" );
+
     // Load virtualkeyboard input context plugin
     qputenv( "QT_IM_MODULE", QByteArray( "virtualkeyboard" ));
 
     {
         MPIChannelPtr worldChannel( new MPIChannel( argc, argv ));
-        const int rank = worldChannel->getRank();
+        if( worldChannel->getSize() < 2 )
+        {
+            std::cerr << "MPI group size < 2 detected. Use tide script or check"
+                         " MPI configuration." << std::endl;
+            return EXIT_FAILURE;
+        }
 
+        const int rank = worldChannel->getRank();
         MPIChannelPtr localChannel( new MPIChannel( *worldChannel, 0, rank ));
         MPIChannelPtr mainChannel( new MPIChannel( *worldChannel, 1, rank ));
 
         std::unique_ptr< MasterApplication > app;
         try
         {
-            app.reset( new MasterApplication( argc, argv, mainChannel,
+            const auto config = commandLine.getConfigFilename();
+            app.reset( new MasterApplication( argc, argv, config, mainChannel,
                                               localChannel ));
         }
         catch( const std::runtime_error& e )
@@ -81,6 +91,10 @@ int main( int argc, char* argv[] )
 
             return EXIT_FAILURE;
         }
+
+        const auto& session = commandLine.getSessionFilename();
+        if( !session.isEmpty( ))
+            app->load( session );
 
         app->exec(); // enter Qt event loop
 

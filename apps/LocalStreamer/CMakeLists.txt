@@ -1,18 +1,18 @@
 
-# Copyright (c) 2013-2015, EPFL/Blue Brain Project
+# Copyright (c) 2013-2017, EPFL/Blue Brain Project
 #                     Raphael Dumusc <raphael.dumusc@epfl.ch>
 
 include_directories(${PROJECT_SOURCE_DIR}/tide/master)
 
-set(LOCALSTREAMER_HEADERS
+set(TIDELOCALSTREAMER_HEADERS
   Application.h
 )
 
-set(LOCALSTREAMER_SOURCES
-  main.cpp
+set(TIDELOCALSTREAMER_SOURCES
   Application.cpp
+  main.cpp
 )
 
-set(LOCALSTREAMER_LINK_LIBRARIES TideMaster Deflect)
+set(TIDELOCALSTREAMER_LINK_LIBRARIES TideMaster Deflect)
 
-common_application(localstreamer)
+common_application(tideLocalstreamer NOHELP)

@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,34 +37,69 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "Application.h"
+#ifndef COMMANDLINEPARSER_H
+#define COMMANDLINEPARSER_H
 
-#include "log.h"
-#include "localstreamer/CommandLineOptions.h"
+#include <boost/program_options.hpp>
 
-#include <iostream>
-
-#define INVALID_STREAMER_TYPE_ERROR_CODE     1
-#define FAILED_APP_INITIALIZATION_ERROR_CODE 2
-
-int main( int argc, char* argv[] )
-{
-    COMMAND_LINE_PARSER_CHECK( CommandLineOptions, "tideLocalstreamer" );
-
-    const PixelStreamerType type = commandLine.getPixelStreamerType();
-    if( type == PS_UNKNOWN )
-    {
-        std::cerr << "Invalid streamer type." << std::endl;
-        return INVALID_STREAMER_TYPE_ERROR_CODE;
-    }
-
-    logger_id = getStreamerTypeString( type ).toStdString();
-    qInstallMessageHandler( qtMessageLogger );
-
-    Application app( argc, argv );
-    if( !app.initialize( commandLine ))
-        return FAILED_APP_INITIALIZATION_ERROR_CODE;
-
-    return app.exec();
+/**
+ * Standard macro to check for --help and syntax error of command line args.
+ */
+#define COMMAND_LINE_PARSER_CHECK( ParserClass, AppName ) \
+ParserClass commandLine; \
+try \
+{ \
+    commandLine.parse( argc, argv ); \
+} \
+catch( const boost::program_options::error& e ) \
+{ \
+    put_flog( LOG_FATAL, "failed to start: %s", e.what( )); \
+    return EXIT_FAILURE; \
+} \
+if( commandLine.getHelp( )) \
+{ \
+    commandLine.showSyntax( AppName ); \
+    return EXIT_SUCCESS; \
 }
 
+/**
+ * Basic command line arguments parser with [-h;--help] handling.
+ */
+class CommandLineParser
+{
+public:
+    /** Constructor. */
+    CommandLineParser();
+
+    /** Virtual destructor. */
+    virtual ~CommandLineParser();
+
+    /**
+     * Try to parse the command line arguments.
+     *
+     * @param argc number of command line arguments.
+     * @param argv array of command line arguments.
+     *
+     * @throw boost::program_options::error on parsing error.
+     */
+    virtual void parse( int argc, char** argv );
+
+    /** Was the --help flag given. */
+    bool getHelp() const;
+
+    /**
+     * Print syntax to std::out.
+     * @param appName The name of the executable to print in the output.
+     */
+    virtual void showSyntax( const std::string& appName ) const;
+
+protected:
+
+    /** The list of options which already includes "--help". */
+    boost::program_options::options_description desc{ "Allowed options" };
+
+    /** Contains the results of the parse() operation. */
+    boost::program_options::variables_map vm;
+};
+
+#endif

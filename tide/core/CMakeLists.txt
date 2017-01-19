@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2016, EPFL/Blue Brain Project
+# Copyright (c) 2013-2017, EPFL/Blue Brain Project
 #                          Raphael Dumusc <raphael.dumusc@epfl.ch>
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
@@ -111,6 +111,7 @@ endif()
 
 list(APPEND TIDECORE_PUBLIC_HEADERS
   CommandLineParameters.h
+  CommandLineParser.h
   Configuration.h
   data/Image.h
   data/QtImage.h
@@ -163,6 +164,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
 
 list(APPEND TIDECORE_SOURCES
   CommandLineParameters.cpp
+  CommandLineParser.cpp
   Configuration.cpp
   data/QtImage.cpp
   data/SVG.cpp

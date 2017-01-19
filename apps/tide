@@ -187,7 +187,7 @@ try:
     runcommands.append(mastercmd)
 
     # add a separate 'forker' process on the same host as the master process
-    forkercmd = '%s -np 1 %s %s' % (environment, TIDEFORKER_BIN, TIDE_PARAMS)
+    forkercmd = '%s -np 1 %s' % (environment, TIDEFORKER_BIN)
 
     # parse the wall process elements
     for elem in XML_CONFIG.findall('.//process'):

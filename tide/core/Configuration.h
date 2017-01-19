@@ -1,6 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
 /*                     Raphael.Dumusc@epfl.ch                        */
 /*                     Daniel.Nachbaur@epfl.ch                       */
 /* All rights reserved.                                              */
@@ -65,6 +65,8 @@ class QXmlQuery;
  *
  * @note For historic reasons, both the words "screen" and "tile" are used in
  * xml configuration files and have the same meaning.
+ *
+ * @warning: this class can only be used AFTER creating a QApplication.
  */
 class Configuration
 {

@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -40,25 +40,26 @@
 #ifndef COMMANDLINEOPTIONS_H
 #define COMMANDLINEOPTIONS_H
 
+#include "CommandLineParser.h"
 #include "PixelStreamerType.h"
-
-#include <QString>
-#include <boost/program_options/options_description.hpp>
 
 /**
  * Command line options to pass startup parameters to a local application.
  */
-class CommandLineOptions
+class CommandLineOptions : public CommandLineParser
 {
 public:
-    /** Construct an empty instance */
+    /** Construct an empty instance. */
     CommandLineOptions();
 
-    /** Construct from command line parameters */
-    CommandLineOptions( int& argc, char** argv );
+    /** Construct from command line parameters. */
+    CommandLineOptions( int argc, char** argv );
 
-    /** Print syntax to std::out */
-    void showSyntax() const;
+    /** @copydoc CommandLineParser::parse */
+    void parse( int argc, char** argv ) final;
+
+    /** @copydoc CommandLineParser::showSyntax */
+    void showSyntax( const std::string& appName ) const final;
 
     /** Get the arguments joined in command line format. */
     QString getCommandLine() const;
@@ -68,7 +69,6 @@ public:
 
     /** @name Getters */
     //@{
-    bool getHelp() const;
     PixelStreamerType getPixelStreamerType() const;
     const QString& getUrl() const;
     const QString& getStreamId() const;
@@ -79,7 +79,6 @@ public:
 
     /** @name Setters */
     //@{
-    void setHelp( bool set );
     void setPixelStreamerType( PixelStreamerType type );
     void setUrl( const QString& url );
     void setStreamId( const QString& id );
@@ -89,10 +88,6 @@ public:
     //@}
 
 private:
-    void _initDesc();
-    void _parseCommandLineArguments( int& argc, char** argv );
-
-    bool _getHelp = false;
     PixelStreamerType _streamerType = PS_UNKNOWN;
     QString _url;
     QString _streamId;
@@ -100,7 +95,7 @@ private:
     uint _height = 0;
     QString _configuration;
 
-    boost::program_options::options_description _desc = { "Allowed options" };
+    void _fillDesc();
 };
 
 #endif

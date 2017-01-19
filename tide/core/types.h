@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
-/*                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>     */
+/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/*                          Daniel Nachbaur <daniel.nachbaur@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -43,7 +44,8 @@
 #include <deflect/types.h>
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
-#include <QtCore/QRectF>
+#include <QRectF>
+#include <QString>
 #include <future>
 #include <iostream>
 #include <set>

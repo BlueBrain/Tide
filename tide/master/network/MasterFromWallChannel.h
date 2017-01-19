@@ -72,7 +72,7 @@ signals:
 
     /**
      * Emitted after each wall process has rendered a screenshot
-     * @param uri The rendered image
+     * @param image The rendered image
      * @param source The identifier of the wall process that sent the image
      */
     void receivedScreenshot( QImage image, int source );

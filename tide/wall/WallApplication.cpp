@@ -39,7 +39,6 @@
 
 #include "WallApplication.h"
 
-#include "CommandLineParameters.h"
 #include "DataProvider.h"
 #include "log.h"
 #include "network/MPIChannel.h"
@@ -57,19 +56,14 @@
 #include <QQuickRenderControl>
 
 WallApplication::WallApplication( int& argc_, char** argv_,
+                                  const QString& config,
                                   MPIChannelPtr worldChannel,
                                   MPIChannelPtr wallChannel )
     : QApplication( argc_, argv_ )
+    , _config( new WallConfiguration( config, worldChannel->getRank( )))
     , _wallChannel( new WallToWallChannel( wallChannel ))
 {
     core::registerQmlTypes();
-
-    CommandLineParameters options( argc_, argv_ );
-    if( options.getHelp( ))
-        options.showSyntax();
-
-    if ( !_createConfig( options.getConfigFilename(), worldChannel->getRank( )))
-        throw std::runtime_error( "WallApplication: initialization failed." );
 
     // avoid overcommit for async content loading; consider number of processes
     // on the same machine
@@ -98,20 +92,6 @@ WallApplication::~WallApplication()
 
     _mpiSendThread.quit();
     _mpiSendThread.wait();
-}
-
-bool WallApplication::_createConfig( const QString& filename, const int rank )
-{
-    try
-    {
-        _config.reset( new WallConfiguration( filename, rank ));
-    }
-    catch( const std::runtime_error& e )
-    {
-        put_flog( LOG_FATAL, "Could not load configuration. '%s'", e.what( ));
-        return false;
-    }
-    return true;
 }
 
 void WallApplication::_initWallWindow()
