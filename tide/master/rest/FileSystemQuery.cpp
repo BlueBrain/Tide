@@ -37,62 +37,77 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "HtmlContent.h"
+#include "FileSystemQuery.h"
 
-#include <QFile>
-#include <QTextStream>
+#include "log.h"
+
+#include <QDir>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QUrl>
+#include <QUuid>
 
 namespace
 {
-std::string _readFile( const QString& uri )
+QString _parseJson( const std::string& data )
 {
-    QFile file( uri );
-    file.open( QIODevice::ReadOnly | QIODevice::Text );
-    QTextStream in( &file );
-    return in.readAll().toStdString();
+    const QByteArray input = QByteArray::fromRawData( data.c_str(),
+                                                      data.size( ));
+    const auto doc = QJsonDocument::fromJson( input );
+    if( doc.isNull() || !doc.isObject( ) || !doc.object()["dir"].isString( ))
+    {
+        put_flog( LOG_INFO, "Error parsing JSON string: '%s'", data.c_str( ));
+        return QString();
+    }
+    return doc.object()["dir"].toString();
 }
 }
 
-HtmlContent::HtmlContent( zeroeq::http::Server& server )
-    : indexPage{ "/", _readFile( ":///html/index.html" ) }
-    , bootstrapStyles{ "css/bootstrap.css",
-                      _readFile( ":///html/bootstrap.min.css" ) }
-    , bootstrapTree{ "js/bootstrap-treeview.min.js",
-                      _readFile( ":///html/bootstrap-treeview.min.js" ) }
-    , closeIcon { "img/close.svg", _readFile( ":///html/img/close.svg" ) }
-    , focusIcon { "img/focus.svg", _readFile( ":///html/img/focus.svg" ) }
-    , jquery { "js/jquery-3.1.1.min.js",
-               _readFile( ":///html/jquery-3.1.1.min.js" ) }
-    , jqueryUiStyles { "css/jquery-ui.css",
-                       _readFile( ":///html/jquery-ui.css" ) }
-    , jqueryUi { "js/jquery-ui.min.js",
-                 _readFile( ":///html/jquery-ui.min.js" ) }
-    , maximizeIcon { "img/maximize.svg",
-                     _readFile( ":///html/img/maximize.svg" ) }
-    , sweetalert { "js/sweetalert.min.js",
-                   _readFile( ":///html/sweetalert.min.js" ) }
-    , sweetalertStyles { "css/sweetalert.min.css",
-                         _readFile( ":///html/sweetalert.min.css" ) }
-    , tideJs { "js/tide.js", _readFile( ":///html/tide.js" ) }
-    , tideStyles{ "css/styles.css", _readFile( ":///html/styles.css" ) }
-    , tideVarsJs { "js/tideVars.js", _readFile( ":///html/tideVars.js" ) }
-    , underscore { "js/underscore-min.js",
-                   _readFile( ":///html/underscore-min.js" ) }
+FileSystemQuery::FileSystemQuery( zeroeq::http::Server& server,
+                                  const MasterConfiguration& config )
+    : _server ( server )
+    ,_config ( config )
 {
-    server.handleGET( indexPage );
-    server.handleGET( closeIcon );
-    server.handleGET( focusIcon );
-    server.handleGET( bootstrapStyles );
-    server.handleGET( bootstrapTree );
-    server.handleGET( jquery );
-    server.handleGET( jqueryUiStyles );
-    server.handleGET( jqueryUi );
-    server.handleGET( maximizeIcon );
-    server.handleGET( sweetalert );
-    server.handleGET( sweetalertStyles );
-    server.handleGET( tideJs );
-    server.handleGET( tideStyles );
-    server.handleGET( tideVarsJs );
-    server.handleGET( underscore );
+    _server.handlePUT( "tide/ls", [this]( const std::string& received )
+    { return _handleDirectoryList( received ); } );
 }
 
+bool FileSystemQuery::_handleDirectoryList( const std::string& payload )
+{
+    const auto path = _parseJson( payload );
+    if( path.isEmpty( ))
+        return false;
+
+    const QString& configDir = _config.getContentDir();
+    const QString& sessionDir = _config.getSessionsDir();
+    const QString fullpath = configDir + "/" + path ;
+
+    if( !( fullpath.startsWith( configDir ) ||
+           fullpath.startsWith( sessionDir )))
+    {
+        return false;
+    }
+
+    if( QDir( fullpath ).exists( ))
+    {
+        if( !_fsContentList.count( path ))
+        {
+            _fsContentList.emplace( std::piecewise_construct,
+                                    std::forward_as_tuple( path ),
+                                    std::forward_as_tuple( path, _config ));
+            _server.handleGET( _fsContentList.at( path ));
+        }
+        return true;
+    }
+    else
+    {
+        auto kv =_fsContentList.find( path );
+        if (kv != _fsContentList.end( ))
+        {
+            _server.remove( kv->second );
+            _fsContentList.erase( kv );
+        }
+    }
+    return false;
+}

@@ -49,6 +49,17 @@ button:active {
   height: 100%;
 }
 
+.topMenu {
+  display: none;
+  position: absolute;
+  margin: 0 auto;
+  width: 400px;
+  height: auto;
+  max-height: 768px;
+  overflow-y: auto;
+  z-index: 100;
+}
+
 .ui-resizable-se {
   background-image: none;
 }
@@ -170,4 +181,17 @@ button:active {
 #wallWrapper {
   height: 100%;
   overflow: hidden;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-thumb {
+  width: 8px;
+  background-image: -webkit-linear-gradient(#014f86, #0096d3);
+}
+
+::-webkit-scrollbar-track {
+  display: none;
 }

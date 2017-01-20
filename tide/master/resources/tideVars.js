@@ -12,3 +12,7 @@ var zIndexFocusCurtain = 97;
 var zIndexFocus = 98;
 var zIndexFullscreen = 100;
 var zoomInterval = 50;
+var directoryListTimeout = 500;
+var fileLoadingTimeout = 250;
+var sessionLoadingTimeout = 2500;
+var showEffectSpeed = 200;

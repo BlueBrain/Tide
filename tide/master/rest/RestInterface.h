@@ -118,6 +118,7 @@ signals:
 private:
     class Impl;
     std::unique_ptr<Impl> _impl;
+    const MasterConfiguration& _config;
 };
 
 #endif

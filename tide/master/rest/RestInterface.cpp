@@ -39,6 +39,7 @@
 
 #include "RestInterface.h"
 
+#include "FileSystemQuery.h"
 #include "HtmlContent.h"
 #include "JsonOptions.h"
 #include "MasterConfiguration.h"
@@ -51,6 +52,8 @@
 #include "StaticContent.h"
 
 #include <tide/master/version.h>
+
+#include <QDir>
 
 class RestInterface::Impl
 {
@@ -89,6 +92,7 @@ public:
     JsonOptions options;
     JsonSize sizeProperty;
 
+    std::unique_ptr<FileSystemQuery> fileSystemQuery;
     std::unique_ptr<RestLogger> logContent;
     std::unique_ptr<HtmlContent> htmlContent;
     std::unique_ptr<RestController> sceneController;
@@ -99,6 +103,7 @@ public:
 RestInterface::RestInterface( const int port, OptionsPtr options,
                               const MasterConfiguration& config )
     : _impl( new Impl( port, options, config ))
+    , _config  ( config )
 {
     // Note: using same formatting as TUIO instead of put_flog() here
     std::cout << "listening to REST messages on TCP port " <<
@@ -111,18 +116,33 @@ RestInterface::RestInterface( const int port, OptionsPtr options,
              this, &RestInterface::whiteboard );
 
     connect( &_impl->openCmd, &RestCommand::received,
-             this, &RestInterface::open );
+             [this]( const QString uri )
+    {
+         if( QDir::isRelativePath( uri ))
+            emit open ( _config.getContentDir() + "/" + uri );
+        else
+            emit open( uri );
+    });
 
-    connect( &_impl->loadCmd, &RestCommand::received, [this](const QString uri)
+    connect( &_impl->loadCmd, &RestCommand::received,
+             [this]( const QString uri )
     {
         if( uri.isEmpty( ))
             emit clear();
+        else if( QDir::isRelativePath( uri ))
+            emit load ( _config.getSessionsDir() + "/" + uri );
         else
             emit load( uri );
     });
 
     connect( &_impl->saveCmd, &RestCommand::received,
-             this, &RestInterface::save );
+             [this] ( const QString uri )
+    {
+        if( QDir::isRelativePath( uri ))
+            emit save ( _config.getSessionsDir() + "/" + uri );
+        else
+            emit save( uri );
+    });
 
     connect( &_impl->screenshotCmd, &RestCommand::received,
              this, &RestInterface::screenshot );
@@ -154,6 +174,9 @@ void RestInterface::setupHtmlInterface( DisplayGroup& displayGroup,
 
     _impl->sceneController.reset( new RestController( _impl->httpServer.get(),
                                                       displayGroup ));
+
+    _impl->fileSystemQuery.reset( new FileSystemQuery( _impl->httpServer.get(),
+                                   config ));
 
    _impl->httpServer.get().handleGET( *_impl->configurationContent );
    _impl->httpServer.get().handleGET( *_impl->windowsContent );

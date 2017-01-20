@@ -37,62 +37,49 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "HtmlContent.h"
+#include "FileSystemContent.h"
 
-#include <QFile>
-#include <QTextStream>
+#include "log.h"
 
-namespace
-{
-std::string _readFile( const QString& uri )
-{
-    QFile file( uri );
-    file.open( QIODevice::ReadOnly | QIODevice::Text );
-    QTextStream in( &file );
-    return in.readAll().toStdString();
-}
-}
+#include <QDir>
+#include <QFileInfoList>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QUrl>
 
-HtmlContent::HtmlContent( zeroeq::http::Server& server )
-    : indexPage{ "/", _readFile( ":///html/index.html" ) }
-    , bootstrapStyles{ "css/bootstrap.css",
-                      _readFile( ":///html/bootstrap.min.css" ) }
-    , bootstrapTree{ "js/bootstrap-treeview.min.js",
-                      _readFile( ":///html/bootstrap-treeview.min.js" ) }
-    , closeIcon { "img/close.svg", _readFile( ":///html/img/close.svg" ) }
-    , focusIcon { "img/focus.svg", _readFile( ":///html/img/focus.svg" ) }
-    , jquery { "js/jquery-3.1.1.min.js",
-               _readFile( ":///html/jquery-3.1.1.min.js" ) }
-    , jqueryUiStyles { "css/jquery-ui.css",
-                       _readFile( ":///html/jquery-ui.css" ) }
-    , jqueryUi { "js/jquery-ui.min.js",
-                 _readFile( ":///html/jquery-ui.min.js" ) }
-    , maximizeIcon { "img/maximize.svg",
-                     _readFile( ":///html/img/maximize.svg" ) }
-    , sweetalert { "js/sweetalert.min.js",
-                   _readFile( ":///html/sweetalert.min.js" ) }
-    , sweetalertStyles { "css/sweetalert.min.css",
-                         _readFile( ":///html/sweetalert.min.css" ) }
-    , tideJs { "js/tide.js", _readFile( ":///html/tide.js" ) }
-    , tideStyles{ "css/styles.css", _readFile( ":///html/styles.css" ) }
-    , tideVarsJs { "js/tideVars.js", _readFile( ":///html/tideVars.js" ) }
-    , underscore { "js/underscore-min.js",
-                   _readFile( ":///html/underscore-min.js" ) }
+FileSystemContent::FileSystemContent( const QString& path,
+                                      const MasterConfiguration& config )
+    : _path ( path )
+    , _config( config )
 {
-    server.handleGET( indexPage );
-    server.handleGET( closeIcon );
-    server.handleGET( focusIcon );
-    server.handleGET( bootstrapStyles );
-    server.handleGET( bootstrapTree );
-    server.handleGET( jquery );
-    server.handleGET( jqueryUiStyles );
-    server.handleGET( jqueryUi );
-    server.handleGET( maximizeIcon );
-    server.handleGET( sweetalert );
-    server.handleGET( sweetalertStyles );
-    server.handleGET( tideJs );
-    server.handleGET( tideStyles );
-    server.handleGET( tideVarsJs );
-    server.handleGET( underscore );
 }
 
+std::string FileSystemContent::getTypeName() const
+{
+    if( _path == "/" )
+        return "tide/ls";
+    else
+        return "tide/ls/" + QUrl::fromLocalFile( _path )
+                .path( QUrl::FullyEncoded ).toStdString();
+}
+
+std::string FileSystemContent::_toJSON() const
+{
+    const QDir directory( _config.getContentDir() + "/" + _path );
+    const QFileInfoList content = directory.entryInfoList( QDir::AllEntries,
+                                                           QDir::DirsFirst );
+    const QDir contentDir( _config.getContentDir( ));
+
+    QJsonArray arr;
+    for( const auto& file: content )
+    {
+        QJsonObject item;
+        item["name"] = file.fileName();
+        item["path"] = contentDir.relativeFilePath( file.absoluteFilePath( ));
+        item["dir"] = file.isDir();
+        item["file"] = file.isFile();
+        arr.append( item );
+    }
+    return QJsonDocument{ arr }.toJson().toStdString();
+}
