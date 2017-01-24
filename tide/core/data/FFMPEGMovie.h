@@ -114,9 +114,6 @@ private:
     double _streamPosition;
     bool _isValid;
 
-    /** Init the global FFMPEG context. */
-    static void initGlobalState();
-
     bool _open( const QString& uri );
     bool _createAvFormatContext( const QString& uri );
     void _releaseAvFormatContext();

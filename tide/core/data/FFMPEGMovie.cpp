@@ -73,14 +73,21 @@ int ffmpegLockManagerCallback( void** mutex, enum AVLockOp op )
     }
 }
 
+struct FFMPEGStaticInit
+{
+    FFMPEGStaticInit()
+    {
+        av_lockmgr_register( &ffmpegLockManagerCallback );
+        av_register_all();
+    }
+};
+static FFMPEGStaticInit instance;
+
 FFMPEGMovie::FFMPEGMovie( const QString& uri )
     : _avFormatContext( 0 )
     , _streamPosition( 0.0 )
-    , _isValid( false )
-{
-    FFMPEGMovie::initGlobalState();
-    _isValid = _open( uri );
-}
+    , _isValid( _open( uri ))
+{}
 
 FFMPEGMovie::~FFMPEGMovie()
 {
@@ -137,18 +144,6 @@ void FFMPEGMovie::_releaseAvFormatContext()
 {
     if( _avFormatContext )
         avformat_close_input( &_avFormatContext );
-}
-
-void FFMPEGMovie::initGlobalState()
-{
-    static bool initialized = false;
-
-    if( !initialized )
-    {
-        av_lockmgr_register( &ffmpegLockManagerCallback );
-        av_register_all();
-        initialized = true;
-    }
 }
 
 bool FFMPEGMovie::isValid() const

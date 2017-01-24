@@ -177,7 +177,7 @@ void DisplayGroupController::hidePanels()
 void DisplayGroupController::moveWindowToFront( const QUuid id )
 {
     const auto window = _group.getContentWindow( id );
-    if( window->getMode() == ContentWindow::WindowMode::STANDARD )
+    if( window && window->getMode() == ContentWindow::WindowMode::STANDARD )
         _group.moveToFront( window );
 }
 
