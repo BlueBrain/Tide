@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,87 +37,38 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef RESTINTERFACE_H
-#define RESTINTERFACE_H
+#ifndef HTMLCONTENT_H
+#define HTMLCONTENT_H
 
-#include "types.h"
-#include "JsonSize.h"
-#include "RestLogger.h"
-
-#include <QObject>
+#include "StaticContent.h"
+#include <zeroeq/http/server.h>
 
 /**
- * Enables remote control of Tide through a REST API.
- *
- * It listens for http PUT requests on 'http://hostname:port/tide/\<command\>'
- * and emits the corresponding \<command\> signal on success.
- *
- * Example command:
- * curl -i -X PUT -d '{"uri": "image.png"}' http://localhost:8888/tide/open
- *
- * It also exposes a control html interface on 'http://hostname:port'.
+ * Exposes html content through a REST API
  */
-class RestInterface : public QObject
+class HtmlContent
 {
-    Q_OBJECT
-
 public:
     /**
-     * Construct a REST interface.
-     * @param port the port for listening to REST requests
-     * @param options the application's options to expose in the interface
-     * @param config the application's configuration
-     * @throw std::runtime_error if the port is already in use or a connection
-     *        issue occured.
+     * Construct and expose the html content
+     * @param httpServer used to expose the content
      */
-    RestInterface( int port, OptionsPtr options,
-                   const MasterConfiguration& config );
-
-    /** Out-of-line destructor. */
-    ~RestInterface();
-
-    /** Expose the statistics gathered by the given logging utility. */
-    void exposeStatistics( const LoggingUtility& logger ) const;
-
-    /**
-     * Set-up the HTML interface.
-     * @param displayGroup DisplayGroup exposed via interface
-     * @param config MasterConfiguration used to set-up the interface
-     */
-    void setupHtmlInterface( DisplayGroup& displayGroup,
-                             const MasterConfiguration& config );
-
-signals:
-    /** Open a content. */
-    void open( QString uri );
-
-    /** Load a session. */
-    void load( QString uri );
-
-    /** Save a session to the given file. */
-    void save( QString uri );
-
-    /** Clear all contents. */
-    void clear();
-
-    /** Open a whiteboard. */
-    void whiteboard();
-
-    /** Close a content. */
-    void close( QString uuid );
-
-    /** Browse a website. */
-    void browse( QString uri );
-
-    /** Take a screenshot. */
-    void screenshot( QString uri );
-
-    /** Exit the application. */
-    void exit();
+    HtmlContent( zeroeq::http::Server& httpServer );
 
 private:
-    class Impl;
-    std::unique_ptr<Impl> _impl;
+    StaticContent indexPage;
+    StaticContent closeIcon;
+    StaticContent focusIcon;
+    StaticContent jquery;
+    StaticContent jqueryUiStyles;
+    StaticContent jqueryUi;
+    StaticContent maximizeIcon;
+    StaticContent sweetalert;
+    StaticContent sweetalertStyles;
+    StaticContent tideJs;
+    StaticContent tideStyles;
+    StaticContent tideVarsJs;
+    StaticContent underscore;
 };
 
 #endif

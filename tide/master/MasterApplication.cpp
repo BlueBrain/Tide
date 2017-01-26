@@ -424,6 +424,12 @@ void MasterApplication::_initRestInterface()
             loader.load( uri );
     });
 
+    connect( _restInterface.get(), &RestInterface::close, [this]( QString uuid )
+    {
+        auto window = _displayGroup->getContentWindow( uuid );
+        _displayGroup->removeContentWindow( window );
+    });
+
     connect( _restInterface.get(), &RestInterface::load,
              this, &MasterApplication::load );
 
@@ -457,7 +463,9 @@ void MasterApplication::_initRestInterface()
     connect( _displayGroup.get(), &DisplayGroup::contentWindowMovedToFront,
            _logger.get(), &LoggingUtility::contentWindowMovedToFront );
 
-    _restInterface.get()->exposeStatistics( *(_logger.get()) );
+    _restInterface.get()->exposeStatistics( *_logger );
+
+    _restInterface.get()->setupHtmlInterface( *_displayGroup, *_config );
 }
 #endif
 

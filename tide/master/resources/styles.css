@@ -1,0 +1,173 @@
+html {
+  height: 100%;
+}
+
+body {
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  background-color: #f0fafb;
+}
+
+a:link {
+  text-decoration: none;
+  color: black;
+}
+
+button {
+  border: 1px solid #007dc1;
+  cursor: pointer;
+  background-color: #014f86;
+  color: white;
+  font-family: Arial;
+  font-size: 11px;
+  text-decoration: none;
+}
+
+button:active {
+  position: relative;
+  top: 1px;
+  background-color: #0096d3;
+}
+
+.buttonPressed {
+  background-color: #0096d3;
+}
+
+.controlIcon {
+  margin: 10px;
+}
+
+.curtain {
+  background-color: black;
+  position: absolute;
+}
+
+.thumbnail {
+  width: 100%;
+  height: 100%;
+}
+
+.ui-resizable-se {
+  background-image: none;
+}
+
+.ui-resizable-e {
+  margin: 0px;
+  width: 50px;
+}
+
+.ui-resizable-s {
+  margin: 0px;
+  height: 20px;
+}
+
+.windowControl {
+  background: yellow;
+  left: -80px;
+  position: relative;
+  width: 75px;
+  height: 75px;
+  cursor: pointer;
+}
+
+.windowControls {
+  top: 0px;
+  position: absolute;
+  width: 75px;
+  height: 300px;
+}
+
+.windowControl.focusButtonHidden {
+  visibility: hidden;
+}
+
+.windowControl.focusButtonVisible {
+  visibility: visible;
+
+}
+
+.windowDiv {
+  position: absolute;
+  box-shadow: 0 0 40px rgba(0, 0, 0, 6);
+  -moz-box-shadow: 0 0 40px rgba(0, 0, 0, 6);
+  -webkit-box-shadow: 0 0 40px rgba(0, 0, 0, 6);
+  -o-box-shadow: 0 0 40px rgba(0, 0, 0, 6);
+}
+
+.windowDiv.windowSelected {
+  box-shadow: 0 0 40px rgba(255, 255, 0, 6);
+  -moz-box-shadow: 0 0 40px rgba(255, 255, 0, 6);
+  -webkit-box-shadow: 0 0 40px rgba(255, 255, 0, 6);
+  -o-box-shadow: 0 0 40px rgba(255, 255, 0, 6);
+
+}
+
+.windowDiv.windowFullscreen {
+  box-shadow: none;
+  -moz-box-shadow: none;
+  -webkit-box-shadow: none;
+  -o-box-shadow: none;
+}
+
+#buttonContainer {
+  margin: 0 auto;
+  position: relative;
+  text-align: center;
+  margin-top: 5px;
+  border: 0px solid;
+  width: 1200px;
+  z-index: 100;
+  font-family: Arial;
+  font-size: 11px;
+  text-decoration: none;
+  font-weight: normal;
+}
+
+#infoContainer {
+  margin: 0 auto;
+  position: relative;
+  text-align: center;
+  margin-top: 5px;
+  border: 0px solid;
+  width: 100%;
+  z-index: 0;
+  font-family: Arial;
+  font-size: 14px;
+  text-decoration: none;
+}
+
+#wall, #wallOutline {
+  border: 0px solid black;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  position: absolute;
+  z-index: 0;
+  -moz-transform-origin: 0 0;
+  -webkit-transform-origin: 0 0;
+}
+
+#wallOutline {
+  outline: 10px solid black;
+  z-index: 100;
+  -moz-transform-origin: 0 0;
+  -webkit-transform-origin: 0 0;
+  pointer-events: none
+}
+
+#wallContainer {
+  border: 0px solid grey;
+  position: absolute;
+  margin: 0;
+  margin-top: 100px;
+  z-index: 0;
+  -moz-transform-origin: 0 0;
+  -webkit-transform-origin: 0 0;
+}
+
+#wallWrapper {
+  height: 100%;
+  overflow: hidden;
+}

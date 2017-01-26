@@ -39,39 +39,18 @@
 
 #include "RestInterface.h"
 
+#include "HtmlContent.h"
 #include "JsonOptions.h"
 #include "MasterConfiguration.h"
 #include "RestCommand.h"
+#include "RestConfiguration.h"
+#include "RestController.h"
 #include "RestLogger.h"
 #include "RestServer.h"
+#include "RestWindows.h"
 #include "StaticContent.h"
 
 #include <tide/master/version.h>
-
-#include <QDateTime>
-#include <QHostInfo>
-
-namespace
-{
-const auto indexpage = QString(R"(
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset='UTF-8'>
-<title>Tide</title>
-</head>
-<body>
-<h1>Tide %1</h1>
-<p>Revision: <a href='https://github.com/BlueBrain/Tide/commit/%3'>%3</a></p>
-<p>Running on: %2</p>
-<p>Up since: %4</p>
-</body>
-</html>
-)").arg( QString::fromStdString( tide::Version::getString( )),
-         QHostInfo::localHostName(),
-         QString::number( tide::Version::getRevision(), 16 ),
-         QDateTime::currentDateTime().toString( )).toStdString();
-}
 
 class RestInterface::Impl
 {
@@ -85,11 +64,11 @@ public:
         auto& server = httpServer.get();
         server.handleGET( "tide/version", tide::Version::getSchema(),
                           &tide::Version::toJSON );
-        server.handleGET( indexPage );
         server.handlePUT( browseCmd );
         server.handlePUT( openCmd );
         server.handlePUT( loadCmd );
         server.handlePUT( saveCmd );
+        server.handlePUT( closeCmd );
         server.handlePUT( whiteboardCmd );
         server.handlePUT( screenshotCmd );
         server.handlePUT( exitCmd );
@@ -98,17 +77,23 @@ public:
     }
 
     RestServer httpServer;
-    StaticContent indexPage{ "tide", indexpage };
     RestCommand browseCmd{ "tide/browse" };
     RestCommand openCmd{ "tide/open" };
+    RestCommand closeCmd{ "tide/close" };
     RestCommand loadCmd{ "tide/load" };
     RestCommand saveCmd{ "tide/save" };
     RestCommand whiteboardCmd{ "tide/whiteboard", false };
     RestCommand screenshotCmd{ "tide/screenshot" };
     RestCommand exitCmd{ "tide/exit", false };
+
     JsonOptions options;
     JsonSize sizeProperty;
+
     std::unique_ptr<RestLogger> logContent;
+    std::unique_ptr<HtmlContent> htmlContent;
+    std::unique_ptr<RestController> sceneController;
+    std::unique_ptr<RestWindows> windowsContent;
+    std::unique_ptr<RestConfiguration> configurationContent;
 };
 
 RestInterface::RestInterface( const int port, OptionsPtr options,
@@ -144,6 +129,9 @@ RestInterface::RestInterface( const int port, OptionsPtr options,
 
     connect( &_impl->exitCmd, &RestCommand::received,
              this, &RestInterface::exit );
+
+    connect( &_impl->closeCmd, &RestCommand::received,
+             this, &RestInterface::close );
 }
 
 RestInterface::~RestInterface() {}
@@ -151,5 +139,22 @@ RestInterface::~RestInterface() {}
 void RestInterface::exposeStatistics( const LoggingUtility& logger ) const
 {
     _impl->logContent.reset( new RestLogger( logger ));
-    _impl->httpServer.get().handleGET( *(_impl->logContent.get( )));
+    _impl->httpServer.get().handleGET( *_impl->logContent );
+}
+
+void RestInterface::setupHtmlInterface( DisplayGroup& displayGroup,
+                                   const MasterConfiguration& config )
+{
+    _impl->htmlContent.reset( new HtmlContent( _impl->httpServer.get( )));
+
+    _impl->windowsContent.reset( new RestWindows( _impl->httpServer.get(),
+                                                  displayGroup ));
+
+    _impl->configurationContent.reset( new RestConfiguration( config ));
+
+    _impl->sceneController.reset( new RestController( _impl->httpServer.get(),
+                                                      displayGroup ));
+
+   _impl->httpServer.get().handleGET( *_impl->configurationContent );
+   _impl->httpServer.get().handleGET( *_impl->windowsContent );
 }

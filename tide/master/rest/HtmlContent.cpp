@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,87 +37,56 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef RESTINTERFACE_H
-#define RESTINTERFACE_H
+#include "HtmlContent.h"
 
-#include "types.h"
-#include "JsonSize.h"
-#include "RestLogger.h"
+#include <QFile>
+#include <QTextStream>
 
-#include <QObject>
-
-/**
- * Enables remote control of Tide through a REST API.
- *
- * It listens for http PUT requests on 'http://hostname:port/tide/\<command\>'
- * and emits the corresponding \<command\> signal on success.
- *
- * Example command:
- * curl -i -X PUT -d '{"uri": "image.png"}' http://localhost:8888/tide/open
- *
- * It also exposes a control html interface on 'http://hostname:port'.
- */
-class RestInterface : public QObject
+namespace
 {
-    Q_OBJECT
+std::string _readFile( const QString& uri )
+{
+    QFile file( uri );
+    file.open( QIODevice::ReadOnly | QIODevice::Text );
+    QTextStream in( &file );
+    return in.readAll().toStdString();
+}
+}
 
-public:
-    /**
-     * Construct a REST interface.
-     * @param port the port for listening to REST requests
-     * @param options the application's options to expose in the interface
-     * @param config the application's configuration
-     * @throw std::runtime_error if the port is already in use or a connection
-     *        issue occured.
-     */
-    RestInterface( int port, OptionsPtr options,
-                   const MasterConfiguration& config );
+HtmlContent::HtmlContent( zeroeq::http::Server& server )
+    : indexPage{ "/", _readFile( ":///html/index.html" ) }
+    , closeIcon { "img/close.svg", _readFile( ":///html/img/close.svg" ) }
+    , focusIcon { "img/focus.svg", _readFile( ":///html/img/focus.svg" ) }
+    , jquery { "js/jquery-3.1.1.min.js",
+               _readFile( ":///html/jquery-3.1.1.min.js" ) }
+    , jqueryUiStyles { "css/jquery-ui.css",
+                       _readFile( ":///html/jquery-ui.css" ) }
+    , jqueryUi { "js/jquery-ui.min.js",
+                 _readFile( ":///html/jquery-ui.min.js" ) }
+    , maximizeIcon { "img/maximize.svg",
+                     _readFile( ":///html/img/maximize.svg" ) }
+    , sweetalert { "js/sweetalert.min.js",
+                   _readFile( ":///html/sweetalert.min.js" ) }
+    , sweetalertStyles { "css/sweetalert.min.css",
+                         _readFile( ":///html/sweetalert.min.css" ) }
+    , tideJs { "js/tide.js", _readFile( ":///html/tide.js" ) }
+    , tideStyles{ "css/styles.css", _readFile( ":///html/styles.css" ) }
+    , tideVarsJs { "js/tideVars.js", _readFile( ":///html/tideVars.js" ) }
+    , underscore { "js/underscore-min.js",
+                   _readFile( ":///html/underscore-min.js" ) }
+{
+    server.handleGET( indexPage );
+    server.handleGET( closeIcon );
+    server.handleGET( focusIcon );
+    server.handleGET( jquery );
+    server.handleGET( jqueryUiStyles );
+    server.handleGET( jqueryUi );
+    server.handleGET( maximizeIcon );
+    server.handleGET( sweetalert );
+    server.handleGET( sweetalertStyles );
+    server.handleGET( tideJs );
+    server.handleGET( tideStyles );
+    server.handleGET( tideVarsJs );
+    server.handleGET( underscore );
+}
 
-    /** Out-of-line destructor. */
-    ~RestInterface();
-
-    /** Expose the statistics gathered by the given logging utility. */
-    void exposeStatistics( const LoggingUtility& logger ) const;
-
-    /**
-     * Set-up the HTML interface.
-     * @param displayGroup DisplayGroup exposed via interface
-     * @param config MasterConfiguration used to set-up the interface
-     */
-    void setupHtmlInterface( DisplayGroup& displayGroup,
-                             const MasterConfiguration& config );
-
-signals:
-    /** Open a content. */
-    void open( QString uri );
-
-    /** Load a session. */
-    void load( QString uri );
-
-    /** Save a session to the given file. */
-    void save( QString uri );
-
-    /** Clear all contents. */
-    void clear();
-
-    /** Open a whiteboard. */
-    void whiteboard();
-
-    /** Close a content. */
-    void close( QString uuid );
-
-    /** Browse a website. */
-    void browse( QString uri );
-
-    /** Take a screenshot. */
-    void screenshot( QString uri );
-
-    /** Exit the application. */
-    void exit();
-
-private:
-    class Impl;
-    std::unique_ptr<Impl> _impl;
-};
-
-#endif

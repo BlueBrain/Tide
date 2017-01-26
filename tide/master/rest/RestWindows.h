@@ -1,6 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,87 +37,42 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef RESTINTERFACE_H
-#define RESTINTERFACE_H
+#ifndef RESTWINDOWS_H
+#define RESTWINDOWS_H
 
-#include "types.h"
-#include "JsonSize.h"
-#include "RestLogger.h"
+#include <servus/serializable.h> // base class
+
+#include "RestServer.h"
+#include "scene/DisplayGroup.h"
 
 #include <QObject>
 
 /**
- * Enables remote control of Tide through a REST API.
- *
- * It listens for http PUT requests on 'http://hostname:port/tide/\<command\>'
- * and emits the corresponding \<command\> signal on success.
- *
- * Example command:
- * curl -i -X PUT -d '{"uri": "image.png"}' http://localhost:8888/tide/open
- *
- * It also exposes a control html interface on 'http://hostname:port'.
+ * Exposes display group content to ZeroEQ http server.
  */
-class RestInterface : public QObject
+class RestWindows : public QObject, public servus::Serializable
 {
-    Q_OBJECT
-
 public:
     /**
-     * Construct a REST interface.
-     * @param port the port for listening to REST requests
-     * @param options the application's options to expose in the interface
-     * @param config the application's configuration
-     * @throw std::runtime_error if the port is already in use or a connection
-     *        issue occured.
+     * Construct a JSON list of windows exposed by REST interface.
+     *
+     * @param server http server used to register content.
+     * @param displayGroup DisplayGroup to expose.
      */
-    RestInterface( int port, OptionsPtr options,
-                   const MasterConfiguration& config );
+    RestWindows( zeroeq::http::Server& server,
+                 const DisplayGroup& displayGroup );
 
-    /** Out-of-line destructor. */
-    ~RestInterface();
-
-    /** Expose the statistics gathered by the given logging utility. */
-    void exposeStatistics( const LoggingUtility& logger ) const;
-
-    /**
-     * Set-up the HTML interface.
-     * @param displayGroup DisplayGroup exposed via interface
-     * @param config MasterConfiguration used to set-up the interface
-     */
-    void setupHtmlInterface( DisplayGroup& displayGroup,
-                             const MasterConfiguration& config );
-
-signals:
-    /** Open a content. */
-    void open( QString uri );
-
-    /** Load a session. */
-    void load( QString uri );
-
-    /** Save a session to the given file. */
-    void save( QString uri );
-
-    /** Clear all contents. */
-    void clear();
-
-    /** Open a whiteboard. */
-    void whiteboard();
-
-    /** Close a content. */
-    void close( QString uuid );
-
-    /** Browse a website. */
-    void browse( QString uri );
-
-    /** Take a screenshot. */
-    void screenshot( QString uri );
-
-    /** Exit the application. */
-    void exit();
+    /** @return the string used as an endpoint by REST interface. */
+    std::string getTypeName() const final;
 
 private:
-    class Impl;
-    std::unique_ptr<Impl> _impl;
+    zeroeq::http::Server& _httpServer;
+    const DisplayGroup& _displayGroup;
+
+    std::string _toJSON() const final;
+
+    void _deregisterThumbnailUrl( ContentWindowPtr contentWindow );
+    void _registerThumbnailUrl( ContentWindowPtr contentWindow );
 };
 
 #endif

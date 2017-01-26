@@ -143,23 +143,31 @@ set(TIDEMASTER_INCLUDE_NAME tide/master)
 
 if(TIDE_ENABLE_REST_INTERFACE)
   list(APPEND TIDEMASTER_PUBLIC_HEADERS
+    rest/HtmlContent.h
     rest/JsonOptions.h
     rest/jsonschema.h
     rest/JsonSize.h
     rest/RestCommand.h
+    rest/RestConfiguration.h
+    rest/RestController.h
     rest/RestInterface.h
     rest/RestLogger.h
     rest/RestServer.h
+    rest/RestWindows.h
     rest/StaticContent.h
   )
   list(APPEND TIDEMASTER_SOURCES
+    rest/HtmlContent.cpp
     rest/JsonOptions.cpp
     rest/jsonschema.cpp
     rest/JsonSize.cpp
     rest/RestCommand.cpp
+    rest/RestConfiguration.cpp
+    rest/RestController.cpp
     rest/RestInterface.cpp
     rest/RestLogger.cpp
     rest/RestServer.cpp
+    rest/RestWindows.cpp
     rest/StaticContent.cpp
   )
   # Servus PUBLIC because servus::Serializable is a base class of public headers

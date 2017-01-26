@@ -3,6 +3,13 @@ Changelog {#changelog}
 
 # Release 1.3 (git master)
 
+* [114](https://github.com/BlueBrain/Tide/pull/114):
+  Tide can be now controlled via a web browser. The web interface provides the
+  following features:
+    - moving, resizing and closing windows
+    - focusing and making content fullscreen
+  This offers an alternative to the Master window, especially useful when the
+  application runs in headless mode.
 * [115](https://github.com/BlueBrain/Tide/pull/115):
   Improved command line parameters of all applications.
 
