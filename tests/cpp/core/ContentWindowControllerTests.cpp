@@ -282,7 +282,7 @@ BOOST_AUTO_TEST_CASE( testAspectRatioMinSize )
 
     window->setMode( ContentWindow::FULLSCREEN );
     BOOST_CHECK_EQUAL( controller.getMinSizeAspectRatioCorrect(),
-                       QSize( 400, 300 ));
+                       QSize( 1000, 750 ));
 
     window->setMode( ContentWindow::FOCUSED );
     BOOST_CHECK_EQUAL( controller.getMinSizeAspectRatioCorrect(),
