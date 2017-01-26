@@ -1,7 +1,7 @@
 Changelog {#changelog}
 ============
 
-# Release 1.3.0 (git master)
+# Release 1.3 (git master)
 
 * [114](https://github.com/BlueBrain/Tide/pull/114):
   Tide can be now controlled via a web browser. The web interface provides the
