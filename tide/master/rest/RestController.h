@@ -43,11 +43,11 @@
 #include "control/DisplayGroupController.h"
 #include "RestCommand.h"
 #include "scene/DisplayGroup.h"
-
 #include "types.h"
-#include <memory>
-#include <QObject>
+
 #include <zeroeq/http/server.h>
+
+#include <QObject>
 
 /**
  * Enable remote control of windows through a REST API
