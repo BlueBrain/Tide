@@ -55,16 +55,17 @@ class FileSystemQuery
 public:
     /**
      * @param httpServer used to expose the file system content
-     * @param config the application's configuration
+     * @param contentDirectory the application's content directory path
+     * @param contentType type of content in content directory
      */
     FileSystemQuery( zeroeq::http::Server& httpServer,
                      const QString& contentDirectory,
-                     const QString& contentType );
+                     const std::string& contentType );
 
 private:
     zeroeq::http::Server& _server;
     const QString _contentDirectory;
-    const QString _contentType;
+    const std::string _contentType;
     std::map<QString, FileSystemContent> _fsContentList;
 
     bool _handleDirectoryList( const std::string& string );

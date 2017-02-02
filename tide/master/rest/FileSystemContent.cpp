@@ -50,7 +50,7 @@
 
 FileSystemContent::FileSystemContent( const QString& path,
                                       const QString& contentDirectory,
-                                      const QString& contentType )
+                                      const std::string& contentType )
     : _path ( path )
     , _contentDirectory ( contentDirectory )
     , _contentType ( contentType )
@@ -60,11 +60,10 @@ FileSystemContent::FileSystemContent( const QString& path,
 std::string FileSystemContent::getTypeName() const
 {
     if( _path == "/" )
-        return "tide/"+_contentType.toStdString();
+        return "tide/"+_contentType;
     else
-        return "tide/"+_contentType.toStdString() + "/" +
-                QUrl::fromLocalFile( _path ).path( QUrl::FullyEncoded ).
-                toStdString();
+        return "tide/"+_contentType + "/" + QUrl::fromLocalFile( _path ).
+                path( QUrl::FullyEncoded ).toStdString();
 }
 
 std::string FileSystemContent::_toJSON() const

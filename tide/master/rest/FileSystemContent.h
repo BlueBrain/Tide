@@ -54,10 +54,11 @@ class FileSystemContent : public servus::Serializable
 public:
     /**
      * @param path used to query file system and register an endpoint
-     * @param config the application configuration
+     * @param contentDirectory the application's content directory path
+     * @param contentType type of content in content directory
      */
     FileSystemContent( const QString& path, const QString& contentDirectory,
-                       const QString& contentType );
+                       const std::string& contentType );
 
     /** @return the string used as an endpoint by REST interface. */
     std::string getTypeName() const final;
@@ -65,7 +66,7 @@ public:
 private:
     const QString _path;
     const QString _contentDirectory;
-    const QString _contentType;
+    const std::string _contentType;
 
     std::string _toJSON()  const final;
 };

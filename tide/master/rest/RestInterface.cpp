@@ -177,12 +177,12 @@ void RestInterface::setupHtmlInterface( DisplayGroup& displayGroup,
                                                       displayGroup ));
 
     _impl->sessionsDirQuery.reset( new FileSystemQuery( _impl->httpServer.get(),
-                                                       _config.getSessionsDir(),
+                                                        _config.getSessionsDir(),
                                                         "sessions" ));
 
     _impl->contentDirQuery.reset( new FileSystemQuery( _impl->httpServer.get(),
                                                        _config.getContentDir(),
-                                                        "files" ));
+                                                       "files" ));
 
    _impl->httpServer.get().handleGET( *_impl->configurationContent );
    _impl->httpServer.get().handleGET( *_impl->windowsContent );

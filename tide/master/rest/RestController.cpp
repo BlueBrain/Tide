@@ -48,7 +48,7 @@
 
 namespace
 {
-QJsonObject _parseJSON( const std::string& data )
+QJsonObject _toJSONObject( const std::string& data )
 {
     const auto input = QByteArray::fromRawData( data.c_str(), data.size( ));
     const auto doc = QJsonDocument::fromJson( input );
@@ -139,7 +139,7 @@ bool RestController::_handleExitFullScreen()
 
 bool RestController::_handleResizeWindow( const std::string& payload )
 {
-    const auto obj = _parseJSON( payload );
+    const auto obj = _toJSONObject( payload );
     if( obj.empty( ))
         return false;
     const auto windowSize = QSizeF( obj["w"].toDouble(), obj["h"].toDouble( ));
@@ -156,7 +156,7 @@ bool RestController::_handleResizeWindow( const std::string& payload )
 
 bool RestController::_handleMoveWindow( const std::string& payload )
 {
-    const auto obj = _parseJSON( payload );
+    const auto obj = _toJSONObject( payload );
     if( obj.empty( ))
         return false;
 

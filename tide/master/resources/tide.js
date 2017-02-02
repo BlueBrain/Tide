@@ -5,7 +5,6 @@ var focusIcon;
 var fullscreen;
 var fullscreenIcon;
 var timer;
-var sessionDir;
 var sessionFiles = [];
 var wallWidth;
 var wallHeight;
@@ -86,10 +85,6 @@ function getFileSystemContent(path) {
 
       });
       $('#fsMenu').on('nodeSelected', function (event, data) {
-        // PARENT FOLDER
-        if (data.text == "..") {
-          getFileSystemContent(data.path)
-        }
         // CURRENT FOLDER - enable option to open all content only if it contains at least a file
         if (data.currentDir && filesCount > 0) {
           if (filesCount > 10) {
@@ -116,9 +111,13 @@ function getFileSystemContent(path) {
             $('#fsMenu').treeview('toggleNodeSelected', [data.nodeId, {silent: true}]);
           }
         }
-        // FOLDER BELOW - query for it content and update the view
-        else if (data.dir)
-          getFileSystemContent(data.path);
+        // FOLDERS - query for it content and update the view
+        else if (data.dir) {
+          if (data.path == ".")
+            getFileSystemContent("/");
+          else
+            getFileSystemContent(data.path);
+        }
         // SESSION
         else if (data.session) {
           requestPUT("load", JSON.stringify({"uri": data.text}), updateWall);
@@ -462,7 +461,6 @@ function init() {
       "<a href=\"https://github.com/BlueBrain/Tide/commit/" + config["revision"] + "\">" + config["revision"],
       " </a>", " running on ", config["hostname"], " since ", config["startTime"]);
     getFileSystemContent("/");
-    sessionDir = config["sessionDir"].replace(config["contentDir"]+"/","");
     getSessionFolderContent();
     updateWall();
   };

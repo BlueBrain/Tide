@@ -66,13 +66,13 @@ QString _parseJson( const std::string& data )
 
 FileSystemQuery::FileSystemQuery( zeroeq::http::Server& server,
                                   const QString& contentDirectory,
-                                  const QString& contentType )
+                                  const std::string& contentType )
     : _server ( server )
     , _contentDirectory ( contentDirectory )
     , _contentType ( contentType )
 
 {
-    _server.handlePUT( "tide/"+_contentType.toStdString(),
+    _server.handlePUT( "tide/"+_contentType,
                        [this]( const std::string& received )
                        { return _handleDirectoryList( received ); } );
 
@@ -87,7 +87,7 @@ bool FileSystemQuery::_handleDirectoryList( const std::string& payload )
     const QString fullpath = _contentDirectory + "/" + path ;
 
     QDir absolutePath ( fullpath );
-    if( !QString( absolutePath.canonicalPath( )).contains( _contentDirectory ))
+    if( ! absolutePath.canonicalPath( ).startsWith( _contentDirectory ))
         return false;
 
 
