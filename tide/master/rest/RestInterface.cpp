@@ -92,7 +92,8 @@ public:
     JsonOptions options;
     JsonSize sizeProperty;
 
-    std::unique_ptr<FileSystemQuery> fileSystemQuery;
+    std::unique_ptr<FileSystemQuery> contentDirQuery;
+    std::unique_ptr<FileSystemQuery> sessionsDirQuery;
     std::unique_ptr<RestLogger> logContent;
     std::unique_ptr<HtmlContent> htmlContent;
     std::unique_ptr<RestController> sceneController;
@@ -175,8 +176,13 @@ void RestInterface::setupHtmlInterface( DisplayGroup& displayGroup,
     _impl->sceneController.reset( new RestController( _impl->httpServer.get(),
                                                       displayGroup ));
 
-    _impl->fileSystemQuery.reset( new FileSystemQuery( _impl->httpServer.get(),
-                                   config ));
+    _impl->sessionsDirQuery.reset( new FileSystemQuery( _impl->httpServer.get(),
+                                                       _config.getSessionsDir(),
+                                                        "sessions" ));
+
+    _impl->contentDirQuery.reset( new FileSystemQuery( _impl->httpServer.get(),
+                                                       _config.getContentDir(),
+                                                        "files" ));
 
    _impl->httpServer.get().handleGET( *_impl->configurationContent );
    _impl->httpServer.get().handleGET( *_impl->windowsContent );

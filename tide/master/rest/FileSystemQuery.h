@@ -58,11 +58,13 @@ public:
      * @param config the application's configuration
      */
     FileSystemQuery( zeroeq::http::Server& httpServer,
-                     const MasterConfiguration& config );
+                     const QString& contentDirectory,
+                     const QString& contentType );
 
 private:
     zeroeq::http::Server& _server;
-    const MasterConfiguration& _config;
+    const QString _contentDirectory;
+    const QString _contentType;
     std::map<QString, FileSystemContent> _fsContentList;
 
     bool _handleDirectoryList( const std::string& string );

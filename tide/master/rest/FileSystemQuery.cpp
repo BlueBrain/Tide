@@ -65,12 +65,17 @@ QString _parseJson( const std::string& data )
 }
 
 FileSystemQuery::FileSystemQuery( zeroeq::http::Server& server,
-                                  const MasterConfiguration& config )
+                                  const QString& contentDirectory,
+                                  const QString& contentType )
     : _server ( server )
-    ,_config ( config )
+    , _contentDirectory ( contentDirectory )
+    , _contentType ( contentType )
+
 {
-    _server.handlePUT( "tide/ls", [this]( const std::string& received )
-    { return _handleDirectoryList( received ); } );
+    _server.handlePUT( "tide/"+_contentType.toStdString(),
+                       [this]( const std::string& received )
+                       { return _handleDirectoryList( received ); } );
+
 }
 
 bool FileSystemQuery::_handleDirectoryList( const std::string& payload )
@@ -79,23 +84,22 @@ bool FileSystemQuery::_handleDirectoryList( const std::string& payload )
     if( path.isEmpty( ))
         return false;
 
-    const QString& configDir = _config.getContentDir();
-    const QString& sessionDir = _config.getSessionsDir();
-    const QString fullpath = configDir + "/" + path ;
+    const QString fullpath = _contentDirectory + "/" + path ;
 
-    if( !( fullpath.startsWith( configDir ) ||
-           fullpath.startsWith( sessionDir )))
-    {
+    QDir absolutePath ( fullpath );
+    if( !QString( absolutePath.canonicalPath( )).contains( _contentDirectory ))
         return false;
-    }
 
-    if( QDir( fullpath ).exists( ))
+
+    if( absolutePath.exists( ))
     {
         if( !_fsContentList.count( path ))
         {
             _fsContentList.emplace( std::piecewise_construct,
                                     std::forward_as_tuple( path ),
-                                    std::forward_as_tuple( path, _config ));
+                                    std::forward_as_tuple( path,
+                                                           _contentDirectory,
+                                                           _contentType ));
             _server.handleGET( _fsContentList.at( path ));
         }
         return true;

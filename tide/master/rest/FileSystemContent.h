@@ -56,14 +56,17 @@ public:
      * @param path used to query file system and register an endpoint
      * @param config the application configuration
      */
-    FileSystemContent( const QString& path, const MasterConfiguration& config );
+    FileSystemContent( const QString& path, const QString& contentDirectory,
+                       const QString& contentType );
 
     /** @return the string used as an endpoint by REST interface. */
     std::string getTypeName() const final;
 
 private:
     const QString _path;
-    const MasterConfiguration& _config;
+    const QString _contentDirectory;
+    const QString _contentType;
+
     std::string _toJSON()  const final;
 };
 #endif

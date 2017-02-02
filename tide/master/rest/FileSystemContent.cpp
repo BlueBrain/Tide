@@ -49,27 +49,30 @@
 #include <QUrl>
 
 FileSystemContent::FileSystemContent( const QString& path,
-                                      const MasterConfiguration& config )
+                                      const QString& contentDirectory,
+                                      const QString& contentType )
     : _path ( path )
-    , _config( config )
+    , _contentDirectory ( contentDirectory )
+    , _contentType ( contentType )
 {
 }
 
 std::string FileSystemContent::getTypeName() const
 {
     if( _path == "/" )
-        return "tide/ls";
+        return "tide/"+_contentType.toStdString();
     else
-        return "tide/ls/" + QUrl::fromLocalFile( _path )
-                .path( QUrl::FullyEncoded ).toStdString();
+        return "tide/"+_contentType.toStdString() + "/" +
+                QUrl::fromLocalFile( _path ).path( QUrl::FullyEncoded ).
+                toStdString();
 }
 
 std::string FileSystemContent::_toJSON() const
 {
-    const QDir directory( _config.getContentDir() + "/" + _path );
+    const QDir directory( _contentDirectory + "/" + _path );
     const QFileInfoList content = directory.entryInfoList( QDir::AllEntries,
                                                            QDir::DirsFirst );
-    const QDir contentDir( _config.getContentDir( ));
+    const QDir contentDir( _contentDirectory );
 
     QJsonArray arr;
     for( const auto& file: content )

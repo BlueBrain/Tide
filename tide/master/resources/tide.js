@@ -39,10 +39,10 @@ function bootstrapMenus() {
 }
 
 function getFileSystemContent(path) {
-  requestPUT("ls", JSON.stringify({"dir": path}));
+  requestPUT("files", JSON.stringify({"dir": path}));
   window.setTimeout(function () {
     var xhr = new XMLHttpRequest();
-    var url = (path !== "/") ? restUrl + "ls/" + encodeURI(path) : restUrl + "ls";
+    var url = (path !== "/") ? restUrl + "files/" + encodeURI(path) : restUrl + "files";
     var files = [];
     xhr.open("GET", url, true);
     xhr.overrideMimeType("application/json");
@@ -143,12 +143,11 @@ function getFileSystemContent(path) {
 
 function getSessionFolderContent() {
 
-  var url = restUrl + "ls/" + sessionDir;
-  requestPUT("ls", JSON.stringify({"dir": sessionDir}));
+  var url = restUrl + "sessions";
+  requestPUT("sessions", JSON.stringify({"dir": "/"}));
   window.setTimeout(function ()
   {
     var xhr = new XMLHttpRequest();
-    console.log(url);
     var data;
     sessionFiles = [];
     xhr.open("GET", encodeURI(url), true);
