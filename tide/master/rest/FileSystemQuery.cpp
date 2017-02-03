@@ -40,6 +40,7 @@
 #include "FileSystemQuery.h"
 
 #include "log.h"
+#include "scene/ContentFactory.h"
 
 #include <QDir>
 #include <QJsonArray>
@@ -50,6 +51,7 @@
 
 namespace
 {
+
 QString _parseJson( const std::string& data )
 {
     const QByteArray input = QByteArray::fromRawData( data.c_str(),
@@ -62,18 +64,48 @@ QString _parseJson( const std::string& data )
     }
     return doc.object()["dir"].toString();
 }
+
+const auto sessionsFilter = QStringList{ "*.dcx" };
+
 }
 
 FileSystemQuery::FileSystemQuery( zeroeq::http::Server& server,
                                   const QString& contentDirectory,
-                                  const std::string& contentType )
+                                  const Type contentType )
     : _server( server )
     , _contentDirectory( contentDirectory )
     , _contentType( contentType )
 {
-    _server.handlePUT( "tide/" + _contentType,
-                       [this]( const std::string& received )
-                       { return _handleDirectoryList( received ); } );
+    _server.handlePUT( _getEndpoint(), [this]( const std::string& received )
+    {
+        return _handleDirectoryList( received );
+    });
+}
+
+std::string FileSystemQuery::_getEndpoint() const
+{
+    switch( _contentType )
+    {
+    case Type::FILES:
+        return "tide/files";
+    case Type::SESSIONS:
+        return "tide/sessions";
+    default:
+        throw std::logic_error( "no such type" );
+    };
+}
+
+const QStringList& FileSystemQuery::_getFilters() const
+{
+    switch( _contentType )
+    {
+    case Type::FILES:
+        return ContentFactory::getSupportedFilesFilter();
+    case Type::SESSIONS:
+        return sessionsFilter;
+    default:
+        throw std::logic_error( "no such type" );
+    };
 }
 
 bool FileSystemQuery::_handleDirectoryList( const std::string& payload )
@@ -82,7 +114,7 @@ bool FileSystemQuery::_handleDirectoryList( const std::string& payload )
     if( path.isEmpty( ))
         return false;
 
-    const QString fullpath = _contentDirectory + "/" + path ;
+    const QString fullpath = _contentDirectory + "/" + path;
 
     const QDir absolutePath( fullpath );
     if( !absolutePath.canonicalPath().startsWith( _contentDirectory ))
@@ -94,9 +126,10 @@ bool FileSystemQuery::_handleDirectoryList( const std::string& payload )
         {
             _fsContentList.emplace( std::piecewise_construct,
                                     std::forward_as_tuple( path ),
-                                    std::forward_as_tuple( path,
+                                    std::forward_as_tuple( _getEndpoint(),
                                                            _contentDirectory,
-                                                           _contentType ));
+                                                           path,
+                                                           _getFilters( )));
             _server.handleGET( _fsContentList.at( path ));
         }
         return true;

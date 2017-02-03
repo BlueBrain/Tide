@@ -176,13 +176,15 @@ void RestInterface::setupHtmlInterface( DisplayGroup& displayGroup,
     _impl->sceneController.reset( new RestController( _impl->httpServer.get(),
                                                       displayGroup ));
 
-    _impl->sessionsDirQuery.reset( new FileSystemQuery( _impl->httpServer.get(),
-                                                        _config.getSessionsDir(),
-                                                        "sessions" ));
+    _impl->sessionsDirQuery.reset(
+                new FileSystemQuery( _impl->httpServer.get(),
+                                     _config.getSessionsDir(),
+                                     FileSystemQuery::Type::SESSIONS ));
 
-    _impl->contentDirQuery.reset( new FileSystemQuery( _impl->httpServer.get(),
-                                                       _config.getContentDir(),
-                                                       "files" ));
+    _impl->contentDirQuery.reset(
+                new FileSystemQuery( _impl->httpServer.get(),
+                                     _config.getContentDir(),
+                                     FileSystemQuery::Type::FILES ));
 
    _impl->httpServer.get().handleGET( *_impl->configurationContent );
    _impl->httpServer.get().handleGET( *_impl->windowsContent );

@@ -48,37 +48,40 @@
 #include <QJsonObject>
 #include <QUrl>
 
-FileSystemContent::FileSystemContent( const QString& path,
-                                      const QString& contentDirectory,
-                                      const std::string& contentType )
-    : _path( path )
-    , _contentDirectory( contentDirectory )
-    , _contentType( contentType )
+FileSystemContent::FileSystemContent( const std::string& rootEndpoint,
+                                      const QString& rootDirectory,
+                                      const QString& relativePath,
+                                      const QStringList& filters )
+    : _rootEndpoint( rootEndpoint )
+    , _rootDirectory( rootDirectory )
+    , _relativePath( relativePath )
+    , _contentFilters( filters )
 {
 }
 
 std::string FileSystemContent::getTypeName() const
 {
-    if( _path == "/" )
-        return "tide/"+_contentType;
-    else
-        return "tide/"+_contentType + "/" + QUrl::fromLocalFile( _path ).
-                path( QUrl::FullyEncoded ).toStdString();
+    if( _relativePath == "/" )
+        return _rootEndpoint;
+
+    const auto url = QUrl::fromLocalFile( _relativePath );
+    return _rootEndpoint + "/" + url.path( QUrl::FullyEncoded ).toStdString();
 }
 
 std::string FileSystemContent::_toJSON() const
 {
-    const QDir directory( _contentDirectory + "/" + _path );
-    const QFileInfoList content = directory.entryInfoList( QDir::AllEntries,
-                                                           QDir::DirsFirst );
-    const QDir contentDir( _contentDirectory );
+    QDir directory( _rootDirectory + "/" + _relativePath );
+    directory.setNameFilters( _contentFilters );
+    const auto filters = QDir::AllEntries | QDir::AllDirs;
+    const auto files = directory.entryInfoList( filters, QDir::DirsFirst );
 
     QJsonArray arr;
-    for( const auto& file: content )
+    const QDir baseDir( _rootDirectory );
+    for( const auto& file : files )
     {
         QJsonObject item;
         item["name"] = file.fileName();
-        item["path"] = contentDir.relativeFilePath( file.absoluteFilePath( ));
+        item["path"] = baseDir.relativeFilePath( file.absoluteFilePath( ));
         item["dir"] = file.isDir();
         item["file"] = file.isFile();
         arr.append( item );

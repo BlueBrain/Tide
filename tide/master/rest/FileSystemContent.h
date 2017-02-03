@@ -41,10 +41,9 @@
 #define FILESYSTEMCONTENT_H
 
 #include <servus/serializable.h> // base class
-
-#include "MasterConfiguration.h"
 #include <zeroeq/http/server.h>
 
+#include <QStringList>
 
 /**
  * Exposes file system content to ZeroEQ http server.
@@ -53,20 +52,26 @@ class FileSystemContent : public servus::Serializable
 {
 public:
     /**
-     * @param path used to query file system and register an endpoint
-     * @param contentDirectory the application's content directory path
-     * @param contentType type of content in content directory
+     * Create a file system content for a folder.
+     *
+     * @param rootEndpoint the prefix for the endpoint
+     * @param rootDirectory the content directory path
+     * @param relativePath used to query file system and construct the endpoint
+     * @param filters a list of file name filters to apply (see QDir)
      */
-    FileSystemContent( const QString& path, const QString& contentDirectory,
-                       const std::string& contentType );
+    FileSystemContent( const std::string& rootEndpoint,
+                       const QString& rootDirectory,
+                       const QString& relativePath,
+                       const QStringList& filters );
 
     /** @return the string used as an endpoint by REST interface. */
     std::string getTypeName() const final;
 
 private:
-    const QString _path;
-    const QString _contentDirectory;
-    const std::string _contentType;
+    const std::string _rootEndpoint;
+    const QString _rootDirectory;
+    const QString _relativePath;
+    const QStringList& _contentFilters;
 
     std::string _toJSON()  const final;
 };

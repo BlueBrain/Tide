@@ -54,20 +54,34 @@ class FileSystemQuery
 {
 public:
     /**
+     * The different types of files that can be exposed.
+     */
+    enum class Type
+    {
+        FILES,
+        SESSIONS
+    };
+
+    /**
+     * Create and register a file system listing.
+     *
      * @param httpServer used to expose the file system content
-     * @param contentDirectory the application's content directory path
-     * @param contentType type of content in content directory
+     * @param contentDirectory the content directory path
+     * @param contentType type of content to expose
      */
     FileSystemQuery( zeroeq::http::Server& httpServer,
                      const QString& contentDirectory,
-                     const std::string& contentType );
+                     Type contentType );
 
 private:
     zeroeq::http::Server& _server;
     const QString _contentDirectory;
-    const std::string _contentType;
+    const Type _contentType;
     std::map<QString, FileSystemContent> _fsContentList;
 
+    std::string _getEndpoint() const;
+    const QStringList& _getFilters() const;
     bool _handleDirectoryList( const std::string& string );
 };
+
 #endif
