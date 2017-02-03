@@ -51,9 +51,9 @@
 FileSystemContent::FileSystemContent( const QString& path,
                                       const QString& contentDirectory,
                                       const std::string& contentType )
-    : _path ( path )
-    , _contentDirectory ( contentDirectory )
-    , _contentType ( contentType )
+    : _path( path )
+    , _contentDirectory( contentDirectory )
+    , _contentType( contentType )
 {
 }
 
