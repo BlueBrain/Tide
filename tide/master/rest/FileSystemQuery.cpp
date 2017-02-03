@@ -67,15 +67,13 @@ QString _parseJson( const std::string& data )
 FileSystemQuery::FileSystemQuery( zeroeq::http::Server& server,
                                   const QString& contentDirectory,
                                   const std::string& contentType )
-    : _server ( server )
-    , _contentDirectory ( contentDirectory )
-    , _contentType ( contentType )
-
+    : _server( server )
+    , _contentDirectory( contentDirectory )
+    , _contentType( contentType )
 {
-    _server.handlePUT( "tide/"+_contentType,
+    _server.handlePUT( "tide/" + _contentType,
                        [this]( const std::string& received )
                        { return _handleDirectoryList( received ); } );
-
 }
 
 bool FileSystemQuery::_handleDirectoryList( const std::string& payload )
@@ -86,10 +84,9 @@ bool FileSystemQuery::_handleDirectoryList( const std::string& payload )
 
     const QString fullpath = _contentDirectory + "/" + path ;
 
-    QDir absolutePath ( fullpath );
-    if( ! absolutePath.canonicalPath( ).startsWith( _contentDirectory ))
+    const QDir absolutePath( fullpath );
+    if( !absolutePath.canonicalPath().startsWith( _contentDirectory ))
         return false;
-
 
     if( absolutePath.exists( ))
     {
@@ -107,7 +104,7 @@ bool FileSystemQuery::_handleDirectoryList( const std::string& payload )
     else
     {
         auto kv =_fsContentList.find( path );
-        if (kv != _fsContentList.end( ))
+        if( kv != _fsContentList.end( ))
         {
             _server.remove( kv->second );
             _fsContentList.erase( kv );
