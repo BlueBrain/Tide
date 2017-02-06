@@ -168,7 +168,7 @@ function getSessionFolderContent() {
           window.setTimeout(function ()
           {
             $('#sessionTree').treeview('toggleNodeSelected', [data.nodeId, {silent: true}]);
-            updateWall()
+            updateWall();
           }, sessionLoadingTimeout)
         }
       })
@@ -207,8 +207,11 @@ function saveSession() {
         confirmButtonText: "OK",
         confirmButtonColor: "#014f86"
       }, function () {
-        getSessionFolderContent();
         $('#sessionNameInput').val("");
+        window.setTimeout(function ()
+        {
+          getSessionFolderContent();
+        }, sessionLoadingTimeout)
       });
     });
 }
