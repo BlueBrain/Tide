@@ -37,62 +37,51 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "HtmlContent.h"
+#ifndef FILESYSTEMQUERY_H
+#define FILESYSTEMQUERY_H
 
-#include <QFile>
-#include <QTextStream>
+#include "FileSystemContent.h"
+#include "MasterConfiguration.h"
 
-namespace
+#include <zeroeq/http/server.h>
+
+#include <map>
+
+/**
+ * Handles requests for listing a file system.
+ */
+class FileSystemQuery
 {
-std::string _readFile( const QString& uri )
-{
-    QFile file( uri );
-    file.open( QIODevice::ReadOnly | QIODevice::Text );
-    QTextStream in( &file );
-    return in.readAll().toStdString();
-}
-}
+public:
+    /**
+     * The different types of files that can be exposed.
+     */
+    enum class Type
+    {
+        FILES,
+        SESSIONS
+    };
 
-HtmlContent::HtmlContent( zeroeq::http::Server& server )
-    : indexPage{ "/", _readFile( ":///html/index.html" ) }
-    , bootstrapStyles{ "css/bootstrap.css",
-                      _readFile( ":///html/bootstrap.min.css" ) }
-    , bootstrapTree{ "js/bootstrap-treeview.min.js",
-                      _readFile( ":///html/bootstrap-treeview.min.js" ) }
-    , closeIcon { "img/close.svg", _readFile( ":///html/img/close.svg" ) }
-    , focusIcon { "img/focus.svg", _readFile( ":///html/img/focus.svg" ) }
-    , jquery { "js/jquery-3.1.1.min.js",
-               _readFile( ":///html/jquery-3.1.1.min.js" ) }
-    , jqueryUiStyles { "css/jquery-ui.css",
-                       _readFile( ":///html/jquery-ui.css" ) }
-    , jqueryUi { "js/jquery-ui.min.js",
-                 _readFile( ":///html/jquery-ui.min.js" ) }
-    , maximizeIcon { "img/maximize.svg",
-                     _readFile( ":///html/img/maximize.svg" ) }
-    , sweetalert { "js/sweetalert.min.js",
-                   _readFile( ":///html/sweetalert.min.js" ) }
-    , sweetalertStyles { "css/sweetalert.min.css",
-                         _readFile( ":///html/sweetalert.min.css" ) }
-    , tideJs { "js/tide.js", _readFile( ":///html/tide.js" ) }
-    , tideStyles{ "css/styles.css", _readFile( ":///html/styles.css" ) }
-    , tideVarsJs { "js/tideVars.js", _readFile( ":///html/tideVars.js" ) }
-    , underscore { "js/underscore-min.js",
-                   _readFile( ":///html/underscore-min.js" ) }
-{
-    server.handleGET( indexPage );
-    server.handleGET( closeIcon );
-    server.handleGET( focusIcon );
-    server.handleGET( bootstrapStyles );
-    server.handleGET( bootstrapTree );
-    server.handleGET( jquery );
-    server.handleGET( jqueryUiStyles );
-    server.handleGET( jqueryUi );
-    server.handleGET( maximizeIcon );
-    server.handleGET( sweetalert );
-    server.handleGET( sweetalertStyles );
-    server.handleGET( tideJs );
-    server.handleGET( tideStyles );
-    server.handleGET( tideVarsJs );
-    server.handleGET( underscore );
-}
+    /**
+     * Create and register a file system listing.
+     *
+     * @param httpServer used to expose the file system content
+     * @param contentDirectory the content directory path
+     * @param contentType type of content to expose
+     */
+    FileSystemQuery( zeroeq::http::Server& httpServer,
+                     const QString& contentDirectory,
+                     Type contentType );
 
+private:
+    zeroeq::http::Server& _server;
+    const QString _contentDirectory;
+    const Type _contentType;
+    std::map<QString, FileSystemContent> _fsContentList;
+
+    std::string _getEndpoint() const;
+    const QStringList& _getFilters() const;
+    bool _handleDirectoryList( const std::string& string );
+};
+
+#endif

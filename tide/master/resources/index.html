@@ -4,18 +4,37 @@
   <title>Tide web interface</title>
   <script src="js/jquery-3.1.1.min.js"></script>
   <script src="js/jquery-ui.min.js"></script>
+  <script src="js/bootstrap-treeview.min.js"></script>
   <script src="js/sweetalert.min.js"></script>
-  <script src="js/tide.js"></script>
   <script src="js/underscore-min.js"></script>
+  <script src="js/tide.js"></script>
   <script src="js/tideVars.js"></script>
+
   <link rel="stylesheet" href="css/sweetalert.min.css">
   <link rel="stylesheet" href="css/jquery-ui.css">
+  <link rel="stylesheet" href="css/bootstrap.css">
   <link rel="stylesheet" href="css/styles.css">
   <meta charset="utf-8"/>
 </head>
+
 <body>
+
+<div id="fsMenu" class="topMenu"></div>
+
+<div id="sessionMenu" class="topMenu" >
+  <div style="padding: 10px; background-color: white">
+    <input id="sessionNameInput" type="text" style="width: 60%; height: 25px; margin: 0px " placeholder="session name">
+    <button type="submit" onclick="saveSession()" style=" margin: 0px; margin-left: 5%; width: 30%">Save session</button>
+  </div>
+  <div id="sessionTree" style="position: relative; background-color: transparent; width:100%;
+			 overflow-y:auto">
+  </div>
+</div>
+
 <div id="wallWrapper">
   <div id="buttonContainer" >
+    <button id="addButton">OPEN</button>
+    <button id="sessionButton">SESSION</button>
     <button id="refreshButton" onclick="updateWall()">REFRESH</button>
     <button id="closeAllButton">CLOSE ALL</button>
     <button id="exitFullscreenButton" >EXIT FULLSCREEN</button>
@@ -25,5 +44,7 @@
     <div id="wallOutline"></div>
   </div>
 </div>
+
+
 </body>
 </html>

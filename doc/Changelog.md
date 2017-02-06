@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.3 (git master)
 
+* [117](https://github.com/BlueBrain/Tide/pull/117):
+  User can now open content and load/save sessions via the web interface.
 * [114](https://github.com/BlueBrain/Tide/pull/114):
   Tide can be now controlled via a web browser. The web interface provides the
   following features:

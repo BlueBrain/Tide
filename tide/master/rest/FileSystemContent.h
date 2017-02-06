@@ -37,62 +37,42 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "HtmlContent.h"
+#ifndef FILESYSTEMCONTENT_H
+#define FILESYSTEMCONTENT_H
 
-#include <QFile>
-#include <QTextStream>
+#include <servus/serializable.h> // base class
+#include <zeroeq/http/server.h>
 
-namespace
+#include <QStringList>
+
+/**
+ * Exposes file system content to ZeroEQ http server.
+ */
+class FileSystemContent : public servus::Serializable
 {
-std::string _readFile( const QString& uri )
-{
-    QFile file( uri );
-    file.open( QIODevice::ReadOnly | QIODevice::Text );
-    QTextStream in( &file );
-    return in.readAll().toStdString();
-}
-}
+public:
+    /**
+     * Create a file system content for a folder.
+     *
+     * @param rootEndpoint the prefix for the endpoint
+     * @param rootDirectory the content directory path
+     * @param relativePath used to query file system and construct the endpoint
+     * @param filters a list of file name filters to apply (see QDir)
+     */
+    FileSystemContent( const std::string& rootEndpoint,
+                       const QString& rootDirectory,
+                       const QString& relativePath,
+                       const QStringList& filters );
 
-HtmlContent::HtmlContent( zeroeq::http::Server& server )
-    : indexPage{ "/", _readFile( ":///html/index.html" ) }
-    , bootstrapStyles{ "css/bootstrap.css",
-                      _readFile( ":///html/bootstrap.min.css" ) }
-    , bootstrapTree{ "js/bootstrap-treeview.min.js",
-                      _readFile( ":///html/bootstrap-treeview.min.js" ) }
-    , closeIcon { "img/close.svg", _readFile( ":///html/img/close.svg" ) }
-    , focusIcon { "img/focus.svg", _readFile( ":///html/img/focus.svg" ) }
-    , jquery { "js/jquery-3.1.1.min.js",
-               _readFile( ":///html/jquery-3.1.1.min.js" ) }
-    , jqueryUiStyles { "css/jquery-ui.css",
-                       _readFile( ":///html/jquery-ui.css" ) }
-    , jqueryUi { "js/jquery-ui.min.js",
-                 _readFile( ":///html/jquery-ui.min.js" ) }
-    , maximizeIcon { "img/maximize.svg",
-                     _readFile( ":///html/img/maximize.svg" ) }
-    , sweetalert { "js/sweetalert.min.js",
-                   _readFile( ":///html/sweetalert.min.js" ) }
-    , sweetalertStyles { "css/sweetalert.min.css",
-                         _readFile( ":///html/sweetalert.min.css" ) }
-    , tideJs { "js/tide.js", _readFile( ":///html/tide.js" ) }
-    , tideStyles{ "css/styles.css", _readFile( ":///html/styles.css" ) }
-    , tideVarsJs { "js/tideVars.js", _readFile( ":///html/tideVars.js" ) }
-    , underscore { "js/underscore-min.js",
-                   _readFile( ":///html/underscore-min.js" ) }
-{
-    server.handleGET( indexPage );
-    server.handleGET( closeIcon );
-    server.handleGET( focusIcon );
-    server.handleGET( bootstrapStyles );
-    server.handleGET( bootstrapTree );
-    server.handleGET( jquery );
-    server.handleGET( jqueryUiStyles );
-    server.handleGET( jqueryUi );
-    server.handleGET( maximizeIcon );
-    server.handleGET( sweetalert );
-    server.handleGET( sweetalertStyles );
-    server.handleGET( tideJs );
-    server.handleGET( tideStyles );
-    server.handleGET( tideVarsJs );
-    server.handleGET( underscore );
-}
+    /** @return the string used as an endpoint by REST interface. */
+    std::string getTypeName() const final;
 
+private:
+    const std::string _rootEndpoint;
+    const QString _rootDirectory;
+    const QString _relativePath;
+    const QStringList& _contentFilters;
+
+    std::string _toJSON()  const final;
+};
+#endif

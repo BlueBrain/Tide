@@ -5,6 +5,7 @@ var focusIcon;
 var fullscreen;
 var fullscreenIcon;
 var timer;
+var sessionFiles = [];
 var wallWidth;
 var wallHeight;
 var windowList = [];
@@ -13,6 +14,207 @@ var zoomScale;
 window.onresize = setScale;
 
 $(init);
+
+function bootstrapMenus() {
+
+  $("#addButton").click(function (e) {
+    $('#sessionMenu').hide("puff", 200);
+    $('#fsMenu').css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed)
+  });
+
+
+  $("#sessionButton").click(function (e) {
+    $('#sessionMenu').css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed);
+    $('#fsMenu').hide("puff", showEffectSpeed)
+
+  });
+  $("#sessionMenu").mouseleave(function () {
+    $('#sessionMenu').hide("puff", showEffectSpeed)
+  });
+
+  $("#fsMenu").mouseleave(function () {
+    $('#fsMenu').hide("puff", showEffectSpeed)
+  });
+}
+
+function getFileSystemContent(path) {
+  requestPUT("files", JSON.stringify({"dir": path}));
+  window.setTimeout(function () {
+    var xhr = new XMLHttpRequest();
+    var url = (path !== "/") ? restUrl + "files/" + encodeURI(path) : restUrl + "files";
+    var files = [];
+    xhr.open("GET", url, true);
+    xhr.overrideMimeType("application/json");
+
+    xhr.onload = function () {
+      var data = JSON.parse(xhr.responseText);
+      var filesCount = 0;
+      for (var i = 0; i < data.length; i++)
+        if (data[i].file)
+          ++filesCount;
+
+      for (var i = 0; i < data.length; i++) {
+        var file = {
+          text: data[i].name,
+          path: data[i].path,
+          dir: data[i].dir,
+          file: data[i].file
+        };
+
+        file.icon = data[i].dir ? "glyphicon glyphicon-folder-close" : "glyphicon glyphicon-file";
+        if (file.text === "..") {
+          file.icon = "glyphicon glyphicon-level-up";
+          file.text = "Move up";
+          file.backColor = "#d1e2ee";
+        }
+        if (file.text === ".") {
+          file.text = filesCount > 0 ? " Open all regular files: " + filesCount : " No regular files to open here";
+          file.icon = "glyphicon glyphicon-folder-open";
+          file.backColor = filesCount > 0 ? "#1a6092" : "ligthgrey";
+          file.currentDir = true
+        }
+        if (data[i].path !== "../")
+          files.push(file)
+      }
+
+      $('#fsMenu').treeview({
+        data: files,
+        searchResultBackColor: "#014f86",
+        highlightSelected: true
+
+      });
+      $('#fsMenu').on('nodeSelected', function (event, data) {
+        // CURRENT FOLDER - enable option to open all content only if it contains at least a file
+        if (data.currentDir && filesCount > 0) {
+          if (filesCount > 10) {
+            swal({
+                type: "warning",
+                title: "Are you sure?",
+                text: "You intend to open a folder with " + filesCount + " files.",
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Yes",
+                cancelButtonText: "No",
+                closeOnConfirm: true,
+                closeOnCancel: true,
+                showCancelButton: true
+              },
+              function (isConfirm) {
+                if (isConfirm) {
+                  requestPUT("open", JSON.stringify({"uri": data.path}), updateWall);
+                  $('#fsMenu').hide()
+                }
+              });
+          }
+          else {
+            requestPUT("open", JSON.stringify({"uri": data.path}), updateWall);
+            $('#fsMenu').treeview('toggleNodeSelected', [data.nodeId, {silent: true}]);
+          }
+        }
+        // FOLDERS - query for it content and update the view
+        else if (data.dir) {
+          if (data.path == ".")
+            getFileSystemContent("/");
+          else
+            getFileSystemContent(data.path);
+        }
+        // REGULAR FILE
+        else if (data.file) {
+          requestPUT("open", JSON.stringify({"uri": data.path}), updateWall);
+          window.setTimeout(function ()
+          {
+            $('#fsMenu').treeview('toggleNodeSelected', [data.nodeId, {silent: true}]);
+          }, fileLoadingTimeout)
+        }
+      })
+    };
+    xhr.send(null);
+  }, directoryListTimeout)
+}
+
+function getSessionFolderContent() {
+
+  var url = restUrl + "sessions";
+  requestPUT("sessions", JSON.stringify({"dir": "/"}));
+  window.setTimeout(function ()
+  {
+    var xhr = new XMLHttpRequest();
+    var data;
+    sessionFiles = [];
+    xhr.open("GET", encodeURI(url), true);
+    xhr.overrideMimeType("application/json");
+    xhr.onload = function () {
+      data = JSON.parse(xhr.responseText);
+      for (var i = 0; i < data.length; i++) {
+        var file = {
+          text: data[i].name,
+          path: data[i].path,
+          dir: data[i].dir,
+          file: data[i].file
+        };
+        file.icon = data[i].dir ? "glyphicon glyphicon-chevron-right" : "glyphicon glyphicon-file";
+        file.color = data[i].dir ? "grey" : "black";
+        if (data[i].file)
+          sessionFiles.push(file);
+      }
+
+      $('#sessionTree').treeview({
+        data: sessionFiles,
+        searchResultBackColor: "#014f86",
+        highlightSelected: true
+      });
+      $('#sessionTree').on('nodeSelected', function (event, data) {
+        if (data.file) {
+          requestPUT("load", JSON.stringify({"uri": data.text}));
+          window.setTimeout(function ()
+          {
+            $('#sessionTree').treeview('toggleNodeSelected', [data.nodeId, {silent: true}]);
+            updateWall();
+          }, sessionLoadingTimeout)
+        }
+      })
+    };
+    xhr.send(null);
+  }, directoryListTimeout);
+}
+
+function saveSession() {
+  var uri = $('#sessionNameInput').val();
+  if (!uri.endsWith(".dcx"))
+    uri=uri+".dcx";
+  var params = JSON.stringify({"uri": uri});
+  var exist = false;
+  for (var i = 0; i < sessionFiles.length; i++) {
+    if (sessionFiles[i].text == uri)
+      exist = true;
+  }
+  swal({
+      type: "warning",
+      title: "Are you sure?",
+      text: exist ? "You intend to overwrite an existing session: " + uri : "Save as: "+ uri +"?",
+      confirmButtonColor: exist ? "#DD6B55" : "#014f86",
+      confirmButtonText: "Yes",
+      cancelButtonText: "No",
+      closeOnConfirm: false,
+      closeOnCancel: true,
+      showCancelButton: true
+    },
+    function () {
+      requestPUT("save", params);
+      swal({
+        title: "Saved!",
+        text: "Your file has been saved as: " + uri ,
+        type: "success",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#014f86"
+      }, function () {
+        $('#sessionNameInput').val("");
+        window.setTimeout(function ()
+        {
+          getSessionFolderContent();
+        }, sessionLoadingTimeout)
+      });
+    });
+}
 
 function alertPopup(title, text) {
   swal({
@@ -220,6 +422,7 @@ function enableHandles() {
 }
 
 function init() {
+  bootstrapMenus();
   //Work-around for zeroEQ not setting proper MIME for svg
   fullscreenIcon = getIcon(fullscreenImageUrl);
   focusIcon = getIcon(focusImageUrl);
@@ -248,6 +451,8 @@ function init() {
     $("#buttonContainer").append("Tide ", config["version"], " rev ",
       "<a href=\"https://github.com/BlueBrain/Tide/commit/" + config["revision"] + "\">" + config["revision"],
       " </a>", " running on ", config["hostname"], " since ", config["startTime"]);
+    getFileSystemContent("/");
+    getSessionFolderContent();
     updateWall();
   };
 

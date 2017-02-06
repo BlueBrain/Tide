@@ -57,6 +57,8 @@ public:
 
 private:
     StaticContent indexPage;
+    StaticContent bootstrapStyles;
+    StaticContent bootstrapTree;
     StaticContent closeIcon;
     StaticContent focusIcon;
     StaticContent jquery;
