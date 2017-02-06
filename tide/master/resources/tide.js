@@ -50,16 +50,15 @@ function getFileSystemContent(path) {
       var data = JSON.parse(xhr.responseText);
       var filesCount = 0;
       for (var i = 0; i < data.length; i++)
-        if (data[i].file  && !(/.*.dcx/.test(data[i].name)))
-          filesCount += 1;
+        if (data[i].file)
+          ++filesCount;
 
       for (var i = 0; i < data.length; i++) {
         var file = {
           text: data[i].name,
           path: data[i].path,
           dir: data[i].dir,
-          file: data[i].file,
-          session: /.*.dcx/.test(data[i].name)
+          file: data[i].file
         };
 
         file.icon = data[i].dir ? "glyphicon glyphicon-folder-close" : "glyphicon glyphicon-file";
@@ -118,14 +117,6 @@ function getFileSystemContent(path) {
           else
             getFileSystemContent(data.path);
         }
-        // SESSION
-        else if (data.session) {
-          requestPUT("load", JSON.stringify({"uri": data.text}), updateWall);
-          window.setTimeout(function () {
-            $('#fsMenu').treeview('toggleNodeSelected', [data.nodeId, {silent: true}]);
-            updateWall()
-          }, sessionLoadingTimeout)
-        }
         // REGULAR FILE
         else if (data.file) {
           requestPUT("open", JSON.stringify({"uri": data.path}), updateWall);
@@ -158,15 +149,12 @@ function getSessionFolderContent() {
           text: data[i].name,
           path: data[i].path,
           dir: data[i].dir,
-          file: data[i].file,
-          session: /.*.dcx/.test(data[i].name)
+          file: data[i].file
         };
         file.icon = data[i].dir ? "glyphicon glyphicon-chevron-right" : "glyphicon glyphicon-file";
         file.color = data[i].dir ? "grey" : "black";
-        // Add only dcx files
-        if (data[i].file && /.*.dcx$/.test(data[i].name)) {
-          sessionFiles.push(file)
-        }
+        if (data[i].file)
+          sessionFiles.push(file);
       }
 
       $('#sessionTree').treeview({
@@ -175,7 +163,7 @@ function getSessionFolderContent() {
         highlightSelected: true
       });
       $('#sessionTree').on('nodeSelected', function (event, data) {
-        if (data.session) {
+        if (data.file) {
           requestPUT("load", JSON.stringify({"uri": data.text}));
           window.setTimeout(function ()
           {
@@ -196,8 +184,8 @@ function saveSession() {
   var params = JSON.stringify({"uri": uri});
   var exist = false;
   for (var i = 0; i < sessionFiles.length; i++) {
-    if (sessionFiles[i].text == uri )
-      exist = true
+    if (sessionFiles[i].text == uri)
+      exist = true;
   }
   swal({
       type: "warning",
