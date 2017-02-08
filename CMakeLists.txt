@@ -79,7 +79,7 @@ else()
 endif()
 
 common_find_package(ZeroEQ)
-if(TARGET ZeroEQ)
+if(TARGET ZeroEQHTTP)
   option(TIDE_ENABLE_REST_INTERFACE "Enable REST interface using ZeroEQ" ON)
 endif()
 
