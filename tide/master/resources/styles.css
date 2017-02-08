@@ -31,6 +31,22 @@ button:active {
   background-color: #0096d3;
 }
 
+iframe{
+  display: none;
+}
+
+input[type=file] {
+  cursor: pointer;
+  border: 0;
+  background-color: #ffffff;
+  color: black;
+  font-size: 11px;
+  text-decoration: none;
+  float: left;
+  margin-left: 5px;
+  width: 225px;
+}
+
 .buttonPressed {
   background-color: #0096d3;
 }
@@ -42,6 +58,13 @@ button:active {
 .curtain {
   background-color: black;
   position: absolute;
+}
+
+.file-uploader {
+  width: 0.1px;
+  height: 0.1px;
+  opacity: 0;
+  z-index: -1;
 }
 
 .thumbnail {
@@ -72,6 +95,14 @@ button:active {
 .ui-resizable-s {
   margin: 0px;
   height: 20px;
+}
+
+.uploadMenu {
+  background-color: white;
+  min-height: 35px;
+  position: absolute;
+  overflow-y: auto;
+  z-index: 100;
 }
 
 .windowControl {

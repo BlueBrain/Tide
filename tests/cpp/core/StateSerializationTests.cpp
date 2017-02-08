@@ -399,3 +399,42 @@ BOOST_AUTO_TEST_CASE( testStateSerializationToFile )
     cleanupTestDir();
     dir.rmdir( TEST_DIR );
 }
+
+BOOST_AUTO_TEST_CASE( testStateSerializationUploadedToFile )
+{
+    QDir dir;
+    if ( !dir.mkdir( TEST_DIR ))
+        cleanupTestDir();
+
+    QDir uploadDir( TEST_DIR );
+    QDir tempDir( QDir::tempPath( ));
+
+    const QString newValidFile("uploaded.png");
+    const QString newValidUri = QDir::tempPath() + "/" + newValidFile;
+    QFile::copy( VALID_TEXTURE_URI, newValidUri);
+
+    DisplayGroupPtr displayGroup = createTestDisplayGroup();
+    ContentPtr content = ContentFactory::getContent( newValidUri );
+    BOOST_REQUIRE( content );
+    BOOST_REQUIRE_EQUAL( content->getDimensions(), VALID_TEXTURE_SIZE );
+    ContentWindowPtr contentWindow( new ContentWindow( content ));
+    displayGroup->addContentWindow( contentWindow );
+
+    StateSerializationHelper helper( displayGroup );
+    BOOST_CHECK( helper.save( TEST_DIR + "/test.dcx",
+                              TEST_DIR ).result( ));
+
+    QStringList files = tempDir.entryList( QDir::NoDotAndDotDot |
+                                           QDir::Files );
+    BOOST_CHECK( !files.contains( newValidFile ));
+
+    files = uploadDir.entryList( QDir::NoDotAndDotDot |
+                                 QDir::Files );
+
+    BOOST_CHECK( files.contains( newValidFile ));
+    BOOST_CHECK( files.contains( "test.dcx" ));
+    BOOST_CHECK( files.contains( "test.dcxpreview" ));
+
+    cleanupTestDir();
+    dir.rmdir( TEST_DIR );
+}

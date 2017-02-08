@@ -70,6 +70,7 @@ void MasterConfiguration::loadMasterSettings()
     loadMasterProcessInfo( query );
     loadContentDirectory( query );
     loadSessionsDirectory( query );
+    loadUploadDirectory( query );
     loadLauncherSettings( query );
     loadWebService( query );
     loadAppLauncher( query );
@@ -98,6 +99,17 @@ void MasterConfiguration::loadSessionsDirectory( QXmlQuery& query )
     getString( query, _sessionsDir );
     if( _sessionsDir.isEmpty( ))
         _sessionsDir = QDir::homePath();
+}
+
+void MasterConfiguration::loadUploadDirectory( QXmlQuery& query )
+{
+    QString queryResult;
+
+    query.setQuery( "string(/configuration/webservice/@uploadDirectory)" );
+    if( query.evaluateTo( &queryResult ))
+        _uploadDir = queryResult.remove( QRegExp( TRIM_REGEX ));
+    if( _uploadDir.isEmpty( ))
+        _uploadDir = QDir::tempPath();
 }
 
 void MasterConfiguration::loadLauncherSettings( QXmlQuery& query )
@@ -168,6 +180,11 @@ const QString& MasterConfiguration::getContentDir() const
 const QString& MasterConfiguration::getSessionsDir() const
 {
     return _sessionsDir;
+}
+
+const QString& MasterConfiguration::getUploadDir() const
+{
+    return _uploadDir;
 }
 
 const QString& MasterConfiguration::getLauncherDisplay() const

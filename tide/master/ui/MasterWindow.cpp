@@ -77,6 +77,7 @@ MasterWindow::MasterWindow( DisplayGroupPtr displayGroup,
 #endif
     , _contentFolder( config.getContentDir( ))
     , _sessionFolder( config.getSessionsDir( ))
+    , _uploadDir ( config.getUploadDir( ))
 {
     _backgroundWidget->setModal( true );
 
@@ -458,7 +459,8 @@ void MasterWindow::_saveSession()
 
     _displayGroup->setShowWindowTitles( _options->getShowWindowTitles( ));
     _saveSessionOp.setFuture(
-                StateSerializationHelper( _displayGroup ).save( filename ));
+                StateSerializationHelper( _displayGroup ).save( filename,
+                                                                _uploadDir ));
 }
 
 void MasterWindow::_loadSession( const QString& filename )

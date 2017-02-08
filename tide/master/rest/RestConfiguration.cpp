@@ -39,9 +39,11 @@
 
 #include "RestConfiguration.h"
 
+#include "scene/ContentFactory.h"
 #include <tide/master/version.h>
 
 #include <string>
+#include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QDateTime>
@@ -75,7 +77,10 @@ std::string RestConfiguration::_toJSON() const
     config["backgroundColor"]=_config.getBackgroundColor().name();
     config["contentDir"] = _config.getContentDir();
     config["sessionDir"] = _config.getSessionsDir();
-
+    QJsonArray supportedFormats;
+    for( const auto& filter :  ContentFactory::getSupportedFilesFilter( ))
+        supportedFormats.append( filter );
+    config["filters"] = supportedFormats;
     QJsonObject obj;
     obj["config"] = config;
     return QJsonDocument{ obj }.toJson().toStdString();

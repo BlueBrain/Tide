@@ -66,6 +66,20 @@ bool _canBeRestored( const CONTENT_TYPE type )
     return true;
 }
 
+void _relocateTempContent( DisplayGroup& group, const QString& uploadDir )
+{
+    for ( const auto& window : group.getContentWindows( ))
+    {
+        const auto& uri = window->getContent()->getURI();
+        if( uri.startsWith( QDir::tempPath( )))
+        {
+            const auto newUri = uploadDir + "/" +  QFileInfo( uri ).fileName();
+            QDir().rename( uri, newUri );
+            window->setContent( ContentFactory::getContent( newUri ));
+        }
+    }
+}
+
 bool _validateContent( const ContentWindowPtr& window )
 {
     ContentPtr content = window->getContent();
@@ -211,7 +225,9 @@ void _filterContents( DisplayGroup& group )
 }
 
 QFuture<bool> StateSerializationHelper::save( QString filename,
-                                              const bool generatePreview )
+                                              const QString& uploadDir,
+                                              const bool generatePreview
+                                              )
 {
     if( !filename.endsWith( SESSION_FILE_EXTENSION ))
     {
@@ -224,6 +240,10 @@ QFuture<bool> StateSerializationHelper::save( QString filename,
               filename.toStdString().c_str( ));
 
     // Important: use xml archive not binary as they use different code paths
+
+    if( !uploadDir.isEmpty( ))
+        _relocateTempContent( *_displayGroup, uploadDir );
+
     DisplayGroupPtr group = serialization::xmlCopy( _displayGroup );
     return QtConcurrent::run([group, filename, generatePreview]()
     {

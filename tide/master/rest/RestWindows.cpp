@@ -51,7 +51,7 @@
 namespace
 {
 const QRegExp _regex = QRegExp("\\{|\\}");
-const QSize thumbnailSize{ 768, 768 };
+const QSize thumbnailSize{ 512, 512 };
 }
 
 RestWindows::RestWindows( zeroeq::http::Server& server,
