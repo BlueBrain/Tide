@@ -1,6 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
 /*                     Raphael.Dumusc@epfl.ch                        */
 /*                     Daniel.Nachbaur@epfl.ch                       */
 /* All rights reserved.                                              */
@@ -99,7 +99,7 @@ const QStringList& MovieContent::getSupportedExtensions()
     if( extensions.empty( ))
     {
         extensions << "mov" << "avi" << "mp4" << "mkv" << "mpg" << "mpeg"
-                   << "flv" << "wmv";
+                   << "flv" << "webm" << "wmv";
     }
 
     return extensions;

@@ -125,7 +125,7 @@ bool FFMPEGMovie::_createAvFormatContext( const QString& uri )
         return false;
     }
 
-    // Read stream information into avFormatContext_->streams
+    // Read stream information into _avFormatContext->streams
     if( avformat_find_stream_info( _avFormatContext, NULL ) < 0 )
     {
         put_flog( LOG_ERROR, "error reading stream information: '%s'",
@@ -135,7 +135,7 @@ bool FFMPEGMovie::_createAvFormatContext( const QString& uri )
 
 #if LOG_THRESHOLD <= LOG_VERBOSE
     // print detail information about the input or output format
-    av_dump_format( avFormatContext_, 0, uri.toLatin1(), 0 );
+    av_dump_format( _avFormatContext, 0, uri.toLatin1(), 0 );
 #endif
     return true;
 }
