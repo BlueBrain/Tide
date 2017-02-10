@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -170,10 +170,7 @@ unsigned int FFMPEGVideoStream::getHeight() const
 
 double FFMPEGVideoStream::getDuration() const
 {
-    const double duration = (double)_videoStream->duration *
-                            (double)_videoStream->time_base.num /
-                            (double)_videoStream->time_base.den;
-    return std::max( duration, 0.0 );
+    return std::max( _frameDurationInSeconds * _numFrames, 0.0 );
 }
 
 double FFMPEGVideoStream::getFrameDuration() const
@@ -181,13 +178,13 @@ double FFMPEGVideoStream::getFrameDuration() const
     return _frameDurationInSeconds;
 }
 
-int64_t FFMPEGVideoStream::getFrameIndex( double timePositionInSec ) const
+int64_t FFMPEGVideoStream::getFrameIndex( const double timePositionInSec ) const
 {
     const int64_t index = timePositionInSec / _frameDurationInSeconds;
     return index;
 }
 
-int64_t FFMPEGVideoStream::getTimestamp( double timePositionInSec ) const
+int64_t FFMPEGVideoStream::getTimestamp( const double timePositionInSec ) const
 {
     return getTimestamp( getFrameIndex( timePositionInSec ));
 }
@@ -305,30 +302,47 @@ void FFMPEGVideoStream::_openVideoStreamDecoder()
 
 void FFMPEGVideoStream::_generateSeekingParameters()
 {
+    int64_t duration = _videoStream->duration;
+    const auto& timeBase = _videoStream->time_base;
+
+    // Webm files do not have per-stream duration information, only global. see:
+    // http://stackoverflow.com/questions/32532122/
+    // finding-duration-number-of-frames-of-webm-using-ffmpeg-libavformat
+    if( duration <= 0 )
+    {
+        // Transform AVFormatContext duration which is in AV_TIME_BASE units
+        // (microseconds) into _videoStream->time_base units.
+        // The resulting _frameDuration has to be in video stream units to
+        // provide correct timestamps for avformat_seek_file() for instance.
+        const auto num = int64_t(timeBase.den);
+        const auto den = int64_t(timeBase.num) * AV_TIME_BASE;
+        duration = av_rescale( _avFormatContext.duration, num, den );
+    }
+
+    // Estimate number of frames if unavailable
     _numFrames = _videoStream->nb_frames;
     if( _numFrames == 0 )
     {
-        const int den = _videoStream->avg_frame_rate.den * _videoStream->time_base.den;
-        const int num = _videoStream->avg_frame_rate.num * _videoStream->time_base.num;
-        if( den <= 0 || num <= 0 )
-            throw std::runtime_error("cannot determine seeking paramters" );
-
-        _numFrames = av_rescale( _videoStream->duration, num, den );
-        if( _numFrames == 0 )
-            throw std::runtime_error("cannot determine number of frames" );
+        const auto& frameRate = _videoStream->avg_frame_rate;
+        const auto num = int64_t(frameRate.num) * int64_t(timeBase.num);
+        const auto den = int64_t(frameRate.den) * int64_t(timeBase.den);
+        if( num <= 0 || den <= 0 )
+            throw std::runtime_error( "cannot determine seeking paramters" );
+        _numFrames = av_rescale( duration, num, den );
     }
+    if( _numFrames <= 0 )
+        throw std::runtime_error( "cannot determine number of frames" );
 
-    _frameDuration = (double)_videoStream->duration / (double)_numFrames;
+    _frameDuration = double(duration) / double(_numFrames);
 
-    const double timeBase = (double)_videoStream->time_base.num/
-                            (double)_videoStream->time_base.den;
-    _frameDurationInSeconds = _frameDuration * timeBase;
+    const auto frameDurationUnits = double(timeBase.num) / double(timeBase.den);
+    _frameDurationInSeconds = _frameDuration * frameDurationUnits;
 
     put_flog( LOG_VERBOSE, "seeking parameters: start_time = %i,"
-                           "duration_ = %i, numFrames_ = %i",
-              _videoStream->start_time, _videoStream->duration, _numFrames );
+                           "duration = %i, numFrames = %i",
+              _videoStream->start_time, duration, _numFrames );
     put_flog( LOG_VERBOSE, "frame_rate = %f, time_base = %f",
               1./_frameDurationInSeconds, timeBase );
-    put_flog( LOG_VERBOSE, "frameDurationInSeconds_ = %f",
+    put_flog( LOG_VERBOSE, "frameDurationInSeconds = %f",
               _frameDurationInSeconds );
 }
