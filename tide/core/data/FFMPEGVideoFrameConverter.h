@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -73,6 +73,7 @@ public:
      * Create a new converter
      * @param videoCodecContext The FFMPEG context to allocate resources
      * @param targetFormat The desired data output format (e.g. PIX_FMT_RGBA)
+     * @throw std::runtime_error if an error occured during initialization
      */
     FFMPEGVideoFrameConverter( const AVCodecContext& videoCodecContext,
                                AVPixelFormat targetFormat );
@@ -91,4 +92,4 @@ private:
     const AVPixelFormat _targetFormat;
 };
 
-#endif // FFMPEGVIDEOFRAMECONVERTER_H
+#endif

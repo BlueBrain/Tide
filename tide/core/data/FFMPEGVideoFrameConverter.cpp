@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -47,10 +47,14 @@
 
 FFMPEGVideoFrameConverter::FFMPEGVideoFrameConverter( const AVCodecContext&
                                                       videoCodecContext,
-                                                      AVPixelFormat targetFormat )
-    : _swsContext( 0 )
+                                                      AVPixelFormat
+                                                      targetFormat )
+    : _swsContext( nullptr )
     , _targetFormat( targetFormat )
 {
+    if( videoCodecContext.pix_fmt == AV_PIX_FMT_NONE )
+        throw std::runtime_error( "undefined pixel format for swsContext" );
+
     _swsContext = sws_getContext( videoCodecContext.width,
                                   videoCodecContext.height,
                                   videoCodecContext.pix_fmt,
@@ -59,10 +63,7 @@ FFMPEGVideoFrameConverter::FFMPEGVideoFrameConverter( const AVCodecContext&
                                   targetFormat, SWS_FAST_BILINEAR,
                                   NULL, NULL, NULL );
     if( !_swsContext )
-    {
-        put_flog( LOG_ERROR, "Error allocating SwsContext" );
-        return;
-    }
+        throw std::runtime_error( "Error allocating swsContext" );
 }
 
 FFMPEGVideoFrameConverter::~FFMPEGVideoFrameConverter()
