@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -40,24 +40,56 @@
 #ifndef FFMPEGPICTURE_H
 #define FFMPEGPICTURE_H
 
-#include "FFMPEGFrame.h"
+#include "Image.h"
+
 #include <QImage>
 
+#include <array>
+
 /**
- * A decoded frame of the movie stream.
+ * A decoded frame of the movie stream in RGBA or YUV format.
  */
-class FFMPEGPicture : public FFMPEGFrame
+class FFMPEGPicture : public Image
 {
 public:
-    /** Constructor. */
-    FFMPEGPicture( unsigned int width, unsigned int height,
-                   AVPixelFormat format, int64_t timestamp );
+    /** Allocate a new picture. */
+    FFMPEGPicture( uint width, uint height, TextureFormat format );
 
-    /** Destructor. */
-    ~FFMPEGPicture();
+    /** @copydoc Image::getWidth */
+    int getWidth() const final;
 
-    /** Get the picture as a QImage. */
+    /** @copydoc Image::getHeight */
+    int getHeight() const final;
+
+    /** @copydoc Image::getData */
+    const uint8_t* getData( uint texture = 0 ) const final;
+
+    /** @return write access to fill a given image texture plane. */
+    uint8_t* getData( uint texture );
+
+    /** @return data size of a given image texture plane. */
+    size_t getDataSize( uint texture ) const;
+
+    /** @copydoc Image::getSize */
+    QSize getSize( uint texture = 0 ) const final;
+
+    /** @copydoc Image::getFormat */
+    TextureFormat getFormat() const final;
+
+    /** @copydoc Image::getGLPixelFormat */
+    uint getGLPixelFormat() const final;
+
+    /** @return the picture as a QImage, or an empty one if format != rgba. */
     QImage toQImage() const;
+
+private:
+    const uint _width;
+    const uint _height;
+    const TextureFormat _format;
+    const QSize _uvSize;
+    // std::vector are too slow because they can't allocate uninitialized memory
+    std::array<std::unique_ptr<uint8_t[]>, 3> _data;
+    std::array<size_t, 3> _dataSize = {{ 0, 0, 0 }};
 };
 
-#endif // FFMPEGPICTURE_H
+#endif

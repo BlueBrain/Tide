@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -40,6 +40,8 @@
 #ifndef TEXTURENODE_H
 #define TEXTURENODE_H
 
+#include "types.h"
+
 #include <QSGSimpleTextureNode>
 #include <memory>
 
@@ -59,7 +61,14 @@ class QQuickWindow;
 class TextureNode : public QSGSimpleTextureNode
 {
 public:
-    TextureNode( const QSize& size, QQuickWindow* window );
+    /**
+     * Create a textured rectangle for rendering YUV images on the GPU.
+     * @param size the initial back texture size.
+     * @param window a reference to the quick window for generating textures.
+     * @param format ignored, needed for symmetry with TextureNodeYUV API.
+     */
+    TextureNode( const QSize& size, QQuickWindow* window,
+                 TextureFormat format = TextureFormat::rgba );
 
     /** @return the back texture identifier, which can safely be updated. */
     uint getBackGlTexture() const;
@@ -76,7 +85,7 @@ public:
     void setBackTextureSize( const QSize& size );
 
     /** @sa QSGOpaqueTextureMaterial::setMipmapFiltering */
-    void setMipmapFiltering( const QSGTexture::Filtering mipmapFiltering );
+    void setMipmapFiltering( const QSGTexture::Filtering filtering );
 
 private:
     QQuickWindow* _window;
@@ -86,7 +95,7 @@ private:
     QSGTexturePtr _backTexture;
 
     QSGTexturePtr _createTexture( const QSize& size ) const;
-    QSGTexturePtr _createWrapper( const uint textureID, const QSize& size ) const;
+    QSGTexturePtr _createWrapper( uint textureID, const QSize& size ) const;
 };
 
 #endif

@@ -81,10 +81,11 @@ public:
      * Decode a video packet.
      *
      * @param packet The av packet to decode
+     * @param format The format for the decoded picture.
      * @return The decoded picture, or nullptr if the input is not a video
      *         packet or an error occured.
      */
-    PicturePtr decode( AVPacket& packet );
+    PicturePtr decode( AVPacket& packet, TextureFormat format );
 
     /**
      * Partially decode a video packet to determine its timestamp.
@@ -103,9 +104,10 @@ public:
 
     /**
      * Call after a successful decodeTimestamp to get the corresponding picture.
+     * @param format The format for the decoded picture.
      * @return The decoded picture, or nullptr if an error occured.
      */
-    PicturePtr decodePictureForLastPacket();
+    PicturePtr decodePictureForLastPacket( TextureFormat format );
 
     /** Get the width of the video stream. */
     unsigned int getWidth() const;
@@ -121,6 +123,9 @@ public:
 
     /** Get the duration of a frame in seconds. */
     double getFrameDuration() const;
+
+    /** @return native format of the video stream. */
+    AVPixelFormat getAvFormat() const;
 
     /** Get the frameIndex corresponding to the given time in seconds. */
     int64_t getFrameIndex( double timePositionInSec ) const;

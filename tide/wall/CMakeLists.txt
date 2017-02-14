@@ -72,6 +72,7 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   SVGTiler.h
   TestPattern.h
   TextureNode.h
+  TextureNodeYUV.h
   TextureUploader.h
   TiledSynchronizer.h
   Tile.h
@@ -79,6 +80,7 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   WallApplication.h
   WallConfiguration.h
   WallWindow.h
+  YUVTexture.h
 )
 
 list(APPEND TIDEWALL_SOURCES
@@ -108,6 +110,7 @@ list(APPEND TIDEWALL_SOURCES
   SVGTiler.cpp
   TestPattern.cpp
   TextureNode.cpp
+  TextureNodeYUV.cpp
   TextureUploader.cpp
   Tile.cpp
   TiledSynchronizer.cpp

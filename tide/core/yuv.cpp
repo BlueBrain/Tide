@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,47 +37,25 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "SVGGpuImage.h"
+#include "yuv.h"
 
-SVGGpuImage::SVGGpuImage( const SVGTiler& dataSource, const uint tileId )
-    : _dataSource( dataSource )
-    , _tileId( tileId )
-{}
-
-int SVGGpuImage::getWidth() const
+namespace yuv
 {
-    return _image->getWidth();
+
+QSize getUVSize( const QSize& ySize, const TextureFormat format )
+{
+    switch( format )
+    {
+    case TextureFormat::yuv444:
+        return ySize;
+    case TextureFormat::yuv422:
+        return { ySize.width() >> 1, ySize.height() };
+    case TextureFormat::yuv420:
+        return ySize / 2;
+    case TextureFormat::rgba:
+    default:
+        return QSize();
+    }
 }
 
-int SVGGpuImage::getHeight() const
-{
-    return _image->getHeight();
-}
-
-const uint8_t* SVGGpuImage::getData( const uint texture ) const
-{
-    Q_UNUSED( texture );
-    return _image->getData();
-}
-
-TextureFormat SVGGpuImage::getFormat() const
-{
-    return TextureFormat::rgba;
-}
-
-uint SVGGpuImage::getGLPixelFormat() const
-{
-    return _image->getGLPixelFormat();
-}
-
-bool SVGGpuImage::isGpuImage() const
-{
-    return true;
-}
-
-bool SVGGpuImage::generateGpuImage()
-{
-    // Call getTileImage so that the image gets cached for the next request
-    _image = _dataSource.getTileImage( _tileId );
-    return true;
 }

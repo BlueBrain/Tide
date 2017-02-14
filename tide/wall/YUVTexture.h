@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,47 +37,20 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "SVGGpuImage.h"
+#ifndef YUVTEXTURE_H
+#define YUVTEXTURE_H
 
-SVGGpuImage::SVGGpuImage( const SVGTiler& dataSource, const uint tileId )
-    : _dataSource( dataSource )
-    , _tileId( tileId )
-{}
-
-int SVGGpuImage::getWidth() const
+/**
+ * A YUV texture composed of three OpenGL texture indices.
+ */
+struct YUVTexture
 {
-    return _image->getWidth();
-}
+    int y = 0;
+    int u = 0;
+    int v = 0;
 
-int SVGGpuImage::getHeight() const
-{
-    return _image->getHeight();
-}
+    YUVTexture() = default;
+    YUVTexture( int y_, int u_, int v_ ) : y{ y_ }, u{ u_ }, v{ v_ } {}
+};
 
-const uint8_t* SVGGpuImage::getData( const uint texture ) const
-{
-    Q_UNUSED( texture );
-    return _image->getData();
-}
-
-TextureFormat SVGGpuImage::getFormat() const
-{
-    return TextureFormat::rgba;
-}
-
-uint SVGGpuImage::getGLPixelFormat() const
-{
-    return _image->getGLPixelFormat();
-}
-
-bool SVGGpuImage::isGpuImage() const
-{
-    return true;
-}
-
-bool SVGGpuImage::generateGpuImage()
-{
-    // Call getTileImage so that the image gets cached for the next request
-    _image = _dataSource.getTileImage( _tileId );
-    return true;
-}
+#endif

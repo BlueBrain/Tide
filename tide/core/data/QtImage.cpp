@@ -58,12 +58,18 @@ int QtImage::getHeight() const
     return _image.height();
 }
 
-const uint8_t* QtImage::getData() const
+const uint8_t* QtImage::getData( const uint texture ) const
 {
+    Q_UNUSED( texture );
     return _image.constBits();
 }
 
-uint QtImage::getFormat() const
+TextureFormat QtImage::getFormat() const
+{
+    return TextureFormat::rgba;
+}
+
+uint QtImage::getGLPixelFormat() const
 {
     return GL_BGRA;
 }

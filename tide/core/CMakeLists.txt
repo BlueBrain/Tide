@@ -14,7 +14,6 @@ set(TIDECORE_LINK_LIBRARIES
     ${Boost_LIBRARIES}
     ${MPI_CXX_LIBRARIES}
   PRIVATE
-    ${FFMPEG_LIBRARIES}
     Qt5::Concurrent
     Qt5::Svg
 )
@@ -37,6 +36,9 @@ if(TIDE_ENABLE_MOVIE_SUPPORT)
     data/FFMPEGVideoStream.cpp
     scene/MovieContent.cpp
     thumbnail/MovieThumbnailGenerator.cpp
+  )
+  list(APPEND TIDECORE_LINK_LIBRARIES
+    PRIVATE ${FFMPEG_LIBRARIES}
   )
 endif()
 
@@ -159,6 +161,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   thumbnail/ThumbnailGenerator.h
   thumbnail/ThumbnailProvider.h
   types.h
+  yuv.h
   ZoomHelper.h
 )
 
@@ -200,6 +203,7 @@ list(APPEND TIDECORE_SOURCES
   thumbnail/ThumbnailGenerator.cpp
   thumbnail/ThumbnailGeneratorFactory.cpp
   thumbnail/ThumbnailProvider.cpp
+  yuv.cpp
   ZoomHelper.cpp
   resources/core.qrc
 )

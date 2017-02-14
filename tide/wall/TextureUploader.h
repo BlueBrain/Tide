@@ -90,7 +90,8 @@ private slots:
     void _onStop();
 
 private:
-    void _upload( const Image& image, uint textureID );
+    bool _upload( const Image& image, const Tile& tile );
+    void _upload( const Image& image, uint srcTexture, uint textureID );
 
     std::unique_ptr<QOpenGLContext> _glContext;
     std::unique_ptr<QOffscreenSurface> _offscreenSurface;

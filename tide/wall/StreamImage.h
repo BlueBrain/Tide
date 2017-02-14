@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Daniel.Nachbaur@epfl.ch                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -60,10 +61,13 @@ public:
     int getHeight() const override;
 
     /** @copydoc Image::getData */
-    const uint8_t* getData() const override;
+    const uint8_t* getData( uint texture ) const override;
 
     /** @copydoc Image::getFormat */
-    uint getFormat() const override;
+    TextureFormat getFormat() const override;
+
+    /** @copydoc Image::getGLPixelFormat */
+    uint getGLPixelFormat() const override;
 
 private:
     deflect::FramePtr _frame;

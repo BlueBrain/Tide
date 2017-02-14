@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,28 +39,107 @@
 
 #include "FFMPEGPicture.h"
 
+#include "yuv.h"
+
+#include <QOpenGLFunctions>
+
 #pragma clang diagnostic ignored "-Wdeprecated"
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-FFMPEGPicture::FFMPEGPicture( const unsigned int width,
-                              const unsigned int height,
-                              const AVPixelFormat format,
-                              const int64_t timestamp )
+FFMPEGPicture::FFMPEGPicture( const uint width, const uint height,
+                              const TextureFormat format )
+    : _width{ width }
+    , _height{ height }
+    , _format{ format }
+    , _uvSize{ yuv::getUVSize( QSize( width, height ), format ) }
 {
-    if( avpicture_alloc( (AVPicture*)_avFrame, format, width, height ) != 0 )
-        throw std::runtime_error( "Error allocating picture buffer for frame" );
-    _avFrame->pkt_dts = timestamp;
-    _avFrame->width = width;
-    _avFrame->height = height;
+    switch( format )
+    {
+    case TextureFormat::rgba:
+        _dataSize[0] = width * height * 4;
+        _data[0].reset( new uint8_t[_dataSize[0]] );
+        break;
+    case TextureFormat::yuv420:
+    case TextureFormat::yuv422:
+    case TextureFormat::yuv444:
+    {
+        const auto uvDataSize = _uvSize.width() * _uvSize.height();
+        _dataSize[0] = width * height;
+        _dataSize[1] = uvDataSize;
+        _dataSize[2] = uvDataSize;
+        _data[0].reset( new uint8_t[_dataSize[0]] );
+        _data[1].reset( new uint8_t[_dataSize[1]] );
+        _data[2].reset( new uint8_t[_dataSize[2]] );
+        break;
+    }
+    default:
+        throw std::logic_error( "FFMPEGPicture: unsupported format" );
+    }
 }
 
-FFMPEGPicture::~FFMPEGPicture()
+int FFMPEGPicture::getWidth() const
 {
-    avpicture_free( (AVPicture*)_avFrame );
+    return _width;
+}
+
+int FFMPEGPicture::getHeight() const
+{
+    return _height;
+}
+
+QSize FFMPEGPicture::getSize( const uint texture ) const
+{
+    switch( texture )
+    {
+    case 0:
+        return QSize{ getWidth(), getHeight() };
+    case 1:
+    case 2:
+        return _uvSize;
+    default:
+        return QSize();
+    }
+}
+
+const uint8_t* FFMPEGPicture::getData( const uint texture ) const
+{
+    if( texture >= _data.size( ))
+        return nullptr;
+
+    return _data[texture].get();
+}
+
+uint8_t* FFMPEGPicture::getData( const uint texture )
+{
+    if( texture >= _data.size( ))
+        return nullptr;
+
+    return _data[texture].get();
+}
+
+size_t FFMPEGPicture::getDataSize( const uint texture ) const
+{
+    if( texture >= _dataSize.size( ))
+        return 0;
+
+    return _dataSize[texture];
+}
+
+TextureFormat FFMPEGPicture::getFormat() const
+{
+    return _format;
+}
+
+uint FFMPEGPicture::getGLPixelFormat() const
+{
+    return getFormat() == TextureFormat::rgba ? GL_RGBA : GL_RED;
 }
 
 QImage FFMPEGPicture::toQImage() const
 {
-    return QImage( getData(), _avFrame->width, _avFrame->height,
+    if( getFormat() != TextureFormat::rgba )
+        return QImage();
+
+    return QImage( getData(), getWidth(), getHeight(),
                    QImage::Format_RGBA8888 );
 }

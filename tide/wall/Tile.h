@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -42,11 +42,14 @@
 
 #include "types.h"
 
+#include "YUVTexture.h"
+
 #include <QQuickItem>
 #include <memory> // std::enable_shared_from_this
 
-class TextureNode;
 class QuadLineNode;
+class TextureNode;
+class TextureNodeYUV;
 
 /**
  * Qml item to render an image tile with texture double-buffering.
@@ -71,11 +74,16 @@ public:
      * Constructor
      * @param id the unique identifier for this tile
      * @param rect the nominal size of the tile's texture
+     * @param format the texture format to use for rendering
      */
-    Tile( uint id, const QRect& rect );
+    Tile( uint id, const QRect& rect,
+          TextureFormat format = TextureFormat::rgba );
 
     /** @return the unique identifier for this tile. */
     uint getId() const;
+
+    /** @return the texture format for this tile. */
+    TextureFormat getFormat() const;
 
     /** @return true if this tile displays its borders. */
     bool getShowBorder() const;
@@ -88,6 +96,9 @@ public:
 
     /** @return the back texture's identifier. */
     uint getBackGlTexture() const;
+
+    /** @return the back YUV texture's identifiers. */
+    const YUVTexture& getBackGlTextureYUV() const;
 
     /** @return the dimensions of the back texture. */
     QSize getBackGlTextureSize() const;
@@ -131,6 +142,7 @@ protected:
 
 private:
     const uint _tileId;
+    const TextureFormat _format;
     SizePolicy _policy;
 
     bool _swapRequested;
@@ -138,11 +150,20 @@ private:
     QRect _nextCoord;
 
     uint _backGlTexture;
+    YUVTexture _backGlTextureYUV;
 
     bool _showBorder;
     QuadLineNode* _border;
 
-    void _updateBorderNode( TextureNode* parentNode );
+    template<class NodeT>
+    QSGNode* _updateTextureNode( QSGNode* oldNode );
+
+    void _storeBackTextureIndex( const TextureNode& node );
+    void _storeBackTextureIndex( const TextureNodeYUV& node );
+
+    template<class NodeT>
+    void _updateBorderNode( NodeT* parentNode );
+
     void _onParentChanged( QQuickItem* newParent );
 
     QMetaObject::Connection _widthConn;

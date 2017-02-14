@@ -162,6 +162,11 @@ qreal MovieUpdater::getSkipPosition() const
     return _skipPosition / _ffmpegMovie->getDuration();
 }
 
+TextureFormat MovieUpdater::getFormat() const
+{
+    return _ffmpegMovie->getFormat();
+}
+
 bool MovieUpdater::advanceToNextFrame( WallToWallChannel& channel )
 {
     const double frameDuration = _ffmpegMovie->getFrameDuration();

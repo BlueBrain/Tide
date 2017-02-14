@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -98,6 +98,12 @@ public:
     /** Get the duration of a frame in seconds. */
     double getFrameDuration() const;
 
+    /** @return the format of the decoded movie frames. */
+    TextureFormat getFormat() const;
+
+    /** Set the format of the decoded movie frames, overwriting the default. */
+    void setFormat( TextureFormat format );
+
     /**
      * Get a frame at the given position in seconds.
      *
@@ -108,15 +114,18 @@ public:
     PicturePtr getFrame( double posInSeconds );
 
 private:
-    AVFormatContext* _avFormatContext;
-    std::unique_ptr< FFMPEGVideoStream > _videoStream;
+    AVFormatContext* _avFormatContext = nullptr;
+    std::unique_ptr<FFMPEGVideoStream> _videoStream;
+    TextureFormat _format = TextureFormat::yuv420;
 
-    double _streamPosition;
-    bool _isValid;
+    double _streamPosition = 0.0;
+    const bool _isValid = false;
 
     bool _open( const QString& uri );
     bool _createAvFormatContext( const QString& uri );
     void _releaseAvFormatContext();
+    TextureFormat _determineOutputFormat( AVPixelFormat fileFormat,
+                                          const QString& uri );
 };
 
-#endif // FFMPEGMOVIE_H
+#endif

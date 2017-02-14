@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,47 +37,20 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "SVGGpuImage.h"
+#ifndef YUV_H
+#define YUV_H
 
-SVGGpuImage::SVGGpuImage( const SVGTiler& dataSource, const uint tileId )
-    : _dataSource( dataSource )
-    , _tileId( tileId )
-{}
+#include "types.h"
 
-int SVGGpuImage::getWidth() const
+/**
+ * Helper functions for yuv textures.
+ */
+namespace yuv
 {
-    return _image->getWidth();
+
+/** @return the U and V texture size for a given Y size and format. */
+QSize getUVSize( const QSize& ySize, const TextureFormat format );
+
 }
 
-int SVGGpuImage::getHeight() const
-{
-    return _image->getHeight();
-}
-
-const uint8_t* SVGGpuImage::getData( const uint texture ) const
-{
-    Q_UNUSED( texture );
-    return _image->getData();
-}
-
-TextureFormat SVGGpuImage::getFormat() const
-{
-    return TextureFormat::rgba;
-}
-
-uint SVGGpuImage::getGLPixelFormat() const
-{
-    return _image->getGLPixelFormat();
-}
-
-bool SVGGpuImage::isGpuImage() const
-{
-    return true;
-}
-
-bool SVGGpuImage::generateGpuImage()
-{
-    // Call getTileImage so that the image gets cached for the next request
-    _image = _dataSource.getTileImage( _tileId );
-    return true;
-}
+#endif

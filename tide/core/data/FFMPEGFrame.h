@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -59,10 +59,8 @@ extern "C"
     #include <libavutil/mem.h>
 }
 
-#include "Image.h"
-
 /** A frame of an FFMPEG movie. */
-class FFMPEGFrame : public Image
+class FFMPEGFrame
 {
 public:
     /** Constructor. */
@@ -71,27 +69,27 @@ public:
     /** Destructor. */
     ~FFMPEGFrame();
 
-    /** @return the timestamp of the frame. */
-    int64_t getTimestamp() const;
-
-    /** @copydoc Image::getData */
-    const uint8_t* getData() const override;
-
-    /** @copydoc Image::getFormat */
-    uint getFormat() const override;
-
     /** @copydoc Image::getWidth */
-    int getWidth() const override;
+    int getWidth() const;
 
     /** @copydoc Image::getHeight */
-    int getHeight() const override;
+    int getHeight() const;
+
+    /** @copydoc Image::getData */
+    const uint8_t* getData( uint texture = 0 ) const;
+
+    /** @return the timestamp of the frame. */
+    int64_t getTimestamp() const;
 
     /** Get the FFMPEG frame. */
     AVFrame& getAVFrame();
     const AVFrame& getAVFrame() const;
 
-protected:
+    /** @return the pixel format of the FFMPEG frame. */
+    AVPixelFormat getAvPixelFormat() const;
+
+private:
     AVFrame* _avFrame;
 };
 
-#endif // FFMPEGFRAME_H
+#endif

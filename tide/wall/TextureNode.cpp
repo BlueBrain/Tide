@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -43,7 +43,8 @@
 #include <QOpenGLFunctions>
 #include <QQuickWindow>
 
-TextureNode::TextureNode( const QSize& size, QQuickWindow* window )
+TextureNode::TextureNode( const QSize& size, QQuickWindow* window,
+                          TextureFormat )
     : _window( window )
     , _frontTexture( window->createTextureFromId( 0 , QSize( 1 ,1 )))
     , _backTexture( _createTexture( size ))
@@ -53,13 +54,13 @@ TextureNode::TextureNode( const QSize& size, QQuickWindow* window )
     setMipmapFiltering( QSGTexture::Linear );
 }
 
-void TextureNode::setMipmapFiltering( const QSGTexture::Filtering mipmapFiltering )
+void TextureNode::setMipmapFiltering( const QSGTexture::Filtering filtering )
 {
-    auto mat = static_cast< QSGOpaqueTextureMaterial* >( material( ));
-    auto opaqueMat = static_cast< QSGOpaqueTextureMaterial* >( opaqueMaterial( ));
+    auto mat = static_cast<QSGOpaqueTextureMaterial*>( material( ));
+    auto opaqueMat = static_cast<QSGOpaqueTextureMaterial*>( opaqueMaterial( ));
 
-    mat->setMipmapFiltering( mipmapFiltering );
-    opaqueMat->setMipmapFiltering( mipmapFiltering );
+    mat->setMipmapFiltering( filtering );
+    opaqueMat->setMipmapFiltering( filtering );
 }
 
 uint TextureNode::getBackGlTexture() const

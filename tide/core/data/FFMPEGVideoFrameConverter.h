@@ -40,56 +40,31 @@
 #ifndef FFMPEGVIDEOFRAMECONVERTER_H
 #define FFMPEGVIDEOFRAMECONVERTER_H
 
-// required for FFMPEG includes below, specifically for the Linux build
-#ifdef __cplusplus
-    #ifndef __STDC_CONSTANT_MACROS
-        #define __STDC_CONSTANT_MACROS
-    #endif
-
-    #ifdef _STDINT_H
-        #undef _STDINT_H
-    #endif
-
-    #include <stdint.h>
-#endif
-
-extern "C"
-{
-    #include <libavutil/mem.h>
-    #include <libswscale/swscale.h>
-}
-
 #include "types.h"
-#include "FFMPEGFrame.h"
-#include "FFMPEGPicture.h"
 
 /**
- * Converts FFMPEG's AVFrame format to a data buffer of user-defined format
+ * Convert FFMPEG AVFrames to pictures in a user-defined format.
  */
 class FFMPEGVideoFrameConverter
 {
 public:
-    /**
-     * Create a new converter
-     * @param videoCodecContext The FFMPEG context to allocate resources
-     * @param targetFormat The desired data output format (e.g. PIX_FMT_RGBA)
-     * @throw std::runtime_error if an error occured during initialization
-     */
-    FFMPEGVideoFrameConverter( const AVCodecContext& videoCodecContext,
-                               AVPixelFormat targetFormat );
-    /** Desturctor */
+    /** Constructor. */
+    FFMPEGVideoFrameConverter();
+
+    /** Destroy the converter, freeing up resources. */
     ~FFMPEGVideoFrameConverter();
 
     /**
-     * Convert an AVFrame to the target data format
+     * Convert an AVFrame to the target format.
      * @param srcFrame The source frame
+     * @param format The desired data output format for the picture
      * @return The converted picture, or nullptr on error
      */
-    PicturePtr convert( const FFMPEGFrame& srcFrame );
+    PicturePtr convert( const FFMPEGFrame& srcFrame, TextureFormat format );
 
 private:
-    SwsContext* _swsContext;           // Scaling context
-    const AVPixelFormat _targetFormat;
+    struct Impl;
+    std::unique_ptr<Impl> _impl;
 };
 
 #endif

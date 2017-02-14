@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,47 +37,74 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "SVGGpuImage.h"
+#ifndef TEXTURENODEYUV_H
+#define TEXTURENODEYUV_H
 
-SVGGpuImage::SVGGpuImage( const SVGTiler& dataSource, const uint tileId )
-    : _dataSource( dataSource )
-    , _tileId( tileId )
-{}
+#include "types.h"
+#include "YUVTexture.h"
+#include "yuv.h"
 
-int SVGGpuImage::getWidth() const
+#include <QSGNode>
+#include <QSGTexture>
+
+class QQuickWindow;
+
+/**
+ * A node with a double buffered YUV texture.
+ *
+ * Initially it displays an empty black texture (id 0). Users can upload data
+ * to the back texture, querried with getBackGlTextureYUV(), before calling
+ * swap() to display the results.
+ *
+ * The second texture is created only after a call to setBackTextureSize(), so
+ * that no memory is wasted for a second texture if the node is not going to
+ * be updated more than once.
+ */
+class TextureNodeYUV : public QObject, public QSGNode
 {
-    return _image->getWidth();
-}
+    Q_OBJECT
 
-int SVGGpuImage::getHeight() const
-{
-    return _image->getHeight();
-}
+public:
+    /**
+     * Create a textured rectangle for rendering YUV images on the GPU.
+     * @param size the initial back texture size.
+     * @param window a reference to the quick window for generating textures.
+     * @param format the YUV format to determine the U and V texture size.
+     */
+    TextureNodeYUV( const QSize& size, QQuickWindow* window,
+                    TextureFormat format );
 
-const uint8_t* SVGGpuImage::getData( const uint texture ) const
-{
-    Q_UNUSED( texture );
-    return _image->getData();
-}
+    /** @return the surface of the node. */
+    const QRectF& rect() const;
 
-TextureFormat SVGGpuImage::getFormat() const
-{
-    return TextureFormat::rgba;
-}
+    /** Set the surface of the node. */
+    void setRect( const QRectF& rect );
 
-uint SVGGpuImage::getGLPixelFormat() const
-{
-    return _image->getGLPixelFormat();
-}
+    /** @return the back texture identifiers, which can safely be updated. */
+    YUVTexture getBackGlTexture() const;
 
-bool SVGGpuImage::isGpuImage() const
-{
-    return true;
-}
+    /** Swap the front and back textures. */
+    void swap();
 
-bool SVGGpuImage::generateGpuImage()
-{
-    // Call getTileImage so that the image gets cached for the next request
-    _image = _dataSource.getTileImage( _tileId );
-    return true;
-}
+    /**
+     * Create or resize the back texture as needed.
+     * Note that the back texture identifier may change as a result of calling
+     * this function.
+     * @param size the new texture size
+     */
+    void setBackTextureSize( const QSize& size );
+
+private:
+    QQuickWindow* _window = nullptr;
+    const TextureFormat _format = TextureFormat::yuv420;
+
+    QRectF _rect;
+    QSGGeometryNode _node;
+
+    void _createBackTextures( const QSize& size );
+    using QSGTexturePtr = std::unique_ptr<QSGTexture>;
+    QSGTexturePtr _createTexture( const QSize& size ) const;
+    QSGTexturePtr _createWrapper( uint textureID, const QSize& size ) const;
+};
+
+#endif

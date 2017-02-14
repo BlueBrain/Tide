@@ -3,6 +3,9 @@ Changelog {#changelog}
 
 # Release 1.3 (git master)
 
+* [124](https://github.com/BlueBrain/Tide/pull/124):
+  Faster movie playback through direct rendering of YUV frames on GPU.
+  Performance improved by ~60% (10->16fps) on a test 8K "webm" movie.
 * [120](https://github.com/BlueBrain/Tide/pull/120):
   User can now upload content to the local file system via the web interface.
 * [122](https://github.com/BlueBrain/Tide/pull/122):

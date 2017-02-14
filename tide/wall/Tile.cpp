@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -41,6 +41,7 @@
 
 #include "QuadLineNode.h"
 #include "TextureNode.h"
+#include "TextureNodeYUV.h"
 #include "log.h"
 
 namespace
@@ -51,8 +52,9 @@ const QColor borderColor( "lightgreen" );
 
 // false-positive on qt signals for Q_PROPERTY notifiers
 // cppcheck-suppress uninitMemberVar
-Tile::Tile( const uint id, const QRect& rect )
+Tile::Tile( const uint id, const QRect& rect, TextureFormat format )
     : _tileId( id )
+    , _format( format )
     , _policy( AdjustToTexture )
     , _swapRequested( false )
     , _updateTextureRequested( true )
@@ -70,6 +72,11 @@ Tile::Tile( const uint id, const QRect& rect )
 uint Tile::getId() const
 {
     return _tileId;
+}
+
+TextureFormat Tile::getFormat() const
+{
+    return _format;
 }
 
 bool Tile::getShowBorder() const
@@ -97,6 +104,11 @@ void Tile::update( const QRect& rect )
 uint Tile::getBackGlTexture() const
 {
     return _backGlTexture;
+}
+
+const YUVTexture& Tile::getBackGlTextureYUV() const
+{
+    return _backGlTextureYUV;
 }
 
 QSize Tile::getBackGlTextureSize() const
@@ -128,21 +140,37 @@ void Tile::swapImage()
 QSGNode* Tile::updatePaintNode( QSGNode* oldNode,
                                 QQuickItem::UpdatePaintNodeData* )
 {
-    TextureNode* node = static_cast<TextureNode*>( oldNode );
+    switch( _format )
+    {
+    case TextureFormat::rgba:
+        return _updateTextureNode<TextureNode>( oldNode );
+    case TextureFormat::yuv444:
+    case TextureFormat::yuv422:
+    case TextureFormat::yuv420:
+        return _updateTextureNode<TextureNodeYUV>( oldNode );
+    default:
+        throw std::runtime_error( "unsupported texture format" );
+    }
+}
+
+template<class NodeT>
+QSGNode* Tile::_updateTextureNode( QSGNode* oldNode )
+{
+    auto node = static_cast<NodeT*>( oldNode );
     if( !node )
-        node = new TextureNode( _nextCoord.size(), window( ));
+        node = new NodeT( _nextCoord.size(), window( ), _format );
 
     if( _swapRequested )
     {
         node->swap();
-        _backGlTexture = node->getBackGlTexture();
+        _storeBackTextureIndex( *node );
         _swapRequested = false;
     }
 
     if( _updateTextureRequested )
     {
         node->setBackTextureSize( _nextCoord.size( ));
-        _backGlTexture = node->getBackGlTexture();
+        _storeBackTextureIndex( *node );
         _updateTextureRequested = false;
         emit textureReady( shared_from_this( ));
     }
@@ -154,7 +182,18 @@ QSGNode* Tile::updatePaintNode( QSGNode* oldNode,
     return node;
 }
 
-void Tile::_updateBorderNode( TextureNode* parentNode )
+void Tile::_storeBackTextureIndex( const TextureNode& node )
+{
+    _backGlTexture = node.getBackGlTexture();
+}
+
+void Tile::_storeBackTextureIndex( const TextureNodeYUV& node )
+{
+    _backGlTextureYUV = node.getBackGlTexture();
+}
+
+template<class NodeT>
+void Tile::_updateBorderNode( NodeT* parentNode )
 {
     if( _showBorder )
     {
