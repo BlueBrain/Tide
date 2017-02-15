@@ -78,6 +78,8 @@ struct FFMPEGStaticInit
     FFMPEGStaticInit()
     {
         av_lockmgr_register( &ffmpegLockManagerCallback );
+        av_log_set_callback( avMessageLoger );
+        av_log_set_level( AV_LOG_ERROR );
         av_register_all();
     }
 };

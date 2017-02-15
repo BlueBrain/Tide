@@ -1,6 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
 /*                     Raphael.Dumusc@epfl.ch                        */
 /*                     Daniel.Nachbaur@epfl.ch                       */
 /* All rights reserved.                                              */
@@ -60,6 +60,7 @@
 
 extern std::string logger_id;
 extern void put_log( int level, const char* format, ... );
+extern void avMessageLoger( void*, int level, const char* format, va_list varg );
 extern void qtMessageLogger( QtMsgType type, const QMessageLogContext& context,
                              const QString& msg );
 

@@ -1,6 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
 /*                     Raphael.Dumusc@epfl.ch                        */
 /*                     Daniel.Nachbaur@epfl.ch                       */
 /* All rights reserved.                                              */
@@ -41,12 +41,22 @@
 
 #include "log.h"
 
+#include "config.h"
+
 #include <stdarg.h>
 #include <iostream>
 #include <sstream>
+#include <vector>
 
 #include <QByteArray>
 #include <QString>
+
+#if TIDE_ENABLE_MOVIE_SUPPORT
+extern "C"
+{
+#include <libavutil/log.h>
+}
+#endif
 
 #define MAX_LOG_LENGTH 1024
 
@@ -74,6 +84,54 @@ void put_log( const int level, const char* format, ... )
     else
         std::cout << message.str() << std::endl;
 }
+
+#if TIDE_ENABLE_MOVIE_SUPPORT
+void avMessageLoger( void*, const int level, const char* format, va_list varg )
+{
+    if( level > av_log_get_level( ))
+        return;
+
+    std::vector<char> avString( MAX_LOG_LENGTH/2 );
+    vsnprintf( avString.data(), avString.size(), format, varg );
+    // strip trailing '\n'
+    std::string string( avString.data( ));
+    if( !string.empty() && string[string.length()-1] == '\n' )
+        string.erase( string.length()-1 );
+
+    switch( level )
+    {
+    case AV_LOG_PANIC:
+        put_log( LOG_FATAL, "avPanic: %s", string.c_str( ));
+        break;
+    case AV_LOG_FATAL:
+        put_log( LOG_FATAL, "avFatal: %s", string.c_str( ));
+        break;
+    case AV_LOG_ERROR:
+        put_log( LOG_ERROR, "avError: %s", string.c_str( ));
+        break;
+    case AV_LOG_WARNING:
+        put_log( LOG_WARN, "avWarning: %s", string.c_str( ));
+        break;
+    case AV_LOG_INFO:
+        put_log( LOG_INFO, "avInfo: %s", string.c_str( ));
+        break;
+    case AV_LOG_VERBOSE:
+        put_log( LOG_DEBUG, "avVerbose: %s", string.c_str( ));
+        break;
+    case AV_LOG_DEBUG:
+        put_log( LOG_VERBOSE, "avDebug: %s", string.c_str( ));
+        break;
+#ifdef AV_LOG_TRACE
+    case AV_LOG_TRACE:
+        put_log( LOG_VERBOSE, "avTrace: %s", string.c_str( ));
+        break;
+#endif
+    default:
+        put_log( LOG_WARN, "avUnknown: %s", string.c_str( ));
+        break;
+    }
+}
+#endif
 
 void qtMessageLogger( const QtMsgType type,
                       const QMessageLogContext& context,
