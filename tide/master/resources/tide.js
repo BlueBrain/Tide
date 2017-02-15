@@ -92,7 +92,6 @@ function handleUploadDropped(evt) {
 function handleUploadFromMenu(evt) {
   evt.stopPropagation();
   evt.preventDefault();
-  // var files =   evt.target.files ;
   var files =   Array.from(evt.target.files );
   if(files.length>0)
     $('.formButton').removeAttr('disabled');
@@ -118,20 +117,19 @@ function preuploadCheck(files) {
 
   var totalSize = 0;
   for (var i = 0, f; f = files[i]; i++) {
-    totalSize += (f.size / 1048576);
+    totalSize += (f.size / MBtoB);
   }
   totalSize = Number(totalSize).toFixed(2)
-  if ( totalSize < maxUploadSizeWithoutWarning)
+  if ( totalSize < maxUploadSizeMBWithoutWarning)
     uploadFiles(files);
-  else if ( totalSize > maxUploadSize)
+  else if ( totalSize > maxUploadSizeMB)
     swal({
       type: "warning",
-      title: "Maximum upload size limited to " + maxUploadSize + " MB",
+      title: "Maximum upload size limited to " + maxUploadSizeMB + " MB",
       text: "You intend to transfer " + files.length + " files with total size of: " + totalSize + " MB.",
       confirmButtonColor: "#DD6B55",
-      confirmButtonText: "Will never try it again",
-      closeOnConfirm: true,
-      closeOnCancel: true,
+      confirmButtonText: "OK",
+      closeOnConfirm: true
     });
   else {
     swal({
@@ -165,7 +163,6 @@ function uploadFiles (files) {
         if (requests[i].readyState === 4 && requests[i].status === 200) {
           var xhr2 = new XMLHttpRequest();
           xhr2.open('PUT', restUrl + url + "/" + file.name.toLowerCase(), true);
-          xhr2.setRequestHeader("Content-type", "multipart/form-data; boundary=bb");
           xhr2.onload = function () {
             if (xhr2.readyState === 4 && xhr2.status === 200 && i == requests.length - 1) {
               $('#upload-button').text("UPLOADED").fadeOut(1500, function () {
@@ -317,9 +314,13 @@ function getSessionFolderContent() {
       $('#sessionTree').on('nodeSelected', function (event, data) {
         if (data.file) {
           requestPUT("load", JSON.stringify({"uri": data.text}));
+          $("#wall").css("opacity", 0.2);
           window.setTimeout(function ()
           {
+            $("#sessionMenu").toggle("puff", showEffectSpeed);
+            $("#sessionButton").toggleClass("buttonPressed")
             $('#sessionTree').treeview('toggleNodeSelected', [data.nodeId, {silent: true}]);
+            $("#wall").css("opacity", 1);
             updateWall();
           }, sessionLoadingTimeout)
         }

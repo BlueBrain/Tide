@@ -40,8 +40,6 @@
 #ifndef FILERECEIVER_H
 #define FILERECEIVER_H
 
-//#include "types.h"
-
 #include <zeroeq/http/server.h>
 
 #include <QObject>

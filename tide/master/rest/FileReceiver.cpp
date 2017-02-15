@@ -41,14 +41,14 @@
 
 #include "log.h"
 
+#include <QByteArray>
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QFile>
-#include <QDir>
-#include <QFileInfo>
 #include <QUrl>
 
-#include <QByteArray>
 
 namespace
 {
