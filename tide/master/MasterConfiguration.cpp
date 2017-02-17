@@ -106,8 +106,7 @@ void MasterConfiguration::loadUploadDirectory( QXmlQuery& query )
     QString queryResult;
 
     query.setQuery( "string(/configuration/webservice/@uploadDirectory)" );
-    if( query.evaluateTo( &queryResult ))
-        _uploadDir = queryResult.remove( QRegExp( TRIM_REGEX ));
+    getString( query, _uploadDir );
     if( _uploadDir.isEmpty( ))
         _uploadDir = QDir::tempPath();
 }

@@ -160,11 +160,11 @@ function uploadFiles (files) {
       requests[i] = new XMLHttpRequest();
       requests[i].open('PUT', restUrl + url, true);
       requests[i].onload = function () {
-        if (requests[i].readyState === 4 && requests[i].status === 200) {
+        if (requests[i].readyState ===  XMLHttpRequest.DONE && requests[i].status === 200) {
           var xhr2 = new XMLHttpRequest();
           xhr2.open('PUT', restUrl + url + "/" + file.name.toLowerCase(), true);
           xhr2.onload = function () {
-            if (xhr2.readyState === 4 && xhr2.status === 200 && i == requests.length - 1) {
+            if (xhr2.readyState === XMLHttpRequest.DONE && xhr2.status === 200 && i == requests.length - 1) {
               $('#upload-button').text("UPLOADED").fadeOut(1500, function () {
                 $(this).text("UPLOAD").fadeIn(1500);
               });
@@ -363,6 +363,8 @@ function saveSession() {
         confirmButtonColor: "#014f86"
       }, function () {
         $('#sessionNameInput').val("");
+        $("#sessionMenu").toggle("puff", showEffectSpeed);
+        $("#sessionButton").toggleClass("buttonPressed");
         window.setTimeout(function ()
         {
           getSessionFolderContent();
@@ -756,7 +758,7 @@ function requestPUT(command, parameters, callback) {
   xhr.onload = function () {
     if (xhr.status === 400)
       alertPopup("Something went wrong", "Issue at: " + restUrl + command);
-    if (xhr.readyState === 4 && xhr.status === 200) {
+    if (xhr.readyState ===  XMLHttpRequest.DONE && xhr.status === 200) {
       if (callback != null)
         callback();
     }

@@ -181,13 +181,7 @@ void RestInterface::setupHtmlInterface( DisplayGroup& displayGroup,
     _impl->fileReceiver.reset( new FileReceiver( _impl->httpServer.get( )));
 
     connect( _impl->fileReceiver.get(), &FileReceiver::open,
-             [this]( QString uri )
-    {
-         if( QDir::isRelativePath( uri ))
-            emit open( _config.getContentDir() + "/" + uri );
-        else
-            emit open( uri );
-    });
+             this, &RestInterface::open );
 
     _impl->sessionsDirQuery.reset(
                 new FileSystemQuery( _impl->httpServer.get(),

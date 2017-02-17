@@ -41,6 +41,8 @@
 
 #include "log.h"
 
+#include "scene/ContentFactory.h"
+
 #include <QByteArray>
 #include <QDir>
 #include <QFile>
@@ -79,18 +81,33 @@ bool FileReceiver::_handleUpload( const std::string& payload )
     const auto obj = _toJSONObject( payload );
     if( obj.empty( ))
         return false;
-    QString fileName = obj[ "fileName" ].toString();
+    const auto fileName = obj[ "fileName" ].toString();
+    if( fileName.contains( '/' ))
+        return false;
+
+    const QFileInfo fileInfo( fileName );
+    const QString fileSuffix = fileInfo.suffix();
+    if( fileSuffix.isEmpty() || fileInfo.baseName().isEmpty( ))
+        return false;
+
+    const QStringList& filters = ContentFactory::getSupportedExtensions();
+    if( !filters.contains( fileSuffix ))
+    {
+        put_flog( LOG_INFO, "Not supported file uploaded: %s",
+                  fileInfo.fileName().toLocal8Bit().constData( ));
+        return false;
+    }
 
     const auto url = QUrl::fromLocalFile( fileName );
     const std::string path = url.path( QUrl::FullyEncoded ).toStdString();
     _server.handlePUT( "tide/upload/" + path,
                        [ this, fileName, path ] ( const std::string& data )
     {
-        const QString uploadDir = QDir::tempPath() + "/";
-        QByteArray ba = QByteArray::fromRawData( data.c_str(), data.size( ));
-        QFile file( uploadDir + fileName );
-        file.open( QIODevice::WriteOnly );
-        file.write( ba );
+        QFile file(  QDir::tempPath() + "/" + fileName );
+        if( !file.open( QIODevice::WriteOnly ))
+            return false;
+        if( !file.write( data.c_str(), data.size( )))
+            return false;
         file.close();
         emit open( QFileInfo( file ).absoluteFilePath( ));
         _server.remove( "tide/upload/" + path );
