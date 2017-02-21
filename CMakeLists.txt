@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2016, EPFL/Blue Brain Project
+# Copyright (c) 2013-2017, EPFL/Blue Brain Project
 #                          Raphael Dumusc <raphael.dumusc@epfl.ch>
 
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
@@ -29,9 +29,10 @@ common_find_package(Deflect REQUIRED)
 common_find_package(MPI REQUIRED)
 common_find_package(Qt5Concurrent REQUIRED)
 common_find_package(Qt5Core REQUIRED)
+common_find_package(Qt5Gui REQUIRED)
 common_find_package(Qt5Network REQUIRED)
-common_find_package(Qt5OpenGL REQUIRED)
 common_find_package(Qt5Qml REQUIRED)
+common_find_package(Qt5Quick 5.4 REQUIRED)
 common_find_package(Qt5Svg REQUIRED)
 common_find_package(Qt5WebEngine 5.6)
 if(NOT TARGET Qt5::WebEngine)
@@ -43,14 +44,6 @@ common_find_package(Qt5Xml REQUIRED)
 common_find_package(RSVG MODULE librsvg-2.0 2.36.2)
 common_find_package(TIFF)
 common_find_package(VirtualKeyboard)
-
-# WAR for Ubuntu 14.04 in CI super-project conditions
-common_find_package(Qt5Quick 5.4)
-if(NOT Qt5Quick_FOUND)
-  message(WARNING "Qt5Quick 5.4 not found, the project will not be built")
-  include(CommonPackageConfig)
-  return()
-endif()
 
 common_find_package(FFMPEG)
 if(FFMPEG_FOUND)
