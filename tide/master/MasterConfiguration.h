@@ -72,6 +72,12 @@ public:
     const QString& getContentDir() const;
 
     /**
+     * Get the directory for uploading content via web interface
+     * @return directory path
+     */
+    const QString& getUploadDir() const;
+
+    /**
      * Get the sessions directory
      * @return directory path
      */
@@ -164,6 +170,7 @@ private:
     void loadContentDirectory( QXmlQuery& query );
     void loadLauncherSettings( QXmlQuery& query );
     void loadSessionsDirectory( QXmlQuery& query );
+    void loadUploadDirectory( QXmlQuery& query );
     void loadWebService( QXmlQuery& query );
     void loadWhiteboard( QXmlQuery& query );
     void loadAppLauncher( QXmlQuery& query );
@@ -173,6 +180,7 @@ private:
     bool _headless = false;
     QString _contentDir;
     QString _sessionsDir;
+    QString _uploadDir;
     QString _appLauncherFile;
 
     QString _launcherDisplay;

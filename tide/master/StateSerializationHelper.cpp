@@ -47,6 +47,8 @@
 #include "State.h"
 #include "StatePreview.h"
 
+#include <QFileInfo>
+
 namespace
 {
 const QString SESSION_FILE_EXTENSION( ".dcx" );
@@ -64,6 +66,50 @@ bool _canBeRestored( const CONTENT_TYPE type )
         return false;
 
     return true;
+}
+
+void _relocateTempContent( ContentWindow& window, const QString& dstDir )
+{
+    const auto& uri = window.getContent()->getURI();
+    if( !uri.startsWith( QDir::tempPath( )))
+        return;
+
+    const QFileInfo file( uri );
+    auto newUri = dstDir + "/" + file.fileName();
+
+    int nameSuffix = 0;
+    while( QFile( newUri ).exists( ))
+    {
+        newUri = QString( "%1/%2_%3.%4" ).arg( dstDir, file.baseName(),
+                                               QString::number( ++nameSuffix ),
+                                               file.suffix( ));
+    }
+    if( !QDir().rename( uri, newUri ))
+    {
+        put_flog( LOG_WARN, "Failed to move %s to : %s",
+                  uri.toLocal8Bit().constData(),
+                  newUri.toLocal8Bit().constData( ));
+        return;
+    }
+    window.setContent( ContentFactory::getContent( newUri ));
+}
+
+void _relocateTempContent( DisplayGroup& group, const QString& uploadDir )
+{
+    if( QDir( uploadDir ).exists( ))
+    {
+        put_flog( LOG_WARN, "Moving content to existing session folder: %s!",
+                  uploadDir.toLocal8Bit().constData( ));
+    }
+    else if( !QDir().mkpath( uploadDir ))
+    {
+        put_flog( LOG_WARN, "Cannot create a new session folder: %s!",
+                  uploadDir.toLocal8Bit().constData( ));
+        return;
+    }
+
+    for ( const auto& window : group.getContentWindows( ))
+        _relocateTempContent( *window, uploadDir );
 }
 
 bool _validateContent( const ContentWindowPtr& window )
@@ -211,7 +257,9 @@ void _filterContents( DisplayGroup& group )
 }
 
 QFuture<bool> StateSerializationHelper::save( QString filename,
-                                              const bool generatePreview )
+                                              const QString& uploadDir,
+                                              const bool generatePreview
+                                              )
 {
     if( !filename.endsWith( SESSION_FILE_EXTENSION ))
     {
@@ -222,6 +270,12 @@ QFuture<bool> StateSerializationHelper::save( QString filename,
 
     put_flog( LOG_INFO, "Saving session: '%s'",
               filename.toStdString().c_str( ));
+
+    if( !uploadDir.isEmpty( ))
+    {
+        const QString sessionName = QFileInfo( filename ).baseName();
+        _relocateTempContent( *_displayGroup, uploadDir + "/" + sessionName );
+    }
 
     // Important: use xml archive not binary as they use different code paths
     DisplayGroupPtr group = serialization::xmlCopy( _displayGroup );

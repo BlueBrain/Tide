@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,82 +37,81 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef MASTERWINDOW_H
-#define MASTERWINDOW_H
+#include "FileReceiver.h"
 
-#include "types.h"
+#include "log.h"
 
-#include <QFutureWatcher>
-#include <QMainWindow>
-#include <QMimeData>
+#include "scene/ContentFactory.h"
 
-class BackgroundWidget;
-class MasterQuickView;
-class WebbrowserWidget;
+#include <QByteArray>
+#include <QDir>
+#include <QFile>
+#include <QFileInfo>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QUrl>
 
-/**
- * The main UI window for Master applications.
- *
- * It lets users control the contents displayed on the wall.
- */
-class MasterWindow : public QMainWindow
+
+namespace
 {
-    Q_OBJECT
+QJsonObject _toJSONObject( const std::string& data )
+{
+    const auto input = QByteArray::fromRawData( data.c_str(), data.size( ));
+    const auto doc = QJsonDocument::fromJson( input );
 
-public:
-    /** Constructor. */
-    MasterWindow( DisplayGroupPtr displayGroup, OptionsPtr options,
-                  MasterConfiguration& config );
+    if( doc.isNull() || !doc.isObject( ))
+    {
+        put_flog( LOG_INFO, "Error parsing JSON string: '%s'", data.c_str( ));
+        return QJsonObject{};
+    }
+    return doc.object();
+}
+}
 
-    /** @return the quick view. */
-    MasterQuickView* getQuickView();
+FileReceiver::FileReceiver( zeroeq::http::Server& server )
+    : _server ( server )
+{
+    server.handlePUT( "tide/upload", [this]( const std::string& received )
+    { return _handleUpload( received ); } );
 
-signals:
-    /** Emitted when users want to open a webbrowser. */
-    void openWebBrowser( QPointF pos, QSize size, QString url );
+}
 
-    /** Emitted when a session has been successfully loaded. */
-    void sessionLoaded( DisplayGroupConstPtr group );
+bool FileReceiver::_handleUpload( const std::string& payload )
+{
+    const auto obj = _toJSONObject( payload );
+    if( obj.empty( ))
+        return false;
+    const auto fileName = obj[ "fileName" ].toString();
+    if( fileName.contains( '/' ))
+        return false;
 
-protected:
-    /** @name Drag events re-implemented from QMainWindow */
-    //@{
-    void dragEnterEvent( QDragEnterEvent* event ) final;
-    void dropEvent( QDropEvent* event ) final;
-    //@}
+    const QFileInfo fileInfo( fileName );
+    const QString fileSuffix = fileInfo.suffix();
+    if( fileSuffix.isEmpty() || fileInfo.baseName().isEmpty( ))
+        return false;
 
-private:
-    void _setupMasterWindowUI( std::unique_ptr<MasterQuickView>
-                               masterQuickView );
+    const QStringList& filters = ContentFactory::getSupportedExtensions();
+    if( !filters.contains( fileSuffix ))
+    {
+        put_flog( LOG_INFO, "Not supported file uploaded: %s",
+                  fileInfo.fileName().toLocal8Bit().constData( ));
+        return false;
+    }
 
-    void _openContent();
-    void _addContentDirectory( const QString& directoryName,
-                               const QSize& gridSize = QSize( ));
-    void _openContentsDirectory();
-
-    void _openSession();
-    void _saveSession();
-    void _loadSession( const QString& filename );
-
-    void _openAboutWidget();
-
-    QStringList _extractValidContentUrls( const QMimeData* mimeData );
-    QStringList _extractFolderUrls( const QMimeData* mimeData );
-    QString _extractSessionFile( const QMimeData* mimeData );
-
-    DisplayGroupPtr _displayGroup;
-    OptionsPtr _options;
-
-    QFutureWatcher<DisplayGroupConstPtr> _loadSessionOp;
-    QFutureWatcher<bool> _saveSessionOp;
-
-    BackgroundWidget* _backgroundWidget; // child QObject
-    WebbrowserWidget* _webbrowserWidget; // child QObject
-    MasterQuickView* _quickView;         // child QObject
-
-    QString _contentFolder;
-    QString _sessionFolder;
-    QString _uploadDir;
-};
-
-#endif
+    const auto url = QUrl::fromLocalFile( fileName );
+    const std::string path = url.path( QUrl::FullyEncoded ).toStdString();
+    _server.handlePUT( "tide/upload/" + path,
+                       [ this, fileName, path ] ( const std::string& data )
+    {
+        QFile file(  QDir::tempPath() + "/" + fileName );
+        if( !file.open( QIODevice::WriteOnly ))
+            return false;
+        if( !file.write( data.c_str(), data.size( )))
+            return false;
+        file.close();
+        emit open( QFileInfo( file ).absoluteFilePath( ));
+        _server.remove( "tide/upload/" + path );
+        return true;
+    });
+    return true;
+}

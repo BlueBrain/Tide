@@ -118,7 +118,7 @@ bool RestController::_handleFocusWindows()
 }
 bool RestController::_handleUnfocusWindow( const QString& id )
 {
-   _controller->unfocus( QUuid( id ) );
+    _controller->unfocus( QUuid( id ) );
     return true;
 }
 bool RestController::_handleUnfocusWindows()

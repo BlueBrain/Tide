@@ -16,3 +16,6 @@ var directoryListTimeout = 500;
 var fileLoadingTimeout = 250;
 var sessionLoadingTimeout = 2500;
 var showEffectSpeed = 200;
+var maxUploadSizeMBWithoutWarning = 50;
+var maxUploadSizeMB = 200;
+var MBtoB = 1048576;

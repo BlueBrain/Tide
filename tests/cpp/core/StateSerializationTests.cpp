@@ -396,6 +396,65 @@ BOOST_AUTO_TEST_CASE( testStateSerializationToFile )
     checkWindow( loadedGroup->getContentWindows()[0] );
 
     // 4) Cleanup
-    cleanupTestDir();
-    dir.rmdir( TEST_DIR );
+    QDir( TEST_DIR ).removeRecursively();
+}
+
+BOOST_AUTO_TEST_CASE( testStateSerializationUploadedToFile )
+{
+    // 1) Setup
+    QDir dir;
+    if ( !dir.mkdir( TEST_DIR ))
+        cleanupTestDir();
+
+    QDir uploadDir( TEST_DIR );
+    QDir tempDir( QDir::tempPath( ));
+
+    // 2) Create new file and put it into system temp folder
+    const QString newValidFile("uploaded.png");
+    const QString newValidUri = QDir::tempPath() + "/" + newValidFile;
+    QFile::copy( VALID_TEXTURE_URI, newValidUri );
+
+    // 3) Test saving
+    DisplayGroupPtr displayGroup = createTestDisplayGroup();
+    ContentPtr content = ContentFactory::getContent( newValidUri );
+    BOOST_REQUIRE( content );
+    BOOST_REQUIRE_EQUAL( content->getDimensions(), VALID_TEXTURE_SIZE );
+    ContentWindowPtr contentWindow( new ContentWindow( content ));
+    displayGroup->addContentWindow( contentWindow );
+    StateSerializationHelper helper( displayGroup );
+    BOOST_CHECK( helper.save( TEST_DIR + "/test.dcx",
+                              TEST_DIR ).result( ));
+    QDir sessionDir( TEST_DIR+"/test" );
+    QStringList tempDirFiles = tempDir.entryList( QDir::NoDotAndDotDot |
+                                                  QDir::Files );
+    BOOST_CHECK( !tempDirFiles.contains( newValidFile ));
+
+    QStringList uploadDirFiles = uploadDir.entryList( QDir::NoDotAndDotDot |
+                                                      QDir::Files );
+    QStringList sessionFiles = sessionDir.entryList( QDir::NoDotAndDotDot |
+                                                     QDir::Files );
+
+    BOOST_CHECK( sessionFiles.contains( newValidFile ));
+    BOOST_CHECK( uploadDirFiles.contains( "test.dcx" ));
+    BOOST_CHECK( uploadDirFiles.contains( "test.dcxpreview" ));
+    BOOST_CHECK( contentWindow->getContent()->getURI() ==
+                 TEST_DIR + "/test/" + "uploaded.png" );
+
+    //4) Add another file with the same name and test saving
+    QFile::copy( VALID_TEXTURE_URI, newValidUri );
+    content = ContentFactory::getContent( newValidUri );
+    ContentWindowPtr newContentWindow( new ContentWindow( content ));
+    displayGroup->addContentWindow( newContentWindow );
+    BOOST_CHECK( helper.save( TEST_DIR + "/test.dcx",
+                              TEST_DIR ).result( ));
+    uploadDirFiles = uploadDir.entryList( QDir::NoDotAndDotDot | QDir::Files );
+    sessionFiles = sessionDir.entryList( QDir::NoDotAndDotDot | QDir::Files );
+
+    BOOST_CHECK( !tempDirFiles.contains( newValidFile ));
+    BOOST_CHECK( sessionFiles.contains( "uploaded.png" ));
+    BOOST_CHECK( sessionFiles.contains( "uploaded_1.png" ));
+    BOOST_CHECK( newContentWindow->getContent()->getURI() ==
+                 TEST_DIR + "/test/" + "uploaded_1.png" );
+
+    uploadDir.removeRecursively();
 }

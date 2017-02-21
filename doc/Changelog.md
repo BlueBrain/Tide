@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.3 (git master)
 
+* [120](https://github.com/BlueBrain/Tide/pull/120):
+  User can now upload content to the local file system via the web interface.
 * [122](https://github.com/BlueBrain/Tide/pull/122):
   Added passive stereo rendering mode for pixel streams sent by Deflect 0.13.
 * [121](https://github.com/BlueBrain/Tide/pull/121):

@@ -430,8 +430,9 @@ void MasterApplication::_initRestInterface()
     connect( _restInterface.get(), &RestInterface::save, [this]( QString uri )
     {
         _displayGroup->setShowWindowTitles( _options->getShowWindowTitles( ));
-        _saveSessionOp.setFuture(
-                    StateSerializationHelper( _displayGroup ).save( uri ));
+        const auto& uploadDir = _config->getUploadDir();
+        StateSerializationHelper helper( _displayGroup );
+        _saveSessionOp.setFuture( helper.save( uri, uploadDir ));
     });
 
     connect( _restInterface.get(), &RestInterface::clear, [this]()

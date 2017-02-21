@@ -43,6 +43,7 @@
 #include "HtmlContent.h"
 #include "JsonOptions.h"
 #include "MasterConfiguration.h"
+#include "FileReceiver.h"
 #include "RestCommand.h"
 #include "RestConfiguration.h"
 #include "RestController.h"
@@ -94,6 +95,7 @@ public:
 
     std::unique_ptr<FileSystemQuery> contentDirQuery;
     std::unique_ptr<FileSystemQuery> sessionsDirQuery;
+    std::unique_ptr<FileReceiver> fileReceiver;
     std::unique_ptr<RestLogger> logContent;
     std::unique_ptr<HtmlContent> htmlContent;
     std::unique_ptr<RestController> sceneController;
@@ -175,6 +177,11 @@ void RestInterface::setupHtmlInterface( DisplayGroup& displayGroup,
 
     _impl->sceneController.reset( new RestController( _impl->httpServer.get(),
                                                       displayGroup ));
+
+    _impl->fileReceiver.reset( new FileReceiver( _impl->httpServer.get( )));
+
+    connect( _impl->fileReceiver.get(), &FileReceiver::open,
+             this, &RestInterface::open );
 
     _impl->sessionsDirQuery.reset(
                 new FileSystemQuery( _impl->httpServer.get(),

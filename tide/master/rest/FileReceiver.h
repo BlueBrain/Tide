@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,82 +37,33 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef MASTERWINDOW_H
-#define MASTERWINDOW_H
+#ifndef FILERECEIVER_H
+#define FILERECEIVER_H
 
-#include "types.h"
+#include <zeroeq/http/server.h>
 
-#include <QFutureWatcher>
-#include <QMainWindow>
-#include <QMimeData>
+#include <QObject>
 
-class BackgroundWidget;
-class MasterQuickView;
-class WebbrowserWidget;
-
-/**
- * The main UI window for Master applications.
- *
- * It lets users control the contents displayed on the wall.
- */
-class MasterWindow : public QMainWindow
+class FileReceiver : public QObject
 {
     Q_OBJECT
 
 public:
-    /** Constructor. */
-    MasterWindow( DisplayGroupPtr displayGroup, OptionsPtr options,
-                  MasterConfiguration& config );
-
-    /** @return the quick view. */
-    MasterQuickView* getQuickView();
+    /**
+     * Provide a way to upload a file to the server.
+     *
+     * @param server used to register HTTP endpoint.
+     */
+    FileReceiver( zeroeq::http::Server& httpServer );
 
 signals:
-    /** Emitted when users want to open a webbrowser. */
-    void openWebBrowser( QPointF pos, QSize size, QString url );
-
-    /** Emitted when a session has been successfully loaded. */
-    void sessionLoaded( DisplayGroupConstPtr group );
-
-protected:
-    /** @name Drag events re-implemented from QMainWindow */
-    //@{
-    void dragEnterEvent( QDragEnterEvent* event ) final;
-    void dropEvent( QDropEvent* event ) final;
-    //@}
+    /** Open the uploaded file. */
+    void open( QString uri );
 
 private:
-    void _setupMasterWindowUI( std::unique_ptr<MasterQuickView>
-                               masterQuickView );
+    zeroeq::http::Server& _server;
 
-    void _openContent();
-    void _addContentDirectory( const QString& directoryName,
-                               const QSize& gridSize = QSize( ));
-    void _openContentsDirectory();
-
-    void _openSession();
-    void _saveSession();
-    void _loadSession( const QString& filename );
-
-    void _openAboutWidget();
-
-    QStringList _extractValidContentUrls( const QMimeData* mimeData );
-    QStringList _extractFolderUrls( const QMimeData* mimeData );
-    QString _extractSessionFile( const QMimeData* mimeData );
-
-    DisplayGroupPtr _displayGroup;
-    OptionsPtr _options;
-
-    QFutureWatcher<DisplayGroupConstPtr> _loadSessionOp;
-    QFutureWatcher<bool> _saveSessionOp;
-
-    BackgroundWidget* _backgroundWidget; // child QObject
-    WebbrowserWidget* _webbrowserWidget; // child QObject
-    MasterQuickView* _quickView;         // child QObject
-
-    QString _contentFolder;
-    QString _sessionFolder;
-    QString _uploadDir;
+    bool _handleUpload( const std::string& payload );
 };
 
 #endif

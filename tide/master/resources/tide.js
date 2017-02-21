@@ -10,7 +10,8 @@ var wallWidth;
 var wallHeight;
 var windowList = [];
 var zoomScale;
-
+var output = [];
+var filters = [];
 window.onresize = setScale;
 
 $(init);
@@ -18,23 +19,172 @@ $(init);
 function bootstrapMenus() {
 
   $("#addButton").click(function (e) {
-    $('#sessionMenu').hide("puff", 200);
-    $('#fsMenu').css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed)
+    $("#sessionMenu").hide("puff", showEffectSpeed);
+    $("#uploadMenu").hide("puff", showEffectSpeed);
+    $("#fsMenu").css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed)
+    $(".menuButton:not(#addButton)").removeClass("buttonPressed");
+    $("#addButton").toggleClass("buttonPressed")
   });
-
 
   $("#sessionButton").click(function (e) {
-    $('#sessionMenu').css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed);
-    $('#fsMenu').hide("puff", showEffectSpeed)
+    $("#uploadMenu").hide("puff", showEffectSpeed);
+    $("#fsMenu").hide("puff", showEffectSpeed);
+    $("#sessionMenu").css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed);
+    $(".menuButton:not(#sessionButton)").removeClass("buttonPressed");
+    $("#sessionButton").toggleClass("buttonPressed")
 
   });
-  $("#sessionMenu").mouseleave(function () {
-    $('#sessionMenu').hide("puff", showEffectSpeed)
-  });
 
-  $("#fsMenu").mouseleave(function () {
-    $('#fsMenu').hide("puff", showEffectSpeed)
+  $("#uploadButton").click(function (e) {
+    $("#sessionMenu").hide("puff", showEffectSpeed);
+    $("#fsMenu").hide("puff", showEffectSpeed);
+    $("#uploadMenu").css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed);
+    $(".menuButton:not(#uploadButton)").removeClass("buttonPressed");
+    $("#uploadButton").toggleClass("buttonPressed")
   });
+}
+
+function boostrapUpload() {
+  var wall = document.getElementById('wall');
+  wall.addEventListener('dragover', handleDragOver, false);
+  wall.addEventListener('dragleave', handleDragLeave, false);
+  wall.addEventListener('drop', handleUploadDropped, false);
+  document.getElementById('file-select').addEventListener('change', handleUploadFromMenu, false);
+}
+
+function handleDragOver(evt) {
+  evt.stopPropagation();
+  evt.preventDefault();
+  $("#wall").css("opacity", 0.2);
+}
+
+function handleDragLeave(evt) {
+  evt.stopPropagation();
+  evt.preventDefault();
+  $("#wall").css("opacity", 1);
+}
+
+function handleUploadDropped(evt) {
+  evt.stopPropagation();
+  evt.preventDefault();
+  $("#wall").css("opacity", 1);
+  var files =   Array.from(evt.dataTransfer.files);
+  var filesFiltered =  files.filter(function (file) {
+    return filters.some(function (element)
+    {
+      return file.name.toLowerCase().endsWith(element)
+    });
+  });
+  var notUploaded = files.length-filesFiltered.length;
+  if (notUploaded > 0)
+    swal({
+      type: "warning",
+      title: (notUploaded > 1) ? notUploaded + " unsuported files" : notUploaded + " unsuported file" ,
+      text: "Supported files are: " + filters.join(" "),
+      confirmButtonColor: "#014f86",
+      confirmButtonText: "OK",
+      closeOnConfirm: true
+    });
+  preuploadCheck(filesFiltered);
+
+}
+
+function handleUploadFromMenu(evt) {
+  evt.stopPropagation();
+  evt.preventDefault();
+  var files =   Array.from(evt.target.files );
+  if(files.length>0)
+    $('.formButton').removeAttr('disabled');
+  output=[];
+  for (var i = 0; i < files.length; i++) {
+    var f = files[i];
+    output.push('<li><strong>', f.name, '</strong> (', f.type || 'n/a', ') - ',
+      f.size, ' bytes, last modified: ',
+      f.lastModifiedDate ? f.lastModifiedDate.toLocaleDateString() : 'n/a',
+      '</li>');
+  }
+  document.getElementById('outputList').innerHTML = '<ul>' + output.join('') + '</ul>';
+
+  var form = document.getElementById('file-form');
+  form.onsubmit = (function(files){return function(){
+    preuploadCheck(files);
+    clearUploadList();
+  } })(files);
+
+}
+
+function preuploadCheck(files) {
+
+  var totalSize = 0;
+  for (var i = 0, f; f = files[i]; i++) {
+    totalSize += (f.size / MBtoB);
+  }
+  totalSize = Number(totalSize).toFixed(2)
+  if ( totalSize < maxUploadSizeMBWithoutWarning)
+    uploadFiles(files);
+  else if ( totalSize > maxUploadSizeMB)
+    swal({
+      type: "warning",
+      title: "Maximum upload size limited to " + maxUploadSizeMB + " MB",
+      text: "You intend to transfer " + files.length + " files with total size of: " + totalSize + " MB.",
+      confirmButtonColor: "#DD6B55",
+      confirmButtonText: "OK",
+      closeOnConfirm: true
+    });
+  else {
+    swal({
+        type: "warning",
+        title: "Are you sure?",
+        text: "You intend to transfer " + files.length + " files with total size of: " + totalSize + " MB.",
+        confirmButtonColor: "#DD6B55",
+        confirmButtonText: "Yes",
+        cancelButtonText: "No",
+        closeOnConfirm: true,
+        closeOnCancel: true,
+        showCancelButton: true
+      },
+      function (isConfirm) {
+        if (isConfirm)
+          uploadFiles(files)
+      });
+  }
+}
+
+function uploadFiles (files) {
+  var url = "upload";
+  var requests = [];
+  event.preventDefault();
+  for (var i = 0; i < files.length; i++) {
+    (function (i) {
+      var file = files[i];
+      requests[i] = new XMLHttpRequest();
+      requests[i].open('PUT', restUrl + url, true);
+      requests[i].onload = function () {
+        if (requests[i].readyState ===  XMLHttpRequest.DONE && requests[i].status === 200) {
+          var xhr2 = new XMLHttpRequest();
+          xhr2.open('PUT', restUrl + url + "/" + file.name.toLowerCase(), true);
+          xhr2.onload = function () {
+            if (xhr2.readyState === XMLHttpRequest.DONE && xhr2.status === 200 && i == requests.length - 1) {
+              $('#upload-button').text("UPLOADED").fadeOut(1500, function () {
+                $(this).text("UPLOAD").fadeIn(1500);
+              });
+            }
+          };
+          xhr2.send(file);
+        } else {
+          console.log('ENDPOINT REGISTRATION: An error occurred!');
+        }
+      };
+      requests[i].send(JSON.stringify({"fileName": (file.name.toLowerCase())}));
+    })(i)
+  }
+}
+function clearUploadList()
+{
+  output=[];
+  document.getElementById('outputList').innerHTML="";
+  $('#file-form').find("input[type=file]").val("");
+  $('.formButton').attr('disabled','disabled');
 }
 
 function getFileSystemContent(path) {
@@ -120,8 +270,7 @@ function getFileSystemContent(path) {
         // REGULAR FILE
         else if (data.file) {
           requestPUT("open", JSON.stringify({"uri": data.path}), updateWall);
-          window.setTimeout(function ()
-          {
+          window.setTimeout(function () {
             $('#fsMenu').treeview('toggleNodeSelected', [data.nodeId, {silent: true}]);
           }, fileLoadingTimeout)
         }
@@ -165,9 +314,13 @@ function getSessionFolderContent() {
       $('#sessionTree').on('nodeSelected', function (event, data) {
         if (data.file) {
           requestPUT("load", JSON.stringify({"uri": data.text}));
+          $("#wall").css("opacity", 0.2);
           window.setTimeout(function ()
           {
+            $("#sessionMenu").toggle("puff", showEffectSpeed);
+            $("#sessionButton").toggleClass("buttonPressed")
             $('#sessionTree').treeview('toggleNodeSelected', [data.nodeId, {silent: true}]);
+            $("#wall").css("opacity", 1);
             updateWall();
           }, sessionLoadingTimeout)
         }
@@ -179,8 +332,10 @@ function getSessionFolderContent() {
 
 function saveSession() {
   var uri = $('#sessionNameInput').val();
+  if(uri.length==0)
+    return;
   if (!uri.endsWith(".dcx"))
-    uri=uri+".dcx";
+    uri = uri + ".dcx";
   var params = JSON.stringify({"uri": uri});
   var exist = false;
   for (var i = 0; i < sessionFiles.length; i++) {
@@ -190,7 +345,7 @@ function saveSession() {
   swal({
       type: "warning",
       title: "Are you sure?",
-      text: exist ? "You intend to overwrite an existing session: " + uri : "Save as: "+ uri +"?",
+      text: exist ? "You intend to overwrite an existing session: " + uri : "Save as: " + uri + "?",
       confirmButtonColor: exist ? "#DD6B55" : "#014f86",
       confirmButtonText: "Yes",
       cancelButtonText: "No",
@@ -202,12 +357,14 @@ function saveSession() {
       requestPUT("save", params);
       swal({
         title: "Saved!",
-        text: "Your file has been saved as: " + uri ,
+        text: "Your file has been saved as: " + uri,
         type: "success",
         confirmButtonText: "OK",
         confirmButtonColor: "#014f86"
       }, function () {
         $('#sessionNameInput').val("");
+        $("#sessionMenu").toggle("puff", showEffectSpeed);
+        $("#sessionButton").toggleClass("buttonPressed");
         window.setTimeout(function ()
         {
           getSessionFolderContent();
@@ -422,6 +579,7 @@ function enableHandles() {
 }
 
 function init() {
+  boostrapUpload();
   bootstrapMenus();
   //Work-around for zeroEQ not setting proper MIME for svg
   fullscreenIcon = getIcon(fullscreenImageUrl);
@@ -437,6 +595,10 @@ function init() {
     wallHeight = config["wallSize"]["height"];
     setScale();
 
+    filters = config["filters"]
+    for (var i = 0; i < filters.length; i++)
+      filters[i]=filters[i].replace(/\*/g,"");
+    $("#file-select").attr("accept", filters);
     var wall = $("#wall");
     wall.css("background-color", config["backgroundColor"]);
     wall.css("width", wallWidth).css("height", wallHeight);
@@ -596,7 +758,7 @@ function requestPUT(command, parameters, callback) {
   xhr.onload = function () {
     if (xhr.status === 400)
       alertPopup("Something went wrong", "Issue at: " + restUrl + command);
-    if (xhr.readyState === 4 && xhr.status === 200) {
+    if (xhr.readyState ===  XMLHttpRequest.DONE && xhr.status === 200) {
       if (callback != null)
         callback();
     }

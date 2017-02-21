@@ -63,9 +63,11 @@ public:
      *
      * @param filename The .dcx file to save the state. The extension will be
      *        automatically added if it is missing.
+     * @param uploadDir folder to move content to (uploaded via web interface.)
      * @param generatePreview Also generate a .dcxpreview thumbnail image.
      */
-    QFuture<bool> save( QString filename, bool generatePreview = true );
+    QFuture<bool> save( QString filename, const QString& uploadDir = QString(),
+                        bool generatePreview = true );
 
     /**
      * Load the state from a given xml file.
@@ -76,6 +78,7 @@ public:
 
 private:
     DisplayGroupPtr _displayGroup;
+    QString _uploadDir;
 };
 
 #endif
