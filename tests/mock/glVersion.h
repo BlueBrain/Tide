@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -40,19 +40,25 @@
 #ifndef GLVERSION_H
 #define GLVERSION_H
 
-#include <QGLWidget>
 #include <iostream>
+#include <QOpenGLContext>
 
 bool glVersionGreaterEqual( const int versionMajor, const int versionMinor = 0 )
 {
-    QGLWidget widget;
-    widget.makeCurrent();
+    QOpenGLContext glContext;
+    if( !glContext.create( ))
+    {
+        std::cout << "glVersionGreaterEqual(): could not create GL context" <<
+                     std::endl;
+        return false;
+    }
 
-    const int glVersionMajor = widget.format().majorVersion();
-    const int glVersionMinor = widget.format().minorVersion();
+    const int glVersionMajor = glContext.format().majorVersion();
+    const int glVersionMinor = glContext.format().minorVersion();
 
-    const bool success = glVersionMajor >= versionMajor &&
-                         glVersionMinor >= versionMinor;
+    const bool success = glVersionMajor > versionMajor ||
+                         (glVersionMajor == versionMajor &&
+                          glVersionMinor >= versionMinor);
 
     if( !success )
         std::cout << "glVersionGreaterEqual(): insufficient GL_VERSION"
@@ -63,4 +69,4 @@ bool glVersionGreaterEqual( const int versionMajor, const int versionMinor = 0 )
     return success;
 }
 
-#endif // GLVERSION_H
+#endif

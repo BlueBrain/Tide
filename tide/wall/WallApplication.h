@@ -42,7 +42,7 @@
 
 #include "types.h"
 
-#include <QApplication>
+#include <QGuiApplication>
 #include <QThread>
 
 class RenderController;
@@ -56,7 +56,7 @@ class WallToWallChannel;
  * The main loop exec() exits when the WallWindow is deleted
  * (quitOnLastWindowClosed propery).
  */
-class WallApplication : public QApplication
+class WallApplication : public QGuiApplication
 {
     Q_OBJECT
 

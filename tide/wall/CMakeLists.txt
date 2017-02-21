@@ -6,10 +6,9 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 set(TIDEWALL_LINK_LIBRARIES
   PUBLIC
     TideCore
-    Qt5::Widgets
+    Qt5::Gui
   PRIVATE
     DeflectQt
-    Qt5::Svg
 )
 
 if(TIDE_ENABLE_MOVIE_SUPPORT)

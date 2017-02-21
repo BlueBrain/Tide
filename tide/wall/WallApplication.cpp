@@ -59,7 +59,7 @@ WallApplication::WallApplication( int& argc_, char** argv_,
                                   const QString& config,
                                   MPIChannelPtr worldChannel,
                                   MPIChannelPtr wallChannel )
-    : QApplication( argc_, argv_ )
+    : QGuiApplication( argc_, argv_ )
     , _config( new WallConfiguration( config, worldChannel->getRank( )))
     , _wallChannel( new WallToWallChannel( wallChannel ))
 {

@@ -1,5 +1,5 @@
 
-# Copyright (c) 2013-2014, EPFL/Blue Brain Project
+# Copyright (c) 2013-2017, EPFL/Blue Brain Project
 #                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>
 #                     Raphael Dumusc <raphael.dumusc@epfl.ch>
 #
@@ -13,7 +13,7 @@ set(TEST_LIBRARIES
   TideMaster
   TideWall
   ${Boost_LIBRARIES}
-  Qt5::OpenGL
+  Qt5::Gui
 )
 
 if(TIDE_ENABLE_REST_INTERFACE AND TARGET ZeroEQHTTP)
