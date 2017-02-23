@@ -41,8 +41,10 @@
 #define FILERECEIVER_H
 
 #include <zeroeq/http/server.h>
+#include "types.h"
 
 #include <QObject>
+#include <QString>
 
 class FileReceiver : public QObject
 {
@@ -58,12 +60,16 @@ public:
 
 signals:
     /** Open the uploaded file. */
-    void open( QString uri );
+    void open( QString uri, promisePtr promise );
 
 private:
     zeroeq::http::Server& _server;
 
-    bool _handleUpload( const std::string& payload );
+    using Response = zeroeq::http::Response;
+    std::future<Response> _prepareUpload( const std::string& data );
+    std::future<Response> _handleUpload( const QString& fileName,
+                                         const std::string& path,
+                                         const std::string& payload );
 };
 
 #endif

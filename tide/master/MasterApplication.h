@@ -91,9 +91,10 @@ public:
 
     /**
      * Load a session.
-     * @param sessionFile a .dcx session file.
+     * @param sessionFile a .dcx session file
+     * @param promise an optional promise to return the result of the action
      */
-    void load( QString sessionFile );
+    void load( QString sessionFile, promisePtr promise = promisePtr( ));
 
 private:
     std::unique_ptr<MasterConfiguration> _config;
@@ -103,6 +104,7 @@ private:
     std::unique_ptr<MasterFromWallChannel> _masterFromWallChannel;
     QThread _mpiSendThread;
     QThread _mpiReceiveThread;
+    void _open( const QString& uri, promisePtr promise );
 
     DisplayGroupPtr _displayGroup;
     MarkersPtr _markers;
@@ -128,6 +130,8 @@ private:
 
     QFutureWatcher<DisplayGroupConstPtr> _loadSessionOp;
     QFutureWatcher<bool> _saveSessionOp;
+    promisePtr _loadSessionPromise;
+    promisePtr _saveSessionPromise;
 
     std::unique_ptr<ScreenshotAssembler> _screenshotAssembler;
     QString _screenshotFilename;

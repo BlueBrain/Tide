@@ -23,6 +23,7 @@ else()
     core/JsonOptionsTests.cpp
     core/LoggingUtilityTest.cpp
     core/RestCommandTests.cpp
+    core/RestWindowsTests.cpp
     core/RestServerTests.cpp
   )
 endif()

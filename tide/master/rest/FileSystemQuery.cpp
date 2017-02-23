@@ -42,106 +42,54 @@
 #include "log.h"
 #include "scene/ContentFactory.h"
 
+#include <zeroeq/http/response.h>
+
 #include <QDir>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QUrl>
-#include <QUuid>
 
-namespace
+FileSystemQuery::FileSystemQuery( const QString& contentDirectory,
+                                  const QStringList filters )
+    : _contentDirectory{ contentDirectory }, _filters{ filters }
+{}
+
+std::future<zeroeq::http::Response>
+FileSystemQuery::browseFileSystem( const std::string& pathPoint,
+                                   const std::string& )
 {
-
-QString _parseJson( const std::string& data )
-{
-    const QByteArray input = QByteArray::fromRawData( data.c_str(),
-                                                      data.size( ));
-    const auto doc = QJsonDocument::fromJson( input );
-    if( doc.isNull() || !doc.isObject( ) || !doc.object()["dir"].isString( ))
-    {
-        put_flog( LOG_INFO, "Error parsing JSON string: '%s'", data.c_str( ));
-        return QString();
-    }
-    return doc.object()["dir"].toString();
-}
-
-const auto sessionsFilter = QStringList{ "*.dcx" };
-
-}
-
-FileSystemQuery::FileSystemQuery( zeroeq::http::Server& server,
-                                  const QString& contentDirectory,
-                                  const Type contentType )
-    : _server( server )
-    , _contentDirectory( contentDirectory )
-    , _contentType( contentType )
-{
-    _server.handlePUT( _getEndpoint(), [this]( const std::string& received )
-    {
-        return _handleDirectoryList( received );
-    });
-}
-
-std::string FileSystemQuery::_getEndpoint() const
-{
-    switch( _contentType )
-    {
-    case Type::FILES:
-        return "tide/files";
-    case Type::SESSIONS:
-        return "tide/sessions";
-    default:
-        throw std::logic_error( "no such type" );
-    };
-}
-
-const QStringList& FileSystemQuery::_getFilters() const
-{
-    switch( _contentType )
-    {
-    case Type::FILES:
-        return ContentFactory::getSupportedFilesFilter();
-    case Type::SESSIONS:
-        return sessionsFilter;
-    default:
-        throw std::logic_error( "no such type" );
-    };
-}
-
-bool FileSystemQuery::_handleDirectoryList( const std::string& payload )
-{
-    const auto path = _parseJson( payload );
-    if( path.isEmpty( ))
-        return false;
+    using namespace zeroeq::http;
+    auto path = QString::fromStdString( pathPoint );
+    QUrl url;
+    url.setPath( path, QUrl::StrictMode );
+    path = url.path();
 
     const QString fullpath = _contentDirectory + "/" + path;
-
     const QDir absolutePath( fullpath );
-    if( !absolutePath.canonicalPath().startsWith( _contentDirectory ))
-        return false;
-
     if( absolutePath.exists( ))
     {
-        if( !_fsContentList.count( path ))
+        QDir directory( fullpath );
+        directory.setNameFilters( _filters ) ;
+        const auto filters = QDir::AllEntries | QDir::AllDirs;
+        const auto files = directory.entryInfoList( filters, QDir::DirsFirst |
+                                                    QDir::IgnoreCase );
+
+        QJsonArray arr;
+        const QDir baseDir( _contentDirectory );
+        for( const auto& file : files )
         {
-            _fsContentList.emplace( std::piecewise_construct,
-                                    std::forward_as_tuple( path ),
-                                    std::forward_as_tuple( _getEndpoint(),
-                                                           _contentDirectory,
-                                                           path,
-                                                           _getFilters( )));
-            _server.handleGET( _fsContentList.at( path ));
+            QJsonObject item;
+            item["name"] = file.fileName();
+            item["path"] = baseDir.relativeFilePath( file.absoluteFilePath( ));
+            item["dir"] = file.isDir();
+            item["file"] = file.isFile();
+            arr.append( item );
         }
-        return true;
+        Response response;
+        response.payload = QJsonDocument{ arr }.toJson().toStdString();
+        return make_ready_future(response);
     }
     else
-    {
-        auto kv =_fsContentList.find( path );
-        if( kv != _fsContentList.end( ))
-        {
-            _server.remove( kv->second );
-            _fsContentList.erase( kv );
-        }
-    }
-    return false;
+        return make_ready_future( Response{ Code::NO_CONTENT } );
 }

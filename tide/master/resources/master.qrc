@@ -23,12 +23,14 @@
         <file>jquery-3.1.1.min.js</file>
         <file>jquery-ui.css</file>
         <file>jquery-ui.min.js</file>
-        <file>underscore-min.js</file>
+        <file>notify.min.js</file>
         <file>sweetalert.min.js</file>
         <file>sweetalert.min.css</file>
+        <file>underscore-min.js</file>
         <file>img/close.svg</file>
         <file>img/exit.svg</file>
         <file>img/focus.svg</file>
+        <file>img/loading.gif</file>
         <file>img/maximize.svg</file>
     </qresource>
 </RCC>

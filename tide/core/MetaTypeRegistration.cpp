@@ -68,6 +68,7 @@ struct MetaTypeRegistration
         qRegisterMetaType< TilePtr >( "TilePtr" );
         qRegisterMetaType< TileWeakPtr >( "TileWeakPtr" );
         qRegisterMetaTypeStreamOperators< QUuid >( "QUuid" );
+        qRegisterMetaType< promisePtr > ( "promisePtr");
     }
 };
 

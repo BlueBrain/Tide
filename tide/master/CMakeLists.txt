@@ -144,7 +144,6 @@ set(TIDEMASTER_INCLUDE_NAME tide/master)
 if(TIDE_ENABLE_REST_INTERFACE)
   list(APPEND TIDEMASTER_PUBLIC_HEADERS
     rest/FileReceiver.h
-    rest/FileSystemContent.h
     rest/FileSystemQuery.h
     rest/HtmlContent.h
     rest/JsonOptions.h
@@ -161,7 +160,6 @@ if(TIDE_ENABLE_REST_INTERFACE)
   )
   list(APPEND TIDEMASTER_SOURCES
     rest/FileReceiver.cpp
-    rest/FileSystemContent.cpp
     rest/FileSystemQuery.cpp
     rest/HtmlContent.cpp
     rest/JsonOptions.cpp

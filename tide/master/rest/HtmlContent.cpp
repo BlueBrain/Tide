@@ -39,8 +39,12 @@
 
 #include "HtmlContent.h"
 
+#include <zeroeq/http/response.h>
+
 #include <QFile>
 #include <QTextStream>
+
+using namespace zeroeq;
 
 namespace
 {
@@ -54,45 +58,160 @@ std::string _readFile( const QString& uri )
 }
 
 HtmlContent::HtmlContent( zeroeq::http::Server& server )
-    : indexPage{ "/", _readFile( ":///html/index.html" ) }
-    , bootstrapStyles{ "css/bootstrap.css",
-                      _readFile( ":///html/bootstrap.min.css" ) }
-    , bootstrapTree{ "js/bootstrap-treeview.min.js",
-                      _readFile( ":///html/bootstrap-treeview.min.js" ) }
-    , closeIcon { "img/close.svg", _readFile( ":///html/img/close.svg" ) }
-    , focusIcon { "img/focus.svg", _readFile( ":///html/img/focus.svg" ) }
-    , jquery { "js/jquery-3.1.1.min.js",
-               _readFile( ":///html/jquery-3.1.1.min.js" ) }
-    , jqueryUiStyles { "css/jquery-ui.css",
-                       _readFile( ":///html/jquery-ui.css" ) }
-    , jqueryUi { "js/jquery-ui.min.js",
-                 _readFile( ":///html/jquery-ui.min.js" ) }
-    , maximizeIcon { "img/maximize.svg",
-                     _readFile( ":///html/img/maximize.svg" ) }
-    , sweetalert { "js/sweetalert.min.js",
-                   _readFile( ":///html/sweetalert.min.js" ) }
-    , sweetalertStyles { "css/sweetalert.min.css",
-                         _readFile( ":///html/sweetalert.min.css" ) }
-    , tideJs { "js/tide.js", _readFile( ":///html/tide.js" ) }
-    , tideStyles{ "css/styles.css", _readFile( ":///html/styles.css" ) }
-    , tideVarsJs { "js/tideVars.js", _readFile( ":///html/tideVars.js" ) }
-    , underscore { "js/underscore-min.js",
-                   _readFile( ":///html/underscore-min.js" ) }
 {
-    server.handleGET( indexPage );
-    server.handleGET( closeIcon );
-    server.handleGET( focusIcon );
-    server.handleGET( bootstrapStyles );
-    server.handleGET( bootstrapTree );
-    server.handleGET( jquery );
-    server.handleGET( jqueryUiStyles );
-    server.handleGET( jqueryUi );
-    server.handleGET( maximizeIcon );
-    server.handleGET( sweetalert );
-    server.handleGET( sweetalertStyles );
-    server.handleGET( tideJs );
-    server.handleGET( tideStyles );
-    server.handleGET( tideVarsJs );
-    server.handleGET( underscore );
-}
+    server.handle( http::Verb::GET, "/", []( const std::string& )
+    {
+        http::Response response{ http::Code::OK };
+        response.headers[http::Header::CONTENT_TYPE] = "text/html";
+        response.payload = _readFile( ":///html/index.html" );
+        return http::make_ready_future( response );
+    });
 
+    server.handle( http::Verb::GET, "css/bootstrap.css",
+    []( const std::string& )
+    {
+        http::Response response{ http::Code::OK };
+        response.headers[http::Header::CONTENT_TYPE] = "text/css";
+        response.payload = _readFile( ":///html/bootstrap.min.css" );
+        return http::make_ready_future( response );
+    });
+
+    server.handle( http::Verb::GET, "js/bootstrap-treeview.min.js",
+                   []( const std::string& )
+    {
+        http::Response response{ http::Code::OK };
+        response.headers[http::Header::CONTENT_TYPE] =
+                "application/javascript";
+        response.payload = _readFile( ":///html/bootstrap-treeview.min.js" );
+        return http::make_ready_future( response );
+    });
+
+    server.handle( http::Verb::GET, "img/close.svg", []( const std::string& )
+    {
+        http::Response response{ http::Code::OK };
+        response.headers[http::Header::CONTENT_TYPE] = "image/svg+xml";
+        response.payload = _readFile( ":///html/img/close.svg" );
+        return http::make_ready_future( response );
+    });
+
+    server.handle( http::Verb::GET, "img/focus.svg", []( const std::string& )
+    {
+        http::Response response{ http::Code::OK };
+        response.headers[http::Header::CONTENT_TYPE] = "image/svg+xml";
+        response.payload = _readFile( ":///html/img/focus.svg" );
+        return http::make_ready_future( response );
+    });
+
+    server.handle( http::Verb::GET, "img/loading.gif", []( const std::string& )
+    {
+        http::Response response{ http::Code::OK };
+        response.headers[http::Header::CONTENT_TYPE] = "image/gif";
+        QFile file(":///html/img/loading.gif");
+        file.open( QIODevice::ReadOnly );
+        QByteArray data = file.readAll();
+        response.payload = data.toStdString();
+        return http::make_ready_future( response );
+    });
+
+    server.handle( http::Verb::GET, "js/jquery-3.1.1.min.js",
+                   []( const std::string& )
+    {
+        http::Response response{ http::Code::OK };
+        response.headers[http::Header::CONTENT_TYPE] =
+                "application/javascript";
+        response.payload = _readFile( ":///html/jquery-3.1.1.min.js" );
+        return http::make_ready_future( response );
+    });
+
+    server.handle( http::Verb::GET, "js/notify.min.js",
+                   []( const std::string& )
+    {
+        http::Response response{ http::Code::OK };
+        response.headers[http::Header::CONTENT_TYPE] =
+                "application/javascript";
+        response.payload = _readFile( ":///html/notify.min.js" );
+        return http::make_ready_future( response );
+    });
+
+    server.handle( http::Verb::GET, "css/jquery-ui.css",
+                   []( const std::string& )
+    {
+        http::Response response{ http::Code::OK };
+        response.headers[http::Header::CONTENT_TYPE] = "text/css";
+        response.payload = _readFile( ":///html/jquery-ui.css" );
+        return http::make_ready_future( response );
+    });
+
+    server.handle( http::Verb::GET, "js/jquery-ui.min.js",
+                   []( const std::string& )
+    {
+        http::Response response{ http::Code::OK };
+        response.headers[http::Header::CONTENT_TYPE] =
+                "application/javascript";
+        response.payload = _readFile( ":///html/jquery-ui.min.js" );
+        return http::make_ready_future( response );
+    });
+
+    server.handle( http::Verb::GET, "img/maximize.svg", []( const std::string& )
+    {
+        http::Response response{ http::Code::OK };
+        response.headers[http::Header::CONTENT_TYPE] = "image/svg+xml";
+        response.payload = _readFile( ":///html/img/maximize.svg" );
+        return http::make_ready_future( response );
+    });
+
+    server.handle( http::Verb::GET, "js/sweetalert.min.js",
+                   []( const std::string& )
+    {
+        http::Response response{ http::Code::OK };
+        response.headers[http::Header::CONTENT_TYPE] =
+                "application/javascript";
+        response.payload = _readFile( ":///html/sweetalert.min.js" );
+        return http::make_ready_future( response );
+    });
+
+    server.handle( http::Verb::GET, "css/sweetalert.min.css",
+                   []( const std::string& )
+    {
+        http::Response response{ http::Code::OK };
+        response.headers[http::Header::CONTENT_TYPE] = "text/css";
+        response.payload = _readFile( ":///html/sweetalert.min.css" );
+        return http::make_ready_future( response );
+    });
+
+    server.handle( http::Verb::GET, "js/tide.js", []( const std::string& )
+    {
+        http::Response response{ http::Code::OK };
+        response.headers[http::Header::CONTENT_TYPE] =
+                "application/javascript";
+        response.payload = _readFile( ":///html/tide.js" );
+        return http::make_ready_future( response );
+    });
+
+    server.handle( http::Verb::GET, "css/styles.css", []( const std::string& )
+    {
+        http::Response response{ http::Code::OK };
+        response.headers[http::Header::CONTENT_TYPE] = "text/css";
+        response.payload = _readFile( ":///html/styles.css" );
+        return http::make_ready_future( response );
+    });
+
+    server.handle( http::Verb::GET, "js/tideVars.js", []( const std::string& )
+    {
+        http::Response response{ http::Code::OK };
+        response.headers[http::Header::CONTENT_TYPE] =
+                "application/javascript";
+        response.payload = _readFile( ":///html/tideVars.js" );
+        return http::make_ready_future( response );
+    });
+
+    server.handle( http::Verb::GET, "js/underscore-min.js",
+                   []( const std::string& )
+    {
+        http::Response response{ http::Code::OK };
+        response.headers[http::Header::CONTENT_TYPE] =
+                "application/javascript";
+        response.payload = _readFile( ":///html/underscore-min.js" );
+        return http::make_ready_future( response );
+    });
+}

@@ -1,9 +1,6 @@
 "use strict";
-var closeIcon;
 var focus;
-var focusIcon;
 var fullscreen;
-var fullscreenIcon;
 var timer;
 var sessionFiles = [];
 var wallWidth;
@@ -21,7 +18,7 @@ function bootstrapMenus() {
   $("#addButton").click(function (e) {
     $("#sessionMenu").hide("puff", showEffectSpeed);
     $("#uploadMenu").hide("puff", showEffectSpeed);
-    $("#fsMenu").css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed)
+    $("#fsMenu").css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed);
     $(".menuButton:not(#addButton)").removeClass("buttonPressed");
     $("#addButton").toggleClass("buttonPressed")
   });
@@ -48,8 +45,8 @@ function boostrapUpload() {
   var wall = document.getElementById('wall');
   wall.addEventListener('dragover', handleDragOver, false);
   wall.addEventListener('dragleave', handleDragLeave, false);
-  wall.addEventListener('drop', handleUploadDropped, false);
-  document.getElementById('file-select').addEventListener('change', handleUploadFromMenu, false);
+  wall.addEventListener('drop', handleUpload, false);
+  document.getElementById('file-select').addEventListener('change', handleUpload, false);
 }
 
 function handleDragOver(evt) {
@@ -64,65 +61,96 @@ function handleDragLeave(evt) {
   $("#wall").css("opacity", 1);
 }
 
-function handleUploadDropped(evt) {
+function handleUpload(evt) {
   evt.stopPropagation();
   evt.preventDefault();
   $("#wall").css("opacity", 1);
-  var files =   Array.from(evt.dataTransfer.files);
-  var filesFiltered =  files.filter(function (file) {
+  var data;
+  if (evt.type == "drop") {
+    data = evt.dataTransfer.files;
+  }
+  else if (evt.type === "change")
+  {
+    data =  evt.target.files;
+    $('#upload-button').show();
+    //remove finished uploads and added but not transfered ones
+    for(var i = output.length -1; i >= 0 ; i--){
+      if (output[i].started === false || output[i].finished === true ) {
+        $('#' + output[i].id).remove();
+        output.splice(i, 1);
+      }
+    }
+  }
+
+  data = Array.from(data);
+  var files = data.filter(function (file) {
     return filters.some(function (element)
     {
       return file.name.toLowerCase().endsWith(element)
     });
   });
-  var notUploaded = files.length-filesFiltered.length;
+
+  var notUploaded = data.length-files.length;
   if (notUploaded > 0)
     swal({
       type: "warning",
-      title: (notUploaded > 1) ? notUploaded + " unsuported files" : notUploaded + " unsuported file" ,
+      title: (notUploaded > 1) ? notUploaded + " unsuported files" : notUploaded + " unsuported file",
       text: "Supported files are: " + filters.join(" "),
       confirmButtonColor: "#014f86",
       confirmButtonText: "OK",
       closeOnConfirm: true
     });
-  preuploadCheck(filesFiltered);
-
-}
-
-function handleUploadFromMenu(evt) {
-  evt.stopPropagation();
-  evt.preventDefault();
-  var files =   Array.from(evt.target.files );
   if(files.length>0)
     $('.formButton').removeAttr('disabled');
-  output=[];
   for (var i = 0; i < files.length; i++) {
     var f = files[i];
-    output.push('<li><strong>', f.name, '</strong> (', f.type || 'n/a', ') - ',
-      f.size, ' bytes, last modified: ',
-      f.lastModifiedDate ? f.lastModifiedDate.toLocaleDateString() : 'n/a',
-      '</li>');
+    f.id="file_"+parseInt(Math.random()*100000);
+    var transfer = {};
+    transfer.finished = false;
+    transfer.text = '<strong>'+ f.name + '</strong>: '+  (f.size/MBtoB).toFixed(2)   + ' MB';
+    transfer.id = f.id;
+    transfer.started = false;
+    output.push (transfer);
+    var li = document.createElement("li");
+    li.id = f.id;
+    var span = document.createElement("span");
+    span.innerHTML = transfer.text;
+    li.appendChild(span);
+    document.getElementById('outputList').appendChild(li);
   }
-  document.getElementById('outputList').innerHTML = '<ul>' + output.join('') + '</ul>';
 
-  var form = document.getElementById('file-form');
-  form.onsubmit = (function(files){return function(){
+  if (evt.type == "change")
+  {
+    var form = document.getElementById('file-form');
+    form.onsubmit = (function(files){
+      return function()
+      {
+        $('#upload-button').hide();
+        preuploadCheck(files);
+      }
+    })(files);
+  }
+  else if (evt.type == "drop")
+  {
     preuploadCheck(files);
-    clearUploadList();
-  } })(files);
-
+    if( !$('#uploadMenu').is(':visible'))
+      $('#uploadButton').notify("Upload started", {
+        className: "info",
+        autoHideDelay: 3000
+      });
+    $("#uploadButton").effect( "pulsate", {times:2}, 3000 );
+  }
 }
 
 function preuploadCheck(files) {
-
   var totalSize = 0;
   for (var i = 0, f; f = files[i]; i++) {
     totalSize += (f.size / MBtoB);
   }
-  totalSize = Number(totalSize).toFixed(2)
+  totalSize = Number(totalSize).toFixed(2);
   if ( totalSize < maxUploadSizeMBWithoutWarning)
     uploadFiles(files);
-  else if ( totalSize > maxUploadSizeMB)
+  else if ( totalSize > maxUploadSizeMB) {
     swal({
       type: "warning",
       title: "Maximum upload size limited to " + maxUploadSizeMB + " MB",
@@ -131,6 +159,8 @@ function preuploadCheck(files) {
       confirmButtonText: "OK",
       closeOnConfirm: true
     });
+    clearUploadList();
+  }
   else {
     swal({
         type: "warning",
@@ -146,6 +176,8 @@ function preuploadCheck(files) {
       function (isConfirm) {
         if (isConfirm)
           uploadFiles(files)
+        else
+          clearUploadList();
       });
   }
 }
@@ -153,27 +185,66 @@ function preuploadCheck(files) {
 function uploadFiles (files) {
   var url = "upload";
   var requests = [];
-  event.preventDefault();
   for (var i = 0; i < files.length; i++) {
     (function (i) {
       var file = files[i];
       requests[i] = new XMLHttpRequest();
-      requests[i].open('PUT', restUrl + url, true);
+      requests[i].open('POST', restUrl + url, true);
       requests[i].onload = function () {
         if (requests[i].readyState ===  XMLHttpRequest.DONE && requests[i].status === 200) {
           var xhr2 = new XMLHttpRequest();
-          xhr2.open('PUT', restUrl + url + "/" + file.name.toLowerCase(), true);
+          var index = output.findIndex(function(element){
+            return element.id == file.id
+          });
+          output[index].started = true;
+
+          var cancelIcon = document.createElement("span");
+          cancelIcon.innerHTML = "<font color='red' >&#x2718; </font>";
+          cancelIcon.style="cursor: pointer;";
+          var loadingGif = document.createElement("img");
+          loadingGif.src = loadingGifUrl;
+          $('#' + file.id).append(loadingGif).append(cancelIcon);
+
+          cancelIcon.addEventListener("click", function(){
+            index = output.findIndex(function(element){
+              return element.id == file.id
+            });
+            output[index].finished = true;
+            xhr2.abort();
+            var fileLi=$('#' + file.id);
+            fileLi.find('img:first').remove();
+            fileLi.find('span:last').remove();
+            fileLi.append("<font color='red'> &#x2716; cancelled</font>");
+          });
+
+          var fileName = decodeURI(JSON.parse(this.responseText)["url"]);
+          xhr2.open('PUT', restUrl + url + "/" + fileName.toLowerCase(), true);
           xhr2.onload = function () {
-            if (xhr2.readyState === XMLHttpRequest.DONE && xhr2.status === 200 && i == requests.length - 1) {
-              $('#upload-button').text("UPLOADED").fadeOut(1500, function () {
-                $(this).text("UPLOAD").fadeIn(1500);
+            var fileLi=$('#' + file.id);
+            if (xhr2.readyState === XMLHttpRequest.DONE && xhr2.status === 201 ) {
+              index = output.findIndex(function(element){
+                return element.id == file.id
               });
+              output[index].finished = true;
+              var success = JSON.parse(xhr2.responseText)["info"];
+              fileLi.find('img:first').remove();
+              fileLi.find('span:last').remove();
+              fileLi.append("<font color='green'> &#10004;" + success + "</font>");
+              updateWall();
             }
+            else {
+              output[index].finished = true;
+              var error = JSON.parse(xhr2.responseText)["info"];
+              fileLi.find('img:first').remove();
+              fileLi.find('span:last').remove();
+              fileLi.append("<font color='red'> &#x2716;"+ error + "</font>");
+            }
+            $('#file-form').find("input[type=file]").val("");
           };
           xhr2.send(file);
-        } else {
-          console.log('ENDPOINT REGISTRATION: An error occurred!');
         }
+        else
+          console.log('ENDPOINT REGISTRATION: An error occurred!');
       };
       requests[i].send(JSON.stringify({"fileName": (file.name.toLowerCase())}));
     })(i)
@@ -181,111 +252,108 @@ function uploadFiles (files) {
 }
 function clearUploadList()
 {
-  output=[];
-  document.getElementById('outputList').innerHTML="";
+  for(var i = output.length -1; i >= 0 ; i--){
+      // if (output[i].finished === true || output[i].started !== true) {
+      if (output[i].started === false || output[i].finished === true ) {
+      $('#'+output[i].id).remove();
+      output.splice(i, 1);
+    }
+  }
   $('#file-form').find("input[type=file]").val("");
-  $('.formButton').attr('disabled','disabled');
+  $('#upload-button').hide();
 }
 
 function getFileSystemContent(path) {
-  requestPUT("files", JSON.stringify({"dir": path}));
-  window.setTimeout(function () {
-    var xhr = new XMLHttpRequest();
-    var url = (path !== "/") ? restUrl + "files/" + encodeURI(path) : restUrl + "files";
-    var files = [];
-    xhr.open("GET", url, true);
-    xhr.overrideMimeType("application/json");
+      var xhr = new XMLHttpRequest();
+      var url = (path !== "/") ? restUrl + "files/" + encodeURI(path) : restUrl + "files";
+      var files = [];
+      xhr.open("GET", url, true);
+      xhr.overrideMimeType("application/json");
 
-    xhr.onload = function () {
-      var data = JSON.parse(xhr.responseText);
-      var filesCount = 0;
-      for (var i = 0; i < data.length; i++)
-        if (data[i].file)
-          ++filesCount;
+      xhr.onload = function () {
+        var data = JSON.parse(xhr.responseText);
+        var filesCount = 0;
+        for (var i = 0; i < data.length; i++)
+          if (data[i].file)
+            ++filesCount;
 
-      for (var i = 0; i < data.length; i++) {
-        var file = {
-          text: data[i].name,
-          path: data[i].path,
-          dir: data[i].dir,
-          file: data[i].file
-        };
+        for (var i = 0; i < data.length; i++) {
+          var file = {
+            text: data[i].name,
+            path: data[i].path,
+            dir: data[i].dir,
+            file: data[i].file
+          };
 
-        file.icon = data[i].dir ? "glyphicon glyphicon-folder-close" : "glyphicon glyphicon-file";
-        if (file.text === "..") {
-          file.icon = "glyphicon glyphicon-level-up";
-          file.text = "Move up";
-          file.backColor = "#d1e2ee";
-        }
-        if (file.text === ".") {
-          file.text = filesCount > 0 ? " Open all regular files: " + filesCount : " No regular files to open here";
-          file.icon = "glyphicon glyphicon-folder-open";
-          file.backColor = filesCount > 0 ? "#1a6092" : "ligthgrey";
-          file.currentDir = true
-        }
-        if (data[i].path !== "../")
-          files.push(file)
-      }
-
-      $('#fsMenu').treeview({
-        data: files,
-        searchResultBackColor: "#014f86",
-        highlightSelected: true
-
-      });
-      $('#fsMenu').on('nodeSelected', function (event, data) {
-        // CURRENT FOLDER - enable option to open all content only if it contains at least a file
-        if (data.currentDir && filesCount > 0) {
-          if (filesCount > 10) {
-            swal({
-                type: "warning",
-                title: "Are you sure?",
-                text: "You intend to open a folder with " + filesCount + " files.",
-                confirmButtonColor: "#DD6B55",
-                confirmButtonText: "Yes",
-                cancelButtonText: "No",
-                closeOnConfirm: true,
-                closeOnCancel: true,
-                showCancelButton: true
-              },
-              function (isConfirm) {
-                if (isConfirm) {
-                  requestPUT("open", JSON.stringify({"uri": data.path}), updateWall);
-                  $('#fsMenu').hide()
-                }
-              });
+          file.icon = data[i].dir ? "glyphicon glyphicon-folder-close" : "glyphicon glyphicon-file";
+          if (file.text === "..") {
+            file.icon = "glyphicon glyphicon-level-up";
+            file.text = "Move up";
+            file.backColor = "#d1e2ee";
           }
-          else {
+          if (file.text === ".") {
+            file.text = filesCount > 0 ? " Open all regular files: " + filesCount : " No regular files to open here";
+            file.icon = "glyphicon glyphicon-folder-open";
+            file.backColor = filesCount > 0 ? "#1a6092" : "ligthgrey";
+            file.currentDir = true
+          }
+          if (data[i].path !== "../")
+            files.push(file)
+        }
+
+        $('#fsMenu').treeview({
+          data: files,
+          searchResultBackColor: "#014f86",
+          highlightSelected: true
+
+        });
+        $('#fsMenu').on('nodeSelected', function (event, data) {
+          // CURRENT FOLDER - enable option to open all content only if it contains at least a file
+          if (data.currentDir && filesCount > 0) {
+            if (filesCount > 10) {
+              swal({
+                  type: "warning",
+                  title: "Are you sure?",
+                  text: "You intend to open a folder with " + filesCount + " files.",
+                  confirmButtonColor: "#DD6B55",
+                  confirmButtonText: "Yes",
+                  cancelButtonText: "No",
+                  closeOnConfirm: true,
+                  closeOnCancel: true,
+                  showCancelButton: true
+                },
+                function (isConfirm) {
+                  if (isConfirm) {
+                    requestPUT("open", JSON.stringify({"uri": data.path}), updateWall);
+                    $('#fsMenu').hide()
+                  }
+                });
+            }
+            else {
+              requestPUT("open", JSON.stringify({"uri": data.path}), updateWall);
+              $('#fsMenu').treeview('toggleNodeSelected', [data.nodeId, {silent: true}]);
+            }
+          }
+          // FOLDERS - query for it content and update the view
+          else if (data.dir) {
+            if (data.path == ".")
+              getFileSystemContent("/");
+            else
+              getFileSystemContent(data.path);
+          }
+          // REGULAR FILE
+          else if (data.file) {
             requestPUT("open", JSON.stringify({"uri": data.path}), updateWall);
             $('#fsMenu').treeview('toggleNodeSelected', [data.nodeId, {silent: true}]);
           }
-        }
-        // FOLDERS - query for it content and update the view
-        else if (data.dir) {
-          if (data.path == ".")
-            getFileSystemContent("/");
-          else
-            getFileSystemContent(data.path);
-        }
-        // REGULAR FILE
-        else if (data.file) {
-          requestPUT("open", JSON.stringify({"uri": data.path}), updateWall);
-          window.setTimeout(function () {
-            $('#fsMenu').treeview('toggleNodeSelected', [data.nodeId, {silent: true}]);
-          }, fileLoadingTimeout)
-        }
-      })
-    };
-    xhr.send(null);
-  }, directoryListTimeout)
+        })
+      };
+      xhr.send(null);
 }
 
 function getSessionFolderContent() {
 
   var url = restUrl + "sessions";
-  requestPUT("sessions", JSON.stringify({"dir": "/"}));
-  window.setTimeout(function ()
-  {
     var xhr = new XMLHttpRequest();
     var data;
     sessionFiles = [];
@@ -313,21 +381,20 @@ function getSessionFolderContent() {
       });
       $('#sessionTree').on('nodeSelected', function (event, data) {
         if (data.file) {
-          requestPUT("load", JSON.stringify({"uri": data.text}));
           $("#wall").css("opacity", 0.2);
-          window.setTimeout(function ()
-          {
+          requestPUT("load", JSON.stringify({"uri": data.text}), function() {
             $("#sessionMenu").toggle("puff", showEffectSpeed);
-            $("#sessionButton").toggleClass("buttonPressed")
+            $("#sessionButton").toggleClass("buttonPressed");
             $('#sessionTree').treeview('toggleNodeSelected', [data.nodeId, {silent: true}]);
             $("#wall").css("opacity", 1);
             updateWall();
-          }, sessionLoadingTimeout)
+          });
         }
       })
     };
     xhr.send(null);
-  }, directoryListTimeout);
+
+
 }
 
 function saveSession() {
@@ -354,7 +421,7 @@ function saveSession() {
       showCancelButton: true
     },
     function () {
-      requestPUT("save", params);
+      requestPUT("save", params, getSessionFolderContent);
       swal({
         title: "Saved!",
         text: "Your file has been saved as: " + uri,
@@ -365,10 +432,6 @@ function saveSession() {
         $('#sessionNameInput').val("");
         $("#sessionMenu").toggle("puff", showEffectSpeed);
         $("#sessionButton").toggleClass("buttonPressed");
-        window.setTimeout(function ()
-        {
-          getSessionFolderContent();
-        }, sessionLoadingTimeout)
       });
     });
 }
@@ -446,8 +509,9 @@ function createCloseButton(tile) {
       requestPUT("close", jsonUuidHelper(tile), updateWall);
     $('#' + tile.uuid).remove();
   };
-
-  closeButton.appendChild(createIcon(closeIcon));
+  var icon = document.createElement("img");
+  icon.src = closeImageUrl;
+  closeButton.appendChild(icon);
   return closeButton;
 }
 
@@ -463,15 +527,10 @@ function createFocusButton(tile) {
       requestPUT("unfocusWindow", jsonUuidHelper(tile), updateWall);
     }
   };
-
-  focusButton.appendChild(createIcon(focusIcon));
+  var icon = document.createElement("img");
+  icon.src = focusImageUrl;
+  focusButton.appendChild(icon);
   return focusButton;
-}
-
-function createIcon(type) {
-  var icon = type.cloneNode(true);
-  icon.setAttribute('class', 'controlIcon');
-  return icon;
 }
 
 function createFullscreenButton(tile) {
@@ -481,7 +540,9 @@ function createFullscreenButton(tile) {
     requestPUT("moveWindowToFullscreen", jsonUuidHelper(tile), updateWall);
     event.stopImmediatePropagation();
   };
-  fullscreenButton.appendChild(createIcon(fullscreenIcon));
+  var icon = document.createElement("img");
+  icon.src = fullscreenImageUrl;
+  fullscreenButton.appendChild(icon);
   return fullscreenButton;
 }
 
@@ -581,10 +642,6 @@ function enableHandles() {
 function init() {
   boostrapUpload();
   bootstrapMenus();
-  //Work-around for zeroEQ not setting proper MIME for svg
-  fullscreenIcon = getIcon(fullscreenImageUrl);
-  focusIcon = getIcon(focusImageUrl);
-  closeIcon = getIcon(closeImageUrl);
 
   var xhr = new XMLHttpRequest();
   xhr.open("GET", restUrl + "config", true);
@@ -595,7 +652,7 @@ function init() {
     wallHeight = config["wallSize"]["height"];
     setScale();
 
-    filters = config["filters"]
+    filters = config["filters"];
     for (var i = 0; i < filters.length; i++)
       filters[i]=filters[i].replace(/\*/g,"");
     $("#file-select").attr("accept", filters);
@@ -633,21 +690,6 @@ function init() {
 
 function jsonUuidHelper(tile) {
   return JSON.stringify({"uri": tile.uuid})
-}
-
-function getIcon(url) {
-  var element;
-  var xhr = new XMLHttpRequest();
-  xhr.open("GET", url, false);
-  xhr.overrideMimeType("image/svg+xml");
-  xhr.onload = function () {
-    if (xhr.status === 200)
-      element = xhr.responseXML.documentElement;
-    else
-      element = document.createElement(null);
-  };
-  xhr.send(null);
-  return element;
 }
 
 function setHandles(tile) {
@@ -712,19 +754,27 @@ function setHandles(tile) {
 }
 
 function queryThumbnail(tile) {
-  var xhr = new XMLHttpRequest();
   var url = restUrl + "windows/" + tile["uuid"] + "/thumbnail";
-  xhr.open("GET", url, true);
-  xhr.overrideMimeType("data");
-  xhr.onload = function () {
-    var base64Img = 'data:image/png;base64,' + xhr.responseText;
-    $('#img' + tile.uuid).attr("src", base64Img).mousedown(function (e) {
-      e.preventDefault()
-    });
-  };
-  xhr.send(null);
+  $.ajax({
+    url :  url,
+    type : 'GET',
+    tile: tile,
+    tryCount : 0,
+    retryLimit : 10,
+    success : function(resp, textStatus, xhr) {
+      var that = this;
+      if (xhr.status == 200) {
+        $('#img' + tile.uuid).attr("src", resp)
+      }
+      else if (xhr.status == 204)
+      {
+        setTimeout(function () {
+          $.ajax(that);
+        }, 1000)
+      }
+    }
+  });
 }
-
 function markAsFocused(tile) {
   $('#' + tile.uuid).css("z-index", zIndexFocus).css("border", "0px").addClass("windowSelected");
 }
@@ -780,7 +830,7 @@ function resizeOnWheelEvent(event, tile) {
   var newHeight = 0;
 
   // Zoom out
-  if (event.detail < 0 || event.originalEvent.wheelDelta > 0) {
+  if (event.detail > 0 || event.originalEvent.wheelDelta < 0) {
     // do nothing if window already at minimum size
     if (tile.height === tile.minHeight || tile.width === tile.minWidth)
       return;

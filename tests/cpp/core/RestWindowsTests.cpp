@@ -37,42 +37,70 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef FILESYSTEMCONTENT_H
-#define FILESYSTEMCONTENT_H
+#define BOOST_TEST_MODULE WebInterfaceTest
 
-#include <servus/serializable.h> // base class
-#include <zeroeq/http/server.h>
+#include <boost/test/unit_test.hpp>
 
-#include <QStringList>
+#include "rest/RestWindows.h"
+#include "scene/ContentFactory.h"
+#include "scene/DisplayGroup.h"
 
-/**
- * Exposes file system content to ZeroEQ http server.
- */
-class FileSystemContent : public servus::Serializable
+#include "DummyContent.h"
+#include "thumbnail/thumbnail.h"
+
+#include <zeroeq/http/response.h>
+
+
+#include <QString>
+#include <QByteArray>
+#include <QBuffer>
+#include <QRegExp>
+
+namespace
 {
-public:
-    /**
-     * Create a file system content for a folder.
-     *
-     * @param rootEndpoint the prefix for the endpoint
-     * @param rootDirectory the content directory path
-     * @param relativePath used to query file system and construct the endpoint
-     * @param filters a list of file name filters to apply (see QDir)
-     */
-    FileSystemContent( const std::string& rootEndpoint,
-                       const QString& rootDirectory,
-                       const QString& relativePath,
-                       const QStringList& filters );
+const QString imageUri("wall.png");
+const QSize thumbnailSize{ 512, 512 };
+const QSize wallSize( 1000, 1000 );
+const QRegExp _regex = QRegExp("\\{|\\}");
 
-    /** @return the string used as an endpoint by REST interface. */
-    std::string getTypeName() const final;
+std::string _getThumbnail()
+{
+    const auto image = thumbnail::create( imageUri, thumbnailSize );
+    QByteArray imageArray;
+    QBuffer buffer( &imageArray );
+    buffer.open( QIODevice::WriteOnly );
+    image.save( &buffer,"PNG" );
+    buffer.close();
+    return "data:image/png;base64," + imageArray.toBase64().toStdString();
+}
+}
 
-private:
-    const std::string _rootEndpoint;
-    const QString _rootDirectory;
-    const QString _relativePath;
-    const QStringList& _contentFilters;
+BOOST_AUTO_TEST_CASE( testWindowInfo )
+{
+    DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
 
-    std::string _toJSON()  const final;
-};
-#endif
+    RestWindows windowsContent{ *displayGroup };
+
+    ContentPtr content = ContentFactory::getContent( imageUri );
+    ContentWindowPtr window( new ContentWindow( content ));
+    displayGroup->addContentWindow( window );
+
+    auto future = windowsContent.getWindowInfo( std::string(), std::string( ));
+    auto response = future.get();
+    BOOST_CHECK( response.code ==  200 );
+
+    const auto uuid = window->getID().toString().replace( _regex, "" );
+
+    sleep(2);
+
+    future = windowsContent.getWindowInfo( uuid.toStdString() + "/thumbnail",
+                                           std::string( ));
+    response = future.get();
+    BOOST_CHECK( response.payload ==  _getThumbnail() );
+    BOOST_CHECK( response.code ==  200 );
+
+    future = windowsContent.getWindowInfo( "uuid/notExists", std::string( ));
+    response = future.get();
+    BOOST_CHECK( response.code ==  400 );
+
+}

@@ -40,39 +40,41 @@
 #ifndef RESTWINDOWS_H
 #define RESTWINDOWS_H
 
-#include <servus/serializable.h> // base class
+#include "zeroeq/http/response.h"
 
 #include "RestServer.h"
 #include "scene/DisplayGroup.h"
 
+#include <future>
 #include <QObject>
 
 /**
  * Exposes display group content to ZeroEQ http server.
  */
-class RestWindows : public QObject, public servus::Serializable
+class RestWindows : public QObject
 {
 public:
     /**
-     * Construct a JSON list of windows exposed by REST interface.
+     * Construct a JSON list of windows
      *
      * @param server http server used to register content.
      * @param displayGroup DisplayGroup to expose.
      */
-    RestWindows( zeroeq::http::Server& server,
-                 const DisplayGroup& displayGroup );
+    RestWindows( const DisplayGroup& displayGroup );
 
-    /** @return the string used as an endpoint by REST interface. */
-    std::string getTypeName() const final;
+    /**
+     * Expose the list of windows to REST Interface
+     */
+    std::future<zeroeq::http::Response> getWindowInfo( const std::string&,
+                                                       const std::string& );
 
 private:
-    zeroeq::http::Server& _httpServer;
     const DisplayGroup& _displayGroup;
+    QMap<QString, std::string> _thumbnailCache;
 
-    std::string _toJSON() const final;
-
-    void _deregisterThumbnailUrl( ContentWindowPtr contentWindow );
-    void _registerThumbnailUrl( ContentWindowPtr contentWindow );
+    void _cacheThumbnail( ContentWindowPtr contentWindow );
+    std::future<zeroeq::http::Response> _getThumbnail( const QString& uuid );
+    std::string _getWindowList() const;
 };
 
 #endif

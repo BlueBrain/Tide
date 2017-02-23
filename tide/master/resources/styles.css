@@ -35,16 +35,8 @@ iframe{
   display: none;
 }
 
-input[type=file] {
-  cursor: pointer;
-  border: 0;
-  background-color: #ffffff;
-  color: black;
-  font-size: 11px;
-  text-decoration: none;
-  float: left;
-  margin-left: 5px;
-  width: 225px;
+label {
+  height: 0px;
 }
 
 .buttonPressed {
@@ -60,11 +52,38 @@ input[type=file] {
   position: absolute;
 }
 
-.file-uploader {
-  width: 0.1px;
-  height: 0.1px;
-  opacity: 0;
-  z-index: -1;
+.file-input input {
+  visibility: hidden;
+  width: 80px;
+  float:left;
+}
+
+.file-input:before {
+  content: 'BROWSE';
+  border: 1px solid #007dc1;
+  cursor: pointer;
+  background-color: #014f86;
+  color: white;
+  font-family: Arial;
+  font-size: 11px;
+  text-decoration: none;
+  padding: 1px;
+  display: block;
+  outline: none;
+  font-weight: normal;
+  text-align: center;
+  position: relative;
+  height: 19px;
+}
+
+.formButton {
+  width: 70px;
+}
+
+.sessionTree {
+  position: relative;
+  background-color: transparent;
+  width:100%;
 }
 
 .thumbnail {
@@ -99,10 +118,12 @@ input[type=file] {
 
 .uploadMenu {
   background-color: white;
-  min-height: 35px;
+  min-height: 20px;
   position: absolute;
   overflow-y: auto;
-  z-index: 100;
+  border-color: lightgrey;
+  border-style: solid;
+  border-width: 0px 1px 1px 1px;
 }
 
 .windowControl {
@@ -178,6 +199,17 @@ input[type=file] {
   font-family: Arial;
   font-size: 14px;
   text-decoration: none;
+}
+
+#outputList {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+#sessionNameInput {
+  width: 60%;
+  height: 25px;
+  margin: 0px;
 }
 
 #wall, #wallOutline {

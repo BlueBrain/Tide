@@ -52,6 +52,9 @@
 #include "RestWindows.h"
 #include "StaticContent.h"
 
+#include "scene/ContentFactory.h"
+
+#include <functional>
 #include <tide/master/version.h>
 
 #include <QDir>
@@ -69,9 +72,6 @@ public:
         server.handleGET( "tide/version", tide::Version::getSchema(),
                           &tide::Version::toJSON );
         server.handlePUT( browseCmd );
-        server.handlePUT( openCmd );
-        server.handlePUT( loadCmd );
-        server.handlePUT( saveCmd );
         server.handlePUT( closeCmd );
         server.handlePUT( whiteboardCmd );
         server.handlePUT( screenshotCmd );
@@ -82,10 +82,7 @@ public:
 
     RestServer httpServer;
     RestCommand browseCmd{ "tide/browse" };
-    RestCommand openCmd{ "tide/open" };
     RestCommand closeCmd{ "tide/close" };
-    RestCommand loadCmd{ "tide/load" };
-    RestCommand saveCmd{ "tide/save" };
     RestCommand whiteboardCmd{ "tide/whiteboard", false };
     RestCommand screenshotCmd{ "tide/screenshot" };
     RestCommand exitCmd{ "tide/exit", false };
@@ -94,7 +91,7 @@ public:
     JsonSize sizeProperty;
 
     std::unique_ptr<FileSystemQuery> contentDirQuery;
-    std::unique_ptr<FileSystemQuery> sessionsDirQuery;
+    std::unique_ptr<FileSystemQuery> sessionDirQuery;
     std::unique_ptr<FileReceiver> fileReceiver;
     std::unique_ptr<RestLogger> logContent;
     std::unique_ptr<HtmlContent> htmlContent;
@@ -117,35 +114,6 @@ RestInterface::RestInterface( const int port, OptionsPtr options,
 
     connect( &_impl->whiteboardCmd, &RestCommand::received,
              this, &RestInterface::whiteboard );
-
-    connect( &_impl->openCmd, &RestCommand::received,
-             [this]( const QString uri )
-    {
-         if( QDir::isRelativePath( uri ))
-            emit open( _config.getContentDir() + "/" + uri );
-        else
-            emit open( uri );
-    });
-
-    connect( &_impl->loadCmd, &RestCommand::received,
-             [this]( const QString uri )
-    {
-        if( uri.isEmpty( ))
-            emit clear();
-        else if( QDir::isRelativePath( uri ))
-            emit load( _config.getSessionsDir() + "/" + uri );
-        else
-            emit load( uri );
-    });
-
-    connect( &_impl->saveCmd, &RestCommand::received,
-             [this] ( const QString uri )
-    {
-        if( QDir::isRelativePath( uri ))
-            emit save( _config.getSessionsDir() + "/" + uri );
-        else
-            emit save( uri );
-    });
 
     connect( &_impl->screenshotCmd, &RestCommand::received,
              this, &RestInterface::screenshot );
@@ -170,29 +138,62 @@ void RestInterface::setupHtmlInterface( DisplayGroup& displayGroup,
 {
     _impl->htmlContent.reset( new HtmlContent( _impl->httpServer.get( )));
 
-    _impl->windowsContent.reset( new RestWindows( _impl->httpServer.get(),
-                                                  displayGroup ));
+    _impl->windowsContent.reset( new RestWindows( displayGroup ));
+
+    auto getWindowInfoFunc = std::bind( &RestWindows::getWindowInfo,
+                                        _impl->windowsContent.get(),
+                                        std::placeholders::_1,
+                                        std::placeholders::_2 );
+
+    _impl->httpServer.get().handlePath( zeroeq::http::Verb::GET, "tide/windows",
+                                        getWindowInfoFunc );
 
     _impl->configurationContent.reset( new RestConfiguration( config ));
 
     _impl->sceneController.reset( new RestController( _impl->httpServer.get(),
-                                                      displayGroup ));
+                                                      displayGroup,
+                                                      _config ));
 
     _impl->fileReceiver.reset( new FileReceiver( _impl->httpServer.get( )));
 
     connect( _impl->fileReceiver.get(), &FileReceiver::open,
              this, &RestInterface::open );
 
-    _impl->sessionsDirQuery.reset(
-                new FileSystemQuery( _impl->httpServer.get(),
-                                     _config.getSessionsDir(),
-                                     FileSystemQuery::Type::SESSIONS ));
+    connect( _impl->sceneController.get(), &RestController::save,
+             this, &RestInterface::save );
 
-    _impl->contentDirQuery.reset(
-                new FileSystemQuery( _impl->httpServer.get(),
-                                     _config.getContentDir(),
-                                     FileSystemQuery::Type::FILES ));
+    connect( _impl->sceneController.get(), &RestController::load,
+             this, &RestInterface::load );
 
-   _impl->httpServer.get().handleGET( *_impl->configurationContent );
-   _impl->httpServer.get().handleGET( *_impl->windowsContent );
+    connect( _impl->sceneController.get(), &RestController::open,
+             this, &RestInterface::open );
+
+    const QStringList fileFilters = ContentFactory::getSupportedFilesFilter( );
+
+    _impl->contentDirQuery.reset( new FileSystemQuery( _config.getContentDir(),
+                                                       fileFilters ));
+
+    auto browseFilesFunc = std::bind( &FileSystemQuery::browseFileSystem,
+                                      _impl->contentDirQuery.get(),
+                                      std::placeholders::_1,
+                                      std::placeholders::_2 );
+
+    _impl->httpServer.get().handlePath( zeroeq::http::Verb::GET, "tide/files",
+                                        browseFilesFunc );
+
+    const QStringList sessionFilters{ "*.dcx" };
+    _impl->sessionDirQuery.reset( new FileSystemQuery( _config.getSessionsDir(),
+                                                       sessionFilters ));
+
+    auto browseSessionsFunc = std::bind( &FileSystemQuery::browseFileSystem,
+                                         _impl->sessionDirQuery.get(),
+                                         std::placeholders::_1,
+                                         std::placeholders::_2 );
+
+    _impl->httpServer.get().handlePath( zeroeq::http::Verb::GET,
+                                        "tide/sessions",
+                                        browseSessionsFunc );
+
+    _impl->httpServer.get().handleGET( *_impl->configurationContent );
+
 }

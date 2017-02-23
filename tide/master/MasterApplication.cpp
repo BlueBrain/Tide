@@ -129,8 +129,11 @@ MasterApplication::~MasterApplication()
     _mpiReceiveThread.wait();
 }
 
-void MasterApplication::load( const QString sessionFile )
+void MasterApplication::load( const QString sessionFile,
+                              promisePtr promise )
 {
+    _loadSessionOp.waitForFinished();
+    _loadSessionPromise = promise;
     _loadSessionOp.setFuture(
                 StateSerializationHelper( _displayGroup ).load( sessionFile ));
 }
@@ -165,8 +168,25 @@ void MasterApplication::_init()
     connect( &_loadSessionOp, &QFutureWatcher<DisplayGroupConstPtr>::finished,
              [this]()
     {
-        if( auto group = _loadSessionOp.result( ))
+        auto group = _loadSessionOp.result();
+        if( group )
             _apply( group );
+
+        if( _loadSessionPromise )
+        {
+            _loadSessionPromise->set_value( group != nullptr );
+            _loadSessionPromise.reset();
+        }
+    });
+
+    connect( &_saveSessionOp, &QFutureWatcher<DisplayGroupConstPtr>::finished,
+             [this]()
+    {
+        if( _saveSessionPromise )
+        {
+            _saveSessionPromise->set_value( _saveSessionOp.result( ));
+            _saveSessionPromise.reset();
+        }
     });
 
 #if TIDE_ENABLE_REST_INTERFACE
@@ -374,6 +394,31 @@ void MasterApplication::_initTouchListener()
 }
 #endif
 
+void MasterApplication::_open( const QString& uri, promisePtr promise )
+{
+    if( uri.isEmpty( ))
+    {
+         if( promise )
+             promise->set_value( false );
+        return;
+    }
+
+    auto loader = ContentLoader{ _displayGroup };
+    bool success = false;
+    if( auto window = loader.findWindow( uri ))
+    {
+        _displayGroup->moveToFront( window );
+        success = true;
+    }
+    else if( QDir{ uri }.exists( ))
+        success = loader.loadDir( uri );
+    else
+        success = loader.load( uri );
+
+    if( promise )
+        promise->set_value( success );
+}
+
 #if TIDE_ENABLE_REST_INTERFACE
 void MasterApplication::_initRestInterface()
 {
@@ -399,20 +444,8 @@ void MasterApplication::_initRestInterface()
         _pixelStreamerLauncher->openWhiteboard();
     });
 
-    connect( _restInterface.get(), &RestInterface::open, [this]( QString uri )
-    {
-        if( uri.isEmpty( ))
-            return;
-
-        auto loader = ContentLoader{ _displayGroup };
-        auto window = loader.findWindow( uri );
-        if( window )
-            _displayGroup->moveToFront( window );
-        else if( QDir{ uri }.exists( ))
-            loader.loadDir( uri );
-        else
-            loader.load( uri );
-    });
+    connect( _restInterface.get(), &RestInterface::open,
+             this, &MasterApplication::_open);
 
     connect( _restInterface.get(), &RestInterface::close, [this]( QString uuid )
     {
@@ -423,10 +456,13 @@ void MasterApplication::_initRestInterface()
     connect( _restInterface.get(), &RestInterface::load,
              this, &MasterApplication::load );
 
-    connect( _restInterface.get(), &RestInterface::save, [this]( QString uri )
+    connect( _restInterface.get(), &RestInterface::save,
+             [this]( QString uri, promisePtr promise )
     {
         _displayGroup->setShowWindowTitles( _options->getShowWindowTitles( ));
         const auto& uploadDir = _config->getUploadDir();
+        _saveSessionOp.waitForFinished();
+        _saveSessionPromise = promise;
         StateSerializationHelper helper( _displayGroup );
         _saveSessionOp.setFuture( helper.save( uri, uploadDir ));
     });

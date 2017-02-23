@@ -40,9 +40,9 @@
 #ifndef FILESYSTEMQUERY_H
 #define FILESYSTEMQUERY_H
 
-#include "FileSystemContent.h"
 #include "MasterConfiguration.h"
 
+#include <zeroeq/http/response.h>
 #include <zeroeq/http/server.h>
 
 #include <map>
@@ -54,34 +54,25 @@ class FileSystemQuery
 {
 public:
     /**
-     * The different types of files that can be exposed.
-     */
-    enum class Type
-    {
-        FILES,
-        SESSIONS
-    };
-
-    /**
      * Create and register a file system listing.
      *
      * @param httpServer used to expose the file system content
      * @param contentDirectory the content directory path
      * @param contentType type of content to expose
      */
-    FileSystemQuery( zeroeq::http::Server& httpServer,
-                     const QString& contentDirectory,
-                     Type contentType );
+    FileSystemQuery( const QString& contentDirectory,
+                     const QStringList filters );
+
+    /**
+     * Expose the content of a directory to REST Interface
+     */
+    std::future<zeroeq::http::Response>
+    browseFileSystem( const std::string&, const std::string& );
 
 private:
-    zeroeq::http::Server& _server;
-    const QString _contentDirectory;
-    const Type _contentType;
-    std::map<QString, FileSystemContent> _fsContentList;
+    const QString& _contentDirectory;
+    const QStringList _filters;
 
-    std::string _getEndpoint() const;
-    const QStringList& _getFilters() const;
-    bool _handleDirectoryList( const std::string& string );
 };
 
 #endif

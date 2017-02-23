@@ -42,9 +42,14 @@
 #include "control/ContentWindowController.h"
 #include "log.h"
 
+#include <zeroeq/http/server.h>
+
+#include <QDir>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QUuid>
+
+using namespace zeroeq;
 
 namespace
 {
@@ -62,10 +67,12 @@ QJsonObject _toJSONObject( const std::string& data )
 }
 }
 
-RestController::RestController( zeroeq::http::Server& server,
-                                DisplayGroup& group )
+RestController::RestController( http::Server& server,
+                                DisplayGroup& group,
+                                const MasterConfiguration& config )
     : _group( group )
     , _controller( new DisplayGroupController( group ))
+    , _config ( config )
 {
     server.handlePUT(_moveToFront);
     connect ( &_moveToFront, &RestCommand::received,
@@ -101,8 +108,112 @@ RestController::RestController( zeroeq::http::Server& server,
     server.handlePUT( "tide/deselectWindows", [this]()
     { return _handleDeselectWindows(); } );
 
-    server.handlePUT( "tide/clear", [this]()
-    { _group.clear(); return true; } );
+    server.handle( http::Verb::PUT, "tide/clear",
+                  [this]( const std::string& )
+    {
+        _group.clear();
+        http::Response response;
+        response.headers[ http::Header::CONTENT_TYPE ] = "application/json";
+        QJsonObject obj;
+        obj["status"] = "cleared";
+        response.payload = QJsonDocument{ obj }.toJson().toStdString();
+        return make_ready_future( response );
+    });
+
+    server.handlePath( http::Verb::DELETE, "tide/windows",
+                       [ this ](const std::string& endpoint,
+                       const std::string& )
+    {
+        const QString uri = QString::fromStdString( endpoint );
+        QUuid uuid( uri );
+        if( auto window = _group.getContentWindow(uuid ))
+        {
+            _group.removeContentWindow( window );
+            return make_ready_future( http::Response{ http::Code::OK } );
+        }
+        return make_ready_future( http::Response{ http::Code::NO_CONTENT });
+    });
+
+    server.handle( http::Verb::PUT, "tide/load",
+                  [this]( const std::string& payload )
+    {
+        const auto obj = _toJSONObject( payload );
+        if( obj.empty( ))
+            return http::make_ready_future( http::Response{
+                                                  http::Code::BAD_REQUEST } );
+        const QString uri  = obj["uri"].toString( );
+        auto future_response = std::async(std::launch::deferred, [this, uri]()
+        {
+            auto promise = std::make_shared<std::promise<bool>>();
+            auto future = promise->get_future();
+            if( uri.isEmpty( ))
+            {
+                _group.clear();
+                return http::Response{ http::Code::OK };
+            }
+            else if( QDir::isRelativePath( uri ))
+                emit load( _config.getSessionsDir() + "/" + uri, promise );
+            else
+                emit load( uri, promise );
+            if( !future.get( ))
+                return http::Response{ http::Code::INTERNAL_SERVER_ERROR };
+
+            return http::Response{ http::Code::OK };
+        });
+        return std::move( future_response );
+    });
+
+    server.handle( http::Verb::PUT, "tide/open",
+                  [this]( const std::string& payload )
+    {
+        const auto obj = _toJSONObject( payload );
+        if( obj.empty( ))
+            return http::make_ready_future( http::Response
+                                            { http::Code::BAD_REQUEST });
+
+        const QString uri  = obj["uri"].toString( );
+        auto future_response = std::async(std::launch::deferred,
+                                          [this, uri ]()
+        {
+            auto promise = std::make_shared<std::promise<bool>>();
+            auto future = promise->get_future();
+
+            if( QDir::isRelativePath( uri ))
+                emit open( _config.getContentDir() + "/" + uri, promise);
+            else
+                emit open( uri, promise );
+            if ( !future.get( ))
+                return http::Response{ http::Code::INTERNAL_SERVER_ERROR };
+            return http::Response{ http::Code::OK };
+        });
+        return std::move( future_response );
+    });
+
+    server.handle( http::Verb::PUT, "tide/save",
+                  [this]( const std::string& payload )
+    {
+        const auto obj = _toJSONObject( payload );
+        if( obj.empty( ))
+            return http::make_ready_future( http::Response{
+                                                  http::Code::BAD_REQUEST });
+
+        const QString uri  = obj["uri"].toString( );
+        auto future_response = std::async(std::launch::deferred,
+                                          [this, uri ]()
+        {
+            auto promise = std::make_shared<std::promise<bool>>();
+            std::future<bool> future = promise->get_future();
+
+            if( QDir::isRelativePath( uri ))
+                emit save( _config.getSessionsDir() + "/" + uri, promise );
+            else
+                emit save( uri, promise );
+            if ( !future.get( ))
+                return http::Response{ http::Code::INTERNAL_SERVER_ERROR };
+            return http::Response{ http::Code::OK };
+        });
+        return std::move( future_response );
+    });
 }
 
 bool RestController::_handleMoveWindowToFront( const QString uri )
@@ -118,7 +229,7 @@ bool RestController::_handleFocusWindows()
 }
 bool RestController::_handleUnfocusWindow( const QString& id )
 {
-    _controller->unfocus( QUuid( id ) );
+    _controller->unfocus( QUuid( id ));
     return true;
 }
 bool RestController::_handleUnfocusWindows()

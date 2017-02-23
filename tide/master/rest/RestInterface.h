@@ -44,6 +44,9 @@
 #include "JsonSize.h"
 #include "RestLogger.h"
 
+#include <zeroeq/http/response.h>
+
+#include <future>
 #include <QObject>
 
 /**
@@ -89,13 +92,13 @@ public:
 
 signals:
     /** Open a content. */
-    void open( QString uri );
+    void open( QString uri, promisePtr promise );
 
     /** Load a session. */
-    void load( QString uri );
+    void load( QString uri, promisePtr promise );
 
     /** Save a session to the given file. */
-    void save( QString uri );
+    void save( QString uri, promisePtr promise );
 
     /** Clear all contents. */
     void clear();

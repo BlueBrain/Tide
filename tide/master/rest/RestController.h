@@ -41,12 +41,14 @@
 #define RESTCONTROLLER_H
 
 #include "control/DisplayGroupController.h"
+#include "MasterConfiguration.h"
 #include "RestCommand.h"
 #include "scene/DisplayGroup.h"
 #include "types.h"
 
 #include <zeroeq/http/server.h>
 
+#include <future>
 #include <QObject>
 
 /**
@@ -63,12 +65,23 @@ public:
      * @param server used to register HTTP endpoints.
      * @param group target for control commands.
      */
-    RestController( zeroeq::http::Server& httpServer, DisplayGroup& group );
+    RestController( zeroeq::http::Server& httpServer, DisplayGroup& group,
+                    const MasterConfiguration& config );
+
+signals:
+    /** Load a session. */
+    void load( QString uri, promisePtr promise );
+
+    /** Open a file */
+    void open( QString uri, promisePtr promise );
+
+    /** Open a file */
+    void save( QString uri, promisePtr promise );
 
 private:
     DisplayGroup& _group;
-
     std::unique_ptr<DisplayGroupController> _controller;
+    const MasterConfiguration& _config;
 
     RestCommand _toggleSelectWindow{ "tide/toggleSelectWindow" };
     RestCommand _moveToFront{ "tide/moveWindowToFront" };

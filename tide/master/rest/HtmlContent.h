@@ -54,23 +54,6 @@ public:
      * @param httpServer used to expose the content
      */
     HtmlContent( zeroeq::http::Server& httpServer );
-
-private:
-    StaticContent indexPage;
-    StaticContent bootstrapStyles;
-    StaticContent bootstrapTree;
-    StaticContent closeIcon;
-    StaticContent focusIcon;
-    StaticContent jquery;
-    StaticContent jqueryUiStyles;
-    StaticContent jqueryUi;
-    StaticContent maximizeIcon;
-    StaticContent sweetalert;
-    StaticContent sweetalertStyles;
-    StaticContent tideJs;
-    StaticContent tideStyles;
-    StaticContent tideVarsJs;
-    StaticContent underscore;
 };
 
 #endif

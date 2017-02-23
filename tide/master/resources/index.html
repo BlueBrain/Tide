@@ -9,7 +9,7 @@
   <script src="js/underscore-min.js"></script>
   <script src="js/tide.js"></script>
   <script src="js/tideVars.js"></script>
-
+  <script src="js/notify.min.js"></script>
   <link rel="stylesheet" href="css/sweetalert.min.css">
   <link rel="stylesheet" href="css/jquery-ui.css">
   <link rel="stylesheet" href="css/bootstrap.css">
@@ -23,24 +23,25 @@
 
 <div id="sessionMenu" class="topMenu" >
   <div style="padding: 10px; background-color: white">
-    <input id="sessionNameInput" type="text" style="width: 60%; height: 25px; margin: 0px " placeholder="New session name">
+    <input id="sessionNameInput" type="text" placeholder="New session name">
     <button type="submit" onclick="saveSession()" style=" margin: 0px; margin-left: 5%; width: 30%">Save session</button>
   </div>
-  <div id="sessionTree" style="position: relative; background-color: transparent; width:100%;
-			 overflow-y:auto">
+  <div id="sessionTree">
   </div>
 </div>
 
-<div id="uploadMenu" class="topMenu uploadMenu" style="border-color: lightgrey; border-style: solid; border-width: 0px 1px 1px 1px">
-  <div  style="padding: 10px;">
-    <form id="file-form" target="frame">
-      <input type="file" id="file-select" multiple/>
-      <button type="submit" style="width: 70px" id="upload-button" class="formButton" disabled="disabled">UPLOAD</button>
-      <button type="reset" style="width: 70px" id="reset-button" class="formButton" onclick="clearUploadList()" disabled="disabled">RESET</button>
+<div id="uploadMenu" class="topMenu uploadMenu">
+  <div style="padding-top: 5px; padding-left: 10px; padding-bottom: 10px; overflow: hidden;">
+    <form id="file-form" target="frame" >
+      <label class="file-input">
+        <input type="file" id="file-select" multiple />
+      </label>
+      <button type="submit" id="upload-button" class="formButton" disabled="disabled">UPLOAD</button>
+      <button type="reset" id="reset-button" class="formButton" onclick="clearUploadList()" disabled="disabled">RESET</button>
     </form>
   </div >
   <div style="clear: both">
-    <output id="outputList" style="padding-left: 5px; padding-right: 15px"></output>
+    <ul id="outputList"></ul>
   </div>
 </div>
 
@@ -60,7 +61,6 @@
 
   <iframe name="frame"></iframe>
 </div>
-
 
 </body>
 </html>
