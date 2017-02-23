@@ -13,6 +13,11 @@ The standard build procedure using git and CMake is the following:
     cmake ..
     make
 
+or using the Ninja code generator (recommended):
+
+    cmake -GNinja ..
+    ninja
+
 ## External Dependencies
 
 Tide builds on top of standard and well tested libraries for core

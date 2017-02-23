@@ -1,7 +1,7 @@
 <configuration>
     <dimensions mullionHeight="0" fullscreen="0" numTilesWidth="1" screenHeight="216" mullionWidth="0" screenWidth="1536" numTilesHeight="3"/>
     <dock directory=""/>
-    <webservice port="10000"/>
+    <webservice port="8888"/>
     <webbrowser zoomFactor="2.0" defaultURL="http://www.google.com" pageWidth="1280" pageHeight="1024"/>
     <background uri="" color="#282828"/>
     <masterProcess display=":0" host="localhost" headless="false"/>
