@@ -40,18 +40,7 @@
 #ifndef FFMPEGMOVIE_H
 #define FFMPEGMOVIE_H
 
-// required for FFMPEG includes below, specifically for the Linux build
-#ifdef __cplusplus
-    #ifndef __STDC_CONSTANT_MACROS
-        #define __STDC_CONSTANT_MACROS
-    #endif
-
-    #ifdef _STDINT_H
-        #undef _STDINT_H
-    #endif
-
-    #include <stdint.h>
-#endif
+#include "FFMPEGDefines.h"
 
 extern "C"
 {

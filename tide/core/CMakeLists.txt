@@ -20,6 +20,7 @@ set(TIDECORE_LINK_LIBRARIES
 
 if(TIDE_ENABLE_MOVIE_SUPPORT)
   list(APPEND TIDECORE_PUBLIC_HEADERS
+    data/FFMPEGDefines.h
     data/FFMPEGFrame.h
     data/FFMPEGMovie.h
     data/FFMPEGPicture.h

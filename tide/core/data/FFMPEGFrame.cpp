@@ -67,11 +67,6 @@ int FFMPEGFrame::getHeight() const
     return _avFrame->height;
 }
 
-const uint8_t* FFMPEGFrame::getData( const uint texture ) const
-{
-    return _avFrame->data[texture];
-}
-
 int64_t FFMPEGFrame::getTimestamp() const
 {
     return _avFrame->pkt_dts;

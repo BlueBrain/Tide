@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,45 +37,20 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef FFMPEGFRAME_H
-#define FFMPEGFRAME_H
+#ifndef FFMPEGDEFINES_H
+#define FFMPEGDEFINES_H
 
-#include "FFMPEGDefines.h"
+// Must be included before any other FFMPEG header, specifically for Linux build
+#ifdef __cplusplus
+    #ifndef __STDC_CONSTANT_MACROS
+        #define __STDC_CONSTANT_MACROS
+    #endif
 
-extern "C"
-{
-    #include <libavcodec/avcodec.h>
-    #include <libavutil/mem.h>
-}
+    #ifdef _STDINT_H
+        #undef _STDINT_H
+    #endif
 
-/** A frame of an FFMPEG movie. */
-class FFMPEGFrame
-{
-public:
-    /** Constructor. */
-    FFMPEGFrame();
-
-    /** Destructor. */
-    ~FFMPEGFrame();
-
-    /** @return the width of the image. */
-    int getWidth() const;
-
-    /** @return the height of the image. */
-    int getHeight() const;
-
-    /** @return the timestamp of the frame. */
-    int64_t getTimestamp() const;
-
-    /** Get the FFMPEG frame. */
-    AVFrame& getAVFrame();
-    const AVFrame& getAVFrame() const;
-
-    /** @return the pixel format of the FFMPEG frame. */
-    AVPixelFormat getAvPixelFormat() const;
-
-private:
-    AVFrame* _avFrame;
-};
+    #include <stdint.h>
+#endif
 
 #endif
