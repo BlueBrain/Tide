@@ -65,10 +65,13 @@ public:
     int getHeight() const override;
 
     /** @copydoc Image::getData */
-    const uint8_t* getData() const override;
+    const uint8_t* getData( uint texture = 0 ) const override;
 
     /** @copydoc Image::getFormat */
-    uint getFormat() const override;
+    TextureFormat getFormat() const override;
+
+    /** @copydoc Image::getGLPixelFormat */
+    uint getGLPixelFormat() const override;
 
     /** @return true if the image format is 32 bits per pixel. */
     static bool is32Bits( const QImage& image )
@@ -80,4 +83,4 @@ private:
     const QImage _image;
 };
 
-#endif // QTIMAGE_H
+#endif

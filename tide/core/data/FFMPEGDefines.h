@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,58 +37,20 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef FFMPEGPICTURE_H
-#define FFMPEGPICTURE_H
+#ifndef FFMPEGDEFINES_H
+#define FFMPEGDEFINES_H
 
-#include "Image.h"
+// Must be included before any other FFMPEG header, specifically for Linux build
+#ifdef __cplusplus
+    #ifndef __STDC_CONSTANT_MACROS
+        #define __STDC_CONSTANT_MACROS
+    #endif
 
-#include <QByteArray>
-#include <QImage>
+    #ifdef _STDINT_H
+        #undef _STDINT_H
+    #endif
 
-#include <array>
-
-/**
- * A decoded frame of the movie stream in RGBA or YUV format.
- */
-class FFMPEGPicture : public Image
-{
-public:
-    /** Allocate a new picture. */
-    FFMPEGPicture( uint width, uint height, TextureFormat format );
-
-    /** @copydoc Image::getWidth */
-    int getWidth() const final;
-
-    /** @copydoc Image::getHeight */
-    int getHeight() const final;
-
-    /** @copydoc Image::getData */
-    const uint8_t* getData( uint texture = 0 ) const final;
-
-    /** @return write access to fill a given image texture plane. */
-    uint8_t* getData( uint texture );
-
-    /** @return data size of a given image texture plane. */
-    size_t getDataSize( uint texture ) const;
-
-    /** @copydoc Image::getTextureSize */
-    QSize getTextureSize( uint texture = 0 ) const final;
-
-    /** @copydoc Image::getFormat */
-    TextureFormat getFormat() const final;
-
-    /** @copydoc Image::getGLPixelFormat */
-    uint getGLPixelFormat() const final;
-
-    /** @return the picture as a QImage, or an empty one if format != rgba. */
-    QImage toQImage() const;
-
-private:
-    const uint _width;
-    const uint _height;
-    const TextureFormat _format;
-    const QSize _uvSize;
-    std::array<QByteArray, 3> _data;
-};
+    #include <stdint.h>
+#endif
 
 #endif

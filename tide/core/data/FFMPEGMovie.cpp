@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -46,10 +46,12 @@
 
 #include <cmath>
 
-#define MIN_SEEK_DELTA_SEC  0.5
-
 #pragma clang diagnostic ignored "-Wdeprecated"
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
+namespace
+{
+const double MIN_SEEK_DELTA_SEC = 0.5;
 
 // Solve FFMPEG issue "insufficient thread locking around avcodec_open/close()"
 int ffmpegLockManagerCallback( void** mutex, enum AVLockOp op )
@@ -73,6 +75,30 @@ int ffmpegLockManagerCallback( void** mutex, enum AVLockOp op )
     }
 }
 
+TextureFormat _determineOutputFormat( const AVPixelFormat fileFormat,
+                                      const QString& uri )
+{
+    switch( fileFormat )
+    {
+    case AV_PIX_FMT_RGBA:
+        return TextureFormat::rgba;
+    case AV_PIX_FMT_YUV420P:
+    case AV_PIX_FMT_YUVJ420P:
+        return TextureFormat::yuv420;
+    case AV_PIX_FMT_YUV422P:
+    case AV_PIX_FMT_YUVJ422P:
+        return TextureFormat::yuv422;
+    case AV_PIX_FMT_YUV444P:
+    case AV_PIX_FMT_YUVJ444P:
+        return TextureFormat::yuv444;
+    default:
+        put_flog( LOG_DEBUG, "Performance info: AV input format '%d' for file "
+                             "'%s' will be converted in software to 'rgba'",
+                  fileFormat, uri.toLocal8Bit().constData( ));
+        return TextureFormat::rgba;
+    }
+}
+
 struct FFMPEGStaticInit
 {
     FFMPEGStaticInit()
@@ -84,11 +110,10 @@ struct FFMPEGStaticInit
     }
 };
 static FFMPEGStaticInit instance;
+}
 
 FFMPEGMovie::FFMPEGMovie( const QString& uri )
-    : _avFormatContext( 0 )
-    , _streamPosition( 0.0 )
-    , _isValid( _open( uri ))
+    : _isValid( _open( uri ))
 {}
 
 FFMPEGMovie::~FFMPEGMovie()
@@ -105,6 +130,7 @@ bool FFMPEGMovie::_open( const QString& uri )
     try
     {
         _videoStream.reset( new FFMPEGVideoStream( *_avFormatContext ));
+        _format = _determineOutputFormat( _videoStream->getAVFormat(), uri );
     }
     catch( const std::runtime_error& e )
     {
@@ -178,6 +204,16 @@ double FFMPEGMovie::getFrameDuration() const
     return _videoStream->getFrameDuration();
 }
 
+TextureFormat FFMPEGMovie::getFormat() const
+{
+    return _format;
+}
+
+void FFMPEGMovie::setFormat( const TextureFormat format )
+{
+    _format = format;
+}
+
 PicturePtr FFMPEGMovie::getFrame( double posInSeconds )
 {
     posInSeconds = std::max( 0.0, std::min( posInSeconds, getDuration( )));
@@ -205,7 +241,7 @@ PicturePtr FFMPEGMovie::getFrame( double posInSeconds )
         const int64_t timestamp = _videoStream->decodeTimestamp( packet );
         if( timestamp >= targetTimestamp )
         {
-            picture = _videoStream->decodePictureForLastPacket();
+            picture = _videoStream->decodePictureForLastPacket( _format );
             // This validity check is to prevent against rare decoding errors
             // and is not inherently part of the seeking process.
             if( picture )

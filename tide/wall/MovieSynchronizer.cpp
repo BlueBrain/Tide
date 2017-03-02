@@ -64,7 +64,8 @@ void MovieSynchronizer::update( const ContentWindow& window,
     if( !_tileAdded )
     {
         emit addTile( std::make_shared<Tile>( 0, QRect( QPoint( 0, 0 ),
-                                                        getTilesArea( ))));
+                                                        getTilesArea( )),
+                                              _updater->getFormat( )));
         emit tilesAreaChanged();
         _tileAdded = true;
     }

@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Daniel.Nachbaur@epfl.ch                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -57,13 +58,19 @@ int StreamImage::getHeight() const
     return _frame->segments.at( _tileIndex ).parameters.height;
 }
 
-const uint8_t* StreamImage::getData() const
+const uint8_t* StreamImage::getData( const uint texture ) const
 {
-    return reinterpret_cast< const uint8_t* >(
+    Q_UNUSED( texture );
+    return reinterpret_cast<const uint8_t*>(
                 _frame->segments.at( _tileIndex ).imageData.constData( ));
 }
 
-uint StreamImage::getFormat() const
+TextureFormat StreamImage::getFormat() const
+{
+    return TextureFormat::rgba;
+}
+
+uint StreamImage::getGLPixelFormat() const
 {
     return GL_RGBA;
 }

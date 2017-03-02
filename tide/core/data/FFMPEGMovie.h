@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -40,18 +40,7 @@
 #ifndef FFMPEGMOVIE_H
 #define FFMPEGMOVIE_H
 
-// required for FFMPEG includes below, specifically for the Linux build
-#ifdef __cplusplus
-    #ifndef __STDC_CONSTANT_MACROS
-        #define __STDC_CONSTANT_MACROS
-    #endif
-
-    #ifdef _STDINT_H
-        #undef _STDINT_H
-    #endif
-
-    #include <stdint.h>
-#endif
+#include "FFMPEGDefines.h"
 
 extern "C"
 {
@@ -98,6 +87,12 @@ public:
     /** Get the duration of a frame in seconds. */
     double getFrameDuration() const;
 
+    /** @return the format of the decoded movie frames. */
+    TextureFormat getFormat() const;
+
+    /** Set the format of the decoded movie frames, overwriting the default. */
+    void setFormat( TextureFormat format );
+
     /**
      * Get a frame at the given position in seconds.
      *
@@ -108,15 +103,16 @@ public:
     PicturePtr getFrame( double posInSeconds );
 
 private:
-    AVFormatContext* _avFormatContext;
-    std::unique_ptr< FFMPEGVideoStream > _videoStream;
+    AVFormatContext* _avFormatContext = nullptr;
+    std::unique_ptr<FFMPEGVideoStream> _videoStream;
+    TextureFormat _format = TextureFormat::yuv420;
 
-    double _streamPosition;
-    bool _isValid;
+    double _streamPosition = 0.0;
+    const bool _isValid = false;
 
     bool _open( const QString& uri );
     bool _createAvFormatContext( const QString& uri );
     void _releaseAvFormatContext();
 };
 
-#endif // FFMPEGMOVIE_H
+#endif

@@ -51,6 +51,17 @@
 #include <set>
 #include <vector>
 
+/**
+ * The type of texture formats that Tide can render.
+ */
+enum class TextureFormat
+{
+    rgba,
+    yuv420,
+    yuv422,
+    yuv444
+};
+
 class Configuration;
 class Content;
 class ContentSynchronizer;

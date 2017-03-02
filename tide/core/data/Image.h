@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Daniel.Nachbaur@epfl.ch                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -46,8 +47,11 @@
  * An interface to provide necessary image information for the texture upload
  * and swap in TextureUploader.
  *
- * Currently, the only valid image format is 32 bits per pixel. Derived
- * classes must make sure to comply with this requirement.
+ * Valid image formats are:
+ * - RGBA: 1 texture plane, 32 bits per pixel (in any GL-compatible arrangement)
+ * - YUV: 3 texture planes, 8 bits per pixel
+ *
+ * Derived classes must comply with this requirement.
  */
 class Image
 {
@@ -60,14 +64,20 @@ public:
     /** @return the height of the image. */
     virtual int getHeight() const = 0;
 
-    /** @return the size of the image in bytes */
-    size_t getSize() const { return getWidth() * getHeight() * 4; }
+    /** @return the dimensions of the given texture plane. */
+    virtual QSize getTextureSize( uint texture = 0 ) const
+    {
+        return texture == 0 ? QSize( getWidth(), getHeight( )) : QSize();
+    }
 
-    /** @return the pointer to the pixels. */
-    virtual const uint8_t* getData() const = 0;
+    /** @return the pointer to the pixels of the given texture plane. */
+    virtual const uint8_t* getData( uint texture = 0 ) const = 0;
+
+    /** @return the format of the image. */
+    virtual TextureFormat getFormat() const = 0;
 
     /** @return the OpenGL pixel format of the image data. */
-    virtual uint getFormat() const = 0;
+    virtual uint getGLPixelFormat() const = 0;
 
     /** @return true if the image is a GPU image and need special processing. */
     virtual bool isGpuImage() const { return false; }

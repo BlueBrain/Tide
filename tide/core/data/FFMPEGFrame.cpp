@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,7 +39,6 @@
 
 #include "FFMPEGFrame.h"
 
-#include <QOpenGLFunctions>
 #include "log.h"
 
 FFMPEGFrame::FFMPEGFrame()
@@ -58,6 +57,16 @@ FFMPEGFrame::~FFMPEGFrame()
     av_free( _avFrame );
 }
 
+int FFMPEGFrame::getWidth() const
+{
+    return _avFrame->width;
+}
+
+int FFMPEGFrame::getHeight() const
+{
+    return _avFrame->height;
+}
+
 int64_t FFMPEGFrame::getTimestamp() const
 {
     return _avFrame->pkt_dts;
@@ -73,22 +82,7 @@ const AVFrame& FFMPEGFrame::getAVFrame() const
     return *_avFrame;
 }
 
-const uint8_t* FFMPEGFrame::getData() const
+AVPixelFormat FFMPEGFrame::getAVPixelFormat() const
 {
-    return _avFrame->data[0];
-}
-
-uint FFMPEGFrame::getFormat() const
-{
-    return GL_RGBA;
-}
-
-int FFMPEGFrame::getWidth() const
-{
-    return _avFrame->width;
-}
-
-int FFMPEGFrame::getHeight() const
-{
-    return _avFrame->height;
+    return AVPixelFormat(_avFrame->format);
 }

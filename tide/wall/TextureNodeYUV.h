@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,58 +37,72 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef FFMPEGPICTURE_H
-#define FFMPEGPICTURE_H
+#ifndef TEXTURENODEYUV_H
+#define TEXTURENODEYUV_H
 
-#include "Image.h"
+#include "types.h"
+#include "YUVTexture.h"
+#include "yuv.h"
 
-#include <QByteArray>
-#include <QImage>
+#include <QSGNode>
+#include <QSGTexture>
 
-#include <array>
+class QQuickWindow;
 
 /**
- * A decoded frame of the movie stream in RGBA or YUV format.
+ * A node with a double buffered YUV texture.
+ *
+ * Initially it displays an empty black texture (id 0). Users can upload data
+ * to the back texture, querried with getBackGlTextureYUV(), before calling
+ * swap() to display the results.
+ *
+ * The second texture is created only after a call to setBackTextureSize(), so
+ * that no memory is wasted for a second texture if the node is not going to
+ * be updated more than once.
  */
-class FFMPEGPicture : public Image
+class TextureNodeYUV : public QSGNode
 {
 public:
-    /** Allocate a new picture. */
-    FFMPEGPicture( uint width, uint height, TextureFormat format );
+    /**
+     * Create a textured rectangle for rendering YUV images on the GPU.
+     * @param size the initial back texture size.
+     * @param window a reference to the quick window for generating textures.
+     * @param format the YUV format to determine the U and V texture size.
+     */
+    TextureNodeYUV( const QSize& size, QQuickWindow* window,
+                    TextureFormat format );
 
-    /** @copydoc Image::getWidth */
-    int getWidth() const final;
+    /** @return the surface of the node. */
+    const QRectF& rect() const;
 
-    /** @copydoc Image::getHeight */
-    int getHeight() const final;
+    /** Set the surface of the node. */
+    void setRect( const QRectF& rect );
 
-    /** @copydoc Image::getData */
-    const uint8_t* getData( uint texture = 0 ) const final;
+    /** @return the back texture identifiers, which can safely be updated. */
+    YUVTexture getBackGlTexture() const;
 
-    /** @return write access to fill a given image texture plane. */
-    uint8_t* getData( uint texture );
+    /** Swap the front and back textures. */
+    void swap();
 
-    /** @return data size of a given image texture plane. */
-    size_t getDataSize( uint texture ) const;
-
-    /** @copydoc Image::getTextureSize */
-    QSize getTextureSize( uint texture = 0 ) const final;
-
-    /** @copydoc Image::getFormat */
-    TextureFormat getFormat() const final;
-
-    /** @copydoc Image::getGLPixelFormat */
-    uint getGLPixelFormat() const final;
-
-    /** @return the picture as a QImage, or an empty one if format != rgba. */
-    QImage toQImage() const;
+    /**
+     * Create or resize the back texture as needed.
+     * Note that the back texture identifier may change as a result of calling
+     * this function.
+     * @param size the new texture size
+     */
+    void setBackTextureSize( const QSize& size );
 
 private:
-    const uint _width;
-    const uint _height;
-    const TextureFormat _format;
-    const QSize _uvSize;
-    std::array<QByteArray, 3> _data;
+    QQuickWindow* _window = nullptr;
+    const TextureFormat _format = TextureFormat::yuv420;
+
+    QRectF _rect;
+    QSGGeometryNode _node;
+
+    void _createBackTextures( const QSize& size );
+    using QSGTexturePtr = std::unique_ptr<QSGTexture>;
+    QSGTexturePtr _createTexture( const QSize& size ) const;
+    QSGTexturePtr _createWrapper( uint textureID, const QSize& size ) const;
 };
 
 #endif

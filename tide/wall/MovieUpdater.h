@@ -108,6 +108,9 @@ public:
     /** @return skip position of the movie, normalized between [0.0, 1.0]. */
     qreal getSkipPosition() const;
 
+    /** @return the format of the decoded movie images. */
+    TextureFormat getFormat() const;
+
 private:
     std::unique_ptr<FFMPEGMovie> _ffmpegMovie;
     FpsCounter _fpsCounter;

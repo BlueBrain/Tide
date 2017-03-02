@@ -52,13 +52,13 @@ MovieThumbnailGenerator::MovieThumbnailGenerator( const QSize& size )
 QImage MovieThumbnailGenerator::generate( const QString& filename ) const
 {
     FFMPEGMovie movie( filename );
+    movie.setFormat( TextureFormat::rgba );
 
     if( !movie.isValid( ))
         return createErrorImage( "movie" );
 
     const double target = PREVIEW_RELATIVE_POSITION * movie.getDuration();
-    PicturePtr picture = movie.getFrame( target );
-    if( picture )
+    if( auto picture = movie.getFrame( target ))
         return picture->toQImage().scaled( _size, _aspectRatioMode );
 
     return createErrorImage( "movie" );

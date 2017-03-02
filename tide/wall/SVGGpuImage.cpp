@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -54,14 +54,20 @@ int SVGGpuImage::getHeight() const
     return _image->getHeight();
 }
 
-const uint8_t* SVGGpuImage::getData() const
+const uint8_t* SVGGpuImage::getData( const uint texture ) const
 {
+    Q_UNUSED( texture );
     return _image->getData();
 }
 
-uint SVGGpuImage::getFormat() const
+TextureFormat SVGGpuImage::getFormat() const
 {
-    return _image->getFormat();
+    return TextureFormat::rgba;
+}
+
+uint SVGGpuImage::getGLPixelFormat() const
+{
+    return _image->getGLPixelFormat();
 }
 
 bool SVGGpuImage::isGpuImage() const

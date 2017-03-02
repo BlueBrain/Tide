@@ -124,18 +124,18 @@ void TextureUploader::uploadTexture( ImagePtr image, TileWeakPtr tile_ )
     if( image->getWidth() != tile->getBackGlTextureSize().width() ||
         image->getHeight() != tile->getBackGlTextureSize().height( ))
     {
-        put_flog( LOG_DEBUG, "Incompatible image dimensions!" );
+        put_flog( LOG_DEBUG, "Incompatible image dimensions" );
         return;
     }
 
-    const uint textureID = tile->getBackGlTexture();
-    if( !textureID )
+    if( image->getFormat() != tile->getFormat( ))
     {
-        put_flog( LOG_DEBUG, "Tile has no backTextureID" );
+        put_flog( LOG_DEBUG, "Incompatible texture formats" );
         return;
     }
 
-    _upload( *image, textureID );
+    if( !_upload( *image, *tile ))
+        return;
 
     // notify tile that its texture has been updated
     tile->textureUpdated( tile );
@@ -144,60 +144,58 @@ void TextureUploader::uploadTexture( ImagePtr image, TileWeakPtr tile_ )
     emit uploaded();
 }
 
-void TextureUploader::_upload( const Image& image, const uint textureID )
+bool TextureUploader::_upload( const Image& image, const Tile& tile )
 {
-    // we observed slow-downs with movie session and pixelstreams together
-    // which originates from glFinish() in upload & render thread. For now
-    // we use 'slow&easy' texture upload. This probably points out the problem
-    // and a potential solution:
-    // http://stackoverflow.com/questions/31941385
-#if 0
-    // make PBO big enough
-    _gl->glBindBuffer( GL_PIXEL_UNPACK_BUFFER, _pbo );
-    const size_t bufferSize = image.getSize();
-    if( bufferSize > _bufferSize )
+    switch( image.getFormat( ))
     {
-        _gl->glBufferData( GL_PIXEL_UNPACK_BUFFER, bufferSize, 0,
-                           GL_STREAM_DRAW );
-        _bufferSize = bufferSize;
+    case TextureFormat::rgba:
+    {
+        const auto textureID = tile.getBackGlTexture();
+        if( !textureID )
+        {
+            put_flog( LOG_DEBUG, "Tile has no backTextureID" );
+            return false;
+        }
+        _upload( image, 0, textureID );
+        return true;
     }
+    case TextureFormat::yuv444:
+    case TextureFormat::yuv422:
+    case TextureFormat::yuv420:
+    {
+        const auto& texture = tile.getBackGlTextureYUV();
+        if( !texture.y || !texture.u || !texture.v )
+        {
+            put_flog( LOG_DEBUG, "Tile is missing a back GL texture" );
+            return false;
+        }
+        _upload( image, 0, texture.y );
+        _upload( image, 1, texture.u );
+        _upload( image, 2, texture.v );
+        return true;
+    }
+    default:
+        put_flog( LOG_DEBUG, "image has unsupported texture format" );
+        return false;
+    }
+}
 
-    // copy pixels from CPU mem to GPU mem
-    void* pboData = _gl->glMapBuffer( GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY );
-    std::memcpy( pboData, image.getData(), bufferSize );
-    _gl->glUnmapBuffer( GL_PIXEL_UNPACK_BUFFER );
+void TextureUploader::_upload( const Image& image, const uint srcTextureIdx,
+                               const uint textureID )
+{
+    const auto textureSize = image.getTextureSize( srcTextureIdx );
 
-    // setup PBO and texture pixel storage
     GLint alignment = 1;
-    if( (image.getWidth() % 4) == 0 )
+    if( (textureSize.width() % 4) == 0 )
         alignment = 4;
-    else if( (image.getWidth() % 2) == 0 )
+    else if( (textureSize.width() % 2) == 0 )
         alignment = 2;
     _gl->glPixelStorei( GL_UNPACK_ALIGNMENT, alignment );
-    _gl->glPixelStorei( GL_UNPACK_ROW_LENGTH, image.getWidth( ));
 
-    // update texture with pixels from PBO
-    _gl->glActiveTexture( GL_TEXTURE0 );
     _gl->glBindTexture( GL_TEXTURE_2D, textureID );
-    _gl->glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, image.getWidth(),
-                          image.getHeight(), image.getFormat(),
-                          GL_UNSIGNED_BYTE, 0 );
-
-    _gl->glBindBuffer( GL_PIXEL_UNPACK_BUFFER, 0 );
-#else
-    GLint alignment = 1;
-    if( (image.getWidth() % 4) == 0 )
-        alignment = 4;
-    else if( (image.getWidth() % 2) == 0 )
-        alignment = 2;
-    _gl->glPixelStorei( GL_UNPACK_ALIGNMENT, alignment );
-
-    _gl->glActiveTexture( GL_TEXTURE0 );
-    _gl->glBindTexture( GL_TEXTURE_2D, textureID );
-    _gl->glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, image.getWidth(),
-                          image.getHeight(), image.getFormat(),
-                          GL_UNSIGNED_BYTE, image.getData( ));
-#endif
+    _gl->glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, textureSize.width(),
+                          textureSize.height(), image.getGLPixelFormat(),
+                          GL_UNSIGNED_BYTE, image.getData( srcTextureIdx ));
     _gl->glGenerateMipmap( GL_TEXTURE_2D );
 
     _gl->glBindTexture( GL_TEXTURE_2D, 0 );

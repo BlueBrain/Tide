@@ -39,8 +39,8 @@
 
 #include "FFMPEGVideoStream.h"
 
+#include "FFMPEGFrame.h"
 #include "FFMPEGVideoFrameConverter.h"
-
 #include "log.h"
 
 #include <sstream>
@@ -63,8 +63,7 @@ FFMPEGVideoStream::FFMPEGVideoStream( AVFormatContext& avFormatContext )
     _generateSeekingParameters();
 
     _frame.reset( new FFMPEGFrame );
-    _frameConverter.reset( new FFMPEGVideoFrameConverter( *_videoCodecContext,
-                                                          AV_PIX_FMT_RGBA ));
+    _frameConverter.reset( new FFMPEGVideoFrameConverter );
 }
 
 FFMPEGVideoStream::~FFMPEGVideoStream()
@@ -76,12 +75,13 @@ FFMPEGVideoStream::~FFMPEGVideoStream()
 #endif
 }
 
-PicturePtr FFMPEGVideoStream::decode( AVPacket& packet )
+PicturePtr
+FFMPEGVideoStream::decode( AVPacket& packet, const TextureFormat format )
 {
     if( !_decodeToAvFrame( packet ))
         return PicturePtr();
 
-    return decodePictureForLastPacket();
+    return decodePictureForLastPacket( format );
 }
 
 int64_t FFMPEGVideoStream::decodeTimestamp( AVPacket& packet )
@@ -92,9 +92,10 @@ int64_t FFMPEGVideoStream::decodeTimestamp( AVPacket& packet )
     return _frame->getTimestamp();
 }
 
-PicturePtr FFMPEGVideoStream::decodePictureForLastPacket()
+PicturePtr
+FFMPEGVideoStream::decodePictureForLastPacket( const TextureFormat format )
 {
-    return _frameConverter->convert( *_frame );
+    return _frameConverter->convert( *_frame, format );
 }
 
 bool FFMPEGVideoStream::_isVideoPacket( const AVPacket& packet ) const
@@ -176,6 +177,11 @@ double FFMPEGVideoStream::getDuration() const
 double FFMPEGVideoStream::getFrameDuration() const
 {
     return _frameDurationInSeconds;
+}
+
+AVPixelFormat FFMPEGVideoStream::getAVFormat() const
+{
+    return _videoCodecContext->pix_fmt;
 }
 
 int64_t FFMPEGVideoStream::getFrameIndex( const double timePositionInSec ) const
@@ -298,6 +304,9 @@ void FFMPEGVideoStream::_openVideoStreamDecoder()
                    _getAvError( ret );
         throw std::runtime_error( message.str( ));
     }
+
+    if( _videoCodecContext->pix_fmt == AV_PIX_FMT_NONE )
+        throw std::runtime_error( "video stream has undefined pixel format" );
 }
 
 void FFMPEGVideoStream::_generateSeekingParameters()
