@@ -40,7 +40,7 @@
 #ifndef FFMPEGPICTURE_H
 #define FFMPEGPICTURE_H
 
-#include "Image.h"
+#include "YUVImage.h"
 
 #include <QByteArray>
 #include <QImage>
@@ -50,7 +50,7 @@
 /**
  * A decoded frame of the movie stream in RGBA or YUV format.
  */
-class FFMPEGPicture : public Image
+class FFMPEGPicture : public YUVImage
 {
 public:
     /** Allocate a new picture. */
@@ -65,20 +65,14 @@ public:
     /** @copydoc Image::getData */
     const uint8_t* getData( uint texture = 0 ) const final;
 
+    /** @copydoc Image::getFormat */
+    TextureFormat getFormat() const final;
+
     /** @return write access to fill a given image texture plane. */
     uint8_t* getData( uint texture );
 
     /** @return data size of a given image texture plane. */
     size_t getDataSize( uint texture ) const;
-
-    /** @copydoc Image::getTextureSize */
-    QSize getTextureSize( uint texture = 0 ) const final;
-
-    /** @copydoc Image::getFormat */
-    TextureFormat getFormat() const final;
-
-    /** @copydoc Image::getGLPixelFormat */
-    uint getGLPixelFormat() const final;
 
     /** @return the picture as a QImage, or an empty one if format != rgba. */
     QImage toQImage() const;
@@ -87,7 +81,6 @@ private:
     const uint _width;
     const uint _height;
     const TextureFormat _format;
-    const QSize _uvSize;
     std::array<QByteArray, 3> _data;
 };
 

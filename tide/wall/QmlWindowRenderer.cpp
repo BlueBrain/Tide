@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -185,10 +185,11 @@ void QmlWindowRenderer::_removeTile( const uint tileIndex )
 }
 
 void QmlWindowRenderer::_updateTile( const uint tileIndex,
-                                     const QRect& coordinates )
+                                     const QRect& coordinates,
+                                     const TextureFormat format )
 {
     if( _tiles.count( tileIndex ))
-        _tiles[tileIndex]->update( coordinates );
+        _tiles[tileIndex]->update( coordinates, format );
 }
 
 QQuickItem* QmlWindowRenderer::_createQmlItem( const QUrl& url )

@@ -94,10 +94,12 @@ void Tile::setShowBorder( const bool set )
     QQuickItem::update();
 }
 
-void Tile::update( const QRect& rect )
+void Tile::update( const QRect& rect, const TextureFormat format )
 {
     _updateTextureRequested = true;
     _nextCoord = rect;
+    if( _format != TextureFormat::rgba && format != TextureFormat::rgba )
+        _format = format;
     QQuickItem::update();
 }
 
@@ -158,7 +160,7 @@ QSGNode* Tile::_updateTextureNode( QSGNode* oldNode )
 {
     auto node = static_cast<NodeT*>( oldNode );
     if( !node )
-        node = new NodeT( _nextCoord.size(), window( ), _format );
+        node = new NodeT( _nextCoord.size(), window(), _format );
 
     if( _swapRequested )
     {
@@ -169,7 +171,7 @@ QSGNode* Tile::_updateTextureNode( QSGNode* oldNode )
 
     if( _updateTextureRequested )
     {
-        node->setBackTextureSize( _nextCoord.size( ));
+        node->prepareBackTexture( _nextCoord.size(), _format );
         _storeBackTextureIndex( *node );
         _updateTextureRequested = false;
         emit textureReady( shared_from_this( ));

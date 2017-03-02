@@ -91,8 +91,10 @@ public:
     /**
      * Request an update of the back texture, resing it if necessary.
      * @param rect the new size for the back texture.
+     * @param format the new format for the back texture. Changing between RGBA
+     *        and YUV texture formats is not allowed.
      */
-    void update( const QRect& rect );
+    void update( const QRect& rect, TextureFormat format );
 
     /** @return the back texture's identifier. */
     uint getBackGlTexture() const;
@@ -142,7 +144,7 @@ protected:
 
 private:
     const uint _tileId;
-    const TextureFormat _format;
+    TextureFormat _format;
     SizePolicy _policy;
 
     bool _swapRequested;

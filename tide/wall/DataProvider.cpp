@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -117,7 +117,16 @@ void DataProvider::_load( ContentSynchronizerSharedPtr source,
         put_flog( LOG_DEBUG, "Tile expired" );
         return;
     }
-    ImagePtr image = source->getTileImage( tile->getId( ));
+    ImagePtr image;
+    try
+    {
+        image = source->getTileImage( tile->getId( ));
+    }
+    catch( ... )
+    {
+        put_flog( LOG_ERROR, "An error occured with tile: %d", tile->getId( ));
+        return;
+    }
     if( !image )
     {
         put_flog( LOG_DEBUG, "Empty image for tile: %d", tile->getId( ));

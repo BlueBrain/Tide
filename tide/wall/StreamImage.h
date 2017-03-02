@@ -41,36 +41,33 @@
 #ifndef STREAMIMAGE_H
 #define STREAMIMAGE_H
 
-#include "data/Image.h"
+#include "data/YUVImage.h"
 
 #include <deflect/types.h>
 
 /**
  * Image wrapper for a pixel stream image.
  */
-class StreamImage : public Image
+class StreamImage : public YUVImage
 {
 public:
     /** Constructor, stores the given deflect frame. */
     StreamImage( deflect::FramePtr frame, uint tileIndex );
 
     /** @copydoc Image::getWidth */
-    int getWidth() const override;
+    int getWidth() const final;
 
     /** @copydoc Image::getHeight */
-    int getHeight() const override;
+    int getHeight() const final;
 
     /** @copydoc Image::getData */
-    const uint8_t* getData( uint texture ) const override;
+    const uint8_t* getData( uint texture ) const final;
 
     /** @copydoc Image::getFormat */
-    TextureFormat getFormat() const override;
-
-    /** @copydoc Image::getGLPixelFormat */
-    uint getGLPixelFormat() const override;
+    TextureFormat getFormat() const final;
 
 private:
-    deflect::FramePtr _frame;
+    const deflect::FramePtr _frame;
     const uint _tileIndex;
 };
 

@@ -39,10 +39,6 @@
 
 #include "FFMPEGPicture.h"
 
-#include "yuv.h"
-
-#include <QOpenGLFunctions>
-
 #pragma clang diagnostic ignored "-Wdeprecated"
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
@@ -51,7 +47,6 @@ FFMPEGPicture::FFMPEGPicture( const uint width, const uint height,
     : _width{ width }
     , _height{ height }
     , _format{ format }
-    , _uvSize{ yuv::getUVSize( QSize( width, height ), format ) }
 {
     switch( format )
     {
@@ -62,7 +57,8 @@ FFMPEGPicture::FFMPEGPicture( const uint width, const uint height,
     case TextureFormat::yuv422:
     case TextureFormat::yuv444:
     {
-        const int uvDataSize = _uvSize.width() * _uvSize.height();
+        const auto uvSize = getTextureSize( 1 );
+        const int uvDataSize =  uvSize.width() *  uvSize.height();
         _data[0] = QByteArray{ int(width * height), Qt::Uninitialized };
         _data[1] = QByteArray{ uvDataSize, Qt::Uninitialized };
         _data[2] = QByteArray{ uvDataSize, Qt::Uninitialized };
@@ -83,26 +79,17 @@ int FFMPEGPicture::getHeight() const
     return _height;
 }
 
-QSize FFMPEGPicture::getTextureSize( const uint texture ) const
-{
-    switch( texture )
-    {
-    case 0:
-        return QSize{ getWidth(), getHeight() };
-    case 1:
-    case 2:
-        return _uvSize;
-    default:
-        return QSize();
-    }
-}
-
 const uint8_t* FFMPEGPicture::getData( const uint texture ) const
 {
     if( texture >= _data.size( ))
         return nullptr;
 
     return reinterpret_cast<const uint8_t*>( _data[texture].constData( ));
+}
+
+TextureFormat FFMPEGPicture::getFormat() const
+{
+    return _format;
 }
 
 uint8_t* FFMPEGPicture::getData( const uint texture )
@@ -119,16 +106,6 @@ size_t FFMPEGPicture::getDataSize( const uint texture ) const
         return 0;
 
     return _data[texture].size();
-}
-
-TextureFormat FFMPEGPicture::getFormat() const
-{
-    return _format;
-}
-
-uint FFMPEGPicture::getGLPixelFormat() const
-{
-    return getFormat() == TextureFormat::rgba ? GL_RGBA : GL_RED;
 }
 
 QImage FFMPEGPicture::toQImage() const

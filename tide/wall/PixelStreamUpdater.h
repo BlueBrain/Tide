@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -64,6 +64,9 @@ public:
      */
     PixelStreamUpdater( deflect::View view );
 
+    /** Destructor. */
+    ~PixelStreamUpdater();
+
     /**
      * @copydoc DataSource::getTileImage
      * threadsafe
@@ -72,6 +75,9 @@ public:
 
     /** @copydoc DataSource::getTileRect */
     QRect getTileRect( uint tileIndex ) const final;
+
+    /** @copydoc DataSource::getTileFormat */
+    TextureFormat getTileFormat( uint tileIndex ) const final;
 
     /** @copydoc DataSource::getTilesArea */
     QSize getTilesArea( uint lod ) const final;
@@ -104,6 +110,7 @@ private:
     const deflect::View _view;
     SwapSyncObject<deflect::FramePtr> _swapSyncFrame;
     deflect::FramePtr _currentFrame;
+    std::unique_ptr<deflect::SegmentDecoder> _headerDecoder;
     mutable QReadWriteLock _mutex;
     bool _readyToSwap = true;
 

@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -65,7 +65,7 @@ void MovieSynchronizer::update( const ContentWindow& window,
     {
         emit addTile( std::make_shared<Tile>( 0, QRect( QPoint( 0, 0 ),
                                                         getTilesArea( )),
-                                              _updater->getFormat( )));
+                                              _updater->getTileFormat( 0 )));
         emit tilesAreaChanged();
         _tileAdded = true;
     }
@@ -96,7 +96,8 @@ void MovieSynchronizer::synchronize( WallToWallChannel& channel )
     if( _updater->advanceToNextFrame( channel ))
     {
         if( _updater->canRequestNewFrame( ))
-            emit updateTile( 0, _updater->getTileRect( 0 ));
+            emit updateTile( 0, _updater->getTileRect( 0 ),
+                             _updater->getTileFormat( 0 ));
         else
             _swapReady = true;
     }

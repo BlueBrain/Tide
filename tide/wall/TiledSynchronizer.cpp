@@ -71,13 +71,15 @@ void TiledSynchronizer::updateTiles( const DataSource& source,
     const Indices removedTiles = set_difference( _visibleSet, visibleSet );
 
     for( auto i : addedTiles )
-        emit addTile( std::make_shared<Tile>( i, source.getTileRect( i )));
+        emit addTile( std::make_shared<Tile>( i, source.getTileRect( i ),
+                                              source.getTileFormat( i )));
 
     if( updateExistingTiles )
     {
         const Indices currentTiles = set_difference( _visibleSet, removedTiles);
         for( auto i : currentTiles )
-            emit updateTile( i, source.getTileRect( i ));
+            emit updateTile( i, source.getTileRect( i ),
+                             source.getTileFormat( i ));
     }
 
     if( _policy == SwapTilesSynchronously )

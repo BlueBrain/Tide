@@ -55,7 +55,7 @@ BOOST_AUTO_TEST_CASE( testSegementParametersSerialization )
     params.y = 365;
     params.height = 32;
     params.width = 78;
-    params.compressed = false;
+    params.dataType = deflect::DataType::rgba;
 
     // serialize
     std::stringstream stream;
@@ -75,7 +75,7 @@ BOOST_AUTO_TEST_CASE( testSegementParametersSerialization )
     BOOST_CHECK_EQUAL( params.y, paramsDeserialized.y );
     BOOST_CHECK_EQUAL( params.height, paramsDeserialized.height );
     BOOST_CHECK_EQUAL( params.width, paramsDeserialized.width );
-    BOOST_CHECK_EQUAL( params.compressed, paramsDeserialized.compressed );
+    BOOST_CHECK_EQUAL( (int)params.dataType, (int)paramsDeserialized.dataType );
 }
 
 BOOST_AUTO_TEST_CASE( testFrameSerialization )

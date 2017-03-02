@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Daniel.Nachbaur@epfl.ch                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -41,7 +42,6 @@
 
 #include "data/Image.h"
 #include "log.h"
-#include "MovieUpdater.h"
 #include "Tile.h"
 
 #include <QOffscreenSurface>
@@ -64,14 +64,15 @@ void TextureUploader::init( QOpenGLContext* shareContext )
     _offscreenSurface.reset( new QOffscreenSurface );
     _offscreenSurface->setFormat( _glContext->format( ));
     _offscreenSurface->create();
-
-    QMetaObject::invokeMethod( this, "_createPbo",
-                               Qt::BlockingQueuedConnection );
 }
 
 void TextureUploader::stop()
 {
-    QMetaObject::invokeMethod( this, "_onStop", Qt::BlockingQueuedConnection );
+    // OSX: The offscreen surface must be deleted on the main/GUI thread
+    // because it is backed by a real window.
+
+    QMetaObject::invokeMethod( this, "_deleteGLContext",
+                               Qt::BlockingQueuedConnection );
     _offscreenSurface.reset();
 }
 
@@ -82,19 +83,8 @@ void TextureUploader::_createGLContext( QOpenGLContext* shareContext )
     _glContext->create();
 }
 
-void TextureUploader::_createPbo()
+void TextureUploader::_deleteGLContext()
 {
-    _glContext->makeCurrent( _offscreenSurface.get( ));
-    _gl = _glContext->functions();
-    _gl->glGenBuffers( 1, &_pbo );
-}
-
-void TextureUploader::_onStop()
-{
-    _glContext->makeCurrent( _offscreenSurface.get( ));
-    _gl->glDeleteBuffers( 1, &_pbo );
-    _glContext->doneCurrent();
-    _gl = nullptr;
     _glContext.reset();
 }
 
@@ -184,22 +174,28 @@ void TextureUploader::_upload( const Image& image, const uint srcTextureIdx,
                                const uint textureID )
 {
     const auto textureSize = image.getTextureSize( srcTextureIdx );
+    if( !textureSize.isValid( ))
+    {
+        put_flog( LOG_ERROR, "image texture has invalid size" );
+        return;
+    }
+
+    auto gl = _glContext->functions();
 
     GLint alignment = 1;
     if( (textureSize.width() % 4) == 0 )
         alignment = 4;
     else if( (textureSize.width() % 2) == 0 )
         alignment = 2;
-    _gl->glPixelStorei( GL_UNPACK_ALIGNMENT, alignment );
+    gl->glPixelStorei( GL_UNPACK_ALIGNMENT, alignment );
 
-    _gl->glBindTexture( GL_TEXTURE_2D, textureID );
-    _gl->glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, textureSize.width(),
-                          textureSize.height(), image.getGLPixelFormat(),
-                          GL_UNSIGNED_BYTE, image.getData( srcTextureIdx ));
-    _gl->glGenerateMipmap( GL_TEXTURE_2D );
-
-    _gl->glBindTexture( GL_TEXTURE_2D, 0 );
+    gl->glBindTexture( GL_TEXTURE_2D, textureID );
+    gl->glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, textureSize.width(),
+                         textureSize.height(), image.getGLPixelFormat(),
+                         GL_UNSIGNED_BYTE, image.getData( srcTextureIdx ));
+    gl->glGenerateMipmap( GL_TEXTURE_2D );
+    gl->glBindTexture( GL_TEXTURE_2D, 0 );
 
     // Ensure the texture upload is complete before the render thread uses it
-    _gl->glFinish();
+    gl->glFinish();
 }
