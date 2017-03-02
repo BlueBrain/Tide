@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -112,8 +112,8 @@ signals:
     /** Notify the window to remove a tile. */
     void removeTile( uint tileId );
 
-    /** Notify to update a tile's coordinates. */
-    void updateTile( uint tileId, QRect coordinates );
+    /** Notify to update a tile's coordinates and format. */
+    void updateTile( uint tileId, QRect coordinates, TextureFormat format );
 
     /** Request an update of a specific tile. */
     void requestTileUpdate( ContentSynchronizerSharedPtr synchronizer,

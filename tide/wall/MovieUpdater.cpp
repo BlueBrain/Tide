@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -74,6 +74,12 @@ QRect MovieUpdater::getTileRect( const uint tileIndex ) const
 {
     Q_UNUSED( tileIndex );
     return QRect( 0, 0, _ffmpegMovie->getWidth(), _ffmpegMovie->getHeight( ));
+}
+
+TextureFormat MovieUpdater::getTileFormat( const uint tileIndex ) const
+{
+    Q_UNUSED( tileIndex );
+    return _ffmpegMovie->getFormat();
 }
 
 QSize MovieUpdater::getTilesArea( const uint lod ) const
@@ -160,11 +166,6 @@ bool MovieUpdater::isSkipping() const
 qreal MovieUpdater::getSkipPosition() const
 {
     return _skipPosition / _ffmpegMovie->getDuration();
-}
-
-TextureFormat MovieUpdater::getFormat() const
-{
-    return _ffmpegMovie->getFormat();
 }
 
 bool MovieUpdater::advanceToNextFrame( WallToWallChannel& channel )

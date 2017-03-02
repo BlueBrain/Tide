@@ -56,7 +56,7 @@ class QQuickWindow;
  * to the back texture, querried with getBackGlTextureYUV(), before calling
  * swap() to display the results.
  *
- * The second texture is created only after a call to setBackTextureSize(), so
+ * The second texture is created only after a call to prepareBackTexture(), so
  * that no memory is wasted for a second texture if the node is not going to
  * be updated more than once.
  */
@@ -89,17 +89,17 @@ public:
      * Note that the back texture identifier may change as a result of calling
      * this function.
      * @param size the new texture size
+     * @param format the YUV format to determine the U and V texture size.
      */
-    void setBackTextureSize( const QSize& size );
+    void prepareBackTexture( const QSize& size, TextureFormat format );
 
 private:
     QQuickWindow* _window = nullptr;
-    const TextureFormat _format = TextureFormat::yuv420;
 
     QRectF _rect;
     QSGGeometryNode _node;
 
-    void _createBackTextures( const QSize& size );
+    void _createBackTextures( const QSize& size, TextureFormat format );
     using QSGTexturePtr = std::unique_ptr<QSGTexture>;
     QSGTexturePtr _createTexture( const QSize& size ) const;
     QSGTexturePtr _createWrapper( uint textureID, const QSize& size ) const;

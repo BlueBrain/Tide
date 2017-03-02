@@ -54,7 +54,7 @@ class QQuickWindow;
  * to the back texture, querried with getBackGlTexture(), before calling swap()
  * to display the results.
  *
- * The second texture is created only after a call to setBackTextureSize(), so
+ * The second texture is created only after a call to prepareBackTexture(), so
  * that no memory is wasted for a second texture if the node is not going to
  * be updated more than once.
  */
@@ -81,8 +81,10 @@ public:
      * Note that the back texture identifier may change as a result of calling
      * this function.
      * @param size the new texture size
+     * @param format ignored, needed for symmetry with TextureNodeYUV API.
      */
-    void setBackTextureSize( const QSize& size );
+    void prepareBackTexture( const QSize& size,
+                             TextureFormat format = TextureFormat::rgba );
 
     /** @sa QSGOpaqueTextureMaterial::setMipmapFiltering */
     void setMipmapFiltering( const QSGTexture::Filtering filtering );

@@ -95,10 +95,12 @@ struct YUVState
     std::unique_ptr<QSGTexture> frontY;
     std::unique_ptr<QSGTexture> frontU;
     std::unique_ptr<QSGTexture> frontV;
+    TextureFormat frontFormat;
 
     std::unique_ptr<QSGTexture> backY;
     std::unique_ptr<QSGTexture> backU;
     std::unique_ptr<QSGTexture> backV;
+    TextureFormat backFormat;
 };
 
 /**
@@ -169,7 +171,6 @@ const YUVState* _getMaterialState( const QSGGeometryNode& node )
 TextureNodeYUV::TextureNodeYUV( const QSize& size, QQuickWindow* window,
                                 const TextureFormat format )
     : _window( window )
-    , _format( format )
 {
     // Set up geometry, actual vertices will be initialized in updatePaintNode
     const auto& attr = QSGGeometry::defaultAttributes_TexturedPoint2D();
@@ -184,7 +185,7 @@ TextureNodeYUV::TextureNodeYUV( const QSize& size, QQuickWindow* window,
     state->frontU.reset( _window->createTextureFromId( 0, QSize( 1, 1 )));
     state->frontV.reset( _window->createTextureFromId( 0, QSize( 1, 1 )));
 
-    _createBackTextures( size );
+    _createBackTextures( size, format );
     appendChildNode( &_node );
 }
 
@@ -219,27 +220,29 @@ void TextureNodeYUV::swap()
     std::swap( state->frontY, state->backY );
     std::swap( state->frontU, state->backU );
     std::swap( state->frontV, state->backV );
+    std::swap( state->frontFormat, state->backFormat );
 
     markDirty( DirtyMaterial );
 }
 
-void TextureNodeYUV::setBackTextureSize( const QSize& size )
+void TextureNodeYUV::prepareBackTexture( const QSize& size,
+                                         const TextureFormat format )
 {
     auto state = _getMaterialState( _node );
-    if( state->backY->textureSize() == size )
-        return;
-
-    _createBackTextures( size );
+    if( state->backY->textureSize() != size || state->backFormat != format )
+        _createBackTextures( size, format );
 }
 
-void TextureNodeYUV::_createBackTextures( const QSize& size )
+void TextureNodeYUV::_createBackTextures( const QSize& size,
+                                          const TextureFormat format )
 {
-    const auto uvSize = yuv::getUVSize( size, _format );
+    const auto uvSize = yuv::getUVSize( size, format );
     auto state = _getMaterialState( _node );
 
     state->backY = _createTexture( size );
     state->backU = _createTexture( uvSize );
     state->backV = _createTexture( uvSize );
+    state->backFormat = format;
 }
 
 TextureNodeYUV::QSGTexturePtr

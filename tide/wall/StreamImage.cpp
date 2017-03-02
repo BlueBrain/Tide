@@ -41,11 +41,10 @@
 #include "StreamImage.h"
 
 #include <deflect/Frame.h>
-#include <QOpenGLFunctions>
 
-StreamImage::StreamImage( deflect::FramePtr frame, uint tileIndex )
-    : _frame( frame )
-    , _tileIndex( tileIndex )
+StreamImage::StreamImage( deflect::FramePtr frame, const uint tileIndex )
+    : _frame{ frame }
+    , _tileIndex{ tileIndex }
 {}
 
 int StreamImage::getWidth() const
@@ -60,17 +59,38 @@ int StreamImage::getHeight() const
 
 const uint8_t* StreamImage::getData( const uint texture ) const
 {
-    Q_UNUSED( texture );
-    return reinterpret_cast<const uint8_t*>(
-                _frame->segments.at( _tileIndex ).imageData.constData( ));
+    const auto data = _frame->segments.at( _tileIndex ).imageData.constData();
+    if( getFormat() == TextureFormat::rgba || texture == 0 )
+        return reinterpret_cast<const uint8_t*>( data );
+
+    size_t offset = getWidth() * getHeight();
+
+    if( texture == 1 )
+        return reinterpret_cast<const uint8_t*>( data ) + offset;
+
+    if( texture == 2 )
+    {
+        const auto uvSize = getTextureSize( 1 );
+        offset += uvSize.width() * uvSize.height();
+        return reinterpret_cast<const uint8_t*>( data ) + offset;
+    }
+    return nullptr;
 }
 
 TextureFormat StreamImage::getFormat() const
 {
-    return TextureFormat::rgba;
-}
-
-uint StreamImage::getGLPixelFormat() const
-{
-    return GL_RGBA;
+    switch( _frame->segments.at( _tileIndex ).parameters.dataType )
+    {
+    case deflect::DataType::rgba:
+        return TextureFormat::rgba;
+    case deflect::DataType::yuv444:
+        return TextureFormat::yuv444;
+    case deflect::DataType::yuv422:
+        return TextureFormat::yuv422;
+    case deflect::DataType::yuv420:
+        return TextureFormat::yuv420;
+    case deflect::DataType::jpeg:
+    default:
+        throw std::runtime_error( "StreamImage texture is not decompressed" );
+    }
 }

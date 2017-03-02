@@ -121,6 +121,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   data/SVG.h
   data/SVGBackend.h
   data/SVGQtGpuBackend.h
+  data/YUVImage.h
   geometry.h
   log.h
   network/MPIChannel.h
@@ -173,6 +174,7 @@ list(APPEND TIDECORE_SOURCES
   data/QtImage.cpp
   data/SVG.cpp
   data/SVGQtGpuBackend.cpp
+  data/YUVImage.cpp
   geometry.cpp
   log.cpp
   MetaTypeRegistration.cpp

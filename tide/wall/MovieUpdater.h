@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -68,6 +68,9 @@ public:
     /** @copydoc DataSource::getTileRect */
     QRect getTileRect( uint tileIndex ) const final;
 
+    /** @copydoc DataSource::getTileFormat */
+    TextureFormat getTileFormat( uint tileIndex ) const final;
+
     /** @copydoc DataSource::getTilesArea */
     QSize getTilesArea( uint lod ) const final;
 
@@ -107,9 +110,6 @@ public:
 
     /** @return skip position of the movie, normalized between [0.0, 1.0]. */
     qreal getSkipPosition() const;
-
-    /** @return the format of the decoded movie images. */
-    TextureFormat getFormat() const;
 
 private:
     std::unique_ptr<FFMPEGMovie> _ffmpegMovie;

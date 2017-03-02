@@ -76,7 +76,7 @@ void TextureNode::swap()
     markDirty( DirtyMaterial );
 }
 
-void TextureNode::setBackTextureSize( const QSize& size )
+void TextureNode::prepareBackTexture( const QSize& size, TextureFormat )
 {
     if( _backTexture->textureSize() == size )
         return;

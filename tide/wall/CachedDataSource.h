@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -54,6 +54,9 @@ class CachedDataSource : public DataSource
 public:
     /** @copydoc DataSource::getTileImage threadsafe */
     ImagePtr getTileImage( uint tileId ) const final;
+
+    /** @copydoc DataSource::getTileFormat threadsafe */
+    TextureFormat getTileFormat( uint tileId ) const final;
 
     /** Check if the cache contains an image for a tile. */
     bool contains( uint tileId ) const;

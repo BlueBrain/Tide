@@ -1,7 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
-/*                          Daniel.Nachbaur@epfl.ch                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -38,62 +37,27 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef TEXTUREUPLOADER_H
-#define TEXTUREUPLOADER_H
+#include "YUVImage.h"
 
-#include "types.h"
+#include "yuv.h"
 
-#include <QObject>
+#include <QOpenGLFunctions>
 
-class QOffscreenSurface;
-class QOpenGLContext;
-
-/**
- * A class responsible for uploading pixel data from CPU memory to GPU memory
- * using a PixelBufferObject. An object of this class needs to be moved to a
- * separate thread for optimal performance and for the init() and stop()
- * sequence to work.
- */
-class TextureUploader : public QObject
+QSize YUVImage::getTextureSize( const uint texture ) const
 {
-    Q_OBJECT
-public:
-    /** Construction does not need any OpenGL context. */
-    TextureUploader();
+    switch( texture )
+    {
+    case 0:
+        return QSize{ getWidth(), getHeight() };
+    case 1:
+    case 2:
+        return yuv::getUVSize( QSize( getWidth(), getHeight() ), getFormat( ));
+    default:
+        return QSize();
+    }
+}
 
-    /** Destruction should occur after stop. */
-    ~TextureUploader();
-
-    /**
-     * Does the necessary OpenGL setup. Needs to be called from the main thread
-     * after the uploader has been moved to the dedicated upload thread.
-     */
-    void init( QOpenGLContext* shareContext );
-
-    /**
-     * Does the necessary OpenGL teardown. Needs to be called before the
-     * dedicated upload thread is destroyed.
-     */
-    void stop();
-
-public slots:
-    /** Performs the upload of pixels into the given tile's back texture. */
-    void uploadTexture( ImagePtr image, TileWeakPtr tile );
-
-signals:
-    /** Emitted after a texture was successfully uploaded. */
-    void uploaded();
-
-private slots:
-    void _createGLContext( QOpenGLContext* shareContext );
-    void _deleteGLContext();
-
-private:
-    bool _upload( const Image& image, const Tile& tile );
-    void _upload( const Image& image, uint srcTexture, uint textureID );
-
-    std::unique_ptr<QOffscreenSurface> _offscreenSurface;
-    std::unique_ptr<QOpenGLContext> _glContext;
-};
-
-#endif
+uint YUVImage::getGLPixelFormat() const
+{
+    return getFormat() == TextureFormat::rgba ? GL_RGBA : GL_RED;
+}

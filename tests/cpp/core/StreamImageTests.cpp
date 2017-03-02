@@ -1,7 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
-/*                          Daniel.Nachbaur@epfl.ch                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -38,62 +37,70 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef TEXTUREUPLOADER_H
-#define TEXTUREUPLOADER_H
+#define BOOST_TEST_MODULE StreamImageTests
+#include <boost/test/unit_test.hpp>
 
-#include "types.h"
+#include "StreamImage.h"
 
-#include <QObject>
+#include <deflect/Frame.h>
+#include <deflect/SegmentDecoder.h>
 
-class QOffscreenSurface;
-class QOpenGLContext;
-
-/**
- * A class responsible for uploading pixel data from CPU memory to GPU memory
- * using a PixelBufferObject. An object of this class needs to be moved to a
- * separate thread for optimal performance and for the init() and stop()
- * sequence to work.
- */
-class TextureUploader : public QObject
+namespace
 {
-    Q_OBJECT
-public:
-    /** Construction does not need any OpenGL context. */
-    TextureUploader();
+const std::vector<uint8_t> expectedY( 8 * 8, 92 );
+const std::vector<uint8_t> expectedU( 8 * 8, 28 );
+const std::vector<uint8_t> expectedV( 8 * 8, 79 );
+}
 
-    /** Destruction should occur after stop. */
-    ~TextureUploader();
+deflect::FramePtr createTestFrame( const QSize& size, const int subsamp )
+{
+    deflect::FramePtr frame( new deflect::Frame );
+    deflect::Segment segment;
 
-    /**
-     * Does the necessary OpenGL setup. Needs to be called from the main thread
-     * after the uploader has been moved to the dedicated upload thread.
-     */
-    void init( QOpenGLContext* shareContext );
+    segment.parameters.dataType = deflect::DataType::yuv444;
+    if( subsamp == 1 )
+        segment.parameters.dataType = deflect::DataType::yuv422;
+    else if( subsamp == 2 )
+        segment.parameters.dataType = deflect::DataType::yuv420;
 
-    /**
-     * Does the necessary OpenGL teardown. Needs to be called before the
-     * dedicated upload thread is destroyed.
-     */
-    void stop();
+    segment.parameters.width = size.width();
+    segment.parameters.height = size.height();
 
-public slots:
-    /** Performs the upload of pixels into the given tile's back texture. */
-    void uploadTexture( ImagePtr image, TileWeakPtr tile );
+    const auto ySize = size.width() * size.height();
+    const auto uvSize = ySize >> subsamp;
+    segment.imageData.append( QByteArray( ySize, 92 ));  // Y
+    segment.imageData.append( QByteArray( uvSize, 28 )); // U
+    segment.imageData.append( QByteArray( uvSize, 79 )); // V
 
-signals:
-    /** Emitted after a texture was successfully uploaded. */
-    void uploaded();
+    frame->segments.push_back( segment );
+    return frame;
+}
 
-private slots:
-    void _createGLContext( QOpenGLContext* shareContext );
-    void _deleteGLContext();
+BOOST_AUTO_TEST_CASE( testStreamImageYUV )
+{
+    for( int subsamp = 0; subsamp <= 2; ++subsamp )
+    {
+        StreamImage image( createTestFrame( { 8, 8 }, subsamp ), 0 );
 
-private:
-    bool _upload( const Image& image, const Tile& tile );
-    void _upload( const Image& image, uint srcTexture, uint textureID );
+        const auto y = image.getData( 0 );
+        const auto u = image.getData( 1 );
+        const auto v = image.getData( 2 );
+        const auto imageSizeY = image.getTextureSize( 0 );
+        const auto imageSizeU = image.getTextureSize( 1 );
+        const auto imageSizeV = image.getTextureSize( 2 );
+        const auto ySize = imageSizeY.width() * imageSizeY.height();
+        const auto uSize = imageSizeU.width() * imageSizeU.height();
+        const auto vSize = imageSizeV.width() * imageSizeV.height();
 
-    std::unique_ptr<QOffscreenSurface> _offscreenSurface;
-    std::unique_ptr<QOpenGLContext> _glContext;
-};
+        BOOST_CHECK_EQUAL( ySize, 8 * 8 );
+        BOOST_CHECK_EQUAL( uSize, 8 * 8 >> subsamp );
+        BOOST_CHECK_EQUAL( vSize, 8 * 8 >> subsamp );
 
-#endif
+        BOOST_CHECK_EQUAL_COLLECTIONS( y, y + ySize, expectedY.data(),
+                                       expectedY.data() + ySize );
+        BOOST_CHECK_EQUAL_COLLECTIONS( u, u + uSize, expectedU.data(),
+                                       expectedU.data() + uSize );
+        BOOST_CHECK_EQUAL_COLLECTIONS( v, v + vSize, expectedV.data(),
+                                       expectedV.data() + vSize );
+    }
+}

@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -56,6 +56,12 @@ ImagePtr CachedDataSource::getTileImage( const uint tileId ) const
         _cache.insert( tileId, image );
     }
     return std::make_shared< QtImage >( image );
+}
+
+TextureFormat CachedDataSource::getTileFormat( const uint tileId ) const
+{
+    Q_UNUSED( tileId );
+    return TextureFormat::rgba;
 }
 
 bool CachedDataSource::contains( const uint tileId ) const

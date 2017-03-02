@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -50,10 +50,15 @@
 #include <QThreadStorage>
 
 PixelStreamUpdater::PixelStreamUpdater( deflect::View view )
-    : _view( view )
+    : _view{ view }
+    , _headerDecoder{ new deflect::SegmentDecoder }
 {
     _swapSyncFrame.setCallback( std::bind( &PixelStreamUpdater::_onFrameSwapped,
                                            this, std::placeholders::_1 ));
+}
+
+PixelStreamUpdater::~PixelStreamUpdater()
+{
 }
 
 void PixelStreamUpdater::synchronizeFramesSwap( WallToWallChannel& channel )
@@ -76,6 +81,39 @@ QRect PixelStreamUpdater::getTileRect( const uint tileIndex ) const
     return toRect( _currentFrame->segments.at( tileIndex ).parameters );
 }
 
+TextureFormat PixelStreamUpdater::getTileFormat( const uint tileIndex ) const
+{
+#ifndef DEFLECT_USE_LEGACY_LIBJPEGTURBO
+    const auto& segment = _currentFrame->segments.at( tileIndex );
+    switch( segment.parameters.dataType )
+    {
+    case deflect::DataType::rgba:
+        return TextureFormat::rgba;
+    case deflect::DataType::yuv444:
+        return TextureFormat::yuv444;
+    case deflect::DataType::yuv422:
+        return TextureFormat::yuv422;
+    case deflect::DataType::yuv420:
+        return TextureFormat::yuv420;
+    case deflect::DataType::jpeg:
+        switch( _headerDecoder->decodeType( segment ))
+        {
+        case deflect::ChromaSubsampling::YUV444:
+            return TextureFormat::yuv444;
+        case deflect::ChromaSubsampling::YUV422:
+            return TextureFormat::yuv422;
+        case deflect::ChromaSubsampling::YUV420:
+            return TextureFormat::yuv420;
+        }
+    default:
+        throw std::runtime_error( "Invalid data type for Tile" );
+    }
+#else
+    Q_UNUSED( tileIndex );
+    return TextureFormat::rgba;
+#endif
+}
+
 QSize PixelStreamUpdater::getTilesArea( const uint lod ) const
 {
     Q_UNUSED( lod );
@@ -87,23 +125,31 @@ QSize PixelStreamUpdater::getTilesArea( const uint lod ) const
 ImagePtr PixelStreamUpdater::getTileImage( const uint tileIndex ) const
 {
     if( !_currentFrame )
-        throw std::runtime_error( "No frames yet" );
+    {
+        put_flog( LOG_ERROR, "No frames yet" );
+        return ImagePtr();
+    }
 
     const QReadLocker lock( &_mutex );
 
     auto& segment = _currentFrame->segments.at( tileIndex );
-    if( segment.parameters.compressed )
+    if( segment.parameters.dataType == deflect::DataType::jpeg )
     {
         // turbojpeg handles need to be per thread, and this function may be
         // called from multiple threads
         static QThreadStorage< deflect::SegmentDecoder > decoder;
         try
         {
+#ifndef DEFLECT_USE_LEGACY_LIBJPEGTURBO
+            decoder.localData().decodeToYUV( segment );
+#else
             decoder.localData().decode( segment );
+#endif
         }
         catch( const std::runtime_error& e )
         {
-            throw std::runtime_error( "Invalid stream tile" );
+            put_flog( LOG_ERROR, "Error decoding stream tile: '%s'", e.what( ));
+            return ImagePtr();
         }
     }
 

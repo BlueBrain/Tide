@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -80,7 +80,8 @@ private slots:
     void _addTile( TilePtr tile );
     void _createZoomContextTile();
     void _removeTile( uint tileIndex );
-    void _updateTile( uint tileIndex, const QRect& coordinates );
+    void _updateTile( uint tileIndex, const QRect& coordinates,
+                      TextureFormat format );
 
 private:
     DataProvider& _provider;
