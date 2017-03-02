@@ -183,7 +183,7 @@ bool TextureUploader::_upload( const Image& image, const Tile& tile )
 void TextureUploader::_upload( const Image& image, const uint srcTextureIdx,
                                const uint textureID )
 {
-    const auto textureSize = image.getSize( srcTextureIdx );
+    const auto textureSize = image.getTextureSize( srcTextureIdx );
 
     GLint alignment = 1;
     if( (textureSize.width() % 4) == 0 )

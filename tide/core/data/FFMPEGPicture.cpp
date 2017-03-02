@@ -56,20 +56,16 @@ FFMPEGPicture::FFMPEGPicture( const uint width, const uint height,
     switch( format )
     {
     case TextureFormat::rgba:
-        _dataSize[0] = width * height * 4;
-        _data[0].reset( new uint8_t[_dataSize[0]] );
+        _data[0] = QByteArray{ int(width * height * 4), Qt::Uninitialized };
         break;
     case TextureFormat::yuv420:
     case TextureFormat::yuv422:
     case TextureFormat::yuv444:
     {
-        const auto uvDataSize = _uvSize.width() * _uvSize.height();
-        _dataSize[0] = width * height;
-        _dataSize[1] = uvDataSize;
-        _dataSize[2] = uvDataSize;
-        _data[0].reset( new uint8_t[_dataSize[0]] );
-        _data[1].reset( new uint8_t[_dataSize[1]] );
-        _data[2].reset( new uint8_t[_dataSize[2]] );
+        const int uvDataSize = _uvSize.width() * _uvSize.height();
+        _data[0] = QByteArray{ int(width * height), Qt::Uninitialized };
+        _data[1] = QByteArray{ uvDataSize, Qt::Uninitialized };
+        _data[2] = QByteArray{ uvDataSize, Qt::Uninitialized };
         break;
     }
     default:
@@ -87,7 +83,7 @@ int FFMPEGPicture::getHeight() const
     return _height;
 }
 
-QSize FFMPEGPicture::getSize( const uint texture ) const
+QSize FFMPEGPicture::getTextureSize( const uint texture ) const
 {
     switch( texture )
     {
@@ -106,7 +102,7 @@ const uint8_t* FFMPEGPicture::getData( const uint texture ) const
     if( texture >= _data.size( ))
         return nullptr;
 
-    return _data[texture].get();
+    return reinterpret_cast<const uint8_t*>( _data[texture].constData( ));
 }
 
 uint8_t* FFMPEGPicture::getData( const uint texture )
@@ -114,15 +110,15 @@ uint8_t* FFMPEGPicture::getData( const uint texture )
     if( texture >= _data.size( ))
         return nullptr;
 
-    return _data[texture].get();
+    return reinterpret_cast<uint8_t*>( _data[texture].data( ));
 }
 
 size_t FFMPEGPicture::getDataSize( const uint texture ) const
 {
-    if( texture >= _dataSize.size( ))
+    if( texture >= _data.size( ))
         return 0;
 
-    return _dataSize[texture];
+    return _data[texture].size();
 }
 
 TextureFormat FFMPEGPicture::getFormat() const

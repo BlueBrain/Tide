@@ -82,7 +82,7 @@ const AVFrame& FFMPEGFrame::getAVFrame() const
     return *_avFrame;
 }
 
-AVPixelFormat FFMPEGFrame::getAvPixelFormat() const
+AVPixelFormat FFMPEGFrame::getAVPixelFormat() const
 {
     return AVPixelFormat(_avFrame->format);
 }

@@ -52,7 +52,7 @@ extern "C"
     #include <libswscale/swscale.h>
 }
 
-AVPixelFormat _toAvPixelFormat( const TextureFormat format )
+AVPixelFormat _toAVPixelFormat( const TextureFormat format )
 {
     switch( format )
     {
@@ -91,12 +91,12 @@ PicturePtr FFMPEGVideoFrameConverter::convert( const FFMPEGFrame& srcFrame,
                                                     srcFrame.getHeight(),
                                                     format );
 
-    const auto avFormat = _toAvPixelFormat( format );
+    const auto avFormat = _toAVPixelFormat( format );
 
     _impl->swsContext = sws_getCachedContext( _impl->swsContext,
                                               srcFrame.getWidth(),
                                               srcFrame.getHeight(),
-                                              srcFrame.getAvPixelFormat(),
+                                              srcFrame.getAVPixelFormat(),
                                               picture->getWidth(),
                                               picture->getHeight(),
                                               avFormat,
@@ -105,14 +105,14 @@ PicturePtr FFMPEGVideoFrameConverter::convert( const FFMPEGFrame& srcFrame,
     if( !_impl->swsContext )
         return PicturePtr();
 
-    uint8_t* dstData[4];
-    int linesize[4];
-    for( size_t i = 0; i < 4; ++i )
+    uint8_t* dstData[3];
+    int linesize[3];
+    for( size_t i = 0; i < 3; ++i )
     {
         dstData[i] = picture->getData( i );
         // width of image plane in pixels * bytes per pixel
         linesize[i] = picture->getDataSize( i ) /
-                      picture->getSize( i ).height();
+                      picture->getTextureSize( i ).height();
     }
 
     const auto outputHeight = sws_scale( _impl->swsContext,

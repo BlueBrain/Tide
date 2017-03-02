@@ -58,10 +58,10 @@ public:
     /** Destructor. */
     ~FFMPEGFrame();
 
-    /** @return the width of the image. */
+    /** @return the width of the frame. */
     int getWidth() const;
 
-    /** @return the height of the image. */
+    /** @return the height of the frame. */
     int getHeight() const;
 
     /** @return the timestamp of the frame. */
@@ -72,7 +72,7 @@ public:
     const AVFrame& getAVFrame() const;
 
     /** @return the pixel format of the FFMPEG frame. */
-    AVPixelFormat getAvPixelFormat() const;
+    AVPixelFormat getAVPixelFormat() const;
 
 private:
     AVFrame* _avFrame;

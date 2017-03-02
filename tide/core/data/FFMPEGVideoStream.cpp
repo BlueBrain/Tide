@@ -179,7 +179,7 @@ double FFMPEGVideoStream::getFrameDuration() const
     return _frameDurationInSeconds;
 }
 
-AVPixelFormat FFMPEGVideoStream::getAvFormat() const
+AVPixelFormat FFMPEGVideoStream::getAVFormat() const
 {
     return _videoCodecContext->pix_fmt;
 }

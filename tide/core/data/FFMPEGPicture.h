@@ -42,6 +42,7 @@
 
 #include "Image.h"
 
+#include <QByteArray>
 #include <QImage>
 
 #include <array>
@@ -70,8 +71,8 @@ public:
     /** @return data size of a given image texture plane. */
     size_t getDataSize( uint texture ) const;
 
-    /** @copydoc Image::getSize */
-    QSize getSize( uint texture = 0 ) const final;
+    /** @copydoc Image::getTextureSize */
+    QSize getTextureSize( uint texture = 0 ) const final;
 
     /** @copydoc Image::getFormat */
     TextureFormat getFormat() const final;
@@ -87,9 +88,7 @@ private:
     const uint _height;
     const TextureFormat _format;
     const QSize _uvSize;
-    // std::vector are too slow because they can't allocate uninitialized memory
-    std::array<std::unique_ptr<uint8_t[]>, 3> _data;
-    std::array<size_t, 3> _dataSize = {{ 0, 0, 0 }};
+    std::array<QByteArray, 3> _data;
 };
 
 #endif

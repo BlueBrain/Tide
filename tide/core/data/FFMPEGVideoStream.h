@@ -114,7 +114,7 @@ public:
     double getFrameDuration() const;
 
     /** @return native format of the video stream. */
-    AVPixelFormat getAvFormat() const;
+    AVPixelFormat getAVFormat() const;
 
     /** Get the frameIndex corresponding to the given time in seconds. */
     int64_t getFrameIndex( double timePositionInSec ) const;

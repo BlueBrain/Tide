@@ -113,8 +113,6 @@ private:
     bool _open( const QString& uri );
     bool _createAvFormatContext( const QString& uri );
     void _releaseAvFormatContext();
-    TextureFormat _determineOutputFormat( AVPixelFormat fileFormat,
-                                          const QString& uri );
 };
 
 #endif

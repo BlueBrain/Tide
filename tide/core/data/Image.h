@@ -65,7 +65,7 @@ public:
     virtual int getHeight() const = 0;
 
     /** @return the dimensions of the given texture plane. */
-    virtual QSize getSize( uint texture = 0 ) const
+    virtual QSize getTextureSize( uint texture = 0 ) const
     {
         return texture == 0 ? QSize( getWidth(), getHeight( )) : QSize();
     }

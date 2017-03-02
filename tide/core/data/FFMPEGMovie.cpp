@@ -75,6 +75,30 @@ int ffmpegLockManagerCallback( void** mutex, enum AVLockOp op )
     }
 }
 
+TextureFormat _determineOutputFormat( const AVPixelFormat fileFormat,
+                                      const QString& uri )
+{
+    switch( fileFormat )
+    {
+    case AV_PIX_FMT_RGBA:
+        return TextureFormat::rgba;
+    case AV_PIX_FMT_YUV420P:
+    case AV_PIX_FMT_YUVJ420P:
+        return TextureFormat::yuv420;
+    case AV_PIX_FMT_YUV422P:
+    case AV_PIX_FMT_YUVJ422P:
+        return TextureFormat::yuv422;
+    case AV_PIX_FMT_YUV444P:
+    case AV_PIX_FMT_YUVJ444P:
+        return TextureFormat::yuv444;
+    default:
+        put_flog( LOG_DEBUG, "Performance info: AV input format '%d' for file "
+                             "'%s' will be converted in software to 'rgba'",
+                  fileFormat, uri.toLocal8Bit().constData( ));
+        return TextureFormat::rgba;
+    }
+}
+
 struct FFMPEGStaticInit
 {
     FFMPEGStaticInit()
@@ -106,7 +130,7 @@ bool FFMPEGMovie::_open( const QString& uri )
     try
     {
         _videoStream.reset( new FFMPEGVideoStream( *_avFormatContext ));
-        _format = _determineOutputFormat( _videoStream->getAvFormat(), uri );
+        _format = _determineOutputFormat( _videoStream->getAVFormat(), uri );
     }
     catch( const std::runtime_error& e )
     {
@@ -238,29 +262,4 @@ PicturePtr FFMPEGMovie::getFrame( double posInSeconds )
         picture = PicturePtr();
 
     return picture;
-}
-
-TextureFormat
-FFMPEGMovie::_determineOutputFormat( const AVPixelFormat fileFormat,
-                                     const QString& uri )
-{
-    switch( fileFormat )
-    {
-    case AV_PIX_FMT_RGBA:
-        return TextureFormat::rgba;
-    case AV_PIX_FMT_YUV420P:
-    case AV_PIX_FMT_YUVJ420P:
-        return TextureFormat::yuv420;
-    case AV_PIX_FMT_YUV422P:
-    case AV_PIX_FMT_YUVJ422P:
-        return TextureFormat::yuv422;
-    case AV_PIX_FMT_YUV444P:
-    case AV_PIX_FMT_YUVJ444P:
-        return TextureFormat::yuv444;
-    default:
-        put_flog( LOG_DEBUG, "Performance info: AV input format '%d' for file "
-                             "'%s' will be converted in software to 'rgba'",
-                  fileFormat, uri.toLocal8Bit().constData( ));
-        return TextureFormat::rgba;
-    }
 }

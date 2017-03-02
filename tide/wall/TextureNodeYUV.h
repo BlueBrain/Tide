@@ -60,10 +60,8 @@ class QQuickWindow;
  * that no memory is wasted for a second texture if the node is not going to
  * be updated more than once.
  */
-class TextureNodeYUV : public QObject, public QSGNode
+class TextureNodeYUV : public QSGNode
 {
-    Q_OBJECT
-
 public:
     /**
      * Create a textured rectangle for rendering YUV images on the GPU.
