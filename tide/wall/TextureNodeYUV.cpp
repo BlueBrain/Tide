@@ -49,11 +49,11 @@ namespace
 
 const char* vertShader =
 R"(
-#version 130
+#version 120
 uniform highp mat4 qt_Matrix;
 attribute highp vec4 aVertex;
 attribute highp vec2 aTexCoord;
-out vec2 vTexCoord;
+varying vec2 vTexCoord;
 void main() {
     gl_Position = qt_Matrix * aVertex;
     vTexCoord = aTexCoord;
@@ -62,12 +62,12 @@ void main() {
 
 const char* fragShader =
 R"(
-#version 130
+#version 120
 uniform lowp float qt_Opacity;
 uniform lowp sampler2D y_tex;
 uniform lowp sampler2D u_tex;
 uniform lowp sampler2D v_tex;
-in vec2 vTexCoord;
+varying vec2 vTexCoord;
 const vec3 offset = vec3(-0.0625, -0.5, -0.5);
 const vec3 R_cf = vec3(1.164383,  0.000000,  1.596027);
 const vec3 G_cf = vec3(1.164383, -0.391762, -0.812968);
