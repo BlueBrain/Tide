@@ -58,13 +58,13 @@ void serialize( Archive& ar, deflect::Frame& frame, const unsigned int )
 {
     ar & frame.segments;
     ar & frame.uri;
-    ar & frame.view;
 }
 
 template< class Archive >
 void save( Archive& ar, const deflect::Segment& segment, const unsigned int )
 {
     ar & segment.parameters;
+    ar & segment.view;
 
     int size = segment.imageData.size();
     ar & size;
@@ -77,6 +77,7 @@ template< class Archive >
 void load( Archive& ar, deflect::Segment& segment, const unsigned int )
 {
     ar & segment.parameters;
+    ar & segment.view;
 
     int size = 0;
     ar & size;

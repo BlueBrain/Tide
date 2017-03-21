@@ -168,7 +168,10 @@ Indices PixelStreamUpdater::computeVisibleSet( const QRectF& visibleTilesArea,
 
     for( size_t i = 0; i < _currentFrame->segments.size(); ++i )
     {
-        if( visibleTilesArea.intersects( toRect( _currentFrame->segments[i].parameters )))
+        const auto& segment = _currentFrame->segments[i];
+        const auto segmentRect = toRect( segment.parameters );
+
+        if( _checkView( segment ) && visibleTilesArea.intersects( segmentRect ))
             visibleSet.insert( i );
     }
     return visibleSet;
@@ -186,12 +189,7 @@ void PixelStreamUpdater::getNextFrame()
 
 void PixelStreamUpdater::updatePixelStream( deflect::FramePtr frame )
 {
-    if( frame->view == _view || frame->view == deflect::View::mono ||
-        ( _view == deflect::View::mono &&
-          frame->view == deflect::View::left_eye ))
-    {
-        _swapSyncFrame.update( frame );
-    }
+    _swapSyncFrame.update( frame );
 }
 
 void PixelStreamUpdater::_onFrameSwapped( deflect::FramePtr frame )
@@ -213,4 +211,11 @@ void PixelStreamUpdater::_onFrameSwapped( deflect::FramePtr frame )
 
     emit pictureUpdated();
     emit requestFrame( _currentFrame->uri );
+}
+
+bool PixelStreamUpdater::_checkView( const deflect::Segment& segment ) const
+{
+    return segment.view == _view || segment.view == deflect::View::mono ||
+           (_view == deflect::View::mono &&
+            segment.view == deflect::View::left_eye);
 }

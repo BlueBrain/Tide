@@ -124,8 +124,7 @@ void Application::sendImage(QImage image)
                                         deflect::RGBA );
     deflectImage.compressionPolicy = deflect::COMPRESSION_OFF;
 #endif
-    const bool success = _deflectStream->send( deflectImage ) &&
-                         _deflectStream->finishFrame();
+    const bool success = _deflectStream->sendAndFinish( deflectImage ).get();
     if( !success )
     {
         QApplication::quit();
