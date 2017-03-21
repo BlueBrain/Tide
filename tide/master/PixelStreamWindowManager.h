@@ -129,9 +129,11 @@ public:
      * @param exclusive true if only one source of the streamer should
      *        send/handle events
      * @param receiver the event receiver instance
+     * @param success promise that will receive the success of the operation
      */
     void registerEventReceiver( QString uri, bool exclusive,
-                                deflect::EventReceiver* receiver );
+                                deflect::EventReceiver* receiver,
+                                deflect::BoolPromisePtr success );
 
     /**
      * Update the dimension of the content according to the stream's dimension
@@ -165,14 +167,6 @@ signals:
      * @param uri the URI of the streamer
      */
     void streamWindowClosed( QString uri );
-
-    /**
-     * Is emitted after registerEventReceiver() was executed.
-     *
-     * @param uri the URI of the streamer
-     * @param success true if event registration was successful, false otherwise
-     */
-    void eventRegistrationReply( QString uri, bool success );
 
     /**
      * Emitted when handleStreamStart is called for a stream which already has a

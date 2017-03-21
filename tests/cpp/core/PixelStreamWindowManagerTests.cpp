@@ -136,19 +136,10 @@ BOOST_AUTO_TEST_CASE( testEventReceiver )
     streamController->notify( deflect::Event( ));
     BOOST_CHECK( !receiver.success );
 
-    QString registeredUri;
-    bool registerSuccess = false;
-
-    windowManager.connect( &windowManager,
-                           &PixelStreamWindowManager::eventRegistrationReply,
-                           [&](QString uri, bool success )
-    {
-        registeredUri = uri;
-        registerSuccess = success;
-    });
-    windowManager.registerEventReceiver( content->getURI(), false, &receiver );
-    BOOST_CHECK( registerSuccess );
-    BOOST_CHECK( registeredUri == content->getURI( ));
+    auto promise = std::make_shared<std::promise<bool>>();
+    windowManager.registerEventReceiver( content->getURI(), false, &receiver,
+                                         promise );
+    BOOST_CHECK( promise->get_future().get( ));
     BOOST_CHECK( content->hasEventReceivers( ));
     BOOST_CHECK_EQUAL( content->getInteractionPolicy(),
                        Content::Interaction::ON );
@@ -309,8 +300,9 @@ BOOST_AUTO_TEST_CASE( hideAndShowPanel )
     windowManager.showWindow( uri );
     BOOST_CHECK( !panel->isHidden( ));
 
+    auto promise = std::make_shared<std::promise<bool>>();
     DummyEventReceiver receiver;
-    windowManager.registerEventReceiver( uri, false, &receiver );
+    windowManager.registerEventReceiver( uri, false, &receiver, promise );
 
     windowManager.hideWindow( uri );
     BOOST_CHECK( panel->isHidden( ));
