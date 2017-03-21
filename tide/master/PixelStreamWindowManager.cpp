@@ -157,10 +157,9 @@ void PixelStreamWindowManager::handleStreamEnd( const QString uri )
         DisplayGroupController{ _displayGroup }.remove( window->getID( ));
 }
 
-void PixelStreamWindowManager::registerEventReceiver( const QString uri,
-                                                      const bool exclusive,
-                                                      deflect::EventReceiver*
-                                                      receiver )
+void PixelStreamWindowManager::registerEventReceiver(
+        const QString uri, const bool exclusive,
+        deflect::EventReceiver* receiver, deflect::BoolPromisePtr success )
 {
     auto window = getWindow( uri );
     if( !window )
@@ -173,19 +172,19 @@ void PixelStreamWindowManager::registerEventReceiver( const QString uri,
 
     // If a receiver is already registered, don't register this one if
     // "exclusive" was requested
-    bool success = false;
     auto& content = dynamic_cast<PixelStreamContent&>( *window->getContent( ));
     if( !exclusive || !content.hasEventReceivers( ))
     {
-        success = connect( &content, &PixelStreamContent::notify,
-                           receiver, &deflect::EventReceiver::processEvent );
-        if( success )
+        if( connect( &content, &PixelStreamContent::notify,
+                     receiver, &deflect::EventReceiver::processEvent ))
+        {
             content.incrementEventReceiverCount();
-        else
-            put_flog( LOG_ERROR, "QObject connection failed" );
+            success->set_value( true );
+            return;
+        }
+        put_flog( LOG_ERROR, "QObject connection failed" );
     }
-
-    emit eventRegistrationReply( uri, success );
+    success->set_value( false );
 }
 
 void PixelStreamWindowManager::updateStreamDimensions( deflect::FramePtr frame )

@@ -274,10 +274,6 @@ void MasterApplication::_startDeflectServer()
              _pixelStreamWindowManager.get(),
              &PixelStreamWindowManager::registerEventReceiver );
 
-    connect( _pixelStreamWindowManager.get(),
-             &PixelStreamWindowManager::eventRegistrationReply,
-             _deflectServer.get(), &deflect::Server::replyToEventRegistration );
-
     connect( _deflectServer.get(), &deflect::Server::receivedSizeHints,
              _pixelStreamWindowManager.get(),
              &PixelStreamWindowManager::updateSizeHints );
