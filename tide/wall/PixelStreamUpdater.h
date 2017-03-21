@@ -115,6 +115,7 @@ private:
     bool _readyToSwap = true;
 
     void _onFrameSwapped( deflect::FramePtr frame );
+    bool _checkView( const deflect::Segment& segment ) const;
 };
 
 #endif

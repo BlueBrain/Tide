@@ -84,7 +84,9 @@ BOOST_AUTO_TEST_CASE( testFrameSerialization )
     frame.segments.push_back( deflect::Segment() );
     frame.segments.push_back( deflect::Segment() );
     frame.uri = "SomeUri";
-    frame.view = deflect::View::right_eye;
+
+    frame.segments[0].view = deflect::View::right_eye;
+    frame.segments[1].view = deflect::View::left_eye;
 
     // serialize
     std::stringstream stream;
@@ -104,5 +106,8 @@ BOOST_AUTO_TEST_CASE( testFrameSerialization )
                        frameDeserialized.segments.size( ));
     BOOST_CHECK_EQUAL( frame.uri.toStdString(),
                        frameDeserialized.uri.toStdString() );
-    BOOST_CHECK_EQUAL( (int)frame.view, (int)frameDeserialized.view );
+    BOOST_CHECK_EQUAL( (int)frame.segments[0].view,
+                       (int)frameDeserialized.segments[0].view );
+    BOOST_CHECK_EQUAL( (int)frame.segments[1].view,
+                       (int)frameDeserialized.segments[1].view );
 }
