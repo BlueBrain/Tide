@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,45 +37,69 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef RESTWINDOWS_H
-#define RESTWINDOWS_H
+#define BOOST_TEST_MODULE FileReceiverTests
 
-#include "RestServer.h"
+#include <boost/test/unit_test.hpp>
+
+#include "rest/FileReceiver.h"
+
 #include "scene/DisplayGroup.h"
 
 #include <zeroeq/http/response.h>
 
-#include <future>
+#include <QBuffer>
+#include <QFile>
+#include <QJsonObject>
+#include <QJsonDocument>
 #include <QObject>
+#include <QString>
 
-/**
- * Exposes display group content to ZeroEQ http server.
- */
-class RestWindows : public QObject
+namespace
 {
-public:
-    /**
-     * Construct a JSON list of windows
-     *
-     * @param displayGroup DisplayGroup to expose.
-     */
-    RestWindows( const DisplayGroup& displayGroup );
+const QString imageUri("wall.png");
+const QSize wallSize( 1000, 1000 );
+}
 
-    /**
-     * Expose the list of windows to REST Interface
-     *
-     * @param path the url part including window uuid and action
-     */
-    std::future<zeroeq::http::Response> getWindowInfo( const std::string& path,
-                                                       const std::string& );
+BOOST_AUTO_TEST_CASE( testFileReceiver )
+{
+    DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
+    FileReceiver fileReceiver;
 
-private:
-    const DisplayGroup& _displayGroup;
-    QMap<QString, std::string> _thumbnailCache;
+    bool open;
+    QObject::connect( &fileReceiver, &FileReceiver::open,
+             [&open]( const QString& uri, promisePtr promise )
+    {
+        Q_UNUSED( uri );
+        promise->set_value(true);
+        open = true;
+    });
 
-    void _cacheThumbnail( ContentWindowPtr contentWindow );
-    std::future<zeroeq::http::Response> _getThumbnail( const QString& uuid );
-    std::string _getWindowList() const;
-};
+    QJsonObject unsupportedFile;
+    unsupportedFile["fileName"] = "wall.pn";
+    QJsonDocument doc( unsupportedFile );
+    auto future = fileReceiver.prepareUpload( doc.toJson().toStdString( ));
 
-#endif
+    auto response = future.get();
+    BOOST_CHECK_EQUAL( response.code, 405 );
+
+    QJsonObject supportedFile;
+    supportedFile["fileName"] = "wall.png";
+    QJsonDocument doc2( supportedFile );
+    future = fileReceiver.prepareUpload( doc2.toJson().toStdString( ));
+
+    response = future.get();
+    BOOST_CHECK_EQUAL( response.code, 200 );
+
+    QFile file( imageUri );
+    file.open( QIODevice::ReadOnly );
+    auto payload = file.readAll().toStdString();
+
+    future = fileReceiver.handleUpload( "wall.png", payload );
+    response = future.get();
+    BOOST_CHECK_EQUAL( open, true );
+    BOOST_CHECK_EQUAL( response.code, 201);
+
+    future = fileReceiver.handleUpload( "wall.png", payload );
+    response = future.get();
+    BOOST_CHECK_EQUAL( response.code, 403 );
+}

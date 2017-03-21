@@ -40,11 +40,12 @@
 #ifndef FILERECEIVER_H
 #define FILERECEIVER_H
 
-#include <zeroeq/http/server.h>
 #include "types.h"
+#include <zeroeq/http/server.h>
 
 #include <QObject>
 #include <QString>
+#include <QVector>
 
 class FileReceiver : public QObject
 {
@@ -54,22 +55,34 @@ public:
     /**
      * Provide a way to upload a file to the server.
      *
-     * @param server used to register HTTP endpoint.
      */
-    FileReceiver( zeroeq::http::Server& httpServer );
+    FileReceiver();
+
+    using Response = zeroeq::http::Response;
+
+    /**
+     * Prepare an upload of a file via REST Interface.
+     *
+     * @param payload the name of a file client wants to upload.
+     */
+    std::future<Response> prepareUpload( const std::string& payload );
+
+    /**
+     * Handle an upload of a file via REST Interface.
+     *
+     * @param path the name of a file client uploads.
+     * @param payload the binary data.
+     */
+    std::future<Response> handleUpload(  const std::string& path,
+                                         const std::string& payload );
 
 signals:
     /** Open the uploaded file. */
     void open( QString uri, promisePtr promise );
 
 private:
-    zeroeq::http::Server& _server;
+    QVector<QString> _preparedPaths;
 
-    using Response = zeroeq::http::Response;
-    std::future<Response> _prepareUpload( const std::string& data );
-    std::future<Response> _handleUpload( const QString& fileName,
-                                         const std::string& path,
-                                         const std::string& payload );
 };
 
 #endif

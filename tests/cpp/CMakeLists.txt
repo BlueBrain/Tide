@@ -20,11 +20,12 @@ if(TIDE_ENABLE_REST_INTERFACE AND TARGET ZeroEQHTTP)
   list(APPEND TEST_LIBRARIES ZeroEQHTTP)
 else()
   set(EXCLUDE_FROM_TESTS
+    core/FileReceiverTests.cpp
     core/JsonOptionsTests.cpp
     core/LoggingUtilityTest.cpp
     core/RestCommandTests.cpp
-    core/RestWindowsTests.cpp
     core/RestServerTests.cpp
+    core/RestWindowsTests.cpp
   )
 endif()
 

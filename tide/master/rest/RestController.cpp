@@ -124,8 +124,8 @@ RestController::RestController( http::Server& server,
                        [ this ](const std::string& endpoint,
                        const std::string& )
     {
-        const QString uri = QString::fromStdString( endpoint );
-        QUuid uuid( uri );
+        const QUuid uuid( QString::fromStdString( endpoint ));
+
         if( auto window = _group.getContentWindow(uuid ))
         {
             _group.removeContentWindow( window );
@@ -151,7 +151,7 @@ RestController::RestController( http::Server& server,
                 _group.clear();
                 return http::Response{ http::Code::OK };
             }
-            else if( QDir::isRelativePath( uri ))
+            if( QDir::isRelativePath( uri ))
                 emit load( _config.getSessionsDir() + "/" + uri, promise );
             else
                 emit load( uri, promise );
@@ -202,7 +202,7 @@ RestController::RestController( http::Server& server,
                                           [this, uri ]()
         {
             auto promise = std::make_shared<std::promise<bool>>();
-            std::future<bool> future = promise->get_future();
+            auto future = promise->get_future();
 
             if( QDir::isRelativePath( uri ))
                 emit save( _config.getSessionsDir() + "/" + uri, promise );

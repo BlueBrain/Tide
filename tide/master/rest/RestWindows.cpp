@@ -46,13 +46,12 @@
 #include "log.h"
 
 #include <QBuffer>
-#include <QtConcurrent>
 #include <QFuture>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QString>
-#include <QThreadPool>
+#include <QtConcurrent>
 
 using namespace zeroeq;
 
@@ -65,6 +64,13 @@ QString _getUuid( const ContentWindow& window )
 {
    return window.getID().toString().replace( _regex, "" );
 }
+
+void _deleteTempContentFile( const QString& fileName )
+{
+    QDir().remove( fileName );
+    put_flog( LOG_INFO, "Removing file: %s",
+              fileName.toLocal8Bit().constData( ));
+}
 }
 
 RestWindows::RestWindows( const DisplayGroup& displayGroup )
@@ -76,14 +82,10 @@ RestWindows::RestWindows( const DisplayGroup& displayGroup )
     connect( &displayGroup, &DisplayGroup::contentWindowRemoved,
              [this]( ContentWindowPtr window )
     {
-        const auto fileName = window->getContent()->getURI();
-        if( window->getContent()->getURI().startsWith(QDir::tempPath() + "/" ))
-        {
-            QDir().remove( fileName );
-            put_flog( LOG_INFO, "Removing file: %s",
-                      fileName.toLocal8Bit().constData( ));
-        }
         _thumbnailCache.remove( _getUuid( *window ));
+
+        if( window->getContent()->getURI().startsWith( QDir::tempPath() + "/" ))
+            _deleteTempContentFile( window->getContent()->getURI( ));
     });
 }
 
@@ -100,8 +102,12 @@ std::future<http::Response> RestWindows::getWindowInfo( const std::string& path,
     const auto endpoint = QString::fromStdString( path );
     if( endpoint.endsWith( "/thumbnail" ))
     {
-        const auto uuid = endpoint.split( "/" )[0];
-        return _getThumbnail( uuid );
+        const auto endpointSplit = endpoint.split( "/" );
+        if( endpointSplit.size() == 2 && endpointSplit[1] == "thumbnail")
+        {
+            const auto uuid = endpointSplit[0];
+            return _getThumbnail( uuid );
+        }
     }
 
     return make_ready_future( http::Response{ http::Code::BAD_REQUEST } );
@@ -143,10 +149,9 @@ std::string RestWindows::_getWindowList() const
 
 void RestWindows::_cacheThumbnail( ContentWindowPtr window )
 {
-    QtConcurrent::run( QThreadPool::globalInstance(),
-                       [this, window]()
+    QtConcurrent::run( [this, window]()
     {
-        const QString& uri = window->getContent().get()->getURI();
+        const QString& uri = window->getContent()->getURI();
         const auto uuid = _getUuid( *window );
 
         const auto image = thumbnail::create( uri, thumbnailSize );

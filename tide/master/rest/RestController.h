@@ -64,6 +64,7 @@ public:
      *
      * @param server used to register HTTP endpoints.
      * @param group target for control commands.
+     * @param config application's configuration.
      */
     RestController( zeroeq::http::Server& httpServer, DisplayGroup& group,
                     const MasterConfiguration& config );

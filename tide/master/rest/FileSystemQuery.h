@@ -56,22 +56,25 @@ public:
     /**
      * Create and register a file system listing.
      *
-     * @param httpServer used to expose the file system content
      * @param contentDirectory the content directory path
-     * @param contentType type of content to expose
+     * @param filters used to filter the content
      */
     FileSystemQuery( const QString& contentDirectory,
-                     const QStringList filters );
+                     const QStringList& filters );
 
     /**
-     * Expose the content of a directory to REST Interface
+     * List the content of a directory to be exposed to REST Interface
+     *
+     * @param pathPoint the path of a directory to list
      */
     std::future<zeroeq::http::Response>
-    browseFileSystem( const std::string&, const std::string& );
+    browseFileSystem( const std::string& pathPoint, const std::string& );
 
 private:
-    const QString& _contentDirectory;
+    const QString _contentDirectory;
     const QStringList _filters;
+
+    std::string _toJson( const QString& files ) const;
 
 };
 

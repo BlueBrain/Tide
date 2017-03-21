@@ -55,51 +55,45 @@ std::string _readFile( const QString& uri )
     QTextStream in( &file );
     return in.readAll().toStdString();
 }
+
+std::future<zeroeq::http::Response> _makeResponse( const std::string& type,
+                                                   const QString & file )
+{
+    http::Response response{ http::Code::OK };
+    response.headers[http::Header::CONTENT_TYPE] = type;
+    response.payload = _readFile( file );
+    return http::make_ready_future( response );
 }
 
+}
 HtmlContent::HtmlContent( zeroeq::http::Server& server )
 {
     server.handle( http::Verb::GET, "/", []( const std::string& )
     {
-        http::Response response{ http::Code::OK };
-        response.headers[http::Header::CONTENT_TYPE] = "text/html";
-        response.payload = _readFile( ":///html/index.html" );
-        return http::make_ready_future( response );
+        return _makeResponse( "text/html", ":///html/index.html" );
     });
 
     server.handle( http::Verb::GET, "css/bootstrap.css",
     []( const std::string& )
     {
-        http::Response response{ http::Code::OK };
-        response.headers[http::Header::CONTENT_TYPE] = "text/css";
-        response.payload = _readFile( ":///html/bootstrap.min.css" );
-        return http::make_ready_future( response );
+        return _makeResponse( "text/css", ":///html/bootstrap.min.css" );
     });
 
     server.handle( http::Verb::GET, "js/bootstrap-treeview.min.js",
                    []( const std::string& )
     {
-        http::Response response{ http::Code::OK };
-        response.headers[http::Header::CONTENT_TYPE] =
-                "application/javascript";
-        response.payload = _readFile( ":///html/bootstrap-treeview.min.js" );
-        return http::make_ready_future( response );
+        return _makeResponse( "application/javascript",
+                              ":///html/bootstrap-treeview.min.js" );
     });
 
     server.handle( http::Verb::GET, "img/close.svg", []( const std::string& )
     {
-        http::Response response{ http::Code::OK };
-        response.headers[http::Header::CONTENT_TYPE] = "image/svg+xml";
-        response.payload = _readFile( ":///html/img/close.svg" );
-        return http::make_ready_future( response );
+        return _makeResponse( "image/svg+xml", ":///html/img/close.svg" );
     });
 
     server.handle( http::Verb::GET, "img/focus.svg", []( const std::string& )
     {
-        http::Response response{ http::Code::OK };
-        response.headers[http::Header::CONTENT_TYPE] = "image/svg+xml";
-        response.payload = _readFile( ":///html/img/focus.svg" );
-        return http::make_ready_future( response );
+        return _makeResponse( "image/svg+xml", ":///html/img/focus.svg" );
     });
 
     server.handle( http::Verb::GET, "img/loading.gif", []( const std::string& )
@@ -108,110 +102,75 @@ HtmlContent::HtmlContent( zeroeq::http::Server& server )
         response.headers[http::Header::CONTENT_TYPE] = "image/gif";
         QFile file(":///html/img/loading.gif");
         file.open( QIODevice::ReadOnly );
-        QByteArray data = file.readAll();
-        response.payload = data.toStdString();
+        response.payload = file.readAll().toStdString();
         return http::make_ready_future( response );
     });
 
     server.handle( http::Verb::GET, "js/jquery-3.1.1.min.js",
                    []( const std::string& )
     {
-        http::Response response{ http::Code::OK };
-        response.headers[http::Header::CONTENT_TYPE] =
-                "application/javascript";
-        response.payload = _readFile( ":///html/jquery-3.1.1.min.js" );
-        return http::make_ready_future( response );
+        return _makeResponse( "application/javascript",
+                              ":///html/jquery-3.1.1.min.js" );
     });
 
     server.handle( http::Verb::GET, "js/notify.min.js",
                    []( const std::string& )
     {
-        http::Response response{ http::Code::OK };
-        response.headers[http::Header::CONTENT_TYPE] =
-                "application/javascript";
-        response.payload = _readFile( ":///html/notify.min.js" );
-        return http::make_ready_future( response );
+        return _makeResponse( "application/javascript",
+                              ":///html/notify.min.js" );
     });
 
     server.handle( http::Verb::GET, "css/jquery-ui.css",
                    []( const std::string& )
     {
-        http::Response response{ http::Code::OK };
-        response.headers[http::Header::CONTENT_TYPE] = "text/css";
-        response.payload = _readFile( ":///html/jquery-ui.css" );
-        return http::make_ready_future( response );
+        return _makeResponse( "text/css", ":///html/jquery-ui.css" );
     });
 
     server.handle( http::Verb::GET, "js/jquery-ui.min.js",
                    []( const std::string& )
     {
-        http::Response response{ http::Code::OK };
-        response.headers[http::Header::CONTENT_TYPE] =
-                "application/javascript";
-        response.payload = _readFile( ":///html/jquery-ui.min.js" );
-        return http::make_ready_future( response );
+        return _makeResponse( "application/javascript",
+                              ":///html/jquery-ui.min.js" );
     });
 
     server.handle( http::Verb::GET, "img/maximize.svg", []( const std::string& )
     {
-        http::Response response{ http::Code::OK };
-        response.headers[http::Header::CONTENT_TYPE] = "image/svg+xml";
-        response.payload = _readFile( ":///html/img/maximize.svg" );
-        return http::make_ready_future( response );
+        return _makeResponse( "image/svg+xml", ":///html/img/maximize.svg" );
     });
 
     server.handle( http::Verb::GET, "js/sweetalert.min.js",
                    []( const std::string& )
     {
-        http::Response response{ http::Code::OK };
-        response.headers[http::Header::CONTENT_TYPE] =
-                "application/javascript";
-        response.payload = _readFile( ":///html/sweetalert.min.js" );
-        return http::make_ready_future( response );
+        return _makeResponse( "application/javascript",
+                              ":///html/sweetalert.min.js" );
     });
 
     server.handle( http::Verb::GET, "css/sweetalert.min.css",
                    []( const std::string& )
     {
-        http::Response response{ http::Code::OK };
-        response.headers[http::Header::CONTENT_TYPE] = "text/css";
-        response.payload = _readFile( ":///html/sweetalert.min.css" );
-        return http::make_ready_future( response );
+        return _makeResponse( "text/css", ":///html/sweetalert.min.css" );
     });
 
     server.handle( http::Verb::GET, "js/tide.js", []( const std::string& )
     {
-        http::Response response{ http::Code::OK };
-        response.headers[http::Header::CONTENT_TYPE] =
-                "application/javascript";
-        response.payload = _readFile( ":///html/tide.js" );
-        return http::make_ready_future( response );
+        return _makeResponse( "application/javascript", ":///html/tide.js" );
     });
 
     server.handle( http::Verb::GET, "css/styles.css", []( const std::string& )
     {
-        http::Response response{ http::Code::OK };
-        response.headers[http::Header::CONTENT_TYPE] = "text/css";
-        response.payload = _readFile( ":///html/styles.css" );
-        return http::make_ready_future( response );
+        return _makeResponse( "text/css", ":///html/styles.css" );
     });
 
     server.handle( http::Verb::GET, "js/tideVars.js", []( const std::string& )
     {
-        http::Response response{ http::Code::OK };
-        response.headers[http::Header::CONTENT_TYPE] =
-                "application/javascript";
-        response.payload = _readFile( ":///html/tideVars.js" );
-        return http::make_ready_future( response );
+        return _makeResponse( "application/javascript",
+                              ":///html/tideVars.js" );
     });
 
     server.handle( http::Verb::GET, "js/underscore-min.js",
                    []( const std::string& )
     {
-        http::Response response{ http::Code::OK };
-        response.headers[http::Header::CONTENT_TYPE] =
-                "application/javascript";
-        response.payload = _readFile( ":///html/underscore-min.js" );
-        return http::make_ready_future( response );
+        return _makeResponse( "application/javascript",
+                              ":///html/underscore-min.js" );
     });
 }

@@ -105,18 +105,14 @@ QJsonObject _toJSONObject( const std::string& data )
 }
 }
 
-FileReceiver::FileReceiver( http::Server& server )
-    : _server( server )
+FileReceiver::FileReceiver()
 {
-    server.handle( http::Verb::POST, "tide/upload",
-                   [this]( const std::string& payload )
-    { return _prepareUpload( payload ); } );
 }
 
 std::future<http::Response>
-FileReceiver::_prepareUpload( const std::string& data )
+FileReceiver::prepareUpload( const std::string& payload )
 {
-    const auto obj = _toJSONObject( data );
+    const auto obj = _toJSONObject( payload );
     if( obj.empty( ))
         return make_ready_future( http::Response{ http::Code::BAD_REQUEST } );
 
@@ -136,24 +132,24 @@ FileReceiver::_prepareUpload( const std::string& data )
     const auto filePath = _getAvailableFilePath( fileInfo );
     const auto encodedFilename = _encodeFilename( filePath );
 
-    const auto path = encodedFilename.toStdString();
-    _server.handle( http::Verb::PUT, "tide/upload/" + path,
-                    [this, filePath, path]( const std::string& payload )
-    {
-        return _handleUpload( filePath, path, payload );
-    });
-
+    _preparedPaths.append( encodedFilename );
     return _makeResponse( http::Code::OK, "url", encodedFilename );
 }
 
 std::future<http::Response>
-FileReceiver::_handleUpload( const QString& filePath, const std::string& path,
+FileReceiver::handleUpload(  const std::string& path,
                              const std::string& payload )
 {
+
+    auto filePath = QString::fromStdString( path );
+    if( !_preparedPaths.contains( filePath ))
+        return _makeResponse( http::Code::FORBIDDEN, "info",
+                              "uploaded not prepared"  );
     QFile file( filePath );
     if( !file.open( QIODevice::WriteOnly ) ||
             !file.write( payload.c_str(), payload.size( )))
     {
+        _preparedPaths.removeOne( filePath );
         return _makeResponse( http::Code::INTERNAL_SERVER_ERROR, "info",
                               "could not upload"  );
     }
@@ -165,7 +161,7 @@ FileReceiver::_handleUpload( const QString& filePath, const std::string& path,
     emit open( filePath, openPromise );
     const bool success = openPromise->get_future().get();
 
-    _server.remove( "tide/upload/" + path );
+    _preparedPaths.removeOne( filePath );
 
     if( success )
     {

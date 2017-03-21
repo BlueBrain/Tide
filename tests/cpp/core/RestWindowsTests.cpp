@@ -37,7 +37,7 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#define BOOST_TEST_MODULE WebInterfaceTest
+#define BOOST_TEST_MODULE RestWindowsTest
 
 #include <boost/test/unit_test.hpp>
 
@@ -49,7 +49,6 @@
 #include "thumbnail/thumbnail.h"
 
 #include <zeroeq/http/response.h>
-
 
 #include <QString>
 #include <QByteArray>
@@ -87,20 +86,34 @@ BOOST_AUTO_TEST_CASE( testWindowInfo )
 
     auto future = windowsContent.getWindowInfo( std::string(), std::string( ));
     auto response = future.get();
-    BOOST_CHECK( response.code ==  200 );
+    BOOST_CHECK_EQUAL( response.code, 200 );
 
     const auto uuid = window->getID().toString().replace( _regex, "" );
-
-    sleep(2);
 
     future = windowsContent.getWindowInfo( uuid.toStdString() + "/thumbnail",
                                            std::string( ));
     response = future.get();
-    BOOST_CHECK( response.payload ==  _getThumbnail() );
-    BOOST_CHECK( response.code ==  200 );
+    BOOST_CHECK_EQUAL( response.code, 204 );
+
+    // Wait for the thumnbnail generation
+    sleep(2);
+    future = windowsContent.getWindowInfo( uuid.toStdString() + "/thumbnail",
+                                           std::string( ));
+    response = future.get();
+    BOOST_CHECK_EQUAL( response.payload,_getThumbnail( ));
+    BOOST_CHECK_EQUAL( response.code, 200 );
+    BOOST_CHECK_EQUAL( response.headers[zeroeq::http::Header::CONTENT_TYPE],
+                       "image/png" );
+
+    displayGroup->removeContentWindow( window );
+
+    future = windowsContent.getWindowInfo( uuid.toStdString() + "/thumbnail",
+                                           std::string( ));
+    response = future.get();
+    BOOST_CHECK_EQUAL( response.code, 204 );
 
     future = windowsContent.getWindowInfo( "uuid/notExists", std::string( ));
     response = future.get();
-    BOOST_CHECK( response.code ==  400 );
+    BOOST_CHECK_EQUAL( response.code, 400 );
 
 }

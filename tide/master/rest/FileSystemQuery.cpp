@@ -51,8 +51,9 @@
 #include <QUrl>
 
 FileSystemQuery::FileSystemQuery( const QString& contentDirectory,
-                                  const QStringList filters )
-    : _contentDirectory{ contentDirectory }, _filters{ filters }
+                                  const QStringList& filters )
+    : _contentDirectory{ contentDirectory }
+    , _filters{ filters }
 {}
 
 std::future<zeroeq::http::Response>
@@ -67,29 +68,37 @@ FileSystemQuery::browseFileSystem( const std::string& pathPoint,
 
     const QString fullpath = _contentDirectory + "/" + path;
     const QDir absolutePath( fullpath );
+    if( !absolutePath.canonicalPath().startsWith( _contentDirectory ))
+        return make_ready_future( Response{ Code::BAD_REQUEST } );
+
     if( absolutePath.exists( ))
     {
-        QDir directory( fullpath );
-        directory.setNameFilters( _filters ) ;
-        const auto filters = QDir::AllEntries | QDir::AllDirs;
-        const auto files = directory.entryInfoList( filters, QDir::DirsFirst |
-                                                    QDir::IgnoreCase );
-
-        QJsonArray arr;
-        const QDir baseDir( _contentDirectory );
-        for( const auto& file : files )
-        {
-            QJsonObject item;
-            item["name"] = file.fileName();
-            item["path"] = baseDir.relativeFilePath( file.absoluteFilePath( ));
-            item["dir"] = file.isDir();
-            item["file"] = file.isFile();
-            arr.append( item );
-        }
         Response response;
-        response.payload = QJsonDocument{ arr }.toJson().toStdString();
+        response.payload = _toJson( fullpath );
         return make_ready_future(response);
     }
     else
         return make_ready_future( Response{ Code::NO_CONTENT } );
+}
+
+std::string FileSystemQuery::_toJson( const QString& fullpath ) const
+{
+    QDir directory( fullpath );
+    directory.setNameFilters( _filters ) ;
+    const auto filters = QDir::AllEntries | QDir::AllDirs;
+    const auto files = directory.entryInfoList( filters, QDir::DirsFirst |
+                                                QDir::IgnoreCase );
+
+    QJsonArray arr;
+    const QDir baseDir( _contentDirectory );
+    for( const auto& file : files )
+    {
+        QJsonObject item;
+        item["name"] = file.fileName();
+        item["path"] = baseDir.relativeFilePath( file.absoluteFilePath( ));
+        item["dir"] = file.isDir();
+        item["file"] = file.isFile();
+        arr.append( item );
+    }
+    return QJsonDocument{ arr }.toJson().toStdString();
 }

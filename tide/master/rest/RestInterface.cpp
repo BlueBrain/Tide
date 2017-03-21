@@ -54,9 +54,9 @@
 
 #include "scene/ContentFactory.h"
 
-#include <functional>
 #include <tide/master/version.h>
 
+#include <functional>
 #include <QDir>
 
 class RestInterface::Impl
@@ -154,7 +154,23 @@ void RestInterface::setupHtmlInterface( DisplayGroup& displayGroup,
                                                       displayGroup,
                                                       _config ));
 
-    _impl->fileReceiver.reset( new FileReceiver( _impl->httpServer.get( )));
+    _impl->fileReceiver.reset( new FileReceiver( ));
+
+    auto prepareUpload = std::bind( &FileReceiver::prepareUpload,
+                                    _impl->fileReceiver.get(),
+                                    std::placeholders::_1 );
+
+    _impl->httpServer.get().handle( zeroeq::http::Verb::POST, "tide/upload",
+                                        prepareUpload );
+
+    auto handleUpload = std::bind( &FileReceiver::handleUpload,
+                                   _impl->fileReceiver.get(),
+                                   std::placeholders::_1,
+                                   std::placeholders::_2 );
+
+    _impl->httpServer.get().handlePath( zeroeq::http::Verb::PUT, "tide/upload",
+                                        handleUpload );
+
 
     connect( _impl->fileReceiver.get(), &FileReceiver::open,
              this, &RestInterface::open );
@@ -168,7 +184,7 @@ void RestInterface::setupHtmlInterface( DisplayGroup& displayGroup,
     connect( _impl->sceneController.get(), &RestController::open,
              this, &RestInterface::open );
 
-    const QStringList fileFilters = ContentFactory::getSupportedFilesFilter( );
+    const auto& fileFilters = ContentFactory::getSupportedFilesFilter( );
 
     _impl->contentDirQuery.reset( new FileSystemQuery( _config.getContentDir(),
                                                        fileFilters ));

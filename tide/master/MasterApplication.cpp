@@ -398,8 +398,8 @@ void MasterApplication::_open( const QString& uri, promisePtr promise )
 {
     if( uri.isEmpty( ))
     {
-         if( promise )
-             promise->set_value( false );
+        if( promise )
+            promise->set_value( false );
         return;
     }
 
