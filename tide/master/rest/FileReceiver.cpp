@@ -43,7 +43,7 @@
 
 #include "scene/ContentFactory.h"
 
-#include <zeroeq/http/server.h>
+#include <zeroeq/http/helpers.h>
 
 #include <QByteArray>
 #include <QDir>
@@ -87,7 +87,7 @@ std::future<http::Response> _makeResponse( const http::Code code,
     response.headers[ http::Header::CONTENT_TYPE ] = "application/json";
     QJsonObject status;
     status[key] = info;
-    response.payload = QJsonDocument{ status }.toJson().toStdString();
+    response.body = QJsonDocument{ status }.toJson().toStdString();
     return make_ready_future( response );
 }
 
@@ -110,9 +110,10 @@ FileReceiver::FileReceiver()
 }
 
 std::future<http::Response>
-FileReceiver::prepareUpload( const std::string& payload )
+FileReceiver::prepareUpload( const zeroeq::http::Request& request )
 {
-    const auto obj = _toJSONObject( payload );
+
+    const auto obj = _toJSONObject( request.body );
     if( obj.empty( ))
         return make_ready_future( http::Response{ http::Code::BAD_REQUEST } );
 
@@ -137,17 +138,16 @@ FileReceiver::prepareUpload( const std::string& payload )
 }
 
 std::future<http::Response>
-FileReceiver::handleUpload(  const std::string& path,
-                             const std::string& payload )
+FileReceiver::handleUpload( const zeroeq::http::Request& request )
 {
 
-    const auto filePath = QString::fromStdString( path );
+    const auto filePath = QString::fromStdString( request.path );
     if( !_preparedPaths.contains( filePath ))
         return _makeResponse( http::Code::FORBIDDEN, "info",
                               "upload not prepared"  );
     QFile file( filePath );
     if( !file.open( QIODevice::WriteOnly ) ||
-            !file.write( payload.c_str(), payload.size( )))
+            !file.write( request.body.c_str(), request.body.size( )))
     {
         _preparedPaths.removeOne( filePath );
         return _makeResponse( http::Code::INTERNAL_SERVER_ERROR, "info",

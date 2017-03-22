@@ -40,10 +40,11 @@
 #include "RestWindows.h"
 
 #include "control/ContentWindowController.h"
+#include "log.h"
 #include "scene/ContentWindow.h"
 #include "thumbnail/thumbnail.h"
 
-#include "log.h"
+#include <zeroeq/http/helpers.h>
 
 #include <QBuffer>
 #include <QFuture>
@@ -89,23 +90,16 @@ RestWindows::RestWindows( const DisplayGroup& displayGroup )
     });
 }
 
-std::future<http::Response> RestWindows::getWindowInfo( const std::string& path,
-        const std::string& )
+std::future<http::Response>
+RestWindows::getWindowInfo( const http::Request& request )
 {
-    if( path.empty( ))
+    const auto path = QString::fromStdString( request.path );
+    if( path.endsWith( "/thumbnail" ))
     {
-        http::Response response;
-        response.payload = _getWindowList();
-        return make_ready_future( response );
-    }
-
-    const auto endpoint = QString::fromStdString( path );
-    if( endpoint.endsWith( "/thumbnail" ))
-    {
-        const auto endpointSplit = endpoint.split( "/" );
-        if( endpointSplit.size() == 2 && endpointSplit[1] == "thumbnail")
+        const auto pathSplit = path.split( "/" );
+        if( pathSplit.size() == 2 && pathSplit[1] == "thumbnail")
         {
-            const auto& uuid = endpointSplit[0];
+            const auto& uuid = pathSplit[0];
             return _getThumbnail( uuid );
         }
     }
@@ -113,8 +107,10 @@ std::future<http::Response> RestWindows::getWindowInfo( const std::string& path,
     return make_ready_future( http::Response{ http::Code::BAD_REQUEST } );
 }
 
-std::string RestWindows::_getWindowList() const
+std::future<http::Response>
+RestWindows::getWindowList( const http::Request& ) const
 {
+
     const auto& windows = _displayGroup.getContentWindows();
 
     QJsonArray arr;
@@ -144,7 +140,9 @@ std::string RestWindows::_getWindowList() const
     }
     QJsonObject obj;
     obj["windows"] = arr;
-    return QJsonDocument{ obj }.toJson().toStdString();
+    http::Response response;
+    response.body =  QJsonDocument{ obj }.toJson().toStdString();
+    return make_ready_future( response );
 }
 
 void RestWindows::_cacheThumbnail( ContentWindowPtr window )
@@ -182,6 +180,6 @@ RestWindows::_getThumbnail( const QString& uuid )
 
     http::Response response{ http::Code::OK };
     response.headers[http::Header::CONTENT_TYPE] = "image/png";
-    response.payload = image;
+    response.body = image;
     return make_ready_future( std::move( response ));
 }

@@ -43,6 +43,7 @@
 #include "RestServer.h"
 #include "scene/DisplayGroup.h"
 
+#include <zeroeq/http/request.h>
 #include <zeroeq/http/response.h>
 
 #include <future>
@@ -62,13 +63,22 @@ public:
     RestWindows( const DisplayGroup& displayGroup );
 
     /**
-     * Expose information on windows to REST Interface.
+     * Expose information on specific window to REST Interface.
      *
-     * @param path the url part including window uuid and action.
-     * @return future response containing list of windows or a thumbnail.
+     * @param request request with the url part including window uuid
+     *        and information type.
+     * @return future response containing the requested information.
      */
-    std::future<zeroeq::http::Response> getWindowInfo( const std::string& path,
-                                                       const std::string& );
+    std::future<zeroeq::http::Response>
+    getWindowInfo( const zeroeq::http::Request& request );
+
+    /**
+     * Expose information on all windows to REST Interface.
+     *
+     * @return future response containing a list of all winodws.
+     */
+    std::future<zeroeq::http::Response>
+    getWindowList( const zeroeq::http::Request& ) const;
 
 private:
     const DisplayGroup& _displayGroup;

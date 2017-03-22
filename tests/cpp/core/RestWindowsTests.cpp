@@ -48,6 +48,7 @@
 #include "DummyContent.h"
 #include "thumbnail/thumbnail.h"
 
+#include <zeroeq/http/request.h>
 #include <zeroeq/http/response.h>
 
 #include <QString>
@@ -84,35 +85,34 @@ BOOST_AUTO_TEST_CASE( testWindowInfo )
     ContentWindowPtr window( new ContentWindow( content ));
     displayGroup->addContentWindow( window );
 
-    auto future = windowsContent.getWindowInfo( std::string(), std::string( ));
+    auto future = windowsContent.getWindowList( zeroeq::http::Request( ));
     auto response = future.get();
     BOOST_CHECK_EQUAL( response.code, 200 );
 
     const auto uuid = window->getID().toString().replace( _regex, "" );
 
-    future = windowsContent.getWindowInfo( uuid.toStdString() + "/thumbnail",
-                                           std::string( ));
+    zeroeq::http::Request thumbnailRequest;
+    thumbnailRequest.path = uuid.toStdString() + "/thumbnail";
+
+    future = windowsContent.getWindowInfo( thumbnailRequest );
     response = future.get();
     BOOST_CHECK_EQUAL( response.code, 204 );
-
     // Wait for the async thumnbnail generation
     sleep(2);
-    future = windowsContent.getWindowInfo( uuid.toStdString() + "/thumbnail",
-                                           std::string( ));
+    future = windowsContent.getWindowInfo( thumbnailRequest );
     response = future.get();
-    BOOST_CHECK_EQUAL( response.payload,_getThumbnail( ));
     BOOST_CHECK_EQUAL( response.code, 200 );
+    BOOST_CHECK_EQUAL( response.body, _getThumbnail( ));
     BOOST_CHECK_EQUAL( response.headers[zeroeq::http::Header::CONTENT_TYPE],
                        "image/png" );
 
     displayGroup->removeContentWindow( window );
-
-    future = windowsContent.getWindowInfo( uuid.toStdString() + "/thumbnail",
-                                           std::string( ));
+    future = windowsContent.getWindowInfo( thumbnailRequest );
     response = future.get();
-    BOOST_CHECK_EQUAL( response.code, 204 );
+    BOOST_CHECK_EQUAL( response.code, 404 );
 
-    future = windowsContent.getWindowInfo( "uuid/notExists", std::string( ));
+    thumbnailRequest.path = "uuid/notDefinedAction";
+    future = windowsContent.getWindowInfo( thumbnailRequest );
     response = future.get();
     BOOST_CHECK_EQUAL( response.code, 400 );
 

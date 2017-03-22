@@ -42,7 +42,7 @@
 #include "log.h"
 #include "scene/ContentFactory.h"
 
-#include <zeroeq/http/response.h>
+#include <zeroeq/http/helpers.h>
 
 #include <QDir>
 #include <QJsonArray>
@@ -57,11 +57,10 @@ FileSystemQuery::FileSystemQuery( const QString& contentDirectory,
 {}
 
 std::future<zeroeq::http::Response>
-FileSystemQuery::list( const std::string& pathPoint,
-                                   const std::string& )
+FileSystemQuery::list( const zeroeq::http::Request& request )
 {
     using namespace zeroeq::http;
-    auto path = QString::fromStdString( pathPoint );
+    auto path = QString::fromStdString( request.path );
     QUrl url;
     url.setPath( path, QUrl::StrictMode );
     path = url.path();

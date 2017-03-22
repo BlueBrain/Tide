@@ -39,6 +39,7 @@
 
 #include "HtmlContent.h"
 
+#include <zeroeq/http/helpers.h>
 #include <zeroeq/http/response.h>
 
 #include <QFile>
@@ -61,114 +62,121 @@ std::future<zeroeq::http::Response> _makeResponse( const std::string& type,
 {
     http::Response response{ http::Code::OK };
     response.headers[http::Header::CONTENT_TYPE] = type;
-    response.payload = _readFile( file );
+    response.body = _readFile( file );
     return http::make_ready_future( response );
 }
 
 }
 HtmlContent::HtmlContent( zeroeq::http::Server& server )
 {
-    server.handle( http::Verb::GET, "/", []( const std::string& )
+    server.handle( http::Method::GET, "/", []( const zeroeq::http::Request&  )
     {
         return _makeResponse( "text/html", ":///html/index.html" );
     });
 
-    server.handle( http::Verb::GET, "css/bootstrap.css",
-    []( const std::string& )
+    server.handle( http::Method::GET, "css/bootstrap.css",
+                   []( const zeroeq::http::Request& )
     {
         return _makeResponse( "text/css", ":///html/bootstrap.min.css" );
     });
 
-    server.handle( http::Verb::GET, "js/bootstrap-treeview.min.js",
-                   []( const std::string& )
+    server.handle( http::Method::GET, "js/bootstrap-treeview.min.js",
+                   []( const zeroeq::http::Request& )
     {
         return _makeResponse( "application/javascript",
                               ":///html/bootstrap-treeview.min.js" );
     });
 
-    server.handle( http::Verb::GET, "img/close.svg", []( const std::string& )
+    server.handle( http::Method::GET, "img/close.svg",
+                   []( const zeroeq::http::Request& )
     {
         return _makeResponse( "image/svg+xml", ":///html/img/close.svg" );
     });
 
-    server.handle( http::Verb::GET, "img/focus.svg", []( const std::string& )
+    server.handle( http::Method::GET, "img/focus.svg",
+                   []( const zeroeq::http::Request& )
     {
         return _makeResponse( "image/svg+xml", ":///html/img/focus.svg" );
     });
 
-    server.handle( http::Verb::GET, "img/loading.gif", []( const std::string& )
+    server.handle( http::Method::GET, "img/loading.gif",
+                   []( const zeroeq::http::Request& )
     {
         http::Response response{ http::Code::OK };
         response.headers[http::Header::CONTENT_TYPE] = "image/gif";
         QFile file(":///html/img/loading.gif");
         file.open( QIODevice::ReadOnly );
-        response.payload = file.readAll().toStdString();
+        response.body = file.readAll().toStdString();
         return http::make_ready_future( response );
     });
 
-    server.handle( http::Verb::GET, "js/jquery-3.1.1.min.js",
-                   []( const std::string& )
+    server.handle( http::Method::GET, "js/jquery-3.1.1.min.js",
+                   []( const zeroeq::http::Request& )
     {
         return _makeResponse( "application/javascript",
                               ":///html/jquery-3.1.1.min.js" );
     });
 
-    server.handle( http::Verb::GET, "js/notify.min.js",
-                   []( const std::string& )
+    server.handle( http::Method::GET, "js/notify.min.js",
+                   []( const zeroeq::http::Request& )
     {
         return _makeResponse( "application/javascript",
                               ":///html/notify.min.js" );
     });
 
-    server.handle( http::Verb::GET, "css/jquery-ui.css",
-                   []( const std::string& )
+    server.handle( http::Method::GET, "css/jquery-ui.css",
+                   []( const zeroeq::http::Request& )
     {
         return _makeResponse( "text/css", ":///html/jquery-ui.css" );
     });
 
-    server.handle( http::Verb::GET, "js/jquery-ui.min.js",
-                   []( const std::string& )
+    server.handle( http::Method::GET, "js/jquery-ui.min.js",
+                   []( const zeroeq::http::Request& )
     {
         return _makeResponse( "application/javascript",
                               ":///html/jquery-ui.min.js" );
     });
 
-    server.handle( http::Verb::GET, "img/maximize.svg", []( const std::string& )
+    server.handle( http::Method::GET, "img/maximize.svg", 
+                   []( const zeroeq::http::Request& )
     {
         return _makeResponse( "image/svg+xml", ":///html/img/maximize.svg" );
     });
 
-    server.handle( http::Verb::GET, "js/sweetalert.min.js",
-                   []( const std::string& )
+    server.handle( http::Method::GET, "js/sweetalert.min.js",
+                   []( const zeroeq::http::Request& )
     {
         return _makeResponse( "application/javascript",
                               ":///html/sweetalert.min.js" );
     });
 
-    server.handle( http::Verb::GET, "css/sweetalert.min.css",
-                   []( const std::string& )
+    server.handle( http::Method::GET, "css/sweetalert.min.css",
+                   []( const zeroeq::http::Request& )
     {
         return _makeResponse( "text/css", ":///html/sweetalert.min.css" );
     });
 
-    server.handle( http::Verb::GET, "js/tide.js", []( const std::string& )
+    server.handle( http::Method::GET, "js/tide.js",
+                   []( const zeroeq::http::Request& )
     {
         return _makeResponse( "application/javascript", ":///html/tide.js" );
     });
 
-    server.handle( http::Verb::GET, "css/styles.css", []( const std::string& )
+    server.handle( http::Method::GET, "css/styles.css",
+                   []( const zeroeq::http::Request& )
     {
         return _makeResponse( "text/css", ":///html/styles.css" );
     });
 
-    server.handle( http::Verb::GET, "js/tideVars.js", []( const std::string& )
+    server.handle( http::Method::GET, "js/tideVars.js",
+                   []( const zeroeq::http::Request& )
     {
         return _makeResponse( "application/javascript",
                               ":///html/tideVars.js" );
     });
 
-    server.handle( http::Verb::GET, "js/underscore-min.js",
-                   []( const std::string& )
+    server.handle( http::Method::GET, "js/underscore-min.js",
+                   []( const zeroeq::http::Request& )
     {
         return _makeResponse( "application/javascript",
                               ":///html/underscore-min.js" );

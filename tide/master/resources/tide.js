@@ -105,6 +105,10 @@ function boostrapUpload() {
   wall.addEventListener('dragleave', handleDragLeave, false);
   wall.addEventListener('drop', handleUpload, false);
   document.getElementById('file-select').addEventListener('change', handleUpload, false);
+  $(".file-input").mousedown(function () {
+    $(this).addClass("buttonPressed");
+  }).mouseup(function () {
+    $(this).removeClass("buttonPressed")});
 }
 
 function browse() {
@@ -307,7 +311,7 @@ function enableHandles() {
 
 function getFileSystemContent(path) {
   var xhr = new XMLHttpRequest();
-  var url = (path !== "/") ? restUrl + "files/" + encodeURI(path) : restUrl + "files";
+  var url = (path !== "/") ? restUrl + "files/" + encodeURI(path) : restUrl + "files/";
   var files = [];
   xhr.open("GET", url, true);
   xhr.overrideMimeType("application/json");
@@ -425,7 +429,7 @@ function getOptions() {
 
 function getSessionFolderContent() {
 
-  var url = restUrl + "sessions";
+  var url = restUrl + "sessions/";
   var xhr = new XMLHttpRequest();
   var data;
   sessionFiles = [];
@@ -465,8 +469,6 @@ function getSessionFolderContent() {
     })
   };
   xhr.send(null);
-
-
 }
 
 function handleDragLeave(evt) {
@@ -491,7 +493,7 @@ function handleUpload(evt) {
   }
   else if (evt.type === "change") {
     data = evt.target.files;
-    $('#upload-button').show();
+    $('#submitButton').show();
     //remove finished uploads and added but not transfered ones
     for (var i = output.length - 1; i >= 0; i--) {
       if (output[i].started === false || output[i].finished === true) {
@@ -541,19 +543,20 @@ function handleUpload(evt) {
     var form = document.getElementById('file-form');
     form.onsubmit = (function (files) {
       return function () {
-        $('#upload-button').hide();
+        $('#submitButton').hide();
         preuploadCheck(files);
       }
     })(files);
   }
   else if (evt.type == "drop") {
     preuploadCheck(files);
-    if (!$('#uploadMenu').is(':visible'))
+    if (!$('#uploadMenu').is(':visible') && files.length > 0)
+    {
       $('#uploadButton').notify("Upload started", {
         className: "info",
         autoHideDelay: 3000
-      });
-    $("#uploadButton").effect("pulsate", {times: 2}, 3000);
+      }).effect("pulsate", {times: 2}, 3000);
+    }
   }
 }
 
@@ -891,7 +894,7 @@ function setHandles(tile) {
 function setOption(property) {
   var action = {};
   action[property] = $('#checkbox_' + property).prop('checked');
-  requestPUT("options", JSON.stringify(action));
+  requestPUT("options", JSON.stringify(action), updateOptions);
 }
 
 function setScale() {

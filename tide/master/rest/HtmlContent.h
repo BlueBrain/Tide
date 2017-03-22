@@ -40,7 +40,6 @@
 #ifndef HTMLCONTENT_H
 #define HTMLCONTENT_H
 
-#include "StaticContent.h"
 #include <zeroeq/http/server.h>
 
 /**

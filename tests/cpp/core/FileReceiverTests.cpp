@@ -45,6 +45,7 @@
 
 #include "scene/DisplayGroup.h"
 
+#include <zeroeq/http/request.h>
 #include <zeroeq/http/response.h>
 
 #include <QBuffer>
@@ -77,7 +78,9 @@ BOOST_AUTO_TEST_CASE( testFileReceiver )
     QJsonObject unsupportedFile;
     unsupportedFile["fileName"] = "wall.pn";
     QJsonDocument doc( unsupportedFile );
-    auto future = fileReceiver.prepareUpload( doc.toJson().toStdString( ));
+    zeroeq::http::Request uploadRequest;
+    uploadRequest.body = doc.toJson().toStdString();
+    auto future = fileReceiver.prepareUpload( uploadRequest );
 
     auto response = future.get();
     BOOST_CHECK_EQUAL( response.code, 405 );
@@ -85,22 +88,25 @@ BOOST_AUTO_TEST_CASE( testFileReceiver )
     QJsonObject supportedFile;
     supportedFile["fileName"] = "wall.png";
     QJsonDocument doc2( supportedFile );
-    future = fileReceiver.prepareUpload( doc2.toJson().toStdString( ));
+    uploadRequest.body = doc2.toJson().toStdString();
+    future = fileReceiver.prepareUpload( uploadRequest );
 
     response = future.get();
     BOOST_CHECK_EQUAL( response.code, 200 );
 
     QFile file( imageUri );
     file.open( QIODevice::ReadOnly );
-    auto payload = file.readAll().toStdString();
+    uploadRequest.body = file.readAll().toStdString();
+    uploadRequest.path = "wall.png";
 
     BOOST_CHECK_EQUAL( open, false );
-    future = fileReceiver.handleUpload( "wall.png", payload );
+
+    future = fileReceiver.handleUpload( uploadRequest );
     response = future.get();
     BOOST_CHECK_EQUAL( open, true );
     BOOST_CHECK_EQUAL( response.code, 201);
 
-    future = fileReceiver.handleUpload( "wall.png", payload );
+    future = fileReceiver.handleUpload( uploadRequest );
     response = future.get();
     BOOST_CHECK_EQUAL( response.code, 403 );
 }

@@ -42,7 +42,7 @@
 #include "control/ContentWindowController.h"
 #include "log.h"
 
-#include <zeroeq/http/server.h>
+#include <zeroeq/http/helpers.h>
 
 #include <QDir>
 #include <QJsonDocument>
@@ -108,23 +108,22 @@ RestController::RestController( http::Server& server,
     server.handlePUT( "tide/deselectWindows", [this]()
     { return _handleDeselectWindows(); } );
 
-    server.handle( http::Verb::PUT, "tide/clear",
-                  [this]( const std::string& )
+    server.handle( http::Method::PUT, "tide/clear",
+                  [this]( const zeroeq::http::Request& )
     {
         _group.clear();
         http::Response response;
         response.headers[ http::Header::CONTENT_TYPE ] = "application/json";
         QJsonObject obj;
         obj["status"] = "cleared";
-        response.payload = QJsonDocument{ obj }.toJson().toStdString();
+        response.body = QJsonDocument{ obj }.toJson().toStdString();
         return make_ready_future( response );
     });
 
-    server.handlePath( http::Verb::DELETE, "tide/windows",
-                       [ this ](const std::string& endpoint,
-                       const std::string& )
+    server.handle( http::Method::DELETE, "tide/windows",
+                   [this]( const zeroeq::http::Request& request )
     {
-        const QUuid uuid( QString::fromStdString( endpoint ));
+        const QUuid uuid( QString::fromStdString( request.path ));
 
         if( auto window = _group.getContentWindow(uuid ))
         {
@@ -134,10 +133,10 @@ RestController::RestController( http::Server& server,
         return make_ready_future( http::Response{ http::Code::NO_CONTENT });
     });
 
-    server.handle( http::Verb::PUT, "tide/load",
-                  [this]( const std::string& payload )
+    server.handle( http::Method::PUT, "tide/load",
+                  [this]( const zeroeq::http::Request& request )
     {
-        const auto obj = _toJSONObject( payload );
+        const auto obj = _toJSONObject( request.body );
         if( obj.empty( ))
             return http::make_ready_future( http::Response{
                                                   http::Code::BAD_REQUEST } );
@@ -163,10 +162,10 @@ RestController::RestController( http::Server& server,
         return std::move( future_response );
     });
 
-    server.handle( http::Verb::PUT, "tide/open",
-                  [this]( const std::string& payload )
+    server.handle( http::Method::PUT, "tide/open",
+                  [this]( const zeroeq::http::Request& request )
     {
-        const auto obj = _toJSONObject( payload );
+        const auto obj = _toJSONObject( request.body );
         if( obj.empty( ))
             return http::make_ready_future( http::Response
                                             { http::Code::BAD_REQUEST });
@@ -189,10 +188,10 @@ RestController::RestController( http::Server& server,
         return std::move( future_response );
     });
 
-    server.handle( http::Verb::PUT, "tide/save",
-                  [this]( const std::string& payload )
+    server.handle( http::Method::PUT, "tide/save",
+                  [this]( const zeroeq::http::Request& request )
     {
-        const auto obj = _toJSONObject( payload );
+        const auto obj = _toJSONObject( request.body );
         if( obj.empty( ))
             return http::make_ready_future( http::Response{
                                                   http::Code::BAD_REQUEST });

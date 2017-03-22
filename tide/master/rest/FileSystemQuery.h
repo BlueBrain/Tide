@@ -42,10 +42,8 @@
 
 #include "MasterConfiguration.h"
 
-#include <zeroeq/http/response.h>
+#include <zeroeq/http/request.h>
 #include <zeroeq/http/server.h>
-
-#include <map>
 
 /**
  * Handles requests for listing a file system.
@@ -69,7 +67,7 @@ public:
      * @return future response with directory content list
      */
     std::future<zeroeq::http::Response>
-    list( const std::string& directory, const std::string& );
+    list( const zeroeq::http::Request& request );
 
 private:
     const QString _contentDirectory;

@@ -142,11 +142,17 @@ void RestInterface::setupHtmlInterface( DisplayGroup& displayGroup,
 
     auto getWindowInfoFunc = std::bind( &RestWindows::getWindowInfo,
                                         _impl->windowsContent.get(),
-                                        std::placeholders::_1,
-                                        std::placeholders::_2 );
+                                        std::placeholders::_1 );
 
-    _impl->httpServer.get().handlePath( zeroeq::http::Verb::GET, "tide/windows",
-                                        getWindowInfoFunc );
+    _impl->httpServer.get().handle( zeroeq::http::Method::GET, "tide/windows/",
+                                    getWindowInfoFunc );
+
+    auto getWindowList = std::bind( &RestWindows::getWindowList,
+                                    _impl->windowsContent.get(),
+                                    std::placeholders::_1 );
+
+    _impl->httpServer.get().handle( zeroeq::http::Method::GET, "tide/windows",
+                                    getWindowList );
 
     _impl->configurationContent.reset( new RestConfiguration( config ));
 
@@ -160,17 +166,15 @@ void RestInterface::setupHtmlInterface( DisplayGroup& displayGroup,
                                     _impl->fileReceiver.get(),
                                     std::placeholders::_1 );
 
-    _impl->httpServer.get().handle( zeroeq::http::Verb::POST, "tide/upload",
-                                        prepareUpload );
+    _impl->httpServer.get().handle( zeroeq::http::Method::POST, "tide/upload",
+                                    prepareUpload );
 
     auto handleUpload = std::bind( &FileReceiver::handleUpload,
                                    _impl->fileReceiver.get(),
-                                   std::placeholders::_1,
-                                   std::placeholders::_2 );
+                                   std::placeholders::_1 );
 
-    _impl->httpServer.get().handlePath( zeroeq::http::Verb::PUT, "tide/upload",
-                                        handleUpload );
-
+    _impl->httpServer.get().handle( zeroeq::http::Method::PUT, "tide/upload/",
+                                    handleUpload );
 
     connect( _impl->fileReceiver.get(), &FileReceiver::open,
              this, &RestInterface::open );
@@ -191,11 +195,10 @@ void RestInterface::setupHtmlInterface( DisplayGroup& displayGroup,
 
     auto browseFilesFunc = std::bind( &FileSystemQuery::list,
                                       _impl->contentDirQuery.get(),
-                                      std::placeholders::_1,
-                                      std::placeholders::_2 );
+                                      std::placeholders::_1 );
 
-    _impl->httpServer.get().handlePath( zeroeq::http::Verb::GET, "tide/files",
-                                        browseFilesFunc );
+    _impl->httpServer.get().handle( zeroeq::http::Method::GET, "tide/files/",
+                                    browseFilesFunc );
 
     const QStringList sessionFilters{ "*.dcx" };
     _impl->sessionDirQuery.reset( new FileSystemQuery( _config.getSessionsDir(),
@@ -203,12 +206,10 @@ void RestInterface::setupHtmlInterface( DisplayGroup& displayGroup,
 
     auto browseSessionsFunc = std::bind( &FileSystemQuery::list,
                                          _impl->sessionDirQuery.get(),
-                                         std::placeholders::_1,
-                                         std::placeholders::_2 );
+                                         std::placeholders::_1 );
 
-    _impl->httpServer.get().handlePath( zeroeq::http::Verb::GET,
-                                        "tide/sessions",
-                                        browseSessionsFunc );
+    _impl->httpServer.get().handle( zeroeq::http::Method::GET,
+                                    "tide/sessions/", browseSessionsFunc );
 
     _impl->httpServer.get().handleGET( *_impl->configurationContent );
 

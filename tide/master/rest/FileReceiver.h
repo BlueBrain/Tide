@@ -41,6 +41,7 @@
 #define FILERECEIVER_H
 
 #include "types.h"
+
 #include <zeroeq/http/server.h>
 
 #include <QObject>
@@ -63,20 +64,19 @@ public:
     /**
      * Prepare an upload of a file via REST Interface.
      *
-     * @param payload the name of a file client wants to upload.
+     * @param request with the name of a file client wants to upload.
      * @return future response with name of a file to be used in handleUpload().
      */
-    std::future<Response> prepareUpload( const std::string& payload );
+    std::future<Response> prepareUpload( const zeroeq::http::Request& request );
 
     /**
      * Handle an upload of a file via REST Interface.
      *
-     * @param path the name of a file returned by prepareUpload().
-     * @param payload the binary data.
+     * @param request with the name of a returned by prepareUpload() and binary
+     *        data.
      * @return future response with appropiate code and status.
      */
-    std::future<Response> handleUpload(  const std::string& path,
-                                         const std::string& payload );
+    std::future<Response> handleUpload( const zeroeq::http::Request& request );
 
 signals:
     /** Open the uploaded file. */
