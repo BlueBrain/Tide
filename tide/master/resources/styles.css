@@ -44,7 +44,7 @@ label {
 }
 
 .controlIcon {
-  margin: 10px;
+  margin: 15px;
 }
 
 .curtain {
@@ -100,6 +100,31 @@ label {
   max-height: 768px;
   overflow-y: auto;
   z-index: 100;
+}
+
+.optionInput {
+  float: left;
+}
+
+.optionLabel
+{
+  height: 1em;
+  font-weight: normal;
+  clear: both;
+  float:left;
+ }
+
+.optionsMenu {
+  padding: 5px;
+  padding-right: 15px;
+  background-color: white;
+  width: auto
+}
+
+.textInput {
+  width: 60%;
+  height: 25px;
+  margin-top: 3px;
 }
 
 .ui-resizable-se {
@@ -204,12 +229,6 @@ label {
 #outputList {
   padding-left: 10px;
   padding-right: 10px;
-}
-
-#sessionNameInput {
-  width: 60%;
-  height: 25px;
-  margin: 0px;
 }
 
 #wall, #wallOutline {

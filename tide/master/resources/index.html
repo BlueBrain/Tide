@@ -19,6 +19,22 @@
 
 <body>
 
+<div id="appsMenu" class="topMenu">
+  <div>
+    <ul style="padding-left: 0;">
+      <li class="list-group-item" style="cursor: pointer;" onClick="browse()" >
+        <span class="icon node-icon glyphicon glyphicon-globe" style="margin-right: 2px"></span>
+        Web browser
+        <input id="browseUrlInput" class="textInput" style="width:100%" type="text" placeholder="Type URL or leave blank">
+      </li>
+      <li class="list-group-item" style="cursor: pointer;" onclick="openWhiteboard()">
+        <span class="icon node-icon glyphicon glyphicon-blackboard" style="margin-right: 2px"></span>
+        Whiteboard
+      </li>
+    </ul>
+  </div>
+</div>
+
 <div id="fsMenu" class="topMenu"></div>
 
 <div id="sessionMenu" class="topMenu" >
@@ -31,7 +47,7 @@
 </div>
 
 <div id="uploadMenu" class="topMenu uploadMenu">
-  <div style="padding-top: 5px; padding-left: 10px; padding-bottom: 10px; overflow: hidden;">
+  <div style="padding-top: 5px; padding-left: 10px; padding-bottom: 0px; overflow: hidden;">
     <form id="file-form" target="frame" >
       <label class="file-input">
         <input type="file" id="file-select" multiple />
@@ -45,8 +61,11 @@
   </div>
 </div>
 
+<div id="optionsMenu" class="topMenu optionsMenu"></div>
+
 <div id="wallWrapper">
   <div id="buttonContainer" >
+    <button class="menuButton" id="appsButton">APPS</button>
     <button class="menuButton" id="addButton">OPEN</button>
     <button class="menuButton" id="sessionButton">SESSION</button>
     <button class="menuButton" id="uploadButton">UPLOAD</button>
@@ -54,6 +73,7 @@
     <button id="exitFullscreenButton" >EXIT FULLSCREEN</button>
     <button id="refreshButton" onclick="updateWall()">REFRESH</button>
     <button id="autoRefreshButton" onclick="autoRefresh()">AUTO-REFRESH</button>
+    <button class="menuButton" id="optionsButton">OPTIONS</button>
   </div>
   <div id="wall">
     <div id="wallOutline"></div>

@@ -13,429 +13,6 @@ window.onresize = setScale;
 
 $(init);
 
-function bootstrapMenus() {
-
-  $("#addButton").click(function (e) {
-    $("#sessionMenu").hide("puff", showEffectSpeed);
-    $("#uploadMenu").hide("puff", showEffectSpeed);
-    $("#fsMenu").css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed);
-    $(".menuButton:not(#addButton)").removeClass("buttonPressed");
-    $("#addButton").toggleClass("buttonPressed")
-  });
-
-  $("#sessionButton").click(function (e) {
-    $("#uploadMenu").hide("puff", showEffectSpeed);
-    $("#fsMenu").hide("puff", showEffectSpeed);
-    $("#sessionMenu").css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed);
-    $(".menuButton:not(#sessionButton)").removeClass("buttonPressed");
-    $("#sessionButton").toggleClass("buttonPressed")
-
-  });
-
-  $("#uploadButton").click(function (e) {
-    $("#sessionMenu").hide("puff", showEffectSpeed);
-    $("#fsMenu").hide("puff", showEffectSpeed);
-    $("#uploadMenu").css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed);
-    $(".menuButton:not(#uploadButton)").removeClass("buttonPressed");
-    $("#uploadButton").toggleClass("buttonPressed")
-  });
-}
-
-function boostrapUpload() {
-  var wall = document.getElementById('wall');
-  wall.addEventListener('dragover', handleDragOver, false);
-  wall.addEventListener('dragleave', handleDragLeave, false);
-  wall.addEventListener('drop', handleUpload, false);
-  document.getElementById('file-select').addEventListener('change', handleUpload, false);
-}
-
-function handleDragOver(evt) {
-  evt.stopPropagation();
-  evt.preventDefault();
-  $("#wall").css("opacity", 0.2);
-}
-
-function handleDragLeave(evt) {
-  evt.stopPropagation();
-  evt.preventDefault();
-  $("#wall").css("opacity", 1);
-}
-
-function handleUpload(evt) {
-  evt.stopPropagation();
-  evt.preventDefault();
-  $("#wall").css("opacity", 1);
-  var data;
-  if (evt.type == "drop") {
-    data = evt.dataTransfer.files;
-  }
-  else if (evt.type === "change")
-  {
-    data =  evt.target.files;
-    $('#upload-button').show();
-    //remove finished uploads and added but not transfered ones
-    for(var i = output.length -1; i >= 0 ; i--){
-      if (output[i].started === false || output[i].finished === true ) {
-        $('#' + output[i].id).remove();
-        output.splice(i, 1);
-      }
-    }
-  }
-
-  data = Array.from(data);
-  var files = data.filter(function (file) {
-    return filters.some(function (element)
-    {
-      return file.name.toLowerCase().endsWith(element)
-    });
-  });
-
-  var notUploaded = data.length-files.length;
-  if (notUploaded > 0)
-    swal({
-      type: "warning",
-      title: (notUploaded > 1) ? notUploaded + " unsuported files" : notUploaded + " unsuported file",
-      text: "Supported files are: " + filters.join(" "),
-      confirmButtonColor: "#014f86",
-      confirmButtonText: "OK",
-      closeOnConfirm: true
-    });
-  if(files.length>0)
-    $('.formButton').removeAttr('disabled');
-  for (var i = 0; i < files.length; i++) {
-    var f = files[i];
-    f.id="file_"+parseInt(Math.random()*100000);
-    var transfer = {};
-    transfer.finished = false;
-    transfer.text = '<strong>'+ f.name + '</strong>: '+  (f.size/MBtoB).toFixed(2)   + ' MB';
-    transfer.id = f.id;
-    transfer.started = false;
-    output.push (transfer);
-    var li = document.createElement("li");
-    li.id = f.id;
-    var span = document.createElement("span");
-    span.innerHTML = transfer.text;
-    li.appendChild(span);
-    document.getElementById('outputList').appendChild(li);
-  }
-
-  if (evt.type == "change")
-  {
-    var form = document.getElementById('file-form');
-    form.onsubmit = (function(files){
-      return function()
-      {
-        $('#upload-button').hide();
-        preuploadCheck(files);
-      }
-    })(files);
-  }
-  else if (evt.type == "drop")
-  {
-    preuploadCheck(files);
-    if( !$('#uploadMenu').is(':visible'))
-      $('#uploadButton').notify("Upload started", {
-        className: "info",
-        autoHideDelay: 3000
-      });
-    $("#uploadButton").effect( "pulsate", {times:2}, 3000 );
-  }
-}
-
-function preuploadCheck(files) {
-  var totalSize = 0;
-  for (var i = 0, f; f = files[i]; i++) {
-    totalSize += (f.size / MBtoB);
-  }
-  totalSize = Number(totalSize).toFixed(2);
-  if ( totalSize < maxUploadSizeMBWithoutWarning)
-    uploadFiles(files);
-  else if ( totalSize > maxUploadSizeMB) {
-    swal({
-      type: "warning",
-      title: "Maximum upload size limited to " + maxUploadSizeMB + " MB",
-      text: "You intend to transfer " + files.length + " files with total size of: " + totalSize + " MB.",
-      confirmButtonColor: "#DD6B55",
-      confirmButtonText: "OK",
-      closeOnConfirm: true
-    });
-    clearUploadList();
-  }
-  else {
-    swal({
-        type: "warning",
-        title: "Are you sure?",
-        text: "You intend to transfer " + files.length + " files with total size of: " + totalSize + " MB.",
-        confirmButtonColor: "#DD6B55",
-        confirmButtonText: "Yes",
-        cancelButtonText: "No",
-        closeOnConfirm: true,
-        closeOnCancel: true,
-        showCancelButton: true
-      },
-      function (isConfirm) {
-        if (isConfirm)
-          uploadFiles(files)
-        else
-          clearUploadList();
-      });
-  }
-}
-
-function uploadFiles (files) {
-  var url = "upload";
-  var requests = [];
-  for (var i = 0; i < files.length; i++) {
-    (function (i) {
-      var file = files[i];
-      requests[i] = new XMLHttpRequest();
-      requests[i].open('POST', restUrl + url, true);
-      requests[i].onload = function () {
-        if (requests[i].readyState ===  XMLHttpRequest.DONE && requests[i].status === 200) {
-          var xhr2 = new XMLHttpRequest();
-          var index = output.findIndex(function(element){
-            return element.id == file.id
-          });
-          output[index].started = true;
-
-          var cancelIcon = document.createElement("span");
-          cancelIcon.innerHTML = "<font color='red' >&#x2718; </font>";
-          cancelIcon.style="cursor: pointer;";
-          var loadingGif = document.createElement("img");
-          loadingGif.src = loadingGifUrl;
-          $('#' + file.id).append(loadingGif).append(cancelIcon);
-
-          cancelIcon.addEventListener("click", function(){
-            index = output.findIndex(function(element){
-              return element.id == file.id
-            });
-            output[index].finished = true;
-            xhr2.abort();
-            var fileLi=$('#' + file.id);
-            fileLi.find('img:first').remove();
-            fileLi.find('span:last').remove();
-            fileLi.append("<font color='red'> &#x2716; cancelled</font>");
-          });
-
-          var fileName = decodeURI(JSON.parse(this.responseText)["url"]);
-          xhr2.open('PUT', restUrl + url + "/" + fileName.toLowerCase(), true);
-          xhr2.onload = function () {
-            var fileLi=$('#' + file.id);
-            if (xhr2.readyState === XMLHttpRequest.DONE && xhr2.status === 201 ) {
-              index = output.findIndex(function(element){
-                return element.id == file.id
-              });
-              output[index].finished = true;
-              var success = JSON.parse(xhr2.responseText)["info"];
-              fileLi.find('img:first').remove();
-              fileLi.find('span:last').remove();
-              fileLi.append("<font color='green'> &#10004;" + success + "</font>");
-              updateWall();
-            }
-            else {
-              output[index].finished = true;
-              var error = JSON.parse(xhr2.responseText)["info"];
-              fileLi.find('img:first').remove();
-              fileLi.find('span:last').remove();
-              fileLi.append("<font color='red'> &#x2716;"+ error + "</font>");
-            }
-            $('#file-form').find("input[type=file]").val("");
-          };
-          xhr2.send(file);
-        }
-        else
-          console.log('ENDPOINT REGISTRATION: An error occurred!');
-      };
-      requests[i].send(JSON.stringify({"fileName": (file.name.toLowerCase())}));
-    })(i)
-  }
-}
-function clearUploadList()
-{
-  for(var i = output.length -1; i >= 0 ; i--){
-      // if (output[i].finished === true || output[i].started !== true) {
-      if (output[i].started === false || output[i].finished === true ) {
-      $('#'+output[i].id).remove();
-      output.splice(i, 1);
-    }
-  }
-  $('#file-form').find("input[type=file]").val("");
-  $('#upload-button').hide();
-}
-
-function getFileSystemContent(path) {
-      var xhr = new XMLHttpRequest();
-      var url = (path !== "/") ? restUrl + "files/" + encodeURI(path) : restUrl + "files";
-      var files = [];
-      xhr.open("GET", url, true);
-      xhr.overrideMimeType("application/json");
-
-      xhr.onload = function () {
-        var data = JSON.parse(xhr.responseText);
-        var filesCount = 0;
-        for (var i = 0; i < data.length; i++)
-          if (data[i].file)
-            ++filesCount;
-
-        for (var i = 0; i < data.length; i++) {
-          var file = {
-            text: data[i].name,
-            path: data[i].path,
-            dir: data[i].dir,
-            file: data[i].file
-          };
-
-          file.icon = data[i].dir ? "glyphicon glyphicon-folder-close" : "glyphicon glyphicon-file";
-          if (file.text === "..") {
-            file.icon = "glyphicon glyphicon-level-up";
-            file.text = "Move up";
-            file.backColor = "#d1e2ee";
-          }
-          if (file.text === ".") {
-            file.text = filesCount > 0 ? " Open all regular files: " + filesCount : " No regular files to open here";
-            file.icon = "glyphicon glyphicon-folder-open";
-            file.backColor = filesCount > 0 ? "#1a6092" : "ligthgrey";
-            file.currentDir = true
-          }
-          if (data[i].path !== "../")
-            files.push(file)
-        }
-
-        $('#fsMenu').treeview({
-          data: files,
-          searchResultBackColor: "#014f86",
-          highlightSelected: true
-
-        });
-        $('#fsMenu').on('nodeSelected', function (event, data) {
-          // CURRENT FOLDER - enable option to open all content only if it contains at least a file
-          if (data.currentDir && filesCount > 0) {
-            if (filesCount > 10) {
-              swal({
-                  type: "warning",
-                  title: "Are you sure?",
-                  text: "You intend to open a folder with " + filesCount + " files.",
-                  confirmButtonColor: "#DD6B55",
-                  confirmButtonText: "Yes",
-                  cancelButtonText: "No",
-                  closeOnConfirm: true,
-                  closeOnCancel: true,
-                  showCancelButton: true
-                },
-                function (isConfirm) {
-                  if (isConfirm) {
-                    requestPUT("open", JSON.stringify({"uri": data.path}), updateWall);
-                    $('#fsMenu').hide()
-                  }
-                });
-            }
-            else {
-              requestPUT("open", JSON.stringify({"uri": data.path}), updateWall);
-              $('#fsMenu').treeview('toggleNodeSelected', [data.nodeId, {silent: true}]);
-            }
-          }
-          // FOLDERS - query for it content and update the view
-          else if (data.dir) {
-            if (data.path == ".")
-              getFileSystemContent("/");
-            else
-              getFileSystemContent(data.path);
-          }
-          // REGULAR FILE
-          else if (data.file) {
-            requestPUT("open", JSON.stringify({"uri": data.path}), updateWall);
-            $('#fsMenu').treeview('toggleNodeSelected', [data.nodeId, {silent: true}]);
-          }
-        })
-      };
-      xhr.send(null);
-}
-
-function getSessionFolderContent() {
-
-  var url = restUrl + "sessions";
-    var xhr = new XMLHttpRequest();
-    var data;
-    sessionFiles = [];
-    xhr.open("GET", encodeURI(url), true);
-    xhr.overrideMimeType("application/json");
-    xhr.onload = function () {
-      data = JSON.parse(xhr.responseText);
-      for (var i = 0; i < data.length; i++) {
-        var file = {
-          text: data[i].name,
-          path: data[i].path,
-          dir: data[i].dir,
-          file: data[i].file
-        };
-        file.icon = data[i].dir ? "glyphicon glyphicon-chevron-right" : "glyphicon glyphicon-file";
-        file.color = data[i].dir ? "grey" : "black";
-        if (data[i].file)
-          sessionFiles.push(file);
-      }
-
-      $('#sessionTree').treeview({
-        data: sessionFiles,
-        searchResultBackColor: "#014f86",
-        highlightSelected: true
-      });
-      $('#sessionTree').on('nodeSelected', function (event, data) {
-        if (data.file) {
-          $("#wall").css("opacity", 0.2);
-          requestPUT("load", JSON.stringify({"uri": data.text}), function() {
-            $("#sessionMenu").toggle("puff", showEffectSpeed);
-            $("#sessionButton").toggleClass("buttonPressed");
-            $('#sessionTree').treeview('toggleNodeSelected', [data.nodeId, {silent: true}]);
-            $("#wall").css("opacity", 1);
-            updateWall();
-          });
-        }
-      })
-    };
-    xhr.send(null);
-
-
-}
-
-function saveSession() {
-  var uri = $('#sessionNameInput').val();
-  if(uri.length==0)
-    return;
-  if (!uri.endsWith(".dcx"))
-    uri = uri + ".dcx";
-  var params = JSON.stringify({"uri": uri});
-  var exist = false;
-  for (var i = 0; i < sessionFiles.length; i++) {
-    if (sessionFiles[i].text == uri)
-      exist = true;
-  }
-  swal({
-      type: "warning",
-      title: "Are you sure?",
-      text: exist ? "You intend to overwrite an existing session: " + uri : "Save as: " + uri + "?",
-      confirmButtonColor: exist ? "#DD6B55" : "#014f86",
-      confirmButtonText: "Yes",
-      cancelButtonText: "No",
-      closeOnConfirm: false,
-      closeOnCancel: true,
-      showCancelButton: true
-    },
-    function () {
-      requestPUT("save", params, getSessionFolderContent);
-      swal({
-        title: "Saved!",
-        text: "Your file has been saved as: " + uri,
-        type: "success",
-        confirmButtonText: "OK",
-        confirmButtonColor: "#014f86"
-      }, function () {
-        $('#sessionNameInput').val("");
-        $("#sessionMenu").toggle("puff", showEffectSpeed);
-        $("#sessionButton").toggleClass("buttonPressed");
-      });
-    });
-}
-
 function alertPopup(title, text) {
   swal({
       title: title,
@@ -461,6 +38,83 @@ function autoRefresh() {
   }
 }
 
+function bootstrapMenus() {
+
+  $("#addButton").click(function (e) {
+    $("#uploadMenu,#sessionMenu,#optionsMenu,#appsMenu").each(function () {
+      $(this).hide("puff", showEffectSpeed);
+    });
+
+    $("#fsMenu").css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed);
+    $(".menuButton:not(#addButton)").removeClass("buttonPressed");
+    $("#addButton").toggleClass("buttonPressed")
+  });
+
+  $("#sessionButton").click(function (e) {
+    $("#uploadMenu,#fsMenu,#optionsMenu,#appsMenu").each(function () {
+      $(this).hide("puff", showEffectSpeed);
+    });
+
+    $("#sessionMenu").css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed);
+    $(".menuButton:not(#sessionButton)").removeClass("buttonPressed");
+    $("#sessionButton").toggleClass("buttonPressed")
+  });
+
+  $("#uploadButton").click(function (e) {
+    $("#sessionMenu,#fsMenu,#optionsMenu,#appsMenu").each(function () {
+      $(this).hide("puff", showEffectSpeed);
+    });
+
+    $("#uploadMenu").css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed);
+    $(".menuButton:not(#uploadButton)").removeClass("buttonPressed");
+    $("#uploadButton").toggleClass("buttonPressed")
+  });
+
+  $("#optionsButton").click(function (e) {
+    $("#sessionMenu,#fsMenu,#uploadMenu,#appsMenu").each(function () {
+      $(this).hide("puff", showEffectSpeed);
+    });
+
+    $("#optionsMenu").css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed);
+    $(".menuButton:not(#optionsButton)").removeClass("buttonPressed");
+    $("#optionsButton").toggleClass("buttonPressed");
+    updateOptions();
+  });
+
+  $("#appsButton").click(function (e) {
+    $("#sessionMenu,#fsMenu,#uploadMenu,#optionsMenu").each(function () {
+      $(this).hide("puff", showEffectSpeed);
+    });
+
+    $("#appsMenu").css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed);
+    $(".menuButton:not(#appsButton)").removeClass("buttonPressed");
+    $("#appsButton").toggleClass("buttonPressed")
+  });
+
+  $("#browseUrlInput").on("click", function (event) {
+    event.stopPropagation();
+  });
+
+  getOptions();
+
+}
+
+function boostrapUpload() {
+  var wall = document.getElementById('wall');
+  wall.addEventListener('dragover', handleDragOver, false);
+  wall.addEventListener('dragleave', handleDragLeave, false);
+  wall.addEventListener('drop', handleUpload, false);
+  document.getElementById('file-select').addEventListener('change', handleUpload, false);
+}
+
+function browse() {
+  var url = $('#browseUrlInput').val();
+  requestPUT("browse", JSON.stringify({"uri": (url)}), updateWall);
+  $('#browseUrlInput').val("");
+  $("#appsButton").click();
+
+}
+
 function checkIfEqual(tile1, tile2) {
   return (
     tile1.x === tile2.x &&
@@ -471,6 +125,18 @@ function checkIfEqual(tile1, tile2) {
     tile1.selected === tile2.selected &&
     tile1.z === tile2.z
   );
+}
+
+function clearUploadList() {
+  for (var i = output.length - 1; i >= 0; i--) {
+    // if (output[i].finished === true || output[i].started !== true) {
+    if (output[i].started === false || output[i].finished === true) {
+      $('#' + output[i].id).remove();
+      output.splice(i, 1);
+    }
+  }
+  $('#file-form').find("input[type=file]").val("");
+  $('#upload-button').hide();
 }
 
 function copy(jsonWindow, tile) {
@@ -639,6 +305,258 @@ function enableHandles() {
   draggableObj.removeClass('inactive').addClass('active');
 }
 
+function getFileSystemContent(path) {
+  var xhr = new XMLHttpRequest();
+  var url = (path !== "/") ? restUrl + "files/" + encodeURI(path) : restUrl + "files";
+  var files = [];
+  xhr.open("GET", url, true);
+  xhr.overrideMimeType("application/json");
+
+  xhr.onload = function () {
+    var data = JSON.parse(xhr.responseText);
+    var filesCount = 0;
+    for (var i = 0; i < data.length; i++)
+      if (data[i].file)
+        ++filesCount;
+
+    for (var i = 0; i < data.length; i++) {
+      var file = {
+        text: data[i].name,
+        path: data[i].path,
+        dir: data[i].dir,
+        file: data[i].file
+      };
+
+      file.icon = data[i].dir ? "glyphicon glyphicon-folder-close" : "glyphicon glyphicon-file";
+      if (file.text === "..") {
+        file.icon = "glyphicon glyphicon-level-up";
+        file.text = "Move up";
+        file.backColor = "#d1e2ee";
+      }
+      if (file.text === ".") {
+        file.text = filesCount > 0 ? " Open all regular files: " + filesCount : " No regular files to open here";
+        file.icon = "glyphicon glyphicon-folder-open";
+        file.backColor = filesCount > 0 ? "#1a6092" : "ligthgrey";
+        file.currentDir = true
+      }
+      if (data[i].path !== "../")
+        files.push(file)
+    }
+
+    $('#fsMenu').treeview({
+      data: files,
+      searchResultBackColor: "#014f86",
+      highlightSelected: true
+
+    });
+    $('#fsMenu').on('nodeSelected', function (event, data) {
+      // CURRENT FOLDER - enable option to open all content only if it contains at least a file
+      if (data.currentDir && filesCount > 0) {
+        if (filesCount > 10) {
+          swal({
+              type: "warning",
+              title: "Are you sure?",
+              text: "You intend to open a folder with " + filesCount + " files.",
+              confirmButtonColor: "#DD6B55",
+              confirmButtonText: "Yes",
+              cancelButtonText: "No",
+              closeOnConfirm: true,
+              closeOnCancel: true,
+              showCancelButton: true
+            },
+            function (isConfirm) {
+              if (isConfirm) {
+                requestPUT("open", JSON.stringify({"uri": data.path}), updateWall);
+                $('#fsMenu').hide()
+              }
+            });
+        }
+        else {
+          requestPUT("open", JSON.stringify({"uri": data.path}), updateWall);
+          $('#fsMenu').treeview('toggleNodeSelected', [data.nodeId, {silent: true}]);
+        }
+      }
+      // FOLDERS - query for it content and update the view
+      else if (data.dir) {
+        if (data.path == ".")
+          getFileSystemContent("/");
+        else
+          getFileSystemContent(data.path);
+      }
+      // REGULAR FILE
+      else if (data.file) {
+        requestPUT("open", JSON.stringify({"uri": data.path}), updateWall);
+        $('#fsMenu').treeview('toggleNodeSelected', [data.nodeId, {silent: true}]);
+      }
+    })
+  };
+  xhr.send(null);
+}
+
+function getOptions() {
+  var options = [];
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", restUrl + "options", true);
+  xhr.overrideMimeType("application/json");
+  xhr.onload = function () {
+    options = JSON.parse(xhr.responseText);
+
+    for (var property in options) {
+      if (options.hasOwnProperty(property)) {
+        if (typeof(options[property]) !== "boolean")
+          continue;
+        var label = document.createElement("label");
+        label.className = "optionLabel";
+        var checkbox = document.createElement("input");
+        checkbox.type = "CHECKBOX";
+        checkbox.class = "optionInput";
+        checkbox.id = "checkbox_" + property;
+        var labelText = document.createTextNode(property);
+        label.appendChild(checkbox);
+        label.appendChild(labelText);
+        checkbox.checked = options[property];
+        checkbox.addEventListener('change', setOption.bind(null, property));
+        document.getElementById('optionsMenu').appendChild(label);
+      }
+    }
+  };
+  xhr.send(null)
+}
+
+function getSessionFolderContent() {
+
+  var url = restUrl + "sessions";
+  var xhr = new XMLHttpRequest();
+  var data;
+  sessionFiles = [];
+  xhr.open("GET", encodeURI(url), true);
+  xhr.overrideMimeType("application/json");
+  xhr.onload = function () {
+    data = JSON.parse(xhr.responseText);
+    for (var i = 0; i < data.length; i++) {
+      var file = {
+        text: data[i].name,
+        path: data[i].path,
+        dir: data[i].dir,
+        file: data[i].file
+      };
+      file.icon = data[i].dir ? "glyphicon glyphicon-chevron-right" : "glyphicon glyphicon-file";
+      file.color = data[i].dir ? "grey" : "black";
+      if (data[i].file)
+        sessionFiles.push(file);
+    }
+
+    $('#sessionTree').treeview({
+      data: sessionFiles,
+      searchResultBackColor: "#014f86",
+      highlightSelected: true
+    });
+    $('#sessionTree').on('nodeSelected', function (event, data) {
+      if (data.file) {
+        $("#wall").css("opacity", 0.2);
+        requestPUT("load", JSON.stringify({"uri": data.text}), function () {
+          $("#sessionMenu").toggle("puff", showEffectSpeed);
+          $("#sessionButton").toggleClass("buttonPressed");
+          $('#sessionTree').treeview('toggleNodeSelected', [data.nodeId, {silent: true}]);
+          $("#wall").css("opacity", 1);
+          updateWall();
+        });
+      }
+    })
+  };
+  xhr.send(null);
+
+
+}
+
+function handleDragLeave(evt) {
+  evt.stopPropagation();
+  evt.preventDefault();
+  $("#wall").css("opacity", 1);
+}
+
+function handleDragOver(evt) {
+  evt.stopPropagation();
+  evt.preventDefault();
+  $("#wall").css("opacity", 0.2);
+}
+
+function handleUpload(evt) {
+  evt.stopPropagation();
+  evt.preventDefault();
+  $("#wall").css("opacity", 1);
+  var data;
+  if (evt.type == "drop") {
+    data = evt.dataTransfer.files;
+  }
+  else if (evt.type === "change") {
+    data = evt.target.files;
+    $('#upload-button').show();
+    //remove finished uploads and added but not transfered ones
+    for (var i = output.length - 1; i >= 0; i--) {
+      if (output[i].started === false || output[i].finished === true) {
+        $('#' + output[i].id).remove();
+        output.splice(i, 1);
+      }
+    }
+  }
+
+  data = Array.from(data);
+  var files = data.filter(function (file) {
+    return filters.some(function (element) {
+      return file.name.toLowerCase().endsWith(element)
+    });
+  });
+
+  var notUploaded = data.length - files.length;
+  if (notUploaded > 0)
+    swal({
+      type: "warning",
+      title: (notUploaded > 1) ? notUploaded + " unsuported files" : notUploaded + " unsuported file",
+      text: "Supported files are: " + filters.join(" "),
+      confirmButtonColor: "#014f86",
+      confirmButtonText: "OK",
+      closeOnConfirm: true
+    });
+  if (files.length > 0)
+    $('.formButton').removeAttr('disabled');
+  for (var i = 0; i < files.length; i++) {
+    var f = files[i];
+    f.id = "file_" + parseInt(Math.random() * 100000);
+    var transfer = {};
+    transfer.finished = false;
+    transfer.text = '<strong>' + f.name + '</strong>: ' + (f.size / MBtoB).toFixed(2) + ' MB';
+    transfer.id = f.id;
+    transfer.started = false;
+    output.push(transfer);
+    var li = document.createElement("li");
+    li.id = f.id;
+    var span = document.createElement("span");
+    span.innerHTML = transfer.text;
+    li.appendChild(span);
+    document.getElementById('outputList').appendChild(li);
+  }
+
+  if (evt.type == "change") {
+    var form = document.getElementById('file-form');
+    form.onsubmit = (function (files) {
+      return function () {
+        $('#upload-button').hide();
+        preuploadCheck(files);
+      }
+    })(files);
+  }
+  else if (evt.type == "drop") {
+    preuploadCheck(files);
+    if (!$('#uploadMenu').is(':visible'))
+      $('#uploadButton').notify("Upload started", {
+        className: "info",
+        autoHideDelay: 3000
+      });
+    $("#uploadButton").effect("pulsate", {times: 2}, 3000);
+  }
+}
+
 function init() {
   boostrapUpload();
   bootstrapMenus();
@@ -654,7 +572,7 @@ function init() {
 
     filters = config["filters"];
     for (var i = 0; i < filters.length; i++)
-      filters[i]=filters[i].replace(/\*/g,"");
+      filters[i] = filters[i].replace(/\*/g, "");
     $("#file-select").attr("accept", filters);
     var wall = $("#wall");
     wall.css("background-color", config["backgroundColor"]);
@@ -690,6 +608,224 @@ function init() {
 
 function jsonUuidHelper(tile) {
   return JSON.stringify({"uri": tile.uuid})
+}
+
+function markAsFocused(tile) {
+  $('#' + tile.uuid).css("z-index", zIndexFocus).css("border", "0px").addClass("windowSelected");
+}
+
+function markAsFullscreen(tile) {
+  $('#' + tile.uuid).css("z-index", zIndexFullscreen).addClass("windowFullscreen");
+  $('#closeButton' + tile.uuid).css("visibility", "hidden");
+  $('#fsButton' + tile.uuid).css("visibility", "hidden");
+  $('#focusButton' + tile.uuid).css("visibility", "hidden");
+}
+
+function markAsSelected(tile) {
+  $('#' + tile.uuid).addClass("windowSelected");
+  $('#focusButton' + tile.uuid).css("visibility", "visible")
+}
+
+function markAsUnselected(tile) {
+  $('#' + tile.uuid).removeClass('windowSelected');
+  $('#focusButton' + tile.uuid).css("visibility", "hidden")
+}
+
+function openWhiteboard() {
+  requestPUT("whiteboard", JSON.stringify({}), updateWall);
+  $("#appsButton").click();
+
+}
+
+function preuploadCheck(files) {
+  var totalSize = 0;
+  for (var i = 0, f; f = files[i]; i++) {
+    totalSize += (f.size / MBtoB);
+  }
+  totalSize = Number(totalSize).toFixed(2);
+  if (totalSize < maxUploadSizeMBWithoutWarning)
+    uploadFiles(files);
+  else if (totalSize > maxUploadSizeMB) {
+    swal({
+      type: "warning",
+      title: "Maximum upload size limited to " + maxUploadSizeMB + " MB",
+      text: "You intend to transfer " + files.length + " files with total size of: " + totalSize + " MB.",
+      confirmButtonColor: "#DD6B55",
+      confirmButtonText: "OK",
+      closeOnConfirm: true
+    });
+    clearUploadList();
+  }
+  else {
+    swal({
+        type: "warning",
+        title: "Are you sure?",
+        text: "You intend to transfer " + files.length + " files with total size of: " + totalSize + " MB.",
+        confirmButtonColor: "#DD6B55",
+        confirmButtonText: "Yes",
+        cancelButtonText: "No",
+        closeOnConfirm: true,
+        closeOnCancel: true,
+        showCancelButton: true
+      },
+      function (isConfirm) {
+        if (isConfirm)
+          uploadFiles(files);
+        else
+          clearUploadList();
+      });
+  }
+}
+
+function queryThumbnail(tile) {
+  var url = restUrl + "windows/" + tile["uuid"] + "/thumbnail";
+  $.ajax({
+    url: url,
+    type: 'GET',
+    tile: tile,
+    tryCount: 0,
+    retryLimit: 10,
+    success: function (resp, textStatus, xhr) {
+      var that = this;
+      if (xhr.status == 200) {
+        $('#img' + tile.uuid).attr("src", resp)
+      }
+      else if (xhr.status == 204) {
+        setTimeout(function () {
+          $.ajax(that);
+        }, 1000)
+      }
+    }
+  });
+}
+
+function removeCurtain(type) {
+  $('#' + type).remove()
+}
+
+function requestPUT(command, parameters, callback) {
+  var xhr = new XMLHttpRequest();
+  xhr.open("PUT", restUrl + command, true);
+  xhr.responseType = "json";
+  xhr.send(parameters);
+  xhr.onload = function () {
+    if (xhr.status === 400)
+      alertPopup("Something went wrong", "Issue at: " + restUrl + command);
+    if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+      if (callback != null)
+        callback();
+    }
+  };
+  xhr.onerror = function () {
+    alertPopup("Something went wrong", "Issue at: " + restUrl + command)
+  }
+}
+
+function resizeOnWheelEvent(event, tile) {
+  // do nothing if a window is in focus mode
+  if (focus && !fullscreen)
+    return;
+  var oldWidth = $('#' + tile.uuid).width() / zoomScale;
+  var oldHeight = $('#' + tile.uuid).height() / zoomScale;
+  var incrementSize = wallHeight / 10;
+
+  var newWidth = 0;
+  var newHeight = 0;
+
+  // Zoom out
+  if (event.detail > 0 || event.originalEvent.wheelDelta < 0) {
+    // do nothing if window already at minimum size
+    if (tile.height === tile.minHeight || tile.width === tile.minWidth)
+      return;
+
+    newWidth = Math.round(oldWidth - incrementSize);
+    newHeight = Math.round(oldHeight - incrementSize);
+    // make sure new size is not smaller than minimum dimensions served from rest api a windows
+    if (newHeight < tile.minHeight || newWidth < tile.minWidth) {
+      newHeight = tile.minHeight;
+      newWidth = tile.minWidth;
+    }
+  }
+  // Zoom in
+  else {
+    newWidth = oldWidth + incrementSize;
+    newHeight = oldHeight + incrementSize;
+  }
+
+  var params = JSON.stringify({"uri": tile.uuid, "w": newWidth, "h": newHeight, "centered": 1});
+  requestPUT("resizeWindow", params, updateWall);
+}
+
+function saveSession() {
+  var uri = $('#sessionNameInput').val();
+  if (uri.length == 0)
+    return;
+  if (!uri.endsWith(".dcx"))
+    uri = uri + ".dcx";
+  var params = JSON.stringify({"uri": uri});
+  var exist = false;
+  for (var i = 0; i < sessionFiles.length; i++) {
+    if (sessionFiles[i].text == uri)
+      exist = true;
+  }
+  swal({
+      type: "warning",
+      title: "Are you sure?",
+      text: exist ? "You intend to overwrite an existing session: " + uri : "Save as: " + uri + "?",
+      confirmButtonColor: exist ? "#DD6B55" : "#014f86",
+      confirmButtonText: "Yes",
+      cancelButtonText: "No",
+      closeOnConfirm: false,
+      closeOnCancel: true,
+      showCancelButton: true
+    },
+    function () {
+      requestPUT("save", params, getSessionFolderContent);
+      swal({
+        title: "Saved!",
+        text: "Your file has been saved as: " + uri,
+        type: "success",
+        confirmButtonText: "OK",
+        confirmButtonColor: "#014f86"
+      }, function () {
+        $('#sessionNameInput').val("");
+        $("#sessionMenu").toggle("puff", showEffectSpeed);
+        $("#sessionButton").toggleClass("buttonPressed");
+      });
+    });
+}
+
+function setCurtain(type) {
+  if ($('#' + type).length)
+    return;
+  var curtain = document.createElement("div");
+  curtain.id = type;
+  $("#wall").append(curtain);
+  curtain = $('#' + type);
+  curtain.css("width", wallWidth).css("height", wallHeight);
+  curtain.addClass("curtain");
+  if (type === fullscreenCurtain) {
+    curtain.css("z-index", zIndexFullscreenCurtain);
+    curtain.css("opacity", 1)
+  }
+  else {
+    curtain.css("z-index", zIndexFocusCurtain);
+    curtain.css("opacity", 0.8)
+  }
+  curtain.click(function (event) {
+    event.stopImmediatePropagation();
+    if (fullscreen && focus) {
+      requestPUT("exitFullScreen", null, updateWall);
+    }
+    if (focus && !fullscreen) {
+      requestPUT("unfocusWindows", null, updateWall);
+
+    }
+    if (fullscreen && !focus) {
+      requestPUT("exitFullScreen", null, updateWall);
+      removeCurtain(fullscreenCurtain);
+    }
+  });
 }
 
 function setHandles(tile) {
@@ -750,140 +886,12 @@ function setHandles(tile) {
   }).on('resize', function (e) {
     e.stopPropagation()
   });
-
 }
 
-function queryThumbnail(tile) {
-  var url = restUrl + "windows/" + tile["uuid"] + "/thumbnail";
-  $.ajax({
-    url :  url,
-    type : 'GET',
-    tile: tile,
-    tryCount : 0,
-    retryLimit : 10,
-    success : function(resp, textStatus, xhr) {
-      var that = this;
-      if (xhr.status == 200) {
-        $('#img' + tile.uuid).attr("src", resp)
-      }
-      else if (xhr.status == 204)
-      {
-        setTimeout(function () {
-          $.ajax(that);
-        }, 1000)
-      }
-    }
-  });
-}
-function markAsFocused(tile) {
-  $('#' + tile.uuid).css("z-index", zIndexFocus).css("border", "0px").addClass("windowSelected");
-}
-
-function markAsFullscreen(tile) {
-  $('#' + tile.uuid).css("z-index", zIndexFullscreen).addClass("windowFullscreen");
-  $('#closeButton' + tile.uuid).css("visibility", "hidden");
-  $('#fsButton' + tile.uuid).css("visibility", "hidden");
-  $('#focusButton' + tile.uuid).css("visibility", "hidden");
-}
-
-function markAsSelected(tile) {
-  $('#' + tile.uuid).addClass("windowSelected");
-  $('#focusButton' + tile.uuid).css("visibility", "visible")
-}
-
-function markAsUnselected(tile) {
-  $('#' + tile.uuid).removeClass('windowSelected');
-  $('#focusButton' + tile.uuid).css("visibility", "hidden")
-}
-
-function removeCurtain(type) {
-  $('#' + type).remove()
-}
-
-function requestPUT(command, parameters, callback) {
-  var xhr = new XMLHttpRequest();
-  xhr.open("PUT", restUrl + command, true);
-  xhr.responseType = "json";
-  xhr.send(parameters);
-  xhr.onload = function () {
-    if (xhr.status === 400)
-      alertPopup("Something went wrong", "Issue at: " + restUrl + command);
-    if (xhr.readyState ===  XMLHttpRequest.DONE && xhr.status === 200) {
-      if (callback != null)
-        callback();
-    }
-  };
-  xhr.onerror = function () {
-    alertPopup("Something went wrong", "Issue at: " + restUrl + command)
-  }
-}
-
-function resizeOnWheelEvent(event, tile) {
-  // do nothing if a window is in focus mode
-  if (focus && !fullscreen)
-    return;
-  var oldWidth = $('#' + tile.uuid).width() / zoomScale;
-  var oldHeight = $('#' + tile.uuid).height() / zoomScale;
-  var incrementSize = wallHeight / 10;
-
-  var newWidth = 0;
-  var newHeight = 0;
-
-  // Zoom out
-  if (event.detail > 0 || event.originalEvent.wheelDelta < 0) {
-    // do nothing if window already at minimum size
-    if (tile.height === tile.minHeight || tile.width === tile.minWidth)
-      return;
-
-    newWidth = Math.round(oldWidth - incrementSize);
-    newHeight = Math.round(oldHeight - incrementSize);
-    // make sure new size is not smaller than minimum dimensions served from rest api a windows
-    if (newHeight < tile.minHeight || newWidth < tile.minWidth) {
-      newHeight = tile.minHeight;
-      newWidth = tile.minWidth;
-    }
-  }
-  // Zoom in
-  else {
-    newWidth = oldWidth + incrementSize;
-    newHeight = oldHeight + incrementSize;
-  }
-
-  var params = JSON.stringify({"uri": tile.uuid, "w": newWidth, "h": newHeight, "centered": 1});
-  requestPUT("resizeWindow", params, updateWall);
-}
-
-function setCurtain(type) {
-  if ( $('#'+type).length )
-    return;
-  var curtain = document.createElement("div");
-  curtain.id = type;
-  $("#wall").append(curtain);
-  curtain = $('#' + type);
-  curtain.css("width", wallWidth).css("height", wallHeight);
-  curtain.addClass("curtain");
-  if (type === fullscreenCurtain) {
-    curtain.css("z-index", zIndexFullscreenCurtain);
-    curtain.css("opacity", 1)
-  }
-  else {
-    curtain.css("z-index", zIndexFocusCurtain);
-    curtain.css("opacity", 0.8)
-  }
-  curtain.click(function (event) {
-    event.stopImmediatePropagation();
-    if (fullscreen && focus) {
-      requestPUT("exitFullScreen", null, updateWall);
-    }
-    if (focus && !fullscreen) {
-      requestPUT("unfocusWindows", null, updateWall);
-
-    }
-    if (fullscreen && !focus) {
-      requestPUT("exitFullScreen", null, updateWall);
-      removeCurtain(fullscreenCurtain);
-    }
-  });
+function setOption(property) {
+  var action = {};
+  action[property] = $('#checkbox_' + property).prop('checked');
+  requestPUT("options", JSON.stringify(action));
 }
 
 function setScale() {
@@ -909,6 +917,24 @@ function setScale() {
   wall.css("margin-top", 25);
   wall.css("margin-bottom", minimalVerticalMargin);
   $(".windowControl").css({transform: 'scale(1)'});
+}
+
+function updateOptions() {
+  var options = [];
+  var xhr = new XMLHttpRequest();
+  xhr.open("GET", restUrl + "options", true);
+  xhr.overrideMimeType("application/json");
+  xhr.onload = function () {
+    options = JSON.parse(xhr.responseText);
+    for (var property in options) {
+      if (options.hasOwnProperty(property)) {
+        if (typeof(options[property]) !== "boolean")
+          continue;
+        $('#checkbox_' + property).prop('checked', options[property])
+      }
+    }
+  };
+  xhr.send(null)
 }
 
 function updateTile(tile) {
@@ -1015,5 +1041,74 @@ function updateWall() {
   xhr.send(null);
   xhr.onerror = function () {
     alertPopup("Something went wrong.", "Tide REST interface not accessible at: " + restUrl);
+  }
+}
+
+function uploadFiles(files) {
+  var url = "upload";
+  var requests = [];
+  for (var i = 0; i < files.length; i++) {
+    (function (i) {
+      var file = files[i];
+      requests[i] = new XMLHttpRequest();
+      requests[i].open('POST', restUrl + url, true);
+      requests[i].onload = function () {
+        if (requests[i].readyState === XMLHttpRequest.DONE && requests[i].status === 200) {
+          var xhr2 = new XMLHttpRequest();
+          var index = output.findIndex(function (element) {
+            return element.id == file.id
+          });
+          output[index].started = true;
+
+          var cancelIcon = document.createElement("span");
+          cancelIcon.innerHTML = "<font color='red' >&#x2718; </font>";
+          cancelIcon.style = "cursor: pointer;";
+          var loadingGif = document.createElement("img");
+          loadingGif.src = loadingGifUrl;
+          $('#' + file.id).append(loadingGif).append(cancelIcon);
+
+          cancelIcon.addEventListener("click", function () {
+            index = output.findIndex(function (element) {
+              return element.id == file.id
+            });
+            output[index].finished = true;
+            xhr2.abort();
+            var fileLi = $('#' + file.id);
+            fileLi.find('img:first').remove();
+            fileLi.find('span:last').remove();
+            fileLi.append("<font color='red'> &#x2716; cancelled</font>");
+          });
+
+          var fileName = decodeURI(JSON.parse(this.responseText)["url"]);
+          xhr2.open('PUT', restUrl + url + "/" + fileName.toLowerCase(), true);
+          xhr2.onload = function () {
+            var fileLi = $('#' + file.id);
+            if (xhr2.readyState === XMLHttpRequest.DONE && xhr2.status === 201) {
+              index = output.findIndex(function (element) {
+                return element.id == file.id
+              });
+              output[index].finished = true;
+              var success = JSON.parse(xhr2.responseText)["info"];
+              fileLi.find('img:first').remove();
+              fileLi.find('span:last').remove();
+              fileLi.append("<font color='green'> &#10004;" + success + "</font>");
+              updateWall();
+            }
+            else {
+              output[index].finished = true;
+              var error = JSON.parse(xhr2.responseText)["info"];
+              fileLi.find('img:first').remove();
+              fileLi.find('span:last').remove();
+              fileLi.append("<font color='red'> &#x2716;" + error + "</font>");
+            }
+            $('#file-form').find("input[type=file]").val("");
+          };
+          xhr2.send(file);
+        }
+        else
+          console.log('ENDPOINT REGISTRATION: An error occurred!');
+      };
+      requests[i].send(JSON.stringify({"fileName": (file.name.toLowerCase())}));
+    })(i)
   }
 }
