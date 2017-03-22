@@ -65,7 +65,7 @@ BOOST_AUTO_TEST_CASE( testFileReceiver )
     DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
     FileReceiver fileReceiver;
 
-    bool open;
+    bool open = false;
     QObject::connect( &fileReceiver, &FileReceiver::open,
              [&open]( const QString& uri, promisePtr promise )
     {
@@ -94,6 +94,7 @@ BOOST_AUTO_TEST_CASE( testFileReceiver )
     file.open( QIODevice::ReadOnly );
     auto payload = file.readAll().toStdString();
 
+    BOOST_CHECK_EQUAL( open, false );
     future = fileReceiver.handleUpload( "wall.png", payload );
     response = future.get();
     BOOST_CHECK_EQUAL( open, true );

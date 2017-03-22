@@ -95,7 +95,7 @@ BOOST_AUTO_TEST_CASE( testWindowInfo )
     response = future.get();
     BOOST_CHECK_EQUAL( response.code, 204 );
 
-    // Wait for the thumnbnail generation
+    // Wait for the async thumnbnail generation
     sleep(2);
     future = windowsContent.getWindowInfo( uuid.toStdString() + "/thumbnail",
                                            std::string( ));

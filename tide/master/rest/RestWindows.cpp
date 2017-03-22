@@ -105,7 +105,7 @@ std::future<http::Response> RestWindows::getWindowInfo( const std::string& path,
         const auto endpointSplit = endpoint.split( "/" );
         if( endpointSplit.size() == 2 && endpointSplit[1] == "thumbnail")
         {
-            const auto uuid = endpointSplit[0];
+            const auto& uuid = endpointSplit[0];
             return _getThumbnail( uuid );
         }
     }
@@ -149,18 +149,19 @@ std::string RestWindows::_getWindowList() const
 
 void RestWindows::_cacheThumbnail( ContentWindowPtr window )
 {
-    QtConcurrent::run( [this, window]()
+    const auto uuid = _getUuid( *window );
+    _thumbnailCache[uuid] = std::string();
+
+    QtConcurrent::run( [this, window, uuid]()
     {
         const QString& uri = window->getContent()->getURI();
-        const auto uuid = _getUuid( *window );
-
         const auto image = thumbnail::create( uri, thumbnailSize );
         QByteArray imageArray;
         QBuffer buffer( &imageArray );
         buffer.open( QIODevice::WriteOnly );
         if( !image.save( &buffer, "PNG" ))
         {
-            _thumbnailCache[uuid] = std::string();
+            _thumbnailCache.remove( uuid );
             return;
         }
         buffer.close();
@@ -173,11 +174,11 @@ std::future<zeroeq::http::Response>
 RestWindows::_getThumbnail( const QString& uuid )
 {
     if( !_thumbnailCache.contains( uuid ))
-        return make_ready_future( http::Response{ http::Code::NO_CONTENT } );
+        return make_ready_future( http::Response{ http::Code::NOT_FOUND } );
 
     const auto& image = _thumbnailCache[ uuid ];
     if( image.empty( ))
-        return make_ready_future( http::Response{ http::Code::NOT_FOUND } );
+        return make_ready_future( http::Response{ http::Code::NO_CONTENT } );
 
     http::Response response{ http::Code::OK };
     response.headers[http::Header::CONTENT_TYPE] = "image/png";

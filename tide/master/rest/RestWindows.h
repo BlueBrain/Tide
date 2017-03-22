@@ -55,16 +55,17 @@ class RestWindows : public QObject
 {
 public:
     /**
-     * Construct a JSON list of windows
+     * Construct a JSON list of windows.
      *
      * @param displayGroup DisplayGroup to expose.
      */
     RestWindows( const DisplayGroup& displayGroup );
 
     /**
-     * Expose the list of windows to REST Interface
+     * Expose information on windows to REST Interface.
      *
-     * @param path the url part including window uuid and action
+     * @param path the url part including window uuid and action.
+     * @return future response containing list of windows or a thumbnail.
      */
     std::future<zeroeq::http::Response> getWindowInfo( const std::string& path,
                                                        const std::string& );

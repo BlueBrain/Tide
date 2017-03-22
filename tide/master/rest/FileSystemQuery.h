@@ -66,9 +66,10 @@ public:
      * List the content of a directory to be exposed to REST Interface
      *
      * @param pathPoint the path of a directory to list
+     * @return future response with directory content list
      */
     std::future<zeroeq::http::Response>
-    browseFileSystem( const std::string& pathPoint, const std::string& );
+    list( const std::string& directory, const std::string& );
 
 private:
     const QString _contentDirectory;

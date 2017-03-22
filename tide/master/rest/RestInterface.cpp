@@ -189,7 +189,7 @@ void RestInterface::setupHtmlInterface( DisplayGroup& displayGroup,
     _impl->contentDirQuery.reset( new FileSystemQuery( _config.getContentDir(),
                                                        fileFilters ));
 
-    auto browseFilesFunc = std::bind( &FileSystemQuery::browseFileSystem,
+    auto browseFilesFunc = std::bind( &FileSystemQuery::list,
                                       _impl->contentDirQuery.get(),
                                       std::placeholders::_1,
                                       std::placeholders::_2 );
@@ -201,7 +201,7 @@ void RestInterface::setupHtmlInterface( DisplayGroup& displayGroup,
     _impl->sessionDirQuery.reset( new FileSystemQuery( _config.getSessionsDir(),
                                                        sessionFilters ));
 
-    auto browseSessionsFunc = std::bind( &FileSystemQuery::browseFileSystem,
+    auto browseSessionsFunc = std::bind( &FileSystemQuery::list,
                                          _impl->sessionDirQuery.get(),
                                          std::placeholders::_1,
                                          std::placeholders::_2 );

@@ -141,10 +141,10 @@ FileReceiver::handleUpload(  const std::string& path,
                              const std::string& payload )
 {
 
-    auto filePath = QString::fromStdString( path );
+    const auto filePath = QString::fromStdString( path );
     if( !_preparedPaths.contains( filePath ))
         return _makeResponse( http::Code::FORBIDDEN, "info",
-                              "uploaded not prepared"  );
+                              "upload not prepared"  );
     QFile file( filePath );
     if( !file.open( QIODevice::WriteOnly ) ||
             !file.write( payload.c_str(), payload.size( )))
@@ -154,14 +154,14 @@ FileReceiver::handleUpload(  const std::string& path,
                               "could not upload"  );
     }
     file.close();
+    _preparedPaths.removeOne( filePath );
+
     put_flog ( LOG_INFO, "file created as %s",
                filePath.toLocal8Bit().constData( ));
 
     auto openPromise = std::make_shared<std::promise<bool>>();
     emit open( filePath, openPromise );
     const bool success = openPromise->get_future().get();
-
-    _preparedPaths.removeOne( filePath );
 
     if( success )
     {

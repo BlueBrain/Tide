@@ -57,7 +57,7 @@ FileSystemQuery::FileSystemQuery( const QString& contentDirectory,
 {}
 
 std::future<zeroeq::http::Response>
-FileSystemQuery::browseFileSystem( const std::string& pathPoint,
+FileSystemQuery::list( const std::string& pathPoint,
                                    const std::string& )
 {
     using namespace zeroeq::http;
@@ -72,11 +72,7 @@ FileSystemQuery::browseFileSystem( const std::string& pathPoint,
         return make_ready_future( Response{ Code::BAD_REQUEST } );
 
     if( absolutePath.exists( ))
-    {
-        Response response;
-        response.payload = _toJson( fullpath );
-        return make_ready_future(response);
-    }
+        return make_ready_future( Response{ Code::OK, _toJson( fullpath ) } );
     else
         return make_ready_future( Response{ Code::NO_CONTENT } );
 }
