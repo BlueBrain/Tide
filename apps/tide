@@ -70,22 +70,9 @@ TIDEWALL_BIN = locate_binary("tideWall")
 TIDEFORKER_BIN = locate_binary("tideForker")
 
 if args.config:
-    TIDE_CONFIG_FILE = args.config
+    TIDE_CONFIG_FILE = os.path.abspath(args.config)
 else:
     TIDE_CONFIG_FILE = TIDE_PATH + '/share/Tide/examples/configuration_1x3.xml'
-
-# for example scripts
-os.environ['PYTHONPATH'] = os.pathsep + TIDE_PATH + '/examples'
-
-# add in the default Python path provided by the Python interpreter since it
-# is not provided in our GUI Python console
-os.environ['PYTHONPATH'] += os.pathsep + os.pathsep.join(sys.path)
-
-# add our own lib folder
-if 'LD_LIBRARY_PATH' not in os.environ:
-    os.environ['LD_LIBRARY_PATH'] = TIDE_PATH + '/lib'
-else:
-    os.environ['LD_LIBRARY_PATH'] += os.pathsep + TIDE_PATH + '/lib'
 
 # find full path to mpiexec; if MPI is installed in a non-standard location the
 # full path may be necessary to launch correctly across the cluster.
