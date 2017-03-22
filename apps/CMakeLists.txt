@@ -11,17 +11,22 @@ add_subdirectory(TideWall)
 add_subdirectory(Launcher)
 add_subdirectory(Whiteboard)
 
-set(_tide_in ${CMAKE_CURRENT_SOURCE_DIR}/tide)
-set(_tide_out ${PROJECT_BINARY_DIR}/bin/tide)
-add_custom_command(
-  DEPENDS ${_tide_in}
-  OUTPUT ${_tide_out}
-  POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${_tide_in} ${_tide_out}
-)
-add_custom_target(tide ALL DEPENDS ${_tide_out} tideForker tideMaster tideWall
-  tideLauncher tideWhiteboard
-)
-add_dependencies(${PROJECT_NAME}-all tide)
+set(scripts tide pyramidmaker)
+foreach(script ${scripts})
+  set(_in ${CMAKE_CURRENT_SOURCE_DIR}/${script})
+  set(_out ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${script})
+  add_custom_command(
+    DEPENDS ${_in} OUTPUT ${_out}
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${_in} ${_out})
+  add_custom_target(${script} ALL DEPENDS ${_out})
+  add_dependencies(${PROJECT_NAME}-all ${script})
+  install(PROGRAMS ${script} DESTINATION bin COMPONENT apps)
+
+  # Generate application help pages for doxygen
+  common_help(${script} LOCATION ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${script})
+endforeach()
+
+add_dependencies(tide tideForker tideMaster tideWall tideLauncher tideWhiteboard)
 
 if(TARGET Qt5::WebKitWidgets)
   add_subdirectory(LocalStreamer)
@@ -32,16 +37,9 @@ if(TARGET Qt5::WebEngine)
   add_dependencies(tide tideWebbrowser)
 endif()
 
-# Copy the startup script and default config to the bin folder to be able to
-# launch after building without requiring an install folder and 'make install'
+# Copy the default config to the share folder to be able to launch after
+# building without requiring an install folder and 'make install'
 file(
   COPY ${PROJECT_SOURCE_DIR}/examples/configuration_1x3.xml
   DESTINATION ${PROJECT_BINARY_DIR}/share/Tide/examples
 )
-
-file(COPY pyramidmaker DESTINATION ${PROJECT_BINARY_DIR}/bin)
-install(PROGRAMS pyramidmaker tide DESTINATION bin COMPONENT apps)
-
-# Generate application help pages for doxygen
-common_help(tide LOCATION ${_tide_out})
-common_help(pyramidmaker LOCATION ${PROJECT_BINARY_DIR}/bin/pyramidmaker)
