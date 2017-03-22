@@ -115,6 +115,14 @@ Check that the correct openmpi version is in the PATH:
 and clear the CMakeCache (or just start with a fresh build folder) to ensure
 that CMake does not use the incompatible system openmpi.
 
+Warning: It seems that OpenMPI does not build correctly if OpenCL is installed.
+The only know solution is to unistall OpenCL, build openmpi then re-install
+OpenCL.
+
+Alternative: If the above does not work for you, try installing the libmpich-dev
+system package. Tide will then only run in single-window mode (using
+configuration_1x1.xml).
+
 ### Ubuntu 14.04
 
 Tide has been extensively developed and tested on Ubuntu 14.04. Only a few
