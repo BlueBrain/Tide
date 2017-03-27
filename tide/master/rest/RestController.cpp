@@ -90,22 +90,22 @@ RestController::RestController( http::Server& server,
     connect ( &_moveWindowtoFullscreen, &RestCommand::received,
               this, &RestController::_handleMoveWindowToFullscreen );
 
-    server.handlePUT( "tide/resizeWindow", [this]( const std::string& received )
+    server.handlePUT( "tide/resize-window", [this]( const std::string& received )
     { return _handleResizeWindow( received ); } );
 
-    server.handlePUT( "tide/moveWindow", [this]( const std::string& received )
+    server.handlePUT( "tide/move-window", [this]( const std::string& received )
     { return _handleMoveWindow( received ); } );
 
-    server.handlePUT( "tide/focusWindows", [this]()
+    server.handlePUT( "tide/focus-windows", [this]()
     { return _handleFocusWindows(); });
 
-    server.handlePUT( "tide/unfocusWindows", [this]()
+    server.handlePUT( "tide/unfocus-windows", [this]()
     { return _handleUnfocusWindows(); });
 
-    server.handlePUT( "tide/exitFullScreen", [this]()
+    server.handlePUT( "tide/exit-fullscreen", [this]()
     { return _handleExitFullScreen(); } );
 
-    server.handlePUT( "tide/deselectWindows", [this]()
+    server.handlePUT( "tide/deselect-windows", [this]()
     { return _handleDeselectWindows(); } );
 
     server.handle( http::Method::PUT, "tide/clear",

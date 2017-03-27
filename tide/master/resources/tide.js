@@ -43,31 +43,37 @@ function bootstrapMenus() {
   $("#addButton").click(function (e) {
     $("#uploadMenu,#sessionMenu,#optionsMenu,#appsMenu").each(function () {
       $(this).hide("puff", showEffectSpeed);
+        e.stopPropagation()
     });
 
     $("#fsMenu").css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed);
     $(".menuButton:not(#addButton)").removeClass("buttonPressed");
     $("#addButton").toggleClass("buttonPressed")
+    e.stopPropagation()
   });
 
   $("#sessionButton").click(function (e) {
     $("#uploadMenu,#fsMenu,#optionsMenu,#appsMenu").each(function () {
       $(this).hide("puff", showEffectSpeed);
+      e.stopPropagation()
     });
 
     $("#sessionMenu").css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed);
     $(".menuButton:not(#sessionButton)").removeClass("buttonPressed");
     $("#sessionButton").toggleClass("buttonPressed")
+    e.stopPropagation()
   });
 
   $("#uploadButton").click(function (e) {
     $("#sessionMenu,#fsMenu,#optionsMenu,#appsMenu").each(function () {
       $(this).hide("puff", showEffectSpeed);
+      e.stopPropagation()
     });
 
     $("#uploadMenu").css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed);
     $(".menuButton:not(#uploadButton)").removeClass("buttonPressed");
     $("#uploadButton").toggleClass("buttonPressed")
+    e.stopPropagation()
   });
 
   $("#optionsButton").click(function (e) {
@@ -79,6 +85,7 @@ function bootstrapMenus() {
     $(".menuButton:not(#optionsButton)").removeClass("buttonPressed");
     $("#optionsButton").toggleClass("buttonPressed");
     updateOptions();
+    e.stopPropagation()
   });
 
   $("#appsButton").click(function (e) {
@@ -89,10 +96,11 @@ function bootstrapMenus() {
     $("#appsMenu").css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed);
     $(".menuButton:not(#appsButton)").removeClass("buttonPressed");
     $("#appsButton").toggleClass("buttonPressed")
+    e.stopPropagation()
   });
 
-  $("#browseUrlInput").on("click", function (event) {
-    event.stopPropagation();
+  $("#browseUrlInput").on("click", function (e) {
+    e.stopPropagation()
   });
 
   getOptions();
@@ -172,7 +180,7 @@ function createCloseButton(tile) {
       return element.uuid === tile.uuid;
     }), 1);
     if (tile.focus)
-      requestPUT("unfocusWindow", jsonUuidHelper(tile), function () {
+      requestPUT("unfocus-window", jsonUuidHelper(tile), function () {
         return requestPUT("close", jsonUuidHelper(tile), updateWall);
       });
     else
@@ -191,10 +199,10 @@ function createFocusButton(tile) {
   focusButton.onclick = function (event) {
     event.stopImmediatePropagation();
     if (!focus)
-      requestPUT("focusWindows", null, updateWall);
+      requestPUT("focus-windows", null, updateWall);
     else {
       tile.selected = false;
-      requestPUT("unfocusWindow", jsonUuidHelper(tile), updateWall);
+      requestPUT("unfocus-window", jsonUuidHelper(tile), updateWall);
     }
   };
   var icon = document.createElement("img");
@@ -207,7 +215,7 @@ function createFullscreenButton(tile) {
   var fullscreenButton = createButton("fsButton", tile);
   fullscreenButton.style.visibility = tile.mode === modeFullscreen ? "hidden" : "visible";
   fullscreenButton.onclick = function (event) {
-    requestPUT("moveWindowToFullscreen", jsonUuidHelper(tile), updateWall);
+    requestPUT("move-window-to-fullscreen", jsonUuidHelper(tile), updateWall);
     event.stopImmediatePropagation();
   };
   var icon = document.createElement("img");
@@ -261,9 +269,9 @@ function createWindow(tile) {
   );
   windowDiv.onclick = function (event) {
     if (!fullscreen && !focus) {
-      requestPUT("toggleSelectWindow", jsonUuidHelper(tile),
+      requestPUT("toggle-select-window", jsonUuidHelper(tile),
         function () {
-          return requestPUT("moveWindowToFront", jsonUuidHelper(tile), updateWall)
+          return requestPUT("move-window-to-front", jsonUuidHelper(tile), updateWall)
         }
       );
     }
@@ -580,9 +588,15 @@ function init() {
     var wall = $("#wall");
     wall.css("background-color", config["backgroundColor"]);
     wall.css("width", wallWidth).css("height", wallHeight);
+
+    $('#wallWrapper').click(function(){
+      $(".topmenu").hide();
+      $(".menuButton").removeClass("buttonPressed");
+    });
+
     wall.click(function () {
-      if (windowList.length > 0) {
-        requestPUT("deselectWindows", null, updateWall);
+        if (windowList.length > 0) {
+        requestPUT("deselect-windows", null, updateWall);
       }
 
     });
@@ -601,7 +615,7 @@ function init() {
   };
   xhr.send(null);
   $("#exitFullscreenButton").on("click", function () {
-    requestPUT("exitFullScreen", null, updateWall);
+    requestPUT("exit-fullscreen", null, updateWall);
     removeCurtain(fullscreenCurtain);
   });
   $("#closeAllButton").on("click", function () {
@@ -756,7 +770,7 @@ function resizeOnWheelEvent(event, tile) {
   }
 
   var params = JSON.stringify({"uri": tile.uuid, "w": newWidth, "h": newHeight, "centered": 1});
-  requestPUT("resizeWindow", params, updateWall);
+  requestPUT("resize-window", params, updateWall);
 }
 
 function saveSession() {
@@ -818,14 +832,14 @@ function setCurtain(type) {
   curtain.click(function (event) {
     event.stopImmediatePropagation();
     if (fullscreen && focus) {
-      requestPUT("exitFullScreen", null, updateWall);
+      requestPUT("exit-fullscreen", null, updateWall);
     }
     if (focus && !fullscreen) {
-      requestPUT("unfocusWindows", null, updateWall);
+      requestPUT("unfocus-windows", null, updateWall);
 
     }
     if (fullscreen && !focus) {
-      requestPUT("exitFullScreen", null, updateWall);
+      requestPUT("exit-fullscreen", null, updateWall);
       removeCurtain(fullscreenCurtain);
     }
   });
@@ -853,7 +867,7 @@ function setHandles(tile) {
     },
     stop: function () {
       var params = JSON.stringify({"uri": tile.uuid, "x": newLeft, "y": newTop});
-      requestPUT("moveWindow", params, updateWall);
+      requestPUT("move-window", params, updateWall);
     },
     disabled: false
   });
@@ -882,8 +896,8 @@ function setHandles(tile) {
         tile.width = ui.size.width
       }
       var params = JSON.stringify({"uri": tile.uuid, "w": tile.width, "h": tile.height, "centered": 0});
-      requestPUT("resizeWindow", params, function () {
-        return requestPUT("moveWindowToFront", jsonUuidHelper(tile), updateWall);
+      requestPUT("resize-window", params, function () {
+        return requestPUT("move-window-to-front", jsonUuidHelper(tile), updateWall);
       });
     }
   }).on('resize', function (e) {
