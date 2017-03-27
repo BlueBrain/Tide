@@ -172,7 +172,7 @@ RestController::RestController( http::Server& server,
 
         const QString uri  = obj["uri"].toString( );
         auto future_response = std::async(std::launch::deferred,
-                                          [this, uri ]()
+                                          [this, uri]()
         {
             auto promise = std::make_shared<std::promise<bool>>();
             auto future = promise->get_future();

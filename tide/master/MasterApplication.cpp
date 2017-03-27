@@ -394,7 +394,8 @@ void MasterApplication::_initTouchListener()
 }
 #endif
 
-void MasterApplication::_open( const QString& uri, promisePtr promise )
+void MasterApplication::_open( const QString& uri, const QPointF coords,
+                               promisePtr promise )
 {
     if( uri.isEmpty( ))
     {
@@ -413,7 +414,7 @@ void MasterApplication::_open( const QString& uri, promisePtr promise )
     else if( QDir{ uri }.exists( ))
         success = loader.loadDir( uri );
     else
-        success = loader.load( uri );
+        success = loader.load( uri, coords );
 
     if( promise )
         promise->set_value( success );

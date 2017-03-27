@@ -104,7 +104,7 @@ private:
     std::unique_ptr<MasterFromWallChannel> _masterFromWallChannel;
     QThread _mpiSendThread;
     QThread _mpiReceiveThread;
-    void _open( const QString& uri, promisePtr promise );
+    void _open( const QString& uri, const QPointF coords, promisePtr promise );
 
     DisplayGroupPtr _displayGroup;
     MarkersPtr _markers;

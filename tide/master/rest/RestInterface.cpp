@@ -186,7 +186,9 @@ void RestInterface::setupHtmlInterface( DisplayGroup& displayGroup,
              this, &RestInterface::load );
 
     connect( _impl->sceneController.get(), &RestController::open,
-             this, &RestInterface::open );
+             [this]( QString uri, promisePtr promise ){
+        emit open( uri, QPointF(), promise );
+    });
 
     const auto& fileFilters = ContentFactory::getSupportedFilesFilter( );
 

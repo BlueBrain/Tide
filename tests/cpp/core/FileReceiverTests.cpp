@@ -68,15 +68,19 @@ BOOST_AUTO_TEST_CASE( testFileReceiver )
 
     bool open = false;
     QObject::connect( &fileReceiver, &FileReceiver::open,
-             [&open]( const QString& uri, promisePtr promise )
+             [&open]( const QString& uri, const QPointF pos,
+                      promisePtr promise )
     {
         Q_UNUSED( uri );
+        Q_UNUSED( pos );
         promise->set_value(true);
         open = true;
     });
 
     QJsonObject unsupportedFile;
     unsupportedFile["fileName"] = "wall.pn";
+    unsupportedFile["x"] = "0";
+    unsupportedFile["y"] = "0";
     QJsonDocument doc( unsupportedFile );
     zeroeq::http::Request uploadRequest;
     uploadRequest.body = doc.toJson().toStdString();
@@ -87,6 +91,8 @@ BOOST_AUTO_TEST_CASE( testFileReceiver )
 
     QJsonObject supportedFile;
     supportedFile["fileName"] = "wall.png";
+    supportedFile["x"] = "0";
+    supportedFile["y"] = "0";
     QJsonDocument doc2( supportedFile );
     uploadRequest.body = doc2.toJson().toStdString();
     future = fileReceiver.prepareUpload( uploadRequest );

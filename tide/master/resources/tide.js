@@ -494,10 +494,14 @@ function handleDragOver(evt) {
 function handleUpload(evt) {
   evt.stopPropagation();
   evt.preventDefault();
+  var coords = {};
   $("#wall").css("opacity", 1);
   var data;
   if (evt.type == "drop") {
     data = evt.dataTransfer.files;
+    var offset = $("#wall").offset();
+    coords["x"] = (event.clientX-offset["left"]) / zoomScale;
+    coords["y"] = (event.clientY-offset["top"]) / zoomScale;
   }
   else if (evt.type === "change") {
     data = evt.target.files;
@@ -552,12 +556,12 @@ function handleUpload(evt) {
     form.onsubmit = (function (files) {
       return function () {
         $('#submitButton').hide();
-        preuploadCheck(files);
+        preuploadCheck(files, coords);
       }
     })(files);
   }
   else if (evt.type == "drop") {
-    preuploadCheck(files);
+    preuploadCheck(files, coords);
     if (!$('#uploadMenu').is(':visible') && files.length > 0)
     {
       $('#uploadButton').notify("Upload started", {
@@ -590,7 +594,7 @@ function init() {
     wall.css("width", wallWidth).css("height", wallHeight);
 
     $('#wallWrapper').click(function(){
-      $(".topmenu").hide();
+      $(".topMenu").hide();
       $(".menuButton").removeClass("buttonPressed");
     });
 
@@ -654,14 +658,14 @@ function openWhiteboard() {
 
 }
 
-function preuploadCheck(files) {
+function preuploadCheck(files, coords) {
   var totalSize = 0;
   for (var i = 0, f; f = files[i]; i++) {
     totalSize += (f.size / MBtoB);
   }
   totalSize = Number(totalSize).toFixed(2);
   if (totalSize < maxUploadSizeMBWithoutWarning)
-    uploadFiles(files);
+    uploadFiles(files, coords);
   else if (totalSize > maxUploadSizeMB) {
     swal({
       type: "warning",
@@ -687,7 +691,7 @@ function preuploadCheck(files) {
       },
       function (isConfirm) {
         if (isConfirm)
-          uploadFiles(files);
+          uploadFiles(files, coords);
         else
           clearUploadList();
       });
@@ -1061,7 +1065,7 @@ function updateWall() {
   }
 }
 
-function uploadFiles(files) {
+function uploadFiles(files, coords) {
   var url = "upload";
   var requests = [];
   for (var i = 0; i < files.length; i++) {
@@ -1125,7 +1129,9 @@ function uploadFiles(files) {
         else
           console.log('ENDPOINT REGISTRATION: An error occurred!');
       };
-      requests[i].send(JSON.stringify({"fileName": (file.name.toLowerCase())}));
+      requests[i].send(JSON.stringify({"fileName": (file.name.toLowerCase()),
+      "x": coords["x"], "y": coords["y"]
+      }));
     })(i)
   }
 }

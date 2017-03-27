@@ -45,8 +45,8 @@
 #include <zeroeq/http/server.h>
 
 #include <QObject>
+#include <QMap>
 #include <QString>
-#include <QVector>
 
 class FileReceiver : public QObject
 {
@@ -80,10 +80,10 @@ public:
 
 signals:
     /** Open the uploaded file. */
-    void open( QString uri, promisePtr promise );
+    void open( QString uri, const QPointF coords, promisePtr promise );
 
 private:
-    QVector<QString> _preparedPaths;
+    QMap<QString, QPointF> _preparedPaths;
 
 };
 

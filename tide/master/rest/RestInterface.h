@@ -92,7 +92,7 @@ public:
 
 signals:
     /** Open a content. */
-    void open( QString uri, promisePtr promise );
+    void open( QString uri, const QPointF coords, promisePtr promise );
 
     /** Load a session. */
     void load( QString uri, promisePtr promise );

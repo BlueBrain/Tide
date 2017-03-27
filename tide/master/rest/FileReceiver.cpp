@@ -120,6 +120,8 @@ FileReceiver::prepareUpload( const zeroeq::http::Request& request )
     auto fileName = obj["fileName"].toString();
     if( fileName.contains( '/' ))
         return make_ready_future( http::Response{ http::Code::NOT_SUPPORTED } );
+    const auto posX = obj["x"].toDouble();
+    const auto posY = obj["y"].toDouble();
 
     const QFileInfo fileInfo( fileName );
     const QString fileSuffix = fileInfo.suffix();
@@ -133,7 +135,7 @@ FileReceiver::prepareUpload( const zeroeq::http::Request& request )
     const auto filePath = _getAvailableFilePath( fileInfo );
     const auto encodedFilename = _encodeFilename( filePath );
 
-    _preparedPaths.append( encodedFilename );
+    _preparedPaths[ encodedFilename ] = std::move(QPointF( posX, posY ));
     return _makeResponse( http::Code::OK, "url", encodedFilename );
 }
 
@@ -149,18 +151,19 @@ FileReceiver::handleUpload( const zeroeq::http::Request& request )
     if( !file.open( QIODevice::WriteOnly ) ||
             !file.write( request.body.c_str(), request.body.size( )))
     {
-        _preparedPaths.removeOne( filePath );
+        _preparedPaths.remove( filePath );
         return _makeResponse( http::Code::INTERNAL_SERVER_ERROR, "info",
                               "could not upload"  );
     }
     file.close();
-    _preparedPaths.removeOne( filePath );
 
     put_flog ( LOG_INFO, "file created as %s",
                filePath.toLocal8Bit().constData( ));
 
     auto openPromise = std::make_shared<std::promise<bool>>();
-    emit open( filePath, openPromise );
+    emit open( filePath, _preparedPaths[filePath], openPromise );
+    _preparedPaths.remove( filePath );
+
     const bool success = openPromise->get_future().get();
 
     if( success )
