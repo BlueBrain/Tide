@@ -143,15 +143,21 @@ std::future<http::Response>
 FileReceiver::handleUpload( const zeroeq::http::Request& request )
 {
 
-    const auto filePath = QString::fromStdString( request.path );
-    if( !_preparedPaths.contains( filePath ))
+    if( !_preparedPaths.contains( QString::fromStdString( request.path  )))
         return _makeResponse( http::Code::FORBIDDEN, "info",
                               "upload not prepared"  );
+
+    const auto filePath = QDir::tempPath() + "/" +
+                          QString::fromStdString( request.path );
     QFile file( filePath );
     if( !file.open( QIODevice::WriteOnly ) ||
             !file.write( request.body.c_str(), request.body.size( )))
+
+
     {
         _preparedPaths.remove( filePath );
+        put_flog ( LOG_INFO, "file not created as %s",
+                   filePath.toLocal8Bit().constData( ));
         return _makeResponse( http::Code::INTERNAL_SERVER_ERROR, "info",
                               "could not upload"  );
     }
