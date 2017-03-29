@@ -21,7 +21,7 @@ function alertPopup(title, text) {
       confirmButtonText: "Refresh page!",
       closeOnConfirm: false
     },
-    function () {
+    function() {
       location.reload();
     });
 }
@@ -104,7 +104,6 @@ function bootstrapMenus() {
   });
 
   getOptions();
-
 }
 
 function boostrapUpload() {
@@ -124,7 +123,6 @@ function browse() {
   requestPUT("browse", JSON.stringify({"uri": (url)}), updateWall);
   $('#browseUrlInput').val("");
   $("#appsButton").click();
-
 }
 
 function checkIfEqual(tile1, tile2) {
@@ -181,10 +179,10 @@ function createCloseButton(tile) {
     }), 1);
     if (tile.focus)
       requestPUT("unfocus-window", jsonUuidHelper(tile), function () {
-        return requestPUT("close", jsonUuidHelper(tile), updateWall);
+        return requestDELETE("windows/"+tile.uuid, updateWall);
       });
     else
-      requestPUT("close", jsonUuidHelper(tile), updateWall);
+      requestDELETE("windows/"+tile.uuid, updateWall);
     $('#' + tile.uuid).remove();
   };
   var icon = document.createElement("img");
@@ -276,7 +274,6 @@ function createWindow(tile) {
       );
     }
     event.stopImmediatePropagation();
-
   };
   updateTile(tile);
 }
@@ -319,47 +316,51 @@ function enableHandles() {
 
 function getFileSystemContent(path) {
   var xhr = new XMLHttpRequest();
-  var url = (path !== "/") ? restUrl + "files/" + encodeURI(path) : restUrl + "files/";
+  var url = restUrl + "files/" + encodeURI(path);
   var files = [];
   xhr.open("GET", url, true);
-  xhr.overrideMimeType("application/json");
-
   xhr.onload = function () {
     var data = JSON.parse(xhr.responseText);
     var filesCount = 0;
     for (var i = 0; i < data.length; i++)
-      if (data[i].file)
+      if (!data[i].dir)
         ++filesCount;
+
+    // No "Move up" button at the top-level
+    if (path !== "") {
+      var upFile = {
+        text: "Move up",
+        path: path.split('/').slice(0, -1).join('/'),
+        dir: true,
+        icon: "glyphicon glyphicon-level-up",
+        backColor: "#d1e2ee"
+      };
+      files.push(upFile);
+    }
+    var openAllFile = {
+      text: filesCount > 0 ? " Open all regular files: " + filesCount : " No regular files to open here",
+      path: path,
+      dir: true,
+      icon: "glyphicon glyphicon-folder-open",
+      backColor: filesCount > 0 ? "#1a6092" : "ligthgrey",
+      currentDir: true
+    };
+    files.push(openAllFile);
 
     for (var i = 0; i < data.length; i++) {
       var file = {
         text: data[i].name,
-        path: data[i].path,
+        path: (path === "") ? data[i].name : (path + "/" + data[i].name),
         dir: data[i].dir,
-        file: data[i].file
+        icon: data[i].dir ? "glyphicon glyphicon-folder-close" : "glyphicon glyphicon-file"
       };
-
-      file.icon = data[i].dir ? "glyphicon glyphicon-folder-close" : "glyphicon glyphicon-file";
-      if (file.text === "..") {
-        file.icon = "glyphicon glyphicon-level-up";
-        file.text = "Move up";
-        file.backColor = "#d1e2ee";
-      }
-      if (file.text === ".") {
-        file.text = filesCount > 0 ? " Open all regular files: " + filesCount : " No regular files to open here";
-        file.icon = "glyphicon glyphicon-folder-open";
-        file.backColor = filesCount > 0 ? "#1a6092" : "ligthgrey";
-        file.currentDir = true
-      }
-      if (data[i].path !== "../")
-        files.push(file)
+      files.push(file);
     }
 
     $('#fsMenu').treeview({
       data: files,
       searchResultBackColor: "#014f86",
       highlightSelected: true
-
     });
     $('#fsMenu').on('nodeSelected', function (event, data) {
       // CURRENT FOLDER - enable option to open all content only if it contains at least a file
@@ -388,15 +389,12 @@ function getFileSystemContent(path) {
           $('#fsMenu').treeview('toggleNodeSelected', [data.nodeId, {silent: true}]);
         }
       }
-      // FOLDERS - query for it content and update the view
+      // FOLDER - query its content and update the view
       else if (data.dir) {
-        if (data.path == ".")
-          getFileSystemContent("/");
-        else
-          getFileSystemContent(data.path);
+        getFileSystemContent(data.path);
       }
       // REGULAR FILE
-      else if (data.file) {
+      else {
         requestPUT("open", JSON.stringify({"uri": data.path}), updateWall);
         $('#fsMenu').treeview('toggleNodeSelected', [data.nodeId, {silent: true}]);
       }
@@ -409,7 +407,6 @@ function getOptions() {
   var options = [];
   var xhr = new XMLHttpRequest();
   xhr.open("GET", restUrl + "options", true);
-  xhr.overrideMimeType("application/json");
   xhr.onload = function () {
     options = JSON.parse(xhr.responseText);
 
@@ -442,19 +439,17 @@ function getSessionFolderContent() {
   var data;
   sessionFiles = [];
   xhr.open("GET", encodeURI(url), true);
-  xhr.overrideMimeType("application/json");
   xhr.onload = function () {
     data = JSON.parse(xhr.responseText);
     for (var i = 0; i < data.length; i++) {
       var file = {
         text: data[i].name,
-        path: data[i].path,
+        path: data[i].name,
         dir: data[i].dir,
-        file: data[i].file
       };
       file.icon = data[i].dir ? "glyphicon glyphicon-chevron-right" : "glyphicon glyphicon-file";
       file.color = data[i].dir ? "grey" : "black";
-      if (data[i].file)
+      if (!data[i].dir)
         sessionFiles.push(file);
     }
 
@@ -464,7 +459,7 @@ function getSessionFolderContent() {
       highlightSelected: true
     });
     $('#sessionTree').on('nodeSelected', function (event, data) {
-      if (data.file) {
+      if (!data.dir) {
         $("#wall").css("opacity", 0.2);
         requestPUT("load", JSON.stringify({"uri": data.text}), function () {
           $("#sessionMenu").toggle("puff", showEffectSpeed);
@@ -500,8 +495,8 @@ function handleUpload(evt) {
   if (evt.type == "drop") {
     data = evt.dataTransfer.files;
     var offset = $("#wall").offset();
-    coords["x"] = (event.clientX-offset["left"]) / zoomScale;
-    coords["y"] = (event.clientY-offset["top"]) / zoomScale;
+    coords["x"] = (evt.clientX-offset["left"]) / zoomScale;
+    coords["y"] = (evt.clientY-offset["top"]) / zoomScale;
   }
   else if (evt.type === "change") {
     data = evt.target.files;
@@ -578,7 +573,6 @@ function init() {
 
   var xhr = new XMLHttpRequest();
   xhr.open("GET", restUrl + "config", true);
-  xhr.overrideMimeType("application/json");
   xhr.onload = function () {
     var config = JSON.parse(xhr.responseText)["config"];
     wallWidth = config["wallSize"]["width"];
@@ -609,7 +603,7 @@ function init() {
     $("#buttonContainer").append("Tide ", config["version"], " rev ",
       "<a href=\"https://github.com/BlueBrain/Tide/commit/" + config["revision"] + "\">" + config["revision"],
       " </a>", " running on ", config["hostname"], " since ", config["startTime"]);
-    getFileSystemContent("/");
+    getFileSystemContent("");
     getSessionFolderContent();
     updateWall();
   };
@@ -655,7 +649,6 @@ function markAsUnselected(tile) {
 function openWhiteboard() {
   requestPUT("whiteboard", JSON.stringify({}), updateWall);
   $("#appsButton").click();
-
 }
 
 function preuploadCheck(files, coords) {
@@ -742,6 +735,24 @@ function requestPUT(command, parameters, callback) {
   }
 }
 
+function requestDELETE(command, callback) {
+  var xhr = new XMLHttpRequest();
+  xhr.open("DELETE", restUrl + command, true);
+  xhr.responseType = "json";
+  xhr.send(null);
+  xhr.onload = function () {
+    if (xhr.status === 400)
+      alertPopup("Something went wrong", "Issue at: " + restUrl + command);
+    if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+      if (callback !== null)
+        callback();
+    }
+  };
+  xhr.onerror = function () {
+    alertPopup("Something went wrong", "Issue at: " + restUrl + command)
+  }
+}
+
 function resizeOnWheelEvent(event, tile) {
   // do nothing if a window is in focus mode
   if (focus && !fullscreen)
@@ -773,7 +784,7 @@ function resizeOnWheelEvent(event, tile) {
     newHeight = oldHeight + incrementSize;
   }
 
-  var params = JSON.stringify({"uri": tile.uuid, "w": newWidth, "h": newHeight, "centered": 1});
+  var params = JSON.stringify({"uri": tile.uuid, "w": newWidth, "h": newHeight, "centered": true});
   requestPUT("resize-window", params, updateWall);
 }
 
@@ -867,7 +878,6 @@ function setHandles(tile) {
       newTop = ui.originalPosition.top + changeTop / zoomScale;
       ui.position.left = newLeft;
       ui.position.top = newTop;
-
     },
     stop: function () {
       var params = JSON.stringify({"uri": tile.uuid, "x": newLeft, "y": newTop});
@@ -899,7 +909,7 @@ function setHandles(tile) {
         tile.height = ui.size.height;
         tile.width = ui.size.width
       }
-      var params = JSON.stringify({"uri": tile.uuid, "w": tile.width, "h": tile.height, "centered": 0});
+      var params = JSON.stringify({"uri": tile.uuid, "w": tile.width, "h": tile.height, "centered": false});
       requestPUT("resize-window", params, function () {
         return requestPUT("move-window-to-front", jsonUuidHelper(tile), updateWall);
       });
@@ -944,18 +954,17 @@ function updateOptions() {
   var options = [];
   var xhr = new XMLHttpRequest();
   xhr.open("GET", restUrl + "options", true);
-  xhr.overrideMimeType("application/json");
   xhr.onload = function () {
     options = JSON.parse(xhr.responseText);
     for (var property in options) {
       if (options.hasOwnProperty(property)) {
         if (typeof(options[property]) !== "boolean")
           continue;
-        $('#checkbox_' + property).prop('checked', options[property])
+        $('#checkbox_' + property).prop('checked', options[property]);
       }
     }
   };
-  xhr.send(null)
+  xhr.send(null);
 }
 
 function updateTile(tile) {
@@ -975,7 +984,6 @@ function updateWall() {
   focus = false;
   var xhr = new XMLHttpRequest();
   xhr.open("GET", restUrl + "windows", true);
-  xhr.overrideMimeType("application/json");
   xhr.onload = function () {
     if (xhr.status === 200) {
       var jsonList = JSON.parse(xhr.responseText)["windows"];
@@ -1101,7 +1109,7 @@ function uploadFiles(files, coords) {
           });
 
           var fileName = decodeURI(JSON.parse(this.responseText)["url"]);
-          xhr2.open('PUT', restUrl + url + "/" + fileName.toLowerCase(), true);
+          xhr2.open('PUT', restUrl + url + "/" + fileName, true);
           xhr2.onload = function () {
             var fileLi = $('#' + file.id);
             if (xhr2.readyState === XMLHttpRequest.DONE && xhr2.status === 201) {
@@ -1129,7 +1137,7 @@ function uploadFiles(files, coords) {
         else
           console.log('ENDPOINT REGISTRATION: An error occurred!');
       };
-      requests[i].send(JSON.stringify({"fileName": (file.name.toLowerCase()),
+      requests[i].send(JSON.stringify({"filename": (file.name.toLowerCase()),
       "x": coords["x"], "y": coords["y"]
       }));
     })(i)

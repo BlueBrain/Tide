@@ -78,10 +78,10 @@ std::string RestConfiguration::_toJSON() const
     config["contentDir"] = _config.getContentDir();
     config["sessionDir"] = _config.getSessionsDir();
     QJsonArray supportedFormats;
-    for( const auto& filter :  ContentFactory::getSupportedFilesFilter( ))
+    for( const auto& filter : ContentFactory::getSupportedFilesFilter( ))
         supportedFormats.append( filter );
     config["filters"] = supportedFormats;
-    QJsonObject obj;
-    obj["config"] = config;
-    return QJsonDocument{ obj }.toJson().toStdString();
+
+    const QJsonObject rootObject{{ "config", config }};
+    return QJsonDocument{ rootObject }.toJson().toStdString();
 }

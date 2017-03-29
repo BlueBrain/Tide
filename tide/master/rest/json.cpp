@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,33 +37,26 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef STATICCONTENT_H
-#define STATICCONTENT_H
+#include "json.h"
 
-#include <servus/serializable.h> // base class
+#include "log.h"
 
-/**
- * Expose a static content to the REST interface.
- */
-class StaticContent : public servus::Serializable
+#include <QJsonDocument>
+
+namespace json
 {
-public:
-    /**
-     * Construct a static content which can be exposed by a ZeroEQ http server.
-     *
-     * @param name The name of the content exposed through the REST interface,
-     *        separated by '::' instead of '/' (e.g. "restapi::index").
-     * @param content the content to expose
-     */
-    StaticContent( const std::string& name, const std::string& content );
 
-    /** @return the name of the command passed in the constructor. */
-    std::string getTypeName() const final;
+QJsonObject toObject( const std::string& data )
+{
+    const auto input = QByteArray::fromRawData( data.c_str(), data.size( ));
+    const auto doc = QJsonDocument::fromJson( input );
 
-private:
-    std::string _name;
-    std::string _content;
-    std::string _toJSON() const final;
-};
+    if( doc.isNull() || !doc.isObject( ))
+    {
+        put_flog( LOG_INFO, "Error parsing JSON string: '%s'", data.c_str( ));
+        return QJsonObject{};
+    }
+    return doc.object();
+}
 
-#endif
+}

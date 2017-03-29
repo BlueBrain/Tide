@@ -72,7 +72,7 @@ public:
     const QString& getContentDir() const;
 
     /**
-     * Get the directory for uploading content via web interface
+     * Get the directory for saving session contents uploaded via web interface.
      * @return directory path
      */
     const QString& getUploadDir() const;

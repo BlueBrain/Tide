@@ -58,18 +58,18 @@ std::string _readFile( const QString& uri )
 }
 
 std::future<zeroeq::http::Response> _makeResponse( const std::string& type,
-                                                   const QString & file )
+                                                   const QString& file )
 {
     http::Response response{ http::Code::OK };
     response.headers[http::Header::CONTENT_TYPE] = type;
     response.body = _readFile( file );
     return http::make_ready_future( response );
 }
-
 }
+
 HtmlContent::HtmlContent( zeroeq::http::Server& server )
 {
-    server.handle( http::Method::GET, "/", []( const zeroeq::http::Request&  )
+    server.handle( http::Method::GET, "/", []( const zeroeq::http::Request& )
     {
         return _makeResponse( "text/html", ":///html/index.html" );
     });
@@ -137,7 +137,7 @@ HtmlContent::HtmlContent( zeroeq::http::Server& server )
                               ":///html/jquery-ui.min.js" );
     });
 
-    server.handle( http::Method::GET, "img/maximize.svg", 
+    server.handle( http::Method::GET, "img/maximize.svg",
                    []( const zeroeq::http::Request& )
     {
         return _makeResponse( "image/svg+xml", ":///html/img/maximize.svg" );

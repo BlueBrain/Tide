@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -46,47 +47,59 @@
 #include <zeroeq/http/request.h>
 #include <zeroeq/http/response.h>
 
+#include <QFuture>
+
 #include <future>
-#include <QObject>
 
 /**
- * Exposes display group content to ZeroEQ http server.
+ * Exposes the windows in a display group in JSON format.
+ *
+ * This class also maintains a cache of thumbnails for all windows. The
+ * thumbnails are generated asynchronously when window are added.
+ *
+ * Example client usage:
+ * GET /api/windows
+ * => 200 { "windows": [ {"title": "Title", "uuid": "abcd", ... } ] }
+ *
+ * GET /api/windows/abcd/thumbnail
+ * => 200 data:image/png;base64----IMAGE DATA----
  */
-class RestWindows : public QObject
+class RestWindows
 {
 public:
     /**
-     * Construct a JSON list of windows.
+     * Construct a JSON list of windows exposed by REST interface.
      *
      * @param displayGroup DisplayGroup to expose.
      */
     RestWindows( const DisplayGroup& displayGroup );
 
     /**
-     * Expose information on specific window to REST Interface.
+     * Get the detailed list of all windows.
      *
-     * @param request request with the url part including window uuid
-     *        and information type.
-     * @return future response containing the requested information.
-     */
-    std::future<zeroeq::http::Response>
-    getWindowInfo( const zeroeq::http::Request& request );
-
-    /**
-     * Expose information on all windows to REST Interface.
-     *
-     * @return future response containing a list of all winodws.
+     * @return JSON response containing the list of all winodws.
      */
     std::future<zeroeq::http::Response>
     getWindowList( const zeroeq::http::Request& ) const;
 
+    /**
+     * Get information about a specific window (currently thumbnail only).
+     *
+     * @param request GET request to the url "endpoint/${uuid}/thumbnail".
+     * @return base64 encoded image on success, 204 if the thumbnail is not
+     *         ready yet.
+     */
+    std::future<zeroeq::http::Response>
+    getWindowInfo( const zeroeq::http::Request& request ) const;
+
 private:
     const DisplayGroup& _displayGroup;
-    QMap<QString, std::string> _thumbnailCache;
+    QMap<QString, QFuture<std::string>> _thumbnailCache;
 
+    QJsonObject _toJsonObject( ContentWindowPtr contentWindow ) const;
     void _cacheThumbnail( ContentWindowPtr contentWindow );
-    std::future<zeroeq::http::Response> _getThumbnail( const QString& uuid );
-    std::string _getWindowList() const;
+    std::future<zeroeq::http::Response>
+    _getThumbnail( const QString& uuid ) const;
 };
 
 #endif

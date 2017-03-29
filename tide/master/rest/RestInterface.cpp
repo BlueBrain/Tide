@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,71 +39,149 @@
 
 #include "RestInterface.h"
 
+#include "FileReceiver.h"
 #include "FileSystemQuery.h"
 #include "HtmlContent.h"
 #include "JsonOptions.h"
+#include "json.h"
 #include "MasterConfiguration.h"
-#include "FileReceiver.h"
 #include "RestCommand.h"
 #include "RestConfiguration.h"
 #include "RestController.h"
 #include "RestLogger.h"
 #include "RestServer.h"
 #include "RestWindows.h"
-#include "StaticContent.h"
-
 #include "scene/ContentFactory.h"
 
 #include <tide/master/version.h>
 
+#include <zeroeq/http/helpers.h>
+
 #include <functional>
 #include <QDir>
+
+using namespace std::placeholders;
+using namespace zeroeq;
+
+namespace
+{
+struct HtmlInterface
+{
+    HtmlInterface( http::Server& server, DisplayGroup& group,
+                   const MasterConfiguration& config )
+        : htmlContent{ server }
+        , jsonConfig{ config }
+        , windowsContent{ group }
+        , sceneController{ server, group }
+        , contentDirQuery{ config.getContentDir(),
+                           ContentFactory::getSupportedFilesFilter() }
+        , sessionDirQuery{ config.getSessionsDir(), QStringList{ "*.dcx" }}
+    {
+        server.handleGET( jsonConfig );
+
+        server.handle( http::Method::GET, "tide/windows",
+                       std::bind( &RestWindows::getWindowList, &windowsContent,
+                                  std::placeholders::_1 ) );
+
+        server.handle( http::Method::GET, "tide/windows/",
+                       std::bind( &RestWindows::getWindowInfo, &windowsContent,
+                                  std::placeholders::_1 ));
+
+        server.handle( http::Method::POST, "tide/upload",
+                       std::bind( &FileReceiver::prepareUpload, &fileReceiver,
+                                  std::placeholders::_1 ));
+
+        server.handle( http::Method::PUT, "tide/upload/",
+                       std::bind( &FileReceiver::handleUpload, &fileReceiver,
+                                  std::placeholders::_1 ));
+
+        server.handle( http::Method::GET, "tide/files/",
+                       std::bind( &FileSystemQuery::list, &contentDirQuery,
+                                  std::placeholders::_1 ));
+
+        server.handle( http::Method::GET, "tide/sessions/",
+                       std::bind( &FileSystemQuery::list, &sessionDirQuery,
+                                  std::placeholders::_1 ));
+    }
+
+    HtmlContent htmlContent;
+    RestConfiguration jsonConfig;
+    RestWindows windowsContent;
+    RestController sceneController;
+    FileSystemQuery contentDirQuery;
+    FileSystemQuery sessionDirQuery;
+    FileReceiver fileReceiver;
+};
+
+using AsyncAction = std::function<void(QString, promisePtr)>;
+std::future<http::Response> _handleUriRequest( const http::Request& request,
+                                               AsyncAction action,
+                                               const QString& baseDir )
+{
+    const auto obj = json::toObject( request.body );
+    if( obj.empty() || !obj["uri"].isString( ))
+        return http::make_ready_future( http::Response{
+                                            http::Code::BAD_REQUEST });
+
+    auto uri = obj["uri"].toString();
+    if( QDir::isRelativePath( uri ))
+        uri = baseDir + "/" + uri;
+
+    return std::async( std::launch::deferred, [action, uri]()
+    {
+        auto promise = std::make_shared<std::promise<bool>>();
+        auto future = promise->get_future();
+
+        action( uri, std::move( promise ));
+
+        if( !future.get( ))
+            return http::Response{ http::Code::INTERNAL_SERVER_ERROR };
+        return http::Response{ http::Code::OK };
+    });
+}
+}
 
 class RestInterface::Impl
 {
 public:
-    Impl( const int port, OptionsPtr options_,
-          const MasterConfiguration& config )
+    Impl( const int port, OptionsPtr options,
+          const MasterConfiguration& config_ )
         : httpServer{ port }
-        , options{ options_ }
-        , sizeProperty{ config.getTotalSize() }
+        , jsonOptions{ options }
+        , jsonSize{ config_.getTotalSize() }
     {
         auto& server = httpServer.get();
         server.handleGET( "tide/version", tide::Version::getSchema(),
                           &tide::Version::toJSON );
         server.handlePUT( browseCmd );
-        server.handlePUT( closeCmd );
-        server.handlePUT( whiteboardCmd );
-        server.handlePUT( screenshotCmd );
+        server.handlePUT( clearCmd );
         server.handlePUT( exitCmd );
-        server.handle( options );
-        server.handleGET( sizeProperty );
+        server.handlePUT( screenshotCmd );
+        server.handlePUT( whiteboardCmd );
+
+        server.handle( jsonOptions );
+
+        server.handleGET( jsonSize );
     }
 
     RestServer httpServer;
+
     RestCommand browseCmd{ "tide/browse" };
-    RestCommand closeCmd{ "tide/close" };
-    RestCommand whiteboardCmd{ "tide/whiteboard", false };
-    RestCommand screenshotCmd{ "tide/screenshot" };
+    RestCommand clearCmd{ "tide/clear", false };
     RestCommand exitCmd{ "tide/exit", false };
+    RestCommand screenshotCmd{ "tide/screenshot" };
+    RestCommand whiteboardCmd{ "tide/whiteboard", false };
 
-    JsonOptions options;
-    JsonSize sizeProperty;
+    JsonOptions jsonOptions;
+    JsonSize jsonSize;
 
-    std::unique_ptr<FileSystemQuery> contentDirQuery;
-    std::unique_ptr<FileSystemQuery> sessionDirQuery;
-    std::unique_ptr<FileReceiver> fileReceiver;
-    std::unique_ptr<RestLogger> logContent;
-    std::unique_ptr<HtmlContent> htmlContent;
-    std::unique_ptr<RestController> sceneController;
-    std::unique_ptr<RestWindows> windowsContent;
-    std::unique_ptr<RestConfiguration> configurationContent;
+    std::unique_ptr<RestLogger> logContent; // Statistics (optional)
+    std::unique_ptr<HtmlInterface> htmlInterface; // HTML interface (optional)
 };
 
 RestInterface::RestInterface( const int port, OptionsPtr options,
                               const MasterConfiguration& config )
     : _impl( new Impl( port, options, config ))
-    , _config( config )
 {
     // Note: using same formatting as TUIO instead of put_flog() here
     std::cout << "listening to REST messages on TCP port " <<
@@ -112,17 +190,45 @@ RestInterface::RestInterface( const int port, OptionsPtr options,
     connect( &_impl->browseCmd, &RestCommand::received,
              this, &RestInterface::browse );
 
-    connect( &_impl->whiteboardCmd, &RestCommand::received,
-             this, &RestInterface::whiteboard );
-
-    connect( &_impl->screenshotCmd, &RestCommand::received,
-             this, &RestInterface::screenshot );
+    connect( &_impl->clearCmd, &RestCommand::received,
+             this, &RestInterface::clear );
 
     connect( &_impl->exitCmd, &RestCommand::received,
              this, &RestInterface::exit );
 
-    connect( &_impl->closeCmd, &RestCommand::received,
-             this, &RestInterface::close );
+    connect( &_impl->screenshotCmd, &RestCommand::received,
+             this, &RestInterface::screenshot );
+
+    connect( &_impl->whiteboardCmd, &RestCommand::received,
+             this, &RestInterface::whiteboard );
+
+    const auto contentDir = config.getContentDir();
+    const auto sessionsDir = config.getSessionsDir();
+
+    const auto openFunc = std::bind( &RestInterface::open, this, _1, QPointF(),
+                                     _2 );
+    const auto loadFunc = std::bind( &RestInterface::load, this, _1, _2 );
+    const auto saveFunc = std::bind( &RestInterface::save, this, _1, _2 );
+
+    auto& server = _impl->httpServer.get();
+
+    server.handle( http::Method::PUT, "tide/open",
+                   [openFunc, contentDir]( const http::Request& request )
+    {
+        return _handleUriRequest( request, openFunc, contentDir );
+    });
+
+    server.handle( http::Method::PUT, "tide/load",
+                   [loadFunc, sessionsDir]( const http::Request& request )
+    {
+        return _handleUriRequest( request, loadFunc, sessionsDir );
+    });
+
+    server.handle( http::Method::PUT, "tide/save",
+                   [saveFunc, sessionsDir]( const http::Request& request )
+    {
+        return _handleUriRequest( request, saveFunc, sessionsDir );
+    });
 }
 
 RestInterface::~RestInterface() {}
@@ -133,86 +239,12 @@ void RestInterface::exposeStatistics( const LoggingUtility& logger ) const
     _impl->httpServer.get().handleGET( *_impl->logContent );
 }
 
-void RestInterface::setupHtmlInterface( DisplayGroup& displayGroup,
-                                   const MasterConfiguration& config )
+void RestInterface::setupHtmlInterface( DisplayGroup& group,
+                                        const MasterConfiguration& config )
 {
-    _impl->htmlContent.reset( new HtmlContent( _impl->httpServer.get( )));
+    auto& server = _impl->httpServer.get();
+    _impl->htmlInterface.reset( new HtmlInterface( server, group, config ));
 
-    _impl->windowsContent.reset( new RestWindows( displayGroup ));
-
-    auto getWindowInfoFunc = std::bind( &RestWindows::getWindowInfo,
-                                        _impl->windowsContent.get(),
-                                        std::placeholders::_1 );
-
-    _impl->httpServer.get().handle( zeroeq::http::Method::GET, "tide/windows/",
-                                    getWindowInfoFunc );
-
-    auto getWindowList = std::bind( &RestWindows::getWindowList,
-                                    _impl->windowsContent.get(),
-                                    std::placeholders::_1 );
-
-    _impl->httpServer.get().handle( zeroeq::http::Method::GET, "tide/windows",
-                                    getWindowList );
-
-    _impl->configurationContent.reset( new RestConfiguration( config ));
-
-    _impl->sceneController.reset( new RestController( _impl->httpServer.get(),
-                                                      displayGroup,
-                                                      _config ));
-
-    _impl->fileReceiver.reset( new FileReceiver( ));
-
-    auto prepareUpload = std::bind( &FileReceiver::prepareUpload,
-                                    _impl->fileReceiver.get(),
-                                    std::placeholders::_1 );
-
-    _impl->httpServer.get().handle( zeroeq::http::Method::POST, "tide/upload",
-                                    prepareUpload );
-
-    auto handleUpload = std::bind( &FileReceiver::handleUpload,
-                                   _impl->fileReceiver.get(),
-                                   std::placeholders::_1 );
-
-    _impl->httpServer.get().handle( zeroeq::http::Method::PUT, "tide/upload/",
-                                    handleUpload );
-
-    connect( _impl->fileReceiver.get(), &FileReceiver::open,
+    connect( &_impl->htmlInterface->fileReceiver, &FileReceiver::open,
              this, &RestInterface::open );
-
-    connect( _impl->sceneController.get(), &RestController::save,
-             this, &RestInterface::save );
-
-    connect( _impl->sceneController.get(), &RestController::load,
-             this, &RestInterface::load );
-
-    connect( _impl->sceneController.get(), &RestController::open,
-             [this]( QString uri, promisePtr promise ){
-        emit open( uri, QPointF(), promise );
-    });
-
-    const auto& fileFilters = ContentFactory::getSupportedFilesFilter( );
-
-    _impl->contentDirQuery.reset( new FileSystemQuery( _config.getContentDir(),
-                                                       fileFilters ));
-
-    auto browseFilesFunc = std::bind( &FileSystemQuery::list,
-                                      _impl->contentDirQuery.get(),
-                                      std::placeholders::_1 );
-
-    _impl->httpServer.get().handle( zeroeq::http::Method::GET, "tide/files/",
-                                    browseFilesFunc );
-
-    const QStringList sessionFilters{ "*.dcx" };
-    _impl->sessionDirQuery.reset( new FileSystemQuery( _config.getSessionsDir(),
-                                                       sessionFilters ));
-
-    auto browseSessionsFunc = std::bind( &FileSystemQuery::list,
-                                         _impl->sessionDirQuery.get(),
-                                         std::placeholders::_1 );
-
-    _impl->httpServer.get().handle( zeroeq::http::Method::GET,
-                                    "tide/sessions/", browseSessionsFunc );
-
-    _impl->httpServer.get().handleGET( *_impl->configurationContent );
-
 }

@@ -1,6 +1,7 @@
 /*********************************************************************/
 /* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -40,31 +41,37 @@
 #ifndef FILESYSTEMQUERY_H
 #define FILESYSTEMQUERY_H
 
-#include "MasterConfiguration.h"
-
 #include <zeroeq/http/request.h>
 #include <zeroeq/http/server.h>
 
+#include <QStringList>
+
 /**
- * Handles requests for listing a file system.
+ * Expose file system directory contents in JSON format through HTTP.
+ *
+ * Example client usage:
+ * GET /api/files/some/folder
+ * => 200 [ {"name": "subfolder", "dir": true},
+ *          {"name": "image.png", "dir": false} ]
  */
 class FileSystemQuery
 {
 public:
     /**
-     * Create and register a file system listing.
+     * Create a file system listing.
      *
-     * @param contentDirectory the content directory path
-     * @param filters used to filter the content
+     * @param contentDirectory the root directory path.
+     * @param filters used to filter the contents by their extension.
      */
     FileSystemQuery( const QString& contentDirectory,
                      const QStringList& filters );
 
     /**
-     * List the content of a directory to be exposed to REST Interface
+     * List the content of a directory.
      *
-     * @param pathPoint the path of a directory to list
-     * @return future response with directory content list
+     * @param request GET request to a relative path of the root directory.
+     * @return JSON response with the contents of the directory, or an
+     *         appropriate error code on error.
      */
     std::future<zeroeq::http::Response>
     list( const zeroeq::http::Request& request );
@@ -74,7 +81,6 @@ private:
     const QStringList _filters;
 
     std::string _toJson( const QString& files ) const;
-
 };
 
 #endif

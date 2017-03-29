@@ -155,6 +155,12 @@ inline std::ostream& operator << ( std::ostream& str, const QRectF& r )
     return str;
 }
 
+inline std::ostream& operator << ( std::ostream &str, const QString& s )
+{
+   str << s.toStdString();
+   return str;
+}
+
 // missing make_unique() implementation in C++11 standard
 // source: http://herbsutter.com/gotw/_102/
 template<typename T, typename ...Args>

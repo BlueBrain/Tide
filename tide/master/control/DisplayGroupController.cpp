@@ -79,11 +79,11 @@ void DisplayGroupController::removeWindowLater( const QUuid windowId )
                                Q_ARG( ContentWindowPtr, window ));
 }
 
-void DisplayGroupController::showFullscreen( const QUuid& id )
+bool DisplayGroupController::showFullscreen( const QUuid& id )
 {
     ContentWindowPtr window = _group.getContentWindow( id );
     if( !window )
-        return;
+        return false;
 
     exitFullscreen();
 
@@ -92,6 +92,7 @@ void DisplayGroupController::showFullscreen( const QUuid& id )
     controller.adjustSize( SizeState::SIZE_FULLSCREEN );
 
     _group.setFullscreenWindow( window );
+    return true;
 }
 
 void DisplayGroupController::exitFullscreen()
@@ -106,11 +107,11 @@ void DisplayGroupController::exitFullscreen()
         window->setSelected( false );
 }
 
-void DisplayGroupController::focus( const QUuid& id )
+bool DisplayGroupController::focus( const QUuid& id )
 {
     auto window = _group.getContentWindow( id );
     if( !window || window->isPanel() || _group.getFocusedWindows().count( window ))
-        return;
+        return false;
 
     // Update focused windows coordinates BEFORE adding it for proper transition
     auto focusedWindows = _group.getFocusedWindows();
@@ -118,19 +119,21 @@ void DisplayGroupController::focus( const QUuid& id )
     LayoutEngine{ _group }.updateFocusedCoord( focusedWindows );
 
     _group.addFocusedWindow( window );
+    return true;
 }
 
-void DisplayGroupController::unfocus( const QUuid& id )
+bool DisplayGroupController::unfocus( const QUuid& id )
 {
     auto window = _group.getContentWindow( id );
     if( !window || !_group.getFocusedWindows().count( window ))
-        return;
+        return false;
 
     _group.removeFocusedWindow( window );
     _readjustToNewZoomLevel( *window );
     window->setSelected( false );
 
     updateFocusedWindowsCoordinates();
+    return true;
 }
 
 void DisplayGroupController::focusSelected()
@@ -174,11 +177,14 @@ void DisplayGroupController::hidePanels()
         panel->setState( ContentWindow::HIDDEN );
 }
 
-void DisplayGroupController::moveWindowToFront( const QUuid id )
+bool DisplayGroupController::moveWindowToFront( const QUuid& id )
 {
     const auto window = _group.getContentWindow( id );
-    if( window && window->getMode() == ContentWindow::WindowMode::STANDARD )
+    if( !window )
+        return false;
+    if( window->getMode() == ContentWindow::WindowMode::STANDARD )
         _group.moveToFront( window );
+    return true;
 }
 
 void DisplayGroupController::scale( const QSizeF& factor )

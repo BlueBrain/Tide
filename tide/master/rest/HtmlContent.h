@@ -43,13 +43,13 @@
 #include <zeroeq/http/server.h>
 
 /**
- * Exposes html content through a REST API
+ * Expose html content through a REST API.
  */
 class HtmlContent
 {
 public:
     /**
-     * Construct and expose the html content
+     * Construct and expose the html content.
      * @param httpServer used to expose the content
      */
     HtmlContent( zeroeq::http::Server& httpServer );

@@ -104,7 +104,6 @@ private:
     std::unique_ptr<MasterFromWallChannel> _masterFromWallChannel;
     QThread _mpiSendThread;
     QThread _mpiReceiveThread;
-    void _open( const QString& uri, const QPointF coords, promisePtr promise );
 
     DisplayGroupPtr _displayGroup;
     MarkersPtr _markers;
@@ -136,6 +135,9 @@ private:
     std::unique_ptr<ScreenshotAssembler> _screenshotAssembler;
     QString _screenshotFilename;
 
+    void _open( QString uri, QPointF coords, promisePtr promise );
+    void _save( QString sessionFile, promisePtr promise );
+
     void _init();
     void _initMasterWindow();
     void _initOffscreenView();
@@ -150,6 +152,7 @@ private:
 #endif
     void _restoreBackground();
     void _apply( DisplayGroupConstPtr group );
+    void _deleteTempContentFile( ContentWindowPtr window );
 };
 
 #endif

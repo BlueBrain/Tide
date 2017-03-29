@@ -1,7 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>     */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/*                          Daniel Nachbaur <daniel.nachbaur@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -63,4 +63,17 @@ QString getContentTypeString( const CONTENT_TYPE type )
 CONTENT_TYPE getContentType( const QString& typeString )
 {
     return typemap.right.find( typeString )->second;
+}
+
+bool contentTypeIsFile( const CONTENT_TYPE type )
+{
+    switch( type )
+    {
+    case CONTENT_TYPE_ANY:
+    case CONTENT_TYPE_PIXEL_STREAM:
+    case CONTENT_TYPE_WEBBROWSER:
+        return false;
+    default:
+        return true;
+    }
 }

@@ -1,6 +1,7 @@
 /*********************************************************************/
 /* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -43,12 +44,11 @@
 
 #include "rest/FileReceiver.h"
 
-#include "scene/DisplayGroup.h"
-
 #include <zeroeq/http/request.h>
 #include <zeroeq/http/response.h>
 
 #include <QBuffer>
+#include <QDir>
 #include <QFile>
 #include <QJsonObject>
 #include <QJsonDocument>
@@ -57,62 +57,247 @@
 
 namespace
 {
-const QString imageUri("wall.png");
-const QSize wallSize( 1000, 1000 );
+const QString imageUri( "wall.png" );
+const QPointF expectedPosition( 25.0, 17.4 );
+
+std::string _readImageFile( const QString& filename )
+{
+    QFile file( filename );
+    file.open( QIODevice::ReadOnly );
+    return file.readAll().toStdString();
 }
 
-BOOST_AUTO_TEST_CASE( testFileReceiver )
+zeroeq::http::Request _makeFileRequest( const QString& filename )
 {
-    DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
+    zeroeq::http::Request request;
+    const QJsonObject object{{ "filename", filename }, { "x", 25.0 },
+                             { "y", 17.4 }};
+    request.body = QJsonDocument{ object }.toJson().toStdString();
+    return request;
+}
+
+zeroeq::http::Request _makeFileRequestWithoutPosition( const QString& filename )
+{
+    zeroeq::http::Request request;
+    const QJsonObject object{{ "filename", filename }};
+    request.body = QJsonDocument{ object }.toJson().toStdString();
+    return request;
+}
+
+zeroeq::http::Request _makeDataRequest( const QString& filename )
+{
+    zeroeq::http::Request request;
+    request.path = filename.toStdString();
+    request.body = _readImageFile( imageUri );
+    return request;
+}
+
+QString _parseJsonResponse( const std::string& responseBody )
+{
+    const auto input = QString::fromStdString( responseBody ).toUtf8();
+    const auto doc = QJsonDocument::fromJson( input );
+    BOOST_REQUIRE( !doc.isNull() && doc.isObject( ));
+    return doc.object().value( "url" ).toString();
+}
+
+inline QString _tempFile( const QString& filename )
+{
+    return QDir::tempPath() + "/" + filename;
+}
+
+struct OpenListener
+{
+    bool open = false;
+    QString openUri;
+    QPointF openPosition;
+
+    OpenListener( FileReceiver& fileReceiver )
+    {
+        QObject::connect( &fileReceiver, &FileReceiver::open,
+                          [this]( const QString uri, const QPointF pos,
+                                  promisePtr promise )
+        {
+            open = true;
+            openUri = uri;
+            openPosition = pos;
+            promise->set_value( true );
+        });
+    }
+
+    void reset()
+    {
+        open = false;
+        openUri = QString();
+        openPosition = QPointF();
+    }
+};
+}
+
+BOOST_AUTO_TEST_CASE( testUnsupportedFileType )
+{
     FileReceiver fileReceiver;
 
-    bool open = false;
-    QObject::connect( &fileReceiver, &FileReceiver::open,
-             [&open]( const QString& uri, const QPointF pos,
-                      promisePtr promise )
-    {
-        Q_UNUSED( uri );
-        Q_UNUSED( pos );
-        promise->set_value(true);
-        open = true;
-    });
-
-    QJsonObject unsupportedFile;
-    unsupportedFile["fileName"] = "wall.pn";
-    unsupportedFile["x"] = "0";
-    unsupportedFile["y"] = "0";
-    QJsonDocument doc( unsupportedFile );
-    zeroeq::http::Request uploadRequest;
-    uploadRequest.body = doc.toJson().toStdString();
-    auto future = fileReceiver.prepareUpload( uploadRequest );
-
-    auto response = future.get();
+    const auto request = _makeFileRequest( "wall.xyz" );
+    const auto response = fileReceiver.prepareUpload( request ).get();
     BOOST_CHECK_EQUAL( response.code, 405 );
+}
 
-    QJsonObject supportedFile;
-    supportedFile["fileName"] = "wall.png";
-    supportedFile["x"] = "0";
-    supportedFile["y"] = "0";
-    QJsonDocument doc2( supportedFile );
-    uploadRequest.body = doc2.toJson().toStdString();
-    future = fileReceiver.prepareUpload( uploadRequest );
+BOOST_AUTO_TEST_CASE( testOnlyFileExtensionWithNoName )
+{
+    FileReceiver fileReceiver;
 
-    response = future.get();
-    BOOST_CHECK_EQUAL( response.code, 200 );
+    const auto request = _makeFileRequest( ".png" );
+    const auto response = fileReceiver.prepareUpload( request ).get();
+    BOOST_CHECK_EQUAL( response.code, 405 );
+}
 
-    QFile file( imageUri );
-    file.open( QIODevice::ReadOnly );
-    uploadRequest.body = file.readAll().toStdString();
-    uploadRequest.path = "wall.png";
+BOOST_AUTO_TEST_CASE( testUploadFileWithSpecialCharacters )
+{
+    FileReceiver fileReceiver;
 
-    BOOST_CHECK_EQUAL( open, false );
+    OpenListener listener{ fileReceiver };
 
-    future = fileReceiver.handleUpload( uploadRequest );
-    response = future.get();
-    BOOST_CHECK_EQUAL( open, true );
-    BOOST_CHECK_EQUAL( response.code, 201);
+    const auto imageName = QString( "ué I.n_$t.png" );
+    const auto imageNameEncoded = QString( "u%C3%A9%20I.n_$t.png" );
 
-    future = fileReceiver.handleUpload( uploadRequest );
-    response = future.get();
+    const auto type = zeroeq::http::Header::CONTENT_TYPE;
+
+    // Prepare upload of image
+    const auto uploadResponse =
+            fileReceiver.prepareUpload( _makeFileRequest( imageName )).get();
+    BOOST_CHECK_EQUAL( listener.open, false );
+    BOOST_CHECK_EQUAL( uploadResponse.code, 200 );
+    BOOST_CHECK_EQUAL( uploadResponse.headers.at( type ), "application/json" );
+
+    const auto receivedUri = _parseJsonResponse( uploadResponse.body );
+    BOOST_CHECK_EQUAL( receivedUri, imageNameEncoded );
+
+    // Upload image
+    const auto dataRequest = _makeDataRequest( receivedUri );
+    const auto dataResponse = fileReceiver.handleUpload( dataRequest ).get();
+    BOOST_CHECK_EQUAL( dataResponse.code, 201 );
+    BOOST_CHECK_EQUAL( listener.open, true );
+    BOOST_CHECK_EQUAL( listener.openUri, _tempFile( imageName ));
+    BOOST_CHECK_EQUAL( listener.openPosition, expectedPosition );
+    BOOST_CHECK( QFile( _tempFile( imageName )).exists( ));
+
+    // cleanup
+    BOOST_CHECK( QFile::remove( _tempFile( imageName )));
+}
+
+BOOST_AUTO_TEST_CASE( testUnhandledOpenSignal )
+{
+    FileReceiver fileReceiver;
+
+    const auto imageName = "other.png";
+    const auto type = zeroeq::http::Header::CONTENT_TYPE;
+
+    // Prepare upload of image
+    const auto uploadRequest = _makeFileRequestWithoutPosition( imageName );
+    const auto uploadResponse =
+            fileReceiver.prepareUpload( uploadRequest ).get();
+    BOOST_CHECK_EQUAL( uploadResponse.code, 200 );
+    BOOST_CHECK_EQUAL( uploadResponse.headers.at( type ), "application/json" );
+    const auto receivedUri = _parseJsonResponse( uploadResponse.body );
+    BOOST_CHECK_EQUAL( receivedUri, imageName );
+
+    // Upload image
+    const auto dataRequest = _makeDataRequest( receivedUri );
+    const auto dataResponse = fileReceiver.handleUpload( dataRequest ).get();
+    BOOST_CHECK_EQUAL( dataResponse.code, 405 );
+    BOOST_CHECK( !QFile( _tempFile( imageName )).exists( ));
+}
+
+BOOST_AUTO_TEST_CASE( testUploadFileWithoutPosition )
+{
+    FileReceiver fileReceiver;
+
+    OpenListener listener{ fileReceiver };
+
+    const auto imageName = "abc.png";
+    const auto type = zeroeq::http::Header::CONTENT_TYPE;
+
+    // Prepare upload of image
+    const auto uploadRequest = _makeFileRequestWithoutPosition( imageName );
+    const auto uploadResponse =
+            fileReceiver.prepareUpload( uploadRequest ).get();
+    BOOST_CHECK_EQUAL( listener.open, false );
+    BOOST_CHECK_EQUAL( uploadResponse.code, 200 );
+    BOOST_CHECK_EQUAL( uploadResponse.headers.at( type ), "application/json" );
+    const auto receivedUri = _parseJsonResponse( uploadResponse.body );
+    BOOST_CHECK_EQUAL( receivedUri, imageName );
+
+    // Upload image
+    const auto dataRequest = _makeDataRequest( receivedUri );
+    const auto dataResponse = fileReceiver.handleUpload( dataRequest ).get();
+    BOOST_CHECK_EQUAL( dataResponse.code, 201 );
+    BOOST_CHECK_EQUAL( listener.open, true );
+    BOOST_CHECK_EQUAL( listener.openUri, _tempFile( imageName ));
+    BOOST_CHECK_EQUAL( listener.openPosition, QPointF( ));
+    BOOST_CHECK( QFile( _tempFile( imageName )).exists( ));
+
+    // cleanup
+    BOOST_CHECK( QFile::remove( _tempFile( imageName )));
+}
+
+BOOST_AUTO_TEST_CASE( testUploadFileTwice )
+{
+    FileReceiver fileReceiver;
+
+    OpenListener listener{ fileReceiver };
+
+    const auto imageName = "wall.png";
+    const auto type = zeroeq::http::Header::CONTENT_TYPE;
+
+    // Prepare upload of image 1
+    const auto uploadResponse1 =
+            fileReceiver.prepareUpload( _makeFileRequest( imageName )).get();
+    BOOST_CHECK_EQUAL( listener.open, false );
+    BOOST_CHECK_EQUAL( uploadResponse1.code, 200 );
+    BOOST_CHECK_EQUAL( uploadResponse1.headers.at( type ), "application/json" );
+    const auto receivedUri1 = _parseJsonResponse( uploadResponse1.body );
+    BOOST_CHECK_EQUAL( receivedUri1, imageName );
+
+    // Upload image 1
+    const auto dataRequest1 = _makeDataRequest( receivedUri1 );
+    const auto dataResponse1 = fileReceiver.handleUpload( dataRequest1 ).get();
+    BOOST_CHECK_EQUAL( dataResponse1.code, 201 );
+    BOOST_CHECK_EQUAL( listener.open, true );
+    BOOST_CHECK_EQUAL( listener.openUri, _tempFile( receivedUri1 ));
+    BOOST_CHECK_EQUAL( listener.openPosition, expectedPosition );
+    BOOST_REQUIRE( QFile( _tempFile( receivedUri1 )).exists( ));
+
+    // reset
+    listener.reset();
+
+    // Check can't upload same data again
+    const auto response = fileReceiver.handleUpload( dataRequest1 ).get();
     BOOST_CHECK_EQUAL( response.code, 403 );
+
+    // Make extra temp file
+    BOOST_REQUIRE( QFile( _tempFile( receivedUri1 )).copy(
+                       _tempFile( "wall_1.png" )));
+
+    // Prepare upload of image 2
+    const auto uploadResponse2 =
+            fileReceiver.prepareUpload( _makeFileRequest( imageName )).get();
+    BOOST_CHECK_EQUAL( listener.open, false );
+    BOOST_CHECK_EQUAL( uploadResponse2.code, 200 );
+    BOOST_CHECK_EQUAL( uploadResponse2.headers.at( type ), "application/json" );
+    const auto receivedUri2 = _parseJsonResponse( uploadResponse2.body );
+    BOOST_CHECK_EQUAL( receivedUri2, "wall_2.png" );
+
+    // Upload image 2
+    const auto dataRequest2 = _makeDataRequest( receivedUri2 );
+    const auto dataResponse2 = fileReceiver.handleUpload( dataRequest2 ).get();
+    BOOST_CHECK_EQUAL( dataResponse2.code, 201 );
+    BOOST_CHECK_EQUAL( listener.open, true );
+    BOOST_CHECK_EQUAL( listener.openUri, _tempFile( receivedUri2 ));
+    BOOST_CHECK_EQUAL( listener.openPosition, expectedPosition );
+    BOOST_CHECK( QFile( _tempFile( receivedUri2 )).exists( ));
+
+    // cleanup
+    BOOST_CHECK( QFile::remove( _tempFile( receivedUri1 )));
+    BOOST_CHECK( QFile::remove( _tempFile( "wall_1.png" )));
+    BOOST_CHECK( QFile::remove( _tempFile( receivedUri2 )));
 }

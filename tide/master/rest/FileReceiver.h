@@ -1,6 +1,7 @@
 /*********************************************************************/
 /* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -48,43 +49,50 @@
 #include <QMap>
 #include <QString>
 
+/**
+ * Receive HTTP file uploads.
+ *
+ * Example client usage:
+ *
+ * POST /api/upload
+ * { "filename": "cool image.png", "x": 20, "y": 50 }
+ * => 200 { "url" : "cool%20image.png" }
+ *
+ * PUT /api/upload/cool%20image.png
+ * --- BINARY DATA ---
+ * => 201
+ */
 class FileReceiver : public QObject
 {
     Q_OBJECT
 
 public:
-    /**
-     * Provide a way to upload a file to the server.
-     *
-     */
-    FileReceiver();
-
     using Response = zeroeq::http::Response;
 
     /**
-     * Prepare an upload of a file via REST Interface.
+     * Prepare the upload of a file via REST Interface.
      *
-     * @param request with the name of a file client wants to upload.
-     * @return future response with name of a file to be used in handleUpload().
+     * @param request JSON POST request with fields: { filename, x, y }.
+     *        filename is the desired filename, x and y are the desired
+     *        coordinates for opening the content.
+     * @return JSON response with the url to use for handleUpload() as { url }.
      */
     std::future<Response> prepareUpload( const zeroeq::http::Request& request );
 
     /**
-     * Handle an upload of a file via REST Interface.
+     * Upload a file via REST Interface.
      *
-     * @param request with the name of a returned by prepareUpload() and binary
-     *        data.
-     * @return future response with appropiate code and status.
+     * @param request binary PUT request to the url returned by prepareUpload().
+     * @return response with appropiate code and status (201 on success).
      */
     std::future<Response> handleUpload( const zeroeq::http::Request& request );
 
 signals:
-    /** Open the uploaded file. */
-    void open( QString uri, const QPointF coords, promisePtr promise );
+    /** Open the uploaded file at the given position. */
+    void open( QString uri, QPointF position, promisePtr promise );
 
 private:
     QMap<QString, QPointF> _preparedPaths;
-
 };
 
 #endif

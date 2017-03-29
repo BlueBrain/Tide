@@ -1,6 +1,7 @@
 /*********************************************************************/
 /* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,9 +40,6 @@
 
 #include "FileSystemQuery.h"
 
-#include "log.h"
-#include "scene/ContentFactory.h"
-
 #include <zeroeq/http/helpers.h>
 
 #include <QDir>
@@ -71,29 +69,24 @@ FileSystemQuery::list( const zeroeq::http::Request& request )
         return make_ready_future( Response{ Code::BAD_REQUEST } );
 
     if( absolutePath.exists( ))
-        return make_ready_future( Response{ Code::OK, _toJson( fullpath ) } );
+        return make_ready_future( Response{ Code::OK, _toJson( fullpath ),
+                                            "application/json" } );
     else
         return make_ready_future( Response{ Code::NO_CONTENT } );
 }
 
 std::string FileSystemQuery::_toJson( const QString& fullpath ) const
 {
-    QDir directory( fullpath );
-    directory.setNameFilters( _filters ) ;
-    const auto filters = QDir::AllEntries | QDir::AllDirs;
-    const auto files = directory.entryInfoList( filters, QDir::DirsFirst |
-                                                QDir::IgnoreCase );
+    const QDir directory( fullpath );
+    const auto filters = QDir::Files | QDir::AllDirs | QDir::NoDotAndDotDot;
+    const auto sortFlags = QDir::DirsFirst | QDir::IgnoreCase;
+    const auto list = directory.entryInfoList( _filters, filters, sortFlags );
 
-    QJsonArray arr;
-    const QDir baseDir( _contentDirectory );
-    for( const auto& file : files )
+    QJsonArray array;
+    for( const auto& entry : list )
     {
-        QJsonObject item;
-        item["name"] = file.fileName();
-        item["path"] = baseDir.relativeFilePath( file.absoluteFilePath( ));
-        item["dir"] = file.isDir();
-        item["file"] = file.isFile();
-        arr.append( item );
+        array.append( QJsonObject{{ "name", entry.fileName() },
+                                  { "dir", entry.isDir() }} );
     }
-    return QJsonDocument{ arr }.toJson().toStdString();
+    return QJsonDocument{ array }.toJson().toStdString();
 }

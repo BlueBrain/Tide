@@ -108,7 +108,7 @@ void _relocateTempContent( DisplayGroup& group, const QString& uploadDir )
         return;
     }
 
-    for ( const auto& window : group.getContentWindows( ))
+    for( const auto& window : group.getContentWindows( ))
         _relocateTempContent( *window, uploadDir );
 }
 
@@ -258,8 +258,7 @@ void _filterContents( DisplayGroup& group )
 
 QFuture<bool> StateSerializationHelper::save( QString filename,
                                               const QString& uploadDir,
-                                              const bool generatePreview
-                                              )
+                                              const bool generatePreview )
 {
     if( !filename.endsWith( SESSION_FILE_EXTENSION ))
     {
