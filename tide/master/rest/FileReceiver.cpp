@@ -40,6 +40,7 @@
 
 #include "FileReceiver.h"
 
+#include "json.h"
 #include "log.h"
 #include "scene/ContentFactory.h"
 
@@ -49,8 +50,6 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
-#include <QJsonDocument>
-#include <QJsonObject>
 #include <QUrl>
 
 using namespace zeroeq;
@@ -85,29 +84,15 @@ std::future<http::Response> _makeResponse( const http::Code code,
                                            const QString& key,
                                            const QString& info )
 {
-    const auto status = QJsonObject{{ key, info }};
-    const auto body = QJsonDocument{ status }.toJson().toStdString();
+    const auto body = json::toString( QJsonObject{{ key, info }} );
     return make_ready_response( code, body, "application/json" );
-}
-
-QJsonObject _toJSONObject( const std::string& data )
-{
-    const auto input = QByteArray::fromRawData( data.c_str(), data.size( ));
-    const auto doc = QJsonDocument::fromJson( input );
-
-    if( doc.isNull() || !doc.isObject( ))
-    {
-        put_flog( LOG_INFO, "Error parsing JSON string: '%s'", data.c_str( ));
-        return QJsonObject{};
-    }
-    return doc.object();
 }
 }
 
 std::future<http::Response>
-FileReceiver::prepareUpload( const zeroeq::http::Request& request )
+FileReceiver::prepareUpload( const http::Request& request )
 {
-    const auto obj = _toJSONObject( request.body );
+    const auto obj = json::toObject( request.body );
     if( obj.empty( ))
         return make_ready_response( http::Code::BAD_REQUEST );
 

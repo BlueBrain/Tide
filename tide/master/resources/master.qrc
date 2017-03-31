@@ -14,23 +14,23 @@
         <file>resize.svg</file>
     </qresource>
     <qresource prefix="/html">
-        <file>styles.css</file>
-        <file>index.html</file>
-        <file>tide.js</file>
-        <file>tideVars.js</file>
-        <file>bootstrap.min.css</file>
-        <file>bootstrap-treeview.min.js</file>
-        <file>jquery-3.1.1.min.js</file>
-        <file>jquery-ui.css</file>
-        <file>jquery-ui.min.js</file>
-        <file>notify.min.js</file>
-        <file>sweetalert.min.js</file>
-        <file>sweetalert.min.css</file>
-        <file>underscore-min.js</file>
+        <file>css/bootstrap.min.css</file>
+        <file>css/jquery-ui.css</file>
+        <file>css/styles.css</file>
+        <file>css/sweetalert.min.css</file>
+        <file>js/bootstrap-treeview.min.js</file>
+        <file>js/jquery-3.1.1.min.js</file>
+        <file>js/jquery-ui.min.js</file>
+        <file>js/notify.min.js</file>
+        <file>js/sweetalert.min.js</file>
+        <file>js/tide.js</file>
+        <file>js/tideVars.js</file>
+        <file>js/underscore-min.js</file>
         <file>img/close.svg</file>
         <file>img/exit.svg</file>
         <file>img/focus.svg</file>
         <file>img/loading.gif</file>
         <file>img/maximize.svg</file>
+        <file>index.html</file>
     </qresource>
 </RCC>

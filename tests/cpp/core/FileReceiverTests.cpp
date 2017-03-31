@@ -42,6 +42,7 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include "rest/json.h"
 #include "rest/FileReceiver.h"
 
 #include <zeroeq/http/request.h>
@@ -50,10 +51,7 @@
 #include <QBuffer>
 #include <QDir>
 #include <QFile>
-#include <QJsonObject>
-#include <QJsonDocument>
 #include <QObject>
-#include <QString>
 
 namespace
 {
@@ -70,17 +68,15 @@ std::string _readImageFile( const QString& filename )
 zeroeq::http::Request _makeFileRequest( const QString& filename )
 {
     zeroeq::http::Request request;
-    const QJsonObject object{{ "filename", filename }, { "x", 25.0 },
-                             { "y", 17.4 }};
-    request.body = QJsonDocument{ object }.toJson().toStdString();
+    request.body = json::toString( QJsonObject{{ "filename", filename },
+                                               { "x", 25.0 }, { "y", 17.4 }} );
     return request;
 }
 
 zeroeq::http::Request _makeFileRequestWithoutPosition( const QString& filename )
 {
     zeroeq::http::Request request;
-    const QJsonObject object{{ "filename", filename }};
-    request.body = QJsonDocument{ object }.toJson().toStdString();
+    request.body = json::toString( QJsonObject{{ "filename", filename }} );
     return request;
 }
 
@@ -94,10 +90,9 @@ zeroeq::http::Request _makeDataRequest( const QString& filename )
 
 QString _parseJsonResponse( const std::string& responseBody )
 {
-    const auto input = QString::fromStdString( responseBody ).toUtf8();
-    const auto doc = QJsonDocument::fromJson( input );
-    BOOST_REQUIRE( !doc.isNull() && doc.isObject( ));
-    return doc.object().value( "url" ).toString();
+    const auto object = json::toObject( responseBody );
+    BOOST_REQUIRE( object.value( "url" ).isString( ));
+    return object.value( "url" ).toString();
 }
 
 inline QString _tempFile( const QString& filename )

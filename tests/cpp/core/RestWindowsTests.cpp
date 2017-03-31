@@ -43,6 +43,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "rest/RestWindows.h"
+#include "rest/json.h"
 #include "scene/ContentFactory.h"
 #include "scene/DisplayGroup.h"
 #include "thumbnail/thumbnail.h"
@@ -54,9 +55,6 @@
 
 #include <QBuffer>
 #include <QByteArray>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
 #include <QRegExp>
 #include <QString>
 
@@ -105,12 +103,10 @@ BOOST_AUTO_TEST_CASE( testWindowList )
     const auto& type = response.headers[zeroeq::http::Header::CONTENT_TYPE];
     BOOST_CHECK_EQUAL( type, "application/json" );
 
-    const auto input = QString::fromStdString( response.body ).toUtf8();
-    const auto doc = QJsonDocument::fromJson( input );
-    BOOST_REQUIRE( !doc.isNull() && doc.isObject( ));
-    BOOST_REQUIRE( doc.object().contains( "windows" ));
+    const auto object = json::toObject( response.body );
+    BOOST_REQUIRE( object.contains( "windows" ));
 
-    const auto windows = doc.object().value( "windows" ).toArray();
+    const auto windows = object.value( "windows" ).toArray();
     BOOST_REQUIRE_EQUAL( windows.size(), 1 );
     BOOST_REQUIRE( windows[0].isObject( ));
 

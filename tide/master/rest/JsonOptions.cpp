@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -40,29 +40,26 @@
 #include "JsonOptions.h"
 
 #include "jsonschema.h"
-#include "log.h"
+#include "json.h"
 #include "scene/Options.h"
-
-#include <QJsonDocument>
-#include <QJsonObject>
 
 QJsonObject _makeJsonObject( const Options& options )
 {
-    QJsonObject obj;
-    obj.insert( "alphaBlending", options.isAlphaBlendingEnabled( ));
-    obj.insert( "autoFocusStreamers", options.getAutoFocusPixelStreams( ));
-    obj.insert( "backgroundColor", options.getBackgroundColor().name( ));
-    obj.insert( "background", options.getBackgroundUri( ));
-    obj.insert( "clock", options.getShowClock( ));
-    obj.insert( "contentTiles", options.getShowContentTiles( ));
-    obj.insert( "controlArea", options.getShowControlArea( ));
-    obj.insert( "statistics", options.getShowStatistics( ));
-    obj.insert( "testPattern", options.getShowTestPattern( ));
-    obj.insert( "touchPoints", options.getShowTouchPoints( ));
-    obj.insert( "windowBorders", options.getShowWindowBorders( ));
-    obj.insert( "windowTitles", options.getShowWindowTitles( ));
-    obj.insert( "zoomContext", options.getShowZoomContext( ));
-    return obj;
+    return QJsonObject{
+        { "alphaBlending", options.isAlphaBlendingEnabled() },
+        { "autoFocusStreamers", options.getAutoFocusPixelStreams() },
+        { "backgroundColor", options.getBackgroundColor().name() },
+        { "background", options.getBackgroundUri() },
+        { "clock", options.getShowClock() },
+        { "contentTiles", options.getShowContentTiles() },
+        { "controlArea", options.getShowControlArea() },
+        { "statistics", options.getShowStatistics() },
+        { "testPattern", options.getShowTestPattern() },
+        { "touchPoints", options.getShowTouchPoints() },
+        { "windowBorders", options.getShowWindowBorders() },
+        { "windowTitles", options.getShowWindowTitles() },
+        { "zoomContext", options.getShowZoomContext() }
+    };
 }
 
 JsonOptions::JsonOptions( OptionsPtr options )
@@ -85,9 +82,7 @@ std::string JsonOptions::_toJSON() const
     if( !_options )
         return std::string();
 
-    const QJsonObject obj{ _makeJsonObject( *_options ) };
-    const QJsonDocument doc{ obj };
-    return doc.toJson().constData();
+    return json::toString( _makeJsonObject( *_options ));
 }
 
 bool JsonOptions::_fromJSON( const std::string& string )
@@ -95,44 +90,66 @@ bool JsonOptions::_fromJSON( const std::string& string )
     if( !_options )
         return false;
 
-    const QByteArray input = QString::fromStdString( string ).toUtf8();
-    const QJsonDocument doc = QJsonDocument::fromJson( input );
-    if( doc.isNull() || !doc.isObject( ))
-    {
-        put_flog( LOG_INFO, "Error parsing JSON string: '%s'", string.c_str( ));
+    const auto obj = json::toObject( string );
+    if( obj.isEmpty( ))
         return false;
-    }
-    const QJsonObject obj = doc.object();
-    QJsonValue value;
 
+    QJsonValue value;
     value = obj["alphaBlending"];
-    _options->enableAlphaBlending( value.toBool( _options->isAlphaBlendingEnabled( )));
+    if( value.isBool( ))
+        _options->enableAlphaBlending( value.toBool( ));
+
     value = obj["autoFocusStreamers"];
-    _options->setAutoFocusPixelStreams( value.toBool( _options->getAutoFocusPixelStreams( )));
+    if( value.isBool( ))
+        _options->setAutoFocusPixelStreams( value.toBool( ));
+
     value = obj["backgroundColor"];
-    _options->setBackgroundColor( QColor( value.toString( _options->getBackgroundColor().name( ))));
+    if( value.isString( ))
+        _options->setBackgroundColor( QColor( value.toString( )));
+
     value = obj["background"];
-    _options->setBackgroundUri( value.toString( _options->getBackgroundUri( )));
+    if( value.isString( ))
+        _options->setBackgroundUri( value.toString( ));
+
     value = obj["clock"];
-    _options->setShowClock( value.toBool( _options->getShowClock( )));
+    if( value.isBool( ))
+        _options->setShowClock( value.toBool( ));
+
     value = obj["contentTiles"];
-    _options->setShowContentTiles( value.toBool( _options->getShowContentTiles( )));
+    if( value.isBool( ))
+        _options->setShowContentTiles( value.toBool( ));
+
     value = obj["controlArea"];
-    _options->setShowControlArea( value.toBool( _options->getShowControlArea( )));
+    if( value.isBool( ))
+        _options->setShowControlArea( value.toBool( ));
+
     value = obj["clock"];
-    _options->setShowClock( value.toBool( _options->getShowClock( )));
+    if( value.isBool( ))
+        _options->setShowClock( value.toBool( ));
+
     value = obj["statistics"];
-    _options->setShowStatistics( value.toBool( _options->getShowStatistics( )));
+    if( value.isBool( ))
+        _options->setShowStatistics( value.toBool( ));
+
     value = obj["testPattern"];
-    _options->setShowTestPattern( value.toBool( _options->getShowTestPattern( )));
+    if( value.isBool( ))
+       _options->setShowTestPattern( value.toBool( ));
+
     value = obj["touchPoints"];
-    _options->setShowTouchPoints( value.toBool( _options->getShowTouchPoints( )));
+    if( value.isBool( ))
+        _options->setShowTouchPoints( value.toBool( ));
+
     value = obj["windowBorders"];
-    _options->setShowWindowBorders( value.toBool( _options->getShowWindowBorders( )));
+    if( value.isBool( ))
+        _options->setShowWindowBorders( value.toBool( ));
+
     value = obj["windowTitles"];
-    _options->setShowWindowTitles( value.toBool( _options->getShowWindowTitles( )));
+    if( value.isBool( ))
+        _options->setShowWindowTitles( value.toBool( ));
+
     value = obj["zoomContext"];
-    _options->setShowZoomContext( value.toBool( _options->getShowZoomContext( )));
+    if( value.isBool( ))
+        _options->setShowZoomContext( value.toBool( ));
 
     return true;
 }

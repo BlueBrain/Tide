@@ -45,6 +45,7 @@
 #include <zeroeq/http/server.h>
 
 #include <QStringList>
+#include <QFileInfoList>
 
 /**
  * Expose file system directory contents in JSON format through HTTP.
@@ -80,7 +81,7 @@ private:
     const QString _contentDirectory;
     const QStringList _filters;
 
-    std::string _toJson( const QString& files ) const;
+    QFileInfoList _contents( const QDir& directory ) const;
 };
 
 #endif

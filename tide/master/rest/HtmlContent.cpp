@@ -1,6 +1,7 @@
 /*********************************************************************/
 /* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -40,141 +41,97 @@
 #include "HtmlContent.h"
 
 #include <zeroeq/http/helpers.h>
-#include <zeroeq/http/response.h>
 
 #include <QFile>
-#include <QTextStream>
+#include <QMap>
+#include <QStringList>
 
 using namespace zeroeq;
 
 namespace
 {
+const QString resourcePath = ":///html/";
+const QMap<std::string, QStringList> resources {
+    {
+        "application/javascript",
+        {
+            "js/bootstrap-treeview.min.js",
+            "js/jquery-3.1.1.min.js",
+            "js/notify.min.js",
+            "js/jquery-ui.min.js",
+            "js/sweetalert.min.js",
+            "js/tide.js",
+            "js/tideVars.js",
+            "js/underscore-min.js"
+        }
+    },
+    {
+        "image/gif",
+        {
+            "img/loading.gif"
+        }
+    },
+    {
+        "image/svg+xml",
+        {
+            "img/close.svg",
+            "img/focus.svg",
+            "img/maximize.svg"
+        }
+    },
+    {
+        "text/css",
+        {
+            "css/bootstrap.min.css",
+            "css/jquery-ui.css",
+            "css/styles.css",
+            "css/sweetalert.min.css"
+        }
+    },
+    {
+        "text/html",
+        {
+            "index.html"
+        }
+    }
+};
+
 std::string _readFile( const QString& uri )
 {
-    QFile file( uri );
-    file.open( QIODevice::ReadOnly | QIODevice::Text );
-    QTextStream in( &file );
-    return in.readAll().toStdString();
+    QFile file( resourcePath + uri );
+    file.open( QIODevice::ReadOnly );
+    return file.readAll().toStdString();
 }
 
-std::future<zeroeq::http::Response> _makeResponse( const std::string& type,
-                                                   const QString& file )
+std::future<http::Response> _makeResponse( const QString& file,
+                                           const std::string& type )
 {
-    return http::make_ready_response( http::Code::OK, _readFile( file ), 
-                                      type );
+    using namespace http;
+    const auto body = _readFile( file );
+    if( body.empty( ))
+        return make_ready_response( Code::INTERNAL_SERVER_ERROR );
+    return make_ready_response( Code::OK, body, type );
 }
 }
 
-HtmlContent::HtmlContent( zeroeq::http::Server& server )
+HtmlContent::HtmlContent( http::Server& server )
 {
-    server.handle( http::Method::GET, "", []( const zeroeq::http::Request& )
+    server.handle( http::Method::GET, "", []( const http::Request& )
     {
-        return _makeResponse( "text/html", ":///html/index.html" );
+        return _makeResponse( "index.html", "text/html" );
     });
 
-    server.handle( http::Method::GET, "css/bootstrap.css",
-                   []( const zeroeq::http::Request& )
+    for( auto it = resources.begin(); it != resources.end(); ++it )
     {
-        return _makeResponse( "text/css", ":///html/bootstrap.min.css" );
-    });
-
-    server.handle( http::Method::GET, "js/bootstrap-treeview.min.js",
-                   []( const zeroeq::http::Request& )
-    {
-        return _makeResponse( "application/javascript",
-                              ":///html/bootstrap-treeview.min.js" );
-    });
-
-    server.handle( http::Method::GET, "img/close.svg",
-                   []( const zeroeq::http::Request& )
-    {
-        return _makeResponse( "image/svg+xml", ":///html/img/close.svg" );
-    });
-
-    server.handle( http::Method::GET, "img/focus.svg",
-                   []( const zeroeq::http::Request& )
-    {
-        return _makeResponse( "image/svg+xml", ":///html/img/focus.svg" );
-    });
-
-    server.handle( http::Method::GET, "img/loading.gif",
-                   []( const zeroeq::http::Request& )
-    {
-        QFile file(":///html/img/loading.gif");
-        file.open( QIODevice::ReadOnly );
-        const auto body = file.readAll().toStdString();
-        return http::make_ready_response( http::Code::OK, body, "image/gif" );
-    });
-
-    server.handle( http::Method::GET, "js/jquery-3.1.1.min.js",
-                   []( const zeroeq::http::Request& )
-    {
-        return _makeResponse( "application/javascript",
-                              ":///html/jquery-3.1.1.min.js" );
-    });
-
-    server.handle( http::Method::GET, "js/notify.min.js",
-                   []( const zeroeq::http::Request& )
-    {
-        return _makeResponse( "application/javascript",
-                              ":///html/notify.min.js" );
-    });
-
-    server.handle( http::Method::GET, "css/jquery-ui.css",
-                   []( const zeroeq::http::Request& )
-    {
-        return _makeResponse( "text/css", ":///html/jquery-ui.css" );
-    });
-
-    server.handle( http::Method::GET, "js/jquery-ui.min.js",
-                   []( const zeroeq::http::Request& )
-    {
-        return _makeResponse( "application/javascript",
-                              ":///html/jquery-ui.min.js" );
-    });
-
-    server.handle( http::Method::GET, "img/maximize.svg",
-                   []( const zeroeq::http::Request& )
-    {
-        return _makeResponse( "image/svg+xml", ":///html/img/maximize.svg" );
-    });
-
-    server.handle( http::Method::GET, "js/sweetalert.min.js",
-                   []( const zeroeq::http::Request& )
-    {
-        return _makeResponse( "application/javascript",
-                              ":///html/sweetalert.min.js" );
-    });
-
-    server.handle( http::Method::GET, "css/sweetalert.min.css",
-                   []( const zeroeq::http::Request& )
-    {
-        return _makeResponse( "text/css", ":///html/sweetalert.min.css" );
-    });
-
-    server.handle( http::Method::GET, "js/tide.js",
-                   []( const zeroeq::http::Request& )
-    {
-        return _makeResponse( "application/javascript", ":///html/tide.js" );
-    });
-
-    server.handle( http::Method::GET, "css/styles.css",
-                   []( const zeroeq::http::Request& )
-    {
-        return _makeResponse( "text/css", ":///html/styles.css" );
-    });
-
-    server.handle( http::Method::GET, "js/tideVars.js",
-                   []( const zeroeq::http::Request& )
-    {
-        return _makeResponse( "application/javascript",
-                              ":///html/tideVars.js" );
-    });
-
-    server.handle( http::Method::GET, "js/underscore-min.js",
-                   []( const zeroeq::http::Request& )
-    {
-        return _makeResponse( "application/javascript",
-                              ":///html/underscore-min.js" );
-    });
+        const auto& type = it.key();
+        const auto& files = it.value();
+        for( const auto& file : files )
+        {
+            server.handle( http::Method::GET, file.toStdString(),
+                           [file, type]( const http::Request& )
+            {
+                return _makeResponse( file, type );
+            });
+        }
+    }
 }

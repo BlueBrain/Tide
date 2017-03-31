@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,19 +40,22 @@
 
 #include "RestConfiguration.h"
 
+#include "json.h"
 #include "scene/ContentFactory.h"
+
 #include <tide/master/version.h>
 
-#include <string>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
 #include <QDateTime>
 #include <QHostInfo>
 
 namespace
 {
 const QString _startTime = QDateTime::currentDateTime().toString();
+
+QJsonObject _toJsonObject( const QSize& size )
+{
+    return QJsonObject{{ "width", size.width() }, { "height", size.height() }};
+}
 }
 
 RestConfiguration::RestConfiguration( const MasterConfiguration& config )
@@ -65,23 +69,17 @@ std::string RestConfiguration::getTypeName() const
 
 std::string RestConfiguration::_toJSON() const
 {
-    QJsonObject config;
-    config["hostname"] = QHostInfo::localHostName();
-    config["version"] = QString::fromStdString( tide::Version::getString( ));
-    config["revision"] = QString::number( tide::Version::getRevision(), 16 );
-    config["startTime"] = _startTime;
-    QJsonObject wallSize;
-    wallSize["width"] = _config.getTotalWidth();
-    wallSize["height"] = _config.getTotalHeight();
-    config["wallSize"] = wallSize;
-    config["backgroundColor"]=_config.getBackgroundColor().name();
-    config["contentDir"] = _config.getContentDir();
-    config["sessionDir"] = _config.getSessionsDir();
-    QJsonArray supportedFormats;
-    for( const auto& filter : ContentFactory::getSupportedFilesFilter( ))
-        supportedFormats.append( filter );
-    config["filters"] = supportedFormats;
-
-    const QJsonObject rootObject{{ "config", config }};
-    return QJsonDocument{ rootObject }.toJson().toStdString();
+    QJsonObject config{
+        { "hostname", QHostInfo::localHostName() },
+        { "version", QString::fromStdString( tide::Version::getString( )) },
+        { "revision", QString::number( tide::Version::getRevision(), 16 ) },
+        { "startTime", _startTime },
+        { "wallSize", _toJsonObject( _config.getTotalSize( )) },
+        { "backgroundColor", _config.getBackgroundColor().name() },
+        { "contentDir", _config.getContentDir() },
+        { "sessionDir", _config.getSessionsDir() },
+        { "filters", QJsonArray::fromStringList(
+                        ContentFactory::getSupportedFilesFilter( )) }
+    };
+    return json::toString( QJsonObject{{ "config", config }} );
 }

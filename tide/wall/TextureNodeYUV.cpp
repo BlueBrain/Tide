@@ -194,12 +194,12 @@ const QRectF& TextureNodeYUV::rect() const
     return _rect;
 }
 
-void TextureNodeYUV::setRect( const QRectF& rect )
+void TextureNodeYUV::setRect( const QRectF& rect_ )
 {
-    if( _rect == rect )
+    if( _rect == rect_ )
         return;
 
-    _rect = rect;
+    _rect = rect_;
     QSGGeometry::updateTexturedRectGeometry( _node.geometry(), _rect,
                                              UNIT_RECTF );
     _node.markDirty( QSGNode::DirtyGeometry );

@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */

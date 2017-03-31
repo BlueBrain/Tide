@@ -59,4 +59,14 @@ QJsonObject toObject( const std::string& data )
     return doc.object();
 }
 
+std::string toString( const QJsonArray& array )
+{
+    return QJsonDocument{ array }.toJson().toStdString();
+}
+
+std::string toString( const QJsonObject& object )
+{
+    return QJsonDocument{ object }.toJson().toStdString();
+}
+
 }

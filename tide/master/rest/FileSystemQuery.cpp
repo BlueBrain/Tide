@@ -40,13 +40,28 @@
 
 #include "FileSystemQuery.h"
 
+#include "json.h"
+
 #include <zeroeq/http/helpers.h>
 
 #include <QDir>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
 #include <QUrl>
+
+namespace
+{
+QJsonObject _toJsonObject( const QFileInfo& entry )
+{
+    return QJsonObject{{ "name", entry.fileName() }, { "dir", entry.isDir() }};
+}
+
+QJsonArray _toJsonArray( const QFileInfoList& list )
+{
+    QJsonArray array;
+    for( const auto& entry : list )
+        array.append( _toJsonObject( entry ));
+    return array;
+}
+}
 
 FileSystemQuery::FileSystemQuery( const QString& contentDirectory,
                                   const QStringList& filters )
@@ -68,25 +83,16 @@ FileSystemQuery::list( const zeroeq::http::Request& request )
     if( !absolutePath.canonicalPath().startsWith( _contentDirectory ))
         return make_ready_response( Code::BAD_REQUEST );
 
-    if( absolutePath.exists( ))
-        return make_ready_response( Code::OK, _toJson( fullpath ),
-                                    "application/json" );
-    else
+    if( !absolutePath.exists( ))
         return make_ready_response( Code::NO_CONTENT );
+
+    const auto body = json::toString( _toJsonArray( _contents( fullpath )));
+    return make_ready_response( Code::OK, body, "application/json" );
 }
 
-std::string FileSystemQuery::_toJson( const QString& fullpath ) const
+QFileInfoList FileSystemQuery::_contents( const QDir& directory ) const
 {
-    const QDir directory( fullpath );
     const auto filters = QDir::Files | QDir::AllDirs | QDir::NoDotAndDotDot;
     const auto sortFlags = QDir::DirsFirst | QDir::IgnoreCase;
-    const auto list = directory.entryInfoList( _filters, filters, sortFlags );
-
-    QJsonArray array;
-    for( const auto& entry : list )
-    {
-        array.append( QJsonObject{{ "name", entry.fileName() },
-                                  { "dir", entry.isDir() }} );
-    }
-    return QJsonDocument{ array }.toJson().toStdString();
+    return directory.entryInfoList( _filters, filters, sortFlags );
 }

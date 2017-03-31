@@ -54,13 +54,13 @@ TextureNode::TextureNode( const QSize& size, QQuickWindow* window,
     setMipmapFiltering( QSGTexture::Linear );
 }
 
-void TextureNode::setMipmapFiltering( const QSGTexture::Filtering filtering )
+void TextureNode::setMipmapFiltering( const QSGTexture::Filtering filtering_ )
 {
     auto mat = static_cast<QSGOpaqueTextureMaterial*>( material( ));
     auto opaqueMat = static_cast<QSGOpaqueTextureMaterial*>( opaqueMaterial( ));
 
-    mat->setMipmapFiltering( filtering );
-    opaqueMat->setMipmapFiltering( filtering );
+    mat->setMipmapFiltering( filtering_ );
+    opaqueMat->setMipmapFiltering( filtering_ );
 }
 
 uint TextureNode::getBackGlTexture() const
