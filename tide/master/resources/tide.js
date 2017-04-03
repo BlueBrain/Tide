@@ -790,6 +790,7 @@ function resizeOnWheelEvent(event, tile) {
 
 function saveSession() {
   var uri = $('#sessionNameInput').val();
+
   if (uri.length == 0)
     return;
   if (!uri.endsWith(".dcx"))
@@ -1091,7 +1092,7 @@ function uploadFiles(files, coords) {
 
           var cancelIcon = document.createElement("span");
           cancelIcon.innerHTML = "<font color='red' >&#x2718; </font>";
-          cancelIcon.style = "cursor: pointer;";
+          cancelIcon.class = "cancelUploadSpan";
           var loadingGif = document.createElement("img");
           loadingGif.src = loadingGifUrl;
           $('#' + file.id).append(loadingGif).append(cancelIcon);

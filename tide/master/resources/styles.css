@@ -43,6 +43,10 @@ label {
   background-color: #0096d3;
 }
 
+.cancelUploadSpan {
+  cursor: pointer;
+}
+
 .controlIcon {
   margin: 15px;
 }
