@@ -123,7 +123,7 @@ FileReceiver::prepareUpload( const zeroeq::http::Request& request )
         return make_ready_future( http::Response{ http::Code::NOT_SUPPORTED } );
 
     const QStringList& filters = ContentFactory::getSupportedExtensions();
-    if( !filters.contains( fileSuffix ))
+    if( !filters.contains( fileSuffix.toLower( )))
         return make_ready_future( http::Response{ http::Code::NOT_SUPPORTED } );
 
     const auto name = _getAvailableFileName( fileInfo );

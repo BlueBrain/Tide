@@ -76,9 +76,15 @@ RestController::RestController( http::Server& server, DisplayGroup& group )
                       std::bind( &RestController::_moveWindowToFront, this,
                                  _1 ));
 
+    server.handlePUT( "tide/move-window",
+                      std::bind( &RestController::_moveWindow, this, _1 ));
+
     server.handlePUT( "tide/move-window-to-fullscreen",
                       std::bind( &RestController::_moveWindowToFullscreen, this,
                                  _1 ));
+
+    server.handlePUT( "tide/resize-window",
+                      std::bind( &RestController::_resizeWindow, this, _1 ));
 
     server.handlePUT( "tide/toggle-select-window",
                       std::bind( &RestController::_toggleSelectWindow, this,
@@ -86,12 +92,6 @@ RestController::RestController( http::Server& server, DisplayGroup& group )
 
     server.handlePUT( "tide/unfocus-window",
                       std::bind( &RestController::_unfocusWindow, this, _1 ));
-
-    server.handlePUT( "tide/resize-window",
-                      std::bind( &RestController::_resizeWindow, this, _1 ));
-
-    server.handlePUT( "tide/move-window",
-                      std::bind( &RestController::_moveWindow, this, _1 ));
 
     server.handle( http::Method::DELETE, "tide/windows/",
                    [this]( const http::Request& request )

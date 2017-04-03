@@ -69,8 +69,6 @@ QString _getUuid( const ContentWindow& window )
 RestWindows::RestWindows( const DisplayGroup& displayGroup )
     : _displayGroup( displayGroup )
 {
-    using namespace std::placeholders;
-
     QObject::connect( &displayGroup, &DisplayGroup::contentWindowAdded,
                       [this]( ContentWindowPtr window )
     {

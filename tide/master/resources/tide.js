@@ -1137,7 +1137,7 @@ function uploadFiles(files, coords) {
         else
           console.log('ENDPOINT REGISTRATION: An error occurred!');
       };
-      requests[i].send(JSON.stringify({"filename": (file.name.toLowerCase()),
+      requests[i].send(JSON.stringify({"filename": (file.name),
       "x": coords["x"], "y": coords["y"]
       }));
     })(i)

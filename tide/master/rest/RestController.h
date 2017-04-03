@@ -74,13 +74,12 @@ private:
     bool _focusWindows();
     bool _unfocusWindows();
 
+    bool _moveWindow( const std::string& payload );
     bool _moveWindowToFront( const std::string& payload );
     bool _moveWindowToFullscreen( const std::string& payload );
+    bool _resizeWindow( const std::string& payload );
     bool _toggleSelectWindow( const std::string& payload );
     bool _unfocusWindow( const std::string& payload );
-
-    bool _moveWindow( const std::string& payload );
-    bool _resizeWindow( const std::string& payload );
 };
 
 #endif
