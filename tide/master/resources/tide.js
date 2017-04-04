@@ -234,18 +234,20 @@ function createWindow(tile) {
   $(this).animate({
     transform: 'scale(' + zoomScale + ')'
   });
-  var thumbnail = new Image();
-  thumbnail.id = "img" + tile["uuid"];
-  thumbnail.className = "thumbnail";
-  windowDiv.appendChild(thumbnail);
-  queryThumbnail(tile);
 
   var controlDiv = document.createElement("div");
   controlDiv.className = "windowControls";
+  controlDiv.ondragstart = function() { return false; };
   controlDiv.appendChild(createCloseButton(tile));
   controlDiv.appendChild(createFullscreenButton(tile));
   controlDiv.appendChild(createFocusButton(tile));
   windowDiv.appendChild(controlDiv);
+
+  var thumbnail = new Image();
+  thumbnail.id = "img" + tile["uuid"];
+  thumbnail.className = "thumbnail";
+  queryThumbnail(tile);
+  windowDiv.appendChild(thumbnail);
 
   setHandles(tile);
 
@@ -879,8 +881,10 @@ function setHandles(tile) {
       var params = JSON.stringify({"uri": tile.uuid, "x": newLeft, "y": newTop});
       requestPUT("move-window", params, updateWall);
     },
-    disabled: false
+    disabled: false,
+    cancel : '.windowControls'
   });
+
   windowDiv.resizable({
     aspectRatio: true,
     start: function (event, ui) {
