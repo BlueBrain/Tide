@@ -969,13 +969,22 @@ function updateOptions() {
 
 function updateTile(tile) {
   var windowDiv = $('#' + tile.uuid);
-  windowDiv.css("min-height", tile.minHeight);
-  windowDiv.css("min-width", tile.minWidth);
+  // don't use minHeight, minWitdh and zIndex from REST interface for focused window
+  if (!tile.focus) {
+    windowDiv.css("min-height", tile.minHeight);
+    windowDiv.css("min-width", tile.minWidth);
+    windowDiv.css("zIndex", tile.zIndex);
+  }
+  else
+  {
+    windowDiv.css("min-height", 0);
+    windowDiv.css("min-width", 0);
+    windowDiv.css("zIndex", 100);
+  }
   windowDiv.css("top", tile.y);
   windowDiv.css("left", tile.x);
   windowDiv.css("height", tile.height);
   windowDiv.css("width", tile.width);
-  windowDiv.css("zIndex", tile.z);
 }
 
 function updateWall() {
