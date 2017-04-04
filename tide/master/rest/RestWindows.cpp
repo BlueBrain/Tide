@@ -96,8 +96,7 @@ RestWindows::getWindowList( const http::Request& ) const
 
     const auto rootObject = QJsonObject{{ "windows", windows }};
     const auto body = QJsonDocument{ rootObject }.toJson().toStdString();
-    const http::Response response{ http::Code::OK, body, "application/json" };
-    return make_ready_future( response );
+    return make_ready_response( http::Code::OK, body, "application/json" );
 }
 
 std::future<http::Response>
@@ -113,7 +112,7 @@ RestWindows::getWindowInfo( const http::Request& request ) const
             return _getThumbnail( uuid );
         }
     }
-    return make_ready_future( http::Response{ http::Code::BAD_REQUEST } );
+    return make_ready_response( http::Code::BAD_REQUEST );
 }
 
 QJsonObject RestWindows::_toJsonObject( ContentWindowPtr contentWindow ) const
@@ -159,12 +158,12 @@ std::future<zeroeq::http::Response>
 RestWindows::_getThumbnail( const QString& uuid ) const
 {
     if( !_thumbnailCache.contains( uuid ))
-        return make_ready_future( http::Response{ http::Code::NOT_FOUND } );
+        return make_ready_response( http::Code::NOT_FOUND  );
 
     const auto& image = _thumbnailCache[ uuid ];
     if( !image.isFinished( ))
-        return make_ready_future( http::Response{ http::Code::NO_CONTENT } );
+        return make_ready_response( http::Code::NO_CONTENT );
 
-    return make_ready_future( http::Response{ http::Code::OK, image.result(),
-                                              "image/png" } );
+    return make_ready_response( http::Code::OK, image.result(),
+                                              "image/png" );
 }

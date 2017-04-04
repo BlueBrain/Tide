@@ -717,29 +717,24 @@ function removeCurtain(type) {
   $('#' + type).remove()
 }
 
-function requestPUT(command, parameters, callback) {
-  var xhr = new XMLHttpRequest();
-  xhr.open("PUT", restUrl + command, true);
-  xhr.responseType = "json";
-  xhr.send(parameters);
-  xhr.onload = function () {
-    if (xhr.status === 400)
-      alertPopup("Something went wrong", "Issue at: " + restUrl + command);
-    if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-      if (callback != null)
-        callback();
-    }
-  };
-  xhr.onerror = function () {
-    alertPopup("Something went wrong", "Issue at: " + restUrl + command)
-  }
+function requestDELETE(command, callback) {
+  request("DELETE", command, null, callback)
 }
 
-function requestDELETE(command, callback) {
+function requestPUT(command, parameters, callback) {
+  request("PUT", command, parameters, callback)
+}
+
+function request(method, command, parameters, callback)
+{
   var xhr = new XMLHttpRequest();
-  xhr.open("DELETE", restUrl + command, true);
+  xhr.open(method, restUrl + command, true);
   xhr.responseType = "json";
-  xhr.send(null);
+  if(parameters == null)
+    xhr.send(null)
+  else
+    xhr.send(parameters)
+
   xhr.onload = function () {
     if (xhr.status === 400)
       alertPopup("Something went wrong", "Issue at: " + restUrl + command);

@@ -87,7 +87,7 @@ std::future<http::Response> _makeResponse( const http::Code code,
 {
     const auto status = QJsonObject{{ key, info }};
     const auto body = QJsonDocument{ status }.toJson().toStdString();
-    return make_ready_future( http::Response{ code, body, "application/json" });
+    return make_ready_response( code, body, "application/json" );
 }
 
 QJsonObject _toJSONObject( const std::string& data )
@@ -109,22 +109,22 @@ FileReceiver::prepareUpload( const zeroeq::http::Request& request )
 {
     const auto obj = _toJSONObject( request.body );
     if( obj.empty( ))
-        return make_ready_future( http::Response{ http::Code::BAD_REQUEST } );
+        return make_ready_response( http::Code::BAD_REQUEST );
 
     const auto filename = obj["filename"].toString();
     if( filename.contains( '/' ))
-        return make_ready_future( http::Response{ http::Code::NOT_SUPPORTED } );
+        return make_ready_response( http::Code::NOT_SUPPORTED );
 
     const auto position = QPointF{ obj["x"].toDouble(), obj["y"].toDouble() };
 
     const QFileInfo fileInfo( filename );
     const QString fileSuffix = fileInfo.suffix();
     if( fileSuffix.isEmpty() || fileInfo.baseName().isEmpty( ))
-        return make_ready_future( http::Response{ http::Code::NOT_SUPPORTED } );
+        return make_ready_response( http::Code::NOT_SUPPORTED );
 
     const QStringList& filters = ContentFactory::getSupportedExtensions();
     if( !filters.contains( fileSuffix.toLower( )))
-        return make_ready_future( http::Response{ http::Code::NOT_SUPPORTED } );
+        return make_ready_response( http::Code::NOT_SUPPORTED );
 
     const auto name = _getAvailableFileName( fileInfo );
     _preparedPaths[ name ] = position;

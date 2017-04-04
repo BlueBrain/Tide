@@ -66,13 +66,13 @@ FileSystemQuery::list( const zeroeq::http::Request& request )
     const QString fullpath = _contentDirectory + "/" + path;
     const QDir absolutePath( fullpath );
     if( !absolutePath.canonicalPath().startsWith( _contentDirectory ))
-        return make_ready_future( Response{ Code::BAD_REQUEST } );
+        return make_ready_response( Code::BAD_REQUEST );
 
     if( absolutePath.exists( ))
-        return make_ready_future( Response{ Code::OK, _toJson( fullpath ),
-                                            "application/json" } );
+        return make_ready_response( Code::OK, _toJson( fullpath ),
+                                    "application/json" );
     else
-        return make_ready_future( Response{ Code::NO_CONTENT } );
+        return make_ready_response( Code::NO_CONTENT );
 }
 
 std::string FileSystemQuery::_toJson( const QString& fullpath ) const

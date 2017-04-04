@@ -120,8 +120,7 @@ std::future<http::Response> _handleUriRequest( const http::Request& request,
 {
     const auto obj = json::toObject( request.body );
     if( obj.empty() || !obj["uri"].isString( ))
-        return http::make_ready_future( http::Response{
-                                            http::Code::BAD_REQUEST });
+        return http::make_ready_response( http::Code::BAD_REQUEST );
 
     auto uri = obj["uri"].toString();
     if( QDir::isRelativePath( uri ))

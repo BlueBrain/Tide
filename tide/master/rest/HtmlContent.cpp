@@ -60,10 +60,8 @@ std::string _readFile( const QString& uri )
 std::future<zeroeq::http::Response> _makeResponse( const std::string& type,
                                                    const QString& file )
 {
-    http::Response response{ http::Code::OK };
-    response.headers[http::Header::CONTENT_TYPE] = type;
-    response.body = _readFile( file );
-    return http::make_ready_future( response );
+    return http::make_ready_response( http::Code::OK, _readFile( file ), 
+                                      type );
 }
 }
 
@@ -102,12 +100,10 @@ HtmlContent::HtmlContent( zeroeq::http::Server& server )
     server.handle( http::Method::GET, "img/loading.gif",
                    []( const zeroeq::http::Request& )
     {
-        http::Response response{ http::Code::OK };
-        response.headers[http::Header::CONTENT_TYPE] = "image/gif";
         QFile file(":///html/img/loading.gif");
         file.open( QIODevice::ReadOnly );
-        response.body = file.readAll().toStdString();
-        return http::make_ready_future( response );
+        const auto body = file.readAll().toStdString();
+        return http::make_ready_response( http::Code::OK, body, "image/gif" );
     });
 
     server.handle( http::Method::GET, "js/jquery-3.1.1.min.js",

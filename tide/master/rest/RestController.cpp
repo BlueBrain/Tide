@@ -99,9 +99,9 @@ RestController::RestController( http::Server& server, DisplayGroup& group )
         if( auto window = _group.getContentWindow( _toWindowId( request.path )))
         {
             _group.removeContentWindow( window );
-            return make_ready_future( http::Response{ http::Code::OK } );
+            return make_ready_response( http::Code::OK );
         }
-        return make_ready_future( http::Response{ http::Code::NO_CONTENT } );
+        return make_ready_response( http::Code::NO_CONTENT );
     });
 }
 
