@@ -67,7 +67,7 @@ std::future<zeroeq::http::Response> _makeResponse( const std::string& type,
 
 HtmlContent::HtmlContent( zeroeq::http::Server& server )
 {
-    server.handle( http::Method::GET, "/", []( const zeroeq::http::Request& )
+    server.handle( http::Method::GET, "", []( const zeroeq::http::Request& )
     {
         return _makeResponse( "text/html", ":///html/index.html" );
     });
