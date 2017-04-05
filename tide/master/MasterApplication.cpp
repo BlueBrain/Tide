@@ -40,6 +40,7 @@
 
 #include "MasterApplication.h"
 
+#include "ContentLoader.h"
 #include "localstreamer/PixelStreamerLauncher.h"
 #include "log.h"
 #include "MasterConfiguration.h"
@@ -64,7 +65,6 @@
 #endif
 
 #if TIDE_ENABLE_REST_INTERFACE
-#  include "ContentLoader.h"
 #  include "LoggingUtility.h"
 #  include "rest/RestInterface.h"
 #endif
