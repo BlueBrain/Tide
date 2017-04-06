@@ -91,9 +91,10 @@ public:
 
     /**
      * Load a session.
-     * @param sessionFile a .dcx session file.
+     * @param sessionFile a .dcx session file
+     * @param promise an optional promise to return the result of the action
      */
-    void load( QString sessionFile );
+    void load( QString sessionFile, promisePtr promise = promisePtr( ));
 
 private:
     std::unique_ptr<MasterConfiguration> _config;
@@ -128,9 +129,14 @@ private:
 
     QFutureWatcher<DisplayGroupConstPtr> _loadSessionOp;
     QFutureWatcher<bool> _saveSessionOp;
+    promisePtr _loadSessionPromise;
+    promisePtr _saveSessionPromise;
 
     std::unique_ptr<ScreenshotAssembler> _screenshotAssembler;
     QString _screenshotFilename;
+
+    void _open( QString uri, QPointF coords, promisePtr promise );
+    void _save( QString sessionFile, promisePtr promise );
 
     void _init();
     void _initMasterWindow();
@@ -146,6 +152,7 @@ private:
 #endif
     void _restoreBackground();
     void _apply( DisplayGroupConstPtr group );
+    void _deleteTempContentFile( ContentWindowPtr window );
 };
 
 #endif

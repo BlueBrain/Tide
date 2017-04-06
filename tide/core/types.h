@@ -107,6 +107,7 @@ typedef std::weak_ptr< PixelStreamUpdater > PixelStreamUpdaterWeakPtr;
 typedef std::shared_ptr< PixelStreamUpdater > PixelStreamUpdaterSharedPtr;
 typedef std::shared_ptr<Tile> TilePtr;
 typedef std::weak_ptr<Tile> TileWeakPtr;
+typedef std::shared_ptr< std::promise<bool> > promisePtr;
 
 typedef std::set< ContentWindowPtr > ContentWindowSet;
 typedef std::vector< ContentWindowPtr > ContentWindowPtrs;
@@ -152,6 +153,12 @@ inline std::ostream& operator << ( std::ostream& str, const QRectF& r )
 {
     str << r.x() << ',' << r.y() << ' ' << r.width() << 'x' << r.height();
     return str;
+}
+
+inline std::ostream& operator << ( std::ostream &str, const QString& s )
+{
+   str << s.toStdString();
+   return str;
 }
 
 // missing make_unique() implementation in C++11 standard

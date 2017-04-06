@@ -1,6 +1,7 @@
 /*********************************************************************/
 /* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -40,48 +41,46 @@
 #ifndef FILESYSTEMQUERY_H
 #define FILESYSTEMQUERY_H
 
-#include "FileSystemContent.h"
-#include "MasterConfiguration.h"
-
+#include <zeroeq/http/request.h>
 #include <zeroeq/http/server.h>
 
-#include <map>
+#include <QStringList>
 
 /**
- * Handles requests for listing a file system.
+ * Expose file system directory contents in JSON format through HTTP.
+ *
+ * Example client usage:
+ * GET /api/files/some/folder
+ * => 200 [ {"name": "subfolder", "dir": true},
+ *          {"name": "image.png", "dir": false} ]
  */
 class FileSystemQuery
 {
 public:
     /**
-     * The different types of files that can be exposed.
+     * Create a file system listing.
+     *
+     * @param contentDirectory the root directory path.
+     * @param filters used to filter the contents by their extension.
      */
-    enum class Type
-    {
-        FILES,
-        SESSIONS
-    };
+    FileSystemQuery( const QString& contentDirectory,
+                     const QStringList& filters );
 
     /**
-     * Create and register a file system listing.
+     * List the content of a directory.
      *
-     * @param httpServer used to expose the file system content
-     * @param contentDirectory the content directory path
-     * @param contentType type of content to expose
+     * @param request GET request to a relative path of the root directory.
+     * @return JSON response with the contents of the directory, or an
+     *         appropriate error code on error.
      */
-    FileSystemQuery( zeroeq::http::Server& httpServer,
-                     const QString& contentDirectory,
-                     Type contentType );
+    std::future<zeroeq::http::Response>
+    list( const zeroeq::http::Request& request );
 
 private:
-    zeroeq::http::Server& _server;
     const QString _contentDirectory;
-    const Type _contentType;
-    std::map<QString, FileSystemContent> _fsContentList;
+    const QStringList _filters;
 
-    std::string _getEndpoint() const;
-    const QStringList& _getFilters() const;
-    bool _handleDirectoryList( const std::string& string );
+    std::string _toJson( const QString& files ) const;
 };
 
 #endif

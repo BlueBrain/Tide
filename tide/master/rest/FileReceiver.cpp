@@ -1,6 +1,7 @@
 /*********************************************************************/
 /* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -40,8 +41,9 @@
 #include "FileReceiver.h"
 
 #include "log.h"
-
 #include "scene/ContentFactory.h"
+
+#include <zeroeq/http/helpers.h>
 
 #include <QByteArray>
 #include <QDir>
@@ -51,9 +53,43 @@
 #include <QJsonObject>
 #include <QUrl>
 
+using namespace zeroeq;
 
 namespace
 {
+inline QString _urlEncode( const QString& filename )
+{
+    return QUrl( filename ).fileName( QUrl::FullyEncoded );
+}
+
+inline QString _urlDecode( const QString& filename )
+{
+    return QUrl( filename ).fileName( QUrl::FullyDecoded );
+}
+
+QString _getAvailableFileName( const QFileInfo& fileInfo )
+{
+    QString filename = fileInfo.fileName();
+
+    int nSuffix = 0;
+    while( QFile( QDir::tempPath() + "/" + filename ).exists( ))
+    {
+        filename = QString( "%1_%2.%3" ).arg( fileInfo.baseName(),
+                                              QString::number( ++nSuffix ),
+                                              fileInfo.suffix( ));
+    }
+    return filename;
+}
+
+std::future<http::Response> _makeResponse( const http::Code code,
+                                           const QString& key,
+                                           const QString& info )
+{
+    const auto status = QJsonObject{{ key, info }};
+    const auto body = QJsonDocument{ status }.toJson().toStdString();
+    return make_ready_response( code, body, "application/json" );
+}
+
 QJsonObject _toJSONObject( const std::string& data )
 {
     const auto input = QByteArray::fromRawData( data.c_str(), data.size( ));
@@ -68,50 +104,78 @@ QJsonObject _toJSONObject( const std::string& data )
 }
 }
 
-FileReceiver::FileReceiver( zeroeq::http::Server& server )
-    : _server ( server )
+std::future<http::Response>
+FileReceiver::prepareUpload( const zeroeq::http::Request& request )
 {
-    server.handlePUT( "tide/upload", [this]( const std::string& received )
-    { return _handleUpload( received ); } );
-
-}
-
-bool FileReceiver::_handleUpload( const std::string& payload )
-{
-    const auto obj = _toJSONObject( payload );
+    const auto obj = _toJSONObject( request.body );
     if( obj.empty( ))
-        return false;
-    const auto fileName = obj[ "fileName" ].toString();
-    if( fileName.contains( '/' ))
-        return false;
+        return make_ready_response( http::Code::BAD_REQUEST );
 
-    const QFileInfo fileInfo( fileName );
+    const auto filename = obj["filename"].toString();
+    if( filename.contains( '/' ))
+        return make_ready_response( http::Code::NOT_SUPPORTED );
+
+    const auto position = QPointF{ obj["x"].toDouble(), obj["y"].toDouble() };
+
+    const QFileInfo fileInfo( filename );
     const QString fileSuffix = fileInfo.suffix();
     if( fileSuffix.isEmpty() || fileInfo.baseName().isEmpty( ))
-        return false;
+        return make_ready_response( http::Code::NOT_SUPPORTED );
 
     const QStringList& filters = ContentFactory::getSupportedExtensions();
-    if( !filters.contains( fileSuffix ))
+    if( !filters.contains( fileSuffix.toLower( )))
+        return make_ready_response( http::Code::NOT_SUPPORTED );
+
+    const auto name = _getAvailableFileName( fileInfo );
+    _preparedPaths[ name ] = position;
+    return _makeResponse( http::Code::OK, "url", _urlEncode( name ));
+}
+
+std::future<http::Response>
+FileReceiver::handleUpload( const zeroeq::http::Request& request )
+{
+    const auto name = _urlDecode( QString::fromStdString( request.path ));
+    if( !_preparedPaths.contains( name ))
+        return _makeResponse( http::Code::FORBIDDEN, "info",
+                              "upload not prepared"  );
+
+    const auto filePath = QDir::tempPath() + "/" + name;
+    const auto position = _preparedPaths[name];
+    _preparedPaths.remove( name );
+
+    QFile file( filePath );
+    if( !file.open( QIODevice::WriteOnly ) ||
+            !file.write( request.body.c_str(), request.body.size( )))
     {
-        put_flog( LOG_INFO, "Not supported file uploaded: %s",
-                  fileInfo.fileName().toLocal8Bit().constData( ));
-        return false;
+        put_flog ( LOG_INFO, "file not created as %s",
+                   filePath.toLocal8Bit().constData( ));
+        return _makeResponse( http::Code::INTERNAL_SERVER_ERROR, "info",
+                              "could not upload"  );
+    }
+    file.close();
+
+    put_flog( LOG_INFO, "file created as %s",
+              filePath.toLocal8Bit().constData( ));
+
+    auto openPromise = std::make_shared<std::promise<bool>>();
+    auto openSuccess = openPromise->get_future();
+    emit open( filePath, position, std::move( openPromise ));
+    try
+    {
+        if( openSuccess.get( ))
+        {
+            put_flog( LOG_INFO, "file uploaded and saved as: %s",
+                      filePath.toLocal8Bit().constData( ));
+            return _makeResponse( http::Code::CREATED, "info", "OK" );
+        }
+    }
+    catch (...)
+    {
     }
 
-    const auto url = QUrl::fromLocalFile( fileName );
-    const std::string path = url.path( QUrl::FullyEncoded ).toStdString();
-    _server.handlePUT( "tide/upload/" + path,
-                       [ this, fileName, path ] ( const std::string& data )
-    {
-        QFile file(  QDir::tempPath() + "/" + fileName );
-        if( !file.open( QIODevice::WriteOnly ))
-            return false;
-        if( !file.write( data.c_str(), data.size( )))
-            return false;
-        file.close();
-        emit open( QFileInfo( file ).absoluteFilePath( ));
-        _server.remove( "tide/upload/" + path );
-        return true;
-    });
-    return true;
+    file.remove();
+    put_flog( LOG_INFO, "file uploaded but could not be opened: %s",
+              filePath.toLocal8Bit().constData( ));
+    return _makeResponse( http::Code::NOT_SUPPORTED, "info",
+                          "file could not be opened" );
 }

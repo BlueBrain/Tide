@@ -44,9 +44,6 @@
 
 #include <QSocketNotifier>
 
-class RestCommand;
-class StaticContent;
-
 /**
  * A non-blocking REST Server based on ZeroEQ for use in a Qt application.
  */

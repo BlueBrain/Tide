@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -41,7 +42,6 @@
 #define RESTCONTROLLER_H
 
 #include "control/DisplayGroupController.h"
-#include "RestCommand.h"
 #include "scene/DisplayGroup.h"
 #include "types.h"
 
@@ -50,7 +50,7 @@
 #include <QObject>
 
 /**
- * Enable remote control of windows through a REST API
+ * Enable remote control of windows through a REST API.
  */
 class RestController : public QObject
 {
@@ -67,24 +67,19 @@ public:
 
 private:
     DisplayGroup& _group;
-
     std::unique_ptr<DisplayGroupController> _controller;
 
-    RestCommand _toggleSelectWindow{ "tide/toggleSelectWindow" };
-    RestCommand _moveToFront{ "tide/moveWindowToFront" };
-    RestCommand _moveWindowtoFullscreen{ "tide/moveWindowToFullscreen" };
-    RestCommand _unfocusWindow{ "tide/unfocusWindow" };
+    bool _deselectWindows();
+    bool _exitFullScreen();
+    bool _focusWindows();
+    bool _unfocusWindows();
 
-    bool _handleToggleSelectWindow( QString id );
-    bool _handleDeselectWindows();
-    bool _handleExitFullScreen();
-    bool _handleFocusWindows();
-    bool _handleMoveWindow( const std::string& payload );
-    bool _handleMoveWindowToFront( QString id );
-    bool _handleMoveWindowToFullscreen( QString id );
-    bool _handleResizeWindow( const std::string& payload );
-    bool _handleUnfocusWindow( const QString& id );
-    bool _handleUnfocusWindows();
+    bool _moveWindow( const std::string& payload );
+    bool _moveWindowToFront( const std::string& payload );
+    bool _moveWindowToFullscreen( const std::string& payload );
+    bool _resizeWindow( const std::string& payload );
+    bool _toggleSelectWindow( const std::string& payload );
+    bool _unfocusWindow( const std::string& payload );
 };
 
 #endif

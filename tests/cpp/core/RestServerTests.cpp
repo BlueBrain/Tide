@@ -41,7 +41,6 @@
 #include <boost/test/unit_test.hpp>
 
 #include "rest/RestServer.h"
-#include "rest/StaticContent.h"
 
 #include <zeroeq/uri.h>
 
@@ -85,8 +84,7 @@ BOOST_AUTO_TEST_CASE( testServerReturnsSimpleContent )
     RestServer server;
     BOOST_REQUIRE_GT( server.getPort(), 0 );
 
-    StaticContent testPage{ "test", "Hello World!" };
-    server.get().handleGET( testPage );
+    server.get().handleGET( "test", [] { return "Hello World!"; } );
 
     const auto url = QString( "http://localhost:%1/test" ).arg(
                          server.getPort( ));

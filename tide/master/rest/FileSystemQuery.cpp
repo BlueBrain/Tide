@@ -1,6 +1,7 @@
 /*********************************************************************/
 /* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,109 +40,53 @@
 
 #include "FileSystemQuery.h"
 
-#include "log.h"
-#include "scene/ContentFactory.h"
+#include <zeroeq/http/helpers.h>
 
 #include <QDir>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QUrl>
-#include <QUuid>
 
-namespace
+FileSystemQuery::FileSystemQuery( const QString& contentDirectory,
+                                  const QStringList& filters )
+    : _contentDirectory{ contentDirectory }
+    , _filters{ filters }
+{}
+
+std::future<zeroeq::http::Response>
+FileSystemQuery::list( const zeroeq::http::Request& request )
 {
-
-QString _parseJson( const std::string& data )
-{
-    const QByteArray input = QByteArray::fromRawData( data.c_str(),
-                                                      data.size( ));
-    const auto doc = QJsonDocument::fromJson( input );
-    if( doc.isNull() || !doc.isObject( ) || !doc.object()["dir"].isString( ))
-    {
-        put_flog( LOG_INFO, "Error parsing JSON string: '%s'", data.c_str( ));
-        return QString();
-    }
-    return doc.object()["dir"].toString();
-}
-
-const auto sessionsFilter = QStringList{ "*.dcx" };
-
-}
-
-FileSystemQuery::FileSystemQuery( zeroeq::http::Server& server,
-                                  const QString& contentDirectory,
-                                  const Type contentType )
-    : _server( server )
-    , _contentDirectory( contentDirectory )
-    , _contentType( contentType )
-{
-    _server.handlePUT( _getEndpoint(), [this]( const std::string& received )
-    {
-        return _handleDirectoryList( received );
-    });
-}
-
-std::string FileSystemQuery::_getEndpoint() const
-{
-    switch( _contentType )
-    {
-    case Type::FILES:
-        return "tide/files";
-    case Type::SESSIONS:
-        return "tide/sessions";
-    default:
-        throw std::logic_error( "no such type" );
-    };
-}
-
-const QStringList& FileSystemQuery::_getFilters() const
-{
-    switch( _contentType )
-    {
-    case Type::FILES:
-        return ContentFactory::getSupportedFilesFilter();
-    case Type::SESSIONS:
-        return sessionsFilter;
-    default:
-        throw std::logic_error( "no such type" );
-    };
-}
-
-bool FileSystemQuery::_handleDirectoryList( const std::string& payload )
-{
-    const auto path = _parseJson( payload );
-    if( path.isEmpty( ))
-        return false;
+    using namespace zeroeq::http;
+    auto path = QString::fromStdString( request.path );
+    QUrl url;
+    url.setPath( path, QUrl::StrictMode );
+    path = url.path();
 
     const QString fullpath = _contentDirectory + "/" + path;
-
     const QDir absolutePath( fullpath );
     if( !absolutePath.canonicalPath().startsWith( _contentDirectory ))
-        return false;
+        return make_ready_response( Code::BAD_REQUEST );
 
     if( absolutePath.exists( ))
-    {
-        if( !_fsContentList.count( path ))
-        {
-            _fsContentList.emplace( std::piecewise_construct,
-                                    std::forward_as_tuple( path ),
-                                    std::forward_as_tuple( _getEndpoint(),
-                                                           _contentDirectory,
-                                                           path,
-                                                           _getFilters( )));
-            _server.handleGET( _fsContentList.at( path ));
-        }
-        return true;
-    }
+        return make_ready_response( Code::OK, _toJson( fullpath ),
+                                    "application/json" );
     else
+        return make_ready_response( Code::NO_CONTENT );
+}
+
+std::string FileSystemQuery::_toJson( const QString& fullpath ) const
+{
+    const QDir directory( fullpath );
+    const auto filters = QDir::Files | QDir::AllDirs | QDir::NoDotAndDotDot;
+    const auto sortFlags = QDir::DirsFirst | QDir::IgnoreCase;
+    const auto list = directory.entryInfoList( _filters, filters, sortFlags );
+
+    QJsonArray array;
+    for( const auto& entry : list )
     {
-        auto kv =_fsContentList.find( path );
-        if( kv != _fsContentList.end( ))
-        {
-            _server.remove( kv->second );
-            _fsContentList.erase( kv );
-        }
+        array.append( QJsonObject{{ "name", entry.fileName() },
+                                  { "dir", entry.isDir() }} );
     }
-    return false;
+    return QJsonDocument{ array }.toJson().toStdString();
 }

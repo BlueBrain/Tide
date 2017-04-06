@@ -40,37 +40,19 @@
 #ifndef HTMLCONTENT_H
 #define HTMLCONTENT_H
 
-#include "StaticContent.h"
 #include <zeroeq/http/server.h>
 
 /**
- * Exposes html content through a REST API
+ * Expose html content through a REST API.
  */
 class HtmlContent
 {
 public:
     /**
-     * Construct and expose the html content
+     * Construct and expose the html content.
      * @param httpServer used to expose the content
      */
     HtmlContent( zeroeq::http::Server& httpServer );
-
-private:
-    StaticContent indexPage;
-    StaticContent bootstrapStyles;
-    StaticContent bootstrapTree;
-    StaticContent closeIcon;
-    StaticContent focusIcon;
-    StaticContent jquery;
-    StaticContent jqueryUiStyles;
-    StaticContent jqueryUi;
-    StaticContent maximizeIcon;
-    StaticContent sweetalert;
-    StaticContent sweetalertStyles;
-    StaticContent tideJs;
-    StaticContent tideStyles;
-    StaticContent tideVarsJs;
-    StaticContent underscore;
 };
 
 #endif

@@ -1,7 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>     */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/*                          Daniel Nachbaur <daniel.nachbaur@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -66,8 +66,10 @@ enum class StreamType
     WHITEBOARD
 };
 
-QString getContentTypeString( const CONTENT_TYPE type );
+QString getContentTypeString( CONTENT_TYPE type );
 
 CONTENT_TYPE getContentType( const QString& typeString );
+
+bool contentTypeIsFile( CONTENT_TYPE type );
 
 #endif

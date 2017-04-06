@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -81,21 +81,21 @@ public:
 
     /**
      * Set-up the HTML interface.
-     * @param displayGroup DisplayGroup exposed via interface
+     * @param group DisplayGroup exposed via the interface
      * @param config MasterConfiguration used to set-up the interface
      */
-    void setupHtmlInterface( DisplayGroup& displayGroup,
+    void setupHtmlInterface( DisplayGroup& group,
                              const MasterConfiguration& config );
 
 signals:
     /** Open a content. */
-    void open( QString uri );
+    void open( QString uri, const QPointF coords, promisePtr promise );
 
     /** Load a session. */
-    void load( QString uri );
+    void load( QString uri, promisePtr promise );
 
     /** Save a session to the given file. */
-    void save( QString uri );
+    void save( QString uri, promisePtr promise );
 
     /** Clear all contents. */
     void clear();
@@ -103,14 +103,11 @@ signals:
     /** Open a whiteboard. */
     void whiteboard();
 
-    /** Close a content. */
-    void close( QString uuid );
-
     /** Browse a website. */
     void browse( QString uri );
 
     /** Take a screenshot. */
-    void screenshot( QString uri );
+    void screenshot( QString filename );
 
     /** Exit the application. */
     void exit();
@@ -118,7 +115,6 @@ signals:
 private:
     class Impl;
     std::unique_ptr<Impl> _impl;
-    const MasterConfiguration& _config;
 };
 
 #endif

@@ -40,6 +40,7 @@
 #include "RestCommand.h"
 
 #include "jsonschema.h"
+#include "json.h"
 #include "log.h"
 
 #include <QJsonDocument>
@@ -82,21 +83,14 @@ std::string RestCommand::getSchema() const
 
 bool RestCommand::_fromJSON( const std::string& string )
 {
-    const QByteArray input = QString::fromStdString( string ).toUtf8();
-    const QJsonDocument doc = QJsonDocument::fromJson( input );
-    if( doc.isNull() || !doc.isObject( ))
-    {
-        put_flog( LOG_INFO, "Error parsing JSON string: '%s'", string.c_str( ));
-        return false;
-    }
-
     if( !_takesValue )
     {
         emit received( "" );
         return true;
     }
 
-    const QJsonValue value = doc.object()["uri"];
+    const auto object = json::toObject( string );
+    const auto value = object["uri"];
     if( !value.isString( ))
         return false;
 

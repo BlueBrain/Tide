@@ -103,8 +103,6 @@ void MasterConfiguration::loadSessionsDirectory( QXmlQuery& query )
 
 void MasterConfiguration::loadUploadDirectory( QXmlQuery& query )
 {
-    QString queryResult;
-
     query.setQuery( "string(/configuration/webservice/@uploadDirectory)" );
     getString( query, _uploadDir );
     if( _uploadDir.isEmpty( ))

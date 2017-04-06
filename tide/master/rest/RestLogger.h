@@ -62,7 +62,7 @@ public:
     std::string getSchema() const final;
 
 private:
-    const LoggingUtility& _logger ;
+    const LoggingUtility& _logger;
 
     std::string _toJSON() const final;
 };

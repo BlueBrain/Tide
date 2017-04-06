@@ -77,7 +77,7 @@ MasterWindow::MasterWindow( DisplayGroupPtr displayGroup,
 #endif
     , _contentFolder( config.getContentDir( ))
     , _sessionFolder( config.getSessionsDir( ))
-    , _uploadDir ( config.getUploadDir( ))
+    , _uploadDir( config.getUploadDir( ))
 {
     _backgroundWidget->setModal( true );
 

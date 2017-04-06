@@ -40,6 +40,7 @@
 
 #include "MasterApplication.h"
 
+#include "ContentLoader.h"
 #include "localstreamer/PixelStreamerLauncher.h"
 #include "log.h"
 #include "MasterConfiguration.h"
@@ -64,7 +65,6 @@
 #endif
 
 #if TIDE_ENABLE_REST_INTERFACE
-#  include "ContentLoader.h"
 #  include "LoggingUtility.h"
 #  include "rest/RestInterface.h"
 #endif
@@ -129,15 +129,57 @@ MasterApplication::~MasterApplication()
     _mpiReceiveThread.wait();
 }
 
-void MasterApplication::load( const QString sessionFile )
+void MasterApplication::load( const QString sessionFile, promisePtr promise )
 {
+    _loadSessionOp.waitForFinished();
+    _loadSessionPromise = promise;
     _loadSessionOp.setFuture(
                 StateSerializationHelper( _displayGroup ).load( sessionFile ));
+}
+
+void MasterApplication::_open( const QString uri, const QPointF coords,
+                               promisePtr promise )
+{
+    if( uri.isEmpty( ))
+    {
+        if( promise )
+            promise->set_value( false );
+        return;
+    }
+
+    auto loader = ContentLoader{ _displayGroup };
+    bool success = false;
+    if( auto window = loader.findWindow( uri ))
+    {
+        _displayGroup->moveToFront( window );
+        success = true;
+    }
+    else if( QDir{ uri }.exists( ))
+        success = loader.loadDir( uri );
+    else
+        success = loader.load( uri, coords );
+
+    if( promise )
+        promise->set_value( success );
+}
+
+void MasterApplication::_save( const QString sessionFile, promisePtr promise )
+{
+    _saveSessionOp.waitForFinished();
+    _saveSessionPromise = promise;
+
+    _displayGroup->setShowWindowTitles( _options->getShowWindowTitles( ));
+
+    StateSerializationHelper helper( _displayGroup );
+    _saveSessionOp.setFuture( helper.save( sessionFile,
+                                           _config->getUploadDir( )));
 }
 
 void MasterApplication::_init()
 {
     _displayGroup.reset( new DisplayGroup( _config->getTotalSize( )));
+    connect( _displayGroup.get(), &DisplayGroup::contentWindowRemoved,
+             this, &MasterApplication::_deleteTempContentFile );
 
     _pixelStreamWindowManager.reset(
                 new PixelStreamWindowManager( *_displayGroup ));
@@ -165,8 +207,25 @@ void MasterApplication::_init()
     connect( &_loadSessionOp, &QFutureWatcher<DisplayGroupConstPtr>::finished,
              [this]()
     {
-        if( auto group = _loadSessionOp.result( ))
+        auto group = _loadSessionOp.result();
+        if( group )
             _apply( group );
+
+        if( _loadSessionPromise )
+        {
+            _loadSessionPromise->set_value( group != nullptr );
+            _loadSessionPromise.reset();
+        }
+    });
+
+    connect( &_saveSessionOp, &QFutureWatcher<DisplayGroupConstPtr>::finished,
+             [this]()
+    {
+        if( _saveSessionPromise )
+        {
+            _saveSessionPromise->set_value( _saveSessionOp.result( ));
+            _saveSessionPromise.reset();
+        }
     });
 
 #if TIDE_ENABLE_REST_INTERFACE
@@ -399,37 +458,14 @@ void MasterApplication::_initRestInterface()
         _pixelStreamerLauncher->openWhiteboard();
     });
 
-    connect( _restInterface.get(), &RestInterface::open, [this]( QString uri )
-    {
-        if( uri.isEmpty( ))
-            return;
-
-        auto loader = ContentLoader{ _displayGroup };
-        auto window = loader.findWindow( uri );
-        if( window )
-            _displayGroup->moveToFront( window );
-        else if( QDir{ uri }.exists( ))
-            loader.loadDir( uri );
-        else
-            loader.load( uri );
-    });
-
-    connect( _restInterface.get(), &RestInterface::close, [this]( QString uuid )
-    {
-        auto window = _displayGroup->getContentWindow( uuid );
-        _displayGroup->removeContentWindow( window );
-    });
+    connect( _restInterface.get(), &RestInterface::open,
+             this, &MasterApplication::_open);
 
     connect( _restInterface.get(), &RestInterface::load,
              this, &MasterApplication::load );
 
-    connect( _restInterface.get(), &RestInterface::save, [this]( QString uri )
-    {
-        _displayGroup->setShowWindowTitles( _options->getShowWindowTitles( ));
-        const auto& uploadDir = _config->getUploadDir();
-        StateSerializationHelper helper( _displayGroup );
-        _saveSessionOp.setFuture( helper.save( uri, uploadDir ));
-    });
+    connect( _restInterface.get(), &RestInterface::save,
+             this, &MasterApplication::_save );
 
     connect( _restInterface.get(), &RestInterface::clear, [this]()
     {
@@ -485,4 +521,16 @@ void MasterApplication::_apply( DisplayGroupConstPtr group )
     for( const auto& window : group->getContentWindows( ))
         if( auto browser = dynamic_cast<WebContent>( window->getContentPtr( )))
             _pixelStreamerLauncher->launch( *browser );
+}
+
+void MasterApplication::_deleteTempContentFile( ContentWindowPtr window )
+{
+    const bool isFile = contentTypeIsFile( window->getContent()->getType( ));
+    const auto& filename = window->getContent()->getURI();
+    if( isFile && filename.startsWith( QDir::tempPath() + "/" ))
+    {
+        QDir().remove( filename );
+        put_flog( LOG_INFO, "Deleted temporary file: %s",
+                  filename.toLocal8Bit().constData( ));
+    }
 }

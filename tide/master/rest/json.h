@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,20 +37,16 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "StaticContent.h"
+#ifndef JSON_H
+#define JSON_H
 
-StaticContent::StaticContent( const std::string& name,
-                              const std::string& content )
-    : _name( name )
-    , _content( content )
-{}
+#include <QJsonObject>
 
-std::string StaticContent::getTypeName() const
+namespace json
 {
-    return _name;
+
+QJsonObject toObject( const std::string& data );
+
 }
 
-std::string StaticContent::_toJSON() const
-{
-    return _content;
-}
+#endif

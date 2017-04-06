@@ -66,17 +66,18 @@ public:
      * Only one window can be fullscreen at a time. If another window was
      * already fullscreen it will be restored to its previous state.
      * @param id window identifier
+     * @return false if the window with id does not exist
      */
-    Q_INVOKABLE void showFullscreen( const QUuid& id );
+    Q_INVOKABLE bool showFullscreen( const QUuid& id );
 
     /** Leave fullscreen mode, restoring the window to its previous state. */
     Q_INVOKABLE void exitFullscreen();
 
     /** Focus a window. */
-    Q_INVOKABLE void focus( const QUuid& id );
+    Q_INVOKABLE bool focus( const QUuid& id );
 
     /** Unfocus a window. */
-    Q_INVOKABLE void unfocus( const QUuid& id );
+    Q_INVOKABLE bool unfocus( const QUuid& id );
 
     /** Focus all selected windows. */
     Q_INVOKABLE void focusSelected();
@@ -91,7 +92,7 @@ public:
     Q_INVOKABLE void hidePanels();
 
     /** Move a content window to the front. */
-    Q_INVOKABLE void moveWindowToFront( QUuid id );
+    Q_INVOKABLE bool moveWindowToFront( const QUuid& id );
 
     /** Scale the DisplayGroup and its windows by the given x and y factors. */
     void scale( const QSizeF& factor );

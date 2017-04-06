@@ -3,6 +3,11 @@ Changelog {#changelog}
 
 # Release 1.3 (git master)
 
+* [128](https://github.com/BlueBrain/Tide/pull/128):
+  Multiple improvements in html interface:
+  - the web interface no longer blocks the application
+  - thumbnails are generated asynchronously and cached
+  - proper MIME type for served content
 * [127](https://github.com/BlueBrain/Tide/pull/127):
   Pixel streams decode faster by directly rendering YUV frames on GPU.
 * [124](https://github.com/BlueBrain/Tide/pull/124):

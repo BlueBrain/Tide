@@ -39,8 +39,13 @@
 
 #include "HtmlContent.h"
 
+#include <zeroeq/http/helpers.h>
+#include <zeroeq/http/response.h>
+
 #include <QFile>
 #include <QTextStream>
+
+using namespace zeroeq;
 
 namespace
 {
@@ -51,48 +56,125 @@ std::string _readFile( const QString& uri )
     QTextStream in( &file );
     return in.readAll().toStdString();
 }
+
+std::future<zeroeq::http::Response> _makeResponse( const std::string& type,
+                                                   const QString& file )
+{
+    return http::make_ready_response( http::Code::OK, _readFile( file ), 
+                                      type );
+}
 }
 
 HtmlContent::HtmlContent( zeroeq::http::Server& server )
-    : indexPage{ "/", _readFile( ":///html/index.html" ) }
-    , bootstrapStyles{ "css/bootstrap.css",
-                      _readFile( ":///html/bootstrap.min.css" ) }
-    , bootstrapTree{ "js/bootstrap-treeview.min.js",
-                      _readFile( ":///html/bootstrap-treeview.min.js" ) }
-    , closeIcon { "img/close.svg", _readFile( ":///html/img/close.svg" ) }
-    , focusIcon { "img/focus.svg", _readFile( ":///html/img/focus.svg" ) }
-    , jquery { "js/jquery-3.1.1.min.js",
-               _readFile( ":///html/jquery-3.1.1.min.js" ) }
-    , jqueryUiStyles { "css/jquery-ui.css",
-                       _readFile( ":///html/jquery-ui.css" ) }
-    , jqueryUi { "js/jquery-ui.min.js",
-                 _readFile( ":///html/jquery-ui.min.js" ) }
-    , maximizeIcon { "img/maximize.svg",
-                     _readFile( ":///html/img/maximize.svg" ) }
-    , sweetalert { "js/sweetalert.min.js",
-                   _readFile( ":///html/sweetalert.min.js" ) }
-    , sweetalertStyles { "css/sweetalert.min.css",
-                         _readFile( ":///html/sweetalert.min.css" ) }
-    , tideJs { "js/tide.js", _readFile( ":///html/tide.js" ) }
-    , tideStyles{ "css/styles.css", _readFile( ":///html/styles.css" ) }
-    , tideVarsJs { "js/tideVars.js", _readFile( ":///html/tideVars.js" ) }
-    , underscore { "js/underscore-min.js",
-                   _readFile( ":///html/underscore-min.js" ) }
 {
-    server.handleGET( indexPage );
-    server.handleGET( closeIcon );
-    server.handleGET( focusIcon );
-    server.handleGET( bootstrapStyles );
-    server.handleGET( bootstrapTree );
-    server.handleGET( jquery );
-    server.handleGET( jqueryUiStyles );
-    server.handleGET( jqueryUi );
-    server.handleGET( maximizeIcon );
-    server.handleGET( sweetalert );
-    server.handleGET( sweetalertStyles );
-    server.handleGET( tideJs );
-    server.handleGET( tideStyles );
-    server.handleGET( tideVarsJs );
-    server.handleGET( underscore );
-}
+    server.handle( http::Method::GET, "", []( const zeroeq::http::Request& )
+    {
+        return _makeResponse( "text/html", ":///html/index.html" );
+    });
 
+    server.handle( http::Method::GET, "css/bootstrap.css",
+                   []( const zeroeq::http::Request& )
+    {
+        return _makeResponse( "text/css", ":///html/bootstrap.min.css" );
+    });
+
+    server.handle( http::Method::GET, "js/bootstrap-treeview.min.js",
+                   []( const zeroeq::http::Request& )
+    {
+        return _makeResponse( "application/javascript",
+                              ":///html/bootstrap-treeview.min.js" );
+    });
+
+    server.handle( http::Method::GET, "img/close.svg",
+                   []( const zeroeq::http::Request& )
+    {
+        return _makeResponse( "image/svg+xml", ":///html/img/close.svg" );
+    });
+
+    server.handle( http::Method::GET, "img/focus.svg",
+                   []( const zeroeq::http::Request& )
+    {
+        return _makeResponse( "image/svg+xml", ":///html/img/focus.svg" );
+    });
+
+    server.handle( http::Method::GET, "img/loading.gif",
+                   []( const zeroeq::http::Request& )
+    {
+        QFile file(":///html/img/loading.gif");
+        file.open( QIODevice::ReadOnly );
+        const auto body = file.readAll().toStdString();
+        return http::make_ready_response( http::Code::OK, body, "image/gif" );
+    });
+
+    server.handle( http::Method::GET, "js/jquery-3.1.1.min.js",
+                   []( const zeroeq::http::Request& )
+    {
+        return _makeResponse( "application/javascript",
+                              ":///html/jquery-3.1.1.min.js" );
+    });
+
+    server.handle( http::Method::GET, "js/notify.min.js",
+                   []( const zeroeq::http::Request& )
+    {
+        return _makeResponse( "application/javascript",
+                              ":///html/notify.min.js" );
+    });
+
+    server.handle( http::Method::GET, "css/jquery-ui.css",
+                   []( const zeroeq::http::Request& )
+    {
+        return _makeResponse( "text/css", ":///html/jquery-ui.css" );
+    });
+
+    server.handle( http::Method::GET, "js/jquery-ui.min.js",
+                   []( const zeroeq::http::Request& )
+    {
+        return _makeResponse( "application/javascript",
+                              ":///html/jquery-ui.min.js" );
+    });
+
+    server.handle( http::Method::GET, "img/maximize.svg",
+                   []( const zeroeq::http::Request& )
+    {
+        return _makeResponse( "image/svg+xml", ":///html/img/maximize.svg" );
+    });
+
+    server.handle( http::Method::GET, "js/sweetalert.min.js",
+                   []( const zeroeq::http::Request& )
+    {
+        return _makeResponse( "application/javascript",
+                              ":///html/sweetalert.min.js" );
+    });
+
+    server.handle( http::Method::GET, "css/sweetalert.min.css",
+                   []( const zeroeq::http::Request& )
+    {
+        return _makeResponse( "text/css", ":///html/sweetalert.min.css" );
+    });
+
+    server.handle( http::Method::GET, "js/tide.js",
+                   []( const zeroeq::http::Request& )
+    {
+        return _makeResponse( "application/javascript", ":///html/tide.js" );
+    });
+
+    server.handle( http::Method::GET, "css/styles.css",
+                   []( const zeroeq::http::Request& )
+    {
+        return _makeResponse( "text/css", ":///html/styles.css" );
+    });
+
+    server.handle( http::Method::GET, "js/tideVars.js",
+                   []( const zeroeq::http::Request& )
+    {
+        return _makeResponse( "application/javascript",
+                              ":///html/tideVars.js" );
+    });
+
+    server.handle( http::Method::GET, "js/underscore-min.js",
+                   []( const zeroeq::http::Request& )
+    {
+        return _makeResponse( "application/javascript",
+                              ":///html/underscore-min.js" );
+    });
+}
