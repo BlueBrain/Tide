@@ -41,16 +41,12 @@
 #include "RestWindows.h"
 
 #include "control/ContentWindowController.h"
-#include "log.h"
-#include "scene/ContentWindow.h"
+#include "json.h"
 #include "thumbnail/thumbnail.h"
 
 #include <zeroeq/http/helpers.h>
 
 #include <QBuffer>
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
 #include <QtConcurrent>
 
 using namespace zeroeq;
@@ -63,6 +59,41 @@ const QSize thumbnailSize{ 512, 512 };
 QString _getUuid( const ContentWindow& window )
 {
    return window.getID().toString().replace( _regex, "" );
+}
+
+QJsonObject _toJsonObject( ContentWindowPtr window, const DisplayGroup& group )
+{
+    const ContentWindowController controller( *window , group );
+    return QJsonObject{
+        { "aspectRatio", window->getContent()->getAspectRatio() },
+        { "minWidth", controller.getMinSizeAspectRatioCorrect().width() },
+        { "minHeight", controller.getMinSizeAspectRatioCorrect().height() },
+        { "width", window->getDisplayCoordinates().width() },
+        { "height", window->getDisplayCoordinates().height() },
+        { "x", window->getDisplayCoordinates().x() },
+        { "y", window->getDisplayCoordinates().y() },
+        { "z", group.getZindex( window ) },
+        { "title", window->getContent()->getTitle() },
+        { "mode", window->getMode() },
+        { "selected", window->isSelected() },
+        { "fullscreen", window->isFullscreen() },
+        { "focus", window->isFocused() },
+        { "uri", window->getContent()->getURI() },
+        { "uuid", _getUuid( *window ) }
+    };
+}
+
+QJsonObject _toJsonObject( const DisplayGroup& group )
+{
+    QJsonArray windows;
+    for( const auto& window : group.getContentWindows( ))
+    {
+        if( window->getContent()->getURI() == "Launcher" )
+            continue;
+
+        windows.append( _toJsonObject( window, group ));
+    }
+    return QJsonObject{{ "windows", windows }};
 }
 }
 
@@ -85,17 +116,7 @@ RestWindows::RestWindows( const DisplayGroup& displayGroup )
 std::future<http::Response>
 RestWindows::getWindowList( const http::Request& ) const
 {
-    QJsonArray windows;
-    for( const auto& window : _displayGroup.getContentWindows( ))
-    {
-        if( window->getContent()->getURI() == "Launcher" )
-            continue;
-
-        windows.append( _toJsonObject( window ));
-    }
-
-    const auto rootObject = QJsonObject{{ "windows", windows }};
-    const auto body = QJsonDocument{ rootObject }.toJson().toStdString();
+    const auto body = json::toString( _toJsonObject( _displayGroup ));
     return make_ready_response( http::Code::OK, body, "application/json" );
 }
 
@@ -107,34 +128,9 @@ RestWindows::getWindowInfo( const http::Request& request ) const
     {
         const auto pathSplit = path.split( "/" );
         if( pathSplit.size() == 2 && pathSplit[1] == "thumbnail")
-        {
-            const auto& uuid = pathSplit[0];
-            return _getThumbnail( uuid );
-        }
+            return _getThumbnail( pathSplit[0] );
     }
     return make_ready_response( http::Code::BAD_REQUEST );
-}
-
-QJsonObject RestWindows::_toJsonObject( ContentWindowPtr contentWindow ) const
-{
-    QJsonObject window;
-    ContentWindowController controller( *contentWindow , _displayGroup );
-    window["aspectRatio"] = contentWindow->getContent()->getAspectRatio();
-    window["minWidth"] = controller.getMinSizeAspectRatioCorrect().width();
-    window["minHeight"] = controller.getMinSizeAspectRatioCorrect().height();
-    window["width"] = contentWindow->getDisplayCoordinates().width();
-    window["height"] = contentWindow->getDisplayCoordinates().height();
-    window["x"] = contentWindow->getDisplayCoordinates().x();
-    window["y"] = contentWindow->getDisplayCoordinates().y();
-    window["z"] = _displayGroup.getZindex( contentWindow );
-    window["title"] = contentWindow->getContent()->getTitle();
-    window["mode"] = contentWindow->getMode();
-    window["selected"] = contentWindow->isSelected();
-    window["fullscreen"] = contentWindow->isFullscreen();
-    window["focus"] = contentWindow->isFocused();
-    window["uri"] = contentWindow->getContent()->getURI();
-    window["uuid"] = _getUuid( *contentWindow );
-    return window;
 }
 
 void RestWindows::_cacheThumbnail( ContentWindowPtr window )
@@ -154,16 +150,15 @@ void RestWindows::_cacheThumbnail( ContentWindowPtr window )
     });
 }
 
-std::future<zeroeq::http::Response>
+std::future<http::Response>
 RestWindows::_getThumbnail( const QString& uuid ) const
 {
     if( !_thumbnailCache.contains( uuid ))
-        return make_ready_response( http::Code::NOT_FOUND  );
+        return make_ready_response( http::Code::NOT_FOUND );
 
     const auto& image = _thumbnailCache[ uuid ];
     if( !image.isFinished( ))
         return make_ready_response( http::Code::NO_CONTENT );
 
-    return make_ready_response( http::Code::OK, image.result(),
-                                              "image/png" );
+    return make_ready_response( http::Code::OK, image.result(), "image/png" );
 }

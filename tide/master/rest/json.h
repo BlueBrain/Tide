@@ -40,12 +40,38 @@
 #ifndef JSON_H
 #define JSON_H
 
+#include <QJsonArray>
 #include <QJsonObject>
 
+/**
+ * Json helper functions.
+ */
 namespace json
 {
 
+/**
+ * Parse a json document.
+ *
+ * @param data json document to parse.
+ * @return json object, empty on error.
+ */
 QJsonObject toObject( const std::string& data );
+
+/**
+ * Serialize a json array.
+ *
+ * @param array json array to serialize.
+ * @return json string.
+ */
+std::string toString( const QJsonArray& array );
+
+/**
+ * Serialize a json object.
+ *
+ * @param object json object to serialize.
+ * @return json string.
+ */
+std::string toString( const QJsonObject& object );
 
 }
 

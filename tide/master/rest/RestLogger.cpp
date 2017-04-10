@@ -40,27 +40,23 @@
 #include "RestLogger.h"
 
 #include "jsonschema.h"
+#include "json.h"
 
-#include <iostream>
-#include <string>
-#include <QJsonDocument>
 #include <QJsonObject>
-
 
 QJsonObject _makeJsonObject( const LoggingUtility& logger )
 {
-    QJsonObject obj;
-    QJsonObject event;
-    event["last_event"] = logger.getLastInteraction();
-    event["last_event_date"] = logger.getLastInteractionTime();
-    event["count"] = int( logger.getInteractionCount() );
-    obj["event"] = event;
-    QJsonObject window;
-    window["count"] = int(logger.getWindowCount());
-    window["date_set"] = logger.getCounterModificationTime();
-    window["accumulated_count"] = int(logger.getAccumulatedWindowCount());
-    obj["window"] = window;
-    return obj;
+    const QJsonObject event{
+        { "last_event", logger.getLastInteraction() },
+        { "last_event_date", logger.getLastInteractionTime() },
+        { "count", logger.getInteractionCount() }
+    };
+    const QJsonObject window{
+        { "count", int(logger.getWindowCount()) },
+        { "date_set", logger.getCounterModificationTime() },
+        { "accumulated_count", int(logger.getAccumulatedWindowCount()) }
+    };
+    return QJsonObject{{ "event", event }, { "window", window }};
 }
 
 RestLogger::RestLogger( const LoggingUtility& logger )
@@ -80,7 +76,5 @@ std::string RestLogger::getSchema() const
 
 std::string RestLogger::_toJSON() const
 {
-    QJsonObject obj{ _makeJsonObject( _logger ) };
-    QJsonDocument doc{ obj };
-    return doc.toJson().toStdString();
+    return json::toString( _makeJsonObject( _logger ));
 }

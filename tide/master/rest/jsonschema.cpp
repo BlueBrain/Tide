@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,9 +39,8 @@
 
 #include "jsonschema.h"
 
-#include <QJsonArray>
-#include <QJsonDocument>
-#include <QJsonObject>
+#include "json.h"
+
 #include <QStringList>
 
 // forward declaration
@@ -71,9 +70,7 @@ QString _toString( const QJsonValue::Type type )
 
 QJsonObject _getValueSchema( const QJsonValue::Type type )
 {
-    QJsonObject valueSchema;
-    valueSchema["type"] = _toString( type );
-    return valueSchema;
+    return QJsonObject{{ "type", _toString( type ) }};
 }
 
 QJsonObject _getArraySchema( const QString& name, const QJsonArray& array )
@@ -81,25 +78,26 @@ QJsonObject _getArraySchema( const QString& name, const QJsonArray& array )
     if( array.isEmpty( ))
         return {};
 
-    QJsonObject arraySchema;
-    arraySchema["type"] = "array";
-    arraySchema["title"] = name;
-    arraySchema["items"] = _getPropertySchema( name+"_items", array.first( ));
-    return arraySchema;
+    return QJsonObject{
+        { "type", "array" },
+        { "title", name },
+        { "items", _getPropertySchema( name+"_items", array.first( )) }
+    };
 }
 
 QJsonObject _getObjectSchema( const QString& title, const QJsonObject& object )
 {
-    QJsonObject schema;
-    schema["$schema"] = "http://json-schema.org/schema#";
-    schema["title"] = title;
-    schema["type"] = "object";
-    schema["additionalProperties"] = false;
     QJsonObject properties;
     for( auto it = object.begin(); it != object.end(); ++it )
         properties[it.key()] = _getPropertySchema( it.key(), it.value( ));
-    schema["properties"] = properties;
-    return schema;
+
+    return QJsonObject{
+        { "$schema", "http://json-schema.org/schema#" },
+        { "title", title },
+        { "type", "object" },
+        { "additionalProperties", false },
+        { "properties", properties }
+    };
 }
 
 QJsonObject _getPropertySchema( const QString& name, const QJsonValue& value )
@@ -121,12 +119,6 @@ QJsonObject _getPropertySchema( const QString& name, const QJsonValue& value )
     }
 }
 
-std::string _toString( const QJsonObject& schema )
-{
-    const QJsonDocument doc{ schema };
-    return doc.toJson( QJsonDocument::JsonFormat::Compact ).toStdString();
-}
-
 namespace jsonschema
 {
 
@@ -135,7 +127,7 @@ std::string create( const QString& title, const QJsonObject& object,
 {
     auto schema = _getObjectSchema( title, object );
     schema["description"] = description;
-    return _toString( schema );
+    return json::toString( schema );
 }
 
 std::string create( const QString& title, const QJsonArray& array,
@@ -148,7 +140,7 @@ std::string create( const QString& title, const QJsonArray& array,
         schema["minItems"] = array.size();
         schema["maxItems"] = array.size();
     }
-    return _toString( schema );
+    return json::toString( schema );
 }
 
 }

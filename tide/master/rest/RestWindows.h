@@ -96,7 +96,6 @@ private:
     const DisplayGroup& _displayGroup;
     QMap<QString, QFuture<std::string>> _thumbnailCache;
 
-    QJsonObject _toJsonObject( ContentWindowPtr contentWindow ) const;
     void _cacheThumbnail( ContentWindowPtr contentWindow );
     std::future<zeroeq::http::Response>
     _getThumbnail( const QString& uuid ) const;

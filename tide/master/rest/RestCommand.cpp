@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -41,10 +41,7 @@
 
 #include "jsonschema.h"
 #include "json.h"
-#include "log.h"
 
-#include <QJsonDocument>
-#include <QJsonObject>
 #include <QStringList>
 
 namespace
@@ -90,10 +87,9 @@ bool RestCommand::_fromJSON( const std::string& string )
     }
 
     const auto object = json::toObject( string );
-    const auto value = object["uri"];
-    if( !value.isString( ))
+    if( !object["uri"].isString( ))
         return false;
 
-    emit received( value.toString( ));
+    emit received( object["uri"].toString( ));
     return true;
 }

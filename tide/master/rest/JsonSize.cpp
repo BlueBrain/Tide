@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -40,18 +40,11 @@
 #include "JsonSize.h"
 
 #include "jsonschema.h"
-
-#include <iostream>
-#include <string>
-#include <QJsonArray>
-#include <QJsonDocument>
+#include "json.h"
 
 QJsonArray _toJsonArray( const QSize& size )
 {
-    QJsonArray array;
-    array.append( size.width( ));
-    array.append( size.height( ));
-    return array;
+    return QJsonArray{{ size.width(), size.height() }};
 }
 
 JsonSize::JsonSize( const QSize& size )
@@ -72,5 +65,5 @@ std::string JsonSize::getSchema() const
 
 std::string JsonSize::_toJSON() const
 {
-    return QJsonDocument{ _toJsonArray( _size ) }.toJson().toStdString();
+    return json::toString( _toJsonArray( _size ));
 }
