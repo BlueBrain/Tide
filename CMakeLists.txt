@@ -10,10 +10,11 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake
 include(GitExternal)
 
 set(TIDE_INCLUDE_NAME tide)
-set(TIDE_DESCRIPTION "A Tiled Interactive DisplayWall Environment")
+set(TIDE_DESCRIPTION "Tiled Interactive DisplayWall Environment")
 set(TIDE_MAINTAINER "Blue Brain Project <bbp-open-source@googlegroups.com>")
+set(TIDE_VENDOR "Blue Brain Project")
 set(TIDE_LICENSE BSD)
-set(TIDE_DEB_DEPENDS libopenmpi-dev openmpi-bin
+set(TIDE_DEB_DEPENDS python libopenmpi-dev openmpi-bin
   libboost-program-options-dev libboost-serialization-dev libboost-test-dev
   qtbase5-dev qtdeclarative5-dev libqt5svg5-dev libqt5webkit5-dev
   libqt5xmlpatterns5-dev libqt5x11extras5-dev qml-module-qtquick-controls
@@ -84,10 +85,21 @@ add_subdirectory(tide)
 add_subdirectory(apps)
 add_subdirectory(tests)
 
+# Install example files
+install(DIRECTORY examples DESTINATION share/Tide COMPONENT examples)
+
+# Packaging (including subprojects)
+if(Deflect_IS_SUBPROJECT)
+  set(_deflect_deb qtbase5-dev libturbojpeg)
+  set(TIDE_PACKAGE_REPLACES desktopstreamer)
+endif()
+if(ZeroEQ_IS_SUBPROJECT)
+  set(_zeroeq_deb libc6 libboost-all-dev libzmq5 libssl1.0.0)
+  set(TIDE_PACKAGE_CONFLICTS libcppnetlib0 libcppnetlib-dev)
+endif()
+set(TIDE_PACKAGE_DEB_DEPENDS ${_deflect_deb} ${_zeroeq_deb} ${TIDE_DEB_DEPENDS})
+include(CommonCPack) # also includes CommonPackageConfig
+
 # Documentation
 set(COMMON_PROJECT_DOMAIN ch.epfl.bluebrain)
 include(DoxygenRule)
-include(CommonPackageConfig)
-
-# Install example files
-install(DIRECTORY examples DESTINATION share/Tide COMPONENT examples)
