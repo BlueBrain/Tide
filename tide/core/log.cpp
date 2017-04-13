@@ -58,7 +58,12 @@ extern "C"
 }
 #endif
 
-#define MAX_LOG_LENGTH 1024
+namespace
+{
+const size_t MAX_LOG_LENGTH = 1024;
+const QString socketNotiferMsg{ "QSocketNotifier: Socket notifiers cannot be "
+                                "enabled or disabled from another thread" };
+}
 
 std::string logger_id = "";
 
@@ -154,6 +159,8 @@ void qtMessageLogger( const QtMsgType type,
         break;
 #endif
     case QtWarningMsg:
+        if( message == socketNotiferMsg )
+            break;
         put_log( LOG_WARN, "qWarning: %s%s", msg.constData(), ctx.constData( ));
         break;
     case QtCriticalMsg:
