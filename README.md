@@ -2,10 +2,10 @@
 
 ![Display wall running Tide](doc/wall.png)
 
-Tide is BlueBrain's *Tiled Interactive DisplayWall Environment*.
-It provides multi-user touch interaction on large surfaces - think of a giant
-collaborative wall iPad. See Tide in action in this
-[youtube video](https://www.youtube.com/watch?v=wATHwvRFGz0).
+Tide is BlueBrain's *Tiled Interactive Display Environment*. It provides
+multi-window, multi-user touch interaction on large surfaces - think of a giant
+collaborative wall-mounted tablet. See Tide in action in this [youtube
+video](https://www.youtube.com/watch?v=wATHwvRFGz0).
 
 ## Features
 
@@ -13,8 +13,8 @@ Tide is a distributed application that can run on multiple machines to power
 display walls or projection systems of any size.
 
 Its user interface is designed to offer an intuitive experience on touch walls.
-But it works just as well on non touch-capable installations because it can also
-be remote controlled from any web browser.
+It works just as well on non touch-capable installations by using its web
+interface from any web browser.
 
 Tide helps users with:
 * Presenting and collaborating on a variety of media such as high-resolution
@@ -28,8 +28,7 @@ Tide helps users with:
   all [Equalizer](https://github.com/Eyescale/Equalizer.git)-based applications
   as well as [Brayns](https://github.com/BlueBrain/Brayns.git) ray-tracing
   engine have built-in support.
-* Viewing high-resolution [stereo 3D streams]
-  (https://github.com/BlueBrain/Deflect/blob/master/doc/StereoStreaming.md)
+* Viewing high-resolution [stereo 3D streams](https://github.com/BlueBrain/Deflect/blob/master/doc/StereoStreaming.md)
   on compatible displays (under development).
 
 ## Usage
