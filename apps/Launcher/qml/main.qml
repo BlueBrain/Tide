@@ -72,8 +72,7 @@ Rectangle {
         id: sessionsBrowser
         FileBrowser {
             onItemSelected: {
-                var nextCommand = function() { sendRestCommand("load", file); };
-                sendRestCommand("load", "", nextCommand);
+                sendRestCommand("load", file);
             }
             rootfolder: rootSessionsFolder
             nameFilters: ["*.dcx"]
