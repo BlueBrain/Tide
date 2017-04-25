@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -46,8 +46,9 @@
 
 #include <QTextStream>
 
-LodSynchronizer::LodSynchronizer(const TileSwapPolicy policy)
-    : TiledSynchronizer(policy)
+LodSynchronizer::LodSynchronizer(std::shared_ptr<DataSource> source)
+    : TiledSynchronizer(TileSwapPolicy::SwapTilesIndependently)
+    , _source(std::move(source))
 {
 }
 
@@ -93,11 +94,6 @@ QString LodSynchronizer::getStatistics() const
     return stats;
 }
 
-ImagePtr LodSynchronizer::getTileImage(const uint tileIndex) const
-{
-    return getDataSource().getTileImage(tileIndex);
-}
-
 TilePtr LodSynchronizer::getZoomContextTile() const
 {
     const auto rect = getDataSource().getTileRect(0);
@@ -138,4 +134,9 @@ void LodSynchronizer::setBackgroundTile(const uint tileId)
         tile->setSizePolicy(Tile::FillParent);
         emit addTile(tile);
     }
+}
+
+const DataSource& LodSynchronizer::getDataSource() const
+{
+    return *_source;
 }

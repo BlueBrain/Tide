@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,36 +39,31 @@
 
 #include "BasicSynchronizer.h"
 
+#include "DataSource.h"
 #include "Tile.h"
-#include "scene/ContentWindow.h"
 
-BasicSynchronizer::BasicSynchronizer()
-    : _tileAdded(false)
+BasicSynchronizer::BasicSynchronizer(std::shared_ptr<DataSource> source)
+    : _dataSource(std::move(source))
 {
 }
 
-void BasicSynchronizer::update(const ContentWindow& window,
+void BasicSynchronizer::update(const ContentWindow& /*window*/,
                                const QRectF& visibleArea)
 {
     if (!_tileAdded && !visibleArea.isEmpty())
-        createTile(window.getContent()->getDimensions());
-}
-
-void BasicSynchronizer::synchronize(WallToWallChannel& channel)
-{
-    Q_UNUSED(channel);
+        _createTile();
 }
 
 QSize BasicSynchronizer::getTilesArea() const
 {
-    return _tileSize;
+    return getDataSource().getTilesArea(0);
 }
 
 QString BasicSynchronizer::getStatistics() const
 {
     QString stats;
     QTextStream stream(&stats);
-    const QSize& area = getTilesArea();
+    const auto area = getTilesArea();
     stream << "  res: " << area.width() << "x" << area.height();
     return stats;
 }
@@ -78,14 +73,23 @@ void BasicSynchronizer::onSwapReady(TilePtr tile)
     tile->swapImage();
 }
 
-void BasicSynchronizer::createTile(const QSize& size)
+TilePtr BasicSynchronizer::getZoomContextTile() const
+{
+    return std::make_shared<Tile>(0, getDataSource().getTileRect(0));
+}
+
+void BasicSynchronizer::_createTile()
 {
     if (_tileAdded)
         return;
 
     _tileAdded = true;
-    _tileSize = size;
-    emit addTile(std::make_shared<Tile>(0, QRect(QPoint(0, 0), size)));
+    emit addTile(std::make_shared<Tile>(0, QRect(QPoint(), getTilesArea()),
+                                        getDataSource().getTileFormat(0)));
     emit tilesAreaChanged();
-    emit statisticsChanged();
+}
+
+const DataSource& BasicSynchronizer::getDataSource() const
+{
+    return *_dataSource;
 }

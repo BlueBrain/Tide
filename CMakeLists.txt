@@ -16,7 +16,7 @@ set(TIDE_VENDOR "Blue Brain Project")
 set(TIDE_LICENSE BSD)
 set(TIDE_DEB_DEPENDS python libopenmpi-dev openmpi-bin
   libboost-program-options-dev libboost-serialization-dev libboost-test-dev
-  qtbase5-dev qtdeclarative5-dev libqt5svg5-dev libqt5webkit5-dev
+  qtbase5-private-dev qtdeclarative5-dev libqt5svg5-dev libqt5webkit5-dev
   libqt5xmlpatterns5-dev libqt5x11extras5-dev qml-module-qtquick-controls
   libpoppler-glib-dev libcairo2-dev libpoppler-qt5-dev librsvg2-dev libtiff5-dev
   libavutil-dev libavformat-dev libavcodec-dev libswscale-dev)
@@ -30,7 +30,7 @@ common_find_package(Deflect REQUIRED)
 common_find_package(MPI REQUIRED)
 common_find_package(Qt5Concurrent REQUIRED)
 common_find_package(Qt5Core REQUIRED)
-common_find_package(Qt5Gui REQUIRED)
+common_find_package(Qt5Gui REQUIRED COMPONENTS Private)
 common_find_package(Qt5Network REQUIRED)
 common_find_package(Qt5Qml REQUIRED)
 common_find_package(Qt5Quick 5.4 REQUIRED)

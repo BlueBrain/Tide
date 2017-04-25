@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -54,8 +54,8 @@ class MasterDisplayGroupRenderer : public QObject
 
 public:
     /** Constructor. */
-    MasterDisplayGroupRenderer(DisplayGroupPtr group, QQmlEngine* engine,
-                               QQuickItem* parentItem);
+    MasterDisplayGroupRenderer(DisplayGroupPtr group, QQmlEngine& engine,
+                               QQuickItem& parentItem);
 
     /** Destructor */
     ~MasterDisplayGroupRenderer();
@@ -66,8 +66,7 @@ signals:
 
 private:
     DisplayGroupPtr _displayGroup;
-    QQmlEngine* _engine = nullptr;
-    QQuickItem* _parentItem = nullptr;
+    QQmlEngine& _engine;
 
     QQuickItem* _displayGroupItem = nullptr;
     typedef QMap<QUuid, QQuickItem*> UuidToWindowMap;

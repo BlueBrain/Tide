@@ -49,9 +49,33 @@
 #include <QImage>
 #include <QThreadStorage>
 
-PixelStreamUpdater::PixelStreamUpdater(deflect::View view)
-    : _view{view}
-    , _headerDecoder{new deflect::SegmentDecoder}
+namespace
+{
+void _splitByView(const deflect::Segments& segments,
+                  deflect::Segments& leftOrMono, deflect::Segments& right)
+{
+    std::partition_copy(segments.begin(), segments.end(),
+                        std::back_inserter(right),
+                        std::back_inserter(leftOrMono),
+                        [](const deflect::Segment& segment) {
+                            return segment.view == deflect::View::right_eye;
+                        });
+    assert(right.empty() || right.size() == leftOrMono.size());
+}
+
+void _sortByPosition(deflect::Segments& segments)
+{
+    std::sort(segments.begin(), segments.end(),
+              [](const deflect::Segment& s1, const deflect::Segment& s2) {
+                  return (s1.parameters.y == s2.parameters.y
+                              ? s1.parameters.x < s2.parameters.x
+                              : s1.parameters.y < s2.parameters.y);
+              });
+}
+}
+
+PixelStreamUpdater::PixelStreamUpdater()
+    : _headerDecoder{new deflect::SegmentDecoder}
 {
     _swapSyncFrame.setCallback(std::bind(&PixelStreamUpdater::_onFrameSwapped,
                                          this, std::placeholders::_1));
@@ -61,7 +85,7 @@ PixelStreamUpdater::~PixelStreamUpdater()
 {
 }
 
-void PixelStreamUpdater::synchronizeFramesSwap(WallToWallChannel& channel)
+void PixelStreamUpdater::synchronizeFrameAdvance(WallToWallChannel& channel)
 {
     if (!_readyToSwap)
         return;
@@ -78,13 +102,13 @@ QRect toRect(const deflect::SegmentParameters& params)
 
 QRect PixelStreamUpdater::getTileRect(const uint tileIndex) const
 {
-    return toRect(_currentFrame->segments.at(tileIndex).parameters);
+    return toRect(_frameLeftOrMono->segments.at(tileIndex).parameters);
 }
 
 TextureFormat PixelStreamUpdater::getTileFormat(const uint tileIndex) const
 {
 #ifndef DEFLECT_USE_LEGACY_LIBJPEGTURBO
-    const auto& segment = _currentFrame->segments.at(tileIndex);
+    const auto& segment = _frameLeftOrMono->segments.at(tileIndex);
     switch (segment.parameters.dataType)
     {
     case deflect::DataType::rgba:
@@ -117,22 +141,33 @@ TextureFormat PixelStreamUpdater::getTileFormat(const uint tileIndex) const
 QSize PixelStreamUpdater::getTilesArea(const uint lod) const
 {
     Q_UNUSED(lod);
-    if (!_currentFrame)
+    if (!_frameLeftOrMono)
         return QSize();
-    return _currentFrame->computeDimensions();
+    return _frameLeftOrMono->computeDimensions();
 }
 
-ImagePtr PixelStreamUpdater::getTileImage(const uint tileIndex) const
+ImagePtr PixelStreamUpdater::getTileImage(const uint tileIndex,
+                                          const deflect::View view) const
 {
-    if (!_currentFrame)
+    if (!_frameLeftOrMono)
     {
         put_flog(LOG_ERROR, "No frames yet");
         return ImagePtr();
     }
 
-    const QReadLocker lock(&_mutex);
+    // guard against frame swap during asynchronous readings
+    const QReadLocker frameLock(&_frameMutex);
 
-    auto& segment = _currentFrame->segments.at(tileIndex);
+    const bool rightEye = view == deflect::View::right_eye;
+    const bool rightFrame = rightEye && !_frameRight->segments.empty();
+
+    // multiple WallWindows may try to access (->decode!) the same segments
+    const auto offset = rightFrame ? _frameLeftOrMono->segments.size() : 0;
+    const std::lock_guard<std::mutex> lock(_segmentMutexes[tileIndex + offset]);
+
+    const auto& frame = rightFrame ? _frameRight : _frameLeftOrMono;
+    auto& segment = frame->segments.at(tileIndex);
+
     if (segment.parameters.dataType == deflect::DataType::jpeg)
     {
         // turbojpeg handles need to be per thread, and this function may be
@@ -153,7 +188,7 @@ ImagePtr PixelStreamUpdater::getTileImage(const uint tileIndex) const
         }
     }
 
-    return std::make_shared<StreamImage>(_currentFrame, tileIndex);
+    return std::make_shared<StreamImage>(frame, tileIndex);
 }
 
 Indices PixelStreamUpdater::computeVisibleSet(const QRectF& visibleTilesArea,
@@ -162,16 +197,15 @@ Indices PixelStreamUpdater::computeVisibleSet(const QRectF& visibleTilesArea,
     Q_UNUSED(lod);
 
     Indices visibleSet;
-
-    if (!_currentFrame || visibleTilesArea.isEmpty())
+    if (!_frameLeftOrMono || visibleTilesArea.isEmpty())
         return visibleSet;
 
-    for (size_t i = 0; i < _currentFrame->segments.size(); ++i)
+    for (size_t i = 0; i < _frameLeftOrMono->segments.size(); ++i)
     {
-        const auto& segment = _currentFrame->segments[i];
+        const auto& segment = _frameLeftOrMono->segments[i];
         const auto segmentRect = toRect(segment.parameters);
 
-        if (_checkView(segment) && visibleTilesArea.intersects(segmentRect))
+        if (visibleTilesArea.intersects(segmentRect))
             visibleSet.insert(i);
     }
     return visibleSet;
@@ -196,25 +230,25 @@ void PixelStreamUpdater::_onFrameSwapped(deflect::FramePtr frame)
 {
     _readyToSwap = false;
 
-    std::sort(frame->segments.begin(), frame->segments.end(),
-              [](const deflect::Segment& s1, const deflect::Segment& s2) {
-                  return (s1.parameters.y == s2.parameters.y
-                              ? s1.parameters.x < s2.parameters.x
-                              : s1.parameters.y < s2.parameters.y);
-              });
+    auto leftOrMono = std::make_shared<deflect::Frame>();
+    auto right = std::make_shared<deflect::Frame>();
+
+    _splitByView(frame->segments, leftOrMono->segments, right->segments);
+    _sortByPosition(leftOrMono->segments);
+    _sortByPosition(right->segments);
 
     {
-        const QWriteLocker lock(&_mutex);
-        _currentFrame = frame;
+        const QWriteLocker frameLock(&_frameMutex);
+        _frameLeftOrMono = std::move(leftOrMono);
+        _frameRight = std::move(right);
+        if (_segmentMutexes.size() != frame->segments.size())
+        {
+            // std::vector<std::mutex> can't be resized, create a new one
+            auto mutexes = std::vector<std::mutex>{frame->segments.size()};
+            _segmentMutexes.swap(mutexes);
+        }
     }
 
     emit pictureUpdated();
-    emit requestFrame(_currentFrame->uri);
-}
-
-bool PixelStreamUpdater::_checkView(const deflect::Segment& segment) const
-{
-    return segment.view == _view || segment.view == deflect::View::mono ||
-           (_view == deflect::View::mono &&
-            segment.view == deflect::View::left_eye);
+    emit requestFrame(frame->uri);
 }

@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -44,20 +44,18 @@
 #include "scene/ContentWindow.h"
 #include "scene/PDFContent.h"
 
-PDFSynchronizer::PDFSynchronizer(const QString& uri)
-    : LodSynchronizer(TileSwapPolicy::SwapTilesIndependently)
-    , _pdf(uri)
-    , _tileSource(_pdf)
+PDFSynchronizer::PDFSynchronizer(std::shared_ptr<PDFTiler> source)
+    : LodSynchronizer(source)
+    , _source(std::move(source))
 {
 }
 
 void PDFSynchronizer::update(const ContentWindow& window,
                              const QRectF& visibleArea)
 {
-    auto content = window.getContent();
-    const PDFContent& pdfContent = dynamic_cast<const PDFContent&>(*content);
-    const bool pageChanged = pdfContent.getPage() != _pdf.getPage();
-    _pdf.setPage(pdfContent.getPage());
+    const auto& content = dynamic_cast<const PDFContent&>(*window.getContent());
+    const bool pageChanged = content.getPage() != _currentPage;
+    _currentPage = content.getPage();
 
     // Adapted from LODSynchronizer::update to support page change.
     const ZoomHelper helper(window);
@@ -84,31 +82,20 @@ void PDFSynchronizer::update(const ContentWindow& window,
     if (pageChanged || lodChanged)
         emit statisticsChanged();
 
-    setBackgroundTile(_tileSource.getPreviewTileId());
+    setBackgroundTile(_source->getPreviewTileId());
 
     TiledSynchronizer::updateTiles(getDataSource(), false);
 }
 
-void PDFSynchronizer::synchronize(WallToWallChannel& channel)
-{
-    Q_UNUSED(channel);
-}
-
 QString PDFSynchronizer::getStatistics() const
 {
-    const QString page =
-        QString(" page %1/%2").arg(_pdf.getPage() + 1).arg(_pdf.getPageCount());
-    return LodSynchronizer::getStatistics() + page;
+    const auto page = _source->getStatistics();
+    return LodSynchronizer::getStatistics() + QString(" ") + page;
 }
 
 TilePtr PDFSynchronizer::getZoomContextTile() const
 {
-    const auto tileId = _tileSource.getPreviewTileId();
+    const auto tileId = _source->getPreviewTileId();
     const auto rect = getDataSource().getTileRect(tileId);
     return std::make_shared<Tile>(tileId, rect);
-}
-
-const DataSource& PDFSynchronizer::getDataSource() const
-{
-    return _tileSource;
 }

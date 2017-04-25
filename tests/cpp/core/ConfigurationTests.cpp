@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -119,11 +119,15 @@ BOOST_AUTO_TEST_CASE(test_wall_configuration)
     BOOST_REQUIRE_EQUAL(config.getProcessIndex(), processIndex);
 
     BOOST_CHECK_EQUAL(config.getHost(), "bbplxviz03i");
-    BOOST_CHECK_EQUAL(config.getDisplay(), ":0.1");
     BOOST_CHECK_EQUAL(config.getProcessCountForHost(), 3);
-    BOOST_CHECK_EQUAL(config.getGlobalScreenIndex(), QPoint(0, 2));
-    BOOST_CHECK_EQUAL(config.getWindowPos(), QPoint(0, 2160));
-    BOOST_CHECK(config.getStereoMode() == deflect::View::mono);
+
+    const auto& screens = config.getScreens();
+    BOOST_REQUIRE_EQUAL(screens.size(), 1);
+    const auto& screen = screens.at(0);
+    BOOST_CHECK_EQUAL(screen.display, ":0.1");
+    BOOST_CHECK_EQUAL(screen.globalIndex, QPoint(0, 2));
+    BOOST_CHECK_EQUAL(screen.position, QPoint(0, 2160));
+    BOOST_CHECK(screen.stereoMode == deflect::View::mono);
 }
 
 BOOST_AUTO_TEST_CASE(test_stereo_configuration)
@@ -145,25 +149,30 @@ BOOST_AUTO_TEST_CASE(test_stereo_configuration)
     const auto processIndexLeft = 1; // note: starts from 1, not 0
     WallConfiguration configLeft(CONFIG_TEST_FILENAME_STEREO, processIndexLeft);
     BOOST_REQUIRE_EQUAL(configLeft.getProcessIndex(), processIndexLeft);
-
     BOOST_CHECK_EQUAL(configLeft.getHost(), "localhost");
-    BOOST_CHECK_EQUAL(configLeft.getDisplay(), ":0.0");
     BOOST_CHECK_EQUAL(configLeft.getProcessCountForHost(), 4);
-    BOOST_CHECK_EQUAL(configLeft.getGlobalScreenIndex(), QPoint(0, 0));
-    BOOST_CHECK_EQUAL(configLeft.getWindowPos(), QPoint(0, 0));
-    BOOST_CHECK(configLeft.getStereoMode() == deflect::View::left_eye);
+
+    BOOST_REQUIRE_EQUAL(configLeft.getScreens().size(), 1);
+    const auto& screenLeft = configLeft.getScreens().at(0);
+    BOOST_CHECK_EQUAL(screenLeft.display, ":0.0");
+    BOOST_CHECK_EQUAL(screenLeft.globalIndex, QPoint(0, 0));
+    BOOST_CHECK_EQUAL(screenLeft.position, QPoint(0, 0));
+    BOOST_CHECK(screenLeft.stereoMode == deflect::View::left_eye);
 
     const auto processIndexRight = 2; // note: starts from 1, not 0
     WallConfiguration configRight(CONFIG_TEST_FILENAME_STEREO,
                                   processIndexRight);
     BOOST_REQUIRE_EQUAL(configRight.getProcessIndex(), processIndexRight);
-
     BOOST_CHECK_EQUAL(configRight.getHost(), "localhost");
-    BOOST_CHECK_EQUAL(configRight.getDisplay(), ":0.1");
     BOOST_CHECK_EQUAL(configRight.getProcessCountForHost(), 4);
-    BOOST_CHECK_EQUAL(configRight.getGlobalScreenIndex(), QPoint(0, 0));
-    BOOST_CHECK_EQUAL(configRight.getWindowPos(), QPoint(0, 0));
-    BOOST_CHECK(configRight.getStereoMode() == deflect::View::right_eye);
+
+    BOOST_REQUIRE_EQUAL(configRight.getScreens().size(), 1);
+    const auto& screenRight = configRight.getScreens().at(0);
+
+    BOOST_CHECK_EQUAL(screenRight.display, ":0.1");
+    BOOST_CHECK_EQUAL(screenRight.globalIndex, QPoint(0, 0));
+    BOOST_CHECK_EQUAL(screenRight.position, QPoint(0, 0));
+    BOOST_CHECK(screenRight.stereoMode == deflect::View::right_eye);
 }
 
 BOOST_AUTO_TEST_CASE(test_master_configuration)

@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,6 +39,7 @@
 
 #include "SVGTiler.h"
 
+#include "SVGGpuImage.h"
 #include "scene/VectorialContent.h"
 
 #include <QThread>
@@ -48,10 +49,19 @@ namespace
 const uint tileSize = 1024;
 }
 
-SVGTiler::SVGTiler(SVG& svg)
-    : LodTiler(svg.getSize() * VectorialContent::getMaxScale(), tileSize)
-    , _svg(svg)
+SVGTiler::SVGTiler(const QString& uri)
+    : LodTiler{SVG{uri}.getSize() * VectorialContent::getMaxScale(), tileSize}
+    , _svg{uri}
 {
+}
+
+ImagePtr SVGTiler::getTileImage(const uint tileId, deflect::View view) const
+{
+#if !(TIDE_USE_CAIRO && TIDE_USE_RSVG)
+    if (!contains(tileId))
+        return std::make_shared<SVGGpuImage>(this, tileId);
+#endif
+    return CachedDataSource::getTileImage(tileId, view);
 }
 
 QImage SVGTiler::getCachableTileImage(const uint tileId) const

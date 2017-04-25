@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -51,7 +51,7 @@ class PDFTiler : public LodTiler
 {
 public:
     /** Constructor. */
-    explicit PDFTiler(PDF& pdf);
+    explicit PDFTiler(const QString& uri);
 
     /** @copydoc DataSource::getTileRect */
     QRect getTileRect(uint tileId) const final;
@@ -69,8 +69,14 @@ public:
     /** @return the ID of the preview (lowest res.) tile for the current page */
     uint getPreviewTileId() const;
 
+    int getPage() const;
+
+    void update(const ContentWindow& window);
+
+    QString getStatistics() const;
+
 private:
-    PDF& _pdf;
+    PDF _pdf;
     const uint _tilesPerPage;
 
     mutable QMutex _threadMapMutex;

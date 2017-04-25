@@ -1,7 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
-/*                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>     */
+/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/*                          Daniel Nachbaur <daniel.nachbaur@epfl.ch>*/
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -108,6 +108,15 @@ void serialize(Archive& ar, QUuid& uuid, const unsigned int /*version*/)
 
 template <class Archive>
 void serialize(Archive& ar, QPointF& point, const unsigned int)
+{
+    // clang-format off
+    ar & make_nvp("x", point.rx());
+    ar & make_nvp("y", point.ry());
+    // clang-format on
+}
+
+template <class Archive>
+void serialize(Archive& ar, QPoint& point, const unsigned int)
 {
     // clang-format off
     ar & make_nvp("x", point.rx());

@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -40,6 +40,8 @@
 #include "PDFTiler.h"
 
 #include "LodTools.h"
+#include "scene/ContentWindow.h"
+#include "scene/PDFContent.h"
 #include "scene/VectorialContent.h"
 
 #include <QThread>
@@ -53,10 +55,10 @@ namespace
 const uint tileSize = 2048;
 }
 
-PDFTiler::PDFTiler(PDF& pdf)
-    : LodTiler(pdf.getSize() * VectorialContent::getMaxScale(), tileSize)
-    , _pdf(pdf)
-    , _tilesPerPage(_lodTool.getTilesCount())
+PDFTiler::PDFTiler(const QString& uri)
+    : LodTiler{PDF{uri}.getSize() * VectorialContent::getMaxScale(), tileSize}
+    , _pdf{uri}
+    , _tilesPerPage{_lodTool.getTilesCount()}
 {
 }
 
@@ -64,6 +66,12 @@ QRect PDFTiler::getTileRect(uint tileId) const
 {
     tileId = tileId % _tilesPerPage;
     return LodTiler::getTileRect(tileId);
+}
+
+void PDFTiler::update(const ContentWindow& window)
+{
+    const auto& content = dynamic_cast<const PDFContent&>(*window.getContent());
+    _pdf.setPage(content.getPage());
 }
 
 Indices PDFTiler::computeVisibleSet(const QRectF& visibleTilesArea,
@@ -101,4 +109,16 @@ QImage PDFTiler::getCachableTileImage(uint tileId) const
 uint PDFTiler::getPreviewTileId() const
 {
     return _tilesPerPage * _pdf.getPage();
+}
+
+int PDFTiler::getPage() const
+{
+    return _pdf.getPage();
+}
+
+QString PDFTiler::getStatistics() const
+{
+    return QString("page %1/%2")
+        .arg(_pdf.getPage() + 1)
+        .arg(_pdf.getPageCount());
 }

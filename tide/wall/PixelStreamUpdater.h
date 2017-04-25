@@ -43,6 +43,7 @@
 #include "types.h"
 
 #include "DataSource.h"
+#include "PixelStreamSynchronizer.h"
 #include "SwapSyncObject.h"
 
 #include <QObject>
@@ -57,12 +58,8 @@ class PixelStreamUpdater : public QObject, public DataSource
     Q_DISABLE_COPY(PixelStreamUpdater)
 
 public:
-    /**
-     * Constructor.
-     * @param view which the data source provides. Left and right views also
-     *        include mono contents.
-     */
-    PixelStreamUpdater(deflect::View view);
+    /** Constructor. */
+    PixelStreamUpdater();
 
     /** Destructor. */
     ~PixelStreamUpdater();
@@ -71,7 +68,7 @@ public:
      * @copydoc DataSource::getTileImage
      * threadsafe
      */
-    ImagePtr getTileImage(uint tileIndex) const final;
+    ImagePtr getTileImage(uint tileIndex, deflect::View view) const final;
 
     /** @copydoc DataSource::getTileRect */
     QRect getTileRect(uint tileIndex) const final;
@@ -90,10 +87,13 @@ public:
     uint getMaxLod() const final;
 
     /** Synchronize the update of the PixelStreams. */
-    void synchronizeFramesSwap(WallToWallChannel& channel);
+    void synchronizeFrameAdvance(WallToWallChannel& channel);
 
     /** Allow the updater to request next frame (flow control). */
     void getNextFrame();
+
+    /** The synchronizers linked to this shared data source. */
+    std::vector<PixelStreamSynchronizer*> synchronizers;
 
 public slots:
     /** Update the appropriate PixelStream with the given frame. */
@@ -107,15 +107,15 @@ signals:
     void requestFrame(QString uri);
 
 private:
-    const deflect::View _view;
     SwapSyncObject<deflect::FramePtr> _swapSyncFrame;
-    deflect::FramePtr _currentFrame;
+    deflect::FramePtr _frameLeftOrMono;
+    deflect::FramePtr _frameRight;
     std::unique_ptr<deflect::SegmentDecoder> _headerDecoder;
-    mutable QReadWriteLock _mutex;
+    mutable QReadWriteLock _frameMutex;
+    mutable std::vector<std::mutex> _segmentMutexes;
     bool _readyToSwap = true;
 
     void _onFrameSwapped(deflect::FramePtr frame);
-    bool _checkView(const deflect::Segment& segment) const;
 };
 
 #endif

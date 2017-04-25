@@ -1,6 +1,18 @@
 Changelog {#changelog}
 ============
 
+# Release 1.4 (git 1.4-dev)
+
+* [147](https://github.com/BlueBrain/Tide/issues/147):
+  Performance improvement: added support for multiple windows per process.
+  The windows can be located on different X11 displays and still share resources
+  such as decoded images and movie frames.
+  Example gains:
+  - On a machine with 3-GPUs, CPU load is reduced by 66% when decoding a
+    fullscreen movie.
+  - Using passive stereo windows, an (additional) 50% CPU load is saved when
+    decoding movies.
+
 # Release 1.3 (git master)
 
 * [146](https://github.com/BlueBrain/Tide/pull/146):

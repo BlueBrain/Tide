@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -56,18 +56,15 @@ class PixelStreamSynchronizer : public TiledSynchronizer
 public:
     /**
      * Construct a synchronizer for a stream.
+     * @param view which the data source provides. Left and right views also
+     *        include mono contents.
      */
-    PixelStreamSynchronizer();
-
-    /** Set the source of data for the stream. */
-    void setDataSource(PixelStreamUpdaterSharedPtr updater);
+    PixelStreamSynchronizer(std::shared_ptr<PixelStreamUpdater> updater,
+                            deflect::View view);
 
     /** @copydoc ContentSynchronizer::update */
     void update(const ContentWindow& window,
                 const QRectF& visibleArea) override;
-
-    /** @copydoc ContentSynchronizer::synchronize */
-    void synchronize(WallToWallChannel& channel) override;
 
     /** @copydoc ContentSynchronizer::getTilesArea */
     QSize getTilesArea() const override;
@@ -75,16 +72,30 @@ public:
     /** @copydoc ContentSynchronizer::getStatistics */
     QString getStatistics() const override;
 
-    /** @copydoc ContentSynchronizer::getTileImage */
-    ImagePtr getTileImage(uint tileIndex) const override;
+    /** @copydoc ContentSynchronizer::getView */
+    deflect::View getView() const final;
+
+    /**
+     * Swap the image before rendering.
+     *
+     * Should only be called when canSwapTiles returns true on all processes.
+     */
+    void swapTiles() final;
+
+    /** Update the tiles. */
+    void updateTiles();
 
 private:
-    PixelStreamUpdaterSharedPtr _updater;
+    std::shared_ptr<PixelStreamUpdater> _updater;
+    deflect::View _view;
     FpsCounter _fpsCounter;
 
-    bool _tilesDirty;
-    bool _updateExistingTiles;
+    bool _tilesDirty = true;
+    bool _updateExistingTiles = false;
     QSize _tilesArea;
+
+    /** @copydoc ContentSynchronizer::getDataSource */
+    const DataSource& getDataSource() const final;
 
     void _onPictureUpdated();
 };
