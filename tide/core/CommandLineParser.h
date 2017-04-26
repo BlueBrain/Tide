@@ -45,22 +45,22 @@
 /**
  * Standard macro to check for --help and syntax error of command line args.
  */
-#define COMMAND_LINE_PARSER_CHECK( ParserClass, AppName ) \
-ParserClass commandLine; \
-try \
-{ \
-    commandLine.parse( argc, argv ); \
-} \
-catch( const boost::program_options::error& e ) \
-{ \
-    put_flog( LOG_FATAL, "failed to start: %s", e.what( )); \
-    return EXIT_FAILURE; \
-} \
-if( commandLine.getHelp( )) \
-{ \
-    commandLine.showSyntax( AppName ); \
-    return EXIT_SUCCESS; \
-}
+#define COMMAND_LINE_PARSER_CHECK(ParserClass, AppName)       \
+    ParserClass commandLine;                                  \
+    try                                                       \
+    {                                                         \
+        commandLine.parse(argc, argv);                        \
+    }                                                         \
+    catch (const boost::program_options::error& e)            \
+    {                                                         \
+        put_flog(LOG_FATAL, "failed to start: %s", e.what()); \
+        return EXIT_FAILURE;                                  \
+    }                                                         \
+    if (commandLine.getHelp())                                \
+    {                                                         \
+        commandLine.showSyntax(AppName);                      \
+        return EXIT_SUCCESS;                                  \
+    }
 
 /**
  * Basic command line arguments parser with [-h;--help] handling.
@@ -82,7 +82,7 @@ public:
      *
      * @throw boost::program_options::error on parsing error.
      */
-    virtual void parse( int argc, char** argv );
+    virtual void parse(int argc, char** argv);
 
     /** Was the --help flag given. */
     bool getHelp() const;
@@ -91,12 +91,11 @@ public:
      * Print syntax to std::out.
      * @param appName The name of the executable to print in the output.
      */
-    virtual void showSyntax( const std::string& appName ) const;
+    virtual void showSyntax(const std::string& appName) const;
 
 protected:
-
     /** The list of options which already includes "--help". */
-    boost::program_options::options_description desc{ "Allowed options" };
+    boost::program_options::options_description desc{"Allowed options"};
 
     /** Contains the results of the parse() operation. */
     boost::program_options::variables_map vm;

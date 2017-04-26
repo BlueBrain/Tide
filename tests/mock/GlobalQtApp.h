@@ -52,23 +52,18 @@
 struct GlobalQtApp : public boost::noncopyable
 {
     GlobalQtApp()
-        : app( 0 )
+        : app(0)
     {
-        if( !hasGLXDisplay( ))
-          return;
+        if (!hasGLXDisplay())
+            return;
 
         // need QApplication to instantiate WebkitPixelStreamer
         namespace ut = boost::unit_test;
         ut::master_test_suite_t& testSuite = ut::framework::master_test_suite();
-        app = new QApplication( testSuite.argc, testSuite.argv );
+        app = new QApplication(testSuite.argc, testSuite.argv);
     }
-    ~GlobalQtApp()
-    {
-        delete app;
-    }
-
+    ~GlobalQtApp() { delete app; }
     QApplication* app;
 };
 
-
-#endif // GLOBALQTAPP_H
+#endif

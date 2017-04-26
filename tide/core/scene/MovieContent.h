@@ -47,23 +47,23 @@
 enum ControlState
 {
     STATE_PAUSED = 1 << 0,
-    STATE_LOOP   = 1 << 1
+    STATE_LOOP = 1 << 1
 };
 
 class MovieContent : public Content
 {
     Q_OBJECT
-    Q_DISABLE_COPY( MovieContent )
+    Q_DISABLE_COPY(MovieContent)
 
-    Q_PROPERTY( qreal duration READ getDuration CONSTANT )
-    Q_PROPERTY( qreal position READ getPosition WRITE setPosition
-                NOTIFY positionChanged )
-    Q_PROPERTY( bool skipping READ isSkipping WRITE setSkipping
-                NOTIFY skippingChanged )
+    Q_PROPERTY(qreal duration READ getDuration CONSTANT)
+    Q_PROPERTY(qreal position READ getPosition WRITE setPosition NOTIFY
+                   positionChanged)
+    Q_PROPERTY(
+        bool skipping READ isSkipping WRITE setSkipping NOTIFY skippingChanged)
 
 public:
     /** Create a MovieContent from the given uri. */
-    explicit MovieContent( const QString& uri );
+    explicit MovieContent(const QString& uri);
 
     /** @copydoc Content::getType **/
     CONTENT_TYPE getType() const final;
@@ -88,16 +88,16 @@ public:
     ControlState getControlState() const;
     qreal getDuration() const;
     qreal getPosition() const;
-    void setPosition( qreal pos );
+    void setPosition(qreal pos);
     bool isSkipping() const;
-    void setSkipping( bool skipping );
+    void setSkipping(bool skipping);
     //@}
 
 signals:
     /** @name QProperty notifiers */
     //@{
-    void positionChanged( qreal pos );
-    void skippingChanged( bool skipping );
+    void positionChanged(qreal pos);
+    void skippingChanged(bool skipping);
     //@}
 
 private slots:
@@ -113,39 +113,43 @@ private:
     MovieContent() = default;
 
     /** Serialize for sending to Wall applications. */
-    template< class Archive >
-    void serialize( Archive & ar, const unsigned int )
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int)
     {
-        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP( Content );
+        // clang-format off
+        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Content);
         ar & _controlState;
         ar & _duration;
         ar & _position;
         ar & _skipping;
+        // clang-format on
     }
 
     /** Serialize for saving to an xml file. */
-    template< class Archive >
-    void serialize_members_xml( Archive & ar, const unsigned int version )
+    template <class Archive>
+    void serialize_members_xml(Archive& ar, const unsigned int version)
     {
         // serialize base class information (with NVP for xml archives)
-        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP( Content );
-        if( version >= 2 )
-            ar & boost::serialization::make_nvp( "controlState", _controlState );
+        // clang-format off
+        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Content);
+        if (version >= 2)
+            ar & boost::serialization::make_nvp("controlState", _controlState);
+        // clang-format on
     }
 
     /** Loading from xml. */
-    void serialize_for_xml( boost::archive::xml_iarchive& ar,
-                            const unsigned int version )
+    void serialize_for_xml(boost::archive::xml_iarchive& ar,
+                           const unsigned int version)
     {
-        serialize_members_xml( ar, version );
+        serialize_members_xml(ar, version);
         _createActions(); // Need to be done after _controlState is restored
     }
 
     /** Saving to xml. */
-    void serialize_for_xml( boost::archive::xml_oarchive& ar,
-                            const unsigned int version )
+    void serialize_for_xml(boost::archive::xml_oarchive& ar,
+                           const unsigned int version)
     {
-        serialize_members_xml( ar, version );
+        serialize_members_xml(ar, version);
     }
 
     ControlState _controlState = STATE_LOOP;
@@ -154,10 +158,10 @@ private:
     bool _skipping = false;
 };
 
-BOOST_CLASS_VERSION( MovieContent, 2 )
+BOOST_CLASS_VERSION(MovieContent, 2)
 
-DECLARE_SERIALIZE_FOR_XML( MovieContent )
+DECLARE_SERIALIZE_FOR_XML(MovieContent)
 
-BOOST_CLASS_EXPORT_KEY( MovieContent )
+BOOST_CLASS_EXPORT_KEY(MovieContent)
 
 #endif

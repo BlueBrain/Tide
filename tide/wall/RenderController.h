@@ -55,7 +55,7 @@ class RenderController : public QObject
 
 public:
     /** Constructor */
-    RenderController( WallWindow& window );
+    RenderController(WallWindow& window);
 
     /** Get the DisplayGroup */
     DisplayGroupPtr getDisplayGroup() const;
@@ -63,22 +63,22 @@ public:
 public slots:
     void updateQuit();
     void updateRequestScreenshot();
-    void updateDisplayGroup( DisplayGroupPtr displayGroup );
-    void updateOptions( OptionsPtr options );
-    void updateMarkers( MarkersPtr markers );
+    void updateDisplayGroup(DisplayGroupPtr displayGroup);
+    void updateOptions(OptionsPtr options);
+    void updateMarkers(MarkersPtr markers);
     void requestRender();
 
 signals:
-    void screenshotRendered( QImage image );
+    void screenshotRendered(QImage image);
 
 private:
-    void timerEvent( QTimerEvent* qtEvent ) final;
-    Q_DISABLE_COPY( RenderController )
+    void timerEvent(QTimerEvent* qtEvent) final;
+    Q_DISABLE_COPY(RenderController)
 
     WallWindow& _window;
 
-    SwapSyncObject<bool> _syncQuit{ false };
-    SwapSyncObject<bool> _syncScreenshot{ false };
+    SwapSyncObject<bool> _syncQuit{false};
+    SwapSyncObject<bool> _syncScreenshot{false};
     SwapSyncObject<DisplayGroupPtr> _syncDisplayGroup;
     SwapSyncObject<OptionsPtr> _syncOptions;
     SwapSyncObject<MarkersPtr> _syncMarkers;
@@ -86,7 +86,7 @@ private:
     /** Update and synchronize scene objects before rendering a frame. */
     void _syncAndRender();
 
-    void _synchronizeObjects( const SyncFunction& versionCheckFunc );
+    void _synchronizeObjects(const SyncFunction& versionCheckFunc);
 
     int _renderTimer = 0;
     int _stopRenderingDelayTimer = 0;

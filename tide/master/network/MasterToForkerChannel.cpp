@@ -45,23 +45,24 @@
 namespace
 {
 const int forkerProcess = 1;
-const QString sep( '#' );
+const QString sep('#');
 }
 
-MasterToForkerChannel::MasterToForkerChannel( MPIChannelPtr mpiChannel )
-    : _mpiChannel( mpiChannel )
-{}
-
-void MasterToForkerChannel::sendStart( const QString command,
-                                       const QString workingDir,
-                                       const QStringList env )
+MasterToForkerChannel::MasterToForkerChannel(MPIChannelPtr mpiChannel)
+    : _mpiChannel(mpiChannel)
 {
-    const QString string = command + sep + workingDir + sep + env.join( ';' );
-    const auto data = serialization::toBinary( string );
-    _mpiChannel->send( MPIMessageType::START_PROCESS, data, forkerProcess );
+}
+
+void MasterToForkerChannel::sendStart(const QString command,
+                                      const QString workingDir,
+                                      const QStringList env)
+{
+    const QString string = command + sep + workingDir + sep + env.join(';');
+    const auto data = serialization::toBinary(string);
+    _mpiChannel->send(MPIMessageType::START_PROCESS, data, forkerProcess);
 }
 
 void MasterToForkerChannel::sendQuit()
 {
-    _mpiChannel->send( MPIMessageType::QUIT, "", forkerProcess );
+    _mpiChannel->send(MPIMessageType::QUIT, "", forkerProcess);
 }

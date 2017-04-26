@@ -49,7 +49,8 @@ class PixelStreamer;
 class CommandLineOptions;
 
 /**
- * Generic application for using PixelStreamers with the deflect::Stream library.
+ * Generic application for using PixelStreamers with the deflect::Stream
+ * library.
  */
 class Application : public QApplication
 {
@@ -62,7 +63,7 @@ public:
      * @param argc Command line argument count (required by QApplication)
      * @param argv Command line arguments (required by QApplication)
      */
-    Application( int &argc, char** argv );
+    Application(int& argc, char** argv);
 
     /** Destruct an Application. */
     virtual ~Application();
@@ -73,11 +74,11 @@ public:
      * @param options The parsed Command line options.
      * @return true on success, false on failure.
      */
-    bool initialize( const CommandLineOptions& options );
+    bool initialize(const CommandLineOptions& options);
 
 private slots:
-    void sendImage( QImage image );
-    void sendData( QByteArray data );
+    void sendImage(QImage image);
+    void sendData(QByteArray data);
     void processPendingEvents();
 
 private:

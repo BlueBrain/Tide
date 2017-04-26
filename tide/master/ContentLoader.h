@@ -42,9 +42,9 @@
 
 #include "types.h"
 
-#include <QString>
 #include <QPointF>
 #include <QSizeF>
+#include <QString>
 
 /**
  * Helper class to open Content on a DisplayGroup.
@@ -57,7 +57,7 @@ public:
      *
      * @param displayGroup The target DisplayGroup for displaying the content.
      */
-    ContentLoader( DisplayGroupPtr displayGroup );
+    ContentLoader(DisplayGroupPtr displayGroup);
 
     /**
      * Load a Content from a file and create a window for it.
@@ -70,9 +70,9 @@ public:
      *        window is automatically adjusted to its content dimensions.
      * @return true if operation was successful, false otherwise.
      */
-    bool load( const QString& filename,
-               const QPointF& windowCenterPosition = QPointF(),
-               const QSizeF& windowSize = QSizeF( ));
+    bool load(const QString& filename,
+              const QPointF& windowCenterPosition = QPointF(),
+              const QSizeF& windowSize = QSizeF());
 
     /**
      * Load all the supported files from a directory.
@@ -84,7 +84,7 @@ public:
      *        determined if left empty.
      * @return the number of contents that could be loaded
      */
-    size_t loadDir( const QString& dirName, QSize gridSize = QSize{} );
+    size_t loadDir(const QString& dirName, QSize gridSize = QSize{});
 
     /**
      * Check if a content is already open.
@@ -92,7 +92,7 @@ public:
      * @param filename The content file to search for.
      * @return true if a content with the same uri is already open.
      */
-    bool isAlreadyOpen( const QString& filename ) const;
+    bool isAlreadyOpen(const QString& filename) const;
 
     /**
      * Find an open window by its filename.
@@ -100,7 +100,7 @@ public:
      * @param filename The content file to search for.
      * @return the window corresponding to the file if it is open or nullptr.
      */
-    ContentWindowPtr findWindow( const QString& filename ) const;
+    ContentWindowPtr findWindow(const QString& filename) const;
 
 private:
     DisplayGroupPtr _displayGroup;

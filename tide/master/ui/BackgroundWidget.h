@@ -61,14 +61,14 @@ public:
      *                      background settings.
      * @param parent An optional parent widget
      */
-    BackgroundWidget( MasterConfiguration& configuration, QWidget* parent = 0 );
+    BackgroundWidget(MasterConfiguration& configuration, QWidget* parent = 0);
 
 signals:
     /** Emitted when the user selected a different color */
-    void backgroundColorChanged( QColor color );
+    void backgroundColorChanged(QColor color);
 
     /** Emitted when the user selected a different background */
-    void backgroundContentChanged( ContentPtr content );
+    void backgroundContentChanged(ContentPtr content);
 
 public slots:
     /** Store the new settings and close the widget */

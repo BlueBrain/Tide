@@ -50,18 +50,18 @@
 class TapDetector : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY( TapDetector )
+    Q_DISABLE_COPY(TapDetector)
 
 public:
-    explicit TapDetector( qreal moveThresholdPx );
+    explicit TapDetector(qreal moveThresholdPx);
 
-    void initGesture( const Positions& positions );
-    void updateGesture( const Positions& positions );
+    void initGesture(const Positions& positions);
+    void updateGesture(const Positions& positions);
     void cancelGesture();
 
 signals:
     /** Emitted for an n-finger touch and release in-place (i.e. not a pan). */
-    void tap( QPointF pos, uint numPoints );
+    void tap(QPointF pos, uint numPoints);
 
 private:
     const qreal _moveThresholdPx;
@@ -70,7 +70,7 @@ private:
     Positions _touchStartPos;
     bool _tapCanceled = false;
 
-    void _cancelGestureIfMoved( const Positions& positions );
+    void _cancelGestureIfMoved(const Positions& positions);
 };
 
 #endif

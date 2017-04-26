@@ -49,25 +49,25 @@ class ZoomController : public ContentController
 {
 public:
     /** Constructor */
-    ZoomController( ContentWindow& contentWindow );
+    ZoomController(ContentWindow& contentWindow);
 
     /** Destructor */
     virtual ~ZoomController();
 
     /** @name Touch gesture handlers. */
     //@{
-    void pan( QPointF position, QPointF delta, uint numPoints ) override;
-    void pinch( QPointF position, QPointF pixelDelta ) override;
+    void pan(QPointF position, QPointF delta, uint numPoints) override;
+    void pinch(QPointF position, QPointF pixelDelta) override;
     //@}
 
     /** Adjust the zoom of the window to the aspect ratio of the content. */
     void adjustZoomToContentAspectRatio();
 
 private:
-    void _checkAndApply( QRectF zoomRect );
-    void _moveZoomRect( const QPointF& sceneDelta );
-    void _constrainZoomLevel( QRectF& zoomRect ) const;
-    void _constraintPosition( QRectF& zoomRect ) const;
+    void _checkAndApply(QRectF zoomRect);
+    void _moveZoomRect(const QPointF& sceneDelta);
+    void _constrainZoomLevel(QRectF& zoomRect) const;
+    void _constraintPosition(QRectF& zoomRect) const;
     QSizeF _getMaxZoom() const;
     QSizeF _getMinZoom() const;
 };

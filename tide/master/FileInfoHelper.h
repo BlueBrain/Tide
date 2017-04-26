@@ -40,8 +40,8 @@
 #ifndef FILEINFOHELPER_H
 #define FILEINFOHELPER_H
 
-#include <QObject>
 #include <QFileInfo>
+#include <QObject>
 
 /**
  * Expose QFileInfo helper functions to Qml.
@@ -51,14 +51,14 @@ class FileInfoHelper : public QObject
     Q_OBJECT
 
 public:
-    Q_INVOKABLE QString baseNameFromPath( const QString& filePath ) const
+    Q_INVOKABLE QString baseNameFromPath(const QString& filePath) const
     {
-        return QFileInfo( filePath ).completeBaseName();
+        return QFileInfo(filePath).completeBaseName();
     }
 
-    Q_INVOKABLE bool fileExists( const QString& filePath ) const
+    Q_INVOKABLE bool fileExists(const QString& filePath) const
     {
-        return QFileInfo( filePath ).exists();
+        return QFileInfo(filePath).exists();
     }
 };
 

@@ -51,13 +51,13 @@
 class PinchDetector : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY( PinchDetector )
+    Q_DISABLE_COPY(PinchDetector)
 
 public:
-    explicit PinchDetector( qreal pinchThresholdPx );
+    explicit PinchDetector(qreal pinchThresholdPx);
 
-    void initGesture( const QPointF& pos0, const QPointF& pos1 );
-    void updateGesture( const QPointF& pos0, const QPointF& pos1 );
+    void initGesture(const QPointF& pos0, const QPointF& pos1);
+    void updateGesture(const QPointF& pos0, const QPointF& pos1);
     void cancelGesture();
 
 signals:
@@ -65,13 +65,13 @@ signals:
     void pinchStarted();
 
     /** Emitted for each step of a two-fingers pinch gesture. */
-    void pinch( QPointF pos, QPointF pixelDelta );
+    void pinch(QPointF pos, QPointF pixelDelta);
 
     /** Emitted when a pinch ends (i.e. one of the two fingers is released). */
     void pinchEnded();
 
 private:
-    void _startGesture( const QPointF& pos0, const QPointF& pos1 );
+    void _startGesture(const QPointF& pos0, const QPointF& pos1);
 
     const qreal _pinchThresholdPx = 0;
     bool _pinching = false;

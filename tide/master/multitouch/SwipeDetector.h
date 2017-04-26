@@ -50,13 +50,13 @@
 class SwipeDetector : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY( SwipeDetector )
+    Q_DISABLE_COPY(SwipeDetector)
 
 public:
-    SwipeDetector( qreal swipeMaxFingersIntervalPx, qreal swipeThresholdPx );
+    SwipeDetector(qreal swipeMaxFingersIntervalPx, qreal swipeThresholdPx);
 
-    void initGesture( const QPointF& p0, const QPointF& p1 );
-    void updateGesture( const QPointF& p0, const QPointF& p1 );
+    void initGesture(const QPointF& p0, const QPointF& p1);
+    void updateGesture(const QPointF& p0, const QPointF& p1);
     void cancelGesture();
 
 signals:
@@ -79,8 +79,8 @@ private:
     bool _canBeSwipe = false;
     QPointF _swipeStartPos;
 
-    bool _checkFingersDistanceForSwipe( const QPointF& p0,
-                                        const QPointF& p1 ) const;
+    bool _checkFingersDistanceForSwipe(const QPointF& p0,
+                                       const QPointF& p1) const;
 };
 
 #endif

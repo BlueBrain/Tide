@@ -42,15 +42,15 @@
 
 // Must be included before any other FFMPEG header, specifically for Linux build
 #ifdef __cplusplus
-    #ifndef __STDC_CONSTANT_MACROS
-        #define __STDC_CONSTANT_MACROS
-    #endif
+#ifndef __STDC_CONSTANT_MACROS
+#define __STDC_CONSTANT_MACROS
+#endif
 
-    #ifdef _STDINT_H
-        #undef _STDINT_H
-    #endif
+#ifdef _STDINT_H
+#undef _STDINT_H
+#endif
 
-    #include <stdint.h>
+#include <stdint.h>
 #endif
 
 #endif

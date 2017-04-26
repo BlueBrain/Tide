@@ -56,7 +56,7 @@
 class Image
 {
 public:
-    virtual ~Image() {}
+    virtual ~Image() = default;
 
     /** @return the width of the image. */
     virtual int getWidth() const = 0;
@@ -65,13 +65,13 @@ public:
     virtual int getHeight() const = 0;
 
     /** @return the dimensions of the given texture plane. */
-    virtual QSize getTextureSize( uint texture = 0 ) const
+    virtual QSize getTextureSize(uint texture = 0) const
     {
-        return texture == 0 ? QSize( getWidth(), getHeight( )) : QSize();
+        return texture == 0 ? QSize(getWidth(), getHeight()) : QSize();
     }
 
     /** @return the pointer to the pixels of the given texture plane. */
-    virtual const uint8_t* getData( uint texture = 0 ) const = 0;
+    virtual const uint8_t* getData(uint texture = 0) const = 0;
 
     /** @return the format of the image. */
     virtual TextureFormat getFormat() const = 0;
@@ -81,7 +81,6 @@ public:
 
     /** @return true if the image is a GPU image and need special processing. */
     virtual bool isGpuImage() const { return false; }
-
     /**
      * Generate the GPU image.
      * This method will be called on a thread with an active OpenGL context if

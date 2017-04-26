@@ -42,44 +42,45 @@
 
 #include <deflect/Frame.h>
 
-StreamImage::StreamImage( deflect::FramePtr frame, const uint tileIndex )
-    : _frame{ frame }
-    , _tileIndex{ tileIndex }
-{}
+StreamImage::StreamImage(deflect::FramePtr frame, const uint tileIndex)
+    : _frame{frame}
+    , _tileIndex{tileIndex}
+{
+}
 
 int StreamImage::getWidth() const
 {
-    return _frame->segments.at( _tileIndex ).parameters.width;
+    return _frame->segments.at(_tileIndex).parameters.width;
 }
 
 int StreamImage::getHeight() const
 {
-    return _frame->segments.at( _tileIndex ).parameters.height;
+    return _frame->segments.at(_tileIndex).parameters.height;
 }
 
-const uint8_t* StreamImage::getData( const uint texture ) const
+const uint8_t* StreamImage::getData(const uint texture) const
 {
-    const auto data = _frame->segments.at( _tileIndex ).imageData.constData();
-    if( getFormat() == TextureFormat::rgba || texture == 0 )
-        return reinterpret_cast<const uint8_t*>( data );
+    const auto data = _frame->segments.at(_tileIndex).imageData.constData();
+    if (getFormat() == TextureFormat::rgba || texture == 0)
+        return reinterpret_cast<const uint8_t*>(data);
 
     size_t offset = getWidth() * getHeight();
 
-    if( texture == 1 )
-        return reinterpret_cast<const uint8_t*>( data ) + offset;
+    if (texture == 1)
+        return reinterpret_cast<const uint8_t*>(data) + offset;
 
-    if( texture == 2 )
+    if (texture == 2)
     {
-        const auto uvSize = getTextureSize( 1 );
+        const auto uvSize = getTextureSize(1);
         offset += uvSize.width() * uvSize.height();
-        return reinterpret_cast<const uint8_t*>( data ) + offset;
+        return reinterpret_cast<const uint8_t*>(data) + offset;
     }
     return nullptr;
 }
 
 TextureFormat StreamImage::getFormat() const
 {
-    switch( _frame->segments.at( _tileIndex ).parameters.dataType )
+    switch (_frame->segments.at(_tileIndex).parameters.dataType)
     {
     case deflect::DataType::rgba:
         return TextureFormat::rgba;
@@ -91,6 +92,6 @@ TextureFormat StreamImage::getFormat() const
         return TextureFormat::yuv420;
     case deflect::DataType::jpeg:
     default:
-        throw std::runtime_error( "StreamImage texture is not decompressed" );
+        throw std::runtime_error("StreamImage texture is not decompressed");
     }
 }

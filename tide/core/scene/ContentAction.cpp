@@ -41,11 +41,11 @@
 
 // false-positive on qt signals for Q_PROPERTY notifiers
 // cppcheck-suppress uninitMemberVar
-ContentAction::ContentAction( const QUuid& actionId )
-    : _uuid( actionId )
-    , _checkable( false )
-    , _checked( false )
-    , _enabled( true )
+ContentAction::ContentAction(const QUuid& actionId)
+    : _uuid(actionId)
+    , _checkable(false)
+    , _checked(false)
+    , _enabled(true)
 {
 }
 
@@ -74,52 +74,52 @@ bool ContentAction::isEnabled() const
     return _enabled;
 }
 
-void ContentAction::setIcon( const QString icon )
+void ContentAction::setIcon(const QString icon)
 {
-    if( icon == _icon )
+    if (icon == _icon)
         return;
 
     _icon = icon;
     emit iconChanged();
 }
 
-void ContentAction::setIconChecked( const QString icon )
+void ContentAction::setIconChecked(const QString icon)
 {
-    if( icon == _iconChecked )
+    if (icon == _iconChecked)
         return;
 
     _iconChecked = icon;
     emit iconCheckedChanged();
 }
 
-void ContentAction::setCheckable( const bool value )
+void ContentAction::setCheckable(const bool value)
 {
-    if( _checkable == value )
+    if (_checkable == value)
         return;
 
     _checkable = value;
     emit checkableChanged();
 }
 
-void ContentAction::setEnabled( const bool value )
+void ContentAction::setEnabled(const bool value)
 
 {
-    if( _enabled == value )
+    if (_enabled == value)
         return;
 
     _enabled = value;
     emit enabledChanged();
 }
 
-void ContentAction::setChecked( const bool value )
+void ContentAction::setChecked(const bool value)
 {
-    if( !_checkable || _checked == value )
+    if (!_checkable || _checked == value)
         return;
 
     _checked = value;
     emit checkedChanged();
 
-    if( _checked )
+    if (_checked)
         emit checked();
     else
         emit unchecked();
@@ -127,11 +127,11 @@ void ContentAction::setChecked( const bool value )
 
 void ContentAction::trigger()
 {
-    if( !_enabled )
+    if (!_enabled)
         return;
 
-    if( _checkable )
-        setChecked( !_checked );
+    if (_checkable)
+        setChecked(!_checked);
 
-    emit triggered( _checked );
+    emit triggered(_checked);
 }

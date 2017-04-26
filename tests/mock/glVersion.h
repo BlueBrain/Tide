@@ -40,27 +40,27 @@
 #ifndef GLVERSION_H
 #define GLVERSION_H
 
-#include <iostream>
 #include <QOpenGLContext>
+#include <iostream>
 
-bool glVersionGreaterEqual( const int versionMajor, const int versionMinor = 0 )
+bool glVersionGreaterEqual(const int versionMajor, const int versionMinor = 0)
 {
     QOpenGLContext glContext;
-    if( !glContext.create( ))
+    if (!glContext.create())
     {
-        std::cout << "glVersionGreaterEqual(): could not create GL context" <<
-                     std::endl;
+        std::cout << "glVersionGreaterEqual(): could not create GL context"
+                  << std::endl;
         return false;
     }
 
     const int glVersionMajor = glContext.format().majorVersion();
     const int glVersionMinor = glContext.format().minorVersion();
 
-    const bool success = glVersionMajor > versionMajor ||
-                         (glVersionMajor == versionMajor &&
-                          glVersionMinor >= versionMinor);
+    const bool success =
+        glVersionMajor > versionMajor ||
+        (glVersionMajor == versionMajor && glVersionMinor >= versionMinor);
 
-    if( !success )
+    if (!success)
         std::cout << "glVersionGreaterEqual(): insufficient GL_VERSION"
                   << " detected " << glVersionMajor << "." << glVersionMinor
                   << ", expected " << versionMajor << "." << versionMinor

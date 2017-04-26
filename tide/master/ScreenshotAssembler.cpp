@@ -41,30 +41,30 @@
 
 #include <QPainter>
 
-ScreenshotAssembler::ScreenshotAssembler( const Configuration& config )
-    : _config( config )
-    , _screenshot{ _config.getTotalSize(), QImage::Format_RGB32 }
+ScreenshotAssembler::ScreenshotAssembler(const Configuration& config)
+    : _config(config)
+    , _screenshot{_config.getTotalSize(), QImage::Format_RGB32}
 {
-    const size_t count = _config.getTotalScreenCountX() *
-                         _config.getTotalScreenCountY();
-    _imagesReceived.resize( count, false );
+    const size_t count =
+        _config.getTotalScreenCountX() * _config.getTotalScreenCountY();
+    _imagesReceived.resize(count, false);
 }
 
-void ScreenshotAssembler::addImage( const QImage image, const int source )
+void ScreenshotAssembler::addImage(const QImage image, const int source)
 {
     {
         const auto x = source % _config.getTotalScreenCountX();
         const auto y = source / _config.getTotalScreenCountX();
-        QPainter painter{ &_screenshot };
-        painter.drawImage( _config.getScreenRect( { x, y } ), image );
+        QPainter painter{&_screenshot};
+        painter.drawImage(_config.getScreenRect({x, y}), image);
     }
 
     _imagesReceived[source] = true;
-    for( const auto& received : _imagesReceived )
-        if( !received )
+    for (const auto& received : _imagesReceived)
+        if (!received)
             return;
 
-    std::fill( _imagesReceived.begin(), _imagesReceived.end(), false );
+    std::fill(_imagesReceived.begin(), _imagesReceived.end(), false);
 
-    emit screenshotComplete( _screenshot );
+    emit screenshotComplete(_screenshot);
 }

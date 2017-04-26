@@ -43,7 +43,7 @@
 #include "PixelStreamContent.h" // Base class
 #include "WebbrowserHistory.h"  // Member
 #if TIDE_USE_QT5WEBKITWIDGETS
-#  include "AddressBar.h"       // Member
+#include "AddressBar.h" // Member
 #endif
 
 /**
@@ -52,11 +52,11 @@
 class WebbrowserContent : public PixelStreamContent
 {
     Q_OBJECT
-    Q_PROPERTY( int page READ getPage NOTIFY pageChanged )
-    Q_PROPERTY( int pageCount READ getPageCount NOTIFY pageCountChanged )
-    Q_PROPERTY( int restPort READ getRestPort NOTIFY restPortChanged )
+    Q_PROPERTY(int page READ getPage NOTIFY pageChanged)
+    Q_PROPERTY(int pageCount READ getPageCount NOTIFY pageCountChanged)
+    Q_PROPERTY(int restPort READ getRestPort NOTIFY restPortChanged)
 #if TIDE_USE_QT5WEBKITWIDGETS
-    Q_PROPERTY( QObject* addressBar READ getAddressBar CONSTANT )
+    Q_PROPERTY(QObject* addressBar READ getAddressBar CONSTANT)
 #endif
 
 public:
@@ -64,7 +64,7 @@ public:
      * Constructor.
      * @param uri The unique stream identifier.
      */
-    explicit WebbrowserContent( const QString& uri );
+    explicit WebbrowserContent(const QString& uri);
 
     /** Get the content type **/
     CONTENT_TYPE getType() const final;
@@ -91,7 +91,7 @@ public:
     QString getUrl() const;
 
     /** Replace the navigation history with a single url. */
-    void setUrl( const QString& url );
+    void setUrl(const QString& url);
 
 #if TIDE_USE_QT5WEBKITWIDGETS
     AddressBar* getAddressBar() const;
@@ -102,7 +102,7 @@ public:
      *
      * @param data a data buffer created by serializeData()
      */
-    void parseData( QByteArray data ) final;
+    void parseData(QByteArray data) final;
 
     /**
      * Serialize webbrowser data for sending through the deflect::Stream.
@@ -112,9 +112,8 @@ public:
      * @param restPort the port of the REST interface to send commands to
      * @return a serialized data buffer that can be parsed by parseData()
      */
-    static QByteArray serializeData( const WebbrowserHistory& history,
-                                     const QString& pageTitle,
-                                     int restPort );
+    static QByteArray serializeData(const WebbrowserHistory& history,
+                                    const QString& pageTitle, int restPort);
 
 signals:
     /** @name QProperty notifiers */
@@ -131,35 +130,35 @@ private:
     WebbrowserContent();
 
     /** Serialize for sending to Wall applications. */
-    template< class Archive >
-    void serialize( Archive & ar, const unsigned int /*version*/ )
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int /*version*/)
     {
-        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP( PixelStreamContent );
+        // clang-format off
+        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(PixelStreamContent);
         ar & _history;
         ar & _pageTitle;
 #if TIDE_USE_QT5WEBKITWIDGETS
         ar & _addressBar;
-        _addressBar->setParent( this );
+        _addressBar->setParent(this);
 #endif
+        // clang-format on
     }
 
     /** Loading from xml. */
-    void serialize_for_xml( boost::archive::xml_iarchive& ar,
-                            const unsigned int )
+    void serialize_for_xml(boost::archive::xml_iarchive& ar, const unsigned int)
     {
-        ar >> BOOST_SERIALIZATION_BASE_OBJECT_NVP( PixelStreamContent );
+        ar >> BOOST_SERIALIZATION_BASE_OBJECT_NVP(PixelStreamContent);
         QString url;
-        ar >> boost::serialization::make_nvp( "url", url );
-        setUrl( url );
+        ar >> boost::serialization::make_nvp("url", url);
+        setUrl(url);
     }
 
     /** Saving to xml. */
-    void serialize_for_xml( boost::archive::xml_oarchive& ar,
-                            const unsigned int )
+    void serialize_for_xml(boost::archive::xml_oarchive& ar, const unsigned int)
     {
-        ar << BOOST_SERIALIZATION_BASE_OBJECT_NVP( PixelStreamContent );
+        ar << BOOST_SERIALIZATION_BASE_OBJECT_NVP(PixelStreamContent);
         const auto url = getUrl();
-        ar << boost::serialization::make_nvp( "url", url );
+        ar << boost::serialization::make_nvp("url", url);
     }
 
     /** Information received from the Webbrowser PixelStreamer. */
@@ -167,14 +166,14 @@ private:
     QString _pageTitle;
     int _restPort = 0;
 
-    /** State of the address bar on master shared with the wall processes. */
+/** State of the address bar on master shared with the wall processes. */
 #if TIDE_USE_QT5WEBKITWIDGETS
     AddressBar* _addressBar; // child QObject
 #endif
 };
 
-DECLARE_SERIALIZE_FOR_XML( WebbrowserContent )
+DECLARE_SERIALIZE_FOR_XML(WebbrowserContent)
 
-BOOST_CLASS_EXPORT_KEY( WebbrowserContent )
+BOOST_CLASS_EXPORT_KEY(WebbrowserContent)
 
 #endif

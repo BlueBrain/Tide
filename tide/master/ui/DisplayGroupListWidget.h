@@ -54,18 +54,18 @@ class DisplayGroupListWidget : public QListWidget
 
 public:
     /** Constructor. */
-    DisplayGroupListWidget( QWidget* parent = nullptr );
+    DisplayGroupListWidget(QWidget* parent = nullptr);
 
     /** Set the DisplayGroup model that this view should present. */
-    void setDataModel( DisplayGroupPtr displayGroup );
+    void setDataModel(DisplayGroupPtr displayGroup);
 
 private:
     DisplayGroupPtr _displayGroup;
 
-    void _addContentWindow( ContentWindowPtr window );
-    void _removeContentWindow( ContentWindowPtr window );
-    void _moveToFront( ContentWindowPtr window );
-    void _onItemClicked( QListWidgetItem* item );
+    void _addContentWindow(ContentWindowPtr window);
+    void _removeContentWindow(ContentWindowPtr window);
+    void _moveToFront(ContentWindowPtr window);
+    void _onItemClicked(QListWidgetItem* item);
 };
 
 #endif

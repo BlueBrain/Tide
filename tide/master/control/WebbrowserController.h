@@ -53,23 +53,23 @@ class WebbrowserController : public PixelStreamController
 
 public:
     /** Constructor */
-    explicit WebbrowserController( ContentWindow& contentWindow );
+    explicit WebbrowserController(ContentWindow& contentWindow);
 
     /** @name Touch gesture handlers. */
     //@{
-    void touchBegin( QPointF position ) final;
+    void touchBegin(QPointF position) final;
     //@}
 
     /** @name Keyboard gesture handlers. */
     //@{
-    void keyPress( int key, int modifiers, QString text ) final;
-    void keyRelease( int key, int modifiers, QString text ) final;
+    void keyPress(int key, int modifiers, QString text) final;
+    void keyRelease(int key, int modifiers, QString text) final;
     //@}
 
 signals:
     /** @name Forward keyboard events to the Qml address bar. */
     //@{
-    void keyboardInput( QString text );
+    void keyboardInput(QString text);
     void deleteKeyPressed();
     void enterKeyPressed();
     //@}

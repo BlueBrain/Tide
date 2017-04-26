@@ -58,7 +58,7 @@ public:
      *        separated by '/' (e.g. "restapi/mycommand").
      * @param takesValue indicates if the command expects a value.
      */
-    explicit RestCommand( const std::string& name, bool takesValue = true );
+    explicit RestCommand(const std::string& name, bool takesValue = true);
 
     /** @return the name of the command passed in the constructor. */
     std::string getTypeName() const final;
@@ -68,14 +68,14 @@ public:
 
 signals:
     /** Emitted when the command has been received. */
-    void received( QString value );
+    void received(QString value);
 
 private:
     const std::string _name;
     const std::string _schema;
     const bool _takesValue;
 
-    bool _fromJSON( const std::string& json ) final;
+    bool _fromJSON(const std::string& json) final;
 };
 
 #endif

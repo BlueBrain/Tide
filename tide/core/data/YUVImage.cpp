@@ -43,15 +43,15 @@
 
 #include <QOpenGLFunctions>
 
-QSize YUVImage::getTextureSize( const uint texture ) const
+QSize YUVImage::getTextureSize(const uint texture) const
 {
-    switch( texture )
+    switch (texture)
     {
     case 0:
-        return QSize{ getWidth(), getHeight() };
+        return QSize{getWidth(), getHeight()};
     case 1:
     case 2:
-        return yuv::getUVSize( QSize( getWidth(), getHeight() ), getFormat( ));
+        return yuv::getUVSize(QSize(getWidth(), getHeight()), getFormat());
     default:
         return QSize();
     }

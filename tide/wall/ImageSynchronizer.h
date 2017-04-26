@@ -49,18 +49,17 @@
 class ImageSynchronizer : public BasicSynchronizer
 {
     Q_OBJECT
-    Q_DISABLE_COPY( ImageSynchronizer )
+    Q_DISABLE_COPY(ImageSynchronizer)
 
 public:
     /** Constructor. */
-    explicit ImageSynchronizer( const QString& uri );
+    explicit ImageSynchronizer(const QString& uri);
 
     /** @copydoc ContentSynchronizer::update */
-    void update( const ContentWindow& window,
-                 const QRectF& visibleArea ) final;
+    void update(const ContentWindow& window, const QRectF& visibleArea) final;
 
     /** @copydoc ContentSynchronizer::getTileImage */
-    ImagePtr getTileImage( uint tileIndex ) const final;
+    ImagePtr getTileImage(uint tileIndex) const final;
 
     /** @copydoc ContentSynchronizer::getZoomContextTile */
     TilePtr getZoomContextTile() const final;

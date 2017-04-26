@@ -51,108 +51,103 @@ namespace
 const int FOLDER_THUMBNAILS_X = 2;
 const int FOLDER_THUMBNAILS_Y = 2;
 const float FOLDER_THUMBNAILS_PADDING = 0.1;
-const QString FOLDER_TEXT( "folder" );
+const QString FOLDER_TEXT("folder");
 }
 
-FolderThumbnailGenerator::FolderThumbnailGenerator( const QSize& size )
-    : ThumbnailGenerator( size )
-{}
-
-QImage FolderThumbnailGenerator::generate( const QString& filename ) const
+FolderThumbnailGenerator::FolderThumbnailGenerator(const QSize& size)
+    : ThumbnailGenerator(size)
 {
-    const QDir dir( filename );
-    if( dir.exists( ))
-        return _createFolderImage( dir, true );
-
-    put_flog( LOG_ERROR, "invalid directory: %s",
-              filename.toLocal8Bit().constData( ));
-    return createErrorImage( "folder" );
 }
 
-QImage
-FolderThumbnailGenerator::_createFolderImage( const QDir& dir,
-                                              const bool generateThumbnails ) const
+QImage FolderThumbnailGenerator::generate(const QString& filename) const
 {
-    QImage img = createGradientImage( Qt::black, Qt::white );
+    const QDir dir(filename);
+    if (dir.exists())
+        return _createFolderImage(dir, true);
 
-    const QFileInfoList& fileList = _getSupportedFilesInDir( dir );
+    put_flog(LOG_ERROR, "invalid directory: %s",
+             filename.toLocal8Bit().constData());
+    return createErrorImage("folder");
+}
 
-    if( generateThumbnails && fileList.size() > 0 )
-        _paintThumbnailsMosaic( img, fileList );
+QImage FolderThumbnailGenerator::_createFolderImage(
+    const QDir& dir, const bool generateThumbnails) const
+{
+    QImage img = createGradientImage(Qt::black, Qt::white);
+
+    const QFileInfoList& fileList = _getSupportedFilesInDir(dir);
+
+    if (generateThumbnails && fileList.size() > 0)
+        _paintThumbnailsMosaic(img, fileList);
     else
-        paintText( img, FOLDER_TEXT );
+        paintText(img, FOLDER_TEXT);
 
     return img;
 }
 
-void FolderThumbnailGenerator::_paintThumbnailsMosaic( QImage& img,
-                                                       const QFileInfoList&
-                                                       fileList ) const
+void FolderThumbnailGenerator::_paintThumbnailsMosaic(
+    QImage& img, const QFileInfoList& fileList) const
 {
-    const int numPreviews = std::min( FOLDER_THUMBNAILS_X*FOLDER_THUMBNAILS_Y,
-                                      fileList.size( ));
-    if( numPreviews == 0 )
+    const int numPreviews =
+        std::min(FOLDER_THUMBNAILS_X * FOLDER_THUMBNAILS_Y, fileList.size());
+    if (numPreviews == 0)
         return;
 
-    QVector<QRectF> rect = _calculatePlacement( FOLDER_THUMBNAILS_X,
-                                                FOLDER_THUMBNAILS_Y,
-                                                FOLDER_THUMBNAILS_PADDING,
-                                                img.size().width(),
-                                                img.size().height( ));
-    QPainter painter( &img );
-    for( int i = 0; i < numPreviews; ++i )
+    QVector<QRectF> rect =
+        _calculatePlacement(FOLDER_THUMBNAILS_X, FOLDER_THUMBNAILS_Y,
+                            FOLDER_THUMBNAILS_PADDING, img.size().width(),
+                            img.size().height());
+    QPainter painter(&img);
+    for (int i = 0; i < numPreviews; ++i)
     {
-        const auto filename = fileList.at( i ).absoluteFilePath();
+        const auto filename = fileList.at(i).absoluteFilePath();
 
         QImage thumbnail;
         // Avoid recursion into subfolders
-        if( QDir( filename ).exists( ))
-            thumbnail = _createFolderImage( QDir( filename ), false );
+        if (QDir(filename).exists())
+            thumbnail = _createFolderImage(QDir(filename), false);
         else
-            thumbnail = thumbnail::create( filename, rect[i].size().toSize( ));
+            thumbnail = thumbnail::create(filename, rect[i].size().toSize());
 
         // Draw the thumbnail centered in its rectangle, preserving aspect ratio
-        QSizeF paintedSize( thumbnail.size( ));
-        paintedSize.scale( rect[i].size(), Qt::KeepAspectRatio );
-        QRectF paintRect( QPointF(), paintedSize );
-        paintRect.moveCenter( rect[i].center( ));
-        painter.drawImage( paintRect, thumbnail );
+        QSizeF paintedSize(thumbnail.size());
+        paintedSize.scale(rect[i].size(), Qt::KeepAspectRatio);
+        QRectF paintRect(QPointF(), paintedSize);
+        paintRect.moveCenter(rect[i].center());
+        painter.drawImage(paintRect, thumbnail);
     }
     painter.end();
 }
 
-QVector<QRectF>
-FolderThumbnailGenerator::_calculatePlacement( int nX, int nY, float padding,
-                                               float totalWidth,
-                                               float totalHeight ) const
+QVector<QRectF> FolderThumbnailGenerator::_calculatePlacement(
+    int nX, int nY, float padding, float totalWidth, float totalHeight) const
 {
-    const float totalPaddingWidth = padding*(nX+1);
-    const float imageWidth = (1.0f-totalPaddingWidth)/(float)nX;
+    const float totalPaddingWidth = padding * (nX + 1);
+    const float imageWidth = (1.0f - totalPaddingWidth) / (float)nX;
 
-    const float totalPaddingHeight = padding*(nY+1);
-    const float imageHeight = (1.0f-totalPaddingHeight)/(float)nY;
+    const float totalPaddingHeight = padding * (nY + 1);
+    const float imageHeight = (1.0f - totalPaddingHeight) / (float)nY;
 
     QVector<QRectF> rect;
-    for( int j = 0; j < nY; ++j )
+    for (int j = 0; j < nY; ++j)
     {
-        const float y = padding + j*(imageHeight+padding);
-        for( int i = 0; i < nX; ++i )
+        const float y = padding + j * (imageHeight + padding);
+        for (int i = 0; i < nX; ++i)
         {
-            const float x = padding + i*(imageWidth+padding);
-            rect.append( QRect( x*totalWidth, y*totalHeight,
-                                imageWidth*totalWidth,
-                                imageHeight*totalHeight ));
+            const float x = padding + i * (imageWidth + padding);
+            rect.append(QRect(x * totalWidth, y * totalHeight,
+                              imageWidth * totalWidth,
+                              imageHeight * totalHeight));
         }
     }
     return rect;
 }
 
-QFileInfoList
-FolderThumbnailGenerator::_getSupportedFilesInDir( QDir dir ) const
+QFileInfoList FolderThumbnailGenerator::_getSupportedFilesInDir(QDir dir) const
 {
-    dir.setFilter( QDir::Files | QDir::NoDotAndDotDot );
+    dir.setFilter(QDir::Files | QDir::NoDotAndDotDot);
     QStringList filters = ContentFactory::getSupportedFilesFilter();
-    filters.append( "*.dcx" );
-    dir.setNameFilters( filters );
+    filters.append("*.dcx");
+    dir.setNameFilters(filters);
     return dir.entryInfoList();
 }

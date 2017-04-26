@@ -45,15 +45,15 @@
 class PDFContent : public VectorialContent
 {
     Q_OBJECT
-    Q_PROPERTY( int page READ getPage NOTIFY pageChanged )
-    Q_PROPERTY( int pageCount READ getPageCount CONSTANT )
+    Q_PROPERTY(int page READ getPage NOTIFY pageChanged)
+    Q_PROPERTY(int pageCount READ getPageCount CONSTANT)
 
 public:
     /**
      * Constructor.
      * @param uri The uri of the pdf document.
      */
-    explicit PDFContent( const QString& uri );
+    explicit PDFContent(const QString& uri);
 
     /** Get the content type **/
     CONTENT_TYPE getType() const override;
@@ -90,42 +90,46 @@ private:
     void _init();
 
     /** Serialize for sending to Wall applications. */
-    template< class Archive >
-    void serialize( Archive & ar, const unsigned int /*version*/ )
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int /*version*/)
     {
-        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP( Content );
+        // clang-format off
+        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Content);
         ar & _pageNumber;
         ar & _pageCount;
+        // clang-format on
     }
 
     /** Serialize for saving to an xml file */
-    template< class Archive >
-    void serialize_members_xml( Archive & ar, const unsigned int /*version*/ )
+    template <class Archive>
+    void serialize_members_xml(Archive& ar, const unsigned int /*version*/)
     {
-        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP( Content );
-        ar & boost::serialization::make_nvp( "pageNumber", _pageNumber );
+        // clang-format off
+        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Content);
+        ar & boost::serialization::make_nvp("pageNumber", _pageNumber);
+        // clang-format on
     }
 
     /** Loading from xml. */
-    void serialize_for_xml( boost::archive::xml_iarchive& ar,
-                            const unsigned int version )
+    void serialize_for_xml(boost::archive::xml_iarchive& ar,
+                           const unsigned int version)
     {
-        serialize_members_xml( ar, version );
+        serialize_members_xml(ar, version);
     }
 
     /** Saving to xml. */
-    void serialize_for_xml( boost::archive::xml_oarchive& ar,
-                            const unsigned int version )
+    void serialize_for_xml(boost::archive::xml_oarchive& ar,
+                           const unsigned int version)
     {
-        serialize_members_xml( ar, version );
+        serialize_members_xml(ar, version);
     }
 
     int _pageNumber;
     int _pageCount;
 };
 
-DECLARE_SERIALIZE_FOR_XML( PDFContent )
+DECLARE_SERIALIZE_FOR_XML(PDFContent)
 
-BOOST_CLASS_EXPORT_KEY( PDFContent )
+BOOST_CLASS_EXPORT_KEY(PDFContent)
 
 #endif

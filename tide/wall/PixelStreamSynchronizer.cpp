@@ -39,68 +39,68 @@
 
 #include "PixelStreamSynchronizer.h"
 
-#include "network/WallToWallChannel.h"
 #include "PixelStreamUpdater.h"
-#include "scene/ContentWindow.h"
 #include "Tile.h"
 #include "ZoomHelper.h"
+#include "network/WallToWallChannel.h"
+#include "scene/ContentWindow.h"
 
 PixelStreamSynchronizer::PixelStreamSynchronizer()
-    : TiledSynchronizer( TileSwapPolicy::SwapTilesSynchronously )
-    , _tilesDirty( true )
-    , _updateExistingTiles( false )
-{}
-
-void
-PixelStreamSynchronizer::setDataSource( PixelStreamUpdaterSharedPtr updater )
+    : TiledSynchronizer(TileSwapPolicy::SwapTilesSynchronously)
+    , _tilesDirty(true)
+    , _updateExistingTiles(false)
 {
-    if( _updater )
-        _updater->disconnect( this );
+}
+
+void PixelStreamSynchronizer::setDataSource(PixelStreamUpdaterSharedPtr updater)
+{
+    if (_updater)
+        _updater->disconnect(this);
 
     _updater = updater;
 
-    connect( _updater.get(), &PixelStreamUpdater::pictureUpdated,
-             this, &PixelStreamSynchronizer::_onPictureUpdated );
+    connect(_updater.get(), &PixelStreamUpdater::pictureUpdated, this,
+            &PixelStreamSynchronizer::_onPictureUpdated);
 }
 
-void PixelStreamSynchronizer::update( const ContentWindow& window,
-                                      const QRectF& visibleArea )
+void PixelStreamSynchronizer::update(const ContentWindow& window,
+                                     const QRectF& visibleArea)
 {
     // Tiles area corresponds to Content dimensions for PixelStreams
     const QSize tilesSurface = window.getContent()->getDimensions();
 
-    ZoomHelper helper( window );
-    const QRectF visibleTilesArea = helper.toTilesArea( visibleArea,
-                                                        tilesSurface );
+    ZoomHelper helper(window);
+    const QRectF visibleTilesArea =
+        helper.toTilesArea(visibleArea, tilesSurface);
 
-    if( _visibleTilesArea == visibleTilesArea )
+    if (_visibleTilesArea == visibleTilesArea)
         return;
 
     _visibleTilesArea = visibleTilesArea;
     _tilesDirty = true;
 }
 
-void PixelStreamSynchronizer::synchronize( WallToWallChannel& channel )
+void PixelStreamSynchronizer::synchronize(WallToWallChannel& channel)
 {
-    if( !_updater )
+    if (!_updater)
         return;
 
-    if( TiledSynchronizer::swapTiles( channel ))
+    if (TiledSynchronizer::swapTiles(channel))
     {
         _fpsCounter.tick();
         emit statisticsChanged();
 
-        _tilesArea = _updater->getTilesArea( 0 );
+        _tilesArea = _updater->getTilesArea(0);
         emit tilesAreaChanged();
 
         _updater->getNextFrame();
     }
 
-    _updater->synchronizeFramesSwap( channel );
+    _updater->synchronizeFramesSwap(channel);
 
-    if( _tilesDirty )
+    if (_tilesDirty)
     {
-        TiledSynchronizer::updateTiles( *_updater, _updateExistingTiles );
+        TiledSynchronizer::updateTiles(*_updater, _updateExistingTiles);
         _tilesDirty = false;
         _updateExistingTiles = false;
     }
@@ -116,12 +116,12 @@ QString PixelStreamSynchronizer::getStatistics() const
     return _fpsCounter.toString() + " fps";
 }
 
-ImagePtr PixelStreamSynchronizer::getTileImage( const uint tileIndex ) const
+ImagePtr PixelStreamSynchronizer::getTileImage(const uint tileIndex) const
 {
-    if( !_updater )
+    if (!_updater)
         return ImagePtr();
 
-    return _updater->getTileImage( tileIndex );
+    return _updater->getTileImage(tileIndex);
 }
 
 void PixelStreamSynchronizer::_onPictureUpdated()

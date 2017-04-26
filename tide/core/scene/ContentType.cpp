@@ -40,34 +40,38 @@
 
 #include "ContentType.h"
 
-#include <boost/bimap.hpp>
 #include <boost/assign/list_of.hpp>
+#include <boost/bimap.hpp>
 
-typedef boost::bimap< CONTENT_TYPE, QString > TypeMap;
-static TypeMap typemap = boost::assign::list_of< TypeMap::relation >
-        (CONTENT_TYPE_ANY, QString("CONTENT_TYPE_ANY"))
-        (CONTENT_TYPE_DYNAMIC_TEXTURE, QString("CONTENT_TYPE_DYNAMIC_TEXTURE"))
-        (CONTENT_TYPE_MOVIE, QString("CONTENT_TYPE_MOVIE"))
-        (CONTENT_TYPE_PIXEL_STREAM, QString("CONTENT_TYPE_PIXEL_STREAM"))
-        (CONTENT_TYPE_SVG, QString("CONTENT_TYPE_SVG"))
-        (CONTENT_TYPE_TEXTURE, QString("CONTENT_TYPE_TEXTURE"))
-        (CONTENT_TYPE_PDF, QString("CONTENT_TYPE_PDF"))
-        (CONTENT_TYPE_WEBBROWSER, QString("CONTENT_TYPE_WEBBROWSER"))
-        (CONTENT_TYPE_IMAGE_PYRAMID, QString("CONTENT_TYPE_IMAGE_PYRAMID"));
+typedef boost::bimap<CONTENT_TYPE, QString> TypeMap;
+static TypeMap typemap =
+    boost::assign::list_of<TypeMap::relation>(CONTENT_TYPE_ANY,
+                                              QString("CONTENT_TYPE_ANY"))(
+        CONTENT_TYPE_DYNAMIC_TEXTURE, QString("CONTENT_TYPE_DYNAMIC_TEXTURE"))(
+        CONTENT_TYPE_MOVIE,
+        QString("CONTENT_TYPE_MOVIE"))(CONTENT_TYPE_PIXEL_STREAM,
+                                       QString("CONTENT_TYPE_PIXEL_STREAM"))(
+        CONTENT_TYPE_SVG,
+        QString("CONTENT_TYPE_SVG"))(CONTENT_TYPE_TEXTURE,
+                                     QString("CONTENT_TYPE_TEXTURE"))(
+        CONTENT_TYPE_PDF,
+        QString("CONTENT_TYPE_PDF"))(CONTENT_TYPE_WEBBROWSER,
+                                     QString("CONTENT_TYPE_WEBBROWSER"))(
+        CONTENT_TYPE_IMAGE_PYRAMID, QString("CONTENT_TYPE_IMAGE_PYRAMID"));
 
-QString getContentTypeString( const CONTENT_TYPE type )
+QString getContentTypeString(const CONTENT_TYPE type)
 {
-    return typemap.left.find( type )->second;
+    return typemap.left.find(type)->second;
 }
 
-CONTENT_TYPE getContentType( const QString& typeString )
+CONTENT_TYPE getContentType(const QString& typeString)
 {
-    return typemap.right.find( typeString )->second;
+    return typemap.right.find(typeString)->second;
 }
 
-bool contentTypeIsFile( const CONTENT_TYPE type )
+bool contentTypeIsFile(const CONTENT_TYPE type)
 {
-    switch( type )
+    switch (type)
     {
     case CONTENT_TYPE_ANY:
     case CONTENT_TYPE_PIXEL_STREAM:

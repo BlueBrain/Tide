@@ -53,7 +53,7 @@ public:
      * Constructor.
      * @param uri The uri of the svg document
      */
-    explicit SVGContent( const QString& uri );
+    explicit SVGContent(const QString& uri);
 
     /** Get the content type **/
     CONTENT_TYPE getType() const override;
@@ -71,12 +71,13 @@ private:
 
     // Default constructor required for boost::serialization
     SVGContent() {}
-
-    template<class Archive>
-    void serialize( Archive & ar, const unsigned int )
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int)
     {
         // serialize base class information (with NVP for xml archives)
-        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP( Content );
+        // clang-format off
+        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Content);
+        // clang-format on
     }
 };
 

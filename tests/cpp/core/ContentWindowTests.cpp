@@ -44,7 +44,7 @@
 #include "scene/ContentWindow.h"
 
 #include "MinimalGlobalQtApp.h"
-BOOST_GLOBAL_FIXTURE( MinimalGlobalQtApp );
+BOOST_GLOBAL_FIXTURE(MinimalGlobalQtApp);
 
 #include "DummyContent.h"
 
@@ -54,166 +54,166 @@ const int WIDTH = 512;
 const int HEIGHT = 512;
 }
 
-BOOST_AUTO_TEST_CASE( testInitialSize )
+BOOST_AUTO_TEST_CASE(testInitialSize)
 {
-    ContentPtr content( new DummyContent );
-    content->setDimensions( QSize( WIDTH, HEIGHT ));
-    ContentWindow window( content );
+    ContentPtr content(new DummyContent);
+    content->setDimensions(QSize(WIDTH, HEIGHT));
+    ContentWindow window(content);
 
     const QRectF& coords = window.getCoordinates();
 
     // default 1:1 size, left-corner at the origin
-    BOOST_CHECK_EQUAL( coords, QRectF( 0.0, 0.0, WIDTH, HEIGHT ));
-    BOOST_CHECK_EQUAL( window.getActiveHandle(), ContentWindow::NOHANDLE );
+    BOOST_CHECK_EQUAL(coords, QRectF(0.0, 0.0, WIDTH, HEIGHT));
+    BOOST_CHECK_EQUAL(window.getActiveHandle(), ContentWindow::NOHANDLE);
 }
 
-BOOST_AUTO_TEST_CASE( testValidID )
+BOOST_AUTO_TEST_CASE(testValidID)
 {
-    ContentPtr content( new DummyContent );
-    content->setDimensions( QSize( WIDTH, HEIGHT ));
-    ContentWindow window( content );
+    ContentPtr content(new DummyContent);
+    content->setDimensions(QSize(WIDTH, HEIGHT));
+    ContentWindow window(content);
 
-    BOOST_CHECK( window.getID() != QUuid());
+    BOOST_CHECK(window.getID() != QUuid());
 }
 
-BOOST_AUTO_TEST_CASE( testUniqueID )
+BOOST_AUTO_TEST_CASE(testUniqueID)
 {
-    ContentPtr content( new DummyContent );
-    content->setDimensions( QSize( WIDTH, HEIGHT ));
+    ContentPtr content(new DummyContent);
+    content->setDimensions(QSize(WIDTH, HEIGHT));
 
-    ContentWindow window1( content );
-    BOOST_CHECK( window1.getID() != QUuid());
+    ContentWindow window1(content);
+    BOOST_CHECK(window1.getID() != QUuid());
 
-    ContentWindow window2( content );
-    BOOST_CHECK( window2.getID() != QUuid());
+    ContentWindow window2(content);
+    BOOST_CHECK(window2.getID() != QUuid());
 
-    BOOST_CHECK( window1.getID() != window2.getID());
+    BOOST_CHECK(window1.getID() != window2.getID());
 }
 
-BOOST_AUTO_TEST_CASE( testSetContent )
+BOOST_AUTO_TEST_CASE(testSetContent)
 {
-    ContentPtr content( new DummyContent );
-    content->setDimensions( QSize( WIDTH, HEIGHT ));
+    ContentPtr content(new DummyContent);
+    content->setDimensions(QSize(WIDTH, HEIGHT));
 
-    ContentWindow window( content );
-    BOOST_CHECK_EQUAL( window.getContent(), content );
+    ContentWindow window(content);
+    BOOST_CHECK_EQUAL(window.getContent(), content);
 
-    ContentPtr secondContent( new DummyContent );
-    secondContent->setDimensions( QSize( 2 * WIDTH, 3 * HEIGHT ));
+    ContentPtr secondContent(new DummyContent);
+    secondContent->setDimensions(QSize(2 * WIDTH, 3 * HEIGHT));
 
-    window.setContent( secondContent );
-    BOOST_CHECK_EQUAL( window.getContent(), secondContent );
+    window.setContent(secondContent);
+    BOOST_CHECK_EQUAL(window.getContent(), secondContent);
 
     const QRectF& coords = window.getCoordinates();
 
     // Dimensions are currently not modified by the change of content,
     // because the only use case is to set an error content of the same size.
-    BOOST_CHECK_EQUAL( coords, QRectF( 0.0, 0.0, WIDTH, HEIGHT ));
+    BOOST_CHECK_EQUAL(coords, QRectF(0.0, 0.0, WIDTH, HEIGHT));
 }
 
-BOOST_AUTO_TEST_CASE( testZoom )
+BOOST_AUTO_TEST_CASE(testZoom)
 {
-    ContentPtr content( new DummyContent );
-    content->setDimensions( QSize( WIDTH, HEIGHT ));
-    ContentWindow window( content );
+    ContentPtr content(new DummyContent);
+    content->setDimensions(QSize(WIDTH, HEIGHT));
+    ContentWindow window(content);
 
-    BOOST_REQUIRE_EQUAL( content->getZoomRect(), UNIT_RECTF );
+    BOOST_REQUIRE_EQUAL(content->getZoomRect(), UNIT_RECTF);
 
-    content->setZoomRect( QRectF( 0.2, 0.2, 0.7, 0.7 ));
-    BOOST_CHECK_EQUAL( content->getZoomRect(), QRectF( 0.2, 0.2, 0.7, 0.7 ));
-    content->setZoomRect( QRectF( -0.1, 0.2, 0.7, 0.7 ));
-    BOOST_CHECK_EQUAL( content->getZoomRect(), QRectF( -0.1, 0.2, 0.7, 0.7 ));
-    content->setZoomRect( QRectF( 0.1, 0.5, 2.0, 2.0 ));
-    BOOST_CHECK_EQUAL( content->getZoomRect(), QRectF( 0.1, 0.5, 2.0, 2.0 ));
+    content->setZoomRect(QRectF(0.2, 0.2, 0.7, 0.7));
+    BOOST_CHECK_EQUAL(content->getZoomRect(), QRectF(0.2, 0.2, 0.7, 0.7));
+    content->setZoomRect(QRectF(-0.1, 0.2, 0.7, 0.7));
+    BOOST_CHECK_EQUAL(content->getZoomRect(), QRectF(-0.1, 0.2, 0.7, 0.7));
+    content->setZoomRect(QRectF(0.1, 0.5, 2.0, 2.0));
+    BOOST_CHECK_EQUAL(content->getZoomRect(), QRectF(0.1, 0.5, 2.0, 2.0));
 
     content->resetZoom();
-    BOOST_CHECK_EQUAL( content->getZoomRect(), UNIT_RECTF );
+    BOOST_CHECK_EQUAL(content->getZoomRect(), UNIT_RECTF);
 }
 
-BOOST_AUTO_TEST_CASE( testWindowState )
+BOOST_AUTO_TEST_CASE(testWindowState)
 {
-    ContentPtr content( new DummyContent );
-    content->setDimensions( QSize( WIDTH, HEIGHT ));
-    ContentWindow window( content );
+    ContentPtr content(new DummyContent);
+    content->setDimensions(QSize(WIDTH, HEIGHT));
+    ContentWindow window(content);
 
-    BOOST_REQUIRE_EQUAL( window.getState(), ContentWindow::NONE );
-    BOOST_REQUIRE( !window.isHidden( ));
-    BOOST_REQUIRE( !window.isMoving( ));
-    BOOST_REQUIRE( !window.isResizing( ));
+    BOOST_REQUIRE_EQUAL(window.getState(), ContentWindow::NONE);
+    BOOST_REQUIRE(!window.isHidden());
+    BOOST_REQUIRE(!window.isMoving());
+    BOOST_REQUIRE(!window.isResizing());
 
-    window.setState( ContentWindow::MOVING );
-    BOOST_CHECK_EQUAL( window.getState(), ContentWindow::MOVING );
-    BOOST_CHECK( window.isMoving( ));
+    window.setState(ContentWindow::MOVING);
+    BOOST_CHECK_EQUAL(window.getState(), ContentWindow::MOVING);
+    BOOST_CHECK(window.isMoving());
 
-    window.setState( ContentWindow::RESIZING );
-    BOOST_CHECK_EQUAL( window.getState(), ContentWindow::RESIZING );
-    BOOST_CHECK( window.isResizing( ));
+    window.setState(ContentWindow::RESIZING);
+    BOOST_CHECK_EQUAL(window.getState(), ContentWindow::RESIZING);
+    BOOST_CHECK(window.isResizing());
 
-    window.setState( ContentWindow::HIDDEN );
-    BOOST_CHECK_EQUAL( window.getState(), ContentWindow::HIDDEN );
-    BOOST_CHECK( window.isHidden( ));
+    window.setState(ContentWindow::HIDDEN);
+    BOOST_CHECK_EQUAL(window.getState(), ContentWindow::HIDDEN);
+    BOOST_CHECK(window.isHidden());
 }
 
-BOOST_AUTO_TEST_CASE( testWindowType )
+BOOST_AUTO_TEST_CASE(testWindowType)
 {
-    ContentPtr content( new DummyContent );
-    content->setDimensions( QSize( WIDTH, HEIGHT ));
-    ContentWindow defaultWindow( content );
-    ContentWindow window( content, ContentWindow::DEFAULT );
-    ContentWindow panel( content, ContentWindow::PANEL );
+    ContentPtr content(new DummyContent);
+    content->setDimensions(QSize(WIDTH, HEIGHT));
+    ContentWindow defaultWindow(content);
+    ContentWindow window(content, ContentWindow::DEFAULT);
+    ContentWindow panel(content, ContentWindow::PANEL);
 
-    BOOST_CHECK_EQUAL( defaultWindow.isPanel(), false );
-    BOOST_CHECK_EQUAL( window.isPanel(), false );
-    BOOST_CHECK_EQUAL( panel.isPanel(), true );
+    BOOST_CHECK_EQUAL(defaultWindow.isPanel(), false);
+    BOOST_CHECK_EQUAL(window.isPanel(), false);
+    BOOST_CHECK_EQUAL(panel.isPanel(), true);
 }
 
-BOOST_AUTO_TEST_CASE( testWindowResizePolicyNonZoomableContent )
+BOOST_AUTO_TEST_CASE(testWindowResizePolicyNonZoomableContent)
 {
-    ContentPtr content( new DummyContent );
-    content->setDimensions( QSize( WIDTH, HEIGHT ));
-    ContentWindow window( content );
+    ContentPtr content(new DummyContent);
+    content->setDimensions(QSize(WIDTH, HEIGHT));
+    ContentWindow window(content);
 
     // Default state
-    BOOST_CHECK_EQUAL( window.getResizePolicy(),
-                       ContentWindow::ResizePolicy::KEEP_ASPECT_RATIO );
+    BOOST_CHECK_EQUAL(window.getResizePolicy(),
+                      ContentWindow::ResizePolicy::KEEP_ASPECT_RATIO);
 
     // Non-zoomable, fixed aspect ratio contents can't be adjusted
-    static_cast<DummyContent*>( content.get( ))->zoomable = false;
-    BOOST_REQUIRE( content->hasFixedAspectRatio( ));
-    auto controller = ContentController::create( window );
-    BOOST_REQUIRE( !dynamic_cast<ZoomController*>( controller.get( )));
-    BOOST_CHECK( !window.setResizePolicy(
-                     ContentWindow::ResizePolicy::ADJUST_CONTENT ));
-    BOOST_CHECK_EQUAL( window.getResizePolicy(),
-                       ContentWindow::ResizePolicy::KEEP_ASPECT_RATIO );
+    static_cast<DummyContent*>(content.get())->zoomable = false;
+    BOOST_REQUIRE(content->hasFixedAspectRatio());
+    auto controller = ContentController::create(window);
+    BOOST_REQUIRE(!dynamic_cast<ZoomController*>(controller.get()));
+    BOOST_CHECK(
+        !window.setResizePolicy(ContentWindow::ResizePolicy::ADJUST_CONTENT));
+    BOOST_CHECK_EQUAL(window.getResizePolicy(),
+                      ContentWindow::ResizePolicy::KEEP_ASPECT_RATIO);
 
     // Non-fixed aspect ratio contents can be adjusted
-    static_cast<DummyContent*>( content.get( ))->fixedAspectRatio = false;
-    BOOST_REQUIRE( !content->hasFixedAspectRatio( ));
-    BOOST_CHECK( window.setResizePolicy(
-                     ContentWindow::ResizePolicy::ADJUST_CONTENT ));
-    BOOST_CHECK_EQUAL( window.getResizePolicy(),
-                       ContentWindow::ResizePolicy::ADJUST_CONTENT );
+    static_cast<DummyContent*>(content.get())->fixedAspectRatio = false;
+    BOOST_REQUIRE(!content->hasFixedAspectRatio());
+    BOOST_CHECK(
+        window.setResizePolicy(ContentWindow::ResizePolicy::ADJUST_CONTENT));
+    BOOST_CHECK_EQUAL(window.getResizePolicy(),
+                      ContentWindow::ResizePolicy::ADJUST_CONTENT);
 }
 
-BOOST_AUTO_TEST_CASE( testWindowResizePolicyZoomableContent )
+BOOST_AUTO_TEST_CASE(testWindowResizePolicyZoomableContent)
 {
-    ContentPtr content( new DummyContent );
-    content->setDimensions( QSize( WIDTH, HEIGHT ));
-    static_cast<DummyContent*>( content.get( ))->type = CONTENT_TYPE_TEXTURE;
-    ContentWindow window( content );
+    ContentPtr content(new DummyContent);
+    content->setDimensions(QSize(WIDTH, HEIGHT));
+    static_cast<DummyContent*>(content.get())->type = CONTENT_TYPE_TEXTURE;
+    ContentWindow window(content);
 
     // Default state
-    BOOST_REQUIRE_EQUAL( window.getResizePolicy(),
-                         ContentWindow::ResizePolicy::KEEP_ASPECT_RATIO );
+    BOOST_REQUIRE_EQUAL(window.getResizePolicy(),
+                        ContentWindow::ResizePolicy::KEEP_ASPECT_RATIO);
 
     // Zoomable, fixed aspect ratio contents can be adjusted
-    BOOST_REQUIRE( content->hasFixedAspectRatio( ));
-    BOOST_REQUIRE( content->canBeZoomed( ));
-    auto controller = ContentController::create( window );
-    BOOST_REQUIRE( dynamic_cast<ZoomController*>( controller.get( )));
-    BOOST_CHECK( window.setResizePolicy(
-                     ContentWindow::ResizePolicy::ADJUST_CONTENT ));
-    BOOST_CHECK_EQUAL( window.getResizePolicy(),
-                       ContentWindow::ResizePolicy::ADJUST_CONTENT );
+    BOOST_REQUIRE(content->hasFixedAspectRatio());
+    BOOST_REQUIRE(content->canBeZoomed());
+    auto controller = ContentController::create(window);
+    BOOST_REQUIRE(dynamic_cast<ZoomController*>(controller.get()));
+    BOOST_CHECK(
+        window.setResizePolicy(ContentWindow::ResizePolicy::ADJUST_CONTENT));
+    BOOST_CHECK_EQUAL(window.getResizePolicy(),
+                      ContentWindow::ResizePolicy::ADJUST_CONTENT);
 }

@@ -40,53 +40,54 @@
 #include "WebkitHtmlSelectReplacer.h"
 
 #include <QObject>
-#include <QWebPage>
 #include <QWebFrame>
+#include <QWebPage>
 
 namespace
 {
-const QString hasJQuery = { "var hasJquery = false;"
-                            "if( window.jQuery ) {"
-                            "  hasJquery = true;"
-                            "}" };
-const QString hasJQueryUI = { "var hasJqueryUi = false;"
-                              "if( window.jQuery.ui ) {"
-                              "  hasJqueryUi = true;"
-                              "}" };
+const QString hasJQuery = {
+    "var hasJquery = false;"
+    "if( window.jQuery ) {"
+    "  hasJquery = true;"
+    "}"};
+const QString hasJQueryUI = {
+    "var hasJqueryUi = false;"
+    "if( window.jQuery.ui ) {"
+    "  hasJqueryUi = true;"
+    "}"};
 }
 
-WebkitHtmlSelectReplacer::WebkitHtmlSelectReplacer( QWebView& webView )
-    : _webView( webView )
+WebkitHtmlSelectReplacer::WebkitHtmlSelectReplacer(QWebView& webView)
+    : _webView(webView)
 {
-    QObject::connect( &_webView, &QWebView::loadFinished,
-                      [this]( const bool success )
-    {
-        if( success )
-        {
-            _loadScripts();
-            replaceAllSelectElements();
-        }
-    } );
+    QObject::connect(&_webView, &QWebView::loadFinished,
+                     [this](const bool success) {
+                         if (success)
+                         {
+                             _loadScripts();
+                             replaceAllSelectElements();
+                         }
+                     });
 }
 
 void WebkitHtmlSelectReplacer::replaceAllSelectElements()
 {
-    _evaluateJavascript( _replacer.getSelectboxitReplace( ));
+    _evaluateJavascript(_replacer.getSelectboxitReplace());
 }
 
 void WebkitHtmlSelectReplacer::_loadScripts()
 {
-    if( !_evaluateJavascript( hasJQuery ).toBool())
-        _evaluateJavascript( _replacer.getJQuery( ));
+    if (!_evaluateJavascript(hasJQuery).toBool())
+        _evaluateJavascript(_replacer.getJQuery());
 
-    if( !_evaluateJavascript( hasJQueryUI ).toBool())
-        _evaluateJavascript( _replacer.getJQueryUI( ));
+    if (!_evaluateJavascript(hasJQueryUI).toBool())
+        _evaluateJavascript(_replacer.getJQueryUI());
 
-    _evaluateJavascript( _replacer.getSelectboxit( ));
-    _evaluateJavascript( _replacer.getSelectboxitCss( ));
+    _evaluateJavascript(_replacer.getSelectboxit());
+    _evaluateJavascript(_replacer.getSelectboxitCss());
 }
 
-QVariant WebkitHtmlSelectReplacer::_evaluateJavascript( const QString& script )
+QVariant WebkitHtmlSelectReplacer::_evaluateJavascript(const QString& script)
 {
-    return _webView.page()->mainFrame()->evaluateJavaScript( script );
+    return _webView.page()->mainFrame()->evaluateJavaScript(script);
 }

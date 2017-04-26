@@ -40,8 +40,8 @@
 #ifndef TIFFPYRAMIDREADER_H
 #define TIFFPYRAMIDREADER_H
 
-#include <memory>
 #include <QImage>
+#include <memory>
 
 /**
  * Reader for TIFF image pyramid files.
@@ -64,7 +64,7 @@ public:
      * @param uri the TIFF image file to open
      * @throw std::runtime_error if the file is not a supported image pyramid
      */
-    TiffPyramidReader( const QString& uri );
+    TiffPyramidReader(const QString& uri);
 
     /** Close the image. */
     ~TiffPyramidReader();
@@ -85,19 +85,19 @@ public:
      * Find the level of the pyramid whose dimensions are equal to or directly
      * smaller than the target image size.
      */
-    uint findLevel( const QSize& imageSize );
+    uint findLevel(const QSize& imageSize);
 
     /** Read a tile at the given indices and level of detail. */
-    QImage readTile( int i, int j, uint lod );
+    QImage readTile(int i, int j, uint lod);
 
     /** Read the image at the top of the pyramid (i.e. <= tileSize). */
     QImage readTopLevelImage();
 
     /** Get the size of the pyramid at a certain level of detail. */
-    QSize readSize( uint lod );
+    QSize readSize(uint lod);
 
     /** Read an entire level of the pyramid as a single image. */
-    QImage readImage( uint lod );
+    QImage readImage(uint lod);
 
 private:
     struct Impl;

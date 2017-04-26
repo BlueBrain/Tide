@@ -53,26 +53,24 @@
 class MultitouchListener : public QObject, public TUIO::TuioListener
 {
     Q_OBJECT
-    Q_DISABLE_COPY( MultitouchListener )
+    Q_DISABLE_COPY(MultitouchListener)
 
 public:
     MultitouchListener();
     ~MultitouchListener();
 
-    void addTuioObject( TUIO::TuioObject* ) override {}
-    void updateTuioObject( TUIO::TuioObject* ) override {}
-    void removeTuioObject( TUIO::TuioObject* ) override {}
+    void addTuioObject(TUIO::TuioObject*) override {}
+    void updateTuioObject(TUIO::TuioObject*) override {}
+    void removeTuioObject(TUIO::TuioObject*) override {}
+    void addTuioCursor(TUIO::TuioCursor* tcur) override;
+    void updateTuioCursor(TUIO::TuioCursor* tcur) override;
+    void removeTuioCursor(TUIO::TuioCursor* tcur) override;
 
-    void addTuioCursor( TUIO::TuioCursor* tcur ) override;
-    void updateTuioCursor( TUIO::TuioCursor* tcur ) override;
-    void removeTuioCursor( TUIO::TuioCursor* tcur ) override;
-
-    void refresh( TUIO::TuioTime ) override {}
-
+    void refresh(TUIO::TuioTime) override {}
 signals:
-    void touchPointAdded( int id, QPointF normalizedPos );
-    void touchPointUpdated( int id, QPointF normalizedPos );
-    void touchPointRemoved( int id, QPointF normalizedPos );
+    void touchPointAdded(int id, QPointF normalizedPos);
+    void touchPointUpdated(int id, QPointF normalizedPos);
+    void touchPointRemoved(int id, QPointF normalizedPos);
 
 private:
     TUIO::TuioClient _client;

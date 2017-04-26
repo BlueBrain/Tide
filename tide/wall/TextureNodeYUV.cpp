@@ -46,9 +46,8 @@
 
 namespace
 {
-
 const char* vertShader =
-R"(
+    R"(
 #version 120
 uniform highp mat4 qt_Matrix;
 attribute highp vec4 aVertex;
@@ -61,7 +60,7 @@ void main() {
 )";
 
 const char* fragShader =
-R"(
+    R"(
 #version 120
 uniform lowp float qt_Opacity;
 uniform lowp sampler2D y_tex;
@@ -84,7 +83,6 @@ void main() {
   gl_FragColor = vec4(r, g, b, qt_Opacity);
 }
 )";
-
 }
 
 /**
@@ -113,80 +111,77 @@ class YUVShader : public QSGSimpleMaterialShader<YUVState>
 public:
     QList<QByteArray> attributes() const final
     {
-        return QList<QByteArray>() << "aVertex" << "aTexCoord";
+        return QList<QByteArray>() << "aVertex"
+                                   << "aTexCoord";
     }
 
     const char* vertexShader() const final { return vertShader; }
     const char* fragmentShader() const final { return fragShader; }
-
-    void updateState( const YUVState* newState, const YUVState* ) final
+    void updateState(const YUVState* newState, const YUVState*) final
     {
         auto gl = QOpenGLContext::currentContext()->functions();
         // We bind the textures in inverse order so that we leave the
         // updateState function with GL_TEXTURE0 as the active texture unit.
         // This is maintain the "contract" that updateState should not mess up
         // the GL state beyond what is needed for this material.
-        gl->glActiveTexture( GL_TEXTURE2 );
-        gl->glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                             GL_LINEAR_MIPMAP_LINEAR );
-        gl->glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-                             GL_LINEAR );
+        gl->glActiveTexture(GL_TEXTURE2);
+        gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                            GL_LINEAR_MIPMAP_LINEAR);
+        gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         newState->frontV->bind();
 
-        gl->glActiveTexture( GL_TEXTURE1 );
-        gl->glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                             GL_LINEAR_MIPMAP_LINEAR );
-        gl->glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-                             GL_LINEAR );
+        gl->glActiveTexture(GL_TEXTURE1);
+        gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                            GL_LINEAR_MIPMAP_LINEAR);
+        gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         newState->frontU->bind();
 
-        gl->glActiveTexture( GL_TEXTURE0 );
-        gl->glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                             GL_LINEAR_MIPMAP_LINEAR );
-        gl->glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-                             GL_LINEAR );
+        gl->glActiveTexture(GL_TEXTURE0);
+        gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                            GL_LINEAR_MIPMAP_LINEAR);
+        gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         newState->frontY->bind();
     }
 
     void resolveUniforms() final
     {
-        program()->setUniformValue( "y_tex", 0 ); // GL_TEXTURE0
-        program()->setUniformValue( "u_tex", 1 ); // GL_TEXTURE1
-        program()->setUniformValue( "v_tex", 2 ); // GL_TEXTURE2
+        program()->setUniformValue("y_tex", 0); // GL_TEXTURE0
+        program()->setUniformValue("u_tex", 1); // GL_TEXTURE1
+        program()->setUniformValue("v_tex", 2); // GL_TEXTURE2
     }
 };
 
-YUVState* _getMaterialState( QSGGeometryNode& node )
+YUVState* _getMaterialState(QSGGeometryNode& node)
 {
     using YUVShaderMaterial = QSGSimpleMaterial<YUVState>;
-    return static_cast<YUVShaderMaterial*>( node.material( ))->state();
+    return static_cast<YUVShaderMaterial*>(node.material())->state();
 }
 
-const YUVState* _getMaterialState( const QSGGeometryNode& node )
+const YUVState* _getMaterialState(const QSGGeometryNode& node)
 {
     using YUVShaderMaterial = QSGSimpleMaterial<YUVState>;
-    return static_cast<const YUVShaderMaterial*>( node.material( ))->state();
+    return static_cast<const YUVShaderMaterial*>(node.material())->state();
 }
 
-TextureNodeYUV::TextureNodeYUV( const QSize& size, QQuickWindow* window,
-                                const TextureFormat format )
-    : _window( window )
+TextureNodeYUV::TextureNodeYUV(const QSize& size, QQuickWindow* window,
+                               const TextureFormat format)
+    : _window(window)
 {
     // Set up geometry, actual vertices will be initialized in updatePaintNode
     const auto& attr = QSGGeometry::defaultAttributes_TexturedPoint2D();
-    _node.setGeometry( new QSGGeometry( attr, 4 ));
-    _node.setFlag( QSGNode::OwnsGeometry );
+    _node.setGeometry(new QSGGeometry(attr, 4));
+    _node.setFlag(QSGNode::OwnsGeometry);
 
-    _node.setMaterial( YUVShader::createMaterial( ));
-    _node.setFlag( QSGNode::OwnsMaterial );
+    _node.setMaterial(YUVShader::createMaterial());
+    _node.setFlag(QSGNode::OwnsMaterial);
 
-    auto state = _getMaterialState( _node );
-    state->frontY.reset( _window->createTextureFromId( 0, QSize( 1, 1 )));
-    state->frontU.reset( _window->createTextureFromId( 0, QSize( 1, 1 )));
-    state->frontV.reset( _window->createTextureFromId( 0, QSize( 1, 1 )));
+    auto state = _getMaterialState(_node);
+    state->frontY.reset(_window->createTextureFromId(0, QSize(1, 1)));
+    state->frontU.reset(_window->createTextureFromId(0, QSize(1, 1)));
+    state->frontV.reset(_window->createTextureFromId(0, QSize(1, 1)));
 
-    _createBackTextures( size, format );
-    appendChildNode( &_node );
+    _createBackTextures(size, format);
+    appendChildNode(&_node);
 }
 
 const QRectF& TextureNodeYUV::rect() const
@@ -194,74 +189,74 @@ const QRectF& TextureNodeYUV::rect() const
     return _rect;
 }
 
-void TextureNodeYUV::setRect( const QRectF& rect_ )
+void TextureNodeYUV::setRect(const QRectF& rect_)
 {
-    if( _rect == rect_ )
+    if (_rect == rect_)
         return;
 
     _rect = rect_;
-    QSGGeometry::updateTexturedRectGeometry( _node.geometry(), _rect,
-                                             UNIT_RECTF );
-    _node.markDirty( QSGNode::DirtyGeometry );
+    QSGGeometry::updateTexturedRectGeometry(_node.geometry(), _rect,
+                                            UNIT_RECTF);
+    _node.markDirty(QSGNode::DirtyGeometry);
 }
 
 YUVTexture TextureNodeYUV::getBackGlTexture() const
 {
-    const auto state = _getMaterialState( _node );
+    const auto state = _getMaterialState(_node);
 
-    return YUVTexture{ state->backY->textureId(), state->backU->textureId(),
-                       state->backV->textureId() };
+    return YUVTexture{state->backY->textureId(), state->backU->textureId(),
+                      state->backV->textureId()};
 }
 
 void TextureNodeYUV::swap()
 {
-    auto state = _getMaterialState( _node );
+    auto state = _getMaterialState(_node);
 
-    std::swap( state->frontY, state->backY );
-    std::swap( state->frontU, state->backU );
-    std::swap( state->frontV, state->backV );
-    std::swap( state->frontFormat, state->backFormat );
+    std::swap(state->frontY, state->backY);
+    std::swap(state->frontU, state->backU);
+    std::swap(state->frontV, state->backV);
+    std::swap(state->frontFormat, state->backFormat);
 
-    markDirty( DirtyMaterial );
+    markDirty(DirtyMaterial);
 }
 
-void TextureNodeYUV::prepareBackTexture( const QSize& size,
-                                         const TextureFormat format )
+void TextureNodeYUV::prepareBackTexture(const QSize& size,
+                                        const TextureFormat format)
 {
-    auto state = _getMaterialState( _node );
-    if( state->backY->textureSize() != size || state->backFormat != format )
-        _createBackTextures( size, format );
+    auto state = _getMaterialState(_node);
+    if (state->backY->textureSize() != size || state->backFormat != format)
+        _createBackTextures(size, format);
 }
 
-void TextureNodeYUV::_createBackTextures( const QSize& size,
-                                          const TextureFormat format )
+void TextureNodeYUV::_createBackTextures(const QSize& size,
+                                         const TextureFormat format)
 {
-    const auto uvSize = yuv::getUVSize( size, format );
-    auto state = _getMaterialState( _node );
+    const auto uvSize = yuv::getUVSize(size, format);
+    auto state = _getMaterialState(_node);
 
-    state->backY = _createTexture( size );
-    state->backU = _createTexture( uvSize );
-    state->backV = _createTexture( uvSize );
+    state->backY = _createTexture(size);
+    state->backU = _createTexture(uvSize);
+    state->backV = _createTexture(uvSize);
     state->backFormat = format;
 }
 
-TextureNodeYUV::QSGTexturePtr
-TextureNodeYUV::_createTexture( const QSize& size ) const
+TextureNodeYUV::QSGTexturePtr TextureNodeYUV::_createTexture(
+    const QSize& size) const
 {
     uint textureID = 0;
     auto gl = QOpenGLContext::currentContext()->functions();
-    gl->glGenTextures( 1, &textureID );
-    gl->glBindTexture( GL_TEXTURE_2D, textureID );
-    gl->glTexImage2D( GL_TEXTURE_2D, 0, GL_R8, size.width(), size.height(), 0,
-                      GL_RED, GL_UNSIGNED_BYTE, nullptr );
-    return _createWrapper( textureID, size );
+    gl->glGenTextures(1, &textureID);
+    gl->glBindTexture(GL_TEXTURE_2D, textureID);
+    gl->glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, size.width(), size.height(), 0,
+                     GL_RED, GL_UNSIGNED_BYTE, nullptr);
+    return _createWrapper(textureID, size);
 }
 
-TextureNodeYUV::QSGTexturePtr
-TextureNodeYUV::_createWrapper( const uint textureID, const QSize& size ) const
+TextureNodeYUV::QSGTexturePtr TextureNodeYUV::_createWrapper(
+    const uint textureID, const QSize& size) const
 {
-    const auto textureFlags = QQuickWindow::CreateTextureOptions(
-                                  QQuickWindow::TextureOwnsGLTexture );
-    return QSGTexturePtr( _window->createTextureFromId( textureID, size,
-                                                        textureFlags ));
+    const auto textureFlags =
+        QQuickWindow::CreateTextureOptions(QQuickWindow::TextureOwnsGLTexture);
+    return QSGTexturePtr(
+        _window->createTextureFromId(textureID, size, textureFlags));
 }

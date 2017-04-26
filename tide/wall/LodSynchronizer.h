@@ -48,15 +48,15 @@
 class LodSynchronizer : public TiledSynchronizer
 {
     Q_OBJECT
-    Q_DISABLE_COPY( LodSynchronizer )
+    Q_DISABLE_COPY(LodSynchronizer)
 
 public:
     /** Constructor. */
-    LodSynchronizer( TileSwapPolicy policy );
+    LodSynchronizer(TileSwapPolicy policy);
 
     /** @copydoc ContentSynchronizer::update */
-    void update( const ContentWindow& window,
-                 const QRectF& visibleArea ) override;
+    void update(const ContentWindow& window,
+                const QRectF& visibleArea) override;
 
     /** @copydoc ContentSynchronizer::getTilesArea */
     QSize getTilesArea() const override;
@@ -65,7 +65,7 @@ public:
     QString getStatistics() const override;
 
     /** @copydoc ContentSynchronizer::getTileImage */
-    ImagePtr getTileImage( uint tileIndex ) const override;
+    ImagePtr getTileImage(uint tileIndex) const override;
 
     /** @copydoc ContentSynchronizer::getZoomContextTile */
     TilePtr getZoomContextTile() const override;
@@ -75,7 +75,7 @@ protected:
      * Get the appropriate LOD for a given display size.
      * @param targetDisplaySize The size at which the content will be displayed.
      */
-    uint getLod( const QSize& targetDisplaySize ) const;
+    uint getLod(const QSize& targetDisplaySize) const;
 
     /**
      * Derived classes must implement this method to return their data source.
@@ -83,7 +83,7 @@ protected:
     virtual const DataSource& getDataSource() const = 0;
 
     /** Create the background tile to smooth the LOD change. */
-    void setBackgroundTile( uint backgroundTileId );
+    void setBackgroundTile(uint backgroundTileId);
 };
 
 #endif

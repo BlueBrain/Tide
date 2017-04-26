@@ -49,7 +49,7 @@ public:
      * Constructor.
      * @param uri The uri of the image pyramid file.
      */
-    explicit ImagePyramidContent( const QString& uri );
+    explicit ImagePyramidContent(const QString& uri);
 
     /** Get the content type **/
     CONTENT_TYPE getType() const final;
@@ -70,12 +70,13 @@ private:
 
     // Default constructor required for boost::serialization
     ImagePyramidContent() {}
-
-    template<class Archive>
-    void serialize( Archive & ar, const unsigned int )
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int)
     {
         // serialize base class information (with NVP for xml archives)
-        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP( Content );
+        // clang-format off
+        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Content);
+        // clang-format on
     }
 };
 

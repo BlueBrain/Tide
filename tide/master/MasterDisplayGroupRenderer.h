@@ -54,8 +54,8 @@ class MasterDisplayGroupRenderer : public QObject
 
 public:
     /** Constructor. */
-    MasterDisplayGroupRenderer( DisplayGroupPtr group, QQmlEngine* engine,
-                                QQuickItem* parentItem );
+    MasterDisplayGroupRenderer(DisplayGroupPtr group, QQmlEngine* engine,
+                               QQuickItem* parentItem);
 
     /** Destructor */
     ~MasterDisplayGroupRenderer();
@@ -73,9 +73,9 @@ private:
     typedef QMap<QUuid, QQuickItem*> UuidToWindowMap;
     UuidToWindowMap _uuidToWindowMap;
 
-    void _add( ContentWindowPtr contentWindow );
-    void _remove( ContentWindowPtr contentWindow );
-    void _moveToFront( ContentWindowPtr contentWindow );
+    void _add(ContentWindowPtr contentWindow);
+    void _remove(ContentWindowPtr contentWindow);
+    void _moveToFront(ContentWindowPtr contentWindow);
 };
 
 #endif

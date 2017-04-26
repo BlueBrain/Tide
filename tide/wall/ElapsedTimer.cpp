@@ -39,23 +39,25 @@
 
 #include "ElapsedTimer.h"
 
-ElapsedTimer::ElapsedTimer() {}
+ElapsedTimer::ElapsedTimer()
+{
+}
 
-void ElapsedTimer::setCurrentTime( const clock::time_point& time )
+void ElapsedTimer::setCurrentTime(const clock::time_point& time)
 {
     _previousTime = _currentTime;
     _currentTime = time;
 }
 
-void ElapsedTimer::resetTime( const clock::time_point& time )
+void ElapsedTimer::resetTime(const clock::time_point& time)
 {
     _previousTime = _currentTime = time;
 }
 
 ElapsedTimer::clock::duration ElapsedTimer::getElapsedTime() const
 {
-    if( _previousTime.time_since_epoch().count() == 0 ||
-        _currentTime.time_since_epoch().count() == 0 )
+    if (_previousTime.time_since_epoch().count() == 0 ||
+        _currentTime.time_since_epoch().count() == 0)
     {
         return clock::duration::zero();
     }
@@ -64,5 +66,5 @@ ElapsedTimer::clock::duration ElapsedTimer::getElapsedTime() const
 
 double ElapsedTimer::getElapsedTimeInSeconds() const
 {
-    return std::chrono::duration<double>{ getElapsedTime() }.count();
+    return std::chrono::duration<double>{getElapsedTime()}.count();
 }

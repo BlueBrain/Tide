@@ -52,9 +52,9 @@
 
 namespace
 {
-const QSize wallSize( 1000, 1000 );
+const QSize wallSize(1000, 1000);
 const QString regexJson{
-R"(\{
+    R"(\{
     "event": \{
         "count": 2,
         "last_event": "contentWindowAdded",
@@ -66,8 +66,7 @@ R"(\{
         "date_set": "\d{4}-\d{2}-\d{2}[A-Z]\d{2}:\d{2}:\d{2}.\d{6}"
     \}
 \}
-)"
-};
+)"};
 const std::string defaultJson{
     R"({
     "event": {
@@ -81,145 +80,143 @@ const std::string defaultJson{
         "date_set": ""
     }
 }
-)"
-};
+)"};
 }
 
-BOOST_AUTO_TEST_CASE( testAccumulatedWindowCount )
+BOOST_AUTO_TEST_CASE(testAccumulatedWindowCount)
 {
-    ContentPtr content( new DummyContent );
-    DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
+    ContentPtr content(new DummyContent);
+    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
 
-    ContentWindowPtr window1 = boost::make_shared<ContentWindow>( content );
-    ContentWindowPtr window2 = boost::make_shared<ContentWindow>( content );
+    ContentWindowPtr window1 = boost::make_shared<ContentWindow>(content);
+    ContentWindowPtr window2 = boost::make_shared<ContentWindow>(content);
     std::unique_ptr<LoggingUtility> logger = make_unique<LoggingUtility>();
 
-    QObject::connect( displayGroup.get(), &DisplayGroup::contentWindowAdded,
-                      logger.get(), &LoggingUtility::contentWindowAdded );
+    QObject::connect(displayGroup.get(), &DisplayGroup::contentWindowAdded,
+                     logger.get(), &LoggingUtility::contentWindowAdded);
 
-    BOOST_CHECK( logger.get()->getAccumulatedWindowCount() == 0);
-    displayGroup->addContentWindow( window1 );
-    BOOST_CHECK( logger.get()->getAccumulatedWindowCount() == 1);
+    BOOST_CHECK(logger.get()->getAccumulatedWindowCount() == 0);
+    displayGroup->addContentWindow(window1);
+    BOOST_CHECK(logger.get()->getAccumulatedWindowCount() == 1);
 
-    displayGroup->addContentWindow( window2 );
-    BOOST_CHECK( logger.get()->getAccumulatedWindowCount() == 2);
-
+    displayGroup->addContentWindow(window2);
+    BOOST_CHECK(logger.get()->getAccumulatedWindowCount() == 2);
 }
 
-BOOST_AUTO_TEST_CASE( testWindowCount )
+BOOST_AUTO_TEST_CASE(testWindowCount)
 {
-    ContentPtr content( new DummyContent );
-    DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
+    ContentPtr content(new DummyContent);
+    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
 
-    ContentWindowPtr window1 = boost::make_shared<ContentWindow>( content );
+    ContentWindowPtr window1 = boost::make_shared<ContentWindow>(content);
     std::unique_ptr<LoggingUtility> logger = make_unique<LoggingUtility>();
 
-    QObject::connect( displayGroup.get(), &DisplayGroup::contentWindowAdded,
-                      logger.get(), &LoggingUtility::contentWindowAdded );
-    QObject::connect( displayGroup.get(), &DisplayGroup::contentWindowRemoved,
-                      logger.get(), &LoggingUtility::contentWindowRemoved );
-    BOOST_CHECK( logger.get()->getWindowCount() == 0);
-    displayGroup->addContentWindow( window1 );
-    BOOST_CHECK( logger.get()->getWindowCount() == 1);
-    displayGroup->removeContentWindow( window1 );
-    BOOST_CHECK( logger.get()->getWindowCount() == 0);
+    QObject::connect(displayGroup.get(), &DisplayGroup::contentWindowAdded,
+                     logger.get(), &LoggingUtility::contentWindowAdded);
+    QObject::connect(displayGroup.get(), &DisplayGroup::contentWindowRemoved,
+                     logger.get(), &LoggingUtility::contentWindowRemoved);
+    BOOST_CHECK(logger.get()->getWindowCount() == 0);
+    displayGroup->addContentWindow(window1);
+    BOOST_CHECK(logger.get()->getWindowCount() == 1);
+    displayGroup->removeContentWindow(window1);
+    BOOST_CHECK(logger.get()->getWindowCount() == 0);
 }
 
-BOOST_AUTO_TEST_CASE( testWindowCountDecrement )
+BOOST_AUTO_TEST_CASE(testWindowCountDecrement)
 {
-    ContentPtr content( new DummyContent );
-    DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
+    ContentPtr content(new DummyContent);
+    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
 
-    ContentWindowPtr window1 = boost::make_shared<ContentWindow>( content );
+    ContentWindowPtr window1 = boost::make_shared<ContentWindow>(content);
     std::unique_ptr<LoggingUtility> logger = make_unique<LoggingUtility>();
 
-    BOOST_CHECK( logger.get()->getWindowCount() == 0);
-    displayGroup->addContentWindow( window1 );
-    QObject::connect( displayGroup.get(), &DisplayGroup::contentWindowRemoved,
-                      logger.get(), &LoggingUtility::contentWindowRemoved );
-    displayGroup->removeContentWindow( window1 );
-    BOOST_CHECK( logger.get()->getWindowCount() == 0 );
+    BOOST_CHECK(logger.get()->getWindowCount() == 0);
+    displayGroup->addContentWindow(window1);
+    QObject::connect(displayGroup.get(), &DisplayGroup::contentWindowRemoved,
+                     logger.get(), &LoggingUtility::contentWindowRemoved);
+    displayGroup->removeContentWindow(window1);
+    BOOST_CHECK(logger.get()->getWindowCount() == 0);
 }
 
-BOOST_AUTO_TEST_CASE( testInteractionCounter )
+BOOST_AUTO_TEST_CASE(testInteractionCounter)
 {
-    ContentPtr content( new DummyContent );
-    DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
+    ContentPtr content(new DummyContent);
+    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
 
-    ContentWindowPtr window1 = boost::make_shared<ContentWindow>( content );
-    ContentWindowPtr window2 = boost::make_shared<ContentWindow>( content );
+    ContentWindowPtr window1 = boost::make_shared<ContentWindow>(content);
+    ContentWindowPtr window2 = boost::make_shared<ContentWindow>(content);
     std::unique_ptr<LoggingUtility> logger = make_unique<LoggingUtility>();
 
-    BOOST_CHECK( logger.get()->getInteractionCount() == 0 );
+    BOOST_CHECK(logger.get()->getInteractionCount() == 0);
 
-    QObject::connect( displayGroup.get(), &DisplayGroup::contentWindowAdded,
-                      logger.get(), &LoggingUtility::contentWindowAdded );
+    QObject::connect(displayGroup.get(), &DisplayGroup::contentWindowAdded,
+                     logger.get(), &LoggingUtility::contentWindowAdded);
 
-    displayGroup->addContentWindow( window1 );
-    displayGroup->addFocusedWindow( window1 );
-    BOOST_CHECK( logger.get()->getInteractionCount() == 2 );
+    displayGroup->addContentWindow(window1);
+    displayGroup->addFocusedWindow(window1);
+    BOOST_CHECK(logger.get()->getInteractionCount() == 2);
 }
 
-BOOST_AUTO_TEST_CASE( testLastInteraction )
+BOOST_AUTO_TEST_CASE(testLastInteraction)
 {
-    ContentPtr content( new DummyContent );
-    DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
+    ContentPtr content(new DummyContent);
+    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
 
-    ContentWindowPtr window1 = boost::make_shared<ContentWindow>( content );
+    ContentWindowPtr window1 = boost::make_shared<ContentWindow>(content);
     std::unique_ptr<LoggingUtility> logger = make_unique<LoggingUtility>();
-    BOOST_CHECK( logger.get()->getLastInteraction() == "" );
+    BOOST_CHECK(logger.get()->getLastInteraction() == "");
 
-    QObject::connect( displayGroup.get(), &DisplayGroup::contentWindowAdded,
-                      logger.get(), &LoggingUtility::contentWindowAdded );
+    QObject::connect(displayGroup.get(), &DisplayGroup::contentWindowAdded,
+                     logger.get(), &LoggingUtility::contentWindowAdded);
 
-    displayGroup->addContentWindow( window1 );
-    displayGroup->addFocusedWindow( window1 );
-    BOOST_CHECK( logger.get()->getLastInteraction() == "mode changed" );
+    displayGroup->addContentWindow(window1);
+    displayGroup->addFocusedWindow(window1);
+    BOOST_CHECK(logger.get()->getLastInteraction() == "mode changed");
 }
 
-BOOST_AUTO_TEST_CASE( hideLauncher )
+BOOST_AUTO_TEST_CASE(hideLauncher)
 {
-    ContentPtr content( new DummyContent );
-    DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
+    ContentPtr content(new DummyContent);
+    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
 
-    ContentWindowPtr window1 = boost::make_shared<ContentWindow>( content );
+    ContentWindowPtr window1 = boost::make_shared<ContentWindow>(content);
     std::unique_ptr<LoggingUtility> logger = make_unique<LoggingUtility>();
 
-    QObject::connect( displayGroup.get(), &DisplayGroup::contentWindowAdded,
-                      logger.get(), &LoggingUtility::contentWindowAdded );
+    QObject::connect(displayGroup.get(), &DisplayGroup::contentWindowAdded,
+                     logger.get(), &LoggingUtility::contentWindowAdded);
 
-    displayGroup->addContentWindow( window1 );
-    BOOST_CHECK( logger.get()->getWindowCount() == 1 );
-    window1->setState( ContentWindow::HIDDEN );
-    BOOST_CHECK( logger.get()->getWindowCount() == 0 );
-    window1->setState( ContentWindow::HIDDEN );
-    BOOST_CHECK( logger.get()->getWindowCount() == 0 );
-    window1->setState( ContentWindow::NONE );
-    BOOST_CHECK( logger.get()->getWindowCount() == 1 );
-    window1->setState( ContentWindow::MOVING );
-    BOOST_CHECK( logger.get()->getWindowCount() == 1 );
+    displayGroup->addContentWindow(window1);
+    BOOST_CHECK(logger.get()->getWindowCount() == 1);
+    window1->setState(ContentWindow::HIDDEN);
+    BOOST_CHECK(logger.get()->getWindowCount() == 0);
+    window1->setState(ContentWindow::HIDDEN);
+    BOOST_CHECK(logger.get()->getWindowCount() == 0);
+    window1->setState(ContentWindow::NONE);
+    BOOST_CHECK(logger.get()->getWindowCount() == 1);
+    window1->setState(ContentWindow::MOVING);
+    BOOST_CHECK(logger.get()->getWindowCount() == 1);
 }
 
-BOOST_AUTO_TEST_CASE( testJsonOutput )
+BOOST_AUTO_TEST_CASE(testJsonOutput)
 {
-    ContentPtr content( new DummyContent );
-    DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
+    ContentPtr content(new DummyContent);
+    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
 
-    ContentWindowPtr window1 = boost::make_shared<ContentWindow>( content );
-    ContentWindowPtr window2 = boost::make_shared<ContentWindow>( content );
+    ContentWindowPtr window1 = boost::make_shared<ContentWindow>(content);
+    ContentWindowPtr window2 = boost::make_shared<ContentWindow>(content);
     std::unique_ptr<LoggingUtility> logger = make_unique<LoggingUtility>();
 
-    QObject::connect( displayGroup.get(), &DisplayGroup::contentWindowAdded,
-                      logger.get(), &LoggingUtility::contentWindowAdded );
+    QObject::connect(displayGroup.get(), &DisplayGroup::contentWindowAdded,
+                     logger.get(), &LoggingUtility::contentWindowAdded);
 
-    const RestLogger restLogger( *logger );
-    BOOST_CHECK_EQUAL( restLogger.toJSON(), defaultJson );
+    const RestLogger restLogger(*logger);
+    BOOST_CHECK_EQUAL(restLogger.toJSON(), defaultJson);
 
-    displayGroup->addContentWindow( window1 );
-    displayGroup->addContentWindow( window2 );
+    displayGroup->addContentWindow(window1);
+    displayGroup->addContentWindow(window2);
 
-    const QRegularExpression regex( regexJson );
-    const QString json = QString::fromStdString( restLogger.toJSON( ));
-    const QString matchedJson = regex.match( json ).captured();
-    BOOST_CHECK_EQUAL( restLogger.toJSON(), matchedJson.toStdString( ));
+    const QRegularExpression regex(regexJson);
+    const QString json = QString::fromStdString(restLogger.toJSON());
+    const QString matchedJson = regex.match(json).captured();
+    BOOST_CHECK_EQUAL(restLogger.toJSON(), matchedJson.toStdString());
 }

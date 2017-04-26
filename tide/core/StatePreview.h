@@ -40,10 +40,11 @@
 #ifndef STATEPREVIEW_H
 #define STATEPREVIEW_H
 
-#include <QString>
-#include <QSize>
-#include <QImage>
 #include "types.h"
+
+#include <QImage>
+#include <QSize>
+#include <QString>
 
 class ContentWindow;
 
@@ -60,7 +61,7 @@ public:
      * @param dcxFileName The state file associated with this preview image.
      *        Needed by loadFromFile() and saveToFile().
      */
-    StatePreview( const QString& dcxFileName );
+    StatePreview(const QString& dcxFileName);
 
     /** Get the file extension used for state images. */
     static QString getFileExtension();
@@ -82,8 +83,8 @@ public:
      *        position the contents.
      * @param contentWindows the contents to include in the preview.
      */
-    void generateImage( const QSize& wallDimensions,
-                        const ContentWindowPtrs& contentWindows );
+    void generateImage(const QSize& wallDimensions,
+                       const ContentWindowPtrs& contentWindows);
 
     /**
      * Save the thumbnail created by generateImage() to a file.
@@ -100,4 +101,4 @@ protected:
     QImage _previewImage;
 };
 
-#endif // STATEPREVIEW_H
+#endif

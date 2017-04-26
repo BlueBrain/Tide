@@ -51,13 +51,14 @@
  * ContentSynchronizer informs the QML engine when new frames are ready and
  * swaps them synchronously.
  */
-class ContentSynchronizer : public QObject,
-        public std::enable_shared_from_this<ContentSynchronizer>
+class ContentSynchronizer
+    : public QObject,
+      public std::enable_shared_from_this<ContentSynchronizer>
 {
     Q_OBJECT
-    Q_DISABLE_COPY( ContentSynchronizer )
-    Q_PROPERTY( QSize tilesArea READ getTilesArea NOTIFY tilesAreaChanged )
-    Q_PROPERTY( QString statistics READ getStatistics NOTIFY statisticsChanged )
+    Q_DISABLE_COPY(ContentSynchronizer)
+    Q_PROPERTY(QSize tilesArea READ getTilesArea NOTIFY tilesAreaChanged)
+    Q_PROPERTY(QString statistics READ getStatistics NOTIFY statisticsChanged)
 
 public:
     /** Constructor */
@@ -67,11 +68,11 @@ public:
     virtual ~ContentSynchronizer();
 
     /** Update the Content. */
-    virtual void update( const ContentWindow& window,
-                         const QRectF& visibleArea ) = 0;
+    virtual void update(const ContentWindow& window,
+                        const QRectF& visibleArea) = 0;
 
     /** Synchronize content advance accross processes.*/
-    virtual void synchronize( WallToWallChannel& channel ) = 0;
+    virtual void synchronize(WallToWallChannel& channel) = 0;
 
     /** The total area covered by the tiles (may depend on current LOD). */
     virtual QSize getTilesArea() const = 0;
@@ -80,13 +81,12 @@ public:
     virtual QString getStatistics() const = 0;
 
     /** Get the image for a given tile index. threadsafe */
-    virtual ImagePtr getTileImage( uint tileIndex ) const = 0;
+    virtual ImagePtr getTileImage(uint tileIndex) const = 0;
 
     /** Notify the window to add a tile for the zoom context. */
     virtual TilePtr getZoomContextTile() const { return TilePtr(); }
-
     /** @return a ContentSynchronizer for the given content. */
-    static std::unique_ptr<ContentSynchronizer> create( ContentPtr content );
+    static std::unique_ptr<ContentSynchronizer> create(ContentPtr content);
 
 public slots:
     /**
@@ -94,10 +94,10 @@ public slots:
      * Specfific implementation can choose to swap the tile immediately or
      * delay the swap until a later synchronization point.
      */
-    virtual void onSwapReady( TilePtr tile ) = 0;
+    virtual void onSwapReady(TilePtr tile) = 0;
 
     /** Called when a tile has finished initializing; re-emits requestUpdate */
-    void onTextureReady( TilePtr tile );
+    void onTextureReady(TilePtr tile);
 
 signals:
     /** Notifier for the tiles area property. */
@@ -107,17 +107,17 @@ signals:
     void statisticsChanged();
 
     /** Notify the window to add a tile. */
-    void addTile( TilePtr tile );
+    void addTile(TilePtr tile);
 
     /** Notify the window to remove a tile. */
-    void removeTile( uint tileId );
+    void removeTile(uint tileId);
 
     /** Notify to update a tile's coordinates and format. */
-    void updateTile( uint tileId, QRect coordinates, TextureFormat format );
+    void updateTile(uint tileId, QRect coordinates, TextureFormat format);
 
     /** Request an update of a specific tile. */
-    void requestTileUpdate( ContentSynchronizerSharedPtr synchronizer,
-                            TileWeakPtr tile );
+    void requestTileUpdate(ContentSynchronizerSharedPtr synchronizer,
+                           TileWeakPtr tile);
 
     /** Notify that the zoom context tile has changed and must be recreated. */
     void zoomContextTileChanged();

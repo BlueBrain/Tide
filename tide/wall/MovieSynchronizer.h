@@ -48,25 +48,24 @@
 class MovieSynchronizer : public ContentSynchronizer
 {
     Q_OBJECT
-    Q_DISABLE_COPY( MovieSynchronizer )
-    Q_PROPERTY( qreal sliderPosition READ getSliderPosition
-                NOTIFY sliderPositionChanged )
+    Q_DISABLE_COPY(MovieSynchronizer)
+    Q_PROPERTY(qreal sliderPosition READ getSliderPosition NOTIFY
+                   sliderPositionChanged)
 
 public:
     /**
      * Construct a synchronizer for a movie, opening it in the provider.
      * @param uri The uri of the movie to open.
      */
-    explicit MovieSynchronizer( const QString& uri );
+    explicit MovieSynchronizer(const QString& uri);
 
     ~MovieSynchronizer();
 
     /** Update the movies, using the channel to synchronize accross processes.*/
-    void synchronize( WallToWallChannel& channel ) final;
+    void synchronize(WallToWallChannel& channel) final;
 
     /** @copydoc ContentSynchronizer::update */
-    void update( const ContentWindow& window,
-                 const QRectF& visibleArea ) final;
+    void update(const ContentWindow& window, const QRectF& visibleArea) final;
 
     /** @copydoc ContentSynchronizer::getTilesArea */
     QSize getTilesArea() const final;
@@ -75,10 +74,10 @@ public:
     QString getStatistics() const final;
 
     /** @copydoc ContentSynchronizer::getTileImage */
-    ImagePtr getTileImage( uint tileIndex ) const final;
+    ImagePtr getTileImage(uint tileIndex) const final;
 
     /** @copydoc ContentSynchronizer::onSwapReady */
-    void onSwapReady( TilePtr tile ) final;
+    void onSwapReady(TilePtr tile) final;
 
     /** @return the normalized position in the move. */
     qreal getSliderPosition() const;

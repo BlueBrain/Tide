@@ -41,28 +41,28 @@
 
 #include "data/PDF.h"
 
-BOOST_CLASS_EXPORT_IMPLEMENT( PDFContent )
+BOOST_CLASS_EXPORT_IMPLEMENT(PDFContent)
 
-IMPLEMENT_SERIALIZE_FOR_XML( PDFContent )
+IMPLEMENT_SERIALIZE_FOR_XML(PDFContent)
 
-PDFContent::PDFContent( const QString& uri )
-    : VectorialContent( uri )
-    , _pageNumber( 0 )
-    , _pageCount( 0 )
+PDFContent::PDFContent(const QString& uri)
+    : VectorialContent(uri)
+    , _pageNumber(0)
+    , _pageCount(0)
 {
     _init();
 }
 
 PDFContent::PDFContent()
-    : _pageNumber( 0 )
-    , _pageCount( 0 )
+    : _pageNumber(0)
+    , _pageCount(0)
 {
     _init();
 }
 
 void PDFContent::_init()
 {
-    connect( this, SIGNAL( pageChanged( )), this, SIGNAL( modified( )));
+    connect(this, SIGNAL(pageChanged()), this, SIGNAL(modified()));
 }
 
 CONTENT_TYPE PDFContent::getType() const
@@ -72,13 +72,13 @@ CONTENT_TYPE PDFContent::getType() const
 
 bool PDFContent::readMetadata()
 {
-    const PDF pdf( _uri );
-    if( !pdf.isValid( ))
+    const PDF pdf(_uri);
+    if (!pdf.isValid())
         return false;
 
     _size = pdf.getSize();
     _pageCount = pdf.getPageCount();
-    _pageNumber = std::min( _pageNumber, _pageCount - 1 );
+    _pageNumber = std::min(_pageNumber, _pageCount - 1);
 
     return true;
 }
@@ -86,14 +86,14 @@ bool PDFContent::readMetadata()
 const QStringList& PDFContent::getSupportedExtensions()
 {
     static QStringList extensions;
-    if( extensions.empty( ))
+    if (extensions.empty())
         extensions << "pdf";
     return extensions;
 }
 
 void PDFContent::nextPage()
 {
-    if( _pageNumber < _pageCount - 1 )
+    if (_pageNumber < _pageCount - 1)
     {
         ++_pageNumber;
         emit pageChanged();
@@ -102,7 +102,7 @@ void PDFContent::nextPage()
 
 void PDFContent::previousPage()
 {
-    if( _pageNumber > 0 )
+    if (_pageNumber > 0)
     {
         --_pageNumber;
         emit pageChanged();

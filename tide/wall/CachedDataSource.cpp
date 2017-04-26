@@ -41,31 +41,31 @@
 
 #include "data/QtImage.h"
 
-ImagePtr CachedDataSource::getTileImage( const uint tileId ) const
+ImagePtr CachedDataSource::getTileImage(const uint tileId) const
 {
     {
-        const QMutexLocker lock( &_mutex );
-        if( _cache.contains( tileId ))
-            return std::make_shared< QtImage >( _cache[tileId] );
+        const QMutexLocker lock(&_mutex);
+        if (_cache.contains(tileId))
+            return std::make_shared<QtImage>(_cache[tileId]);
     }
 
-    const QImage image = getCachableTileImage( tileId );
-    if( !image.isNull( ))
+    const QImage image = getCachableTileImage(tileId);
+    if (!image.isNull())
     {
-        const QMutexLocker lock( &_mutex );
-        _cache.insert( tileId, image );
+        const QMutexLocker lock(&_mutex);
+        _cache.insert(tileId, image);
     }
-    return std::make_shared< QtImage >( image );
+    return std::make_shared<QtImage>(image);
 }
 
-TextureFormat CachedDataSource::getTileFormat( const uint tileId ) const
+TextureFormat CachedDataSource::getTileFormat(const uint tileId) const
 {
-    Q_UNUSED( tileId );
+    Q_UNUSED(tileId);
     return TextureFormat::rgba;
 }
 
-bool CachedDataSource::contains( const uint tileId ) const
+bool CachedDataSource::contains(const uint tileId) const
 {
-    const QMutexLocker lock( &_mutex );
-    return _cache.contains( tileId );
+    const QMutexLocker lock(&_mutex);
+    return _cache.contains(tileId);
 }

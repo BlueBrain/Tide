@@ -41,70 +41,70 @@
 
 #include <QGuiApplication>
 
-bool _isBackspaceEvent( const QInputMethodEvent* inputEvent )
+bool _isBackspaceEvent(const QInputMethodEvent* inputEvent)
 {
     return inputEvent->commitString().isEmpty() &&
-            inputEvent->replacementStart() == -1 &&
-            inputEvent->replacementLength() == 1;
+           inputEvent->replacementStart() == -1 &&
+           inputEvent->replacementLength() == 1;
 }
 
-bool _isEnterEvent( const QInputMethodEvent* inputEvent )
+bool _isEnterEvent(const QInputMethodEvent* inputEvent)
 {
     return inputEvent->commitString() == "\n";
 }
 
-bool _sendEventToWebengine( QEvent* event, QQuickItem* webengineItem )
+bool _sendEventToWebengine(QEvent* event, QQuickItem* webengineItem)
 {
-    for( auto child : webengineItem->childItems( ))
-        QGuiApplication::instance()->sendEvent( child, event );
+    for (auto child : webengineItem->childItems())
+        QGuiApplication::instance()->sendEvent(child, event);
     return event->isAccepted();
 }
 
-bool _sendKeyEventToWebengine( const int key, QQuickItem* webengineItem )
+bool _sendKeyEventToWebengine(const int key, QQuickItem* webengineItem)
 {
-    QKeyEvent press( QEvent::KeyPress, key, Qt::NoModifier );
-    QKeyEvent release( QEvent::KeyRelease, key, Qt::NoModifier );
-    return _sendEventToWebengine( &press, webengineItem ) &&
-            _sendEventToWebengine( &release, webengineItem );
+    QKeyEvent press(QEvent::KeyPress, key, Qt::NoModifier);
+    QKeyEvent release(QEvent::KeyRelease, key, Qt::NoModifier);
+    return _sendEventToWebengine(&press, webengineItem) &&
+           _sendEventToWebengine(&release, webengineItem);
 }
 
-bool QmlKeyInjector::sendToWebengine( QInputMethodEvent* inputEvent,
-                                      QQuickItem* webengineItem )
+bool QmlKeyInjector::sendToWebengine(QInputMethodEvent* inputEvent,
+                                     QQuickItem* webengineItem)
 {
-    if( _isEnterEvent( inputEvent ))
-        return _sendKeyEventToWebengine( Qt::Key_Return, webengineItem );
+    if (_isEnterEvent(inputEvent))
+        return _sendKeyEventToWebengine(Qt::Key_Return, webengineItem);
 
-    if( _isBackspaceEvent( inputEvent ))
-        return _sendKeyEventToWebengine( Qt::Key_Backspace, webengineItem );
+    if (_isBackspaceEvent(inputEvent))
+        return _sendKeyEventToWebengine(Qt::Key_Backspace, webengineItem);
 
-    return _sendEventToWebengine( inputEvent, webengineItem );
+    return _sendEventToWebengine(inputEvent, webengineItem);
 }
 
-bool _sendEvent( QEvent* event, QQuickItem* targetItem )
+bool _sendEvent(QEvent* event, QQuickItem* targetItem)
 {
-    QGuiApplication::instance()->sendEvent( targetItem, event );
-    return event->isAccepted( );
+    QGuiApplication::instance()->sendEvent(targetItem, event);
+    return event->isAccepted();
 }
 
-bool _sendKeyEvent( const int key, QQuickItem* rootItem )
+bool _sendKeyEvent(const int key, QQuickItem* rootItem)
 {
-    QKeyEvent press( QEvent::KeyPress, key, Qt::NoModifier );
-    QKeyEvent release( QEvent::KeyRelease, key, Qt::NoModifier );
-    return _sendEvent( &press, rootItem ) && _sendEvent( &release, rootItem );
+    QKeyEvent press(QEvent::KeyPress, key, Qt::NoModifier);
+    QKeyEvent release(QEvent::KeyRelease, key, Qt::NoModifier);
+    return _sendEvent(&press, rootItem) && _sendEvent(&release, rootItem);
 }
 
-bool QmlKeyInjector::send( QInputMethodEvent* inputEvent, QQuickItem* rootItem )
+bool QmlKeyInjector::send(QInputMethodEvent* inputEvent, QQuickItem* rootItem)
 {
     // Work around missing key event support in Qt for offscreen windows.
     const auto items = rootItem->findChildren<QQuickItem*>();
-    for( auto item : items )
+    for (auto item : items)
     {
-        if( !item->hasFocus( ))
+        if (!item->hasFocus())
             continue;
 
-        if( _isEnterEvent( inputEvent ) && _sendKeyEvent( Qt::Key_Enter, item ))
+        if (_isEnterEvent(inputEvent) && _sendKeyEvent(Qt::Key_Enter, item))
             return true;
-        if( _sendEvent( inputEvent, item ))
+        if (_sendEvent(inputEvent, item))
             return true;
     }
     return false;

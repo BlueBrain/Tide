@@ -49,7 +49,7 @@ class WebbrowserThumbnailGenerator : public ThumbnailGenerator
 {
 public:
     /** @copydoc ThumbnailGenerator::ThumbnailGenerator */
-    WebbrowserThumbnailGenerator( const QSize& size );
+    WebbrowserThumbnailGenerator(const QSize& size);
 
     /**
      * Generate a thumbnail for a webbrowser window.
@@ -58,7 +58,7 @@ public:
      * @return a placeholder image showing the host part of the url, for example
      *         "google.com".
      */
-    QImage generate( const QString& url ) const final;
+    QImage generate(const QString& url) const final;
 };
 
 #endif

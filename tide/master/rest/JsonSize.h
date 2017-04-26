@@ -55,13 +55,13 @@ public:
      *
      * @param size in pixels.
      */
-    explicit JsonSize( const QSize& size );
+    explicit JsonSize(const QSize& size);
 
     std::string getTypeName() const final;
     std::string getSchema() const final;
 
 private:
-    const QSize _size ;
+    const QSize _size;
 
     std::string _toJSON() const final;
 };

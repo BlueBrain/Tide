@@ -50,21 +50,21 @@ struct WindowCoordinates;
 class LayoutEngine
 {
 public:
-    LayoutEngine( const DisplayGroup& group );
+    LayoutEngine(const DisplayGroup& group);
 
     /** @return the focused coordinates for the window. */
-    QRectF getFocusedCoord( const ContentWindow& window ) const;
+    QRectF getFocusedCoord(const ContentWindow& window) const;
 
     /** Update the focused coordinates for the set of windows. */
-    void updateFocusedCoord( const ContentWindowSet& windows ) const;
+    void updateFocusedCoord(const ContentWindowSet& windows) const;
 
 private:
     const DisplayGroup& _group;
 
-    QRectF _getFocusedCoord( const ContentWindow& window,
-                             const ContentWindowSet& focusedWindows ) const;
-    WindowCoordinates _getNominalCoord( const ContentWindow& window ) const;
-    void _constrainFullyInside( QRectF& window ) const;
+    QRectF _getFocusedCoord(const ContentWindow& window,
+                            const ContentWindowSet& focusedWindows) const;
+    WindowCoordinates _getNominalCoord(const ContentWindow& window) const;
+    void _constrainFullyInside(QRectF& window) const;
     qreal _getInsideMargin() const;
 };
 

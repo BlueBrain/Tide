@@ -58,7 +58,7 @@ public:
      * @param filename \see Configuration
      * @throw std::runtime_error if the file could not be read
      */
-    MasterConfiguration( const QString& filename );
+    MasterConfiguration(const QString& filename);
 
     /**
      * @return true if the master application is headless (no visible window)
@@ -143,13 +143,13 @@ public:
      * Set the background color
      * @param color
      */
-    void setBackgroundColor( const QColor& color );
+    void setBackgroundColor(const QColor& color);
 
     /**
      * Set the URI to the Content to be used as background
      * @param uri empty string to use no background content
      */
-    void setBackgroundUri( const QString& uri );
+    void setBackgroundUri(const QString& uri);
 
     /**
      * Save the configuration to the current xml file.
@@ -162,20 +162,20 @@ public:
      * @param filename destination file
      * @return true on succes, false on failure
      */
-    bool save( const QString& filename ) const;
+    bool save(const QString& filename) const;
 
 private:
     void loadMasterSettings();
-    void loadMasterProcessInfo( QXmlQuery& query );
-    void loadContentDirectory( QXmlQuery& query );
-    void loadLauncherSettings( QXmlQuery& query );
-    void loadSessionsDirectory( QXmlQuery& query );
-    void loadUploadDirectory( QXmlQuery& query );
-    void loadWebService( QXmlQuery& query );
-    void loadWhiteboard( QXmlQuery& query );
-    void loadAppLauncher( QXmlQuery& query );
-    void loadWebBrowserStartURL( QXmlQuery& query );
-    void loadBackgroundProperties( QXmlQuery& query );
+    void loadMasterProcessInfo(QXmlQuery& query);
+    void loadContentDirectory(QXmlQuery& query);
+    void loadLauncherSettings(QXmlQuery& query);
+    void loadSessionsDirectory(QXmlQuery& query);
+    void loadUploadDirectory(QXmlQuery& query);
+    void loadWebService(QXmlQuery& query);
+    void loadWhiteboard(QXmlQuery& query);
+    void loadAppLauncher(QXmlQuery& query);
+    void loadWebBrowserStartURL(QXmlQuery& query);
+    void loadBackgroundProperties(QXmlQuery& query);
 
     bool _headless = false;
     QString _contentDir;

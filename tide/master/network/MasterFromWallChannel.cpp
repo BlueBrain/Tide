@@ -43,48 +43,48 @@
 #include "network/MPIChannel.h"
 #include "serialization/utils.h"
 
-MasterFromWallChannel::MasterFromWallChannel( MPIChannelPtr mpiChannel )
-    : _mpiChannel( mpiChannel )
-    , _processMessages( true )
+MasterFromWallChannel::MasterFromWallChannel(MPIChannelPtr mpiChannel)
+    : _mpiChannel(mpiChannel)
+    , _processMessages(true)
 {
-    if( _mpiChannel->getSize() < 2 )
+    if (_mpiChannel->getSize() < 2)
     {
-        put_flog( LOG_WARN, "Channel has no Wall receiver" );
+        put_flog(LOG_WARN, "Channel has no Wall receiver");
         _processMessages = false;
     }
 }
 
 void MasterFromWallChannel::processMessages()
 {
-    while( _processMessages )
+    while (_processMessages)
     {
         const ProbeResult result = _mpiChannel->probe();
-        if( !result.isValid( ))
+        if (!result.isValid())
         {
-            put_flog( LOG_ERROR, "Invalid probe result size: %d", result.size );
+            put_flog(LOG_ERROR, "Invalid probe result size: %d", result.size);
             continue;
         }
 
-        _buffer.setSize( result.size );
-        _mpiChannel->receive( _buffer.data(), result.size, result.src,
-                              int(result.message) );
+        _buffer.setSize(result.size);
+        _mpiChannel->receive(_buffer.data(), result.size, result.src,
+                             int(result.message));
 
-        switch( result.message )
+        switch (result.message)
         {
         case MPIMessageType::REQUEST_FRAME:
         {
-            emit receivedRequestFrame( serialization::get<QString>( _buffer ));
+            emit receivedRequestFrame(serialization::get<QString>(_buffer));
             break;
         }
         case MPIMessageType::IMAGE:
-            emit receivedScreenshot( serialization::get<QImage>( _buffer ),
-                                     result.src - 1 );
+            emit receivedScreenshot(serialization::get<QImage>(_buffer),
+                                    result.src - 1);
             break;
         case MPIMessageType::QUIT:
             _processMessages = false;
             break;
         default:
-            put_flog( LOG_WARN, "Invalid message type: %d", result.message );
+            put_flog(LOG_WARN, "Invalid message type: %d", result.message);
             break;
         }
     }

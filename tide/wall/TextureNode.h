@@ -67,8 +67,8 @@ public:
      * @param window a reference to the quick window for generating textures.
      * @param format ignored, needed for symmetry with TextureNodeYUV API.
      */
-    TextureNode( const QSize& size, QQuickWindow* window,
-                 TextureFormat format = TextureFormat::rgba );
+    TextureNode(const QSize& size, QQuickWindow* window,
+                TextureFormat format = TextureFormat::rgba);
 
     /** @return the back texture identifier, which can safely be updated. */
     uint getBackGlTexture() const;
@@ -83,11 +83,11 @@ public:
      * @param size the new texture size
      * @param format ignored, needed for symmetry with TextureNodeYUV API.
      */
-    void prepareBackTexture( const QSize& size,
-                             TextureFormat format = TextureFormat::rgba );
+    void prepareBackTexture(const QSize& size,
+                            TextureFormat format = TextureFormat::rgba);
 
     /** @sa QSGOpaqueTextureMaterial::setMipmapFiltering */
-    void setMipmapFiltering( const QSGTexture::Filtering filtering );
+    void setMipmapFiltering(const QSGTexture::Filtering filtering);
 
 private:
     QQuickWindow* _window;
@@ -96,8 +96,8 @@ private:
     QSGTexturePtr _frontTexture;
     QSGTexturePtr _backTexture;
 
-    QSGTexturePtr _createTexture( const QSize& size ) const;
-    QSGTexturePtr _createWrapper( uint textureID, const QSize& size ) const;
+    QSGTexturePtr _createTexture(const QSize& size) const;
+    QSGTexturePtr _createWrapper(uint textureID, const QSize& size) const;
 };
 
 #endif

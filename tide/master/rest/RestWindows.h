@@ -72,15 +72,15 @@ public:
      *
      * @param displayGroup DisplayGroup to expose.
      */
-    RestWindows( const DisplayGroup& displayGroup );
+    RestWindows(const DisplayGroup& displayGroup);
 
     /**
      * Get the detailed list of all windows.
      *
      * @return JSON response containing the list of all winodws.
      */
-    std::future<zeroeq::http::Response>
-    getWindowList( const zeroeq::http::Request& ) const;
+    std::future<zeroeq::http::Response> getWindowList(
+        const zeroeq::http::Request&) const;
 
     /**
      * Get information about a specific window (currently thumbnail only).
@@ -89,16 +89,16 @@ public:
      * @return base64 encoded image on success, 204 if the thumbnail is not
      *         ready yet.
      */
-    std::future<zeroeq::http::Response>
-    getWindowInfo( const zeroeq::http::Request& request ) const;
+    std::future<zeroeq::http::Response> getWindowInfo(
+        const zeroeq::http::Request& request) const;
 
 private:
     const DisplayGroup& _displayGroup;
     QMap<QString, QFuture<std::string>> _thumbnailCache;
 
-    void _cacheThumbnail( ContentWindowPtr contentWindow );
-    std::future<zeroeq::http::Response>
-    _getThumbnail( const QString& uuid ) const;
+    void _cacheThumbnail(ContentWindowPtr contentWindow);
+    std::future<zeroeq::http::Response> _getThumbnail(
+        const QString& uuid) const;
 };
 
 #endif

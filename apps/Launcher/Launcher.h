@@ -57,14 +57,14 @@ class Launcher : public QGuiApplication
     Q_OBJECT
 
 public:
-    Launcher( int& argc, char* argv[] );
+    Launcher(int& argc, char* argv[]);
     ~Launcher();
 
 private:
     std::unique_ptr<deflect::qt::QmlStreamer> _qmlStreamer;
     FileInfoHelper _fileInfoHelper;
 
-    bool event( QEvent* event ) final;
+    bool event(QEvent* event) final;
 };
 
 #endif

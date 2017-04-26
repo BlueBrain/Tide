@@ -51,26 +51,30 @@
  */
 namespace serialization
 {
-
 /** Implementation details (template metaprograming). */
 namespace detail
 {
 /** Recursive method to serialize n arguments into an archive. */
-template<uint N>
+template <uint N>
 struct serialize
 {
-    template<class Archive, typename Arg0, typename... Args>
-    serialize( Archive& ar, Arg0& arg0, Args&... args )
+    template <class Archive, typename Arg0, typename... Args>
+    serialize(Archive& ar, Arg0& arg0, Args&... args)
     {
+        // clang-format off
         ar & arg0;
-        serialize<N-1u>( ar, args... );
+        // clang-format on
+        serialize<N - 1u>(ar, args...);
     }
 };
 /** End of recursion. */
-template<>
+template <>
 struct serialize<0>
 {
-    template<class Archive> serialize( Archive& ) {}
+    template <class Archive>
+    serialize(Archive&)
+    {
+    }
 };
 }
 
@@ -78,20 +82,20 @@ struct serialize<0>
  * Get an object of type T, stored in a container in binary serialized form.
  */
 template <typename T, typename Container>
-T get( Container& container )
+T get(Container& container)
 {
-    std::istringstream iss( std::istringstream::binary );
+    std::istringstream iss(std::istringstream::binary);
 #ifdef __APPLE__
     // pubsetbuf() does nothing on OSX (and probably on Windows too).
     // so an intermediate copy of the data is required.
-    const std::string dataStr( container.data(), container.size( ));
-    iss.str( dataStr );
+    const std::string dataStr(container.data(), container.size());
+    iss.str(dataStr);
 #else
-    iss.rdbuf()->pubsetbuf( container.data(), container.size( ));
+    iss.rdbuf()->pubsetbuf(container.data(), container.size());
 #endif
     T object;
     {
-        boost::archive::binary_iarchive ia( iss );
+        boost::archive::binary_iarchive ia(iss);
         ia >> object;
     }
     return object;
@@ -100,24 +104,24 @@ T get( Container& container )
 /**
  * Deserialize object(s) from a string of binary serialized data.
  */
-template<typename... Args>
-void fromBinary( const std::string& data, Args&... args )
+template <typename... Args>
+void fromBinary(const std::string& data, Args&... args)
 {
-    std::istringstream iss{ data, std::istringstream::binary };
-    boost::archive::binary_iarchive ia{ iss };
-    detail::serialize<sizeof...(Args)>( ia, args... );
+    std::istringstream iss{data, std::istringstream::binary};
+    boost::archive::binary_iarchive ia{iss};
+    detail::serialize<sizeof...(Args)>(ia, args...);
 }
 
 /**
  * Serialize object(s) to a string of binary serialized data.
  */
-template<typename... Args>
-std::string toBinary( Args&... args )
+template <typename... Args>
+std::string toBinary(Args&... args)
 {
-    std::ostringstream stream{ std::ostringstream::binary };
+    std::ostringstream stream{std::ostringstream::binary};
     {
-        boost::archive::binary_oarchive oa{ stream };
-        detail::serialize<sizeof...(Args)>( oa, args... );
+        boost::archive::binary_oarchive oa{stream};
+        detail::serialize<sizeof...(Args)>(oa, args...);
     }
     return stream.str();
 }
@@ -126,16 +130,16 @@ std::string toBinary( Args&... args )
  * Copy an object using its binary serialization + deserialization methods.
  */
 template <typename T>
-T binaryCopy( const T& source )
+T binaryCopy(const T& source)
 {
     std::stringstream oss;
     {
-        boost::archive::binary_oarchive oa( oss );
+        boost::archive::binary_oarchive oa(oss);
         oa << source;
     }
     T copy;
     {
-        boost::archive::binary_iarchive ia( oss );
+        boost::archive::binary_iarchive ia(oss);
         ia >> copy;
     }
     return copy;
@@ -145,17 +149,17 @@ T binaryCopy( const T& source )
  * Copy an object using its xml serialization + deserialization methods.
  */
 template <typename T>
-T xmlCopy( const T& source )
+T xmlCopy(const T& source)
 {
     std::stringstream oss;
     {
-        boost::archive::xml_oarchive oa( oss );
-        oa << BOOST_SERIALIZATION_NVP( source );
+        boost::archive::xml_oarchive oa(oss);
+        oa << BOOST_SERIALIZATION_NVP(source);
     }
     T copy;
     {
-        boost::archive::xml_iarchive ia( oss );
-        ia >> BOOST_SERIALIZATION_NVP( copy );
+        boost::archive::xml_iarchive ia(oss);
+        ia >> BOOST_SERIALIZATION_NVP(copy);
     }
     return copy;
 }
@@ -164,27 +168,28 @@ T xmlCopy( const T& source )
  * Restore an object that was previously serialized to the given xml file.
  */
 template <typename T>
-bool fromXmlFile( T& object, const std::string& filename )
+bool fromXmlFile(T& object, const std::string& filename)
 {
-    std::ifstream ifs( filename );
-    if( !ifs.good( ))
+    std::ifstream ifs(filename);
+    if (!ifs.good())
         return false;
     try
     {
-        boost::archive::xml_iarchive ia( ifs );
-        ia >> BOOST_SERIALIZATION_NVP( object );
+        boost::archive::xml_iarchive ia(ifs);
+        ia >> BOOST_SERIALIZATION_NVP(object);
     }
-    catch( const boost::archive::archive_exception& e )
+    catch (const boost::archive::archive_exception& e)
     {
-        put_flog( LOG_ERROR, "Could not restore from file: '%s': %s",
-                  filename.c_str(), e.what( ));
+        put_flog(LOG_ERROR, "Could not restore from file: '%s': %s",
+                 filename.c_str(), e.what());
         return false;
     }
-    catch( const std::exception& e )
+    catch (const std::exception& e)
     {
-        put_flog( LOG_ERROR, "Could not restore from file '%s'',"
-                             "wrong file format: %s",
-                  filename.c_str(), e.what( ));
+        put_flog(LOG_ERROR,
+                 "Could not restore from file '%s'',"
+                 "wrong file format: %s",
+                 filename.c_str(), e.what());
         return false;
     }
     return true;
@@ -194,17 +199,16 @@ bool fromXmlFile( T& object, const std::string& filename )
  * Store an object to a target xml file.
  */
 template <typename T>
-bool toXmlFile( const T& object, const std::string& filename )
+bool toXmlFile(const T& object, const std::string& filename)
 {
-    std::ofstream ofs( filename );
-    if( !ofs.good( ))
+    std::ofstream ofs(filename);
+    if (!ofs.good())
         return false;
 
-    boost::archive::xml_oarchive oa( ofs );
-    oa << BOOST_SERIALIZATION_NVP( object );
+    boost::archive::xml_oarchive oa(ofs);
+    oa << BOOST_SERIALIZATION_NVP(object);
     return true;
 }
-
 }
 
 #endif

@@ -50,19 +50,19 @@
 class KeyboardState : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY( KeyboardState )
+    Q_DISABLE_COPY(KeyboardState)
 
-    Q_PROPERTY( bool visible READ isVisible WRITE setVisible
-                NOTIFY visibleChanged )
-    Q_PROPERTY( bool shift READ getShiftActive WRITE setShiftActive
-                NOTIFY shiftActiveChanged )
-    Q_PROPERTY( bool symbols READ getSymbolsActive WRITE setSymbolsActive
-                NOTIFY symbolsActiveChanged )
-    Q_PROPERTY( int activeKeyId READ getActiveKeyId WRITE setActiveKeyId
-                NOTIFY activeKeyIdChanged )
+    Q_PROPERTY(
+        bool visible READ isVisible WRITE setVisible NOTIFY visibleChanged)
+    Q_PROPERTY(bool shift READ getShiftActive WRITE setShiftActive NOTIFY
+                   shiftActiveChanged)
+    Q_PROPERTY(bool symbols READ getSymbolsActive WRITE setSymbolsActive NOTIFY
+                   symbolsActiveChanged)
+    Q_PROPERTY(int activeKeyId READ getActiveKeyId WRITE setActiveKeyId NOTIFY
+                   activeKeyIdChanged)
 
 public:
-    explicit KeyboardState( QObject* parent = 0 );
+    explicit KeyboardState(QObject* parent = 0);
 
     /** @return true if the keyboard is visible. */
     bool isVisible() const;
@@ -78,24 +78,24 @@ public:
 
 public slots:
     /** Set the visibility of the keyboard. */
-    void setVisible( bool visible );
+    void setVisible(bool visible);
 
     /** (De)Activate the shift key. */
-    void setShiftActive( bool state );
+    void setShiftActive(bool state);
 
     /** (De)Activate the symbols key. */
-    void setSymbolsActive( bool state );
+    void setSymbolsActive(bool state);
 
     /** Set the identifier of the active key. Use -1 if no key is active. */
-    void setActiveKeyId( int keyId );
+    void setActiveKeyId(int keyId);
 
 signals:
     /** @name QProperty notifiers */
     //@{
-    void visibleChanged( bool visible );
-    void shiftActiveChanged( bool state );
-    void symbolsActiveChanged( bool state );
-    void activeKeyIdChanged( int keyId );
+    void visibleChanged(bool visible);
+    void shiftActiveChanged(bool state);
+    void symbolsActiveChanged(bool state);
+    void activeKeyIdChanged(int keyId);
     //@}
 
     /** Emitted whenever any field has been modified. */
@@ -105,13 +105,15 @@ private:
     friend class boost::serialization::access;
 
     /** Serialize for sending to Wall applications. */
-    template< class Archive >
-    void serialize( Archive & ar, const unsigned int /*version*/ )
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int /*version*/)
     {
+        // clang-format off
         ar & _visible;
         ar & _shiftActive;
         ar & _symbolsActive;
         ar & _activeKeyId;
+        // clang-format on
     }
 
     bool _visible = false;

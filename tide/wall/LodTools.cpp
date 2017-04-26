@@ -41,109 +41,112 @@
 
 #include <cmath>
 
-LodTools::LodTools( const QSize& contentSize, const uint tileSize )
-    : _contentSize( contentSize )
-    , _tileSize( tileSize )
-    , _maxLod( _computeMaxLod( ))
-{}
+LodTools::LodTools(const QSize& contentSize, const uint tileSize)
+    : _contentSize(contentSize)
+    , _tileSize(tileSize)
+    , _maxLod(_computeMaxLod())
+{
+}
 
 uint LodTools::getMaxLod() const
 {
     return _maxLod;
 }
 
-QSize LodTools::getTilesArea( const uint lod ) const
+QSize LodTools::getTilesArea(const uint lod) const
 {
-    return QSize( _contentSize.width() >> lod, _contentSize.height() >> lod );
+    return QSize(_contentSize.width() >> lod, _contentSize.height() >> lod);
 }
 
-QSize LodTools::getTilesCount( const uint lod ) const
+QSize LodTools::getTilesCount(const uint lod) const
 {
-    const QSize size = getTilesArea( lod );
-    return QSize( std::ceil( (qreal)size.width() / _tileSize ),
-                  std::ceil( (qreal)size.height() / _tileSize ));
+    const QSize size = getTilesArea(lod);
+    return QSize(std::ceil((qreal)size.width() / _tileSize),
+                 std::ceil((qreal)size.height() / _tileSize));
 }
 
 uint LodTools::getTilesCount() const
 {
     uint count = 0;
-    for( uint lod = 0; lod <= getMaxLod(); ++lod )
+    for (uint lod = 0; lod <= getMaxLod(); ++lod)
     {
-        const QSize tiles = getTilesCount( lod );
+        const QSize tiles = getTilesCount(lod);
         count += tiles.width() * tiles.height();
     }
     return count;
 }
 
-uint LodTools::getFirstTileId( const uint lod ) const
+uint LodTools::getFirstTileId(const uint lod) const
 {
-    if( lod == getMaxLod( ))
+    if (lod == getMaxLod())
         return 0;
 
-    const QSize tiles = getTilesCount( lod + 1 );
+    const QSize tiles = getTilesCount(lod + 1);
     const uint count = tiles.width() * tiles.height();
-    return count + getFirstTileId( lod + 1 );
+    return count + getFirstTileId(lod + 1);
 }
 
-LodTools::TileIndex LodTools::getTileIndex( const uint tileId ) const
+LodTools::TileIndex LodTools::getTileIndex(const uint tileId) const
 {
     uint lod = 0;
-    uint firstTileId = getFirstTileId( lod );
-    while( tileId < firstTileId )
-        firstTileId = getFirstTileId( ++lod );
+    uint firstTileId = getFirstTileId(lod);
+    while (tileId < firstTileId)
+        firstTileId = getFirstTileId(++lod);
 
     const int index = tileId - firstTileId;
-    const QSize tilesCount = getTilesCount( lod );
+    const QSize tilesCount = getTilesCount(lod);
 
     const uint x = index % tilesCount.width();
     const uint y = index / tilesCount.width();
 
-    return TileIndex{ x, y, lod };
+    return TileIndex{x, y, lod};
 }
 
-QRect LodTools::getTileCoord( const uint tileId ) const
+QRect LodTools::getTileCoord(const uint tileId) const
 {
-    const auto index = getTileIndex( tileId );
-    const QSize lodSize = getTilesArea( index.lod );
+    const auto index = getTileIndex(tileId);
+    const QSize lodSize = getTilesArea(index.lod);
 
-    if( index.lod == getMaxLod( ))
-        return QRect( QPoint( 0, 0 ), lodSize );
+    if (index.lod == getMaxLod())
+        return QRect(QPoint(0, 0), lodSize);
 
-    const QSize tilesCount = getTilesCount( index.lod );
-    const uint w = index.x < (uint)tilesCount.width() ? _tileSize :
-                                                  lodSize.width() % _tileSize;
-    const uint h = index.y < (uint)tilesCount.height() ? _tileSize :
-                                                  lodSize.height() % _tileSize;
+    const QSize tilesCount = getTilesCount(index.lod);
+    const uint w = index.x < (uint)tilesCount.width()
+                       ? _tileSize
+                       : lodSize.width() % _tileSize;
+    const uint h = index.y < (uint)tilesCount.height()
+                       ? _tileSize
+                       : lodSize.height() % _tileSize;
 
-    return QRect( index.x * _tileSize, index.y * _tileSize, w, h );
+    return QRect(index.x * _tileSize, index.y * _tileSize, w, h);
 }
 
-const LodTools::TileInfos& LodTools::getAllTileInfos( const uint lod ) const
+const LodTools::TileInfos& LodTools::getAllTileInfos(const uint lod) const
 {
-    const QMutexLocker lock( &_lodTilesMapCacheMutex );
-    if( !_lodTilesMapCache.count( lod ))
+    const QMutexLocker lock(&_lodTilesMapCacheMutex);
+    if (!_lodTilesMapCache.count(lod))
     {
         LodTools::TileInfos& infos = _lodTilesMapCache[lod];
 
-        const QSize tiles = getTilesCount( lod );
+        const QSize tiles = getTilesCount(lod);
 
-        uint id = getFirstTileId( lod );
-        for( int y = 0; y < tiles.height(); ++y )
-            for( int x = 0; x < tiles.width(); ++x, ++id )
-                infos.push_back( TileInfo{ id, getTileCoord( id ) } );
+        uint id = getFirstTileId(lod);
+        for (int y = 0; y < tiles.height(); ++y)
+            for (int x = 0; x < tiles.width(); ++x, ++id)
+                infos.push_back(TileInfo{id, getTileCoord(id)});
     }
 
     return _lodTilesMapCache[lod];
 }
 
-Indices LodTools::getVisibleTiles( const QRectF& area, const uint lod ) const
+Indices LodTools::getVisibleTiles(const QRectF& area, const uint lod) const
 {
     Indices indices;
 
-    for( const auto& tile : getAllTileInfos( lod ))
+    for (const auto& tile : getAllTileInfos(lod))
     {
-        if( area.intersects( tile.coord ))
-            indices.insert( tile.id );
+        if (area.intersects(tile.coord))
+            indices.insert(tile.id);
     }
 
     return indices;
@@ -152,8 +155,8 @@ Indices LodTools::getVisibleTiles( const QRectF& area, const uint lod ) const
 uint LodTools::_computeMaxLod() const
 {
     uint maxLod = 0;
-    uint maxDim = std::max( _contentSize.width(), _contentSize.height( ));
-    while( maxDim > _tileSize )
+    uint maxDim = std::max(_contentSize.width(), _contentSize.height());
+    while (maxDim > _tileSize)
     {
         maxDim = maxDim >> 1;
         ++maxLod;

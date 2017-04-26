@@ -54,7 +54,7 @@ class FFMPEGPicture : public YUVImage
 {
 public:
     /** Allocate a new picture. */
-    FFMPEGPicture( uint width, uint height, TextureFormat format );
+    FFMPEGPicture(uint width, uint height, TextureFormat format);
 
     /** @copydoc Image::getWidth */
     int getWidth() const final;
@@ -63,16 +63,16 @@ public:
     int getHeight() const final;
 
     /** @copydoc Image::getData */
-    const uint8_t* getData( uint texture = 0 ) const final;
+    const uint8_t* getData(uint texture = 0) const final;
 
     /** @copydoc Image::getFormat */
     TextureFormat getFormat() const final;
 
     /** @return write access to fill a given image texture plane. */
-    uint8_t* getData( uint texture );
+    uint8_t* getData(uint texture);
 
     /** @return data size of a given image texture plane. */
-    size_t getDataSize( uint texture ) const;
+    size_t getDataSize(uint texture) const;
 
     /** @return the picture as a QImage, or an empty one if format != rgba. */
     QImage toQImage() const;

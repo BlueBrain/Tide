@@ -51,7 +51,7 @@ class PDFBackend
 {
 public:
     /** Virtual destructor. */
-    virtual ~PDFBackend() {}
+    virtual ~PDFBackend() = default;
 
     /** @return the dimensions of the document in pixels. */
     virtual QSize getSize() const = 0;
@@ -63,7 +63,7 @@ public:
      * Go to a given page number.
      * @param pageNumber the page to open. If invalid, the page is not changed.
      */
-    virtual bool setPage( int pageNumber ) = 0;
+    virtual bool setPage(int pageNumber) = 0;
 
     /**
      * Render the document to an image.
@@ -71,8 +71,8 @@ public:
      * @param region the target area of the page to render, in normalized coord.
      * @return the rendered image region, or an empty QImage on failure.
      */
-    virtual QImage renderToImage( const QSize& imageSize,
-                                  const QRectF& region ) const = 0;
+    virtual QImage renderToImage(const QSize& imageSize,
+                                 const QRectF& region) const = 0;
 };
 
 #endif

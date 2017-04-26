@@ -50,18 +50,17 @@
 class PDFSynchronizer : public LodSynchronizer
 {
     Q_OBJECT
-    Q_DISABLE_COPY( PDFSynchronizer )
+    Q_DISABLE_COPY(PDFSynchronizer)
 
 public:
     /** Constructor. */
-    PDFSynchronizer( const QString& uri );
+    PDFSynchronizer(const QString& uri);
 
     /** @copydoc ContentSynchronizer::update */
-    void update( const ContentWindow& window,
-                 const QRectF& visibleArea ) final;
+    void update(const ContentWindow& window, const QRectF& visibleArea) final;
 
     /** @copydoc ContentSynchronizer::synchronize */
-    void synchronize( WallToWallChannel& channel ) final;
+    void synchronize(WallToWallChannel& channel) final;
 
     /** @copydoc ContentSynchronizer::getStatistics */
     QString getStatistics() const final;

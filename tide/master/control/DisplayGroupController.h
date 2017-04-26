@@ -48,17 +48,17 @@
 class DisplayGroupController : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY( DisplayGroupController );
+    Q_DISABLE_COPY(DisplayGroupController);
 
 public:
     /** Constructor */
-    DisplayGroupController( DisplayGroup& group );
+    DisplayGroupController(DisplayGroup& group);
 
     /** Remove a content window. */
-    Q_INVOKABLE void remove( QUuid windowId );
+    Q_INVOKABLE void remove(QUuid windowId);
 
     /** Remove a content window later (using a Qt::QueuedConnection). */
-    Q_INVOKABLE void removeWindowLater( QUuid windowId );
+    Q_INVOKABLE void removeWindowLater(QUuid windowId);
 
     /**
      * Show a window in fullscreen.
@@ -68,16 +68,16 @@ public:
      * @param id window identifier
      * @return false if the window with id does not exist
      */
-    Q_INVOKABLE bool showFullscreen( const QUuid& id );
+    Q_INVOKABLE bool showFullscreen(const QUuid& id);
 
     /** Leave fullscreen mode, restoring the window to its previous state. */
     Q_INVOKABLE void exitFullscreen();
 
     /** Focus a window. */
-    Q_INVOKABLE bool focus( const QUuid& id );
+    Q_INVOKABLE bool focus(const QUuid& id);
 
     /** Unfocus a window. */
-    Q_INVOKABLE bool unfocus( const QUuid& id );
+    Q_INVOKABLE bool unfocus(const QUuid& id);
 
     /** Focus all selected windows. */
     Q_INVOKABLE void focusSelected();
@@ -92,19 +92,19 @@ public:
     Q_INVOKABLE void hidePanels();
 
     /** Move a content window to the front. */
-    Q_INVOKABLE bool moveWindowToFront( const QUuid& id );
+    Q_INVOKABLE bool moveWindowToFront(const QUuid& id);
 
     /** Scale the DisplayGroup and its windows by the given x and y factors. */
-    void scale( const QSizeF& factor );
+    void scale(const QSizeF& factor);
 
     /** Rescale to fit inside the given size, preserving aspect ratio. */
-    void adjust( const QSizeF& maxGroupSize );
+    void adjust(const QSizeF& maxGroupSize);
 
     /** Reshape to fit inside the given size, scaling and centering windows. */
-    void reshape( const QSizeF& newSize );
+    void reshape(const QSizeF& newSize);
 
     /** Transform from normalized coordinates to pixel coordinates. */
-    void denormalize( const QSizeF& targetSize );
+    void denormalize(const QSizeF& targetSize);
 
     /** Resize windows in place so that their aspect ratio matches content's. */
     void adjustWindowsAspectRatioToContent();
@@ -119,10 +119,10 @@ private:
     DisplayGroup& _group;
 
     /** Extend the DisplayGroup surface, keeping the windows centered. */
-    void _extend( const QSizeF& newSize );
+    void _extend(const QSizeF& newSize);
 
     qreal _estimateAspectRatio() const;
-    void _readjustToNewZoomLevel( ContentWindow& window );
+    void _readjustToNewZoomLevel(ContentWindow& window);
 };
 
 #endif

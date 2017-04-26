@@ -53,43 +53,56 @@
 class ContentController : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY( ContentController )
+    Q_DISABLE_COPY(ContentController)
 
 public:
     /** Construct a content controller for the given window. */
-    static std::unique_ptr<ContentController> create( ContentWindow& window );
+    static std::unique_ptr<ContentController> create(ContentWindow& window);
 
     /** Construct a default content controller that does nothing. */
-    explicit ContentController( ContentWindow& window );
+    explicit ContentController(ContentWindow& window);
 
     /** Virtual destructor. */
     virtual ~ContentController();
 
     /** @name Touch gesture handlers. */
     //@{
-    Q_INVOKABLE virtual void touchBegin( QPointF position )
-    { Q_UNUSED( position ) }
-    Q_INVOKABLE virtual void touchEnd( QPointF position )
-    { Q_UNUSED( position ) }
+    Q_INVOKABLE virtual void touchBegin(QPointF position) { Q_UNUSED(position) }
+    Q_INVOKABLE virtual void touchEnd(QPointF position) { Q_UNUSED(position) }
+    Q_INVOKABLE virtual void addTouchPoint(int id, QPointF position)
+    {
+        Q_UNUSED(id) Q_UNUSED(position)
+    }
+    Q_INVOKABLE virtual void updateTouchPoint(int id, QPointF position)
+    {
+        Q_UNUSED(id) Q_UNUSED(position)
+    }
+    Q_INVOKABLE virtual void removeTouchPoint(int id, QPointF position)
+    {
+        Q_UNUSED(id) Q_UNUSED(position)
+    }
 
-    Q_INVOKABLE virtual void addTouchPoint( int id, QPointF position )
-    { Q_UNUSED( id ) Q_UNUSED( position ) }
-    Q_INVOKABLE virtual void updateTouchPoint( int id, QPointF position )
-    { Q_UNUSED( id ) Q_UNUSED( position ) }
-    Q_INVOKABLE virtual void removeTouchPoint( int id, QPointF position )
-    { Q_UNUSED( id ) Q_UNUSED( position ) }
-
-    Q_INVOKABLE virtual void tap( QPointF position, uint numPoints )
-    { Q_UNUSED( position ) Q_UNUSED( numPoints ) }
-    Q_INVOKABLE virtual void doubleTap( QPointF position, uint numPoints )
-    { Q_UNUSED( position ) Q_UNUSED( numPoints ) }
-    Q_INVOKABLE virtual void tapAndHold( QPointF position, uint numPoints )
-    { Q_UNUSED( position ) Q_UNUSED( numPoints ) }
-    Q_INVOKABLE virtual void pan( QPointF position, QPointF delta,
-                                  uint numPoints )
-    { Q_UNUSED( position ) Q_UNUSED( delta ) Q_UNUSED( numPoints ) }
-    Q_INVOKABLE virtual void pinch( QPointF position, QPointF pixelDelta )
-    { Q_UNUSED( position ) Q_UNUSED( pixelDelta ) }
+    Q_INVOKABLE virtual void tap(QPointF position, uint numPoints)
+    {
+        Q_UNUSED(position) Q_UNUSED(numPoints)
+    }
+    Q_INVOKABLE virtual void doubleTap(QPointF position, uint numPoints)
+    {
+        Q_UNUSED(position) Q_UNUSED(numPoints)
+    }
+    Q_INVOKABLE virtual void tapAndHold(QPointF position, uint numPoints)
+    {
+        Q_UNUSED(position) Q_UNUSED(numPoints)
+    }
+    Q_INVOKABLE virtual void pan(QPointF position, QPointF delta,
+                                 uint numPoints)
+    {
+        Q_UNUSED(position) Q_UNUSED(delta) Q_UNUSED(numPoints)
+    }
+    Q_INVOKABLE virtual void pinch(QPointF position, QPointF pixelDelta)
+    {
+        Q_UNUSED(position) Q_UNUSED(pixelDelta)
+    }
     Q_INVOKABLE virtual void swipeLeft() {}
     Q_INVOKABLE virtual void swipeRight() {}
     Q_INVOKABLE virtual void swipeUp() {}
@@ -98,10 +111,14 @@ public:
 
     /** @name Keyboard event handlers. */
     //@{
-    Q_INVOKABLE virtual void keyPress( int key, int modifiers, QString text )
-    { Q_UNUSED( key ) Q_UNUSED( modifiers ) Q_UNUSED( text ) }
-    Q_INVOKABLE virtual void keyRelease( int key, int modifiers, QString text )
-    { Q_UNUSED( key ) Q_UNUSED( modifiers ) Q_UNUSED( text ) }
+    Q_INVOKABLE virtual void keyPress(int key, int modifiers, QString text)
+    {
+        Q_UNUSED(key) Q_UNUSED(modifiers) Q_UNUSED(text)
+    }
+    Q_INVOKABLE virtual void keyRelease(int key, int modifiers, QString text)
+    {
+        Q_UNUSED(key) Q_UNUSED(modifiers) Q_UNUSED(text)
+    }
     //@}
 
     /** @name UI event handlers. */
@@ -111,7 +128,7 @@ public:
     //@}
 
 protected:
-    QPointF getNormalizedPoint( const QPointF& point ) const;
+    QPointF getNormalizedPoint(const QPointF& point) const;
 
     ContentWindow& _contentWindow;
 };

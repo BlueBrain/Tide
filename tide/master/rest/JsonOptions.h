@@ -51,14 +51,14 @@ class JsonOptions : public servus::Serializable
 {
 public:
     /** Constructor. */
-    explicit JsonOptions( OptionsPtr options );
+    explicit JsonOptions(OptionsPtr options);
 
     std::string getTypeName() const final;
     std::string getSchema() const final;
 
 private:
     std::string _toJSON() const final;
-    bool _fromJSON( const std::string& json ) final;
+    bool _fromJSON(const std::string& json) final;
 
     OptionsPtr _options;
 };

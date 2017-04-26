@@ -41,36 +41,36 @@
 
 #include "Content.h"
 
-IMPLEMENT_SERIALIZE_FOR_XML( Content )
+IMPLEMENT_SERIALIZE_FOR_XML(Content)
 
 qreal Content::_maxScale = 3.0;
 
-Content::Content( const QString& uri )
-    : _uri( uri )
-    , _zoomRect( UNIT_RECTF )
-    , _actions( this )
-    , _keyboardState( this )
-    , _captureInteraction( false )
+Content::Content(const QString& uri)
+    : _uri(uri)
+    , _zoomRect(UNIT_RECTF)
+    , _actions(this)
+    , _keyboardState(this)
+    , _captureInteraction(false)
 {
     _init();
 }
 
 Content::Content()
-    : _zoomRect( UNIT_RECTF )
-    , _actions( this )
-    , _keyboardState( this )
-    , _captureInteraction( false )
+    : _zoomRect(UNIT_RECTF)
+    , _actions(this)
+    , _keyboardState(this)
+    , _captureInteraction(false)
 {
     _init();
 }
 
 void Content::_init()
 {
-    connect( this, &Content::interactionPolicyChanged,
-             this, &Content::captureInteractionChanged );
+    connect(this, &Content::interactionPolicyChanged, this,
+            &Content::captureInteractionChanged);
 
-    connect( &_keyboardState, &KeyboardState::modified,
-             this, &Content::modified );
+    connect(&_keyboardState, &KeyboardState::modified, this,
+            &Content::modified);
 }
 
 const QString& Content::getURI() const
@@ -80,7 +80,7 @@ const QString& Content::getURI() const
 
 QString Content::getTitle() const
 {
-    return getURI().section( "/", -1, -1 );
+    return getURI().section("/", -1, -1);
 }
 
 QSize Content::getDimensions() const
@@ -100,46 +100,46 @@ int Content::height() const
 
 QSize Content::getMinDimensions() const
 {
-    if( _sizeHints.minWidth == deflect::SizeHints::UNSPECIFIED_SIZE ||
-        _sizeHints.minHeight == deflect::SizeHints::UNSPECIFIED_SIZE )
+    if (_sizeHints.minWidth == deflect::SizeHints::UNSPECIFIED_SIZE ||
+        _sizeHints.minHeight == deflect::SizeHints::UNSPECIFIED_SIZE)
     {
         return UNDEFINED_SIZE;
     }
-    return QSize( _sizeHints.minWidth, _sizeHints.minHeight );
+    return QSize(_sizeHints.minWidth, _sizeHints.minHeight);
 }
 
 QSize Content::getPreferredDimensions() const
 {
-    if( _sizeHints.preferredWidth == deflect::SizeHints::UNSPECIFIED_SIZE ||
-        _sizeHints.preferredHeight == deflect::SizeHints::UNSPECIFIED_SIZE )
+    if (_sizeHints.preferredWidth == deflect::SizeHints::UNSPECIFIED_SIZE ||
+        _sizeHints.preferredHeight == deflect::SizeHints::UNSPECIFIED_SIZE)
     {
         return getDimensions();
     }
-    return QSize( _sizeHints.preferredWidth, _sizeHints.preferredHeight );
+    return QSize(_sizeHints.preferredWidth, _sizeHints.preferredHeight);
 }
 
 QSize Content::getMaxDimensions() const
 {
-    if( _sizeHints.maxWidth == deflect::SizeHints::UNSPECIFIED_SIZE ||
-        _sizeHints.maxHeight == deflect::SizeHints::UNSPECIFIED_SIZE )
+    if (_sizeHints.maxWidth == deflect::SizeHints::UNSPECIFIED_SIZE ||
+        _sizeHints.maxHeight == deflect::SizeHints::UNSPECIFIED_SIZE)
     {
         return getDimensions().isValid() ? getDimensions() * getMaxScale()
                                          : UNDEFINED_SIZE;
     }
-    return QSize( _sizeHints.maxWidth, _sizeHints.maxHeight );
+    return QSize(_sizeHints.maxWidth, _sizeHints.maxHeight);
 }
 
-void Content::setSizeHints( const deflect::SizeHints& sizeHints )
+void Content::setSizeHints(const deflect::SizeHints& sizeHints)
 {
-    if( _sizeHints == sizeHints )
+    if (_sizeHints == sizeHints)
         return;
     _sizeHints = sizeHints;
     emit modified();
 }
 
-void Content::setMaxScale( const qreal value )
+void Content::setMaxScale(const qreal value)
 {
-    if( value > 0 )
+    if (value > 0)
         _maxScale = value;
 }
 
@@ -160,7 +160,7 @@ QString Content::getQmlControls() const
 
 bool Content::getCaptureInteraction() const
 {
-    switch( getInteractionPolicy( ))
+    switch (getInteractionPolicy())
     {
     case Content::Interaction::OFF:
         return false;
@@ -172,10 +172,10 @@ bool Content::getCaptureInteraction() const
     }
 }
 
-void Content::setCaptureInteraction( const bool enable )
+void Content::setCaptureInteraction(const bool enable)
 {
-    if( _captureInteraction == enable ||
-        getInteractionPolicy() != Content::Interaction::AUTO )
+    if (_captureInteraction == enable ||
+        getInteractionPolicy() != Content::Interaction::AUTO)
     {
         return;
     }
@@ -185,9 +185,9 @@ void Content::setCaptureInteraction( const bool enable )
     emit modified();
 }
 
-void Content::setDimensions( const QSize& dimensions )
+void Content::setDimensions(const QSize& dimensions)
 {
-    if( _size == dimensions )
+    if (_size == dimensions)
         return;
 
     _size = dimensions;
@@ -197,7 +197,7 @@ void Content::setDimensions( const QSize& dimensions )
 
 qreal Content::getAspectRatio() const
 {
-    if( _size.height() == 0 )
+    if (_size.height() == 0)
         return 0.0;
     return (qreal)_size.width() / (qreal)_size.height();
 }
@@ -217,9 +217,9 @@ const QRectF& Content::getZoomRect() const
     return _zoomRect;
 }
 
-void Content::setZoomRect( const QRectF& zoomRect )
+void Content::setZoomRect(const QRectF& zoomRect)
 {
-    if( !canBeZoomed() || _zoomRect == zoomRect )
+    if (!canBeZoomed() || _zoomRect == zoomRect)
         return;
 
     _zoomRect = zoomRect;
@@ -228,7 +228,7 @@ void Content::setZoomRect( const QRectF& zoomRect )
 
 void Content::resetZoom()
 {
-    setZoomRect( UNIT_RECTF );
+    setZoomRect(UNIT_RECTF);
 }
 
 ContentActionsModel* Content::getActions()

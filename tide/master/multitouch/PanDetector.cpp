@@ -41,36 +41,37 @@
 
 #include "multitouch/MathUtils.h"
 
-PanDetector::PanDetector( const qreal panThreshold )
-    : _panThreshold( panThreshold )
-{}
+PanDetector::PanDetector(const qreal panThreshold)
+    : _panThreshold(panThreshold)
+{
+}
 
-void PanDetector::initGesture( const Positions& positions )
+void PanDetector::initGesture(const Positions& positions)
 {
     cancelGesture();
 
-    _startPanPos = MathUtils::computeCenter( positions );
+    _startPanPos = MathUtils::computeCenter(positions);
 }
 
-void PanDetector::updateGesture( const Positions& positions )
+void PanDetector::updateGesture(const Positions& positions)
 {
-    const auto pos = MathUtils::computeCenter( positions );
+    const auto pos = MathUtils::computeCenter(positions);
 
-    if( !_panning && (pos - _startPanPos).manhattanLength() > _panThreshold )
+    if (!_panning && (pos - _startPanPos).manhattanLength() > _panThreshold)
     {
-        _startGesture( pos, positions.size( ));
+        _startGesture(pos, positions.size());
         _lastPanPos = pos;
     }
-    if( _panning )
+    if (_panning)
     {
-        emit pan( pos, pos - _lastPanPos, positions.size( ));
+        emit pan(pos, pos - _lastPanPos, positions.size());
         _lastPanPos = pos;
     }
 }
 
 void PanDetector::cancelGesture()
 {
-    if( !_panning )
+    if (!_panning)
         return;
 
     _panning = false;
@@ -82,16 +83,16 @@ qreal PanDetector::getPanThreshold() const
     return _panThreshold;
 }
 
-void PanDetector::setPanThreshold( const qreal arg )
+void PanDetector::setPanThreshold(const qreal arg)
 {
     _panThreshold = arg;
 }
 
-void PanDetector::_startGesture( const QPointF& pos, const uint numPoints )
+void PanDetector::_startGesture(const QPointF& pos, const uint numPoints)
 {
-    if( _panning )
+    if (_panning)
         return;
 
     _panning = true;
-    emit panStarted( pos, numPoints );
+    emit panStarted(pos, numPoints);
 }

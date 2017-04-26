@@ -42,81 +42,82 @@
 #include "scene/ContentWindow.h"
 #include "scene/DisplayGroup.h"
 
-VisibilityHelper::VisibilityHelper( const DisplayGroup& displayGroup,
-                                    const QRect& visibleArea )
-    : _displayGroup( displayGroup )
-    , _visibleArea( visibleArea )
-{}
-
-QRectF _cutOverlap( const QRectF& window, const QRectF& other )
+VisibilityHelper::VisibilityHelper(const DisplayGroup& displayGroup,
+                                   const QRect& visibleArea)
+    : _displayGroup(displayGroup)
+    , _visibleArea(visibleArea)
 {
-    if( other.contains( window ))
+}
+
+QRectF _cutOverlap(const QRectF& window, const QRectF& other)
+{
+    if (other.contains(window))
         return QRectF();
 
-    const QRectF overlap = window.intersected( other );
-    if( overlap.isEmpty( ))
+    const QRectF overlap = window.intersected(other);
+    if (overlap.isEmpty())
         return window;
 
     // Full horizontal cut
-    if( overlap.width() >= window.width( ))
+    if (overlap.width() >= window.width())
     {
-        QRectF area( window );
-        if( overlap.top() <= window.top( ))
-            area.setTop( overlap.bottom( ));
-        else if( overlap.bottom() >= window.bottom( ))
-            area.setBottom( overlap.top( ));
+        QRectF area(window);
+        if (overlap.top() <= window.top())
+            area.setTop(overlap.bottom());
+        else if (overlap.bottom() >= window.bottom())
+            area.setBottom(overlap.top());
         return area;
     }
 
     // Full vertical cut
-    if( overlap.height() >= window.height( ))
+    if (overlap.height() >= window.height())
     {
-        QRectF area( window );
-        if( overlap.left() <= window.left( ))
-            area.setLeft( overlap.right( ));
-        else if( overlap.right() >= window.right( ))
-            area.setRight( overlap.left( ));
+        QRectF area(window);
+        if (overlap.left() <= window.left())
+            area.setLeft(overlap.right());
+        else if (overlap.right() >= window.right())
+            area.setRight(overlap.left());
         return area;
     }
 
     return window;
 }
 
-QRectF _globalToWindowCoordinates( const QRectF& area, const QRectF& window )
+QRectF _globalToWindowCoordinates(const QRectF& area, const QRectF& window)
 {
-    return area.translated( -window.x(), -window.y( ));
+    return area.translated(-window.x(), -window.y());
 }
 
-QRectF VisibilityHelper::getVisibleArea( const ContentWindow& window ) const
+QRectF VisibilityHelper::getVisibleArea(const ContentWindow& window) const
 {
     const QRectF& windowCoords = window.getDisplayCoordinates();
 
-    QRectF area = windowCoords.intersected( _visibleArea );
-    if( area.isEmpty( ))
+    QRectF area = windowCoords.intersected(_visibleArea);
+    if (area.isEmpty())
         return QRectF();
 
-    if( window.isFullscreen( ))
-        return _globalToWindowCoordinates( area, windowCoords );
-    else if( _displayGroup.hasFullscreenWindows( ))
+    if (window.isFullscreen())
+        return _globalToWindowCoordinates(area, windowCoords);
+    else if (_displayGroup.hasFullscreenWindows())
         return QRectF();
 
-    if( window.isFocused( ))
-        return _globalToWindowCoordinates( area, windowCoords );
+    if (window.isFocused())
+        return _globalToWindowCoordinates(area, windowCoords);
 
     bool isAbove = false;
-    for( auto win : _displayGroup.getContentWindows( ))
+    for (auto win : _displayGroup.getContentWindows())
     {
-        if( win->getID() == window.getID( ) && !window.isPanel( ))
+        if (win->getID() == window.getID() && !window.isPanel())
         {
             isAbove = true;
             continue;
         }
-        if( isAbove || win->isFocused( ))
-            area = _cutOverlap( area, win->getDisplayCoordinates( ));
+        if (isAbove || win->isFocused())
+            area = _cutOverlap(area, win->getDisplayCoordinates());
 
-        if( area.isEmpty( ))
+        if (area.isEmpty())
             return QRectF();
     }
 
-    return _globalToWindowCoordinates( area, windowCoords );
+    return _globalToWindowCoordinates(area, windowCoords);
 }

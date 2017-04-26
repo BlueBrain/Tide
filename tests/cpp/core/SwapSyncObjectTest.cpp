@@ -38,98 +38,97 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-
 #define BOOST_TEST_MODULE SwapSyncObjectTests
+
 #include <boost/test/unit_test.hpp>
 
 #include "SwapSyncObject.h"
 
-using IntPtr = std::shared_ptr< int >;
+using IntPtr = std::shared_ptr<int>;
 
-BOOST_AUTO_TEST_CASE( testSwapSyncObjectDefaultConstruction )
+BOOST_AUTO_TEST_CASE(testSwapSyncObjectDefaultConstruction)
 {
-    const SwapSyncObject< IntPtr > syncObject;
-    BOOST_CHECK_EQUAL( syncObject.get(), IntPtr( ));
+    const SwapSyncObject<IntPtr> syncObject;
+    BOOST_CHECK_EQUAL(syncObject.get(), IntPtr());
 }
 
-BOOST_AUTO_TEST_CASE( testSwapSyncObjectValueConstruction )
+BOOST_AUTO_TEST_CASE(testSwapSyncObjectValueConstruction)
 {
-    IntPtr ptr( new int );
+    IntPtr ptr(new int);
     *ptr = 5;
 
-    const SwapSyncObject< IntPtr > syncObject( ptr );
-    BOOST_CHECK_EQUAL( syncObject.get(), ptr );
+    const SwapSyncObject<IntPtr> syncObject(ptr);
+    BOOST_CHECK_EQUAL(syncObject.get(), ptr);
 }
 
-BOOST_AUTO_TEST_CASE( testUpdateAndSyncOddNumber )
+BOOST_AUTO_TEST_CASE(testUpdateAndSyncOddNumber)
 {
-    IntPtr ptr( new int );
+    IntPtr ptr(new int);
     *ptr = 5;
 
-    SwapSyncObject< IntPtr > syncObject( ptr );
+    SwapSyncObject<IntPtr> syncObject(ptr);
 
-    IntPtr otherPtr( new int );
+    IntPtr otherPtr(new int);
     *otherPtr = 42;
-    syncObject.update( otherPtr );
-    BOOST_CHECK_EQUAL( syncObject.get(), ptr );
+    syncObject.update(otherPtr);
+    BOOST_CHECK_EQUAL(syncObject.get(), ptr);
 
-    const auto oddNumberSync = []( const uint64_t version )
-    {
+    const auto oddNumberSync = [](const uint64_t version) {
         return version % 2 != 0;
     };
 
-    BOOST_CHECK( syncObject.sync( oddNumberSync ));
-    BOOST_CHECK( !syncObject.sync( oddNumberSync ));
-    BOOST_CHECK_EQUAL( syncObject.get(), otherPtr );
+    BOOST_CHECK(syncObject.sync(oddNumberSync));
+    BOOST_CHECK(!syncObject.sync(oddNumberSync));
+    BOOST_CHECK_EQUAL(syncObject.get(), otherPtr);
 
     *ptr = 12345;
-    syncObject.update( ptr );
-    BOOST_CHECK_EQUAL( syncObject.get(), otherPtr );
+    syncObject.update(ptr);
+    BOOST_CHECK_EQUAL(syncObject.get(), otherPtr);
 
-    BOOST_CHECK( !syncObject.sync( oddNumberSync ));
-    BOOST_CHECK_EQUAL( syncObject.get(), otherPtr );
+    BOOST_CHECK(!syncObject.sync(oddNumberSync));
+    BOOST_CHECK_EQUAL(syncObject.get(), otherPtr);
 }
 
 namespace
 {
-const auto alwaysSync = []( const uint64_t ) { return true; };
+const auto alwaysSync = [](const uint64_t) { return true; };
 }
 
-BOOST_AUTO_TEST_CASE( testUpdateAndSyncAlways )
+BOOST_AUTO_TEST_CASE(testUpdateAndSyncAlways)
 {
-    IntPtr ptr( new int );
+    IntPtr ptr(new int);
     *ptr = 5;
 
-    SwapSyncObject< IntPtr > syncObject( ptr );
+    SwapSyncObject<IntPtr> syncObject(ptr);
 
-    IntPtr otherPtr( new int );
+    IntPtr otherPtr(new int);
     *otherPtr = 42;
-    syncObject.update( otherPtr );
-    BOOST_CHECK_EQUAL( syncObject.get(), ptr );
+    syncObject.update(otherPtr);
+    BOOST_CHECK_EQUAL(syncObject.get(), ptr);
 
-    BOOST_CHECK( syncObject.sync( alwaysSync ));
-    BOOST_CHECK( !syncObject.sync( alwaysSync ));
-    BOOST_CHECK_EQUAL( syncObject.get(), otherPtr );
+    BOOST_CHECK(syncObject.sync(alwaysSync));
+    BOOST_CHECK(!syncObject.sync(alwaysSync));
+    BOOST_CHECK_EQUAL(syncObject.get(), otherPtr);
 
     *ptr = 12345;
-    syncObject.update( ptr );
-    BOOST_CHECK_EQUAL( syncObject.get(), otherPtr );
+    syncObject.update(ptr);
+    BOOST_CHECK_EQUAL(syncObject.get(), otherPtr);
 
-    BOOST_CHECK( syncObject.sync( alwaysSync ));
-    BOOST_CHECK( !syncObject.sync( alwaysSync ));
-    BOOST_CHECK_EQUAL( syncObject.get(), ptr );
+    BOOST_CHECK(syncObject.sync(alwaysSync));
+    BOOST_CHECK(!syncObject.sync(alwaysSync));
+    BOOST_CHECK_EQUAL(syncObject.get(), ptr);
 }
 
-BOOST_AUTO_TEST_CASE( testUpdateAndSyncAlwaysWithCallback )
+BOOST_AUTO_TEST_CASE(testUpdateAndSyncAlwaysWithCallback)
 {
-    IntPtr ptr( new int );
+    IntPtr ptr(new int);
     *ptr = 5;
 
-    SwapSyncObject< IntPtr > syncObject;
+    SwapSyncObject<IntPtr> syncObject;
     IntPtr result;
-    syncObject.setCallback( [&result]( IntPtr object ){ result = object; } );
-    syncObject.update( ptr );
-    BOOST_REQUIRE( syncObject.sync( alwaysSync ));
-    BOOST_CHECK_EQUAL( *result, *ptr );
-    BOOST_CHECK_EQUAL( result.get(), ptr.get( ));
+    syncObject.setCallback([&result](IntPtr object) { result = object; });
+    syncObject.update(ptr);
+    BOOST_REQUIRE(syncObject.sync(alwaysSync));
+    BOOST_CHECK_EQUAL(*result, *ptr);
+    BOOST_CHECK_EQUAL(result.get(), ptr.get());
 }

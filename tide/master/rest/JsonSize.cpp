@@ -39,17 +39,18 @@
 
 #include "JsonSize.h"
 
-#include "jsonschema.h"
 #include "json.h"
+#include "jsonschema.h"
 
-QJsonArray _toJsonArray( const QSize& size )
+QJsonArray _toJsonArray(const QSize& size)
 {
-    return QJsonArray{{ size.width(), size.height() }};
+    return QJsonArray{{size.width(), size.height()}};
 }
 
-JsonSize::JsonSize( const QSize& size )
-    : _size( size )
-{}
+JsonSize::JsonSize(const QSize& size)
+    : _size(size)
+{
+}
 
 std::string JsonSize::getTypeName() const
 {
@@ -58,12 +59,11 @@ std::string JsonSize::getTypeName() const
 
 std::string JsonSize::getSchema() const
 {
-    return jsonschema::create(
-                "Size", _toJsonArray( _size ),
-                "Dimensions in pixels of the display wall", true );
+    return jsonschema::create("Size", _toJsonArray(_size),
+                              "Dimensions in pixels of the display wall", true);
 }
 
 std::string JsonSize::_toJSON() const
 {
-    return json::toString( _toJsonArray( _size ));
+    return json::toString(_toJsonArray(_size));
 }

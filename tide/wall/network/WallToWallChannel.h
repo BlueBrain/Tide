@@ -40,8 +40,8 @@
 #ifndef WALLTOWALLCHANNEL_H
 #define WALLTOWALLCHANNEL_H
 
-#include "types.h"
 #include "network/ReceiveBuffer.h"
+#include "types.h"
 
 #include <QObject>
 
@@ -53,13 +53,13 @@
 class WallToWallChannel : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY( WallToWallChannel )
+    Q_DISABLE_COPY(WallToWallChannel)
 
 public:
     using clock = std::chrono::high_resolution_clock;
 
     /** Constructor */
-    WallToWallChannel( MPIChannelPtr mpiChannel );
+    WallToWallChannel(MPIChannelPtr mpiChannel);
 
     /** @return The rank of this process. */
     int getRank() const;
@@ -69,10 +69,10 @@ public:
      * @param localValue The value to sum
      * @return the sum of the localValues
      */
-    int globalSum( int localValue ) const;
+    int globalSum(int localValue) const;
 
     /** Check if all processes are ready to perform a common action. */
-    bool allReady( bool isReady ) const;
+    bool allReady(bool isReady) const;
 
     /** Get the current timestamp, synchronized accross processes. */
     clock::time_point getTime() const;
@@ -84,23 +84,23 @@ public:
     void globalBarrier() const;
 
     /** Check that all processes have the same version of an object. */
-    bool checkVersion( uint64_t version ) const;
+    bool checkVersion(uint64_t version) const;
 
     /**
      * Elect a leader amongst wall processes.
      * @param isCandidate Is this process a candidate.
      * @return the rank of the leader, or -1 if no leader could be elected.
      */
-    int electLeader( bool isCandidate );
+    int electLeader(bool isCandidate);
 
     /**
      * Broadcast a timestamp.
      * All other processes must recieve it with receiveTimestampBroadcast().
      */
-    void broadcast( double timestamp );
+    void broadcast(double timestamp);
 
     /** Receive a timestamp broadcasted by broadcast(timestamp). */
-    double receiveTimestampBroadcast( int src );
+    double receiveTimestampBroadcast(int src);
 
 private:
     MPIChannelPtr _mpiChannel;

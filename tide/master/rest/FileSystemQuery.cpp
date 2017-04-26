@@ -49,50 +49,51 @@
 
 namespace
 {
-QJsonObject _toJsonObject( const QFileInfo& entry )
+QJsonObject _toJsonObject(const QFileInfo& entry)
 {
-    return QJsonObject{{ "name", entry.fileName() }, { "dir", entry.isDir() }};
+    return QJsonObject{{"name", entry.fileName()}, {"dir", entry.isDir()}};
 }
 
-QJsonArray _toJsonArray( const QFileInfoList& list )
+QJsonArray _toJsonArray(const QFileInfoList& list)
 {
     QJsonArray array;
-    for( const auto& entry : list )
-        array.append( _toJsonObject( entry ));
+    for (const auto& entry : list)
+        array.append(_toJsonObject(entry));
     return array;
 }
 }
 
-FileSystemQuery::FileSystemQuery( const QString& contentDirectory,
-                                  const QStringList& filters )
-    : _contentDirectory{ contentDirectory }
-    , _filters{ filters }
-{}
+FileSystemQuery::FileSystemQuery(const QString& contentDirectory,
+                                 const QStringList& filters)
+    : _contentDirectory{contentDirectory}
+    , _filters{filters}
+{
+}
 
-std::future<zeroeq::http::Response>
-FileSystemQuery::list( const zeroeq::http::Request& request )
+std::future<zeroeq::http::Response> FileSystemQuery::list(
+    const zeroeq::http::Request& request)
 {
     using namespace zeroeq::http;
-    auto path = QString::fromStdString( request.path );
+    auto path = QString::fromStdString(request.path);
     QUrl url;
-    url.setPath( path, QUrl::StrictMode );
+    url.setPath(path, QUrl::StrictMode);
     path = url.path();
 
     const QString fullpath = _contentDirectory + "/" + path;
-    const QDir absolutePath( fullpath );
-    if( !absolutePath.canonicalPath().startsWith( _contentDirectory ))
-        return make_ready_response( Code::BAD_REQUEST );
+    const QDir absolutePath(fullpath);
+    if (!absolutePath.canonicalPath().startsWith(_contentDirectory))
+        return make_ready_response(Code::BAD_REQUEST);
 
-    if( !absolutePath.exists( ))
-        return make_ready_response( Code::NO_CONTENT );
+    if (!absolutePath.exists())
+        return make_ready_response(Code::NO_CONTENT);
 
-    const auto body = json::toString( _toJsonArray( _contents( fullpath )));
-    return make_ready_response( Code::OK, body, "application/json" );
+    const auto body = json::toString(_toJsonArray(_contents(fullpath)));
+    return make_ready_response(Code::OK, body, "application/json");
 }
 
-QFileInfoList FileSystemQuery::_contents( const QDir& directory ) const
+QFileInfoList FileSystemQuery::_contents(const QDir& directory) const
 {
     const auto filters = QDir::Files | QDir::AllDirs | QDir::NoDotAndDotDot;
     const auto sortFlags = QDir::DirsFirst | QDir::IgnoreCase;
-    return directory.entryInfoList( _filters, filters, sortFlags );
+    return directory.entryInfoList(_filters, filters, sortFlags);
 }

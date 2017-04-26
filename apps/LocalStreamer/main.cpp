@@ -39,32 +39,31 @@
 
 #include "Application.h"
 
-#include "log.h"
 #include "localstreamer/CommandLineOptions.h"
+#include "log.h"
 
 #include <iostream>
 
-#define INVALID_STREAMER_TYPE_ERROR_CODE     1
+#define INVALID_STREAMER_TYPE_ERROR_CODE 1
 #define FAILED_APP_INITIALIZATION_ERROR_CODE 2
 
-int main( int argc, char* argv[] )
+int main(int argc, char* argv[])
 {
-    COMMAND_LINE_PARSER_CHECK( CommandLineOptions, "tideLocalstreamer" );
+    COMMAND_LINE_PARSER_CHECK(CommandLineOptions, "tideLocalstreamer");
 
     const PixelStreamerType type = commandLine.getPixelStreamerType();
-    if( type == PS_UNKNOWN )
+    if (type == PS_UNKNOWN)
     {
         std::cerr << "Invalid streamer type." << std::endl;
         return INVALID_STREAMER_TYPE_ERROR_CODE;
     }
 
-    logger_id = getStreamerTypeString( type ).toStdString();
-    qInstallMessageHandler( qtMessageLogger );
+    logger_id = getStreamerTypeString(type).toStdString();
+    qInstallMessageHandler(qtMessageLogger);
 
-    Application app( argc, argv );
-    if( !app.initialize( commandLine ))
+    Application app(argc, argv);
+    if (!app.initialize(commandLine))
         return FAILED_APP_INITIALIZATION_ERROR_CODE;
 
     return app.exec();
 }
-

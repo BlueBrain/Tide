@@ -51,6 +51,7 @@ using namespace zeroeq;
 namespace
 {
 const QString resourcePath = ":///html/";
+// clang-format off
 const QMap<std::string, QStringList> resources {
     {
         "application/javascript",
@@ -95,43 +96,42 @@ const QMap<std::string, QStringList> resources {
         }
     }
 };
+// clang-format on
 
-std::string _readFile( const QString& uri )
+std::string _readFile(const QString& uri)
 {
-    QFile file( resourcePath + uri );
-    file.open( QIODevice::ReadOnly );
+    QFile file(resourcePath + uri);
+    file.open(QIODevice::ReadOnly);
     return file.readAll().toStdString();
 }
 
-std::future<http::Response> _makeResponse( const QString& file,
-                                           const std::string& type )
+std::future<http::Response> _makeResponse(const QString& file,
+                                          const std::string& type)
 {
     using namespace http;
-    const auto body = _readFile( file );
-    if( body.empty( ))
-        return make_ready_response( Code::INTERNAL_SERVER_ERROR );
-    return make_ready_response( Code::OK, body, type );
+    const auto body = _readFile(file);
+    if (body.empty())
+        return make_ready_response(Code::INTERNAL_SERVER_ERROR);
+    return make_ready_response(Code::OK, body, type);
 }
 }
 
-HtmlContent::HtmlContent( http::Server& server )
+HtmlContent::HtmlContent(http::Server& server)
 {
-    server.handle( http::Method::GET, "", []( const http::Request& )
-    {
-        return _makeResponse( "index.html", "text/html" );
+    server.handle(http::Method::GET, "", [](const http::Request&) {
+        return _makeResponse("index.html", "text/html");
     });
 
-    for( auto it = resources.begin(); it != resources.end(); ++it )
+    for (auto it = resources.begin(); it != resources.end(); ++it)
     {
         const auto& type = it.key();
         const auto& files = it.value();
-        for( const auto& file : files )
+        for (const auto& file : files)
         {
-            server.handle( http::Method::GET, file.toStdString(),
-                           [file, type]( const http::Request& )
-            {
-                return _makeResponse( file, type );
-            });
+            server.handle(http::Method::GET, file.toStdString(),
+                          [file, type](const http::Request&) {
+                              return _makeResponse(file, type);
+                          });
         }
     }
 }

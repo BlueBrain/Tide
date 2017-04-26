@@ -48,14 +48,13 @@
  */
 namespace MathUtils
 {
-
 /**
  * Get the minimal bounding rectangle around two points.
  * @param p0 the first corner
  * @param p1 the second corner
  * @return the bounding rectangle
  */
-QRectF getBoundingRect( const QPointF& p0, const QPointF& p1 );
+QRectF getBoundingRect(const QPointF& p0, const QPointF& p1);
 
 /**
  * Get the euclidean distance between two points.
@@ -63,7 +62,7 @@ QRectF getBoundingRect( const QPointF& p0, const QPointF& p1 );
  * @param p1 the second point
  * @return the distance between the two points.
  */
-qreal getDist( const QPointF& p0, const QPointF& p1 );
+qreal getDist(const QPointF& p0, const QPointF& p1);
 
 /**
  * Get the center of two points.
@@ -71,13 +70,13 @@ qreal getDist( const QPointF& p0, const QPointF& p1 );
  * @param p1 the second point
  * @return the center of the two points.
  */
-QPointF getCenter( const QPointF& p0, const QPointF& p1 );
+QPointF getCenter(const QPointF& p0, const QPointF& p1);
 
 /**
  * Compute the center of a list of positions.
  * @return the center of the points.
  */
-QPointF computeCenter( const Positions& positions );
+QPointF computeCenter(const Positions& positions);
 
 /**
  * Check if any point has moved by more than a given threshold.
@@ -86,9 +85,8 @@ QPointF computeCenter( const Positions& positions );
  * @param moveThreshold the distance threshold
  * @return true if any point has moved
  */
-bool hasMoved( const Positions& positions, const Positions& startPositions,
-               qreal moveThreshold );
-
+bool hasMoved(const Positions& positions, const Positions& startPositions,
+              qreal moveThreshold);
 }
 
 #endif

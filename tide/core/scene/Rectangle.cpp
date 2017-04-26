@@ -39,14 +39,18 @@
 
 #include "Rectangle.h"
 
-Rectangle::Rectangle() {}
+Rectangle::Rectangle()
+{
+}
 
-Rectangle::~Rectangle() {}
+Rectangle::~Rectangle()
+{
+}
 
 // false-positive on qt signals
 // cppcheck-suppress uninitMemberVar
-Rectangle::Rectangle( const QRectF& coordinates )
-    : _coordinates( coordinates )
+Rectangle::Rectangle(const QRectF& coordinates)
+    : _coordinates(coordinates)
 {
 }
 
@@ -85,46 +89,46 @@ QPointF Rectangle::center() const
     return _coordinates.center();
 }
 
-void Rectangle::setX( const qreal x_ )
+void Rectangle::setX(const qreal x_)
 {
-    if( x_ == _coordinates.x( ))
+    if (x_ == _coordinates.x())
         return;
 
-    _coordinates.setX( x_ );
+    _coordinates.setX(x_);
     emit xChanged();
 }
 
-void Rectangle::setY( const qreal y_ )
+void Rectangle::setY(const qreal y_)
 {
-    if( y_ == _coordinates.y( ))
+    if (y_ == _coordinates.y())
         return;
 
-    _coordinates.setY( y_ );
+    _coordinates.setY(y_);
     emit yChanged();
 }
 
-void Rectangle::setWidth( const qreal w )
+void Rectangle::setWidth(const qreal w)
 {
-    if( w == _coordinates.width( ))
+    if (w == _coordinates.width())
         return;
 
-    _coordinates.setWidth( w );
+    _coordinates.setWidth(w);
     emit widthChanged();
 }
 
-void Rectangle::setHeight( const qreal h )
+void Rectangle::setHeight(const qreal h)
 {
-    if( h == _coordinates.height( ))
+    if (h == _coordinates.height())
         return;
 
-    _coordinates.setHeight( h );
+    _coordinates.setHeight(h);
     emit heightChanged();
 }
 
-void Rectangle::setCoordinates( const QRectF& coordinates )
+void Rectangle::setCoordinates(const QRectF& coordinates)
 {
-    setX( coordinates.x( ));
-    setY( coordinates.y( ));
-    setWidth( coordinates.width( ));
-    setHeight( coordinates.height( ));
+    setX(coordinates.x());
+    setY(coordinates.y());
+    setWidth(coordinates.width());
+    setHeight(coordinates.height());
 }

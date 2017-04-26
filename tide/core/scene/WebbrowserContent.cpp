@@ -41,42 +41,44 @@
 
 #include "serialization/utils.h"
 
-BOOST_CLASS_EXPORT_IMPLEMENT( WebbrowserContent )
+BOOST_CLASS_EXPORT_IMPLEMENT(WebbrowserContent)
 
-IMPLEMENT_SERIALIZE_FOR_XML( WebbrowserContent )
+IMPLEMENT_SERIALIZE_FOR_XML(WebbrowserContent)
 
 namespace
 {
 #if TIDE_USE_QT5WEBKITWIDGETS
 const bool showKeyboardAction = true;
-const QString WEBBROWSER_CONTROLS{ "qrc:///qml/core/WebbrowserControls.qml" };
+const QString WEBBROWSER_CONTROLS{"qrc:///qml/core/WebbrowserControls.qml"};
 #else
 const bool showKeyboardAction = false;
 const QString WEBBROWSER_CONTROLS;
 #endif
-const QString title{ "Web Browser" };
+const QString title{"Web Browser"};
 }
 
-WebbrowserContent::WebbrowserContent( const QString& uri )
-    : PixelStreamContent( uri, showKeyboardAction )
+WebbrowserContent::WebbrowserContent(const QString& uri)
+    : PixelStreamContent(uri, showKeyboardAction)
 #if TIDE_USE_QT5WEBKITWIDGETS
-    , _addressBar( new AddressBar( this ))
+    , _addressBar(new AddressBar(this))
 {
-    connect( _addressBar, &AddressBar::modified, this, &Content::modified );
+    connect(_addressBar, &AddressBar::modified, this, &Content::modified);
 }
 #else
-{}
+{
+}
 #endif
 
 WebbrowserContent::WebbrowserContent()
-    : PixelStreamContent( showKeyboardAction )
+    : PixelStreamContent(showKeyboardAction)
 #if TIDE_USE_QT5WEBKITWIDGETS
-    , _addressBar( new AddressBar( this ))
+    , _addressBar(new AddressBar(this))
 {
-    connect( _addressBar, &AddressBar::modified, this, &Content::modified );
+    connect(_addressBar, &AddressBar::modified, this, &Content::modified);
 }
 #else
-{}
+{
+}
 #endif
 
 CONTENT_TYPE WebbrowserContent::getType() const
@@ -86,9 +88,9 @@ CONTENT_TYPE WebbrowserContent::getType() const
 
 QString WebbrowserContent::getTitle() const
 {
-    if( _pageTitle.isEmpty( ))
+    if (_pageTitle.isEmpty())
         return title;
-    return QString( "%1 - %2" ).arg( title, _pageTitle );
+    return QString("%1 - %2").arg(title, _pageTitle);
 }
 
 bool WebbrowserContent::hasFixedAspectRatio() const
@@ -121,9 +123,9 @@ QString WebbrowserContent::getUrl() const
     return _history.currentItem();
 }
 
-void WebbrowserContent::setUrl( const QString& url )
+void WebbrowserContent::setUrl(const QString& url)
 {
-    _history = WebbrowserHistory( { url }, 0 );
+    _history = WebbrowserHistory({url}, 0);
 
     emit pageChanged();
     emit pageCountChanged();
@@ -137,25 +139,25 @@ AddressBar* WebbrowserContent::getAddressBar() const
 }
 #endif
 
-void WebbrowserContent::parseData( const QByteArray data )
+void WebbrowserContent::parseData(const QByteArray data)
 {
-    serialization::fromBinary( data.toStdString(), _history, _pageTitle,
-                               _restPort );
+    serialization::fromBinary(data.toStdString(), _history, _pageTitle,
+                              _restPort);
 #if TIDE_USE_QT5WEBKITWIDGETS
-    _addressBar->setUrl( _history.currentItem( ));
+    _addressBar->setUrl(_history.currentItem());
 #endif
 
     emit pageChanged();
     emit pageCountChanged();
     emit restPortChanged();
-    emit titleChanged( getTitle( ));
+    emit titleChanged(getTitle());
     emit modified();
 }
 
-QByteArray WebbrowserContent::serializeData( const WebbrowserHistory& history,
-                                             const QString& pageTitle,
-                                             const int restPort )
+QByteArray WebbrowserContent::serializeData(const WebbrowserHistory& history,
+                                            const QString& pageTitle,
+                                            const int restPort)
 {
-    const auto string = serialization::toBinary( history, pageTitle, restPort );
-    return QByteArray::fromStdString( string );
+    const auto string = serialization::toBinary(history, pageTitle, restPort);
+    return QByteArray::fromStdString(string);
 }

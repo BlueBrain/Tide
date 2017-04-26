@@ -40,8 +40,8 @@
 #ifndef WALLFROMMASTERCHANNEL_H
 #define WALLFROMMASTERCHANNEL_H
 
-#include "types.h"
 #include "network/ReceiveBuffer.h"
+#include "types.h"
 
 #include <QObject>
 
@@ -51,11 +51,11 @@
 class WallFromMasterChannel : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY( WallFromMasterChannel )
+    Q_DISABLE_COPY(WallFromMasterChannel)
 
 public:
     /** Constructor */
-    WallFromMasterChannel( MPIChannelPtr mpiChannel );
+    WallFromMasterChannel(MPIChannelPtr mpiChannel);
 
     /** Check if a message is available from the Master process. */
     bool isMessageAvailable();
@@ -79,28 +79,28 @@ signals:
      * @see receiveMessage()
      * @param displayGroup The DisplayGroup that was received
      */
-    void received( DisplayGroupPtr displayGroup );
+    void received(DisplayGroupPtr displayGroup);
 
     /**
      * Emitted when new Options were recieved
      * @see receiveMessage()
      * @param options The options that were received
      */
-    void received( OptionsPtr options );
+    void received(OptionsPtr options);
 
     /**
      * Emitted when new Markers were recieved
      * @see receiveMessage()
      * @param markers The markers that were received
      */
-    void received( MarkersPtr markers );
+    void received(MarkersPtr markers);
 
     /**
      * Emitted when a new PixelStream frame was recieved
      * @see receiveMessage()
      * @param frame The frame that was received
      */
-    void received( deflect::FramePtr frame );
+    void received(deflect::FramePtr frame);
 
     /**
      * Emitted when a screenshot was requested.
@@ -120,9 +120,9 @@ private:
     bool _processMessages;
 
     template <typename T>
-    T receiveBroadcast( const size_t messageSize );
+    T receiveBroadcast(const size_t messageSize);
     template <typename T>
-    T receiveQObjectBroadcast( const size_t messageSize );
+    T receiveQObjectBroadcast(const size_t messageSize);
 };
 
 #endif

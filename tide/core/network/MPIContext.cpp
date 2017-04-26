@@ -45,18 +45,19 @@
 #include <mpi.h>
 #include <stdexcept>
 
-MPIContext::MPIContext( int argc, char* argv[] )
+MPIContext::MPIContext(int argc, char* argv[])
 {
     const int required = MPI_THREAD_MULTIPLE;
     int provided;
-    MPI_Init_thread( &argc, &argv, required, &provided );
-    if( provided < required )
+    MPI_Init_thread(&argc, &argv, required, &provided);
+    if (provided < required)
     {
 #if TIDE_IGNORE_MPI_THREADSAFETY
-        put_flog( LOG_DEBUG, "MPI support: %d/%d", provided, required );
+        put_flog(LOG_DEBUG, "MPI support: %d/%d", provided, required);
 #else
-        throw std::runtime_error( "MPI implementation must support "
-                                  "MPI_THREAD_MULTIPLE" );
+        throw std::runtime_error(
+            "MPI implementation must support "
+            "MPI_THREAD_MULTIPLE");
 #endif
     }
 }

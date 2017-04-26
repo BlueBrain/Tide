@@ -56,7 +56,7 @@ public:
      * @return Pointer to a new PixelStreamer instance. The caller is
      *         responsible for the deletion of the returned object.
      */
-    static PixelStreamer* create( const CommandLineOptions& options );
+    static PixelStreamer* create(const CommandLineOptions& options);
 };
 
 #endif

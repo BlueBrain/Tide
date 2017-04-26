@@ -51,111 +51,110 @@
 
 namespace
 {
-const std::string deflectHost( "localhost" );
-const QString deflectQmlFile( "qrc:/qml/qml/Webengine.qml" );
-const QString webengineviewItemName( "webengineview" );
-const QString searchUrl( "https://www.google.com/search?q=%1" );
+const std::string deflectHost("localhost");
+const QString deflectQmlFile("qrc:/qml/qml/Webengine.qml");
+const QString webengineviewItemName("webengineview");
+const QString searchUrl("https://www.google.com/search?q=%1");
 }
 
-Webbrowser::Webbrowser( int& argc, char* argv[] )
-    : QGuiApplication( argc, argv )
-    , _selectReplacer( new HtmlSelectReplacer )
+Webbrowser::Webbrowser(int& argc, char* argv[])
+    : QGuiApplication(argc, argv)
+    , _selectReplacer(new HtmlSelectReplacer)
 {
-    const CommandLineOptions options( argc, argv );
+    const CommandLineOptions options(argc, argv);
 
     const auto deflectStreamId = options.getStreamId().toStdString();
-    _qmlStreamer.reset( new deflect::qt::QmlStreamer( deflectQmlFile,
-                                                      deflectHost,
-                                                      deflectStreamId ));
+    _qmlStreamer.reset(new deflect::qt::QmlStreamer(deflectQmlFile, deflectHost,
+                                                    deflectStreamId));
 
-    connect( _qmlStreamer.get(), &deflect::qt::QmlStreamer::streamClosed,
-             this, &QCoreApplication::quit );
+    connect(_qmlStreamer.get(), &deflect::qt::QmlStreamer::streamClosed, this,
+            &QCoreApplication::quit);
 
     auto context = _qmlStreamer->getQmlEngine()->rootContext();
-    context->setContextProperty( "htmlselect", _selectReplacer.get( ));
+    context->setContextProperty("htmlselect", _selectReplacer.get());
 
     auto item = _qmlStreamer->getRootItem();
 
     // General setup
-    if( options.getWidth( ))
-        item->setProperty( "width", options.getWidth( ));
-    if( options.getHeight( ))
-        item->setProperty( "height", options.getHeight( ));
+    if (options.getWidth())
+        item->setProperty("width", options.getWidth());
+    if (options.getHeight())
+        item->setProperty("height", options.getHeight());
 
-    connect( item, SIGNAL( addressBarTextEntered( QString )),
-             this, SLOT( _processAddressBarInput( QString )));
+    connect(item, SIGNAL(addressBarTextEntered(QString)), this,
+            SLOT(_processAddressBarInput(QString)));
 
     // Keep pointer to the webengine to send key events
-    _webengine = item->findChild<QQuickItem*>( webengineviewItemName );
-    _webengine->setProperty( "url", options.getUrl( ));
+    _webengine = item->findChild<QQuickItem*>(webengineviewItemName);
+    _webengine->setProperty("url", options.getUrl());
 
-    connect( _webengine, SIGNAL( urlChanged( )), this, SLOT( _sendData( )));
-    connect( _webengine, SIGNAL( titleChanged( )), this, SLOT( _sendData( )));
+    connect(_webengine, SIGNAL(urlChanged()), this, SLOT(_sendData()));
+    connect(_webengine, SIGNAL(titleChanged()), this, SLOT(_sendData()));
 }
 
-Webbrowser::~Webbrowser() {}
+Webbrowser::~Webbrowser()
+{
+}
 
-bool Webbrowser::event( QEvent* event_ )
+bool Webbrowser::event(QEvent* event_)
 {
     // Work around missing key event support in Qt for offscreen windows
-    if( auto inputEvent = dynamic_cast<QInputMethodEvent*>( event_ ))
+    if (auto inputEvent = dynamic_cast<QInputMethodEvent*>(event_))
     {
-        if( _webengine->hasFocus( ))
-            return QmlKeyInjector::sendToWebengine( inputEvent, _webengine );
-        return QmlKeyInjector::send( inputEvent, _qmlStreamer->getRootItem( ));
+        if (_webengine->hasFocus())
+            return QmlKeyInjector::sendToWebengine(inputEvent, _webengine);
+        return QmlKeyInjector::send(inputEvent, _qmlStreamer->getRootItem());
     }
-    return QGuiApplication::event( event_ );
+    return QGuiApplication::event(event_);
 }
 
-bool _canBeHttpUrl( const QString& url )
+bool _canBeHttpUrl(const QString& url)
 {
-    return url.startsWith( "www." ) ||
-            (url.contains( '.' ) && !url.contains( ' ' ));
+    return url.startsWith("www.") || (url.contains('.') && !url.contains(' '));
 }
 
-void Webbrowser::_processAddressBarInput( const QString url )
+void Webbrowser::_processAddressBarInput(const QString url)
 {
-    auto address = QUrl{ url };
-    if( address.scheme().isEmpty( ))
+    auto address = QUrl{url};
+    if (address.scheme().isEmpty())
     {
-        if( _canBeHttpUrl( url ))
-            address.setScheme( "http" );
+        if (_canBeHttpUrl(url))
+            address.setScheme("http");
         else
-            address = QUrl{ searchUrl.arg( url.toHtmlEscaped( )) };
+            address = QUrl{searchUrl.arg(url.toHtmlEscaped())};
     }
-    QQmlProperty::write( _webengine, "url", address );
+    QQmlProperty::write(_webengine, "url", address);
 }
 
-WebbrowserHistory _getNavigationHistory( const QQuickItem* webengine )
+WebbrowserHistory _getNavigationHistory(const QQuickItem* webengine)
 {
     const auto history = qvariant_cast<QObject*>(
-                             QQmlProperty::read( webengine,
-                                                 "navigationHistory" ));
+        QQmlProperty::read(webengine, "navigationHistory"));
 
-    const auto itemsModel = qvariant_cast<QAbstractListModel*>(
-                                history->property( "items" ));
+    const auto itemsModel =
+        qvariant_cast<QAbstractListModel*>(history->property("items"));
     const auto itemsCount = itemsModel->rowCount();
-    const auto urlRole = itemsModel->roleNames().key( "url" );
+    const auto urlRole = itemsModel->roleNames().key("url");
 
     auto urls = std::vector<QString>();
-    urls.reserve( itemsCount );
-    for( int i = 0; i < itemsCount; ++i )
-        urls.push_back( itemsModel->index( i, 0 ).data( urlRole ).toString( ));
+    urls.reserve(itemsCount);
+    for (int i = 0; i < itemsCount; ++i)
+        urls.push_back(itemsModel->index(i, 0).data(urlRole).toString());
 
-    const auto backItemsModel = qvariant_cast<QAbstractListModel*>(
-                                    history->property( "backItems" ));
-    const auto currentIndex = size_t( backItemsModel->rowCount( ));
+    const auto backItemsModel =
+        qvariant_cast<QAbstractListModel*>(history->property("backItems"));
+    const auto currentIndex = size_t(backItemsModel->rowCount());
 
-    return { std::move( urls ), currentIndex };
+    return {std::move(urls), currentIndex};
 }
 
 void Webbrowser::_sendData()
 {
-    const auto history = _getNavigationHistory( _webengine );
-    const auto title = QQmlProperty::read( _webengine, "title" ).toString();
+    const auto history = _getNavigationHistory(_webengine);
+    const auto title = QQmlProperty::read(_webengine, "title").toString();
     const auto restPort = 0; // no rest interface
-    const auto data = WebbrowserContent::serializeData( history, title,
-                                                        restPort );
-    if( !_qmlStreamer->sendData( data ))
-            QGuiApplication::quit();
+    const auto data =
+        WebbrowserContent::serializeData(history, title, restPort);
+    if (!_qmlStreamer->sendData(data))
+        QGuiApplication::quit();
 }

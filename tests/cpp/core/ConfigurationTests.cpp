@@ -43,11 +43,12 @@
 #include "MinimalGlobalQtApp.h"
 
 #include "MasterConfiguration.h"
-#include "scene/VectorialContent.h"
 #include "WallConfiguration.h"
+#include "scene/VectorialContent.h"
 
 #include <QDir>
 
+// clang-format off
 #define CONFIG_TEST_FILENAME "./configuration.xml"
 #define CONFIG_TEST_FILENAME_II "./configuration_default.xml"
 #define CONFIG_TEST_FILENAME_STEREO "./configuration_stereo.xml"
@@ -69,143 +70,155 @@
 
 #define CONFIG_EXPECTED_APPLAUNCHER "/some/path/to/launcher.qml"
 #define CONFIG_EXPECTED_DEFAULT_APPLAUNCHER ""
+// clang-format on
 
-BOOST_GLOBAL_FIXTURE( MinimalGlobalQtApp );
+BOOST_GLOBAL_FIXTURE(MinimalGlobalQtApp);
 
-void testBaseParameters( const Configuration& config )
+void testBaseParameters(const Configuration& config)
 {
-    BOOST_CHECK_EQUAL( config.getFullscreen(), true );
+    BOOST_CHECK_EQUAL(config.getFullscreen(), true);
 
-    BOOST_CHECK_EQUAL( config.getMullionHeight(), 12 );
-    BOOST_CHECK_EQUAL( config.getMullionWidth(), 14 );
+    BOOST_CHECK_EQUAL(config.getMullionHeight(), 12);
+    BOOST_CHECK_EQUAL(config.getMullionWidth(), 14);
 
-    BOOST_CHECK_EQUAL( config.getScreenHeight(), 1080 );
-    BOOST_CHECK_EQUAL( config.getScreenWidth(), 3840 );
+    BOOST_CHECK_EQUAL(config.getScreenHeight(), 1080);
+    BOOST_CHECK_EQUAL(config.getScreenWidth(), 3840);
 
-    BOOST_CHECK_EQUAL( config.getTotalHeight(), 3264 );
-    BOOST_CHECK_EQUAL( config.getTotalWidth(), 7694 );
+    BOOST_CHECK_EQUAL(config.getTotalHeight(), 3264);
+    BOOST_CHECK_EQUAL(config.getTotalWidth(), 7694);
 
-    BOOST_CHECK_EQUAL( config.getTotalScreenCountX(), 2 );
-    BOOST_CHECK_EQUAL( config.getTotalScreenCountY(), 3 );
+    BOOST_CHECK_EQUAL(config.getTotalScreenCountX(), 2);
+    BOOST_CHECK_EQUAL(config.getTotalScreenCountY(), 3);
 
-    BOOST_CHECK_EQUAL( Content::getMaxScale(), 4.0 );
-    BOOST_CHECK_EQUAL( VectorialContent::getMaxScale(), 8.0 );
+    BOOST_CHECK_EQUAL(Content::getMaxScale(), 4.0);
+    BOOST_CHECK_EQUAL(VectorialContent::getMaxScale(), 8.0);
 }
 
-BOOST_AUTO_TEST_CASE( test_configuration )
+BOOST_AUTO_TEST_CASE(test_configuration)
 {
     // Make sure the values are modified by loading the configuation file
-    BOOST_REQUIRE_NE( Content::getMaxScale(), 4.0 );
-    BOOST_REQUIRE_NE( VectorialContent::getMaxScale(), 8.0 );
+    BOOST_REQUIRE_NE(Content::getMaxScale(), 4.0);
+    BOOST_REQUIRE_NE(VectorialContent::getMaxScale(), 8.0);
 
     // Make sure the values are strictly positive
-    BOOST_REQUIRE_GT( Content::getMaxScale(), 0.0 );
-    BOOST_REQUIRE_GT( VectorialContent::getMaxScale(), 0.0 );
+    BOOST_REQUIRE_GT(Content::getMaxScale(), 0.0);
+    BOOST_REQUIRE_GT(VectorialContent::getMaxScale(), 0.0);
 
-    Configuration config( CONFIG_TEST_FILENAME );
+    Configuration config(CONFIG_TEST_FILENAME);
 
-    testBaseParameters( config );
+    testBaseParameters(config);
 }
 
-BOOST_AUTO_TEST_CASE( test_wall_configuration )
+BOOST_AUTO_TEST_CASE(test_wall_configuration)
 {
     const auto processIndex = 3; // note: starts from 1, not 0
-    WallConfiguration config( CONFIG_TEST_FILENAME, processIndex );
-    BOOST_REQUIRE_EQUAL( config.getProcessIndex(), processIndex );
+    WallConfiguration config(CONFIG_TEST_FILENAME, processIndex);
+    BOOST_REQUIRE_EQUAL(config.getProcessIndex(), processIndex);
 
-    BOOST_CHECK_EQUAL( config.getHost().toStdString(), "bbplxviz03i" );
-    BOOST_CHECK_EQUAL( config.getDisplay().toStdString(), ":0.1" );
-    BOOST_CHECK_EQUAL( config.getProcessCountForHost(), 3 );
-    BOOST_CHECK_EQUAL( config.getGlobalScreenIndex(), QPoint( 0, 2 ));
-    BOOST_CHECK_EQUAL( config.getWindowPos(), QPoint( 0, 2160 ));
-    BOOST_CHECK( config.getStereoMode() == deflect::View::mono );
+    BOOST_CHECK_EQUAL(config.getHost(), "bbplxviz03i");
+    BOOST_CHECK_EQUAL(config.getDisplay(), ":0.1");
+    BOOST_CHECK_EQUAL(config.getProcessCountForHost(), 3);
+    BOOST_CHECK_EQUAL(config.getGlobalScreenIndex(), QPoint(0, 2));
+    BOOST_CHECK_EQUAL(config.getWindowPos(), QPoint(0, 2160));
+    BOOST_CHECK(config.getStereoMode() == deflect::View::mono);
 }
 
-BOOST_AUTO_TEST_CASE( test_stereo_configuration )
+BOOST_AUTO_TEST_CASE(test_stereo_configuration)
 {
-    Configuration config( CONFIG_TEST_FILENAME_STEREO );
+    Configuration config(CONFIG_TEST_FILENAME_STEREO);
 
-    BOOST_CHECK_EQUAL( config.getMullionHeight(), 0 );
-    BOOST_CHECK_EQUAL( config.getMullionWidth(), -60 );
+    BOOST_CHECK_EQUAL(config.getMullionHeight(), 0);
+    BOOST_CHECK_EQUAL(config.getMullionWidth(), -60);
 
-    BOOST_CHECK_EQUAL( config.getScreenWidth(), 1920 );
-    BOOST_CHECK_EQUAL( config.getScreenHeight(), 1200 );
+    BOOST_CHECK_EQUAL(config.getScreenWidth(), 1920);
+    BOOST_CHECK_EQUAL(config.getScreenHeight(), 1200);
 
-    BOOST_CHECK_EQUAL( config.getTotalWidth(), 1920 * 2 - 60 );
-    BOOST_CHECK_EQUAL( config.getTotalHeight(), 1200 );
+    BOOST_CHECK_EQUAL(config.getTotalWidth(), 1920 * 2 - 60);
+    BOOST_CHECK_EQUAL(config.getTotalHeight(), 1200);
 
-    BOOST_CHECK_EQUAL( config.getTotalScreenCountX(), 2 );
-    BOOST_CHECK_EQUAL( config.getTotalScreenCountY(), 1 );
+    BOOST_CHECK_EQUAL(config.getTotalScreenCountX(), 2);
+    BOOST_CHECK_EQUAL(config.getTotalScreenCountY(), 1);
 
     const auto processIndexLeft = 1; // note: starts from 1, not 0
-    WallConfiguration configLeft( CONFIG_TEST_FILENAME_STEREO, processIndexLeft );
-    BOOST_REQUIRE_EQUAL( configLeft.getProcessIndex(), processIndexLeft );
+    WallConfiguration configLeft(CONFIG_TEST_FILENAME_STEREO, processIndexLeft);
+    BOOST_REQUIRE_EQUAL(configLeft.getProcessIndex(), processIndexLeft);
 
-    BOOST_CHECK_EQUAL( configLeft.getHost().toStdString(), "localhost" );
-    BOOST_CHECK_EQUAL( configLeft.getDisplay().toStdString(), ":0.0" );
-    BOOST_CHECK_EQUAL( configLeft.getProcessCountForHost(), 4 );
-    BOOST_CHECK_EQUAL( configLeft.getGlobalScreenIndex(), QPoint( 0, 0 ));
-    BOOST_CHECK_EQUAL( configLeft.getWindowPos(), QPoint( 0, 0 ));
-    BOOST_CHECK( configLeft.getStereoMode() == deflect::View::left_eye );
+    BOOST_CHECK_EQUAL(configLeft.getHost(), "localhost");
+    BOOST_CHECK_EQUAL(configLeft.getDisplay(), ":0.0");
+    BOOST_CHECK_EQUAL(configLeft.getProcessCountForHost(), 4);
+    BOOST_CHECK_EQUAL(configLeft.getGlobalScreenIndex(), QPoint(0, 0));
+    BOOST_CHECK_EQUAL(configLeft.getWindowPos(), QPoint(0, 0));
+    BOOST_CHECK(configLeft.getStereoMode() == deflect::View::left_eye);
 
     const auto processIndexRight = 2; // note: starts from 1, not 0
-    WallConfiguration configRight( CONFIG_TEST_FILENAME_STEREO, processIndexRight );
-    BOOST_REQUIRE_EQUAL( configRight.getProcessIndex(), processIndexRight );
+    WallConfiguration configRight(CONFIG_TEST_FILENAME_STEREO,
+                                  processIndexRight);
+    BOOST_REQUIRE_EQUAL(configRight.getProcessIndex(), processIndexRight);
 
-    BOOST_CHECK_EQUAL( configRight.getHost().toStdString(), "localhost" );
-    BOOST_CHECK_EQUAL( configRight.getDisplay().toStdString(), ":0.1" );
-    BOOST_CHECK_EQUAL( configRight.getProcessCountForHost(), 4 );
-    BOOST_CHECK_EQUAL( configRight.getGlobalScreenIndex(), QPoint( 0, 0 ));
-    BOOST_CHECK_EQUAL( configRight.getWindowPos(), QPoint( 0, 0 ));
-    BOOST_CHECK( configRight.getStereoMode() == deflect::View::right_eye );
+    BOOST_CHECK_EQUAL(configRight.getHost(), "localhost");
+    BOOST_CHECK_EQUAL(configRight.getDisplay(), ":0.1");
+    BOOST_CHECK_EQUAL(configRight.getProcessCountForHost(), 4);
+    BOOST_CHECK_EQUAL(configRight.getGlobalScreenIndex(), QPoint(0, 0));
+    BOOST_CHECK_EQUAL(configRight.getWindowPos(), QPoint(0, 0));
+    BOOST_CHECK(configRight.getStereoMode() == deflect::View::right_eye);
 }
 
-BOOST_AUTO_TEST_CASE( test_master_configuration )
+BOOST_AUTO_TEST_CASE(test_master_configuration)
 {
-    MasterConfiguration config( CONFIG_TEST_FILENAME );
+    MasterConfiguration config(CONFIG_TEST_FILENAME);
 
-    BOOST_CHECK_EQUAL( config.getHeadless(), true );
+    BOOST_CHECK_EQUAL(config.getHeadless(), true);
 
-    BOOST_CHECK_EQUAL( config.getContentDir().toStdString(), CONFIG_EXPECTED_CONTENT_DIR );
-    BOOST_CHECK_EQUAL( config.getSessionsDir().toStdString(), CONFIG_EXPECTED_SESSIONS_DIR );
+    BOOST_CHECK_EQUAL(config.getContentDir(), CONFIG_EXPECTED_CONTENT_DIR);
+    BOOST_CHECK_EQUAL(config.getSessionsDir(), CONFIG_EXPECTED_SESSIONS_DIR);
 
-    BOOST_CHECK_EQUAL( config.getLauncherDisplay().toStdString(), CONFIG_EXPECTED_LAUNCHER_DISPLAY );
-    BOOST_CHECK_EQUAL( config.getDemoServiceUrl().toStdString(), CONFIG_EXPECTED_DEMO_SERVICE_URL );
-    BOOST_CHECK_EQUAL( config.getDemoServiceImageFolder().toStdString(), CONFIG_EXPECTED_DEMO_SERVICE_IMAGE_DIR );
+    BOOST_CHECK_EQUAL(config.getLauncherDisplay(),
+                      CONFIG_EXPECTED_LAUNCHER_DISPLAY);
+    BOOST_CHECK_EQUAL(config.getDemoServiceUrl(),
+                      CONFIG_EXPECTED_DEMO_SERVICE_URL);
+    BOOST_CHECK_EQUAL(config.getDemoServiceImageFolder(),
+                      CONFIG_EXPECTED_DEMO_SERVICE_IMAGE_DIR);
 
-    BOOST_CHECK_EQUAL( config.getWebServicePort(), CONFIG_EXPECTED_WEBSERVICE_PORT );
-    BOOST_CHECK_EQUAL( config.getWebBrowserDefaultURL().toStdString(), CONFIG_EXPECTED_URL );
+    BOOST_CHECK_EQUAL(config.getWebServicePort(),
+                      CONFIG_EXPECTED_WEBSERVICE_PORT);
+    BOOST_CHECK_EQUAL(config.getWebBrowserDefaultURL(), CONFIG_EXPECTED_URL);
 
-    BOOST_CHECK( config.getBackgroundColor() == QColor( CONFIG_EXPECTED_BACKGROUND_COLOR ));
-    BOOST_CHECK_EQUAL( config.getBackgroundUri().toStdString(), CONFIG_EXPECTED_BACKGROUND );
+    BOOST_CHECK(config.getBackgroundColor() ==
+                QColor(CONFIG_EXPECTED_BACKGROUND_COLOR));
+    BOOST_CHECK_EQUAL(config.getBackgroundUri(), CONFIG_EXPECTED_BACKGROUND);
 
-    BOOST_CHECK_EQUAL( config.getAppLauncherFile().toStdString(), CONFIG_EXPECTED_APPLAUNCHER );
+    BOOST_CHECK_EQUAL(config.getAppLauncherFile(), CONFIG_EXPECTED_APPLAUNCHER);
 
-    BOOST_CHECK_EQUAL( config.getWhiteboardSaveFolder().toStdString(), CONFIG_EXPECTED_WHITEBOARD_SAVE_FOLDER );
+    BOOST_CHECK_EQUAL(config.getWhiteboardSaveFolder(),
+                      CONFIG_EXPECTED_WHITEBOARD_SAVE_FOLDER);
 }
 
-BOOST_AUTO_TEST_CASE( test_master_configuration_default_values )
+BOOST_AUTO_TEST_CASE(test_master_configuration_default_values)
 {
-    MasterConfiguration config( CONFIG_TEST_FILENAME_II );
+    MasterConfiguration config(CONFIG_TEST_FILENAME_II);
 
-    BOOST_CHECK_EQUAL( config.getHeadless(), false );
-    BOOST_CHECK_EQUAL( config.getContentDir().toStdString(), QDir::homePath().toStdString() );
-    BOOST_CHECK_EQUAL( config.getSessionsDir().toStdString(), QDir::homePath().toStdString() );
-    BOOST_CHECK_EQUAL( config.getWebServicePort(), CONFIG_EXPECTED_DEFAULT_WEBSERVICE_PORT );
-    BOOST_CHECK_EQUAL( config.getWebBrowserDefaultURL().toStdString(), CONFIG_EXPECTED_DEFAULT_URL );
-    BOOST_CHECK_EQUAL( config.getAppLauncherFile().toStdString(), CONFIG_EXPECTED_DEFAULT_APPLAUNCHER );
-    BOOST_CHECK_EQUAL( config.getWhiteboardSaveFolder().toStdString(), CONFIG_EXPECTED_DEFAULT_WHITEBOARD_SAVE_FOLDER );
+    BOOST_CHECK_EQUAL(config.getHeadless(), false);
+    BOOST_CHECK_EQUAL(config.getContentDir(), QDir::homePath());
+    BOOST_CHECK_EQUAL(config.getSessionsDir(), QDir::homePath());
+    BOOST_CHECK_EQUAL(config.getWebServicePort(),
+                      CONFIG_EXPECTED_DEFAULT_WEBSERVICE_PORT);
+    BOOST_CHECK_EQUAL(config.getWebBrowserDefaultURL(),
+                      CONFIG_EXPECTED_DEFAULT_URL);
+    BOOST_CHECK_EQUAL(config.getAppLauncherFile(),
+                      CONFIG_EXPECTED_DEFAULT_APPLAUNCHER);
+    BOOST_CHECK_EQUAL(config.getWhiteboardSaveFolder(),
+                      CONFIG_EXPECTED_DEFAULT_WHITEBOARD_SAVE_FOLDER);
 }
 
-BOOST_AUTO_TEST_CASE( test_save_configuration )
+BOOST_AUTO_TEST_CASE(test_save_configuration)
 {
     {
-        MasterConfiguration config( CONFIG_TEST_FILENAME );
-        config.setBackgroundColor( QColor( "#123456" ));
-        BOOST_CHECK( config.save( "configuration_modified.xml" ));
+        MasterConfiguration config(CONFIG_TEST_FILENAME);
+        config.setBackgroundColor(QColor("#123456"));
+        BOOST_CHECK(config.save("configuration_modified.xml"));
     }
 
     // Check reloading
-    MasterConfiguration config( "configuration_modified.xml" );
-    BOOST_CHECK( config.getBackgroundColor() == QColor( "#123456" ));
+    MasterConfiguration config("configuration_modified.xml");
+    BOOST_CHECK(config.getBackgroundColor() == QColor("#123456"));
 }

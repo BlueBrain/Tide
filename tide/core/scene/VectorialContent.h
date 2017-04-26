@@ -51,7 +51,7 @@ class VectorialContent : public Content
 
 public:
     /** Constructor **/
-    VectorialContent( const QString& uri );
+    VectorialContent(const QString& uri);
 
     /** @return the max dimensions, used to constrain resize/scale. */
     QSize getMaxDimensions() const override;
@@ -60,14 +60,14 @@ public:
     bool canBeZoomed() const final;
 
     /** Set the maximum factor for zoom and resize; value times base size */
-    static void setMaxScale( qreal value );
+    static void setMaxScale(qreal value);
 
     /** @return the maxium scale factor for zoom and resize */
     static qreal getMaxScale();
 
 protected:
     // Default constructor required for boost::serialization of derived classes
-    VectorialContent() {}
+    VectorialContent() = default;
 
 private:
     static qreal _maxScale;

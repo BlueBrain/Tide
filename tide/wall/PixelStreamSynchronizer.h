@@ -40,8 +40,8 @@
 #ifndef PIXELSTREAMSYNCHRONIZER_H
 #define PIXELSTREAMSYNCHRONIZER_H
 
-#include "TiledSynchronizer.h"
 #include "FpsCounter.h"
+#include "TiledSynchronizer.h"
 
 #include <QObject>
 
@@ -51,7 +51,7 @@
 class PixelStreamSynchronizer : public TiledSynchronizer
 {
     Q_OBJECT
-    Q_DISABLE_COPY( PixelStreamSynchronizer )
+    Q_DISABLE_COPY(PixelStreamSynchronizer)
 
 public:
     /**
@@ -60,14 +60,14 @@ public:
     PixelStreamSynchronizer();
 
     /** Set the source of data for the stream. */
-    void setDataSource( PixelStreamUpdaterSharedPtr updater );
+    void setDataSource(PixelStreamUpdaterSharedPtr updater);
 
     /** @copydoc ContentSynchronizer::update */
-    void update( const ContentWindow& window,
-                 const QRectF& visibleArea ) override;
+    void update(const ContentWindow& window,
+                const QRectF& visibleArea) override;
 
     /** @copydoc ContentSynchronizer::synchronize */
-    void synchronize( WallToWallChannel& channel ) override;
+    void synchronize(WallToWallChannel& channel) override;
 
     /** @copydoc ContentSynchronizer::getTilesArea */
     QSize getTilesArea() const override;
@@ -76,7 +76,7 @@ public:
     QString getStatistics() const override;
 
     /** @copydoc ContentSynchronizer::getTileImage */
-    ImagePtr getTileImage( uint tileIndex ) const override;
+    ImagePtr getTileImage(uint tileIndex) const override;
 
 private:
     PixelStreamUpdaterSharedPtr _updater;

@@ -42,11 +42,11 @@
 #ifndef CONFIGURATION_H
 #define CONFIGURATION_H
 
-#include <QString>
+#include "types.h"
+
 #include <QColor>
 #include <QRectF>
-
-#include "types.h"
+#include <QString>
 
 class QXmlQuery;
 
@@ -76,10 +76,10 @@ public:
      * @param filename path to the xml configuration file
      * @throw std::runtime_error if the file could not be read
      */
-    explicit Configuration( const QString& filename );
+    explicit Configuration(const QString& filename);
 
     /** Destructor. */
-    virtual ~Configuration() {}
+    virtual ~Configuration() = default;
 
     /** Get the filename passed to the constructor. */
     const QString& getFilename() const;
@@ -135,7 +135,7 @@ public:
     double getAspectRatio() const;
 
     /** Get the coordinates and dimensions of a screen in pixel units. */
-    QRect getScreenRect( const QPoint& tileIndex ) const;
+    QRect getScreenRect(const QPoint& tileIndex) const;
 
     /** Display the windows in fullscreen mode. */
     bool getFullscreen() const;
@@ -145,10 +145,10 @@ protected:
     QString _filename;
 
     /** Evaluate the querry and set the result to value on success. */
-    bool getDouble( const QXmlQuery& query, double& value ) const;
-    bool getInt( const QXmlQuery& query, int& value ) const;
-    bool getString( const QXmlQuery& query, QString& value ) const;
-    bool getBool( const QXmlQuery& query, bool& value ) const;
+    bool getDouble(const QXmlQuery& query, double& value) const;
+    bool getInt(const QXmlQuery& query, int& value) const;
+    bool getString(const QXmlQuery& query, QString& value) const;
+    bool getBool(const QXmlQuery& query, bool& value) const;
 
 private:
     int _totalScreenCountX;

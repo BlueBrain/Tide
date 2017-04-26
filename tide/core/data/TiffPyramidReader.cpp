@@ -42,77 +42,80 @@
 #include "log.h"
 #include "types.h"
 
-#include <tiffio.h>
 #include <QPainter>
+#include <tiffio.h>
 
 struct TIFFDeleter
 {
-    void operator()( TIFF* file ) { TIFFClose( file ); }
+    void operator()(TIFF* file) { TIFFClose(file); }
 };
 typedef std::unique_ptr<TIFF, TIFFDeleter> TIFFPtr;
 
 struct TiffPyramidReader::Impl
 {
-    Impl( const QString& uri )
-        : tif{ TIFFOpen( uri.toLocal8Bit().constData(), "r" )}
+    Impl(const QString& uri)
+        : tif{TIFFOpen(uri.toLocal8Bit().constData(), "r")}
     {
-        if( !tif )
-            throw std::runtime_error( "File could not be opened" );
+        if (!tif)
+            throw std::runtime_error("File could not be opened");
 
-        if( !TIFFIsTiled( tif.get( )))
-            throw std::runtime_error( "Not a tiled tiff image" );
+        if (!TIFFIsTiled(tif.get()))
+            throw std::runtime_error("Not a tiled tiff image");
     }
     TIFFPtr tif;
 };
 
-TiffPyramidReader::TiffPyramidReader( const QString& uri )
-    : _impl{ new Impl{ uri }}
-{}
+TiffPyramidReader::TiffPyramidReader(const QString& uri)
+    : _impl{new Impl{uri}}
+{
+}
 
-TiffPyramidReader::~TiffPyramidReader() {}
+TiffPyramidReader::~TiffPyramidReader()
+{
+}
 
 QSize TiffPyramidReader::getImageSize() const
 {
     QSize size;
-    TIFFGetField( _impl->tif.get(), TIFFTAG_IMAGEWIDTH, &size.rwidth( ));
-    TIFFGetField( _impl->tif.get(), TIFFTAG_IMAGELENGTH, &size.rheight( ));
+    TIFFGetField(_impl->tif.get(), TIFFTAG_IMAGEWIDTH, &size.rwidth());
+    TIFFGetField(_impl->tif.get(), TIFFTAG_IMAGELENGTH, &size.rheight());
     return size;
 }
 
 QSize TiffPyramidReader::getTileSize() const
 {
     QSize size;
-    TIFFGetField( _impl->tif.get(), TIFFTAG_TILEWIDTH, &size.rwidth( ));
-    TIFFGetField( _impl->tif.get(), TIFFTAG_TILELENGTH, &size.rheight( ));
+    TIFFGetField(_impl->tif.get(), TIFFTAG_TILEWIDTH, &size.rwidth());
+    TIFFGetField(_impl->tif.get(), TIFFTAG_TILELENGTH, &size.rheight());
     return size;
 }
 
 int TiffPyramidReader::getBytesPerPixel() const
 {
     int value = 0;
-    TIFFGetField( _impl->tif.get(), TIFFTAG_SAMPLESPERPIXEL, &value );
+    TIFFGetField(_impl->tif.get(), TIFFTAG_SAMPLESPERPIXEL, &value);
     return value;
 }
 
 uint TiffPyramidReader::findTopPyramidLevel()
 {
-    return findLevel( getTileSize( ));
+    return findLevel(getTileSize());
 }
 
-uint TiffPyramidReader::findLevel( const QSize& imageSize )
+uint TiffPyramidReader::findLevel(const QSize& imageSize)
 {
-    TIFFSetDirectory( _impl->tif.get(), 0 );
+    TIFFSetDirectory(_impl->tif.get(), 0);
 
     uint level = 0;
-    while( getImageSize() > imageSize && TIFFReadDirectory( _impl->tif.get( )))
+    while (getImageSize() > imageSize && TIFFReadDirectory(_impl->tif.get()))
         ++level;
 
     return level;
 }
 
-QImage::Format _getImageFormat( const int bytesPerPixel )
+QImage::Format _getImageFormat(const int bytesPerPixel)
 {
-    switch( bytesPerPixel )
+    switch (bytesPerPixel)
     {
     case 1:
 #if QT_VERSION >= 0x050500
@@ -129,66 +132,66 @@ QImage::Format _getImageFormat( const int bytesPerPixel )
     }
 }
 
-QImage TiffPyramidReader::readTile( const int i, const int j, const uint lod )
+QImage TiffPyramidReader::readTile(const int i, const int j, const uint lod)
 {
     const QSize tileSize = getTileSize();
 
-    if( !TIFFSetDirectory( _impl->tif.get(), lod ))
+    if (!TIFFSetDirectory(_impl->tif.get(), lod))
     {
-        put_flog( LOG_WARN, "Invalid pyramid level: %d", lod );
+        put_flog(LOG_WARN, "Invalid pyramid level: %d", lod);
         return QImage();
     }
 
-    const QPoint tile( i * tileSize.width(), j * tileSize.height());
-    if( !TIFFCheckTile( _impl->tif.get(), tile.x(), tile.y(), 0, 0 ))
+    const QPoint tile(i * tileSize.width(), j * tileSize.height());
+    if (!TIFFCheckTile(_impl->tif.get(), tile.x(), tile.y(), 0, 0))
     {
-        put_flog( LOG_WARN, "Invalid tile (%d, %d) @ LOD %d", i, j, lod );
+        put_flog(LOG_WARN, "Invalid tile (%d, %d) @ LOD %d", i, j, lod);
         return QImage();
     }
 
-    QImage image( tileSize, _getImageFormat( getBytesPerPixel( )));
-    TIFFReadTile( _impl->tif.get(), image.bits(), tile.x(), tile.y(), 0, 0 );
+    QImage image(tileSize, _getImageFormat(getBytesPerPixel()));
+    TIFFReadTile(_impl->tif.get(), image.bits(), tile.x(), tile.y(), 0, 0);
     return image;
 }
 
 QImage TiffPyramidReader::readTopLevelImage()
 {
-    QImage image = readTile( 0, 0, findTopPyramidLevel( ));
+    QImage image = readTile(0, 0, findTopPyramidLevel());
     const QSize croppedSize = getImageSize(); // assume directory is unchanged
-    if( image.size() != croppedSize )
-        image = image.copy( QRect( QPoint(), croppedSize ));
+    if (image.size() != croppedSize)
+        image = image.copy(QRect(QPoint(), croppedSize));
     return image;
 }
 
-QSize TiffPyramidReader::readSize( const uint lod )
+QSize TiffPyramidReader::readSize(const uint lod)
 {
-    if( !TIFFSetDirectory( _impl->tif.get(), lod ))
+    if (!TIFFSetDirectory(_impl->tif.get(), lod))
     {
-        put_flog( LOG_WARN, "Invalid pyramid level: %d", lod );
+        put_flog(LOG_WARN, "Invalid pyramid level: %d", lod);
         return QSize();
     }
     return getImageSize();
 }
 
-QImage TiffPyramidReader::readImage( const uint lod )
+QImage TiffPyramidReader::readImage(const uint lod)
 {
-    if( !TIFFSetDirectory( _impl->tif.get(), lod ))
+    if (!TIFFSetDirectory(_impl->tif.get(), lod))
     {
-        put_flog( LOG_WARN, "Invalid pyramid level: %d", lod );
+        put_flog(LOG_WARN, "Invalid pyramid level: %d", lod);
         return QImage();
     }
 
-    const auto format = _getImageFormat( getBytesPerPixel( ));
-    QImage tile{ getTileSize(), format };
-    QImage image{ getImageSize(), format };
-    QPainter painter{ &image };
+    const auto format = _getImageFormat(getBytesPerPixel());
+    QImage tile{getTileSize(), format};
+    QImage image{getImageSize(), format};
+    QPainter painter{&image};
 
-    for( int y = 0; y < image.height(); y += tile.height( ))
+    for (int y = 0; y < image.height(); y += tile.height())
     {
-        for( int x = 0; x < image.width(); x += tile.width( ))
+        for (int x = 0; x < image.width(); x += tile.width())
         {
-            TIFFReadTile( _impl->tif.get(), tile.bits(), x, y, 0, 0 );
-            painter.drawImage( x, y, tile );
+            TIFFReadTile(_impl->tif.get(), tile.bits(), x, y, 0, 0);
+            painter.drawImage(x, y, tile);
         }
     }
     return image;

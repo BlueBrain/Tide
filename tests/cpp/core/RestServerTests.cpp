@@ -48,47 +48,45 @@
 #include <QNetworkReply>
 
 #include "MinimalGlobalQtApp.h"
-BOOST_GLOBAL_FIXTURE( MinimalGlobalQtApp );
+BOOST_GLOBAL_FIXTURE(MinimalGlobalQtApp);
 
-
-BOOST_AUTO_TEST_CASE( testDefaultPort )
+BOOST_AUTO_TEST_CASE(testDefaultPort)
 {
     RestServer server;
-    BOOST_CHECK_GT( server.getPort(), 0 );
+    BOOST_CHECK_GT(server.getPort(), 0);
 }
 
-BOOST_AUTO_TEST_CASE( testUnavailablePort )
+BOOST_AUTO_TEST_CASE(testUnavailablePort)
 {
     // system port (<1024)
-    BOOST_CHECK_THROW( RestServer server{ 80 }, std::runtime_error );
+    BOOST_CHECK_THROW(RestServer server{80}, std::runtime_error);
 }
 
-QString sendHttpRequest( const QUrl& url )
+QString sendHttpRequest(const QUrl& url)
 {
     // create custom temporary event loop on stack
     QEventLoop eventLoop;
     // quit the event-loop when the network request finished
     QNetworkAccessManager manager;
-    QObject::connect( &manager, &QNetworkAccessManager::finished,
-                      &eventLoop, &QEventLoop::quit );
+    QObject::connect(&manager, &QNetworkAccessManager::finished, &eventLoop,
+                     &QEventLoop::quit);
 
-    std::unique_ptr<QNetworkReply> reply( manager.get( QNetworkRequest{ url }));
+    std::unique_ptr<QNetworkReply> reply(manager.get(QNetworkRequest{url}));
     eventLoop.exec(); // blocks stack until "finished()" has been called
 
-    return (reply->error() == QNetworkReply::NoError) ? reply->readAll() :
-                                                        reply->errorString();
+    return (reply->error() == QNetworkReply::NoError) ? reply->readAll()
+                                                      : reply->errorString();
 }
 
-BOOST_AUTO_TEST_CASE( testServerReturnsSimpleContent )
+BOOST_AUTO_TEST_CASE(testServerReturnsSimpleContent)
 {
     RestServer server;
-    BOOST_REQUIRE_GT( server.getPort(), 0 );
+    BOOST_REQUIRE_GT(server.getPort(), 0);
 
-    server.get().handleGET( "test", [] { return "Hello World!"; } );
+    server.get().handleGET("test", [] { return "Hello World!"; });
 
-    const auto url = QString( "http://localhost:%1/test" ).arg(
-                         server.getPort( ));
-    const auto response = sendHttpRequest( url );
+    const auto url = QString("http://localhost:%1/test").arg(server.getPort());
+    const auto response = sendHttpRequest(url);
 
-    BOOST_CHECK_EQUAL( response.toStdString(), "Hello World!" );
+    BOOST_CHECK_EQUAL(response.toStdString(), "Hello World!");
 }

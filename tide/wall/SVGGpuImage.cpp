@@ -39,10 +39,11 @@
 
 #include "SVGGpuImage.h"
 
-SVGGpuImage::SVGGpuImage( const SVGTiler& dataSource, const uint tileId )
-    : _dataSource( dataSource )
-    , _tileId( tileId )
-{}
+SVGGpuImage::SVGGpuImage(const SVGTiler& dataSource, const uint tileId)
+    : _dataSource(dataSource)
+    , _tileId(tileId)
+{
+}
 
 int SVGGpuImage::getWidth() const
 {
@@ -54,9 +55,9 @@ int SVGGpuImage::getHeight() const
     return _image->getHeight();
 }
 
-const uint8_t* SVGGpuImage::getData( const uint texture ) const
+const uint8_t* SVGGpuImage::getData(const uint texture) const
 {
-    Q_UNUSED( texture );
+    Q_UNUSED(texture);
     return _image->getData();
 }
 
@@ -78,6 +79,6 @@ bool SVGGpuImage::isGpuImage() const
 bool SVGGpuImage::generateGpuImage()
 {
     // Call getTileImage so that the image gets cached for the next request
-    _image = _dataSource.getTileImage( _tileId );
+    _image = _dataSource.getTileImage(_tileId);
     return true;
 }

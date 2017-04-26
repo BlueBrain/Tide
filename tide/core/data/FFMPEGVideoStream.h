@@ -42,12 +42,11 @@
 
 #include "FFMPEGDefines.h"
 
-extern "C"
-{
-    #include <libavcodec/avcodec.h>
-    #include <libavformat/avformat.h>
-    #include <libavutil/error.h>
-    #include <libavutil/mathematics.h>
+extern "C" {
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libavutil/error.h>
+#include <libavutil/mathematics.h>
 }
 
 #include "types.h"
@@ -61,7 +60,7 @@ public:
      * @param avFormatContext The FFMPEG context.
      * @throw std::runtime_error if an error occured during initialization
      */
-    FFMPEGVideoStream( AVFormatContext& avFormatContext );
+    FFMPEGVideoStream(AVFormatContext& avFormatContext);
 
     /** Destructor. */
     ~FFMPEGVideoStream();
@@ -74,7 +73,7 @@ public:
      * @return The decoded picture, or nullptr if the input is not a video
      *         packet or an error occured.
      */
-    PicturePtr decode( AVPacket& packet, TextureFormat format );
+    PicturePtr decode(AVPacket& packet, TextureFormat format);
 
     /**
      * Partially decode a video packet to determine its timestamp.
@@ -89,14 +88,14 @@ public:
      * @sa getPictureForLastDecodedPacket()
      * @return the packet timestamp, or -1 on error.
      */
-    int64_t decodeTimestamp( AVPacket& packet );
+    int64_t decodeTimestamp(AVPacket& packet);
 
     /**
      * Call after a successful decodeTimestamp to get the corresponding picture.
      * @param format The format for the decoded picture.
      * @return The decoded picture, or nullptr if an error occured.
      */
-    PicturePtr decodePictureForLastPacket( TextureFormat format );
+    PicturePtr decodePictureForLastPacket(TextureFormat format);
 
     /** Get the width of the video stream. */
     unsigned int getWidth() const;
@@ -117,22 +116,22 @@ public:
     AVPixelFormat getAVFormat() const;
 
     /** Get the frameIndex corresponding to the given time in seconds. */
-    int64_t getFrameIndex( double timePositionInSec ) const;
+    int64_t getFrameIndex(double timePositionInSec) const;
 
     /** Get the timestamp corresponding to the given time in seconds. */
-    int64_t getTimestamp( double timePositionInSec ) const;
+    int64_t getTimestamp(double timePositionInSec) const;
 
     /** Get the timestamp corresponding to the given frameIndex. */
-    int64_t getTimestamp( int64_t frameIndex ) const;
+    int64_t getTimestamp(int64_t frameIndex) const;
 
     /** Get the frameIndex corresponding to the given timestamp. */
-    int64_t getFrameIndex( int64_t timestamp ) const ;
+    int64_t getFrameIndex(int64_t timestamp) const;
 
     /** Convert a timestamp to a time in seconds */
-    double getPositionInSec( int64_t timestamp ) const;
+    double getPositionInSec(int64_t timestamp) const;
 
     /** Seek to the nearest full frame in the video. */
-    bool seekToNearestFullframe( int64_t frameIndex );
+    bool seekToNearestFullframe(int64_t frameIndex);
 
 private:
     AVFormatContext& _avFormatContext;
@@ -152,8 +151,8 @@ private:
     void _openVideoStreamDecoder();
     void _generateSeekingParameters();
 
-    bool _isVideoPacket( const AVPacket& packet ) const;
-    bool _decodeToAvFrame( AVPacket& packet );
+    bool _isVideoPacket(const AVPacket& packet) const;
+    bool _decodeToAvFrame(AVPacket& packet);
 };
 
 #endif

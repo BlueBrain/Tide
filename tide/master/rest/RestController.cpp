@@ -50,59 +50,61 @@ using namespace zeroeq;
 
 namespace
 {
-QString _toWindowId( const std::string& httpWindowId )
+QString _toWindowId(const std::string& httpWindowId)
 {
-    return QString( "{%1}" ).arg( httpWindowId.c_str( ));
+    return QString("{%1}").arg(httpWindowId.c_str());
 }
 }
 
-RestController::RestController( http::Server& server, DisplayGroup& group )
-    : _group( group )
-    , _controller( new DisplayGroupController( group ))
+RestController::RestController(http::Server& server, DisplayGroup& group)
+    : _group(group)
+    , _controller(new DisplayGroupController(group))
 {
-    server.handlePUT( "tide/deselect-windows", http::PUTFunc{
-                      std::bind( &RestController::_deselectWindows, this )});
+    server.handlePUT("tide/deselect-windows",
+                     http::PUTFunc{
+                         std::bind(&RestController::_deselectWindows, this)});
 
-    server.handlePUT( "tide/exit-fullscreen", http::PUTFunc{
-                      std::bind( &RestController::_exitFullScreen, this )});
+    server.handlePUT("tide/exit-fullscreen",
+                     http::PUTFunc{
+                         std::bind(&RestController::_exitFullScreen, this)});
 
-    server.handlePUT( "tide/focus-windows", http::PUTFunc{
-                      std::bind( &RestController::_focusWindows, this )});
+    server.handlePUT("tide/focus-windows",
+                     http::PUTFunc{
+                         std::bind(&RestController::_focusWindows, this)});
 
-    server.handlePUT( "tide/unfocus-windows", http::PUTFunc{
-                      std::bind( &RestController::_unfocusWindows, this )});
+    server.handlePUT("tide/unfocus-windows",
+                     http::PUTFunc{
+                         std::bind(&RestController::_unfocusWindows, this)});
 
-    server.handlePUT( "tide/move-window-to-front",
-                      std::bind( &RestController::_moveWindowToFront, this,
-                                 _1 ));
+    server.handlePUT("tide/move-window-to-front",
+                     std::bind(&RestController::_moveWindowToFront, this, _1));
 
-    server.handlePUT( "tide/move-window",
-                      std::bind( &RestController::_moveWindow, this, _1 ));
+    server.handlePUT("tide/move-window",
+                     std::bind(&RestController::_moveWindow, this, _1));
 
-    server.handlePUT( "tide/move-window-to-fullscreen",
-                      std::bind( &RestController::_moveWindowToFullscreen, this,
-                                 _1 ));
+    server.handlePUT("tide/move-window-to-fullscreen",
+                     std::bind(&RestController::_moveWindowToFullscreen, this,
+                               _1));
 
-    server.handlePUT( "tide/resize-window",
-                      std::bind( &RestController::_resizeWindow, this, _1 ));
+    server.handlePUT("tide/resize-window",
+                     std::bind(&RestController::_resizeWindow, this, _1));
 
-    server.handlePUT( "tide/toggle-select-window",
-                      std::bind( &RestController::_toggleSelectWindow, this,
-                                 _1 ));
+    server.handlePUT("tide/toggle-select-window",
+                     std::bind(&RestController::_toggleSelectWindow, this, _1));
 
-    server.handlePUT( "tide/unfocus-window",
-                      std::bind( &RestController::_unfocusWindow, this, _1 ));
+    server.handlePUT("tide/unfocus-window",
+                     std::bind(&RestController::_unfocusWindow, this, _1));
 
-    server.handle( http::Method::DELETE, "tide/windows/",
-                   [this]( const http::Request& request )
-    {
-        if( auto window = _group.getContentWindow( _toWindowId( request.path )))
-        {
-            _group.removeContentWindow( window );
-            return make_ready_response( http::Code::OK );
-        }
-        return make_ready_response( http::Code::NO_CONTENT );
-    });
+    server.handle(http::Method::DELETE, "tide/windows/",
+                  [this](const http::Request& request) {
+                      if (auto window = _group.getContentWindow(
+                              _toWindowId(request.path)))
+                      {
+                          _group.removeContentWindow(window);
+                          return make_ready_response(http::Code::OK);
+                      }
+                      return make_ready_response(http::Code::NO_CONTENT);
+                  });
 }
 
 bool RestController::_deselectWindows()
@@ -129,74 +131,74 @@ bool RestController::_unfocusWindows()
     return true;
 }
 
-bool RestController::_moveWindowToFront( const std::string& payload )
+bool RestController::_moveWindowToFront(const std::string& payload)
 {
-    const auto id = json::toObject( payload )["uri"].toString();
-    return _controller->moveWindowToFront( id );
+    const auto id = json::toObject(payload)["uri"].toString();
+    return _controller->moveWindowToFront(id);
 }
 
-bool RestController::_moveWindowToFullscreen( const std::string& payload )
+bool RestController::_moveWindowToFullscreen(const std::string& payload)
 {
-    const auto id = json::toObject( payload )["uri"].toString();
-    return _controller->showFullscreen( id );
+    const auto id = json::toObject(payload)["uri"].toString();
+    return _controller->showFullscreen(id);
 }
 
-bool RestController::_toggleSelectWindow( const std::string& payload )
+bool RestController::_toggleSelectWindow(const std::string& payload)
 {
-    const auto id = json::toObject( payload )["uri"].toString();
-    if( auto window = _group.getContentWindow( id ))
+    const auto id = json::toObject(payload)["uri"].toString();
+    if (auto window = _group.getContentWindow(id))
     {
-        window->setSelected( !window->isSelected( ));
+        window->setSelected(!window->isSelected());
         return true;
     }
     return false;
 }
 
-bool RestController::_unfocusWindow( const std::string& payload )
+bool RestController::_unfocusWindow(const std::string& payload)
 {
-    const auto id = json::toObject( payload )["uri"].toString();
-    return _controller->unfocus( id );
+    const auto id = json::toObject(payload)["uri"].toString();
+    return _controller->unfocus(id);
 }
 
-bool RestController::_moveWindow( const std::string& payload )
+bool RestController::_moveWindow(const std::string& payload)
 {
-    const auto obj = json::toObject( payload );
-    if( obj.empty() || !obj["uri"].isString() || !obj["x"].isDouble() ||
-        !obj["y"].isDouble( ))
+    const auto obj = json::toObject(payload);
+    if (obj.empty() || !obj["uri"].isString() || !obj["x"].isDouble() ||
+        !obj["y"].isDouble())
     {
         return false;
     }
 
-    auto window = _group.getContentWindow( obj["uri"].toString( ));
-    if( !window )
-       return false;
+    auto window = _group.getContentWindow(obj["uri"].toString());
+    if (!window)
+        return false;
 
-    const auto windowPos = QPointF( obj["x"].toDouble(), obj["y"].toDouble( ));
+    const auto windowPos = QPointF(obj["x"].toDouble(), obj["y"].toDouble());
     const auto fixedPoint = WindowPoint::TOP_LEFT;
 
-    ContentWindowController( *window, _group ).moveTo( windowPos, fixedPoint );
+    ContentWindowController(*window, _group).moveTo(windowPos, fixedPoint);
 
-    _controller->moveWindowToFront( window->getContent()->getURI( ));
+    _controller->moveWindowToFront(window->getContent()->getURI());
     return true;
 }
 
-bool RestController::_resizeWindow( const std::string& payload )
+bool RestController::_resizeWindow(const std::string& payload)
 {
-    const auto obj = json::toObject( payload );
-    if( obj.empty() || !obj["uri"].isString( ) || !obj["w"].isDouble() ||
-        !obj["h"].isDouble() || !obj["centered"].isBool( ))
+    const auto obj = json::toObject(payload);
+    if (obj.empty() || !obj["uri"].isString() || !obj["w"].isDouble() ||
+        !obj["h"].isDouble() || !obj["centered"].isBool())
     {
         return false;
     }
 
-    auto window = _group.getContentWindow( obj["uri"].toString( ));
-    if( !window )
-       return false;
+    auto window = _group.getContentWindow(obj["uri"].toString());
+    if (!window)
+        return false;
 
-    const auto windowSize = QSizeF( obj["w"].toDouble(), obj["h"].toDouble( ));
-    const auto fixedPoint = obj["centered"].toBool() ? WindowPoint::CENTER :
-                                                       WindowPoint::TOP_LEFT;
+    const auto windowSize = QSizeF(obj["w"].toDouble(), obj["h"].toDouble());
+    const auto fixedPoint =
+        obj["centered"].toBool() ? WindowPoint::CENTER : WindowPoint::TOP_LEFT;
 
-    ContentWindowController( *window, _group ).resize( windowSize, fixedPoint );
+    ContentWindowController(*window, _group).resize(windowSize, fixedPoint);
     return true;
 }

@@ -41,7 +41,7 @@
 
 #include "DynamicTextureContent.h"
 
-BOOST_CLASS_EXPORT_GUID( DynamicTextureContent, "DynamicTextureContent" )
+BOOST_CLASS_EXPORT_GUID(DynamicTextureContent, "DynamicTextureContent")
 
 CONTENT_TYPE DynamicTextureContent::getType() const
 {

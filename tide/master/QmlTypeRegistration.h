@@ -52,7 +52,6 @@
 
 namespace master
 {
-
 /**
  * Register types for use in Qml
  */
@@ -60,16 +59,15 @@ void registerQmlTypes()
 {
     ::core::registerQmlTypes();
 
-    qmlRegisterType<MultitouchArea>( MASTER_QML_MODULE, 1, 0, "MultitouchArea");
+    qmlRegisterType<MultitouchArea>(MASTER_QML_MODULE, 1, 0, "MultitouchArea");
 
     qmlRegisterUncreatableType<ContentWindowController>(
-                QML_MODULE, 1, 0, "ContentWindowController",
-                "ContentWindowController is exposed as a context property" );
+        QML_MODULE, 1, 0, "ContentWindowController",
+        "ContentWindowController is exposed as a context property");
     qmlRegisterUncreatableType<ContentController>(
-                QML_MODULE, 1, 0, "ContentController",
-                "ContentController is exposed as a context property" );
+        QML_MODULE, 1, 0, "ContentController",
+        "ContentController is exposed as a context property");
 }
-
 }
 
 #endif

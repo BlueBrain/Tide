@@ -48,72 +48,72 @@
 
 namespace
 {
-const QSize wallSize( 1000, 1000 );
+const QSize wallSize(1000, 1000);
 const int WIDTH = 512;
 const int HEIGHT = 512;
 }
 
-BOOST_AUTO_TEST_CASE( testFocusWindows )
+BOOST_AUTO_TEST_CASE(testFocusWindows)
 {
-    ContentPtr content( new DummyContent );
-    content->setDimensions( QSize( WIDTH, HEIGHT ));
-    ContentWindowPtr window = boost::make_shared<ContentWindow>( content );
+    ContentPtr content(new DummyContent);
+    content->setDimensions(QSize(WIDTH, HEIGHT));
+    ContentWindowPtr window = boost::make_shared<ContentWindow>(content);
     ContentWindowPtr panel =
-            boost::make_shared<ContentWindow>( content, ContentWindow::PANEL );
+        boost::make_shared<ContentWindow>(content, ContentWindow::PANEL);
 
-    BOOST_REQUIRE( !window->isFocused( ));
-    BOOST_REQUIRE( !panel->isFocused( ));
+    BOOST_REQUIRE(!window->isFocused());
+    BOOST_REQUIRE(!panel->isFocused());
 
-    DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
-    displayGroup->addContentWindow( window );
-    displayGroup->addContentWindow( panel );
-    displayGroup->addFocusedWindow( window );
+    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
+    displayGroup->addContentWindow(window);
+    displayGroup->addContentWindow(panel);
+    displayGroup->addFocusedWindow(window);
 
-    BOOST_CHECK( window->isFocused( ));
-    BOOST_CHECK( !panel->isFocused( ));
+    BOOST_CHECK(window->isFocused());
+    BOOST_CHECK(!panel->isFocused());
 
-    displayGroup->removeFocusedWindow( window );
-    BOOST_CHECK( !window->isFocused( ));
+    displayGroup->removeFocusedWindow(window);
+    BOOST_CHECK(!window->isFocused());
 }
 
-BOOST_AUTO_TEST_CASE( testWindowZorder )
+BOOST_AUTO_TEST_CASE(testWindowZorder)
 {
-    ContentPtr content( new DummyContent );
-    content->setDimensions( QSize( WIDTH, HEIGHT ));
-    ContentWindowPtr window0 = boost::make_shared<ContentWindow>( content );
-    ContentWindowPtr window1 = boost::make_shared<ContentWindow>( content );
-    ContentWindowPtr window2 = boost::make_shared<ContentWindow>( content );
+    ContentPtr content(new DummyContent);
+    content->setDimensions(QSize(WIDTH, HEIGHT));
+    ContentWindowPtr window0 = boost::make_shared<ContentWindow>(content);
+    ContentWindowPtr window1 = boost::make_shared<ContentWindow>(content);
+    ContentWindowPtr window2 = boost::make_shared<ContentWindow>(content);
 
-    DisplayGroupPtr group = boost::make_shared<DisplayGroup>( wallSize );
-    BOOST_REQUIRE( group->isEmpty( ));
+    DisplayGroupPtr group = boost::make_shared<DisplayGroup>(wallSize);
+    BOOST_REQUIRE(group->isEmpty());
 
-    BOOST_CHECK_EQUAL( group->getZindex( window0 ), -1 );
-    BOOST_CHECK_EQUAL( group->getZindex( window1 ), -1 );
-    BOOST_CHECK_EQUAL( group->getZindex( window2 ), -1 );
+    BOOST_CHECK_EQUAL(group->getZindex(window0), -1);
+    BOOST_CHECK_EQUAL(group->getZindex(window1), -1);
+    BOOST_CHECK_EQUAL(group->getZindex(window2), -1);
 
-    group->addContentWindow( window0 );
-    group->addContentWindow( window1 );
+    group->addContentWindow(window0);
+    group->addContentWindow(window1);
 
-    BOOST_CHECK_EQUAL( group->getZindex( window0 ), 0 );
-    BOOST_CHECK_EQUAL( group->getZindex( window1 ), 1 );
-    BOOST_CHECK_EQUAL( group->getZindex( window2 ), -1 );
+    BOOST_CHECK_EQUAL(group->getZindex(window0), 0);
+    BOOST_CHECK_EQUAL(group->getZindex(window1), 1);
+    BOOST_CHECK_EQUAL(group->getZindex(window2), -1);
 
-    group->addContentWindow( window2 );
+    group->addContentWindow(window2);
 
-    BOOST_CHECK_EQUAL( group->getZindex( window2 ), 2 );
+    BOOST_CHECK_EQUAL(group->getZindex(window2), 2);
 
-    group->moveToFront( window1 );
-    BOOST_CHECK_EQUAL( group->getZindex( window0 ), 0 );
-    BOOST_CHECK_EQUAL( group->getZindex( window2 ), 1 );
-    BOOST_CHECK_EQUAL( group->getZindex( window1 ), 2 );
+    group->moveToFront(window1);
+    BOOST_CHECK_EQUAL(group->getZindex(window0), 0);
+    BOOST_CHECK_EQUAL(group->getZindex(window2), 1);
+    BOOST_CHECK_EQUAL(group->getZindex(window1), 2);
 
-    group->moveToFront( window0 );
-    BOOST_CHECK_EQUAL( group->getZindex( window2 ), 0 );
-    BOOST_CHECK_EQUAL( group->getZindex( window1 ), 1 );
-    BOOST_CHECK_EQUAL( group->getZindex( window0 ), 2 );
+    group->moveToFront(window0);
+    BOOST_CHECK_EQUAL(group->getZindex(window2), 0);
+    BOOST_CHECK_EQUAL(group->getZindex(window1), 1);
+    BOOST_CHECK_EQUAL(group->getZindex(window0), 2);
 
-    group->removeContentWindow( window1 );
-    BOOST_CHECK_EQUAL( group->getZindex( window2 ), 0 );
-    BOOST_CHECK_EQUAL( group->getZindex( window0 ), 1 );
-    BOOST_CHECK_EQUAL( group->getZindex( window1 ), -1 );
+    group->removeContentWindow(window1);
+    BOOST_CHECK_EQUAL(group->getZindex(window2), 0);
+    BOOST_CHECK_EQUAL(group->getZindex(window0), 1);
+    BOOST_CHECK_EQUAL(group->getZindex(window1), -1);
 }

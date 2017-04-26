@@ -44,8 +44,8 @@
 #include <zeroeq/http/request.h>
 #include <zeroeq/http/server.h>
 
-#include <QStringList>
 #include <QFileInfoList>
+#include <QStringList>
 
 /**
  * Expose file system directory contents in JSON format through HTTP.
@@ -64,8 +64,8 @@ public:
      * @param contentDirectory the root directory path.
      * @param filters used to filter the contents by their extension.
      */
-    FileSystemQuery( const QString& contentDirectory,
-                     const QStringList& filters );
+    FileSystemQuery(const QString& contentDirectory,
+                    const QStringList& filters);
 
     /**
      * List the content of a directory.
@@ -74,14 +74,14 @@ public:
      * @return JSON response with the contents of the directory, or an
      *         appropriate error code on error.
      */
-    std::future<zeroeq::http::Response>
-    list( const zeroeq::http::Request& request );
+    std::future<zeroeq::http::Response> list(
+        const zeroeq::http::Request& request);
 
 private:
     const QString _contentDirectory;
     const QStringList _filters;
 
-    QFileInfoList _contents( const QDir& directory ) const;
+    QFileInfoList _contents(const QDir& directory) const;
 };
 
 #endif

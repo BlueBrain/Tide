@@ -43,77 +43,77 @@
 #include "Tile.h"
 #include "network/WallToWallChannel.h"
 
-TiledSynchronizer::TiledSynchronizer( const TileSwapPolicy policy )
-    : _lod( 0 )
-    , _policy( policy )
-    , _syncSwapPending( false )
-{}
-
-void TiledSynchronizer::onSwapReady( TilePtr tile )
+TiledSynchronizer::TiledSynchronizer(const TileSwapPolicy policy)
+    : _lod(0)
+    , _policy(policy)
+    , _syncSwapPending(false)
 {
-    if( _policy == SwapTilesSynchronously &&
-            _syncSet.find( tile->getId( )) != _syncSet.end( ))
+}
+
+void TiledSynchronizer::onSwapReady(TilePtr tile)
+{
+    if (_policy == SwapTilesSynchronously &&
+        _syncSet.find(tile->getId()) != _syncSet.end())
     {
-        _tilesReadyToSwap.insert( tile );
-        _tilesReadySet.insert( tile->getId( ));
+        _tilesReadyToSwap.insert(tile);
+        _tilesReadySet.insert(tile->getId());
     }
     else
         tile->swapImage();
 }
 
-void TiledSynchronizer::updateTiles( const DataSource& source,
-                                     const bool updateExistingTiles )
+void TiledSynchronizer::updateTiles(const DataSource& source,
+                                    const bool updateExistingTiles)
 {
-    Indices visibleSet = source.computeVisibleSet( _visibleTilesArea, _lod );
-    visibleSet = set_difference( visibleSet, _ignoreSet );
+    Indices visibleSet = source.computeVisibleSet(_visibleTilesArea, _lod);
+    visibleSet = set_difference(visibleSet, _ignoreSet);
 
-    const Indices addedTiles = set_difference( visibleSet, _visibleSet );
-    const Indices removedTiles = set_difference( _visibleSet, visibleSet );
+    const Indices addedTiles = set_difference(visibleSet, _visibleSet);
+    const Indices removedTiles = set_difference(_visibleSet, visibleSet);
 
-    for( auto i : addedTiles )
-        emit addTile( std::make_shared<Tile>( i, source.getTileRect( i ),
-                                              source.getTileFormat( i )));
+    for (auto i : addedTiles)
+        emit addTile(std::make_shared<Tile>(i, source.getTileRect(i),
+                                            source.getTileFormat(i)));
 
-    if( updateExistingTiles )
+    if (updateExistingTiles)
     {
-        const Indices currentTiles = set_difference( _visibleSet, removedTiles);
-        for( auto i : currentTiles )
-            emit updateTile( i, source.getTileRect( i ),
-                             source.getTileFormat( i ));
+        const Indices currentTiles = set_difference(_visibleSet, removedTiles);
+        for (auto i : currentTiles)
+            emit updateTile(i, source.getTileRect(i), source.getTileFormat(i));
     }
 
-    if( _policy == SwapTilesSynchronously )
+    if (_policy == SwapTilesSynchronously)
     {
-        if( updateExistingTiles )
+        if (updateExistingTiles)
         {
             _syncSet = visibleSet;
             _syncSwapPending = true;
         }
         else
-            _syncSet = set_difference( _syncSet, removedTiles );
+            _syncSet = set_difference(_syncSet, removedTiles);
     }
 
-    for( auto i : removedTiles )
-        _removeTile( i );
-    _removeLaterSet = set_difference( _removeLaterSet, addedTiles );
+    for (auto i : removedTiles)
+        _removeTile(i);
+    _removeLaterSet = set_difference(_removeLaterSet, addedTiles);
 
     _visibleSet = visibleSet;
 }
 
-bool TiledSynchronizer::swapTiles( WallToWallChannel& channel )
+bool TiledSynchronizer::swapTiles(WallToWallChannel& channel)
 {
-    if( !_syncSwapPending )
+    if (!_syncSwapPending)
         return false;
 
-    const bool swap = set_difference( _syncSet, _tilesReadySet ).empty();
-    if( !channel.allReady( swap ))
+    const bool swap = set_difference(_syncSet, _tilesReadySet).empty();
+    if (!channel.allReady(swap))
         return false;
 
-    for( auto i : _removeLaterSet )
-        emit removeTile( i );
+    for (auto i : _removeLaterSet)
+        emit removeTile(i);
     _removeLaterSet.clear();
 
-    for( auto& tile : _tilesReadyToSwap )
+    for (auto& tile : _tilesReadyToSwap)
         tile->swapImage();
     _tilesReadyToSwap.clear();
     _tilesReadySet.clear();
@@ -123,10 +123,10 @@ bool TiledSynchronizer::swapTiles( WallToWallChannel& channel )
     return true;
 }
 
-void TiledSynchronizer::_removeTile( const size_t tileIndex )
+void TiledSynchronizer::_removeTile(const size_t tileIndex)
 {
-    if( _policy == SwapTilesSynchronously && _syncSwapPending )
-        _removeLaterSet.insert( tileIndex );
+    if (_policy == SwapTilesSynchronously && _syncSwapPending)
+        _removeLaterSet.insert(tileIndex);
     else
-        emit removeTile( tileIndex );
+        emit removeTile(tileIndex);
 }

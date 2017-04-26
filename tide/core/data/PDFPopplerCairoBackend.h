@@ -54,7 +54,7 @@ public:
      * Open a PDF document for rendering.
      * @throw std::runtime_error if the document could not be opened.
      */
-    PDFPopplerCairoBackend( const QString& uri );
+    PDFPopplerCairoBackend(const QString& uri);
 
     /** Close the document. */
     ~PDFPopplerCairoBackend();
@@ -66,11 +66,11 @@ public:
     int getPageCount() const final;
 
     /** @copydoc PDFBackend::setPage */
-    bool setPage( int pageNumber ) final;
+    bool setPage(int pageNumber) final;
 
     /** @copydoc PDFBackend::renderToImage */
-    QImage renderToImage( const QSize& imageSize,
-                          const QRectF& region ) const final;
+    QImage renderToImage(const QSize& imageSize,
+                         const QRectF& region) const final;
 
 private:
     struct Impl;

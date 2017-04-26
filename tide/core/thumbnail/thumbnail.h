@@ -49,7 +49,6 @@ class Content;
  */
 namespace thumbnail
 {
-
 /**
  * Create a thumbnail for a given content.
  *
@@ -57,7 +56,7 @@ namespace thumbnail
  * @param size the desired size of the thumbnail.
  * @return a valid image of the desired size (can be a placeholder).
  */
-QImage create( const Content& content, const QSize& size );
+QImage create(const Content& content, const QSize& size);
 
 /**
  * Create a thumbnail for a given filename.
@@ -66,8 +65,7 @@ QImage create( const Content& content, const QSize& size );
  * @param size the desired size of the thumbnail.
  * @return a valid image of the desired size (can be a placeholder).
  */
-QImage create( const QString& filename, const QSize& size );
-
+QImage create(const QString& filename, const QSize& size);
 }
 
 #endif

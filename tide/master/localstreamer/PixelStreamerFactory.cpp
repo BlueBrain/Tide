@@ -42,19 +42,19 @@
 #include "CommandLineOptions.h"
 #include "PixelStreamerType.h"
 #ifdef TIDE_USE_QT5WEBKITWIDGETS
-#  include "WebkitPixelStreamer.h"
+#include "WebkitPixelStreamer.h"
 #endif
 
 #include <QSize>
 
-PixelStreamer* PixelStreamerFactory::create( const CommandLineOptions& options )
+PixelStreamer* PixelStreamerFactory::create(const CommandLineOptions& options)
 {
-    const QSize size( options.getWidth(), options.getHeight( ));
-    switch( options.getPixelStreamerType( ))
+    const QSize size(options.getWidth(), options.getHeight());
+    switch (options.getPixelStreamerType())
     {
 #ifdef TIDE_USE_QT5WEBKITWIDGETS
     case PS_WEBKIT:
-        return new WebkitPixelStreamer( size, options.getUrl( ));
+        return new WebkitPixelStreamer(size, options.getUrl());
 #endif
     case PS_UNKNOWN:
     default:

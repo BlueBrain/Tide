@@ -47,7 +47,6 @@ class QJsonObject;
 
 namespace jsonschema
 {
-
 /**
  * Create a JSON schema for a JSON object.
  *
@@ -56,8 +55,8 @@ namespace jsonschema
  * @param description of what the JSON object represents
  * @return the generated schema for the input object
  */
-std::string create( const QString& title, const QJsonObject& object,
-                    const QString& description );
+std::string create(const QString& title, const QJsonObject& object,
+                   const QString& description);
 
 /**
  * Create a JSON schema for a JSON array.
@@ -68,9 +67,8 @@ std::string create( const QString& title, const QJsonObject& object,
  * @param fixedSize indicates if the array has a fixed size
  * @return the generated schema for the input array
  */
-std::string create( const QString& title, const QJsonArray& object,
-                    const QString& description, bool fixedSize = false );
-
+std::string create(const QString& title, const QJsonArray& object,
+                   const QString& description, bool fixedSize = false);
 }
 
 #endif

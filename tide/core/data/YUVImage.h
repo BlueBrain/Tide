@@ -49,7 +49,7 @@ class YUVImage : public Image
 {
 public:
     /** @return the dimensions of the given texture plane (Y=0, U=1, V=2). */
-    QSize getTextureSize( uint texture = 0 ) const override;
+    QSize getTextureSize(uint texture = 0) const override;
 
     /** @copydoc Image::getGLPixelFormat */
     uint getGLPixelFormat() const override;

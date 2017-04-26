@@ -62,7 +62,7 @@ public:
      * @throw std::runtime_error if the port is already in use or a connection
      *        issue occured.
      */
-    explicit RestServer( int port );
+    explicit RestServer(int port);
 
     /** Stop the server. */
     ~RestServer() = default;
@@ -75,8 +75,8 @@ public:
 
 private:
     zeroeq::http::Server _httpServer;
-    QSocketNotifier _socketNotifier{ _httpServer.getSocketDescriptor(),
-                                     QSocketNotifier::Read };
+    QSocketNotifier _socketNotifier{_httpServer.getSocketDescriptor(),
+                                    QSocketNotifier::Read};
     void _init();
 };
 

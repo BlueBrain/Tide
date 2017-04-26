@@ -58,10 +58,9 @@ class Markers : public QAbstractListModel,
                 public boost::enable_shared_from_this<Markers>
 {
     Q_OBJECT
-    Q_DISABLE_COPY( Markers )
+    Q_DISABLE_COPY(Markers)
 
 public:
-
     enum MarkerRoles
     {
         XPOSITION_ROLE = Qt::UserRole,
@@ -69,32 +68,34 @@ public:
     };
 
     /** Constructor */
-    Markers( QObject* parentObject = 0 );
+    Markers(QObject* parentObject = 0);
 
-    QVariant data( const QModelIndex& index, int role ) const override;
-    int rowCount( const QModelIndex& parent = QModelIndex( )) const override;
+    QVariant data(const QModelIndex& index, int role) const override;
+    int rowCount(const QModelIndex& parent = QModelIndex()) const override;
     QHash<int, QByteArray> roleNames() const override;
 
 public slots:
-    void addMarker( int id, const QPointF& position );
-    void updateMarker( int id, const QPointF& position );
-    void removeMarker( int id );
+    void addMarker(int id, const QPointF& position);
+    void updateMarker(int id, const QPointF& position);
+    void removeMarker(int id);
 
 signals:
-    void updated( MarkersPtr markers );
+    void updated(MarkersPtr markers);
 
 private:
     typedef std::pair<int, QPointF> Marker;
     typedef std::vector<Marker> MarkersVector;
 
-    MarkersVector::iterator _findMarker( const int id );
+    MarkersVector::iterator _findMarker(const int id);
 
     friend class boost::serialization::access;
 
-    template<class Archive>
-    void serialize( Archive & ar, const unsigned int )
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int)
     {
+        // clang-format off
         ar & _markers;
+        // clang-format on
     }
 
     MarkersVector _markers;

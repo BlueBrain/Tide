@@ -56,7 +56,7 @@ public:
      * @throw std::runtime_error if image is invalid or not in 32 bits format
      * @sa is32Bits
      */
-    explicit QtImage( const QImage& image );
+    explicit QtImage(const QImage& image);
 
     /** @copydoc Image::getWidth */
     int getWidth() const override;
@@ -65,7 +65,7 @@ public:
     int getHeight() const override;
 
     /** @copydoc Image::getData */
-    const uint8_t* getData( uint texture = 0 ) const override;
+    const uint8_t* getData(uint texture = 0) const override;
 
     /** @copydoc Image::getFormat */
     TextureFormat getFormat() const override;
@@ -74,7 +74,7 @@ public:
     uint getGLPixelFormat() const override;
 
     /** @return true if the image format is 32 bits per pixel. */
-    static bool is32Bits( const QImage& image )
+    static bool is32Bits(const QImage& image)
     {
         return !image.isNull() && image.bytesPerLine() / image.width() == 4;
     }

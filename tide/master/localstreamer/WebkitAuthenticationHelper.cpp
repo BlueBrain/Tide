@@ -41,63 +41,61 @@
 
 #include "log.h"
 
-#include <QWebView>
-#include <QWebFrame>
-#include <QWebElement>
 #include <QAuthenticator>
-#include <QNetworkReply>
 #include <QFile>
+#include <QNetworkReply>
 #include <QTextStream>
+#include <QWebElement>
+#include <QWebFrame>
+#include <QWebView>
 
-#define HTTP_LOGIN_PAGE_URL             ":/html/login-form.htm"
-#define HTTP_FORM_SELECTOR              "form[name=http-login-form]"
-#define HTTP_WEBSITE_URL_ELEM_SELECTOR  "p[id=website_url]"
-#define HTTP_USERNAME_INPUT_NAME        "username"
-#define HTTP_PASSWORD_INPUT_NAME        "password"
+#define HTTP_LOGIN_PAGE_URL ":/html/login-form.htm"
+#define HTTP_FORM_SELECTOR "form[name=http-login-form]"
+#define HTTP_WEBSITE_URL_ELEM_SELECTOR "p[id=website_url]"
+#define HTTP_USERNAME_INPUT_NAME "username"
+#define HTTP_PASSWORD_INPUT_NAME "password"
 
-
-WebkitAuthenticationHelper::WebkitAuthenticationHelper( QWebView& webView )
-    : _webView( webView )
-    , _userHasInputNewCredentials( false )
+WebkitAuthenticationHelper::WebkitAuthenticationHelper(QWebView& webView)
+    : _webView(webView)
+    , _userHasInputNewCredentials(false)
 {
-    connect( _webView.page()->networkAccessManager(),
-             SIGNAL( authenticationRequired( QNetworkReply*, QAuthenticator* )),
-             this,
-             SLOT( handleAuthenticationRequest( QNetworkReply*, QAuthenticator* )));
+    connect(_webView.page()->networkAccessManager(),
+            SIGNAL(authenticationRequired(QNetworkReply*, QAuthenticator*)),
+            this,
+            SLOT(handleAuthenticationRequest(QNetworkReply*, QAuthenticator*)));
 }
 
-void WebkitAuthenticationHelper::handleAuthenticationRequest( QNetworkReply*,
-                                                              QAuthenticator*
-                                                              authenticator )
+void WebkitAuthenticationHelper::handleAuthenticationRequest(
+    QNetworkReply*, QAuthenticator* authenticator)
 {
     // This method is only called by the QNetworkAccessManager when
     // authentication has failed
-    if( _userHasInputNewCredentials )
+    if (_userHasInputNewCredentials)
     {
-        _sendCredentials( authenticator );
+        _sendCredentials(authenticator);
         _userHasInputNewCredentials = false;
     }
     else
     {
-        connect( &_webView, SIGNAL( loadFinished( bool )),
-                 this, SLOT( errorPageFinishedLoading( bool )));
+        connect(&_webView, SIGNAL(loadFinished(bool)), this,
+                SLOT(errorPageFinishedLoading(bool)));
     }
 }
 
-void WebkitAuthenticationHelper::_sendCredentials( QAuthenticator*
-                                                   authenticator ) const
+void WebkitAuthenticationHelper::_sendCredentials(
+    QAuthenticator* authenticator) const
 {
-    authenticator->setUser( _username );
-    authenticator->setPassword( _password );
+    authenticator->setUser(_username);
+    authenticator->setPassword(_password);
 }
 
-void WebkitAuthenticationHelper::errorPageFinishedLoading( const bool ok )
+void WebkitAuthenticationHelper::errorPageFinishedLoading(const bool ok)
 {
-    if( !ok )
+    if (!ok)
         return;
 
-    disconnect( &_webView, SIGNAL( loadFinished( bool )),
-                this, SLOT( errorPageFinishedLoading( bool )));
+    disconnect(&_webView, SIGNAL(loadFinished(bool)), this,
+               SLOT(errorPageFinishedLoading(bool)));
 
     _displayLoginPage();
     _registerLoginFormCallbacks();
@@ -106,41 +104,42 @@ void WebkitAuthenticationHelper::errorPageFinishedLoading( const bool ok )
 void WebkitAuthenticationHelper::_displayLoginPage()
 {
     // Note: Also setting target URL in webview for future call to reload()
-    _webView.setHtml( _readQrcFile( HTTP_LOGIN_PAGE_URL ), _webView.url( ));
+    _webView.setHtml(_readQrcFile(HTTP_LOGIN_PAGE_URL), _webView.url());
 
     // Display target url
     QWebElement document = _webView.page()->mainFrame()->documentElement();
-    QWebElement urlElem = document.findFirst( HTTP_WEBSITE_URL_ELEM_SELECTOR );
-    urlElem.setInnerXml( _webView.url().toString( ));
+    QWebElement urlElem = document.findFirst(HTTP_WEBSITE_URL_ELEM_SELECTOR);
+    urlElem.setInnerXml(_webView.url().toString());
 }
 
 void WebkitAuthenticationHelper::_registerLoginFormCallbacks()
 {
     QWebFrame* frame = _webView.page()->mainFrame();
-    frame->addToJavaScriptWindowObject( "authenticationHelper", this );
+    frame->addToJavaScriptWindowObject("authenticationHelper", this);
 
-    QWebElement form = frame->findFirstElement( HTTP_FORM_SELECTOR );
-    form.setAttribute( "onsubmit",
-                       QString( "authenticationHelper.loginFormSubmitted();" ));
+    QWebElement form = frame->findFirstElement(HTTP_FORM_SELECTOR);
+    form.setAttribute("onsubmit",
+                      QString("authenticationHelper.loginFormSubmitted();"));
 
-    const QString value( "authenticationHelper.loginFormInputChanged(this.name,"
-                         " this.value);" );
-    QWebElementCollection inputs = form.findAll( "input" );
-    foreach( QWebElement input, inputs )
+    const QString value(
+        "authenticationHelper.loginFormInputChanged(this.name,"
+        " this.value);");
+    QWebElementCollection inputs = form.findAll("input");
+    foreach (QWebElement input, inputs)
     {
-        input.setAttribute( "onchange", value );
+        input.setAttribute("onchange", value);
     }
 }
 
-void WebkitAuthenticationHelper::loginFormInputChanged( const QString& inputName,
-                                                        const QString& inputValue )
+void WebkitAuthenticationHelper::loginFormInputChanged(
+    const QString& inputName, const QString& inputValue)
 {
-    if( inputName == HTTP_USERNAME_INPUT_NAME )
+    if (inputName == HTTP_USERNAME_INPUT_NAME)
     {
         _username = inputValue;
         _userHasInputNewCredentials = true;
     }
-    else if( inputName == HTTP_PASSWORD_INPUT_NAME )
+    else if (inputName == HTTP_PASSWORD_INPUT_NAME)
     {
         _password = inputValue;
         _userHasInputNewCredentials = true;
@@ -152,15 +151,15 @@ void WebkitAuthenticationHelper::loginFormSubmitted()
     _webView.reload();
 }
 
-QString WebkitAuthenticationHelper::_readQrcFile( const QString& filename )
+QString WebkitAuthenticationHelper::_readQrcFile(const QString& filename)
 {
-    QFile file( filename );
-    if( file.open( QIODevice::ReadOnly | QIODevice::Text ))
+    QFile file(filename);
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text))
     {
-        QTextStream stream( &file );
+        QTextStream stream(&file);
         return stream.readAll();
     }
-    put_flog( LOG_ERROR, "Qt Resource not found: '%s'",
-              filename.toLocal8Bit().constData( ));
+    put_flog(LOG_ERROR, "Qt Resource not found: '%s'",
+             filename.toLocal8Bit().constData());
     return QString();
 }

@@ -51,17 +51,21 @@
 class ContentAction : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY( ContentAction )
+    Q_DISABLE_COPY(ContentAction)
 
-    Q_PROPERTY( QString icon READ getIcon NOTIFY iconChanged )
-    Q_PROPERTY( QString iconChecked READ getIconChecked NOTIFY iconCheckedChanged )
-    Q_PROPERTY( bool checkable READ isCheckable WRITE setCheckable NOTIFY checkableChanged )
-    Q_PROPERTY( bool checked READ isChecked WRITE setChecked NOTIFY checkedChanged )
-    Q_PROPERTY( bool enabled READ isEnabled WRITE setEnabled NOTIFY enabledChanged )
+    Q_PROPERTY(QString icon READ getIcon NOTIFY iconChanged)
+    Q_PROPERTY(
+        QString iconChecked READ getIconChecked NOTIFY iconCheckedChanged)
+    Q_PROPERTY(bool checkable READ isCheckable WRITE setCheckable NOTIFY
+                   checkableChanged)
+    Q_PROPERTY(
+        bool checked READ isChecked WRITE setChecked NOTIFY checkedChanged)
+    Q_PROPERTY(
+        bool enabled READ isEnabled WRITE setEnabled NOTIFY enabledChanged)
 
 public:
     /** Constructor. */
-    explicit ContentAction( const QUuid& actionId = QUuid::createUuid( ));
+    explicit ContentAction(const QUuid& actionId = QUuid::createUuid());
 
     /** @name QProperty getters */
     //@{
@@ -78,11 +82,11 @@ public slots:
 
     /** @name QProperty setters */
     //@{
-    void setIcon( QString icon );
-    void setIconChecked( QString icon );
-    void setChecked( bool value );
-    void setCheckable( bool value );
-    void setEnabled( bool value );
+    void setIcon(QString icon);
+    void setIconChecked(QString icon);
+    void setChecked(bool value);
+    void setCheckable(bool value);
+    void setEnabled(bool value);
     //@}
 
 signals:
@@ -93,7 +97,7 @@ signals:
     void unchecked();
 
     /** The action has been triggered. */
-    void triggered( bool checked );
+    void triggered(bool checked);
 
     /** @name QProperty notifiers */
     //@{
@@ -107,14 +111,16 @@ signals:
 private:
     friend class boost::serialization::access;
 
-    template< class Archive >
-    void serialize( Archive & ar, const unsigned int )
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int)
     {
-        ar & boost::serialization::make_nvp( "icon", _icon );
-        ar & boost::serialization::make_nvp( "iconChecked", _iconChecked );
-        ar & boost::serialization::make_nvp( "checkable", _checkable );
-        ar & boost::serialization::make_nvp( "checked", _checked );
-        ar & boost::serialization::make_nvp( "enabled", _enabled );
+        // clang-format off
+        ar & boost::serialization::make_nvp("icon", _icon);
+        ar & boost::serialization::make_nvp("iconChecked", _iconChecked);
+        ar & boost::serialization::make_nvp("checkable", _checkable);
+        ar & boost::serialization::make_nvp("checked", _checked);
+        ar & boost::serialization::make_nvp("enabled", _enabled);
+        // clang-format on
     }
 
     QUuid _uuid;

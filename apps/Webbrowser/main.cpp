@@ -42,27 +42,27 @@
 #include "tide/core/log.h"
 #include "tide/master/localstreamer/CommandLineOptions.h"
 
-int main( int argc, char** argv )
+int main(int argc, char** argv)
 {
     logger_id = "webbrowser";
-    qInstallMessageHandler( qtMessageLogger );
+    qInstallMessageHandler(qtMessageLogger);
 
-    COMMAND_LINE_PARSER_CHECK( CommandLineOptions, "tideWebbrowser" );
+    COMMAND_LINE_PARSER_CHECK(CommandLineOptions, "tideWebbrowser");
 
     // Load virtualkeyboard input context plugin
-    qputenv( "QT_IM_MODULE", QByteArray( "virtualkeyboard" ));
+    qputenv("QT_IM_MODULE", QByteArray("virtualkeyboard"));
 
     // Equivalent to QtWebEngine::initialize() inside the application.
-    QGuiApplication::setAttribute( Qt::AA_ShareOpenGLContexts );
+    QGuiApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
 
     std::unique_ptr<Webbrowser> webbrowser;
     try
     {
-        webbrowser.reset( new Webbrowser( argc, argv ));
+        webbrowser.reset(new Webbrowser(argc, argv));
     }
-    catch( const std::runtime_error& exception )
+    catch (const std::runtime_error& exception)
     {
-        put_flog( LOG_ERROR, "failed to start: %s", exception.what( ));
+        put_flog(LOG_ERROR, "failed to start: %s", exception.what());
         return EXIT_FAILURE;
     }
     return webbrowser->exec();

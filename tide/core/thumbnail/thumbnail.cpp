@@ -39,34 +39,32 @@
 
 #include "thumbnail.h"
 
-#include "config.h"
 #include "ThumbnailGeneratorFactory.h"
+#include "config.h"
 
 #if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
-#include "scene/WebbrowserContent.h"
 #include "WebbrowserThumbnailGenerator.h"
+#include "scene/WebbrowserContent.h"
 #endif
 
 namespace thumbnail
 {
-
-QImage create( const Content& content, const QSize& size )
+QImage create(const Content& content, const QSize& size)
 {
-    if( content.getType() == CONTENT_TYPE_PIXEL_STREAM )
+    if (content.getType() == CONTENT_TYPE_PIXEL_STREAM)
         return {};
 
 #if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
-    if( auto web = dynamic_cast<const WebbrowserContent*>( &content ))
-        return WebbrowserThumbnailGenerator{ size }.generate( web->getUrl( ));
+    if (auto web = dynamic_cast<const WebbrowserContent*>(&content))
+        return WebbrowserThumbnailGenerator{size}.generate(web->getUrl());
 #endif
 
-    return create( content.getURI(), size );
+    return create(content.getURI(), size);
 }
 
-QImage create( const QString& filename, const QSize& size )
+QImage create(const QString& filename, const QSize& size)
 {
-    auto generator = ThumbnailGeneratorFactory::getGenerator( filename, size );
-    return generator->generate( filename );
+    auto generator = ThumbnailGeneratorFactory::getGenerator(filename, size);
+    return generator->generate(filename);
 }
-
 }

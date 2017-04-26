@@ -41,17 +41,18 @@
 
 #include "MathUtils.h"
 
-TapDetector::TapDetector( const qreal moveThresholdPx )
-    : _moveThresholdPx( moveThresholdPx )
-{}
+TapDetector::TapDetector(const qreal moveThresholdPx)
+    : _moveThresholdPx(moveThresholdPx)
+{
+}
 
-void TapDetector::initGesture( const Positions& positions )
+void TapDetector::initGesture(const Positions& positions)
 {
     // Last finger released
-    if( positions.empty( ))
+    if (positions.empty())
     {
-        if( !_tapCanceled )
-            emit tap( _tapCenter, _numPoints );
+        if (!_tapCanceled)
+            emit tap(_tapCenter, _numPoints);
 
         _tapCanceled = false;
         _touchStartPos.clear();
@@ -59,21 +60,21 @@ void TapDetector::initGesture( const Positions& positions )
         return;
     }
 
-    if( _tapCanceled )
+    if (_tapCanceled)
         return;
 
-    if( positions.size() > _touchStartPos.size( ))
+    if (positions.size() > _touchStartPos.size())
     {
-        _tapCenter = MathUtils::computeCenter( positions );
+        _tapCenter = MathUtils::computeCenter(positions);
         _numPoints = positions.size();
     }
     _touchStartPos = positions;
 }
 
-void TapDetector::updateGesture( const Positions& positions )
+void TapDetector::updateGesture(const Positions& positions)
 {
-    if( !_tapCanceled )
-        _cancelGestureIfMoved( positions );
+    if (!_tapCanceled)
+        _cancelGestureIfMoved(positions);
 }
 
 void TapDetector::cancelGesture()
@@ -81,8 +82,8 @@ void TapDetector::cancelGesture()
     _tapCanceled = true;
 }
 
-void TapDetector::_cancelGestureIfMoved( const Positions& positions )
+void TapDetector::_cancelGestureIfMoved(const Positions& positions)
 {
-    if( MathUtils::hasMoved( positions, _touchStartPos, _moveThresholdPx ))
+    if (MathUtils::hasMoved(positions, _touchStartPos, _moveThresholdPx))
         cancelGesture();
 }

@@ -45,62 +45,64 @@
 #include "MasterApplication.h"
 #include "network/MPIChannel.h"
 
-#include <memory>
-#include <stdexcept>
 #include <QThreadPool>
 
-int main( int argc, char* argv[] )
+#include <memory>
+#include <stdexcept>
+
+int main(int argc, char* argv[])
 {
     logger_id = "master";
-    qInstallMessageHandler( qtMessageLogger );
+    qInstallMessageHandler(qtMessageLogger);
 
-    COMMAND_LINE_PARSER_CHECK( CommandLineParameters, "tideMaster" );
+    COMMAND_LINE_PARSER_CHECK(CommandLineParameters, "tideMaster");
 
     // Load virtualkeyboard input context plugin
-    qputenv( "QT_IM_MODULE", QByteArray( "virtualkeyboard" ));
+    qputenv("QT_IM_MODULE", QByteArray("virtualkeyboard"));
 
     {
-        MPIChannelPtr worldChannel( new MPIChannel( argc, argv ));
-        if( worldChannel->getSize() < 2 )
+        MPIChannelPtr worldChannel(new MPIChannel(argc, argv));
+        if (worldChannel->getSize() < 2)
         {
             std::cerr << "MPI group size < 2 detected. Use tide script or check"
-                         " MPI configuration." << std::endl;
+                         " MPI configuration."
+                      << std::endl;
             return EXIT_FAILURE;
         }
 
         const int rank = worldChannel->getRank();
-        MPIChannelPtr localChannel( new MPIChannel( *worldChannel, 0, rank ));
-        MPIChannelPtr mainChannel( new MPIChannel( *worldChannel, 1, rank ));
+        MPIChannelPtr localChannel(new MPIChannel(*worldChannel, 0, rank));
+        MPIChannelPtr mainChannel(new MPIChannel(*worldChannel, 1, rank));
 
-        std::unique_ptr< MasterApplication > app;
+        std::unique_ptr<MasterApplication> app;
         try
         {
             const auto config = commandLine.getConfigFilename();
-            app.reset( new MasterApplication( argc, argv, config, mainChannel,
-                                              localChannel ));
+            app.reset(new MasterApplication(argc, argv, config, mainChannel,
+                                            localChannel));
         }
-        catch( const std::runtime_error& e )
+        catch (const std::runtime_error& e)
         {
-            put_flog( LOG_FATAL, "Could not initialize application. %s",
-                      e.what( ));
+            put_flog(LOG_FATAL, "Could not initialize application. %s",
+                     e.what());
 
             // Avoid MPI deadlock, tell the other applications to quit
             // (normally done by MasterApplication destructor).
-            localChannel->send( MPIMessageType::QUIT, "", 1 );
-            mainChannel->sendAll( MPIMessageType::QUIT );
+            localChannel->send(MPIMessageType::QUIT, "", 1);
+            mainChannel->sendAll(MPIMessageType::QUIT);
 
             return EXIT_FAILURE;
         }
 
         const auto& session = commandLine.getSessionFilename();
-        if( !session.isEmpty( ))
-            app->load( session );
+        if (!session.isEmpty())
+            app->load(session);
 
         app->exec(); // enter Qt event loop
 
-        put_flog( LOG_DEBUG, "waiting for threads to finish..." );
+        put_flog(LOG_DEBUG, "waiting for threads to finish...");
         QThreadPool::globalInstance()->waitForDone();
     }
-    put_flog( LOG_DEBUG, "done." );
+    put_flog(LOG_DEBUG, "done.");
     return EXIT_SUCCESS;
 }

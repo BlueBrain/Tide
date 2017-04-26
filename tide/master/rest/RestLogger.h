@@ -55,7 +55,7 @@ public:
      *
      * @param logger which contains the statistics to expose.
      */
-    RestLogger( const LoggingUtility& logger );
+    RestLogger(const LoggingUtility& logger);
 
     /** @return the string used as an endpoint by REST interface. */
     std::string getTypeName() const final;

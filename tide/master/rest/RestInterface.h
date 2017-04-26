@@ -40,9 +40,9 @@
 #ifndef RESTINTERFACE_H
 #define RESTINTERFACE_H
 
-#include "types.h"
 #include "JsonSize.h"
 #include "RestLogger.h"
+#include "types.h"
 
 #include <QObject>
 
@@ -70,32 +70,32 @@ public:
      * @throw std::runtime_error if the port is already in use or a connection
      *        issue occured.
      */
-    RestInterface( int port, OptionsPtr options,
-                   const MasterConfiguration& config );
+    RestInterface(int port, OptionsPtr options,
+                  const MasterConfiguration& config);
 
     /** Out-of-line destructor. */
     ~RestInterface();
 
     /** Expose the statistics gathered by the given logging utility. */
-    void exposeStatistics( const LoggingUtility& logger ) const;
+    void exposeStatistics(const LoggingUtility& logger) const;
 
     /**
      * Set-up the HTML interface.
      * @param group DisplayGroup exposed via the interface
      * @param config MasterConfiguration used to set-up the interface
      */
-    void setupHtmlInterface( DisplayGroup& group,
-                             const MasterConfiguration& config );
+    void setupHtmlInterface(DisplayGroup& group,
+                            const MasterConfiguration& config);
 
 signals:
     /** Open a content. */
-    void open( QString uri, const QPointF coords, promisePtr promise );
+    void open(QString uri, const QPointF coords, promisePtr promise);
 
     /** Load a session. */
-    void load( QString uri, promisePtr promise );
+    void load(QString uri, promisePtr promise);
 
     /** Save a session to the given file. */
-    void save( QString uri, promisePtr promise );
+    void save(QString uri, promisePtr promise);
 
     /** Clear all contents. */
     void clear();
@@ -104,10 +104,10 @@ signals:
     void whiteboard();
 
     /** Browse a website. */
-    void browse( QString uri );
+    void browse(QString uri);
 
     /** Take a screenshot. */
-    void screenshot( QString filename );
+    void screenshot(QString filename);
 
     /** Exit the application. */
     void exit();

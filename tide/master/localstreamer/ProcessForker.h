@@ -42,8 +42,8 @@
 
 #include "types.h"
 
-#include <map>
 #include <QStringList>
+#include <map>
 
 class QProcess;
 
@@ -73,7 +73,7 @@ public:
      * Constructor
      * @param mpiChannel to receive commands from the master application
      */
-    explicit ProcessForker( MPIChannelPtr mpiChannel );
+    explicit ProcessForker(MPIChannelPtr mpiChannel);
 
     /** Process MPI commands until a quit message is received. */
     void run();
@@ -82,11 +82,11 @@ private:
     MPIChannelPtr _mpiChannel;
     bool _processMessages;
 
-    typedef std::map< QString, QProcess* > Processes;
+    typedef std::map<QString, QProcess*> Processes;
     Processes _processes;
 
-    void _launch( const QString& command, const QString& workingDir,
-                  const QStringList& env );
+    void _launch(const QString& command, const QString& workingDir,
+                 const QStringList& env);
 };
 
 #endif

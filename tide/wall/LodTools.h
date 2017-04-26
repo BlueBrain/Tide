@@ -42,8 +42,8 @@
 
 #include "types.h"
 
-#include <map>
 #include <QMutex>
+#include <map>
 
 /**
  * Tools to compute LOD pyramid data for a 2D tiled image.
@@ -70,34 +70,34 @@ public:
      * @param contentSize the size of the full resolution content
      * @param tileSize the size of the tiles to subdivide the content
      */
-    LodTools( const QSize& contentSize, uint tileSize );
+    LodTools(const QSize& contentSize, uint tileSize);
 
     /** @return the max LOD level (top of pyramid, lowest resolution) */
     uint getMaxLod() const;
 
     /** @return the area covered by the tiles at the given lod. */
-    QSize getTilesArea( uint lod ) const;
+    QSize getTilesArea(uint lod) const;
 
     /** @return the number of tiles for the given lod. */
-    QSize getTilesCount( uint lod ) const;
+    QSize getTilesCount(uint lod) const;
 
     /** @return the total number of tiles in the pyramid. */
     uint getTilesCount() const;
 
     /** @return the index of the first tile of the given lod. */
-    uint getFirstTileId( uint lod ) const;
+    uint getFirstTileId(uint lod) const;
 
     /** @return the index of the given tile. */
-    TileIndex getTileIndex( uint tileId ) const;
+    TileIndex getTileIndex(uint tileId) const;
 
     /** @return the coordinates of the given tile. */
-    QRect getTileCoord( uint tileId ) const;
+    QRect getTileCoord(uint tileId) const;
 
     /** @return all the tile coordinates for the given lod. */
-    const TileInfos& getAllTileInfos( uint lod ) const;
+    const TileInfos& getAllTileInfos(uint lod) const;
 
     /** @return the IDs of the tiles of the given LOD visible in the area. */
-    Indices getVisibleTiles( const QRectF& area, uint lod ) const;
+    Indices getVisibleTiles(const QRectF& area, uint lod) const;
 
 private:
     const QSize _contentSize;

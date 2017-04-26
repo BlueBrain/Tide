@@ -60,14 +60,14 @@ public:
      * @param uri the file to open.
      * @sa isValid()
      */
-    explicit SVG( const QString& uri );
+    explicit SVG(const QString& uri);
 
     /**
      * Create an svg document from existing data.
      * @param svgData the svg data, typically read from an svg file
      * @throw std::runtime_error if the data is invalid
      */
-    explicit SVG( const QByteArray& svgData );
+    explicit SVG(const QByteArray& svgData);
 
     /** Close the document. */
     ~SVG();
@@ -92,8 +92,8 @@ public:
      * @note when using the SVGQtGpuBackend, this function must be called from a
      *       thread with an active OpenGL context
      */
-    QImage renderToImage( const QSize& imageSize,
-                          const QRectF& region = UNIT_RECTF ) const;
+    QImage renderToImage(const QSize& imageSize,
+                         const QRectF& region = UNIT_RECTF) const;
 
 private:
     struct Impl;

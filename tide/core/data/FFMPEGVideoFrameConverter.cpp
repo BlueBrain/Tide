@@ -47,14 +47,13 @@
 
 #include "FFMPEGDefines.h"
 
-extern "C"
-{
-    #include <libswscale/swscale.h>
+extern "C" {
+#include <libswscale/swscale.h>
 }
 
-AVPixelFormat _toAVPixelFormat( const TextureFormat format )
+AVPixelFormat _toAVPixelFormat(const TextureFormat format)
 {
-    switch( format )
+    switch (format)
     {
     case TextureFormat::rgba:
         return AV_PIX_FMT_RGBA;
@@ -65,7 +64,7 @@ AVPixelFormat _toAVPixelFormat( const TextureFormat format )
     case TextureFormat::yuv444:
         return AV_PIX_FMT_YUV444P;
     default:
-        throw std::logic_error( "FFMPEGPicture: unsupported format" );
+        throw std::logic_error("FFMPEGPicture: unsupported format");
     }
 }
 
@@ -75,52 +74,48 @@ struct FFMPEGVideoFrameConverter::Impl
 };
 
 FFMPEGVideoFrameConverter::FFMPEGVideoFrameConverter()
-    : _impl( new Impl )
+    : _impl(new Impl)
 {
 }
 
 FFMPEGVideoFrameConverter::~FFMPEGVideoFrameConverter()
 {
-    sws_freeContext( _impl->swsContext );
+    sws_freeContext(_impl->swsContext);
 }
 
-PicturePtr FFMPEGVideoFrameConverter::convert( const FFMPEGFrame& srcFrame,
-                                               const TextureFormat format )
+PicturePtr FFMPEGVideoFrameConverter::convert(const FFMPEGFrame& srcFrame,
+                                              const TextureFormat format)
 {
-    auto picture = std::make_shared<FFMPEGPicture>( srcFrame.getWidth(),
-                                                    srcFrame.getHeight(),
-                                                    format );
+    auto picture =
+        std::make_shared<FFMPEGPicture>(srcFrame.getWidth(),
+                                        srcFrame.getHeight(), format);
 
-    const auto avFormat = _toAVPixelFormat( format );
+    const auto avFormat = _toAVPixelFormat(format);
 
-    _impl->swsContext = sws_getCachedContext( _impl->swsContext,
-                                              srcFrame.getWidth(),
-                                              srcFrame.getHeight(),
-                                              srcFrame.getAVPixelFormat(),
-                                              picture->getWidth(),
-                                              picture->getHeight(),
-                                              avFormat,
-                                              SWS_FAST_BILINEAR,
-                                              nullptr, nullptr, nullptr );
-    if( !_impl->swsContext )
+    _impl->swsContext =
+        sws_getCachedContext(_impl->swsContext, srcFrame.getWidth(),
+                             srcFrame.getHeight(), srcFrame.getAVPixelFormat(),
+                             picture->getWidth(), picture->getHeight(),
+                             avFormat, SWS_FAST_BILINEAR, nullptr, nullptr,
+                             nullptr);
+    if (!_impl->swsContext)
         return PicturePtr();
 
     uint8_t* dstData[3];
     int linesize[3];
-    for( size_t i = 0; i < 3; ++i )
+    for (size_t i = 0; i < 3; ++i)
     {
-        dstData[i] = picture->getData( i );
+        dstData[i] = picture->getData(i);
         // width of image plane in pixels * bytes per pixel
-        linesize[i] = picture->getDataSize( i ) /
-                      picture->getTextureSize( i ).height();
+        linesize[i] =
+            picture->getDataSize(i) / picture->getTextureSize(i).height();
     }
 
-    const auto outputHeight = sws_scale( _impl->swsContext,
-                                         srcFrame.getAVFrame().data,
-                                         srcFrame.getAVFrame().linesize,
-                                         0, srcFrame.getHeight(),
-                                         dstData, linesize );
-    if( outputHeight != picture->getHeight( ))
+    const auto outputHeight =
+        sws_scale(_impl->swsContext, srcFrame.getAVFrame().data,
+                  srcFrame.getAVFrame().linesize, 0, srcFrame.getHeight(),
+                  dstData, linesize);
+    if (outputHeight != picture->getHeight())
         return PicturePtr();
 
     return picture;

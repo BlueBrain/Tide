@@ -46,15 +46,17 @@ namespace po = boost::program_options;
 CommandLineParameters::CommandLineParameters()
 {
     // using std::string because QString is not std::istream'able
+    // clang-format off
     desc.add_options()
         ("config", po::value<std::string>()->required(),
          "path to configuration file [required]")
         ("sessionfile", po::value<std::string>()->default_value(""),
          "path to an initial session file")
     ;
+    // clang-format on
 }
 
-void CommandLineParameters::showSyntax( const std::string& appName ) const
+void CommandLineParameters::showSyntax(const std::string& appName) const
 {
     std::cout << "Usage: mpiexec " << appName << " --config FILE\n\n";
     std::cout << desc << std::endl;
@@ -63,10 +65,10 @@ void CommandLineParameters::showSyntax( const std::string& appName ) const
 
 QString CommandLineParameters::getConfigFilename() const
 {
-    return QString::fromStdString( vm["config"].as<std::string>( ));
+    return QString::fromStdString(vm["config"].as<std::string>());
 }
 
 QString CommandLineParameters::getSessionFilename() const
 {
-    return QString::fromStdString( vm["sessionfile"].as<std::string>( ));
+    return QString::fromStdString(vm["sessionfile"].as<std::string>());
 }

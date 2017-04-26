@@ -39,19 +39,19 @@
 
 #include "ContentFactory.h"
 
-#include "log.h"
 #include "config.h"
+#include "log.h"
 
 #include "Content.h"
 #if TIDE_USE_TIFF
-#  include "ImagePyramidContent.h"
-#  include "data/TiffPyramidReader.h"
+#include "ImagePyramidContent.h"
+#include "data/TiffPyramidReader.h"
 #endif
 #if TIDE_ENABLE_MOVIE_SUPPORT
-#  include "MovieContent.h"
+#include "MovieContent.h"
 #endif
 #if TIDE_ENABLE_PDF_SUPPORT
-#  include "PDFContent.h"
+#include "PDFContent.h"
 #endif
 #include "PixelStreamContent.h"
 #include "SVGContent.h"
@@ -69,119 +69,122 @@
 
 namespace
 {
-const QSize maxTextureSize( 16384, 16384 );
+const QSize maxTextureSize(16384, 16384);
 }
 
-CONTENT_TYPE ContentFactory::getContentTypeForFile( const QString& uri )
+CONTENT_TYPE ContentFactory::getContentTypeForFile(const QString& uri)
 {
-    const QString extension = QFileInfo( uri ).suffix().toLower();
+    const QString extension = QFileInfo(uri).suffix().toLower();
 
     // SVGs must be processed first because they can also be read as an image
-    if( SVGContent::getSupportedExtensions().contains( extension ))
+    if (SVGContent::getSupportedExtensions().contains(extension))
         return CONTENT_TYPE_SVG;
 
 #if TIDE_ENABLE_MOVIE_SUPPORT
-    if( MovieContent::getSupportedExtensions().contains( extension ))
+    if (MovieContent::getSupportedExtensions().contains(extension))
         return CONTENT_TYPE_MOVIE;
 #endif
 
 #if TIDE_ENABLE_PDF_SUPPORT
-    if( PDFContent::getSupportedExtensions().contains( extension ))
+    if (PDFContent::getSupportedExtensions().contains(extension))
         return CONTENT_TYPE_PDF;
 #endif
 
 #if TIDE_USE_TIFF
-    if( ImagePyramidContent::getSupportedExtensions().contains( extension ))
+    if (ImagePyramidContent::getSupportedExtensions().contains(extension))
     {
         try
         {
-            TiffPyramidReader tif{ uri };
+            TiffPyramidReader tif{uri};
             return CONTENT_TYPE_IMAGE_PYRAMID;
         }
-        catch( ... ) { /* not a pyramid file, pass */ }
+        catch (...)
+        { /* not a pyramid file, pass */
+        }
     }
 #endif
 
-    const QImageReader imageReader( uri );
-    if( imageReader.canRead( ))
+    const QImageReader imageReader(uri);
+    if (imageReader.canRead())
     {
         const QSize size = imageReader.size();
 
-        if( size.width() <= maxTextureSize.width() &&
-            size.height() <= maxTextureSize.height( ))
+        if (size.width() <= maxTextureSize.width() &&
+            size.height() <= maxTextureSize.height())
             return CONTENT_TYPE_TEXTURE;
 
-        put_flog( LOG_WARN, "Image too big to open. Try converting it to an "
-                            "image pyramid: '%s'",
-                  uri.toLocal8Bit().constData( ));
+        put_flog(LOG_WARN,
+                 "Image too big to open. Try converting it to an "
+                 "image pyramid: '%s'",
+                 uri.toLocal8Bit().constData());
         return CONTENT_TYPE_ANY;
     }
 
     return CONTENT_TYPE_ANY;
 }
 
-ContentPtr ContentFactory::getContent( const QString& uri )
+ContentPtr ContentFactory::getContent(const QString& uri)
 {
     ContentPtr content;
 
-    switch( getContentTypeForFile( uri ))
+    switch (getContentTypeForFile(uri))
     {
     case CONTENT_TYPE_SVG:
-        content = boost::make_shared<SVGContent>( uri );
+        content = boost::make_shared<SVGContent>(uri);
         break;
 #if TIDE_USE_TIFF
     case CONTENT_TYPE_IMAGE_PYRAMID:
-        content = boost::make_shared<ImagePyramidContent>( uri );
+        content = boost::make_shared<ImagePyramidContent>(uri);
         break;
 #endif
 #if TIDE_ENABLE_MOVIE_SUPPORT
     case CONTENT_TYPE_MOVIE:
-        content = boost::make_shared<MovieContent>( uri );
+        content = boost::make_shared<MovieContent>(uri);
         break;
 #endif
 #if TIDE_ENABLE_PDF_SUPPORT
     case CONTENT_TYPE_PDF:
-        content = boost::make_shared<PDFContent>( uri );
+        content = boost::make_shared<PDFContent>(uri);
         break;
 #endif
     case CONTENT_TYPE_TEXTURE:
-        content = boost::make_shared<TextureContent>( uri );
+        content = boost::make_shared<TextureContent>(uri);
         break;
     case CONTENT_TYPE_ANY:
     default:
         break;
     }
 
-    if( content && content->readMetadata( ))
+    if (content && content->readMetadata())
         return content;
 
     return ContentPtr();
 }
 
-ContentPtr ContentFactory::getPixelStreamContent( const QString& uri,
-                                                  StreamType stream )
+ContentPtr ContentFactory::getPixelStreamContent(const QString& uri,
+                                                 StreamType stream)
 {
-    if ( stream == StreamType::WEBBROWSER )
+    if (stream == StreamType::WEBBROWSER)
     {
 #if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
-        return ContentPtr( new WebbrowserContent( uri ));
+        return ContentPtr(new WebbrowserContent(uri));
 #else
-        Q_UNUSED( uri );
-        throw std::runtime_error( "Tide compiled without WebbrowserContent!" );
+        Q_UNUSED(uri);
+        throw std::runtime_error("Tide compiled without WebbrowserContent!");
 #endif
     }
     else
     {
         const auto keyboard = stream == StreamType::EXTERNAL;
-        return ContentPtr( new PixelStreamContent( uri, keyboard ));
+        return ContentPtr(new PixelStreamContent(uri, keyboard));
     }
 }
 
-ContentPtr ContentFactory::getErrorContent( const QSize& size )
+ContentPtr ContentFactory::getErrorContent(const QSize& size)
 {
-    ContentPtr content( new TextureContent( ERROR_IMAGE_FILENAME ));
-    if( !size.isEmpty( ))
-        content->setDimensions( size );
+    ContentPtr content(new TextureContent(ERROR_IMAGE_FILENAME));
+    if (!size.isEmpty())
+        content->setDimensions(size);
     else
         content->readMetadata();
     return content;
@@ -191,15 +194,15 @@ const QStringList& ContentFactory::getSupportedExtensions()
 {
     static QStringList extensions;
 
-    if( extensions.empty( ))
+    if (extensions.empty())
     {
 #if TIDE_ENABLE_PDF_SUPPORT
-        extensions.append( PDFContent::getSupportedExtensions( ));
+        extensions.append(PDFContent::getSupportedExtensions());
 #endif
-        extensions.append( SVGContent::getSupportedExtensions( ));
-        extensions.append( TextureContent::getSupportedExtensions( ));
+        extensions.append(SVGContent::getSupportedExtensions());
+        extensions.append(TextureContent::getSupportedExtensions());
 #if TIDE_ENABLE_MOVIE_SUPPORT
-        extensions.append( MovieContent::getSupportedExtensions( ));
+        extensions.append(MovieContent::getSupportedExtensions());
 #endif
         extensions.removeDuplicates();
     }
@@ -211,11 +214,11 @@ const QStringList& ContentFactory::getSupportedFilesFilter()
 {
     static QStringList filters;
 
-    if( filters.empty( ))
+    if (filters.empty())
     {
         const QStringList& extensions = getSupportedExtensions();
-        foreach( const QString ext, extensions )
-            filters.append( "*." + ext );
+        foreach (const QString ext, extensions)
+            filters.append("*." + ext);
     }
 
     return filters;
@@ -226,10 +229,10 @@ QString ContentFactory::getSupportedFilesFilterAsString()
     const QStringList& extensions = getSupportedFilesFilter();
 
     QString s;
-    QTextStream out( &s );
+    QTextStream out(&s);
 
     out << "Content files (";
-    foreach( const QString ext, extensions )
+    foreach (const QString ext, extensions)
         out << ext << " ";
     out << ")";
 

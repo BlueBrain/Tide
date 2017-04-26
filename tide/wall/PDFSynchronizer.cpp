@@ -39,73 +39,73 @@
 
 #include "PDFSynchronizer.h"
 
-#include "scene/ContentWindow.h"
-#include "scene/PDFContent.h"
 #include "Tile.h"
 #include "ZoomHelper.h"
+#include "scene/ContentWindow.h"
+#include "scene/PDFContent.h"
 
-PDFSynchronizer::PDFSynchronizer( const QString& uri )
-    : LodSynchronizer( TileSwapPolicy::SwapTilesIndependently )
-    , _pdf( uri )
-    , _tileSource( _pdf )
-{}
+PDFSynchronizer::PDFSynchronizer(const QString& uri)
+    : LodSynchronizer(TileSwapPolicy::SwapTilesIndependently)
+    , _pdf(uri)
+    , _tileSource(_pdf)
+{
+}
 
-void PDFSynchronizer::update( const ContentWindow& window,
-                              const QRectF& visibleArea )
+void PDFSynchronizer::update(const ContentWindow& window,
+                             const QRectF& visibleArea)
 {
     auto content = window.getContent();
-    const PDFContent& pdfContent = dynamic_cast<const PDFContent&>( *content );
+    const PDFContent& pdfContent = dynamic_cast<const PDFContent&>(*content);
     const bool pageChanged = pdfContent.getPage() != _pdf.getPage();
-    _pdf.setPage( pdfContent.getPage( ));
+    _pdf.setPage(pdfContent.getPage());
 
     // Adapted from LODSynchronizer::update to support page change.
-    const ZoomHelper helper( window );
-    const uint lod = getLod( helper.getContentRect().size().toSize( ));
-    const QSize tilesSurface = getDataSource().getTilesArea( lod );
-    const QRectF visibleTilesArea = helper.toTilesArea( visibleArea,
-                                                        tilesSurface );
+    const ZoomHelper helper(window);
+    const uint lod = getLod(helper.getContentRect().size().toSize());
+    const QSize tilesSurface = getDataSource().getTilesArea(lod);
+    const QRectF visibleTilesArea =
+        helper.toTilesArea(visibleArea, tilesSurface);
 
-    if( !pageChanged && visibleTilesArea == _visibleTilesArea && lod == _lod )
+    if (!pageChanged && visibleTilesArea == _visibleTilesArea && lod == _lod)
         return;
 
     _visibleTilesArea = visibleTilesArea;
 
-    if( pageChanged )
+    if (pageChanged)
         emit zoomContextTileChanged();
 
     const bool lodChanged = lod != _lod;
-    if( lodChanged )
+    if (lodChanged)
     {
         _lod = lod;
         emit tilesAreaChanged();
     }
 
-    if( pageChanged || lodChanged )
+    if (pageChanged || lodChanged)
         emit statisticsChanged();
 
-    setBackgroundTile( _tileSource.getPreviewTileId( ));
+    setBackgroundTile(_tileSource.getPreviewTileId());
 
-    TiledSynchronizer::updateTiles( getDataSource(), false );
+    TiledSynchronizer::updateTiles(getDataSource(), false);
 }
 
-void PDFSynchronizer::synchronize( WallToWallChannel& channel )
+void PDFSynchronizer::synchronize(WallToWallChannel& channel)
 {
-    Q_UNUSED( channel );
+    Q_UNUSED(channel);
 }
 
 QString PDFSynchronizer::getStatistics() const
 {
-    const QString page = QString( " page %1/%2" ).arg(
-                             _pdf.getPage() + 1 ).arg(
-                             _pdf.getPageCount( ));
+    const QString page =
+        QString(" page %1/%2").arg(_pdf.getPage() + 1).arg(_pdf.getPageCount());
     return LodSynchronizer::getStatistics() + page;
 }
 
 TilePtr PDFSynchronizer::getZoomContextTile() const
 {
     const auto tileId = _tileSource.getPreviewTileId();
-    const auto rect = getDataSource().getTileRect( tileId );
-    return std::make_shared<Tile>( tileId, rect );
+    const auto rect = getDataSource().getTileRect(tileId);
+    return std::make_shared<Tile>(tileId, rect);
 }
 
 const DataSource& PDFSynchronizer::getDataSource() const

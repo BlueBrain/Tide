@@ -44,17 +44,18 @@
 
 namespace
 {
-const QString JQUERY_FILE =          { ":/selectboxit/jquery.min.js" };
-const QString JQUERY_UI_FILE =       { ":/selectboxit/jquery-ui.min.js" };
-const QString SELECTBOXIT_JS_FILE  = { ":/selectboxit/jquery.selectBoxIt.min.js" };
-const QString SELECTBOXIT_CSS_FILE = { ":/selectboxit/selectboxit.css" };
-const QString SELECTBOXIT_REPLACE =  { "var selectBox = $(\"select\").selectBoxIt();" };
+const QString JQUERY_FILE = {":/selectboxit/jquery.min.js"};
+const QString JQUERY_UI_FILE = {":/selectboxit/jquery-ui.min.js"};
+const QString SELECTBOXIT_JS_FILE = {":/selectboxit/jquery.selectBoxIt.min.js"};
+const QString SELECTBOXIT_CSS_FILE = {":/selectboxit/selectboxit.css"};
+const QString SELECTBOXIT_REPLACE = {
+    "var selectBox = $(\"select\").selectBoxIt();"};
 }
 
-QString _read( const QString& jsFile )
+QString _read(const QString& jsFile)
 {
-    QFile file( jsFile );
-    file.open( QIODevice::ReadOnly );
+    QFile file(jsFile);
+    file.open(QIODevice::ReadOnly);
     const auto js = file.readAll();
     file.close();
     return js;
@@ -62,24 +63,27 @@ QString _read( const QString& jsFile )
 
 QString _readCss()
 {
-    QFile file{ SELECTBOXIT_CSS_FILE };
-    file.open( QIODevice::ReadOnly );
-    auto cssStyle = QString{ file.readAll() };
+    QFile file{SELECTBOXIT_CSS_FILE};
+    file.open(QIODevice::ReadOnly);
+    auto cssStyle = QString{file.readAll()};
     file.close();
-    cssStyle.remove( QRegExp{ "[\\n\\t\\r]" } );
-    return QString{ "loadCSS = function(href) {"
-                    "  var cssStyle = $(\"<style> %1 </style>\");"
-                    "  $(\"head\").append(cssStyle);"
-                    "};"
-                    "loadCSS();" }.arg( cssStyle );
+    cssStyle.remove(QRegExp{"[\\n\\t\\r]"});
+    return QString{
+        "loadCSS = function(href) {"
+        "  var cssStyle = $(\"<style> %1 </style>\");"
+        "  $(\"head\").append(cssStyle);"
+        "};"
+        "loadCSS();"}
+        .arg(cssStyle);
 }
 
 HtmlSelectReplacer::HtmlSelectReplacer()
-    : _jQuery( _read( JQUERY_FILE ))
-    , _jQueryUI( _read( JQUERY_UI_FILE ))
-    , _selectboxit( _read( SELECTBOXIT_JS_FILE ))
-    , _selectboxitCss( _readCss( ))
-{}
+    : _jQuery(_read(JQUERY_FILE))
+    , _jQueryUI(_read(JQUERY_UI_FILE))
+    , _selectboxit(_read(SELECTBOXIT_JS_FILE))
+    , _selectboxitCss(_readCss())
+{
+}
 
 const QString& HtmlSelectReplacer::getJQuery() const
 {

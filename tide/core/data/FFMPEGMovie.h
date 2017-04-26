@@ -42,12 +42,11 @@
 
 #include "FFMPEGDefines.h"
 
-extern "C"
-{
-    #include <libavcodec/avcodec.h>
-    #include <libavformat/avformat.h>
-    #include <libavutil/error.h>
-    #include <libavutil/mathematics.h>
+extern "C" {
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libavutil/error.h>
+#include <libavutil/mathematics.h>
 }
 
 #include "types.h"
@@ -64,7 +63,7 @@ public:
      * Constructor.
      * @param uri: the movie file to open.
      */
-    FFMPEGMovie( const QString& uri );
+    FFMPEGMovie(const QString& uri);
 
     /** Destructor */
     ~FFMPEGMovie();
@@ -81,7 +80,8 @@ public:
     /** Get the current time position in seconds. */
     double getPosition() const;
 
-    /** Get the movie duration in seconds. May be unavailable for some movies. */
+    /** Get the movie duration in seconds. May be unavailable for some movies.
+     */
     double getDuration() const;
 
     /** Get the duration of a frame in seconds. */
@@ -91,7 +91,7 @@ public:
     TextureFormat getFormat() const;
 
     /** Set the format of the decoded movie frames, overwriting the default. */
-    void setFormat( TextureFormat format );
+    void setFormat(TextureFormat format);
 
     /**
      * Get a frame at the given position in seconds.
@@ -100,7 +100,7 @@ public:
      * @return the decoded movie image that was closest to posInSeconds, nullptr
      *         otherwise
      */
-    PicturePtr getFrame( double posInSeconds );
+    PicturePtr getFrame(double posInSeconds);
 
 private:
     AVFormatContext* _avFormatContext = nullptr;
@@ -110,8 +110,8 @@ private:
     double _streamPosition = 0.0;
     const bool _isValid = false;
 
-    bool _open( const QString& uri );
-    bool _createAvFormatContext( const QString& uri );
+    bool _open(const QString& uri);
+    bool _createAvFormatContext(const QString& uri);
     void _releaseAvFormatContext();
 };
 

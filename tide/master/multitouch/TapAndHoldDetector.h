@@ -51,25 +51,25 @@
 class TapAndHoldDetector : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY( TapAndHoldDetector )
+    Q_DISABLE_COPY(TapAndHoldDetector)
 
 public:
-    TapAndHoldDetector( uint tapAndHoldTimeoutMs, qreal moveThresholdPx );
+    TapAndHoldDetector(uint tapAndHoldTimeoutMs, qreal moveThresholdPx);
 
-    void initGesture( const Positions& positions );
-    void updateGesture( const Positions& positions );
+    void initGesture(const Positions& positions);
+    void updateGesture(const Positions& positions);
     void cancelGesture();
 
 signals:
     /** Emitted after a prolonged non-moving touch with one or more fingers. */
-    void tapAndHold( QPointF pos, uint numPoints );
+    void tapAndHold(QPointF pos, uint numPoints);
 
 private:
     const qreal _moveThresholdPx;
     QTimer _tapAndHoldTimer;
     Positions _touchStartPos;
 
-    void _cancelGestureIfMoved( const Positions& positions );
+    void _cancelGestureIfMoved(const Positions& positions);
 };
 
 #endif

@@ -42,30 +42,30 @@
 #pragma clang diagnostic ignored "-Wdeprecated"
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-FFMPEGPicture::FFMPEGPicture( const uint width, const uint height,
-                              const TextureFormat format )
-    : _width{ width }
-    , _height{ height }
-    , _format{ format }
+FFMPEGPicture::FFMPEGPicture(const uint width, const uint height,
+                             const TextureFormat format)
+    : _width{width}
+    , _height{height}
+    , _format{format}
 {
-    switch( format )
+    switch (format)
     {
     case TextureFormat::rgba:
-        _data[0] = QByteArray{ int(width * height * 4), Qt::Uninitialized };
+        _data[0] = QByteArray{int(width * height * 4), Qt::Uninitialized};
         break;
     case TextureFormat::yuv420:
     case TextureFormat::yuv422:
     case TextureFormat::yuv444:
     {
-        const auto uvSize = getTextureSize( 1 );
-        const int uvDataSize =  uvSize.width() *  uvSize.height();
-        _data[0] = QByteArray{ int(width * height), Qt::Uninitialized };
-        _data[1] = QByteArray{ uvDataSize, Qt::Uninitialized };
-        _data[2] = QByteArray{ uvDataSize, Qt::Uninitialized };
+        const auto uvSize = getTextureSize(1);
+        const int uvDataSize = uvSize.width() * uvSize.height();
+        _data[0] = QByteArray{int(width * height), Qt::Uninitialized};
+        _data[1] = QByteArray{uvDataSize, Qt::Uninitialized};
+        _data[2] = QByteArray{uvDataSize, Qt::Uninitialized};
         break;
     }
     default:
-        throw std::logic_error( "FFMPEGPicture: unsupported format" );
+        throw std::logic_error("FFMPEGPicture: unsupported format");
     }
 }
 
@@ -79,12 +79,12 @@ int FFMPEGPicture::getHeight() const
     return _height;
 }
 
-const uint8_t* FFMPEGPicture::getData( const uint texture ) const
+const uint8_t* FFMPEGPicture::getData(const uint texture) const
 {
-    if( texture >= _data.size( ))
+    if (texture >= _data.size())
         return nullptr;
 
-    return reinterpret_cast<const uint8_t*>( _data[texture].constData( ));
+    return reinterpret_cast<const uint8_t*>(_data[texture].constData());
 }
 
 TextureFormat FFMPEGPicture::getFormat() const
@@ -92,17 +92,17 @@ TextureFormat FFMPEGPicture::getFormat() const
     return _format;
 }
 
-uint8_t* FFMPEGPicture::getData( const uint texture )
+uint8_t* FFMPEGPicture::getData(const uint texture)
 {
-    if( texture >= _data.size( ))
+    if (texture >= _data.size())
         return nullptr;
 
-    return reinterpret_cast<uint8_t*>( _data[texture].data( ));
+    return reinterpret_cast<uint8_t*>(_data[texture].data());
 }
 
-size_t FFMPEGPicture::getDataSize( const uint texture ) const
+size_t FFMPEGPicture::getDataSize(const uint texture) const
 {
-    if( texture >= _data.size( ))
+    if (texture >= _data.size())
         return 0;
 
     return _data[texture].size();
@@ -110,9 +110,8 @@ size_t FFMPEGPicture::getDataSize( const uint texture ) const
 
 QImage FFMPEGPicture::toQImage() const
 {
-    if( getFormat() != TextureFormat::rgba )
+    if (getFormat() != TextureFormat::rgba)
         return QImage();
 
-    return QImage( getData(), getWidth(), getHeight(),
-                   QImage::Format_RGBA8888 );
+    return QImage(getData(), getWidth(), getHeight(), QImage::Format_RGBA8888);
 }

@@ -62,8 +62,8 @@ public:
      * @return the generator for the file type if it exists, otherwise a default
      *         generator.
      */
-    static ThumbnailGeneratorPtr getGenerator( const QString& filename,
-                                               const QSize& size );
+    static ThumbnailGeneratorPtr getGenerator(const QString& filename,
+                                              const QSize& size);
 };
 
 #endif

@@ -45,67 +45,72 @@
 #include <QPainter>
 #include <QPen>
 
-#define FONT_SIZE   24
-#define LINE_WIDTH  10
-#define TEXT_POS_X  50
+#define FONT_SIZE 24
+#define LINE_WIDTH 10
+#define TEXT_POS_X 50
 
-TestPattern::TestPattern( const WallConfiguration& configuration,
-                          QQuickItem* parent_ )
-    : QQuickPaintedItem( parent_ )
-    , _wallSize( configuration.getTotalSize( ))
+TestPattern::TestPattern(const WallConfiguration& configuration,
+                         QQuickItem* parent_)
+    : QQuickPaintedItem(parent_)
+    , _wallSize(configuration.getTotalSize())
 {
-    setVisible( false );
-    setSize( configuration.getTotalSize( ));
+    setVisible(false);
+    setSize(configuration.getTotalSize());
 
     const QPoint globalScreenIndex = configuration.getGlobalScreenIndex();
-    const QString fullsceenMode = configuration.getFullscreen() ? "True" : "False";
+    const QString fullsceenMode =
+        configuration.getFullscreen() ? "True" : "False";
 
-    _windowRect = configuration.getScreenRect( globalScreenIndex );
+    _windowRect = configuration.getScreenRect(globalScreenIndex);
 
     _labels.push_back(QString("Rank: %1").arg(configuration.getProcessIndex()));
     _labels.push_back(QString("Host: %1").arg(configuration.getHost()));
     _labels.push_back(QString("Display: %1").arg(configuration.getDisplay()));
-    _labels.push_back(QString("Tile coordinates: (%1,%2)").arg(globalScreenIndex.x()).arg(globalScreenIndex.y()));
-    _labels.push_back(QString("Resolution: %1 x %2").arg(configuration.getScreenWidth()).arg(configuration.getScreenHeight()));
+    _labels.push_back(QString("Tile coordinates: (%1,%2)")
+                          .arg(globalScreenIndex.x())
+                          .arg(globalScreenIndex.y()));
+    _labels.push_back(QString("Resolution: %1 x %2")
+                          .arg(configuration.getScreenWidth())
+                          .arg(configuration.getScreenHeight()));
     _labels.push_back(QString("Fullscreen mode: %1").arg(fullsceenMode));
 }
 
-void TestPattern::paint( QPainter* painter )
+void TestPattern::paint(QPainter* painter)
 {
-    painter->setRenderHint( QPainter::Antialiasing );
-    renderCrossPattern( painter );
-    renderLabels( painter );
+    painter->setRenderHint(QPainter::Antialiasing);
+    renderCrossPattern(painter);
+    renderLabels(painter);
 }
 
-void TestPattern::renderCrossPattern( QPainter* painter )
+void TestPattern::renderCrossPattern(QPainter* painter)
 {
     const qreal h = _wallSize.height();
     const qreal w = _wallSize.width();
 
     QPen pen;
-    pen.setWidth( LINE_WIDTH );
+    pen.setWidth(LINE_WIDTH);
 
-    for( qreal y_ = -1.0 * h; y_ <= 2.0 * h; y_ += 0.1 * h )
+    for (qreal y_ = -1.0 * h; y_ <= 2.0 * h; y_ += 0.1 * h)
     {
         const qreal hue = (y_ + h) / (3.0 * h);
-        pen.setColor( QColor::fromHsvF( hue, 1.0, 1.0 ));
-        painter->setPen( pen );
-        painter->drawLine( QPointF( 0.0, y_ ), QPointF( w, y_ + h ));
-        painter->drawLine( QPointF( 0.0, y_ ), QPointF( w, y_ - h ));
+        pen.setColor(QColor::fromHsvF(hue, 1.0, 1.0));
+        painter->setPen(pen);
+        painter->drawLine(QPointF(0.0, y_), QPointF(w, y_ + h));
+        painter->drawLine(QPointF(0.0, y_), QPointF(w, y_ - h));
     }
 }
 
-void TestPattern::renderLabels( QPainter* painter )
+void TestPattern::renderLabels(QPainter* painter)
 {
     const QPoint offset = _windowRect.topLeft();
 
     QFont textFont;
-    textFont.setPixelSize( FONT_SIZE );
-    painter->setFont( textFont );
-    painter->setPen( QColor( Qt::white ));
+    textFont.setPixelSize(FONT_SIZE);
+    painter->setFont(textFont);
+    painter->setPen(QColor(Qt::white));
 
     unsigned int pos = 0;
-    foreach( QString label, _labels )
-        painter->drawText( QPoint( TEXT_POS_X, ++pos * FONT_SIZE ) + offset,
-                           label );
+    foreach (QString label, _labels)
+        painter->drawText(QPoint(TEXT_POS_X, ++pos * FONT_SIZE) + offset,
+                          label);
 }

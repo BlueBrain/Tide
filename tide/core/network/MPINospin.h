@@ -46,20 +46,20 @@
  * Implements a blocking, non-spinning MPI_Probe to minimize CPU usage.
  * @see MPI_Probe
  */
-int MPI_Probe_Nospin( int source, int tag, MPI_Comm comm, MPI_Status* status );
+int MPI_Probe_Nospin(int source, int tag, MPI_Comm comm, MPI_Status* status);
 
 /**
  * Implements a blocking, non-spinning MPI_Send to minimize CPU usage.
  * @see MPI_Send
  */
-int MPI_Send_Nospin( void *buff, int count, MPI_Datatype datatype,
-                     int dest, int tag, MPI_Comm comm );
+int MPI_Send_Nospin(void* buff, int count, MPI_Datatype datatype, int dest,
+                    int tag, MPI_Comm comm);
 
 /**
  * Implements a blocking, non-spinning MPI_Recv to minimize CPU usage.
  * @see MPI_Recv
  */
-int MPI_Recv_Nospin( void* buff, int count, MPI_Datatype datatype,
-                     int from, int tag, MPI_Comm comm, MPI_Status* status );
+int MPI_Recv_Nospin(void* buff, int count, MPI_Datatype datatype, int from,
+                    int tag, MPI_Comm comm, MPI_Status* status);
 
 #endif

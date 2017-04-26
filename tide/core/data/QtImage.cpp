@@ -41,11 +41,11 @@
 
 #include <QOpenGLFunctions>
 
-QtImage::QtImage( const QImage& image )
-    : _image( image )
+QtImage::QtImage(const QImage& image)
+    : _image(image)
 {
-    if( !is32Bits( _image ))
-        throw std::runtime_error( "QtImage() - invalid image format" );
+    if (!is32Bits(_image))
+        throw std::runtime_error("QtImage() - invalid image format");
 }
 
 int QtImage::getWidth() const
@@ -58,9 +58,9 @@ int QtImage::getHeight() const
     return _image.height();
 }
 
-const uint8_t* QtImage::getData( const uint texture ) const
+const uint8_t* QtImage::getData(const uint texture) const
 {
-    Q_UNUSED( texture );
+    Q_UNUSED(texture);
     return _image.constBits();
 }
 

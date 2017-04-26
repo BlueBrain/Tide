@@ -40,8 +40,8 @@
 #ifndef CONTENTFACTORY_H
 #define CONTENTFACTORY_H
 
-#include "types.h"
 #include "scene/ContentType.h"
+#include "types.h"
 
 #include <QStringList>
 
@@ -49,26 +49,27 @@ class ContentFactory
 {
 public:
     /** Get a Content of the appropriate type based on the given URI. */
-    static ContentPtr getContent( const QString& uri );
+    static ContentPtr getContent(const QString& uri);
 
     /** Special case: PixelStreamContent type cannot be derived from its uri. */
-    static ContentPtr getPixelStreamContent( const QString& uri,
-                                    StreamType stream = StreamType::EXTERNAL );
+    static ContentPtr getPixelStreamContent(
+        const QString& uri, StreamType stream = StreamType::EXTERNAL);
 
     /** Get a Content object representing a loading error. */
-    static ContentPtr getErrorContent( const QSize& size = QSize( ));
+    static ContentPtr getErrorContent(const QSize& size = QSize());
 
     /** Get all the supported file extensions. */
     static const QStringList& getSupportedExtensions();
 
-    /** Get all the supported file extensions prefixed with '.' for use in Qt file filters. */
+    /** Get all the supported file extensions prefixed with '.' for use in Qt
+     * file filters. */
     static const QStringList& getSupportedFilesFilter();
 
     /** Get all the file extensions prefixed with '.' in one string. */
     static QString getSupportedFilesFilterAsString();
 
     /** Get the content type for a given uri. */
-    static CONTENT_TYPE getContentTypeForFile( const QString& uri );
+    static CONTENT_TYPE getContentTypeForFile(const QString& uri);
 };
 
 #endif

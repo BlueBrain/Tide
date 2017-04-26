@@ -51,17 +51,17 @@
 class DoubleTapDetector : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY( DoubleTapDetector )
+    Q_DISABLE_COPY(DoubleTapDetector)
 
 public:
-    DoubleTapDetector( qreal doubleTapThresholdPx, uint doubleTapTimeoutMs );
+    DoubleTapDetector(qreal doubleTapThresholdPx, uint doubleTapTimeoutMs);
 
-    void initGesture( const Positions& positions );
+    void initGesture(const Positions& positions);
     void cancelGesture();
 
 signals:
     /** Emitted when two taps occur in a fast sequence. */
-    void doubleTap( QPointF pos, uint numPoints );
+    void doubleTap(QPointF pos, uint numPoints);
 
 private:
     const qreal _doubleTapThresholdPx;
@@ -69,7 +69,7 @@ private:
     QTimer _doubleTapTimer;
     bool _canBeDoubleTap = false;
 
-    void _startGesture( const Positions& positions );
+    void _startGesture(const Positions& positions);
 };
 
 #endif

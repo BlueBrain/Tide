@@ -50,7 +50,7 @@ class PDFContent;
 class PDFController : public ZoomController
 {
 public:
-    PDFController( ContentWindow& contentWindow );
+    PDFController(ContentWindow& contentWindow);
 
     void swipeLeft() override;
     void swipeRight() override;

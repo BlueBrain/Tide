@@ -43,7 +43,7 @@
 #include <functional>
 
 /** Function to be used to synchronize the swapping. */
-typedef std::function< bool( const uint64_t ) > SyncFunction;
+typedef std::function<bool(const uint64_t)> SyncFunction;
 
 /**
  * Encapsulate an object to be swapped synchronously accross processes.
@@ -53,52 +53,50 @@ class SwapSyncObject
 {
 public:
     /** Callback function after synchronization. */
-    typedef std::function< void ( T ) > SyncCallbackFunction;
+    typedef std::function<void(T)> SyncCallbackFunction;
 
     /** Default constructor. */
     SwapSyncObject()
         : _frontObject()
         , _backObject()
-        , _version( 0 )
-    {}
-
-    /** Default value constructor. */
-    SwapSyncObject( const T& defaultObject )
-        : _frontObject( defaultObject )
-        , _backObject( defaultObject )
-        , _version( 0 )
-    {}
-
-    /** Get the front object */
-    T get() const
+        , _version(0)
     {
-        return _frontObject;
     }
 
+    /** Default value constructor. */
+    SwapSyncObject(const T& defaultObject)
+        : _frontObject(defaultObject)
+        , _backObject(defaultObject)
+        , _version(0)
+    {
+    }
+
+    /** Get the front object */
+    T get() const { return _frontObject; }
     /** Update the back object. */
-    void update( const T& newObject )
+    void update(const T& newObject)
     {
         _backObject = newObject;
         ++_version;
     }
 
     /** Synchronize the object. */
-    bool sync( const SyncFunction& syncFunc )
+    bool sync(const SyncFunction& syncFunc)
     {
-        assert( syncFunc );
+        assert(syncFunc);
 
-        if( syncFunc( _version ) && _frontObject != _backObject )
+        if (syncFunc(_version) && _frontObject != _backObject)
         {
             _swap();
-            if( _callback )
-                _callback( _frontObject );
+            if (_callback)
+                _callback(_frontObject);
             return true;
         }
         return false;
     }
 
     /** Set an optional function to call after swapping. */
-    void setCallback( const SyncCallbackFunction& callback )
+    void setCallback(const SyncCallbackFunction& callback)
     {
         _callback = callback;
     }
@@ -109,10 +107,7 @@ private:
     T _backObject;
     uint64_t _version;
 
-    void _swap()
-    {
-        _frontObject = _backObject;
-    }
+    void _swap() { _frontObject = _backObject; }
 };
 
 #endif

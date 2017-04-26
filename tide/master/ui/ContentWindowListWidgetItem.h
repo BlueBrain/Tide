@@ -53,7 +53,7 @@ class ContentWindowListWidgetItem : public QListWidgetItem
 {
 public:
     /** Constructor. */
-    explicit ContentWindowListWidgetItem( ContentWindowPtr contentWindow );
+    explicit ContentWindowListWidgetItem(ContentWindowPtr contentWindow);
 
     /** Get the associated ContentWindow. */
     ContentWindowPtr getContentWindow() const;

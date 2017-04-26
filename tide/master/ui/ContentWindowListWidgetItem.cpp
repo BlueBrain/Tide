@@ -40,9 +40,9 @@
 
 #include "ContentWindowListWidgetItem.h"
 
-ContentWindowListWidgetItem::ContentWindowListWidgetItem( ContentWindowPtr
-                                                          contentWindow )
-    : _contentWindow( contentWindow )
+ContentWindowListWidgetItem::ContentWindowListWidgetItem(
+    ContentWindowPtr contentWindow)
+    : _contentWindow(contentWindow)
 {
 }
 

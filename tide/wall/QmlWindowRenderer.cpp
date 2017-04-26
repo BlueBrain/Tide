@@ -42,77 +42,78 @@
 #include "ContentSynchronizer.h"
 #include "DataProvider.h"
 #include "PixelStreamSynchronizer.h"
+#include "Tile.h"
 #include "qmlUtils.h"
 #include "scene/ContentWindow.h"
-#include "Tile.h"
 
 #include <QQmlComponent>
 
 namespace
 {
-const QUrl QML_WINDOW_URL( "qrc:/qml/wall/WallContentWindow.qml" );
-const QString TILES_PARENT_OBJECT_NAME( "TilesParent" );
-const QString ZOOM_CONTEXT_PARENT_OBJECT_NAME( "ZoomContextParent" );
+const QUrl QML_WINDOW_URL("qrc:/qml/wall/WallContentWindow.qml");
+const QString TILES_PARENT_OBJECT_NAME("TilesParent");
+const QString ZOOM_CONTEXT_PARENT_OBJECT_NAME("ZoomContextParent");
 }
 
-QmlWindowRenderer::QmlWindowRenderer( QQmlEngine& engine,
-                                      DataProvider& provider,
-                                      QQuickItem& parentItem,
-                                      ContentWindowPtr contentWindow,
-                                      const bool isBackground )
-    : _provider( provider )
-    , _contentWindow( contentWindow )
-    , _windowContext( new QQmlContext( engine.rootContext( )))
-    , _windowItem( 0 )
-    , _synchronizer( ContentSynchronizer::create( contentWindow->getContent( )))
+QmlWindowRenderer::QmlWindowRenderer(QQmlEngine& engine, DataProvider& provider,
+                                     QQuickItem& parentItem,
+                                     ContentWindowPtr contentWindow,
+                                     const bool isBackground)
+    : _provider(provider)
+    , _contentWindow(contentWindow)
+    , _windowContext(new QQmlContext(engine.rootContext()))
+    , _windowItem(0)
+    , _synchronizer(ContentSynchronizer::create(contentWindow->getContent()))
 {
-    connect( _synchronizer.get(), &ContentSynchronizer::addTile,
-             this, &QmlWindowRenderer::_addTile );
-    connect( _synchronizer.get(), &ContentSynchronizer::removeTile,
-             this, &QmlWindowRenderer::_removeTile );
-    connect( _synchronizer.get(), &ContentSynchronizer::updateTile,
-             this, &QmlWindowRenderer::_updateTile );
+    connect(_synchronizer.get(), &ContentSynchronizer::addTile, this,
+            &QmlWindowRenderer::_addTile);
+    connect(_synchronizer.get(), &ContentSynchronizer::removeTile, this,
+            &QmlWindowRenderer::_removeTile);
+    connect(_synchronizer.get(), &ContentSynchronizer::updateTile, this,
+            &QmlWindowRenderer::_updateTile);
 
-    connect( _synchronizer.get(), &ContentSynchronizer::requestTileUpdate,
-             &_provider, &DataProvider::loadAsync );
+    connect(_synchronizer.get(), &ContentSynchronizer::requestTileUpdate,
+            &_provider, &DataProvider::loadAsync);
 
-    connect( _synchronizer.get(), &ContentSynchronizer::zoomContextTileChanged,
-             this, &QmlWindowRenderer::_createZoomContextTile );
+    connect(_synchronizer.get(), &ContentSynchronizer::zoomContextTileChanged,
+            this, &QmlWindowRenderer::_createZoomContextTile);
 
-    if( auto sync = std::dynamic_pointer_cast<PixelStreamSynchronizer>( _synchronizer ))
-        sync->setDataSource( _provider.getStreamDataSource( contentWindow->getContent()->getURI( )));
+    if (auto sync =
+            std::dynamic_pointer_cast<PixelStreamSynchronizer>(_synchronizer))
+        sync->setDataSource(_provider.getStreamDataSource(
+            contentWindow->getContent()->getURI()));
 
-    _windowContext->setContextProperty( "contentwindow", _contentWindow.get( ));
-    _windowContext->setContextProperty( "contentsync", _synchronizer.get( ));
+    _windowContext->setContextProperty("contentwindow", _contentWindow.get());
+    _windowContext->setContextProperty("contentsync", _synchronizer.get());
 
-    _windowItem = _createQmlItem( QML_WINDOW_URL );
-    _windowItem->setParentItem( &parentItem );
-    _windowItem->setProperty( "isBackground", isBackground );
+    _windowItem = _createQmlItem(QML_WINDOW_URL);
+    _windowItem->setParentItem(&parentItem);
+    _windowItem->setProperty("isBackground", isBackground);
 
     _createZoomContextTile();
 }
 
 QmlWindowRenderer::~QmlWindowRenderer()
 {
-    for( auto& tile : _tiles )
-        tile.second->setParentItem( nullptr );
+    for (auto& tile : _tiles)
+        tile.second->setParentItem(nullptr);
     _tiles.clear();
 
     delete _windowItem;
 }
 
-void QmlWindowRenderer::update( ContentWindowPtr contentWindow,
-                                const QRectF& visibleArea )
+void QmlWindowRenderer::update(ContentWindowPtr contentWindow,
+                               const QRectF& visibleArea)
 {
     // Could be optimized by checking for changes before updating the context
-    _windowContext->setContextProperty( "contentwindow", contentWindow.get( ));
+    _windowContext->setContextProperty("contentwindow", contentWindow.get());
     _contentWindow = contentWindow;
-    _synchronizer->update( *_contentWindow, visibleArea );
+    _synchronizer->update(*_contentWindow, visibleArea);
 }
 
-void QmlWindowRenderer::synchronize( WallToWallChannel& channel )
+void QmlWindowRenderer::synchronize(WallToWallChannel& channel)
 {
-    _synchronizer->synchronize( channel );
+    _synchronizer->synchronize(channel);
 }
 
 QQuickItem* QmlWindowRenderer::getQuickItem()
@@ -125,77 +126,74 @@ ContentWindowPtr QmlWindowRenderer::getContentWindow()
     return _contentWindow;
 }
 
-void QmlWindowRenderer::_addTile( TilePtr tile )
+void QmlWindowRenderer::_addTile(TilePtr tile)
 {
-    connect( tile.get(), &Tile::textureUpdated,
-             _synchronizer.get(), &ContentSynchronizer::onSwapReady,
-             Qt::QueuedConnection );
+    connect(tile.get(), &Tile::textureUpdated, _synchronizer.get(),
+            &ContentSynchronizer::onSwapReady, Qt::QueuedConnection);
 
-    connect( tile.get(), &Tile::textureReady,
-             _synchronizer.get(), &ContentSynchronizer::onTextureReady,
-             Qt::QueuedConnection );
+    connect(tile.get(), &Tile::textureReady, _synchronizer.get(),
+            &ContentSynchronizer::onTextureReady, Qt::QueuedConnection);
 
     _tiles[tile->getId()] = tile;
 
-    auto item = _windowItem->findChild<QQuickItem*>( TILES_PARENT_OBJECT_NAME );
-    tile->setParentItem( item );
+    auto item = _windowItem->findChild<QQuickItem*>(TILES_PARENT_OBJECT_NAME);
+    tile->setParentItem(item);
 
-    connect( item, SIGNAL( showTilesBordersValueChanged( bool )),
-             tile.get(), SLOT( setShowBorder( bool )));
-    tile->setShowBorder( item->property( "showTilesBorder" ).toBool( ));
+    connect(item, SIGNAL(showTilesBordersValueChanged(bool)), tile.get(),
+            SLOT(setShowBorder(bool)));
+    tile->setShowBorder(item->property("showTilesBorder").toBool());
 }
 
 void QmlWindowRenderer::_createZoomContextTile()
 {
-    if( _zoomContextTile )
+    if (_zoomContextTile)
     {
-        _zoomContextTile->setParentItem( nullptr );
+        _zoomContextTile->setParentItem(nullptr);
         _zoomContextTile.reset();
     }
 
     TilePtr tile = _synchronizer->getZoomContextTile();
-    if( !tile )
+    if (!tile)
         return;
 
-    tile->setSizePolicy( Tile::FillParent );
+    tile->setSizePolicy(Tile::FillParent);
 
     // Swap immediately, without going through the synchronizer
-    connect( tile.get(), &Tile::textureUpdated,
-             tile.get(), &Tile::swapImage,
-             Qt::QueuedConnection );
+    connect(tile.get(), &Tile::textureUpdated, tile.get(), &Tile::swapImage,
+            Qt::QueuedConnection);
 
-    connect( tile.get(), &Tile::textureReady,
-             _synchronizer.get(), &ContentSynchronizer::onTextureReady,
-             Qt::QueuedConnection );
+    connect(tile.get(), &Tile::textureReady, _synchronizer.get(),
+            &ContentSynchronizer::onTextureReady, Qt::QueuedConnection);
 
     _zoomContextTile = tile;
 
-    auto item = _windowItem->findChild<QQuickItem*>( ZOOM_CONTEXT_PARENT_OBJECT_NAME );
-    tile->setParentItem( item );
+    auto item =
+        _windowItem->findChild<QQuickItem*>(ZOOM_CONTEXT_PARENT_OBJECT_NAME);
+    tile->setParentItem(item);
 }
 
-void QmlWindowRenderer::_removeTile( const uint tileIndex )
+void QmlWindowRenderer::_removeTile(const uint tileIndex)
 {
-    if( !_tiles.count( tileIndex ))
+    if (!_tiles.count(tileIndex))
         return;
 
-    _tiles[tileIndex]->disconnect( _synchronizer.get( ));
-    _tiles[tileIndex]->setParentItem( nullptr );
-    _tiles.erase( tileIndex );
+    _tiles[tileIndex]->disconnect(_synchronizer.get());
+    _tiles[tileIndex]->setParentItem(nullptr);
+    _tiles.erase(tileIndex);
 }
 
-void QmlWindowRenderer::_updateTile( const uint tileIndex,
-                                     const QRect& coordinates,
-                                     const TextureFormat format )
+void QmlWindowRenderer::_updateTile(const uint tileIndex,
+                                    const QRect& coordinates,
+                                    const TextureFormat format)
 {
-    if( _tiles.count( tileIndex ))
-        _tiles[tileIndex]->update( coordinates, format );
+    if (_tiles.count(tileIndex))
+        _tiles[tileIndex]->update(coordinates, format);
 }
 
-QQuickItem* QmlWindowRenderer::_createQmlItem( const QUrl& url )
+QQuickItem* QmlWindowRenderer::_createQmlItem(const QUrl& url)
 {
-    QQmlComponent component( _windowContext->engine(), url );
-    qmlCheckOrThrow( component );
-    QObject* qmlObject = component.create( _windowContext.get( ));
-    return qobject_cast<QQuickItem*>( qmlObject );
+    QQmlComponent component(_windowContext->engine(), url);
+    qmlCheckOrThrow(component);
+    QObject* qmlObject = component.create(_windowContext.get());
+    return qobject_cast<QQuickItem*>(qmlObject);
 }

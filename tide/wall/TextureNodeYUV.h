@@ -40,8 +40,8 @@
 #ifndef TEXTURENODEYUV_H
 #define TEXTURENODEYUV_H
 
-#include "types.h"
 #include "YUVTexture.h"
+#include "types.h"
 #include "yuv.h"
 
 #include <QSGNode>
@@ -69,14 +69,14 @@ public:
      * @param window a reference to the quick window for generating textures.
      * @param format the YUV format to determine the U and V texture size.
      */
-    TextureNodeYUV( const QSize& size, QQuickWindow* window,
-                    TextureFormat format );
+    TextureNodeYUV(const QSize& size, QQuickWindow* window,
+                   TextureFormat format);
 
     /** @return the surface of the node. */
     const QRectF& rect() const;
 
     /** Set the surface of the node. */
-    void setRect( const QRectF& rect );
+    void setRect(const QRectF& rect);
 
     /** @return the back texture identifiers, which can safely be updated. */
     YUVTexture getBackGlTexture() const;
@@ -91,7 +91,7 @@ public:
      * @param size the new texture size
      * @param format the YUV format to determine the U and V texture size.
      */
-    void prepareBackTexture( const QSize& size, TextureFormat format );
+    void prepareBackTexture(const QSize& size, TextureFormat format);
 
 private:
     QQuickWindow* _window = nullptr;
@@ -99,10 +99,10 @@ private:
     QRectF _rect;
     QSGGeometryNode _node;
 
-    void _createBackTextures( const QSize& size, TextureFormat format );
+    void _createBackTextures(const QSize& size, TextureFormat format);
     using QSGTexturePtr = std::unique_ptr<QSGTexture>;
-    QSGTexturePtr _createTexture( const QSize& size ) const;
-    QSGTexturePtr _createWrapper( uint textureID, const QSize& size ) const;
+    QSGTexturePtr _createTexture(const QSize& size) const;
+    QSGTexturePtr _createWrapper(uint textureID, const QSize& size) const;
 };
 
 #endif

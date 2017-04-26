@@ -51,7 +51,7 @@ class SVGBackend
 {
 public:
     /** Virtual destructor. */
-    virtual ~SVGBackend() {}
+    virtual ~SVGBackend() = default;
 
     /** @return the dimensions of the document in pixels. */
     virtual QSize getSize() const = 0;
@@ -62,8 +62,8 @@ public:
      * @param region the target area of the svg to render, in normalized coord.
      * @return the rendered image region, or an empty QImage on failure.
      */
-    virtual QImage renderToImage( const QSize& imageSize,
-                                  const QRectF& region ) const = 0;
+    virtual QImage renderToImage(const QSize& imageSize,
+                                 const QRectF& region) const = 0;
 };
 
 #endif

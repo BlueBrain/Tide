@@ -49,7 +49,7 @@ class DefaultThumbnailGenerator : public ThumbnailGenerator
 {
 public:
     /** @copydoc ThumbnailGenerator::ThumbnailGenerator */
-    DefaultThumbnailGenerator( const QSize& size );
+    DefaultThumbnailGenerator(const QSize& size);
 
     /**
      * Generate a thumbnail for an unsupported file type.
@@ -57,7 +57,7 @@ public:
      * @param filename the path to file.
      * @return a placeholder image for the file.
      */
-    QImage generate( const QString& filename ) const final;
+    QImage generate(const QString& filename) const final;
 };
 
 #endif

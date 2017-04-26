@@ -48,14 +48,14 @@
 namespace
 {
 const int DEFAULT_WEBSERVICE_PORT = 8888;
-const QString DEFAULT_URL( "http://www.google.com" );
-const QString DEFAULT_WHITEBOARD_SAVE_FOLDER( "/tmp/" );
+const QString DEFAULT_URL("http://www.google.com");
+const QString DEFAULT_WHITEBOARD_SAVE_FOLDER("/tmp/");
 }
 
-MasterConfiguration::MasterConfiguration( const QString& filename )
-    : Configuration( filename )
-    , _webServicePort( DEFAULT_WEBSERVICE_PORT )
-    , _backgroundColor( Qt::black )
+MasterConfiguration::MasterConfiguration(const QString& filename)
+    : Configuration(filename)
+    , _webServicePort(DEFAULT_WEBSERVICE_PORT)
+    , _backgroundColor(Qt::black)
 {
     loadMasterSettings();
 }
@@ -63,103 +63,103 @@ MasterConfiguration::MasterConfiguration( const QString& filename )
 void MasterConfiguration::loadMasterSettings()
 {
     QXmlQuery query;
-    if( !query.setFocus( QUrl( _filename )))
-        throw std::runtime_error( "Invalid master configuration file: '" +
-                                  _filename.toStdString() + "'" );
+    if (!query.setFocus(QUrl(_filename)))
+        throw std::runtime_error("Invalid master configuration file: '" +
+                                 _filename.toStdString() + "'");
 
-    loadMasterProcessInfo( query );
-    loadContentDirectory( query );
-    loadSessionsDirectory( query );
-    loadUploadDirectory( query );
-    loadLauncherSettings( query );
-    loadWebService( query );
-    loadAppLauncher( query );
-    loadWebBrowserStartURL( query );
-    loadWhiteboard( query );
-    loadBackgroundProperties( query );
+    loadMasterProcessInfo(query);
+    loadContentDirectory(query);
+    loadSessionsDirectory(query);
+    loadUploadDirectory(query);
+    loadLauncherSettings(query);
+    loadWebService(query);
+    loadAppLauncher(query);
+    loadWebBrowserStartURL(query);
+    loadWhiteboard(query);
+    loadBackgroundProperties(query);
 }
 
-void MasterConfiguration::loadMasterProcessInfo( QXmlQuery& query )
+void MasterConfiguration::loadMasterProcessInfo(QXmlQuery& query)
 {
-    query.setQuery( "string(/configuration/masterProcess/@headless)" );
-    getBool( query, _headless );
+    query.setQuery("string(/configuration/masterProcess/@headless)");
+    getBool(query, _headless);
 }
 
-void MasterConfiguration::loadContentDirectory( QXmlQuery& query )
+void MasterConfiguration::loadContentDirectory(QXmlQuery& query)
 {
-    query.setQuery( "string(/configuration/dock/@directory)" );
-    getString( query, _contentDir );
-    if( _contentDir.isEmpty( ))
+    query.setQuery("string(/configuration/dock/@directory)");
+    getString(query, _contentDir);
+    if (_contentDir.isEmpty())
         _contentDir = QDir::homePath();
 }
 
-void MasterConfiguration::loadSessionsDirectory( QXmlQuery& query )
+void MasterConfiguration::loadSessionsDirectory(QXmlQuery& query)
 {
-    query.setQuery( "string(/configuration/sessions/@directory)" );
-    getString( query, _sessionsDir );
-    if( _sessionsDir.isEmpty( ))
+    query.setQuery("string(/configuration/sessions/@directory)");
+    getString(query, _sessionsDir);
+    if (_sessionsDir.isEmpty())
         _sessionsDir = QDir::homePath();
 }
 
-void MasterConfiguration::loadUploadDirectory( QXmlQuery& query )
+void MasterConfiguration::loadUploadDirectory(QXmlQuery& query)
 {
-    query.setQuery( "string(/configuration/webservice/@uploadDirectory)" );
-    getString( query, _uploadDir );
-    if( _uploadDir.isEmpty( ))
+    query.setQuery("string(/configuration/webservice/@uploadDirectory)");
+    getString(query, _uploadDir);
+    if (_uploadDir.isEmpty())
         _uploadDir = QDir::tempPath();
 }
 
-void MasterConfiguration::loadLauncherSettings( QXmlQuery& query )
+void MasterConfiguration::loadLauncherSettings(QXmlQuery& query)
 {
-    query.setQuery( "string(/configuration/launcher/@display)" );
-    getString( query, _launcherDisplay );
+    query.setQuery("string(/configuration/launcher/@display)");
+    getString(query, _launcherDisplay);
 
-    query.setQuery( "string(/configuration/launcher/@demoServiceUrl)" );
-    getString( query, _demoServiceUrl );
+    query.setQuery("string(/configuration/launcher/@demoServiceUrl)");
+    getString(query, _demoServiceUrl);
 
-    query.setQuery( "string(/configuration/launcher/@demoServiceImageFolder)" );
-    getString( query, _demoServiceImageFolder );
+    query.setQuery("string(/configuration/launcher/@demoServiceImageFolder)");
+    getString(query, _demoServiceImageFolder);
 }
 
-void MasterConfiguration::loadWebService( QXmlQuery& query )
+void MasterConfiguration::loadWebService(QXmlQuery& query)
 {
-    query.setQuery( "string(/configuration/webservice/@port)" );
-    getInt( query, _webServicePort );
+    query.setQuery("string(/configuration/webservice/@port)");
+    getInt(query, _webServicePort);
 }
 
-void MasterConfiguration::loadWhiteboard( QXmlQuery& query )
+void MasterConfiguration::loadWhiteboard(QXmlQuery& query)
 {
-    query.setQuery( "string(/configuration/whiteboard/@saveUrl)" );
-    getString( query, _whiteboardSaveUrl );
-    if( _whiteboardSaveUrl.isEmpty( ))
+    query.setQuery("string(/configuration/whiteboard/@saveUrl)");
+    getString(query, _whiteboardSaveUrl);
+    if (_whiteboardSaveUrl.isEmpty())
         _whiteboardSaveUrl = DEFAULT_WHITEBOARD_SAVE_FOLDER;
 }
 
-void MasterConfiguration::loadAppLauncher( QXmlQuery& query )
+void MasterConfiguration::loadAppLauncher(QXmlQuery& query)
 {
-    query.setQuery( "string(/configuration/applauncher/@qml)" );
-    getString( query, _appLauncherFile );
+    query.setQuery("string(/configuration/applauncher/@qml)");
+    getString(query, _appLauncherFile);
 }
 
-void MasterConfiguration::loadWebBrowserStartURL( QXmlQuery& query )
+void MasterConfiguration::loadWebBrowserStartURL(QXmlQuery& query)
 {
-    query.setQuery( "string(/configuration/webbrowser/@defaultURL)");
-    getString( query, _webBrowserDefaultURL );
-    if( _webBrowserDefaultURL.isEmpty( ))
+    query.setQuery("string(/configuration/webbrowser/@defaultURL)");
+    getString(query, _webBrowserDefaultURL);
+    if (_webBrowserDefaultURL.isEmpty())
         _webBrowserDefaultURL = DEFAULT_URL;
 }
 
-void MasterConfiguration::loadBackgroundProperties( QXmlQuery& query )
+void MasterConfiguration::loadBackgroundProperties(QXmlQuery& query)
 {
-    query.setQuery( "string(/configuration/background/@uri)" );
-    getString( query, _backgroundUri );
+    query.setQuery("string(/configuration/background/@uri)");
+    getString(query, _backgroundUri);
 
     QString queryResult;
-    query.setQuery( "string(/configuration/background/@color)" );
-    if( getString( query, queryResult ))
+    query.setQuery("string(/configuration/background/@color)");
+    if (getString(query, queryResult))
     {
-        const QColor newColor( queryResult );
-        if( newColor.isValid( ))
+        const QColor newColor(queryResult);
+        if (newColor.isValid())
             _backgroundColor = newColor;
     }
 }
@@ -229,54 +229,54 @@ const QColor& MasterConfiguration::getBackgroundColor() const
     return _backgroundColor;
 }
 
-void MasterConfiguration::setBackgroundColor( const QColor& color )
+void MasterConfiguration::setBackgroundColor(const QColor& color)
 {
     _backgroundColor = color;
 }
 
-void MasterConfiguration::setBackgroundUri( const QString& uri )
+void MasterConfiguration::setBackgroundUri(const QString& uri)
 {
     _backgroundUri = uri;
 }
 
 bool MasterConfiguration::save() const
 {
-    return save( _filename );
+    return save(_filename);
 }
 
-bool MasterConfiguration::save( const QString& filename ) const
+bool MasterConfiguration::save(const QString& filename) const
 {
-    QDomDocument doc( "XmlDoc" );
-    QFile infile( _filename );
-    if( !infile.open( QIODevice::ReadOnly ))
+    QDomDocument doc("XmlDoc");
+    QFile infile(_filename);
+    if (!infile.open(QIODevice::ReadOnly))
     {
-        put_flog( LOG_ERROR, "could not open configuration file: '%s'",
-                  filename.toLocal8Bit().constData( ));
+        put_flog(LOG_ERROR, "could not open configuration file: '%s'",
+                 filename.toLocal8Bit().constData());
         return false;
     }
-    doc.setContent( &infile );
+    doc.setContent(&infile);
     infile.close();
 
     QDomElement root = doc.documentElement();
 
-    QDomElement background = root.firstChildElement( "background" );
-    if( background.isNull( ))
+    QDomElement background = root.firstChildElement("background");
+    if (background.isNull())
     {
-        background = doc.createElement( "background" );
-        root.appendChild( background );
+        background = doc.createElement("background");
+        root.appendChild(background);
     }
-    background.setAttribute( "uri", _backgroundUri );
-    background.setAttribute( "color", _backgroundColor.name( ));
+    background.setAttribute("uri", _backgroundUri);
+    background.setAttribute("color", _backgroundColor.name());
 
-    QFile outfile( filename );
-    if( !outfile.open( QIODevice::WriteOnly | QIODevice::Text ))
+    QFile outfile(filename);
+    if (!outfile.open(QIODevice::WriteOnly | QIODevice::Text))
     {
-        put_flog( LOG_ERROR, "could not save configuration file: '%s'",
-                  filename.toLocal8Bit().constData( ));
+        put_flog(LOG_ERROR, "could not save configuration file: '%s'",
+                 filename.toLocal8Bit().constData());
         return false;
     }
-    QTextStream out( &outfile );
-    out << doc.toString( 4 );
+    QTextStream out(&outfile);
+    out << doc.toString(4);
     outfile.close();
     return true;
 }

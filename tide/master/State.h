@@ -43,7 +43,7 @@
 
 #include "types.h"
 
-#include "scene/DisplayGroup.h"     // member, needed for serialization
+#include "scene/DisplayGroup.h" // member, needed for serialization
 #include "serialization/includes.h"
 
 /**
@@ -74,13 +74,13 @@ public:
      * Constructor
      * @param displayGroup the DisplayGroup to serialize
      */
-    State( DisplayGroupPtr displayGroup );
+    State(DisplayGroupPtr displayGroup);
 
     /**
      * Load content windows stored in the given XML file.
      * @return success if the legacy state file could be loaded
      */
-    bool legacyLoadXML( const QString& filename );
+    bool legacyLoadXML(const QString& filename);
 
     /** Get the version that was last used for loading or saving. */
     StateVersion getVersion() const;
@@ -94,30 +94,31 @@ private:
 
     friend class boost::serialization::access;
 
-    template<class Archive>
-    void serialize( Archive & ar, const unsigned int version )
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int version)
     {
-        _version = static_cast< StateVersion >( version );
+        _version = static_cast<StateVersion>(version);
 
-        if( version < FIRST_PIXEL_COORDINATES_FILE_VERSION )
-            _displayGroup->setCoordinates( UNIT_RECTF );
+        if (version < FIRST_PIXEL_COORDINATES_FILE_VERSION)
+            _displayGroup->setCoordinates(UNIT_RECTF);
 
-        if( version < WINDOW_TITLES_VERSION )
+        // clang-format off
+        if (version < WINDOW_TITLES_VERSION)
         {
             ContentWindowPtrs contentWindows;
-            ar & boost::serialization::make_nvp( "contentWindows",
-                                                 contentWindows );
-            _displayGroup->setContentWindows( contentWindows );
-            _displayGroup->setShowWindowTitles( false );
+            ar & boost::serialization::make_nvp("contentWindows",
+                                                contentWindows);
+            _displayGroup->setContentWindows(contentWindows);
+            _displayGroup->setShowWindowTitles(false);
         }
         else
         {
-            ar & boost::serialization::make_nvp( "displayGroup",
-                                                 _displayGroup );
+            ar & boost::serialization::make_nvp("displayGroup", _displayGroup);
         }
+        // clang-format on
     }
 };
 
-BOOST_CLASS_VERSION( State, FOCUS_MODE_VERSION )
+BOOST_CLASS_VERSION(State, FOCUS_MODE_VERSION)
 
 #endif

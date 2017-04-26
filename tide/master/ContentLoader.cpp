@@ -41,122 +41,121 @@
 
 #include "control/ContentWindowController.h"
 #include "log.h"
-#include "scene/DisplayGroup.h"
-#include "scene/ContentWindow.h"
 #include "scene/ContentFactory.h"
+#include "scene/ContentWindow.h"
+#include "scene/DisplayGroup.h"
 
 #include <QDir>
 
-ContentLoader::ContentLoader( DisplayGroupPtr displayGroup )
-    : _displayGroup( displayGroup )
+ContentLoader::ContentLoader(DisplayGroupPtr displayGroup)
+    : _displayGroup(displayGroup)
 {
 }
 
-bool ContentLoader::load( const QString& filename,
-                          const QPointF& windowCenterPosition,
-                          const QSizeF& windowSize )
+bool ContentLoader::load(const QString& filename,
+                         const QPointF& windowCenterPosition,
+                         const QSizeF& windowSize)
 {
-    put_flog( LOG_INFO, "opening: '%s'", filename.toLocal8Bit().constData( ));
+    put_flog(LOG_INFO, "opening: '%s'", filename.toLocal8Bit().constData());
 
-    if( isAlreadyOpen( filename ))
+    if (isAlreadyOpen(filename))
     {
-        put_flog( LOG_INFO, "file already opened: '%s'",
-                  filename.toLocal8Bit().constData( ));
+        put_flog(LOG_INFO, "file already opened: '%s'",
+                 filename.toLocal8Bit().constData());
         return false;
     }
 
-    ContentPtr content = ContentFactory::getContent( filename );
-    if( !content )
+    ContentPtr content = ContentFactory::getContent(filename);
+    if (!content)
     {
-        put_flog( LOG_WARN, "ignoring unsupported file: '%s'",
-                  filename.toLocal8Bit().constData( ));
+        put_flog(LOG_WARN, "ignoring unsupported file: '%s'",
+                 filename.toLocal8Bit().constData());
         return false;
     }
 
-    ContentWindowPtr contentWindow( new ContentWindow( content ));
-    ContentWindowController controller( *contentWindow, *_displayGroup );
+    ContentWindowPtr contentWindow(new ContentWindow(content));
+    ContentWindowController controller(*contentWindow, *_displayGroup);
 
-    if( windowSize.isValid( ))
-        controller.resize( windowSize );
+    if (windowSize.isValid())
+        controller.resize(windowSize);
     else
-        controller.adjustSize( SIZE_1TO1_FITTING );
+        controller.adjustSize(SIZE_1TO1_FITTING);
 
-    if( windowCenterPosition.isNull( ))
-        controller.moveCenterTo( _displayGroup->getCoordinates().center( ));
+    if (windowCenterPosition.isNull())
+        controller.moveCenterTo(_displayGroup->getCoordinates().center());
     else
-        controller.moveCenterTo( windowCenterPosition );
+        controller.moveCenterTo(windowCenterPosition);
 
-    _displayGroup->addContentWindow( contentWindow );
+    _displayGroup->addContentWindow(contentWindow);
 
     return true;
 }
 
-
-QSize _estimateGridSize( const int numElem )
+QSize _estimateGridSize(const int numElem)
 {
-    if( numElem <= 0 )
+    if (numElem <= 0)
         return QSize();
 
-    const auto w = int( ceil( sqrt( numElem )));
-    return { w, ( w * ( w-1 ) >= numElem ) ? w-1 : w };
+    const auto w = int(ceil(sqrt(numElem)));
+    return {w, (w * (w - 1) >= numElem) ? w - 1 : w};
 }
 
-size_t ContentLoader::loadDir( const QString& dirName, QSize gridSize )
+size_t ContentLoader::loadDir(const QString& dirName, QSize gridSize)
 {
-    put_flog( LOG_INFO, "opening directory: '%s'",
-              dirName.toLocal8Bit().constData( ));
+    put_flog(LOG_INFO, "opening directory: '%s'",
+             dirName.toLocal8Bit().constData());
 
-    QDir directory( dirName );
-    directory.setFilter( QDir::Files );
-    directory.setNameFilters( ContentFactory::getSupportedFilesFilter( ));
+    QDir directory(dirName);
+    directory.setFilter(QDir::Files);
+    directory.setNameFilters(ContentFactory::getSupportedFilesFilter());
 
     const auto list = directory.entryInfoList();
-    if( list.empty( ))
+    if (list.empty())
         return 0;
 
-    if( gridSize.isEmpty( ))
-        gridSize = _estimateGridSize( list.size( ));
+    if (gridSize.isEmpty())
+        gridSize = _estimateGridSize(list.size());
 
-    const QSizeF win( _displayGroup->width() / (qreal)gridSize.width(),
-                      _displayGroup->height() / (qreal)gridSize.height( ));
+    const QSizeF win(_displayGroup->width() / (qreal)gridSize.width(),
+                     _displayGroup->height() / (qreal)gridSize.height());
 
     int contentIndex = 0;
-    for( const auto& fileinfo : list )
+    for (const auto& fileinfo : list)
     {
         const auto filename = fileinfo.absoluteFilePath();
         const auto x = contentIndex % gridSize.width();
         const auto y = contentIndex / gridSize.width();
-        const auto position = QPointF{ x * win.width() + 0.5 * win.width(),
-                                       y * win.height() + 0.5 * win.height() };
+        const auto position = QPointF{x * win.width() + 0.5 * win.width(),
+                                      y * win.height() + 0.5 * win.height()};
 
-        if( load( filename, position, win ))
+        if (load(filename, position, win))
             ++contentIndex;
 
-        if( contentIndex >= gridSize.width() * gridSize.height( ))
+        if (contentIndex >= gridSize.width() * gridSize.height())
             break; // should not happen if grid size is correct
     }
 
-    put_flog( LOG_INFO, "done opening %d contents from directory: '%s'",
-              contentIndex, dirName.toLocal8Bit().constData( ));
+    put_flog(LOG_INFO, "done opening %d contents from directory: '%s'",
+             contentIndex, dirName.toLocal8Bit().constData());
 
     return contentIndex;
 }
 
-bool ContentLoader::isAlreadyOpen( const QString& filename ) const
+bool ContentLoader::isAlreadyOpen(const QString& filename) const
 {
-    for( const auto& window : _displayGroup->getContentWindows( ))
+    for (const auto& window : _displayGroup->getContentWindows())
     {
-        if( window->getContent()->getURI() == filename )
+        if (window->getContent()->getURI() == filename)
             return true;
     }
     return false;
 }
 
-ContentWindowPtr ContentLoader::findWindow( const QString& filename ) const
+ContentWindowPtr ContentLoader::findWindow(const QString& filename) const
 {
-    for( const auto& window : _displayGroup->getContentWindows( ))
+    for (const auto& window : _displayGroup->getContentWindows())
     {
-        if( window->getContent()->getURI() == filename )
+        if (window->getContent()->getURI() == filename)
             return window;
     }
     return {};

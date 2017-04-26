@@ -42,76 +42,80 @@
 #include <QtXmlPatterns>
 #include <stdexcept>
 
-WallConfiguration::WallConfiguration( const QString& filename,
-                                      const int processIndex )
-    : Configuration( filename )
-    , _processIndex( processIndex )
+WallConfiguration::WallConfiguration(const QString& filename,
+                                     const int processIndex)
+    : Configuration(filename)
+    , _processIndex(processIndex)
 {
-    _loadWallSettings( processIndex );
+    _loadWallSettings(processIndex);
 }
 
-void WallConfiguration::_loadWallSettings( const int processIndex )
+void WallConfiguration::_loadWallSettings(const int processIndex)
 {
-    assert( processIndex > 0 && "WallConfiguration::loadWallSettings is only"
-                                "valid for processes of rank > 0" );
+    assert(processIndex > 0 &&
+           "WallConfiguration::loadWallSettings is only"
+           "valid for processes of rank > 0");
 
     const int xpathIndex = processIndex; // xpath index also starts from 1
 
     QXmlQuery query;
-    if( !query.setFocus( QUrl( _filename )))
-        throw std::runtime_error( "Invalid configuration file: '" +
-                                  _filename.toStdString() + "'" );
+    if (!query.setFocus(QUrl(_filename)))
+        throw std::runtime_error("Invalid configuration file: '" +
+                                 _filename.toStdString() + "'");
 
     QString queryResult;
 
     // read host
-    query.setQuery( QString( "string(//process[%1]/@host)").arg( xpathIndex ));
-    if( query.evaluateTo( &queryResult ))
-        _host = queryResult.remove( QRegExp("[\\n\\t\\r]" ));
+    query.setQuery(QString("string(//process[%1]/@host)").arg(xpathIndex));
+    if (query.evaluateTo(&queryResult))
+        _host = queryResult.remove(QRegExp("[\\n\\t\\r]"));
 
     // read display (optional attribute)
-    query.setQuery( QString( "string(//process[%1]/@display)" ).arg( xpathIndex ));
-    if( query.evaluateTo( &queryResult ))
-        _display = queryResult.remove( QRegExp( "[\\n\\t\\r]" ));
+    query.setQuery(QString("string(//process[%1]/@display)").arg(xpathIndex));
+    if (query.evaluateTo(&queryResult))
+        _display = queryResult.remove(QRegExp("[\\n\\t\\r]"));
     else
-        _display = QString( "default (:0)" ); // the default
+        _display = QString("default (:0)"); // the default
 
     int value = 0;
 
     // read number of tiles for this process
-    query.setQuery( QString( "string(count(//process[%1]/screen))" ).arg( xpathIndex ));
-    if( !getInt( query, value ) || value != 1 )
-        throw std::runtime_error( "Expect exactly one screen per process" );
+    query.setQuery(
+        QString("string(count(//process[%1]/screen))").arg(xpathIndex));
+    if (!getInt(query, value) || value != 1)
+        throw std::runtime_error("Expect exactly one screen per process");
 
     // read number of wall processes on the same host
-    query.setQuery( QString( "string(count(//process[@host eq '%1']))" ).arg( _host ));
-    if( !getInt( query, value ) || value < 1 )
-        throw std::runtime_error( "Could not determine the number of wall processes on that host" );
+    query.setQuery(
+        QString("string(count(//process[@host eq '%1']))").arg(_host));
+    if (!getInt(query, value) || value < 1)
+        throw std::runtime_error(
+            "Could not determine the number of wall processes on that host");
     _processCountForHost = value;
 
-    query.setQuery( QString( "string(//process[%1]/screen/@x)" ).arg( xpathIndex ));
-    if( getInt( query, value ))
-        _screenPosition.setX( value );
+    query.setQuery(QString("string(//process[%1]/screen/@x)").arg(xpathIndex));
+    if (getInt(query, value))
+        _screenPosition.setX(value);
 
-    query.setQuery( QString( "string(//process[%1]/screen/@y)" ).arg( xpathIndex ));
-    if( getInt( query, value ))
-        _screenPosition.setY( value );
+    query.setQuery(QString("string(//process[%1]/screen/@y)").arg(xpathIndex));
+    if (getInt(query, value))
+        _screenPosition.setY(value);
 
-    query.setQuery( QString( "string(//process[%1]/screen/@i)" ).arg( xpathIndex ));
-    if( getInt( query, value ))
-        _screenGlobalIndex.setX( value );
+    query.setQuery(QString("string(//process[%1]/screen/@i)").arg(xpathIndex));
+    if (getInt(query, value))
+        _screenGlobalIndex.setX(value);
 
-    query.setQuery( QString( "string(//process[%1]/screen/@j)" ).arg( xpathIndex ));
-    if( getInt( query, value ))
-        _screenGlobalIndex.setY( value );
+    query.setQuery(QString("string(//process[%1]/screen/@j)").arg(xpathIndex));
+    if (getInt(query, value))
+        _screenGlobalIndex.setY(value);
 
     // read stereo mode
-    query.setQuery( QString( "string(//process[%1]/@stereo)" ).arg( xpathIndex ));
-    if( getString( query, queryResult ))
+    query.setQuery(QString("string(//process[%1]/@stereo)").arg(xpathIndex));
+    if (getString(query, queryResult))
     {
-        if( queryResult == "left" )
+        if (queryResult == "left")
             _stereoMode = deflect::View::left_eye;
-        else if( queryResult == "right" )
+        else if (queryResult == "right")
             _stereoMode = deflect::View::right_eye;
         else
             _stereoMode = deflect::View::mono;

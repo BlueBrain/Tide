@@ -41,8 +41,8 @@
 #ifndef THUMBNAILPROVIDER_H
 #define THUMBNAILPROVIDER_H
 
-#include <memory>
 #include <QtQuick/QQuickImageProvider>
+#include <memory>
 
 class ThumbnailCache;
 
@@ -63,10 +63,10 @@ class ThumbnailCache;
 class ThumbnailProvider : public QQuickImageProvider
 {
 public:
-    ThumbnailProvider( const QSize defaultSize = QSize( 512, 512 ));
+    ThumbnailProvider(const QSize defaultSize = QSize(512, 512));
 
-    QImage requestImage( const QString& filename, QSize* size,
-                         const QSize& requestedSize ) final;
+    QImage requestImage(const QString& filename, QSize* size,
+                        const QSize& requestedSize) final;
 
 private:
     const QSize _defaultSize;
@@ -88,10 +88,10 @@ private:
 class AsyncThumbnailProvider : public QQuickAsyncImageProvider
 {
 public:
-    AsyncThumbnailProvider( const QSize defaultSize = QSize( 512, 512 ));
+    AsyncThumbnailProvider(const QSize defaultSize = QSize(512, 512));
 
-    QQuickImageResponse* requestImageResponse( const QString& filename,
-                                               const QSize& size ) final;
+    QQuickImageResponse* requestImageResponse(const QString& filename,
+                                              const QSize& size) final;
 
 private:
     const QSize _defaultSize;

@@ -57,17 +57,17 @@ public:
      * Does not load any data until the image is first requested.
      * @param uri The uri to a valid image file.
      */
-    explicit ImageSource( const QString& uri );
+    explicit ImageSource(const QString& uri);
 
     /** @copydoc DataSource::getTileRect */
-    QRect getTileRect( uint tileIndex ) const final;
+    QRect getTileRect(uint tileIndex) const final;
 
     /** @copydoc DataSource::getTilesArea */
-    QSize getTilesArea( uint lod ) const final;
+    QSize getTilesArea(uint lod) const final;
 
     /** @copydoc DataSource::computeVisibleSet */
-    Indices computeVisibleSet( const QRectF& visibleTilesArea,
-                               uint lod ) const final;
+    Indices computeVisibleSet(const QRectF& visibleTilesArea,
+                              uint lod) const final;
 
     /** @copydoc DataSource::getMaxLod */
     uint getMaxLod() const final;
@@ -76,7 +76,7 @@ private:
     const QString _uri;
     const QSize _imageSize;
 
-    QImage getCachableTileImage( uint tileId ) const final;
+    QImage getCachableTileImage(uint tileId) const final;
 };
 
 #endif

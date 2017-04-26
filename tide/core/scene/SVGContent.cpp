@@ -45,11 +45,12 @@
 
 #include <QFileInfo>
 
-BOOST_CLASS_EXPORT_GUID( SVGContent, "SVGContent" )
+BOOST_CLASS_EXPORT_GUID(SVGContent, "SVGContent")
 
-SVGContent::SVGContent( const QString& uri )
-    : VectorialContent( uri )
-{}
+SVGContent::SVGContent(const QString& uri)
+    : VectorialContent(uri)
+{
+}
 
 CONTENT_TYPE SVGContent::getType() const
 {
@@ -58,12 +59,12 @@ CONTENT_TYPE SVGContent::getType() const
 
 bool SVGContent::readMetadata()
 {
-    const QFileInfo file( getURI( ));
-    if( !file.exists() || !file.isReadable( ))
+    const QFileInfo file(getURI());
+    if (!file.exists() || !file.isReadable())
         return false;
 
-    const SVG svg( getURI( ));
-    if( !svg.isValid( ))
+    const SVG svg(getURI());
+    if (!svg.isValid())
         return false;
 
     _size = svg.getSize();
@@ -74,7 +75,7 @@ const QStringList& SVGContent::getSupportedExtensions()
 {
     static QStringList extensions;
 
-    if( extensions.empty( ))
+    if (extensions.empty())
         extensions << "svg";
     return extensions;
 }

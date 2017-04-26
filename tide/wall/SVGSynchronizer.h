@@ -48,20 +48,20 @@
 class SVGSynchronizer : public LodSynchronizer
 {
     Q_OBJECT
-    Q_DISABLE_COPY( SVGSynchronizer )
+    Q_DISABLE_COPY(SVGSynchronizer)
 
 public:
     /** Constructor. */
-    explicit SVGSynchronizer( const QString& uri );
+    explicit SVGSynchronizer(const QString& uri);
 
     /** Destructor. */
     ~SVGSynchronizer();
 
     /** @copydoc ContentSynchronizer::synchronize */
-    void synchronize( WallToWallChannel& channel ) final;
+    void synchronize(WallToWallChannel& channel) final;
 
     /** @copydoc ContentSynchronizer::getTileImage */
-    ImagePtr getTileImage( uint tileId ) const final;
+    ImagePtr getTileImage(uint tileId) const final;
 
 private:
     /** @copydoc LodSynchronizer::getDataSource */

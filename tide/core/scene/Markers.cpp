@@ -39,82 +39,85 @@
 
 #include "Markers.h"
 
-Markers::Markers( QObject* parent_ )
-    : QAbstractListModel( parent_ )
-{}
-
-QVariant Markers::data( const QModelIndex& index_, const int role ) const
+Markers::Markers(QObject* parent_)
+    : QAbstractListModel(parent_)
 {
-    if( index_.row() < 0 || index_.row() >= rowCount() || !index_.isValid( ))
+}
+
+QVariant Markers::data(const QModelIndex& index_, const int role) const
+{
+    if (index_.row() < 0 || index_.row() >= rowCount() || !index_.isValid())
         return QVariant();
 
-    switch ( role )
+    switch (role)
     {
-        case XPOSITION_ROLE:
-            return QVariant( _markers[index_.row()].second.x( ));
-        case YPOSITION_ROLE:
-            return QVariant( _markers[index_.row()].second.y( ));
+    case XPOSITION_ROLE:
+        return QVariant(_markers[index_.row()].second.x());
+    case YPOSITION_ROLE:
+        return QVariant(_markers[index_.row()].second.y());
     }
     return QVariant();
 }
 
-int Markers::rowCount( const QModelIndex& parent_ ) const
+int Markers::rowCount(const QModelIndex& parent_) const
 {
-    Q_UNUSED( parent_ );
+    Q_UNUSED(parent_);
     return _markers.size();
 }
 
 QHash<int, QByteArray> Markers::roleNames() const
 {
     QHash<int, QByteArray> roles;
-    roles[ XPOSITION_ROLE ] = "xposition";
-    roles[ YPOSITION_ROLE ] = "yposition";
+    roles[XPOSITION_ROLE] = "xposition";
+    roles[YPOSITION_ROLE] = "yposition";
     return roles;
 }
 
-void Markers::addMarker( const int id, const QPointF& position )
+void Markers::addMarker(const int id, const QPointF& position)
 {
-    if( _findMarker( id ) != _markers.end( ))
+    if (_findMarker(id) != _markers.end())
         return;
 
     const int markerIndex = _markers.size();
-    beginInsertRows( QModelIndex(), markerIndex, markerIndex );
-    _markers.push_back( Marker( id, position ));
+    beginInsertRows(QModelIndex(), markerIndex, markerIndex);
+    _markers.push_back(Marker(id, position));
     endInsertRows();
-    emit( updated( shared_from_this( )));
+    emit(updated(shared_from_this()));
 }
 
-void Markers::updateMarker( const int id, const QPointF& position )
+void Markers::updateMarker(const int id, const QPointF& position)
 {
-    auto it = _findMarker( id );
+    auto it = _findMarker(id);
 
-    if( it  == _markers.end())
+    if (it == _markers.end())
         return;
 
     it->second = position;
-    emit( updated( shared_from_this( )));
+    emit(updated(shared_from_this()));
 
     const int markerIndex = it - _markers.begin();
-    emit dataChanged( createIndex( markerIndex, 0 ), createIndex( markerIndex, 0 ));
+    emit dataChanged(createIndex(markerIndex, 0), createIndex(markerIndex, 0));
 }
 
-void Markers::removeMarker( const int id )
+void Markers::removeMarker(const int id)
 {
-    auto it = _findMarker( id );
+    auto it = _findMarker(id);
 
-    if( it  == _markers.end())
+    if (it == _markers.end())
         return;
 
     const int markerIndex = it - _markers.begin();
-    beginRemoveRows( QModelIndex(), markerIndex, markerIndex );
-    _markers.erase( it );
+    beginRemoveRows(QModelIndex(), markerIndex, markerIndex);
+    _markers.erase(it);
     endRemoveRows();
-    emit( updated( shared_from_this( )));
+    emit(updated(shared_from_this()));
 }
 
-Markers::MarkersVector::iterator Markers::_findMarker( const int id )
+Markers::MarkersVector::iterator Markers::_findMarker(const int id)
 {
-   auto it = std::find_if( _markers.begin(), _markers.end(), [&id]( const Marker& marker )
-             { return marker.first == id; });
-   return it;
+    auto it = std::find_if(_markers.begin(), _markers.end(),
+                           [&id](const Marker& marker) {
+                               return marker.first == id;
+                           });
+    return it;
 }

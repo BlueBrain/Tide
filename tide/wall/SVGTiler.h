@@ -51,7 +51,7 @@ class SVGTiler : public LodTiler
 {
 public:
     /** Constructor. */
-    explicit SVGTiler( SVG& svg );
+    explicit SVGTiler(SVG& svg);
 
 private:
     /**
@@ -59,7 +59,7 @@ private:
      * Unlike other DataSource classes, this method may need to be called from a
      * thread with an OpenGL context depending on the SVG backend used.
      */
-    QImage getCachableTileImage( uint tileId ) const final;
+    QImage getCachableTileImage(uint tileId) const final;
 
     SVG& _svg;
 

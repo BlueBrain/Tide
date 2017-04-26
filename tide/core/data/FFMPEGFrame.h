@@ -42,10 +42,9 @@
 
 #include "FFMPEGDefines.h"
 
-extern "C"
-{
-    #include <libavcodec/avcodec.h>
-    #include <libavutil/mem.h>
+extern "C" {
+#include <libavcodec/avcodec.h>
+#include <libavutil/mem.h>
 }
 
 /** A frame of an FFMPEG movie. */

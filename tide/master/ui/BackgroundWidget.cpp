@@ -44,13 +44,13 @@
 #include "MasterConfiguration.h"
 #include "scene/ContentFactory.h"
 
-BackgroundWidget::BackgroundWidget( MasterConfiguration& configuration,
-                                    QWidget* parent_ )
-    : QDialog( parent_ )
-    , _configuration( configuration )
-    , _backgroundFolder( configuration.getContentDir( ))
+BackgroundWidget::BackgroundWidget(MasterConfiguration& configuration,
+                                   QWidget* parent_)
+    : QDialog(parent_)
+    , _configuration(configuration)
+    , _backgroundFolder(configuration.getContentDir())
 {
-    setWindowTitle( tr( "Background settings" ));
+    setWindowTitle(tr("Background settings"));
 
     const int frameStyle = QFrame::Sunken | QFrame::Panel;
 
@@ -61,60 +61,56 @@ BackgroundWidget::BackgroundWidget( MasterConfiguration& configuration,
 
     // Color chooser
 
-    _colorLabel = new QLabel( _previousColor.name( ));
-    _colorLabel->setFrameStyle( frameStyle );
-    _colorLabel->setPalette( QPalette( _previousColor ));
-    _colorLabel->setAutoFillBackground( true );
+    _colorLabel = new QLabel(_previousColor.name());
+    _colorLabel->setFrameStyle(frameStyle);
+    _colorLabel->setPalette(QPalette(_previousColor));
+    _colorLabel->setAutoFillBackground(true);
 
-    QPushButton* colorButton = new QPushButton(
-                                   tr( "Choose background color..." ));
-    connect( colorButton, SIGNAL( clicked( )), this, SLOT( _chooseColor( )));
-
+    QPushButton* colorButton =
+        new QPushButton(tr("Choose background color..."));
+    connect(colorButton, SIGNAL(clicked()), this, SLOT(_chooseColor()));
 
     // Background chooser
 
-    _backgroundLabel = new QLabel( _previousBackgroundURI );
-    _backgroundLabel->setFrameStyle( frameStyle );
-    QPushButton* backgroundButton = new QPushButton(
-                                        tr( "Choose background content..." ));
-    connect( backgroundButton, SIGNAL( clicked( )),
-             this, SLOT( _openBackgroundContent( )));
+    _backgroundLabel = new QLabel(_previousBackgroundURI);
+    _backgroundLabel->setFrameStyle(frameStyle);
+    QPushButton* backgroundButton =
+        new QPushButton(tr("Choose background content..."));
+    connect(backgroundButton, SIGNAL(clicked()), this,
+            SLOT(_openBackgroundContent()));
 
-    QPushButton* backgroundClearButton = new QPushButton(
-                                             tr( "Remove background" ));
-    connect( backgroundClearButton, SIGNAL( clicked( )),
-             this, SLOT( _removeBackground( )));
-
+    QPushButton* backgroundClearButton =
+        new QPushButton(tr("Remove background"));
+    connect(backgroundClearButton, SIGNAL(clicked()), this,
+            SLOT(_removeBackground()));
 
     // Standard buttons
 
     typedef QDialogButtonBox::StandardButton button;
-    QDialogButtonBox* buttonBox = new QDialogButtonBox( button::Ok |
-                                                        button::Cancel,
-                                                        Qt::Horizontal, this );
+    QDialogButtonBox* buttonBox =
+        new QDialogButtonBox(button::Ok | button::Cancel, Qt::Horizontal, this);
 
-    connect( buttonBox, SIGNAL( accepted( )), this, SLOT( accept( )));
-    connect( buttonBox, SIGNAL( rejected( )), this, SLOT( reject( )));
-
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
+    connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
 
     // Layout
 
     QGridLayout* gridLayout = new QGridLayout;
-    gridLayout->setColumnStretch( 1, 1 );
-    gridLayout->setColumnMinimumWidth( 1, 250 );
-    setLayout( gridLayout );
+    gridLayout->setColumnStretch(1, 1);
+    gridLayout->setColumnMinimumWidth(1, 250);
+    setLayout(gridLayout);
 
-    gridLayout->addWidget( colorButton, 0, 0 );
-    gridLayout->addWidget( _colorLabel, 0, 1 );
-    gridLayout->addWidget( backgroundButton, 1, 0 );
-    gridLayout->addWidget( _backgroundLabel, 1, 1 );
-    gridLayout->addWidget( backgroundClearButton, 2, 0 );
-    gridLayout->addWidget( buttonBox, 2, 1 );
+    gridLayout->addWidget(colorButton, 0, 0);
+    gridLayout->addWidget(_colorLabel, 0, 1);
+    gridLayout->addWidget(backgroundButton, 1, 0);
+    gridLayout->addWidget(_backgroundLabel, 1, 1);
+    gridLayout->addWidget(backgroundClearButton, 2, 0);
+    gridLayout->addWidget(buttonBox, 2, 1);
 }
 
 void BackgroundWidget::accept()
 {
-    if( _configuration.save( ))
+    if (_configuration.save())
     {
         _previousColor = _configuration.getBackgroundColor();
         _previousBackgroundURI = _configuration.getBackgroundUri();
@@ -124,8 +120,9 @@ void BackgroundWidget::accept()
     else
     {
         QMessageBox messageBox;
-        messageBox.setText( "An error occured while saving the configuration "\
-                            "xml file. Changes cannot be saved." );
+        messageBox.setText(
+            "An error occured while saving the configuration "
+            "xml file. Changes cannot be saved.");
         messageBox.exec();
     }
 }
@@ -133,67 +130,66 @@ void BackgroundWidget::accept()
 void BackgroundWidget::reject()
 {
     // Revert to saved settings
-    _colorLabel->setText( _previousColor.name( ));
-    _colorLabel->setPalette( QPalette( _previousColor ));
-    _backgroundLabel->setText( _previousBackgroundURI );
+    _colorLabel->setText(_previousColor.name());
+    _colorLabel->setPalette(QPalette(_previousColor));
+    _backgroundLabel->setText(_previousBackgroundURI);
 
-    _configuration.setBackgroundColor( _previousColor );
-    _configuration.setBackgroundUri( _previousBackgroundURI );
+    _configuration.setBackgroundColor(_previousColor);
+    _configuration.setBackgroundUri(_previousBackgroundURI);
 
     ContentPtr content;
-    if( !_previousBackgroundURI.isEmpty( ))
-        content = ContentFactory::getContent( _previousBackgroundURI );
+    if (!_previousBackgroundURI.isEmpty())
+        content = ContentFactory::getContent(_previousBackgroundURI);
 
-    emit backgroundContentChanged( content );
-    emit backgroundColorChanged( _previousColor );
+    emit backgroundContentChanged(content);
+    emit backgroundColorChanged(_previousColor);
 
     QDialog::reject();
 }
 
 void BackgroundWidget::_chooseColor()
 {
-    QColor color = QColorDialog::getColor( Qt::green, this );
+    QColor color = QColorDialog::getColor(Qt::green, this);
 
-    if( !color.isValid( ))
+    if (!color.isValid())
         return;
 
-    _colorLabel->setText( color.name());
-    _colorLabel->setPalette( QPalette( color ));
+    _colorLabel->setText(color.name());
+    _colorLabel->setPalette(QPalette(color));
 
-    _configuration.setBackgroundColor( color );
-    emit backgroundColorChanged( color );
+    _configuration.setBackgroundColor(color);
+    emit backgroundColorChanged(color);
 }
 
 void BackgroundWidget::_openBackgroundContent()
 {
     const QString filter = ContentFactory::getSupportedFilesFilterAsString();
-    const QString filename = QFileDialog::getOpenFileName( this,
-                                                           tr("Choose content"),
-                                                           _backgroundFolder,
-                                                           filter );
-    if( filename.isEmpty( ))
+    const QString filename =
+        QFileDialog::getOpenFileName(this, tr("Choose content"),
+                                     _backgroundFolder, filter);
+    if (filename.isEmpty())
         return;
 
-    _backgroundFolder = QFileInfo( filename ).absoluteDir().path();
+    _backgroundFolder = QFileInfo(filename).absoluteDir().path();
 
-    ContentPtr content = ContentFactory::getContent( filename );
-    if( content )
+    ContentPtr content = ContentFactory::getContent(filename);
+    if (content)
     {
-        _backgroundLabel->setText( filename );
-        _configuration.setBackgroundUri( filename );
-        emit backgroundContentChanged( content );
+        _backgroundLabel->setText(filename);
+        _configuration.setBackgroundUri(filename);
+        emit backgroundContentChanged(content);
     }
     else
     {
         QMessageBox messageBox;
-        messageBox.setText( tr( "Error: Unsupported file." ));
+        messageBox.setText(tr("Error: Unsupported file."));
         messageBox.exec();
     }
 }
 
 void BackgroundWidget::_removeBackground()
 {
-    _backgroundLabel->setText( "" );
-    _configuration.setBackgroundUri( "" );
-    emit backgroundContentChanged( ContentPtr( ));
+    _backgroundLabel->setText("");
+    _configuration.setBackgroundUri("");
+    emit backgroundContentChanged(ContentPtr());
 }

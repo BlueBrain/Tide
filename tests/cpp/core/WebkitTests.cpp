@@ -38,91 +38,93 @@
 /*********************************************************************/
 
 #define BOOST_TEST_MODULE WebBrowser
+
 #include <boost/test/unit_test.hpp>
 
 #include "localstreamer/WebkitPixelStreamer.h"
 
+#include <QDir>
 #include <QWebElementCollection>
 #include <QWebFrame>
 #include <QWebPage>
 #include <QWebView>
-#include <QDir>
 
 #include "GlobalQtApp.h"
 #include "glVersion.h"
 
-#define GL_REQ_VERSION  2
-#define TEST_PAGE_URL   "/webgl_interaction.html"
-#define EMPTY_PAGE_URL  "about:blank"
+#define GL_REQ_VERSION 2
+#define TEST_PAGE_URL "/webgl_interaction.html"
+#define EMPTY_PAGE_URL "about:blank"
 
-BOOST_GLOBAL_FIXTURE( GlobalQtApp );
+BOOST_GLOBAL_FIXTURE(GlobalQtApp);
 
 QString testPageURL()
 {
     return "file://" + QDir::currentPath() + TEST_PAGE_URL;
 }
 
-BOOST_AUTO_TEST_CASE( test_webgl_support )
+BOOST_AUTO_TEST_CASE(test_webgl_support)
 {
-    if( !hasGLXDisplay() || !glVersionGreaterEqual( GL_REQ_VERSION ))
+    if (!hasGLXDisplay() || !glVersionGreaterEqual(GL_REQ_VERSION))
         return;
 
     // load the webgl website, exec() returns when loading is finished
-    WebkitPixelStreamer* streamer = new WebkitPixelStreamer( QSize( 640, 480 ),
-                                                             EMPTY_PAGE_URL );
-    QObject::connect( streamer->getView(), SIGNAL(loadFinished(bool)),
-                      QApplication::instance(), SLOT(quit()));
-    streamer->setUrl( testPageURL( ));
+    WebkitPixelStreamer* streamer =
+        new WebkitPixelStreamer(QSize(640, 480), EMPTY_PAGE_URL);
+    QObject::connect(streamer->getView(), SIGNAL(loadFinished(bool)),
+                     QApplication::instance(), SLOT(quit()));
+    streamer->setUrl(testPageURL());
     QApplication::instance()->exec();
 
     QWebPage* page = streamer->getView()->page();
-    BOOST_REQUIRE( page );
+    BOOST_REQUIRE(page);
     QWebFrame* frame = page->mainFrame();
-    BOOST_REQUIRE( frame );
-    QWebElementCollection webglCanvases = frame->findAllElements( "canvas[id=webgl-canvas]" );
-    BOOST_REQUIRE_EQUAL( webglCanvases.count(), 1 );
+    BOOST_REQUIRE(frame);
+    QWebElementCollection webglCanvases =
+        frame->findAllElements("canvas[id=webgl-canvas]");
+    BOOST_REQUIRE_EQUAL(webglCanvases.count(), 1);
 
     // http://stackoverflow.com/questions/11871077/proper-way-to-detect-webgl-support
     QVariant hasContext = frame->evaluateJavaScript(
-                "hasContext = window.WebGLRenderingContext !== null;");
-    BOOST_REQUIRE( hasContext.toBool( ));
+        "hasContext = window.WebGLRenderingContext !== null;");
+    BOOST_REQUIRE(hasContext.toBool());
 
     QVariant hasGL = frame->evaluateJavaScript(
-                "try {"
-                "  gl = canvas.getContext(\"webgl\");"
-                "  hasGL = true;"
-                "}"
-                "catch(e) {"
-                "  try {"
-                "    gl = canvas.getContext(\"experimental-webgl\");"
-                "    hasGL = true;"
-                "  }"
-                "  catch(e) {"
-                "    hasGL = false;"
-                "  }"
-                "}");
-    BOOST_CHECK( hasGL.toBool( ));
+        "try {"
+        "  gl = canvas.getContext(\"webgl\");"
+        "  hasGL = true;"
+        "}"
+        "catch(e) {"
+        "  try {"
+        "    gl = canvas.getContext(\"experimental-webgl\");"
+        "    hasGL = true;"
+        "  }"
+        "  catch(e) {"
+        "    hasGL = false;"
+        "  }"
+        "}");
+    BOOST_CHECK(hasGL.toBool());
 
     delete streamer;
 }
 
-BOOST_AUTO_TEST_CASE( test_webgl_interaction )
+BOOST_AUTO_TEST_CASE(test_webgl_interaction)
 {
-    if( !hasGLXDisplay() || !glVersionGreaterEqual( GL_REQ_VERSION ))
+    if (!hasGLXDisplay() || !glVersionGreaterEqual(GL_REQ_VERSION))
         return;
 
     // load the webgl website, exec() returns when loading is finished
-    WebkitPixelStreamer* streamer = new WebkitPixelStreamer( QSize( 640, 480 ),
-                                                             EMPTY_PAGE_URL );
-    QObject::connect( streamer->getView(), SIGNAL( loadFinished( bool )),
-                      QApplication::instance(), SLOT( quit( )));
-    streamer->setUrl( testPageURL( ));
+    WebkitPixelStreamer* streamer =
+        new WebkitPixelStreamer(QSize(640, 480), EMPTY_PAGE_URL);
+    QObject::connect(streamer->getView(), SIGNAL(loadFinished(bool)),
+                     QApplication::instance(), SLOT(quit()));
+    streamer->setUrl(testPageURL());
     QApplication::instance()->exec();
 
     QWebPage* page = streamer->getView()->page();
-    BOOST_REQUIRE( page );
+    BOOST_REQUIRE(page);
     QWebFrame* frame = page->mainFrame();
-    BOOST_REQUIRE( frame );
+    BOOST_REQUIRE(frame);
 
     // Normalized mouse coordinates
     deflect::Event pressState;
@@ -147,10 +149,12 @@ BOOST_AUTO_TEST_CASE( test_webgl_interaction )
     streamer->processEvent(moveState);
     streamer->processEvent(releaseState);
 
-    const int expectedDisplacementX = (releaseState.mouseX-pressState.mouseX) *
-                                streamer->size().width() / streamer->getView()->zoomFactor();
-    const int expectedDisplacementY = (releaseState.mouseY-pressState.mouseY) *
-                                streamer->size().height() / streamer->getView()->zoomFactor();
+    const int expectedDisplacementX =
+        (releaseState.mouseX - pressState.mouseX) * streamer->size().width() /
+        streamer->getView()->zoomFactor();
+    const int expectedDisplacementY =
+        (releaseState.mouseY - pressState.mouseY) * streamer->size().height() /
+        streamer->getView()->zoomFactor();
 
     QString jsX = QString("deltaX == %1;").arg(expectedDisplacementX);
     QString jsY = QString("deltaY == %1;").arg(expectedDisplacementY);
@@ -158,29 +162,29 @@ BOOST_AUTO_TEST_CASE( test_webgl_interaction )
     QVariant validDeltaX = frame->evaluateJavaScript(jsX);
     QVariant validDeltaY = frame->evaluateJavaScript(jsY);
 
-    BOOST_CHECK( validDeltaX.toBool());
-    BOOST_CHECK( validDeltaY.toBool());
+    BOOST_CHECK(validDeltaX.toBool());
+    BOOST_CHECK(validDeltaY.toBool());
 
     delete streamer;
 }
 
-BOOST_AUTO_TEST_CASE( test_webgl_press_release )
+BOOST_AUTO_TEST_CASE(test_webgl_press_release)
 {
-    if( !hasGLXDisplay() || !glVersionGreaterEqual( GL_REQ_VERSION ))
+    if (!hasGLXDisplay() || !glVersionGreaterEqual(GL_REQ_VERSION))
         return;
 
     // load the webgl website, exec() returns when loading is finished
-    WebkitPixelStreamer* streamer = new WebkitPixelStreamer( QSize( 640, 480 ),
-                                                             EMPTY_PAGE_URL );
-    QObject::connect( streamer->getView(), SIGNAL(loadFinished(bool)),
-                      QApplication::instance(), SLOT(quit()));
-    streamer->setUrl( testPageURL( ));
+    WebkitPixelStreamer* streamer =
+        new WebkitPixelStreamer(QSize(640, 480), EMPTY_PAGE_URL);
+    QObject::connect(streamer->getView(), SIGNAL(loadFinished(bool)),
+                     QApplication::instance(), SLOT(quit()));
+    streamer->setUrl(testPageURL());
     QApplication::instance()->exec();
 
     QWebPage* page = streamer->getView()->page();
-    BOOST_REQUIRE( page );
+    BOOST_REQUIRE(page);
     QWebFrame* frame = page->mainFrame();
-    BOOST_REQUIRE( frame );
+    BOOST_REQUIRE(frame);
 
     // Normalized mouse coordinates
     deflect::Event pressReleaseEvent;
@@ -194,37 +198,39 @@ BOOST_AUTO_TEST_CASE( test_webgl_press_release )
     pressReleaseEvent.type = deflect::Event::EVT_RELEASE;
     streamer->processEvent(pressReleaseEvent);
 
-    const int expectedPosX = pressReleaseEvent.mouseX * streamer->size().width() /
+    const int expectedPosX = pressReleaseEvent.mouseX *
+                             streamer->size().width() /
                              streamer->getView()->zoomFactor();
-    const int expectedPosY = pressReleaseEvent.mouseY * streamer->size().height() /
+    const int expectedPosY = pressReleaseEvent.mouseY *
+                             streamer->size().height() /
                              streamer->getView()->zoomFactor();
 
     QString jsX = QString("lastMouseX == %1;").arg(expectedPosX);
     QString jsY = QString("lastMouseY == %1;").arg(expectedPosY);
 
-    BOOST_CHECK( frame->evaluateJavaScript(jsX).toBool());
-    BOOST_CHECK( frame->evaluateJavaScript(jsY).toBool());
+    BOOST_CHECK(frame->evaluateJavaScript(jsX).toBool());
+    BOOST_CHECK(frame->evaluateJavaScript(jsY).toBool());
 
     delete streamer;
 }
 
-BOOST_AUTO_TEST_CASE( test_webgl_wheel )
+BOOST_AUTO_TEST_CASE(test_webgl_wheel)
 {
-    if( !hasGLXDisplay() || !glVersionGreaterEqual( GL_REQ_VERSION ))
+    if (!hasGLXDisplay() || !glVersionGreaterEqual(GL_REQ_VERSION))
         return;
 
     // load the webgl website, exec() returns when loading is finished
-    WebkitPixelStreamer* streamer = new WebkitPixelStreamer( QSize( 640, 480 ),
-                                                             EMPTY_PAGE_URL );
-    QObject::connect( streamer->getView(), SIGNAL( loadFinished( bool )),
-                      QApplication::instance(), SLOT( quit( )));
-    streamer->setUrl( testPageURL( ));
+    WebkitPixelStreamer* streamer =
+        new WebkitPixelStreamer(QSize(640, 480), EMPTY_PAGE_URL);
+    QObject::connect(streamer->getView(), SIGNAL(loadFinished(bool)),
+                     QApplication::instance(), SLOT(quit()));
+    streamer->setUrl(testPageURL());
     QApplication::instance()->exec();
 
     QWebPage* page = streamer->getView()->page();
-    BOOST_REQUIRE( page );
+    BOOST_REQUIRE(page);
     QWebFrame* frame = page->mainFrame();
-    BOOST_REQUIRE( frame );
+    BOOST_REQUIRE(frame);
 
     // Normalized mouse coordinates
     deflect::Event pinchEvent;
@@ -233,7 +239,7 @@ BOOST_AUTO_TEST_CASE( test_webgl_wheel )
     pinchEvent.dy = 40.0 / streamer->size().height();
     pinchEvent.type = deflect::Event::EVT_PINCH;
 
-    streamer->processEvent( pinchEvent );
+    streamer->processEvent(pinchEvent);
 
     const int expectedPosX = pinchEvent.mouseX * streamer->size().width() /
                              streamer->getView()->zoomFactor();
@@ -241,42 +247,43 @@ BOOST_AUTO_TEST_CASE( test_webgl_wheel )
                              streamer->getView()->zoomFactor();
     const int expectedWheelDelta = 40;
 
-    QString jsX = QString( "lastMouseX == %1;" ).arg( expectedPosX );
-    QString jsY = QString( "lastMouseY == %1;" ).arg( expectedPosY );
-    QString jsD = QString( "wheelDelta == %1;" ).arg( expectedWheelDelta );
+    QString jsX = QString("lastMouseX == %1;").arg(expectedPosX);
+    QString jsY = QString("lastMouseY == %1;").arg(expectedPosY);
+    QString jsD = QString("wheelDelta == %1;").arg(expectedWheelDelta);
 
-    BOOST_CHECK( frame->evaluateJavaScript( jsX ).toBool( ));
-    BOOST_CHECK( frame->evaluateJavaScript( jsY ).toBool( ));
-    BOOST_CHECK( frame->evaluateJavaScript( jsD ).toBool( ));
+    BOOST_CHECK(frame->evaluateJavaScript(jsX).toBool());
+    BOOST_CHECK(frame->evaluateJavaScript(jsY).toBool());
+    BOOST_CHECK(frame->evaluateJavaScript(jsD).toBool());
 
     delete streamer;
 }
 
-BOOST_AUTO_TEST_CASE( test_localstorage )
+BOOST_AUTO_TEST_CASE(test_localstorage)
 {
-    if( !hasGLXDisplay() || !glVersionGreaterEqual( GL_REQ_VERSION ))
+    if (!hasGLXDisplay() || !glVersionGreaterEqual(GL_REQ_VERSION))
         return;
 
     // load the webgl website, exec() returns when loading is finished
-    WebkitPixelStreamer* streamer = new WebkitPixelStreamer( QSize( 640, 480 ),
-                                                             testPageURL( ));
-    QObject::connect( streamer->getView(), SIGNAL( loadFinished( bool )),
-                      QApplication::instance(), SLOT(quit( )));
+    WebkitPixelStreamer* streamer =
+        new WebkitPixelStreamer(QSize(640, 480), testPageURL());
+    QObject::connect(streamer->getView(), SIGNAL(loadFinished(bool)),
+                     QApplication::instance(), SLOT(quit()));
     QApplication::instance()->exec();
 
     QWebPage* page = streamer->getView()->page();
-    BOOST_REQUIRE( page );
+    BOOST_REQUIRE(page);
     QWebFrame* frame = page->mainFrame();
-    BOOST_REQUIRE( frame );
+    BOOST_REQUIRE(frame);
 
-    BOOST_CHECK( page->settings()->testAttribute( QWebSettings::LocalStorageEnabled ));
+    BOOST_CHECK(
+        page->settings()->testAttribute(QWebSettings::LocalStorageEnabled));
 
     const QVariant hasLocalStorage = frame->evaluateJavaScript(
-                                                "var hasLocalStorage = false;"
-                                                "if( window.localStorage ) {"
-                                                "  hasLocalStorage = true;"
-                                                "}");
-    BOOST_CHECK( hasLocalStorage.toBool( ));
+        "var hasLocalStorage = false;"
+        "if( window.localStorage ) {"
+        "  hasLocalStorage = true;"
+        "}");
+    BOOST_CHECK(hasLocalStorage.toBool());
 
     delete streamer;
 }

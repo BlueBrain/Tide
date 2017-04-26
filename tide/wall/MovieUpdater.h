@@ -56,36 +56,36 @@
 class MovieUpdater : public DataSource
 {
 public:
-    explicit MovieUpdater( const QString& uri );
+    explicit MovieUpdater(const QString& uri);
     ~MovieUpdater();
 
     /**
      * @copydoc DataSource::getTileImage
      * threadsafe
      */
-    ImagePtr getTileImage( uint tileIndex ) const final;
+    ImagePtr getTileImage(uint tileIndex) const final;
 
     /** @copydoc DataSource::getTileRect */
-    QRect getTileRect( uint tileIndex ) const final;
+    QRect getTileRect(uint tileIndex) const final;
 
     /** @copydoc DataSource::getTileFormat */
-    TextureFormat getTileFormat( uint tileIndex ) const final;
+    TextureFormat getTileFormat(uint tileIndex) const final;
 
     /** @copydoc DataSource::getTilesArea */
-    QSize getTilesArea( uint lod ) const final;
+    QSize getTilesArea(uint lod) const final;
 
     /** @copydoc DataSource::computeVisibleSet */
-    Indices
-    computeVisibleSet( const QRectF& visibleTilesArea, uint lod ) const final;
+    Indices computeVisibleSet(const QRectF& visibleTilesArea,
+                              uint lod) const final;
 
     /** @copydoc DataSource::getMaxLod */
     uint getMaxLod() const final;
 
     /** Update this datasource according to visibility and movie content. */
-    void update( const MovieContent& movie, bool visible );
+    void update(const MovieContent& movie, bool visible);
 
     /** @return true if all processes advance to request a new movie frame. */
-    bool advanceToNextFrame( WallToWallChannel& channel );
+    bool advanceToNextFrame(WallToWallChannel& channel);
 
     /**
      * @return true if after advanceToNextFrame() we need to decode a new
@@ -132,7 +132,7 @@ private:
     mutable double _currentPosition = 0.0;
     mutable bool _loopedBack = false;
 
-    void _exchangeSharedTimestamp( WallToWallChannel& channel, bool inSync );
+    void _exchangeSharedTimestamp(WallToWallChannel& channel, bool inSync);
 };
 
 #endif

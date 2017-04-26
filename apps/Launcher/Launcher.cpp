@@ -43,69 +43,70 @@
 #include "tide/core/scene/ContentFactory.h"
 #include "tide/core/thumbnail/ThumbnailProvider.h"
 
+#include "tide/master/MasterConfiguration.h"
 #include "tide/master/localstreamer/CommandLineOptions.h"
 #include "tide/master/localstreamer/QmlKeyInjector.h"
-#include "tide/master/MasterConfiguration.h"
 
 #include <QHostInfo>
 #include <QQmlContext>
 
 namespace
 {
-const std::string deflectHost( "localhost" );
-const QString deflectQmlFile( "qrc:/qml/qml/main.qml" );
-const QString thumbnailProviderId( "thumbnail" );
+const std::string deflectHost("localhost");
+const QString deflectQmlFile("qrc:/qml/qml/main.qml");
+const QString thumbnailProviderId("thumbnail");
 }
 
-Launcher::Launcher( int& argc, char* argv[] )
-    : QGuiApplication( argc, argv )
+Launcher::Launcher(int& argc, char* argv[])
+    : QGuiApplication(argc, argv)
 {
-    const CommandLineOptions options( argc, argv );
-    const MasterConfiguration config( options.getConfiguration( ));
+    const CommandLineOptions options(argc, argv);
+    const MasterConfiguration config(options.getConfiguration());
 
     const auto deflectStreamId = options.getStreamId().toStdString();
-    _qmlStreamer.reset( new deflect::qt::QmlStreamer( deflectQmlFile,
-                                                      deflectHost,
-                                                      deflectStreamId ));
+    _qmlStreamer.reset(new deflect::qt::QmlStreamer(deflectQmlFile, deflectHost,
+                                                    deflectStreamId));
 
-    connect( _qmlStreamer.get(), &deflect::qt::QmlStreamer::streamClosed,
-             this, &QCoreApplication::quit );
+    connect(_qmlStreamer.get(), &deflect::qt::QmlStreamer::streamClosed, this,
+            &QCoreApplication::quit);
 
     auto item = _qmlStreamer->getRootItem();
 
     // General setup
-    item->setProperty( "restPort", config.getWebServicePort( ));
-    if( options.getWidth( ))
-        item->setProperty( "width", options.getWidth( ));
-    if( options.getHeight( ))
-        item->setProperty( "height", options.getHeight( ));
+    item->setProperty("restPort", config.getWebServicePort());
+    if (options.getWidth())
+        item->setProperty("width", options.getWidth());
+    if (options.getHeight())
+        item->setProperty("height", options.getHeight());
 
     // FileBrowser setup
     const auto filters = ContentFactory::getSupportedFilesFilter();
-    item->setProperty( "filesFilter", filters );
-    item->setProperty( "rootFilesFolder", config.getContentDir( ));
-    item->setProperty( "rootSessionsFolder", config.getSessionsDir( ));
+    item->setProperty("filesFilter", filters);
+    item->setProperty("rootFilesFolder", config.getContentDir());
+    item->setProperty("rootSessionsFolder", config.getSessionsDir());
 
     QQmlEngine* engine = _qmlStreamer->getQmlEngine();
 #if TIDE_ASYNC_THUMBNAIL_PROVIDER
-    engine->addImageProvider( thumbnailProviderId, new AsyncThumbnailProvider );
+    engine->addImageProvider(thumbnailProviderId, new AsyncThumbnailProvider);
 #else
-    engine->addImageProvider( thumbnailProviderId, new ThumbnailProvider );
+    engine->addImageProvider(thumbnailProviderId, new ThumbnailProvider);
 #endif
-    engine->rootContext()->setContextProperty( "fileInfo", &_fileInfoHelper );
+    engine->rootContext()->setContextProperty("fileInfo", &_fileInfoHelper);
 
     // DemoLauncher setup
-    item->setProperty( "demoServiceUrl", config.getDemoServiceUrl( ));
-    item->setProperty( "demoServiceImageFolder",
-                       config.getDemoServiceImageFolder( ));
-    item->setProperty( "demoServiceDeflectHost", QHostInfo::localHostName( ));
+    item->setProperty("demoServiceUrl", config.getDemoServiceUrl());
+    item->setProperty("demoServiceImageFolder",
+                      config.getDemoServiceImageFolder());
+    item->setProperty("demoServiceDeflectHost", QHostInfo::localHostName());
 }
 
-Launcher::~Launcher() {}
-
-bool Launcher::event( QEvent* event_ )
+Launcher::~Launcher()
 {
-    if( auto inputEvent = dynamic_cast<QInputMethodEvent*>( event_ ))
-        return QmlKeyInjector::send( inputEvent, _qmlStreamer->getRootItem( ));
-    return QGuiApplication::event( event_ );
+}
+
+bool Launcher::event(QEvent* event_)
+{
+    if (auto inputEvent = dynamic_cast<QInputMethodEvent*>(event_))
+        return QmlKeyInjector::send(inputEvent, _qmlStreamer->getRootItem());
+    return QGuiApplication::event(event_);
 }

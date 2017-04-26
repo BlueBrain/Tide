@@ -42,32 +42,33 @@
 #include "scene/ContentWindow.h"
 #include "scene/WebbrowserContent.h"
 
-WebbrowserController::WebbrowserController( ContentWindow& contentWindow )
-    : PixelStreamController( contentWindow )
-{}
-
-void WebbrowserController::touchBegin( const QPointF position )
+WebbrowserController::WebbrowserController(ContentWindow& contentWindow)
+    : PixelStreamController(contentWindow)
 {
-    getWebContent().getAddressBar()->setFocused( false );
-
-    PixelStreamController::touchBegin( position );
 }
 
-void WebbrowserController::keyPress( const int key, const int modifiers,
-                                     const QString text )
+void WebbrowserController::touchBegin(const QPointF position)
 {
-    if( getWebContent().getAddressBar()->isFocused( ))
+    getWebContent().getAddressBar()->setFocused(false);
+
+    PixelStreamController::touchBegin(position);
+}
+
+void WebbrowserController::keyPress(const int key, const int modifiers,
+                                    const QString text)
+{
+    if (getWebContent().getAddressBar()->isFocused())
         return;
 
-    PixelStreamController::keyPress( key, modifiers, text );
+    PixelStreamController::keyPress(key, modifiers, text);
 }
 
-void WebbrowserController::keyRelease( const int key, const int modifiers,
-                                       const QString text )
+void WebbrowserController::keyRelease(const int key, const int modifiers,
+                                      const QString text)
 {
-    if( getWebContent().getAddressBar()->isFocused( ))
+    if (getWebContent().getAddressBar()->isFocused())
     {
-        switch( key )
+        switch (key)
         {
         case Qt::Key_Enter:
             emit enterKeyPressed();
@@ -76,16 +77,16 @@ void WebbrowserController::keyRelease( const int key, const int modifiers,
             emit deleteKeyPressed();
             break;
         default:
-            emit keyboardInput( text );
+            emit keyboardInput(text);
             break;
         }
         return;
     }
 
-    PixelStreamController::keyRelease( key, modifiers, text );
+    PixelStreamController::keyRelease(key, modifiers, text);
 }
 
 WebbrowserContent& WebbrowserController::getWebContent()
 {
-    return dynamic_cast<WebbrowserContent&>( *_contentWindow.getContent( ));
+    return dynamic_cast<WebbrowserContent&>(*_contentWindow.getContent());
 }

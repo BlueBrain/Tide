@@ -52,15 +52,16 @@ namespace
 {
 const QString _startTime = QDateTime::currentDateTime().toString();
 
-QJsonObject _toJsonObject( const QSize& size )
+QJsonObject _toJsonObject(const QSize& size)
 {
-    return QJsonObject{{ "width", size.width() }, { "height", size.height() }};
+    return QJsonObject{{"width", size.width()}, {"height", size.height()}};
 }
 }
 
-RestConfiguration::RestConfiguration( const MasterConfiguration& config )
-    : _config( config )
-{}
+RestConfiguration::RestConfiguration(const MasterConfiguration& config)
+    : _config(config)
+{
+}
 
 std::string RestConfiguration::getTypeName() const
 {
@@ -70,16 +71,15 @@ std::string RestConfiguration::getTypeName() const
 std::string RestConfiguration::_toJSON() const
 {
     QJsonObject config{
-        { "hostname", QHostInfo::localHostName() },
-        { "version", QString::fromStdString( tide::Version::getString( )) },
-        { "revision", QString::number( tide::Version::getRevision(), 16 ) },
-        { "startTime", _startTime },
-        { "wallSize", _toJsonObject( _config.getTotalSize( )) },
-        { "backgroundColor", _config.getBackgroundColor().name() },
-        { "contentDir", _config.getContentDir() },
-        { "sessionDir", _config.getSessionsDir() },
-        { "filters", QJsonArray::fromStringList(
-                        ContentFactory::getSupportedFilesFilter( )) }
-    };
-    return json::toString( QJsonObject{{ "config", config }} );
+        {"hostname", QHostInfo::localHostName()},
+        {"version", QString::fromStdString(tide::Version::getString())},
+        {"revision", QString::number(tide::Version::getRevision(), 16)},
+        {"startTime", _startTime},
+        {"wallSize", _toJsonObject(_config.getTotalSize())},
+        {"backgroundColor", _config.getBackgroundColor().name()},
+        {"contentDir", _config.getContentDir()},
+        {"sessionDir", _config.getSessionsDir()},
+        {"filters", QJsonArray::fromStringList(
+                        ContentFactory::getSupportedFilesFilter())}};
+    return json::toString(QJsonObject{{"config", config}});
 }

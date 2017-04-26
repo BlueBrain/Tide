@@ -42,8 +42,8 @@
 
 #include "Configuration.h"
 
-#include <QObject>
 #include <QImage>
+#include <QObject>
 
 /**
  * Assemble screenshots from the wall processes into a single image.
@@ -58,7 +58,7 @@ public:
      *
      * @param config the configuration of the wall.
      */
-    explicit ScreenshotAssembler( const Configuration& config );
+    explicit ScreenshotAssembler(const Configuration& config);
 
 public slots:
     /**
@@ -66,11 +66,11 @@ public slots:
      * @param image the image to add.
      * @param source the index of the wall process that sent the image.
      */
-    void addImage( QImage image, int source );
+    void addImage(QImage image, int source);
 
 signals:
     /** Emitted when the last image forming the screenshot has been added. */
-    void screenshotComplete( QImage image );
+    void screenshotComplete(QImage image);
 
 private:
     const Configuration& _config;

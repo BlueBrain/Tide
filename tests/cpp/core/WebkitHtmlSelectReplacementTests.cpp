@@ -38,27 +38,29 @@
 /*********************************************************************/
 
 #define BOOST_TEST_MODULE WebBrowser
+
 #include <boost/test/unit_test.hpp>
 
-#include <QDebug>
 #include "localstreamer/WebkitHtmlSelectReplacer.h"
+#include "types.h"
 
-#include <QWebView>
-#include <QWebPage>
-#include <QWebFrame>
-#include <QWebElement>
+#include <QDebug>
 #include <QDir>
+#include <QWebElement>
+#include <QWebFrame>
+#include <QWebPage>
+#include <QWebView>
 
 #include "GlobalQtApp.h"
 
-#define TEST_PAGE_URL               "/select_test.htm"
-#define HTTP_BODY_SELECTOR          "body"
-#define HTTP_SELECT_SELECTOR        "select[id=language]"
-#define HTTP_SELECTBOXIT_SELECTOR   "span[id=languageSelectBoxIt]"
+#define TEST_PAGE_URL "/select_test.htm"
+#define HTTP_BODY_SELECTOR "body"
+#define HTTP_SELECT_SELECTOR "select[id=language]"
+#define HTTP_SELECTBOXIT_SELECTOR "span[id=languageSelectBoxIt]"
 #define DISPLAY_STYLE_PROPERTY_NAME "display"
-#define DISPLAY_STYLE_NONE          "none"
+#define DISPLAY_STYLE_NONE "none"
 
-BOOST_GLOBAL_FIXTURE( GlobalQtApp );
+BOOST_GLOBAL_FIXTURE(GlobalQtApp);
 
 QString testPageURL()
 {
@@ -71,8 +73,8 @@ public:
     TestPage()
     {
         webview.page()->setViewportSize(QSize(640, 480));
-        QObject::connect( &webview, SIGNAL(loadFinished(bool)),
-                          QApplication::instance(), SLOT(quit()));
+        QObject::connect(&webview, SIGNAL(loadFinished(bool)),
+                         QApplication::instance(), SLOT(quit()));
     }
 
     void load()
@@ -82,7 +84,7 @@ public:
 
         // Check that the page could be loaded
         const QString pageContent = getElement(HTTP_BODY_SELECTOR).toInnerXml();
-        BOOST_REQUIRE( !pageContent.isEmpty( ));
+        BOOST_REQUIRE(!pageContent.isEmpty());
     }
 
     QWebElement getElement(const QString& selectorQuery) const
@@ -93,37 +95,39 @@ public:
     QString getSelectElementDisplayProperty() const
     {
         const QWebElement select = getElement(HTTP_SELECT_SELECTOR);
-        BOOST_REQUIRE( !select.isNull( ));
-        return select.styleProperty(DISPLAY_STYLE_PROPERTY_NAME, QWebElement::InlineStyle);
+        BOOST_REQUIRE(!select.isNull());
+        return select.styleProperty(DISPLAY_STYLE_PROPERTY_NAME,
+                                    QWebElement::InlineStyle);
     }
 
     QWebView webview;
 };
 
-BOOST_AUTO_TEST_CASE( TestWhenNoReplacerThenSelectElementIsVisible )
+BOOST_AUTO_TEST_CASE(TestWhenNoReplacerThenSelectElementIsVisible)
 {
-    if( !hasGLXDisplay( ))
+    if (!hasGLXDisplay())
         return;
 
     TestPage testPage;
     testPage.load();
 
-    const QString displayStyleProperty = testPage.getSelectElementDisplayProperty();
-    BOOST_CHECK( displayStyleProperty.isEmpty( ));
+    const QString displayStyleProperty =
+        testPage.getSelectElementDisplayProperty();
+    BOOST_CHECK(displayStyleProperty.isEmpty());
 }
 
-BOOST_AUTO_TEST_CASE( TestWhenReplacerThenSelectHasEquivalentHtml )
+BOOST_AUTO_TEST_CASE(TestWhenReplacerThenSelectHasEquivalentHtml)
 {
-    if( !hasGLXDisplay( ))
+    if (!hasGLXDisplay())
         return;
 
     TestPage testPage;
     WebkitHtmlSelectReplacer replacer(testPage.webview);
     testPage.load();
 
-    const QString displayStyleProperty = testPage.getSelectElementDisplayProperty();
-    BOOST_CHECK_EQUAL( displayStyleProperty.toStdString(), DISPLAY_STYLE_NONE );
+    BOOST_CHECK_EQUAL(testPage.getSelectElementDisplayProperty(),
+                      DISPLAY_STYLE_NONE);
 
     QWebElement selectboxit = testPage.getElement(HTTP_SELECTBOXIT_SELECTOR);
-    BOOST_CHECK( !selectboxit.isNull( ));
+    BOOST_CHECK(!selectboxit.isNull());
 }

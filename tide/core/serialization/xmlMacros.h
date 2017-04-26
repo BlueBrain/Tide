@@ -44,18 +44,26 @@
 #include <boost/archive/xml_iarchive.hpp>
 #include <boost/archive/xml_oarchive.hpp>
 
-#define DECLARE_SERIALIZE_FOR_XML(className) \
-template<> \
-void className::serialize<>(boost::archive::xml_iarchive & ar, const unsigned int version); \
-template<> \
-void className::serialize<>(boost::archive::xml_oarchive & ar, const unsigned int version);
+#define DECLARE_SERIALIZE_FOR_XML(className)                       \
+    template <>                                                    \
+    void className::serialize<>(boost::archive::xml_iarchive & ar, \
+                                const unsigned int version);       \
+    template <>                                                    \
+    void className::serialize<>(boost::archive::xml_oarchive & ar, \
+                                const unsigned int version);
 
-#define IMPLEMENT_SERIALIZE_FOR_XML(className) \
-template<> \
-void className::serialize<>(boost::archive::xml_iarchive & ar, const unsigned int version) \
-{ serialize_for_xml(ar, version); } \
-template<> \
-void className::serialize<>(boost::archive::xml_oarchive & ar, const unsigned int version) \
-{ serialize_for_xml(ar, version); }
+#define IMPLEMENT_SERIALIZE_FOR_XML(className)                     \
+    template <>                                                    \
+    void className::serialize<>(boost::archive::xml_iarchive & ar, \
+                                const unsigned int version)        \
+    {                                                              \
+        serialize_for_xml(ar, version);                            \
+    }                                                              \
+    template <>                                                    \
+    void className::serialize<>(boost::archive::xml_oarchive & ar, \
+                                const unsigned int version)        \
+    {                                                              \
+        serialize_for_xml(ar, version);                            \
+    }
 
 #endif

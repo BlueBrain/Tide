@@ -42,8 +42,8 @@
 #ifndef LOG_H
 #define LOG_H
 
-#include <string>
 #include <qlogging.h>
+#include <string>
 
 #define LOG_VERBOSE 0
 #define LOG_DEBUG 1
@@ -53,21 +53,23 @@
 #define LOG_FATAL 5
 
 #ifdef NDEBUG
-#  define LOG_THRESHOLD LOG_INFO
+#define LOG_THRESHOLD LOG_INFO
 #else
-#  define LOG_THRESHOLD LOG_DEBUG
+#define LOG_THRESHOLD LOG_DEBUG
 #endif
 
 extern std::string logger_id;
-extern void put_log( int level, const char* format, ... );
-extern void avMessageLoger( void*, int level, const char* format, va_list varg );
-extern void qtMessageLogger( QtMsgType type, const QMessageLogContext& context,
-                             const QString& msg );
+extern void put_log(int level, const char* format, ...);
+extern void avMessageLoger(void*, int level, const char* format, va_list varg);
+extern void qtMessageLogger(QtMsgType type, const QMessageLogContext& context,
+                            const QString& msg);
 
 #ifdef _WIN32
-#  define put_flog( l, fmt, ... ) put_log( l, "%s: " fmt, __FUNCTION__, ##__VA_ARGS__ )
+#define put_flog(l, fmt, ...) \
+    put_log(l, "%s: " fmt, __FUNCTION__, ##__VA_ARGS__)
 #else
-#  define put_flog( l, fmt, ... ) put_log( l, "%s: " fmt, __PRETTY_FUNCTION__, ##__VA_ARGS__ )
+#define put_flog(l, fmt, ...) \
+    put_log(l, "%s: " fmt, __PRETTY_FUNCTION__, ##__VA_ARGS__)
 #endif
 
 #endif

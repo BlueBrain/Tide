@@ -39,9 +39,10 @@
 
 #include "KeyboardState.h"
 
-KeyboardState::KeyboardState( QObject* parentObject )
-    : QObject( parentObject )
-{}
+KeyboardState::KeyboardState(QObject* parentObject)
+    : QObject(parentObject)
+{
+}
 
 bool KeyboardState::isVisible() const
 {
@@ -63,42 +64,42 @@ int KeyboardState::getActiveKeyId() const
     return _activeKeyId;
 }
 
-void KeyboardState::setVisible( const bool visible )
+void KeyboardState::setVisible(const bool visible)
 {
-    if( _visible == visible )
+    if (_visible == visible)
         return;
 
     _visible = visible;
-    emit visibleChanged( visible );
+    emit visibleChanged(visible);
     emit modified();
 }
 
-void KeyboardState::setShiftActive( const bool state )
+void KeyboardState::setShiftActive(const bool state)
 {
-    if( _shiftActive == state )
+    if (_shiftActive == state)
         return;
 
     _shiftActive = state;
-    emit shiftActiveChanged( state );
+    emit shiftActiveChanged(state);
     emit modified();
 }
 
-void KeyboardState::setSymbolsActive( const bool state )
+void KeyboardState::setSymbolsActive(const bool state)
 {
-    if( _symbolsActive == state )
+    if (_symbolsActive == state)
         return;
 
     _symbolsActive = state;
-    emit symbolsActiveChanged( state );
+    emit symbolsActiveChanged(state);
     emit modified();
 }
 
-void KeyboardState::setActiveKeyId( const int keyId )
+void KeyboardState::setActiveKeyId(const int keyId)
 {
-    if( _activeKeyId == keyId )
+    if (_activeKeyId == keyId)
         return;
 
     _activeKeyId = keyId;
-    emit activeKeyIdChanged( keyId );
+    emit activeKeyIdChanged(keyId);
     emit modified();
 }

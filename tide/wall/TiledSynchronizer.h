@@ -50,19 +50,20 @@
 class TiledSynchronizer : public ContentSynchronizer
 {
     Q_OBJECT
-    Q_DISABLE_COPY( TiledSynchronizer )
+    Q_DISABLE_COPY(TiledSynchronizer)
 
 public:
-    enum TileSwapPolicy {
+    enum TileSwapPolicy
+    {
         SwapTilesIndependently,
         SwapTilesSynchronously
     };
 
     /** Constructor */
-    explicit TiledSynchronizer( TileSwapPolicy policy );
+    explicit TiledSynchronizer(TileSwapPolicy policy);
 
     /** @copydoc ContentSynchronizer::onSwapReady */
-    void onSwapReady( TilePtr tile ) override;
+    void onSwapReady(TilePtr tile) override;
 
 protected:
     uint _lod;
@@ -78,7 +79,7 @@ protected:
      *        SwapTilesSynchronously, the updated textures will only be shown
      *        after a successful call to swapTiles().
      */
-    void updateTiles( const DataSource& source, bool updateExistingTiles );
+    void updateTiles(const DataSource& source, bool updateExistingTiles);
 
     /**
      * Perform a synchronized tile swap across all processes.
@@ -88,7 +89,7 @@ protected:
      * @param channel used to check if other processes have all the tiles ready
      * @return true if tiles were swapped
      */
-    bool swapTiles( WallToWallChannel& channel );
+    bool swapTiles(WallToWallChannel& channel);
 
 private:
     TileSwapPolicy _policy;
@@ -101,7 +102,7 @@ private:
     Indices _syncSet;
     Indices _removeLaterSet;
 
-    void _removeTile( size_t tileIndex );
+    void _removeTile(size_t tileIndex);
 };
 
 #endif

@@ -43,46 +43,44 @@
 
 namespace MathUtils
 {
-
-QRectF getBoundingRect( const QPointF& p0, const QPointF& p1 )
+QRectF getBoundingRect(const QPointF& p0, const QPointF& p1)
 {
     QRectF rect;
-    rect.setLeft( std::min( p0.x(), p1.x( )));
-    rect.setRight( std::max( p0.x(), p1.x( )));
-    rect.setTop( std::min( p0.y(), p1.y( )));
-    rect.setBottom( std::max( p0.y(), p1.y( )));
+    rect.setLeft(std::min(p0.x(), p1.x()));
+    rect.setRight(std::max(p0.x(), p1.x()));
+    rect.setTop(std::min(p0.y(), p1.y()));
+    rect.setBottom(std::max(p0.y(), p1.y()));
     return rect;
 }
 
-qreal getDist( const QPointF& p0, const QPointF& p1 )
+qreal getDist(const QPointF& p0, const QPointF& p1)
 {
     const QPointF dist = p1 - p0;
-    return std::sqrt( QPointF::dotProduct( dist, dist ));
+    return std::sqrt(QPointF::dotProduct(dist, dist));
 }
 
-QPointF getCenter( const QPointF& p0, const QPointF& p1 )
+QPointF getCenter(const QPointF& p0, const QPointF& p1)
 {
-    return ( p0 + p1 ) / 2;
+    return (p0 + p1) / 2;
 }
 
-QPointF computeCenter( const Positions& positions )
+QPointF computeCenter(const Positions& positions)
 {
     QPointF center;
-    for( const auto& pos : positions )
+    for (const auto& pos : positions)
         center += pos;
     return center / positions.size();
 }
 
-bool hasMoved( const Positions& positions, const Positions& startPositions,
-               const qreal moveThreshold )
+bool hasMoved(const Positions& positions, const Positions& startPositions,
+              const qreal moveThreshold)
 {
     size_t i = 0;
-    for( const auto& pos : positions )
+    for (const auto& pos : positions)
     {
-        if( (pos - startPositions[i++]).manhattanLength() > moveThreshold )
+        if ((pos - startPositions[i++]).manhattanLength() > moveThreshold)
             return true;
     }
     return false;
 }
-
 }

@@ -42,19 +42,19 @@
 
 #include <QImage>
 
-float compareImages( const QImage& image1, const QImage& image2 )
+float compareImages(const QImage& image1, const QImage& image2)
 {
-    BOOST_REQUIRE_EQUAL( image1.size(), image2.size( ));
-    BOOST_REQUIRE_EQUAL( image1.byteCount(), image2.byteCount( ));
+    BOOST_REQUIRE_EQUAL(image1.size(), image2.size());
+    BOOST_REQUIRE_EQUAL(image1.byteCount(), image2.byteCount());
 
     // BOOST_CHECK_EQUAL_COLLECTION is too noisy so do a silent comparison
     unsigned int errors = 0;
     const uchar* it1 = image1.bits();
     const uchar* it2 = image2.bits();
-    while( it1 < image1.bits() + image1.byteCount() &&
-           it2 < image2.bits() + image2.byteCount() )
+    while (it1 < image1.bits() + image1.byteCount() &&
+           it2 < image2.bits() + image2.byteCount())
     {
-        if( *it1 != *it2 )
+        if (*it1 != *it2)
             ++errors;
         ++it1;
         ++it2;
@@ -62,12 +62,12 @@ float compareImages( const QImage& image1, const QImage& image2 )
     return (float)errors / (float)image1.byteCount();
 }
 
-float compareImages( const QString& file1, const QString& file2 )
+float compareImages(const QString& file1, const QString& file2)
 {
     QImage image1, image2;
-    BOOST_REQUIRE( image1.load( file1 ));
-    BOOST_REQUIRE( image2.load( file2 ));
-    return compareImages( image1, image2 );
+    BOOST_REQUIRE(image1.load(file1));
+    BOOST_REQUIRE(image2.load(file2));
+    return compareImages(image1, image2);
 }
 
 #endif

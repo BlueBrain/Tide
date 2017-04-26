@@ -40,29 +40,33 @@
 
 #include "TextureUploader.h"
 
+#include "Tile.h"
 #include "data/Image.h"
 #include "log.h"
-#include "Tile.h"
 
 #include <QOffscreenSurface>
 #include <QOpenGLContext>
 #include <QOpenGLFunctions>
 
-TextureUploader::TextureUploader() {}
-
-TextureUploader::~TextureUploader() {}
-
-void TextureUploader::init( QOpenGLContext* shareContext )
+TextureUploader::TextureUploader()
 {
-    QMetaObject::invokeMethod( this, "_createGLContext",
-                               Qt::BlockingQueuedConnection,
-                               Q_ARG( QOpenGLContext*, shareContext ));
+}
+
+TextureUploader::~TextureUploader()
+{
+}
+
+void TextureUploader::init(QOpenGLContext* shareContext)
+{
+    QMetaObject::invokeMethod(this, "_createGLContext",
+                              Qt::BlockingQueuedConnection,
+                              Q_ARG(QOpenGLContext*, shareContext));
 
     // OSX: The offscreen surface must be created on the main/GUI thread
     // because it is backed by a real window.
 
-    _offscreenSurface.reset( new QOffscreenSurface );
-    _offscreenSurface->setFormat( _glContext->format( ));
+    _offscreenSurface.reset(new QOffscreenSurface);
+    _offscreenSurface->setFormat(_glContext->format());
     _offscreenSurface->create();
 }
 
@@ -71,15 +75,15 @@ void TextureUploader::stop()
     // OSX: The offscreen surface must be deleted on the main/GUI thread
     // because it is backed by a real window.
 
-    QMetaObject::invokeMethod( this, "_deleteGLContext",
-                               Qt::BlockingQueuedConnection );
+    QMetaObject::invokeMethod(this, "_deleteGLContext",
+                              Qt::BlockingQueuedConnection);
     _offscreenSurface.reset();
 }
 
-void TextureUploader::_createGLContext( QOpenGLContext* shareContext )
+void TextureUploader::_createGLContext(QOpenGLContext* shareContext)
 {
-    _glContext.reset( new QOpenGLContext );
-    _glContext->setShareContext( shareContext );
+    _glContext.reset(new QOpenGLContext);
+    _glContext->setShareContext(shareContext);
     _glContext->create();
 }
 
@@ -88,65 +92,65 @@ void TextureUploader::_deleteGLContext()
     _glContext.reset();
 }
 
-void TextureUploader::uploadTexture( ImagePtr image, TileWeakPtr tile_ )
+void TextureUploader::uploadTexture(ImagePtr image, TileWeakPtr tile_)
 {
-    if( !image )
+    if (!image)
     {
-        put_flog( LOG_DEBUG, "Invalid image" );
+        put_flog(LOG_DEBUG, "Invalid image");
         return;
     }
 
     TilePtr tile = tile_.lock();
-    if( !tile )
+    if (!tile)
     {
-        put_flog( LOG_DEBUG, "Tile expired" );
+        put_flog(LOG_DEBUG, "Tile expired");
         return;
     }
 
-    _glContext->makeCurrent( _offscreenSurface.get( ));
+    _glContext->makeCurrent(_offscreenSurface.get());
 
-    if( image->isGpuImage() && !image->generateGpuImage( ))
+    if (image->isGpuImage() && !image->generateGpuImage())
     {
-        put_flog( LOG_DEBUG, "GPU image generation failed" );
+        put_flog(LOG_DEBUG, "GPU image generation failed");
         return;
     }
 
-    if( image->getWidth() != tile->getBackGlTextureSize().width() ||
-        image->getHeight() != tile->getBackGlTextureSize().height( ))
+    if (image->getWidth() != tile->getBackGlTextureSize().width() ||
+        image->getHeight() != tile->getBackGlTextureSize().height())
     {
-        put_flog( LOG_DEBUG, "Incompatible image dimensions" );
+        put_flog(LOG_DEBUG, "Incompatible image dimensions");
         return;
     }
 
-    if( image->getFormat() != tile->getFormat( ))
+    if (image->getFormat() != tile->getFormat())
     {
-        put_flog( LOG_DEBUG, "Incompatible texture formats" );
+        put_flog(LOG_DEBUG, "Incompatible texture formats");
         return;
     }
 
-    if( !_upload( *image, *tile ))
+    if (!_upload(*image, *tile))
         return;
 
     // notify tile that its texture has been updated
-    tile->textureUpdated( tile );
+    tile->textureUpdated(tile);
 
     // notify RenderController for redraw
     emit uploaded();
 }
 
-bool TextureUploader::_upload( const Image& image, const Tile& tile )
+bool TextureUploader::_upload(const Image& image, const Tile& tile)
 {
-    switch( image.getFormat( ))
+    switch (image.getFormat())
     {
     case TextureFormat::rgba:
     {
         const auto textureID = tile.getBackGlTexture();
-        if( !textureID )
+        if (!textureID)
         {
-            put_flog( LOG_DEBUG, "Tile has no backTextureID" );
+            put_flog(LOG_DEBUG, "Tile has no backTextureID");
             return false;
         }
-        _upload( image, 0, textureID );
+        _upload(image, 0, textureID);
         return true;
     }
     case TextureFormat::yuv444:
@@ -154,47 +158,47 @@ bool TextureUploader::_upload( const Image& image, const Tile& tile )
     case TextureFormat::yuv420:
     {
         const auto& texture = tile.getBackGlTextureYUV();
-        if( !texture.y || !texture.u || !texture.v )
+        if (!texture.y || !texture.u || !texture.v)
         {
-            put_flog( LOG_DEBUG, "Tile is missing a back GL texture" );
+            put_flog(LOG_DEBUG, "Tile is missing a back GL texture");
             return false;
         }
-        _upload( image, 0, texture.y );
-        _upload( image, 1, texture.u );
-        _upload( image, 2, texture.v );
+        _upload(image, 0, texture.y);
+        _upload(image, 1, texture.u);
+        _upload(image, 2, texture.v);
         return true;
     }
     default:
-        put_flog( LOG_DEBUG, "image has unsupported texture format" );
+        put_flog(LOG_DEBUG, "image has unsupported texture format");
         return false;
     }
 }
 
-void TextureUploader::_upload( const Image& image, const uint srcTextureIdx,
-                               const uint textureID )
+void TextureUploader::_upload(const Image& image, const uint srcTextureIdx,
+                              const uint textureID)
 {
-    const auto textureSize = image.getTextureSize( srcTextureIdx );
-    if( !textureSize.isValid( ))
+    const auto textureSize = image.getTextureSize(srcTextureIdx);
+    if (!textureSize.isValid())
     {
-        put_flog( LOG_ERROR, "image texture has invalid size" );
+        put_flog(LOG_ERROR, "image texture has invalid size");
         return;
     }
 
     auto gl = _glContext->functions();
 
     GLint alignment = 1;
-    if( (textureSize.width() % 4) == 0 )
+    if ((textureSize.width() % 4) == 0)
         alignment = 4;
-    else if( (textureSize.width() % 2) == 0 )
+    else if ((textureSize.width() % 2) == 0)
         alignment = 2;
-    gl->glPixelStorei( GL_UNPACK_ALIGNMENT, alignment );
+    gl->glPixelStorei(GL_UNPACK_ALIGNMENT, alignment);
 
-    gl->glBindTexture( GL_TEXTURE_2D, textureID );
-    gl->glTexSubImage2D( GL_TEXTURE_2D, 0, 0, 0, textureSize.width(),
-                         textureSize.height(), image.getGLPixelFormat(),
-                         GL_UNSIGNED_BYTE, image.getData( srcTextureIdx ));
-    gl->glGenerateMipmap( GL_TEXTURE_2D );
-    gl->glBindTexture( GL_TEXTURE_2D, 0 );
+    gl->glBindTexture(GL_TEXTURE_2D, textureID);
+    gl->glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, textureSize.width(),
+                        textureSize.height(), image.getGLPixelFormat(),
+                        GL_UNSIGNED_BYTE, image.getData(srcTextureIdx));
+    gl->glGenerateMipmap(GL_TEXTURE_2D);
+    gl->glBindTexture(GL_TEXTURE_2D, 0);
 
     // Ensure the texture upload is complete before the render thread uses it
     gl->glFinish();

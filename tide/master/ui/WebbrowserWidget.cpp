@@ -49,8 +49,8 @@
 #define WEBBROWSER_DEFAULT_WIDTH 1280
 #define WEBBROWSER_DEFAULT_HEIGHT 1024
 
-WebbrowserWidget::WebbrowserWidget( const MasterConfiguration& config,
-                                    QWidget* parent_ )
+WebbrowserWidget::WebbrowserWidget(const MasterConfiguration& config,
+                                   QWidget* parent_)
     : QDialog(parent_)
     , _widthSpinBox(0)
     , _heightSpinBox(0)
@@ -65,9 +65,9 @@ WebbrowserWidget::WebbrowserWidget( const MasterConfiguration& config,
 
     // Standard buttons
 
-    QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok |
-                                                       QDialogButtonBox::Cancel,
-                                                       Qt::Horizontal, this);
+    QDialogButtonBox* buttonBox =
+        new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
+                             Qt::Horizontal, this);
 
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
     connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
@@ -90,7 +90,7 @@ WebbrowserWidget::WebbrowserWidget( const MasterConfiguration& config,
 
     // Layout
 
-    QGridLayout *gridLayout = new QGridLayout;
+    QGridLayout* gridLayout = new QGridLayout;
     gridLayout->setColumnStretch(1, 1);
     gridLayout->setColumnMinimumWidth(1, 250);
     setLayout(gridLayout);
