@@ -53,21 +53,21 @@ class CachedDataSource : public DataSource
 {
 public:
     /** @copydoc DataSource::getTileImage threadsafe */
-    ImagePtr getTileImage( uint tileId ) const final;
+    ImagePtr getTileImage(uint tileId) const final;
 
     /** @copydoc DataSource::getTileFormat threadsafe */
-    TextureFormat getTileFormat( uint tileId ) const final;
+    TextureFormat getTileFormat(uint tileId) const final;
 
     /** Check if the cache contains an image for a tile. */
-    bool contains( uint tileId ) const;
+    bool contains(uint tileId) const;
 
 protected:
     /** Get a tile image which will be cached. threadsafe */
-    virtual QImage getCachableTileImage( uint tileId ) const = 0;
+    virtual QImage getCachableTileImage(uint tileId) const = 0;
 
 private:
     mutable QMutex _mutex;
-    mutable QMap<uint,QImage> _cache;
+    mutable QMap<uint, QImage> _cache;
 };
 
 #endif

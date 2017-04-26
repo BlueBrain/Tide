@@ -70,8 +70,8 @@ public:
      * @param wallChannel The wall MPI channel
      * @throw std::runtime_error if an error occured during initialization
      */
-    WallApplication( int& argc, char** argv, const QString& config,
-                     MPIChannelPtr worldChannel, MPIChannelPtr wallChannel );
+    WallApplication(int& argc, char** argv, const QString& config,
+                    MPIChannelPtr worldChannel, MPIChannelPtr wallChannel);
 
     /** Destructor */
     virtual ~WallApplication();
@@ -90,7 +90,7 @@ private:
     QThread _mpiReceiveThread;
 
     void _initWallWindow();
-    void _initMPIConnection( MPIChannelPtr worldChannel );
+    void _initMPIConnection(MPIChannelPtr worldChannel);
 };
 
 #endif

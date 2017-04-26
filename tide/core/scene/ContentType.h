@@ -66,10 +66,10 @@ enum class StreamType
     WHITEBOARD
 };
 
-QString getContentTypeString( CONTENT_TYPE type );
+QString getContentTypeString(CONTENT_TYPE type);
 
-CONTENT_TYPE getContentType( const QString& typeString );
+CONTENT_TYPE getContentType(const QString& typeString);
 
-bool contentTypeIsFile( CONTENT_TYPE type );
+bool contentTypeIsFile(CONTENT_TYPE type);
 
 #endif

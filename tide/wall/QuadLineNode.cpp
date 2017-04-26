@@ -41,35 +41,35 @@
 
 #include <QSGFlatColorMaterial>
 
-QuadLineNode::QuadLineNode( const QRectF& rect, const qreal lineWidth )
+QuadLineNode::QuadLineNode(const QRectF& rect, const qreal lineWidth)
 {
-    setGeometry( new QSGGeometry( QSGGeometry::defaultAttributes_Point2D(), 4));
-    geometry()->setDrawingMode( GL_LINE_LOOP );
-    geometry()->setLineWidth( lineWidth );
-    setFlag( QSGNode::OwnsGeometry );
+    setGeometry(new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), 4));
+    geometry()->setDrawingMode(GL_LINE_LOOP);
+    geometry()->setLineWidth(lineWidth);
+    setFlag(QSGNode::OwnsGeometry);
 
-    setMaterial( new QSGFlatColorMaterial );
-    setFlag( QSGNode::OwnsMaterial );
+    setMaterial(new QSGFlatColorMaterial);
+    setFlag(QSGNode::OwnsMaterial);
 
-    setRect( rect );
+    setRect(rect);
 }
 
-void QuadLineNode::setRect( const QRectF& rect )
+void QuadLineNode::setRect(const QRectF& rect)
 {
     QSGGeometry::Point2D* points = geometry()->vertexDataAsPoint2D();
-    points[0].set( rect.left(), rect.top( ));
-    points[1].set( rect.left(), rect.bottom( ));
-    points[2].set( rect.right(), rect.bottom( ));
-    points[3].set( rect.right(), rect.top( ));
-    markDirty( DirtyGeometry );
+    points[0].set(rect.left(), rect.top());
+    points[1].set(rect.left(), rect.bottom());
+    points[2].set(rect.right(), rect.bottom());
+    points[3].set(rect.right(), rect.top());
+    markDirty(DirtyGeometry);
 }
 
-void QuadLineNode::setLineWidth( const qreal width )
+void QuadLineNode::setLineWidth(const qreal width)
 {
-    geometry()->setLineWidth( width );
+    geometry()->setLineWidth(width);
 }
 
-void QuadLineNode::setColor( const QColor& color )
+void QuadLineNode::setColor(const QColor& color)
 {
-    dynamic_cast<QSGFlatColorMaterial&>( *material( )).setColor( color );
+    dynamic_cast<QSGFlatColorMaterial&>(*material()).setColor(color);
 }

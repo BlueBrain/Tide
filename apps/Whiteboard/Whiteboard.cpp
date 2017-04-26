@@ -39,42 +39,41 @@
 
 #include "Whiteboard.h"
 
+#include "tide/master/MasterConfiguration.h"
 #include "tide/master/localstreamer/CommandLineOptions.h"
 #include "tide/master/localstreamer/QmlKeyInjector.h"
-#include "tide/master/MasterConfiguration.h"
 
 #include <QQmlContext>
 
 namespace
 {
-const std::string deflectHost( "localhost" );
-const QString deflectQmlFile( "qrc:/qml/qml/whiteboard.qml" );
+const std::string deflectHost("localhost");
+const QString deflectQmlFile("qrc:/qml/qml/whiteboard.qml");
 }
 
-Whiteboard::Whiteboard( int& argc, char* argv[] )
-    : QGuiApplication( argc, argv )
+Whiteboard::Whiteboard(int& argc, char* argv[])
+    : QGuiApplication(argc, argv)
 {
-    const CommandLineOptions options( argc, argv );
-    const MasterConfiguration config( options.getConfiguration( ));
+    const CommandLineOptions options(argc, argv);
+    const MasterConfiguration config(options.getConfiguration());
 
     const auto deflectStreamId = options.getStreamId().toStdString();
-    _qmlStreamer.reset( new deflect::qt::QmlStreamer( deflectQmlFile,
-                                                      deflectHost,
-                                                      deflectStreamId ));
+    _qmlStreamer.reset(new deflect::qt::QmlStreamer(deflectQmlFile, deflectHost,
+                                                    deflectStreamId));
 
-    connect( _qmlStreamer.get(), &deflect::qt::QmlStreamer::streamClosed,
-             this, &QCoreApplication::quit );
+    connect(_qmlStreamer.get(), &deflect::qt::QmlStreamer::streamClosed, this,
+            &QCoreApplication::quit);
 
     auto item = _qmlStreamer->getRootItem();
-    item->setProperty( "saveURL", config.getWhiteboardSaveFolder() );
+    item->setProperty("saveURL", config.getWhiteboardSaveFolder());
 
     QQmlEngine* engine = _qmlStreamer->getQmlEngine();
-    engine->rootContext()->setContextProperty( "fileInfo", &_fileInfoHelper );
+    engine->rootContext()->setContextProperty("fileInfo", &_fileInfoHelper);
 }
 
-bool Whiteboard::event( QEvent* event_ )
+bool Whiteboard::event(QEvent* event_)
 {
-    if( auto inputEvent = dynamic_cast<QInputMethodEvent*>( event_ ))
-        return QmlKeyInjector::send( inputEvent, _qmlStreamer->getRootItem( ));
-    return QGuiApplication::event( event_ );
+    if (auto inputEvent = dynamic_cast<QInputMethodEvent*>(event_))
+        return QmlKeyInjector::send(inputEvent, _qmlStreamer->getRootItem());
+    return QGuiApplication::event(event_);
 }

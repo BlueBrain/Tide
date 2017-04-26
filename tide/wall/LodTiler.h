@@ -51,20 +51,20 @@ class LodTiler : public CachedDataSource
 {
 public:
     /** @copydoc DataSource::getTileRect */
-    QRect getTileRect( uint tileId ) const override;
+    QRect getTileRect(uint tileId) const override;
 
     /** @copydoc DataSource::getTilesArea */
-    QSize getTilesArea( uint lod ) const override;
+    QSize getTilesArea(uint lod) const override;
 
     /** @copydoc DataSource::computeVisibleSet */
-    Indices computeVisibleSet( const QRectF& visibleTilesArea,
-                               uint lod ) const override;
+    Indices computeVisibleSet(const QRectF& visibleTilesArea,
+                              uint lod) const override;
 
     /** @copydoc DataSource::getMaxLod */
     uint getMaxLod() const final;
 
     /** Get the tile rectangle in normalized coordinates. */
-    QRectF getNormalizedTileRect( uint tileId ) const;
+    QRectF getNormalizedTileRect(uint tileId) const;
 
 protected:
     /**
@@ -72,8 +72,8 @@ protected:
      * @param contentSize the size of the full resolution content
      * @param tileSize the size of the tiles to subdivide the content
      */
-    LodTiler( const QSize& contentSize, uint tileSize );
-    LodTiler( std::pair<QSize, uint> args );
+    LodTiler(const QSize& contentSize, uint tileSize);
+    LodTiler(std::pair<QSize, uint> args);
 
     LodTools _lodTool;
 };

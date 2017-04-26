@@ -52,101 +52,101 @@
 
 namespace
 {
-const QUrl QML_CONTENTWINDOW_URL( "qrc:/qml/master/MasterContentWindow.qml" );
-const QUrl QML_DISPLAYGROUP_URL( "qrc:/qml/master/MasterDisplayGroup.qml" );
+const QUrl QML_CONTENTWINDOW_URL("qrc:/qml/master/MasterContentWindow.qml");
+const QUrl QML_DISPLAYGROUP_URL("qrc:/qml/master/MasterDisplayGroup.qml");
 }
 
-MasterDisplayGroupRenderer::MasterDisplayGroupRenderer( DisplayGroupPtr group,
-                                                        QQmlEngine* engine,
-                                                        QQuickItem* parentItem )
-    : _displayGroup{ group }
-    , _engine{ engine }
-    , _parentItem{ parentItem }
+MasterDisplayGroupRenderer::MasterDisplayGroupRenderer(DisplayGroupPtr group,
+                                                       QQmlEngine* engine,
+                                                       QQuickItem* parentItem)
+    : _displayGroup{group}
+    , _engine{engine}
+    , _parentItem{parentItem}
 {
     auto rootContext = _engine->rootContext();
-    rootContext->setContextProperty( "displaygroup", _displayGroup.get( ));
+    rootContext->setContextProperty("displaygroup", _displayGroup.get());
 
-    auto controller = make_unique<DisplayGroupController>( *_displayGroup );
-    rootContext->setContextProperty( "groupcontroller", controller.get( ));
+    auto controller = make_unique<DisplayGroupController>(*_displayGroup);
+    rootContext->setContextProperty("groupcontroller", controller.get());
 
-    QQmlComponent component( _engine, QML_DISPLAYGROUP_URL );
-    qmlCheckOrThrow( component );
-    _displayGroupItem = qobject_cast< QQuickItem* >( component.create( ));
-    _displayGroupItem->setParentItem( _parentItem );
+    QQmlComponent component(_engine, QML_DISPLAYGROUP_URL);
+    qmlCheckOrThrow(component);
+    _displayGroupItem = qobject_cast<QQuickItem*>(component.create());
+    _displayGroupItem->setParentItem(_parentItem);
 
     // Transfer ownership of the controller to qml item
-    controller->setParent( _displayGroupItem );
+    controller->setParent(_displayGroupItem);
     controller.release();
 
-    connect( _displayGroupItem, SIGNAL( openLauncher( )),
-             this, SIGNAL( openLauncher( )));
+    connect(_displayGroupItem, SIGNAL(openLauncher()), this,
+            SIGNAL(openLauncher()));
 
     const auto contentWindows = _displayGroup->getContentWindows();
-    for( const auto& contentWindow : contentWindows )
-        _add( contentWindow );
+    for (const auto& contentWindow : contentWindows)
+        _add(contentWindow);
 
-    connect( _displayGroup.get(), &DisplayGroup::contentWindowAdded,
-             this, &MasterDisplayGroupRenderer::_add );
-    connect( _displayGroup.get(), &DisplayGroup::contentWindowRemoved,
-             this, &MasterDisplayGroupRenderer::_remove );
-    connect( _displayGroup.get(), &DisplayGroup::contentWindowMovedToFront,
-             this, &MasterDisplayGroupRenderer::_moveToFront );
+    connect(_displayGroup.get(), &DisplayGroup::contentWindowAdded, this,
+            &MasterDisplayGroupRenderer::_add);
+    connect(_displayGroup.get(), &DisplayGroup::contentWindowRemoved, this,
+            &MasterDisplayGroupRenderer::_remove);
+    connect(_displayGroup.get(), &DisplayGroup::contentWindowMovedToFront, this,
+            &MasterDisplayGroupRenderer::_moveToFront);
 }
 
 MasterDisplayGroupRenderer::~MasterDisplayGroupRenderer()
 {
-    _displayGroup->disconnect( this );
+    _displayGroup->disconnect(this);
 
-    if( _displayGroupItem )
+    if (_displayGroupItem)
     {
-        _displayGroupItem->setParentItem( nullptr );
+        _displayGroupItem->setParentItem(nullptr);
         delete _displayGroupItem;
         _displayGroupItem = nullptr;
     }
 }
 
-void MasterDisplayGroupRenderer::_add( ContentWindowPtr window )
+void MasterDisplayGroupRenderer::_add(ContentWindowPtr window)
 {
     // New Context for the window, ownership retained by the windowItem
-    QQmlContext* windowContext = new QQmlContext( _engine->rootContext( ));
-    windowContext->setContextProperty( "contentwindow", window.get( ));
+    QQmlContext* windowContext = new QQmlContext(_engine->rootContext());
+    windowContext->setContextProperty("contentwindow", window.get());
 
-    auto controller = new ContentWindowController( *window, *_displayGroup );
-    controller->setParent( windowContext );
-    windowContext->setContextProperty( "controller", controller );
+    auto controller = new ContentWindowController(*window, *_displayGroup);
+    controller->setParent(windowContext);
+    windowContext->setContextProperty("controller", controller);
 
-    auto contentController = ContentController::create( *window ).release();
-    contentController->setParent( windowContext );
-    windowContext->setContextProperty( "contentcontroller", contentController );
+    auto contentController = ContentController::create(*window).release();
+    contentController->setParent(windowContext);
+    windowContext->setContextProperty("contentcontroller", contentController);
 
-    QQmlComponent component( _engine, QML_CONTENTWINDOW_URL );
-    qmlCheckOrThrow( component );
-    QObject* windowItem = component.create( windowContext );
-    windowContext->setParent( windowItem );
+    QQmlComponent component(_engine, QML_CONTENTWINDOW_URL);
+    qmlCheckOrThrow(component);
+    QObject* windowItem = component.create(windowContext);
+    windowContext->setParent(windowItem);
 
     // Store a reference to the window and add it to the scene
     const QUuid& id = window->getID();
-    _uuidToWindowMap[ id ] = qobject_cast<QQuickItem*>( windowItem );
-    _uuidToWindowMap[ id ]->setParentItem( _displayGroupItem );
+    _uuidToWindowMap[id] = qobject_cast<QQuickItem*>(windowItem);
+    _uuidToWindowMap[id]->setParentItem(_displayGroupItem);
 }
 
-void MasterDisplayGroupRenderer::_remove( ContentWindowPtr contentWindow )
+void MasterDisplayGroupRenderer::_remove(ContentWindowPtr contentWindow)
 {
     const QUuid& id = contentWindow->getID();
-    if( !_uuidToWindowMap.contains( id ))
+    if (!_uuidToWindowMap.contains(id))
         return;
 
     QQuickItem* itemToRemove = _uuidToWindowMap[id];
-    _uuidToWindowMap.remove( id );
+    _uuidToWindowMap.remove(id);
     delete itemToRemove;
 }
 
-void MasterDisplayGroupRenderer::_moveToFront( ContentWindowPtr contentWindow )
+void MasterDisplayGroupRenderer::_moveToFront(ContentWindowPtr contentWindow)
 {
     const QUuid& id = contentWindow->getID();
-    if( !_uuidToWindowMap.contains( id ))
+    if (!_uuidToWindowMap.contains(id))
         return;
 
     QQuickItem* itemToRaise = _uuidToWindowMap[id];
-    itemToRaise->stackAfter( _displayGroupItem->childItems().last( ));
+    itemToRaise->stackAfter(_displayGroupItem->childItems().last());
 }

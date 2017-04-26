@@ -48,13 +48,13 @@
  */
 
 template <typename T>
-static void qmlCheckOrThrow( const T& component )
+static void qmlCheckOrThrow(const T& component)
 {
-    if( component.isError( ))
+    if (component.isError())
     {
-        for( const auto& error : component.errors( ))
+        for (const auto& error : component.errors())
             qWarning() << error.url() << error.line() << error;
-        throw std::runtime_error( "Invadid QML component" );
+        throw std::runtime_error("Invadid QML component");
     }
 }
 

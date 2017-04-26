@@ -61,44 +61,43 @@ class MasterWindow : public QMainWindow
 
 public:
     /** Constructor. */
-    MasterWindow( DisplayGroupPtr displayGroup, OptionsPtr options,
-                  MasterConfiguration& config );
+    MasterWindow(DisplayGroupPtr displayGroup, OptionsPtr options,
+                 MasterConfiguration& config);
 
     /** @return the quick view. */
     MasterQuickView* getQuickView();
 
 signals:
     /** Emitted when users want to open a webbrowser. */
-    void openWebBrowser( QPointF pos, QSize size, QString url );
+    void openWebBrowser(QPointF pos, QSize size, QString url);
 
     /** Emitted when a session has been successfully loaded. */
-    void sessionLoaded( DisplayGroupConstPtr group );
+    void sessionLoaded(DisplayGroupConstPtr group);
 
 protected:
     /** @name Drag events re-implemented from QMainWindow */
     //@{
-    void dragEnterEvent( QDragEnterEvent* event ) final;
-    void dropEvent( QDropEvent* event ) final;
+    void dragEnterEvent(QDragEnterEvent* event) final;
+    void dropEvent(QDropEvent* event) final;
     //@}
 
 private:
-    void _setupMasterWindowUI( std::unique_ptr<MasterQuickView>
-                               masterQuickView );
+    void _setupMasterWindowUI(std::unique_ptr<MasterQuickView> masterQuickView);
 
     void _openContent();
-    void _addContentDirectory( const QString& directoryName,
-                               const QSize& gridSize = QSize( ));
+    void _addContentDirectory(const QString& directoryName,
+                              const QSize& gridSize = QSize());
     void _openContentsDirectory();
 
     void _openSession();
     void _saveSession();
-    void _loadSession( const QString& filename );
+    void _loadSession(const QString& filename);
 
     void _openAboutWidget();
 
-    QStringList _extractValidContentUrls( const QMimeData* mimeData );
-    QStringList _extractFolderUrls( const QMimeData* mimeData );
-    QString _extractSessionFile( const QMimeData* mimeData );
+    QStringList _extractValidContentUrls(const QMimeData* mimeData);
+    QStringList _extractFolderUrls(const QMimeData* mimeData);
+    QString _extractSessionFile(const QMimeData* mimeData);
 
     DisplayGroupPtr _displayGroup;
     OptionsPtr _options;

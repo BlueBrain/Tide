@@ -52,57 +52,63 @@ namespace boost
 {
 namespace serialization
 {
-
-template<class Archive>
-void serialize( Archive& ar, deflect::Frame& frame, const unsigned int )
+template <class Archive>
+void serialize(Archive& ar, deflect::Frame& frame, const unsigned int)
 {
+    // clang-format off
     ar & frame.segments;
     ar & frame.uri;
+    // clang-format on
 }
 
-template< class Archive >
-void save( Archive& ar, const deflect::Segment& segment, const unsigned int )
+template <class Archive>
+void save(Archive& ar, const deflect::Segment& segment, const unsigned int)
 {
+    // clang-format off
     ar & segment.parameters;
     ar & segment.view;
 
     int size = segment.imageData.size();
     ar & size;
 
-    ar & make_binary_object( (void*)segment.imageData.data(),
-                             segment.imageData.size( ));
+    ar & make_binary_object((void*)segment.imageData.data(),
+                            segment.imageData.size());
+    // clang-format on
 }
 
-template< class Archive >
-void load( Archive& ar, deflect::Segment& segment, const unsigned int )
+template <class Archive>
+void load(Archive& ar, deflect::Segment& segment, const unsigned int)
 {
+    // clang-format off
     ar & segment.parameters;
     ar & segment.view;
 
     int size = 0;
     ar & size;
-    segment.imageData.resize( size );
+    segment.imageData.resize(size);
 
-    ar & make_binary_object( (void*)segment.imageData.data(), size );
+    ar & make_binary_object((void*)segment.imageData.data(), size);
+    // clang-format on
 }
 
-template< class Archive >
-void serialize( Archive& ar, deflect::Segment& s, const unsigned int version )
+template <class Archive>
+void serialize(Archive& ar, deflect::Segment& s, const unsigned int version)
 {
-    split_free( ar, s, version );
+    split_free(ar, s, version);
 }
 
-template<class Archive>
-void serialize( Archive & ar, deflect::SegmentParameters& params,
-                const unsigned int )
+template <class Archive>
+void serialize(Archive& ar, deflect::SegmentParameters& params,
+               const unsigned int)
 {
+    // clang-format off
     ar & params.x;
     ar & params.y;
     ar & params.width;
     ar & params.height;
     ar & params.dataType;
+    // clang-format on
 }
-
 }
 }
 

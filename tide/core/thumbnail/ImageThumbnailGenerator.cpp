@@ -44,33 +44,33 @@
 
 #include "log.h"
 
-#define SIZEOF_MEGABYTE     (1024*1024)
-#define MAX_IMAGE_FILE_SIZE (100*SIZEOF_MEGABYTE)
+#define SIZEOF_MEGABYTE (1024 * 1024)
+#define MAX_IMAGE_FILE_SIZE (100 * SIZEOF_MEGABYTE)
 
-ImageThumbnailGenerator::ImageThumbnailGenerator( const QSize& size )
-    : ThumbnailGenerator( size )
+ImageThumbnailGenerator::ImageThumbnailGenerator(const QSize& size)
+    : ThumbnailGenerator(size)
 {
 }
 
-QImage ImageThumbnailGenerator::generate( const QString& filename ) const
+QImage ImageThumbnailGenerator::generate(const QString& filename) const
 {
-    QImageReader reader( filename );
-    if( reader.canRead( ))
+    QImageReader reader(filename);
+    if (reader.canRead())
     {
-        if( QFileInfo( filename ).size() > MAX_IMAGE_FILE_SIZE )
+        if (QFileInfo(filename).size() > MAX_IMAGE_FILE_SIZE)
             return _createLargeImagePlaceholder();
 
-        return reader.read().scaled( _size, _aspectRatioMode );
+        return reader.read().scaled(_size, _aspectRatioMode);
     }
 
-    put_flog( LOG_ERROR, "could not open image file: '%s'",
-              filename.toLatin1().constData( ));
-    return createErrorImage( "image" );
+    put_flog(LOG_ERROR, "could not open image file: '%s'",
+             filename.toLatin1().constData());
+    return createErrorImage("image");
 }
 
 QImage ImageThumbnailGenerator::_createLargeImagePlaceholder() const
 {
-    QImage img = createGradientImage( Qt::darkBlue, Qt::white );
-    paintText( img, "LARGE\nIMAGE" );
+    QImage img = createGradientImage(Qt::darkBlue, Qt::white);
+    paintText(img, "LARGE\nIMAGE");
     return img;
 }

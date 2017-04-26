@@ -46,66 +46,67 @@
 
 #include <QProcess>
 
-ProcessForker::ProcessForker( MPIChannelPtr mpiChannel )
-    : _mpiChannel( mpiChannel )
-    , _processMessages( true )
-{}
+ProcessForker::ProcessForker(MPIChannelPtr mpiChannel)
+    : _mpiChannel(mpiChannel)
+    , _processMessages(true)
+{
+}
 
 void ProcessForker::run()
 {
     ReceiveBuffer buffer;
 
-    while( _processMessages )
+    while (_processMessages)
     {
         const ProbeResult result = _mpiChannel->probe();
-        if( !result.isValid( ))
+        if (!result.isValid())
         {
-            put_flog( LOG_ERROR, "Invalid probe result size: %d", result.size );
+            put_flog(LOG_ERROR, "Invalid probe result size: %d", result.size);
             continue;
         }
 
-        buffer.setSize( result.size );
-        _mpiChannel->receive( buffer.data(), result.size, result.src,
-                              int(result.message) );
+        buffer.setSize(result.size);
+        _mpiChannel->receive(buffer.data(), result.size, result.src,
+                             int(result.message));
 
-        switch( result.message )
+        switch (result.message)
         {
         case MPIMessageType::START_PROCESS:
         {
-            const auto string = serialization::get<QString>( buffer );
-            const auto args = string.split( '#' );
-            if( args.length() != 3 )
+            const auto string = serialization::get<QString>(buffer);
+            const auto args = string.split('#');
+            if (args.length() != 3)
             {
-                put_flog( LOG_WARN, "Invalid command: '%d'",
-                          string.toLocal8Bit().constData( ));
+                put_flog(LOG_WARN, "Invalid command: '%d'",
+                         string.toLocal8Bit().constData());
                 break;
             }
-            _launch( args[0], args[1], args[2].split( ';' ));
+            _launch(args[0], args[1], args[2].split(';'));
             break;
         }
         case MPIMessageType::QUIT:
             _processMessages = false;
             break;
         default:
-            put_flog( LOG_WARN, "Invalid message type: '%d'", result.message );
+            put_flog(LOG_WARN, "Invalid message type: '%d'", result.message);
             break;
         }
     }
 }
 
-void ProcessForker::_launch( const QString& command, const QString& workingDir,
-                             const QStringList& env )
+void ProcessForker::_launch(const QString& command, const QString& workingDir,
+                            const QStringList& env)
 {
-    for( const QString& var : env )
+    for (const QString& var : env)
     {
         // Know Qt bug: QProcess::setProcessEnvironment() does not work with
         // startDetached(). Calling qputenv() directly as a workaround.
-        const QStringList kv = var.split( "=" );
-        if( kv.length() == 2 && !qputenv( kv[0].toLocal8Bit().constData(),
-                                          kv[1].toLocal8Bit( )))
+        const QStringList kv = var.split("=");
+        if (kv.length() == 2 &&
+            !qputenv(kv[0].toLocal8Bit().constData(), kv[1].toLocal8Bit()))
         {
-            put_flog( LOG_ERROR, "Setting %s ENV variable failed.",
-                      var.toLocal8Bit().constData( ));
+            put_flog(LOG_ERROR, "Setting %s ENV variable failed.",
+                     var.toLocal8Bit().constData());
         }
     }
 
@@ -113,9 +114,9 @@ void ProcessForker::_launch( const QString& command, const QString& workingDir,
     // update is received on the QML side (e.g. necessary for the whiteboard).
     // See undocumented QML_NO_TOUCH_COMPRESSION env variable in
     // <qt5-source>/qtdeclarative/src/quick/items/qquickwindow.cpp
-    qputenv( "QML_NO_TOUCH_COMPRESSION", "1" );
+    qputenv("QML_NO_TOUCH_COMPRESSION", "1");
 
     QProcess* process = new QProcess();
-    process->setWorkingDirectory( workingDir );
-    process->startDetached( command );
+    process->setWorkingDirectory(workingDir);
+    process->startDetached(command);
 }

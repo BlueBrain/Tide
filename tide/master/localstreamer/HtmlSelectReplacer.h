@@ -50,13 +50,13 @@
 class HtmlSelectReplacer : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY( HtmlSelectReplacer )
+    Q_DISABLE_COPY(HtmlSelectReplacer)
 
-    Q_PROPERTY( QString jQuery READ getJQuery CONSTANT )
-    Q_PROPERTY( QString jQueryUI READ getJQueryUI CONSTANT )
-    Q_PROPERTY( QString selectboxit READ getSelectboxit CONSTANT )
-    Q_PROPERTY( QString selectboxitCss READ getSelectboxitCss CONSTANT )
-    Q_PROPERTY( QString selectboxitReplace READ getSelectboxitReplace CONSTANT )
+    Q_PROPERTY(QString jQuery READ getJQuery CONSTANT)
+    Q_PROPERTY(QString jQueryUI READ getJQueryUI CONSTANT)
+    Q_PROPERTY(QString selectboxit READ getSelectboxit CONSTANT)
+    Q_PROPERTY(QString selectboxitCss READ getSelectboxitCss CONSTANT)
+    Q_PROPERTY(QString selectboxitReplace READ getSelectboxitReplace CONSTANT)
 
 public:
     HtmlSelectReplacer();

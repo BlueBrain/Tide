@@ -42,23 +42,24 @@
 #include "network/MPIChannel.h"
 #include "serialization/utils.h"
 
-WallToMasterChannel::WallToMasterChannel( MPIChannelPtr mpiChannel )
-    : _mpiChannel( mpiChannel )
-{}
-
-void WallToMasterChannel::sendScreenshot( const QImage image )
+WallToMasterChannel::WallToMasterChannel(MPIChannelPtr mpiChannel)
+    : _mpiChannel(mpiChannel)
 {
-    const auto data = serialization::toBinary( image );
-    _mpiChannel->send( MPIMessageType::IMAGE, data, 0 );
 }
 
-void WallToMasterChannel::sendRequestFrame( const QString uri )
+void WallToMasterChannel::sendScreenshot(const QImage image)
 {
-    const auto data = serialization::toBinary( uri );
-    _mpiChannel->send( MPIMessageType::REQUEST_FRAME, data, 0 );
+    const auto data = serialization::toBinary(image);
+    _mpiChannel->send(MPIMessageType::IMAGE, data, 0);
+}
+
+void WallToMasterChannel::sendRequestFrame(const QString uri)
+{
+    const auto data = serialization::toBinary(uri);
+    _mpiChannel->send(MPIMessageType::REQUEST_FRAME, data, 0);
 }
 
 void WallToMasterChannel::sendQuit()
 {
-    _mpiChannel->send( MPIMessageType::QUIT, "", 0 );
+    _mpiChannel->send(MPIMessageType::QUIT, "", 0);
 }

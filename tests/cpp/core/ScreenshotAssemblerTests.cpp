@@ -43,49 +43,48 @@
 #include "Configuration.h"
 #include "ScreenshotAssembler.h"
 
-#include "imageCompare.h"
 #include "MinimalGlobalQtApp.h"
+#include "imageCompare.h"
 
 #define CONFIG_TEST_FILENAME "./configuration.xml"
 #define REFERENCE_SCREENSHOT "./reference_screenshot.png"
 
 // Needed for relative path to resources to work
-BOOST_GLOBAL_FIXTURE( MinimalGlobalQtApp );
+BOOST_GLOBAL_FIXTURE(MinimalGlobalQtApp);
 
-BOOST_AUTO_TEST_CASE( test_assemble_screenshot )
+BOOST_AUTO_TEST_CASE(test_assemble_screenshot)
 {
-    const Configuration config{ CONFIG_TEST_FILENAME };
-    ScreenshotAssembler assembler{ config };
+    const Configuration config{CONFIG_TEST_FILENAME};
+    ScreenshotAssembler assembler{config};
 
     QImage screenshot;
-    assembler.connect( &assembler, &ScreenshotAssembler::screenshotComplete,
-                       [&screenshot]( const QImage image )
+    assembler.connect(&assembler, &ScreenshotAssembler::screenshotComplete,
+                      [&screenshot](const QImage image) {
+                          screenshot = image;
+                      });
+
+    const QSize screenSize{config.getScreenWidth(), config.getScreenHeight()};
+    const auto screenCount =
+        config.getTotalScreenCountY() * config.getTotalScreenCountX();
+
+    QImage screen{screenSize, QImage::Format_RGB32};
+
+    for (auto y = 0; y < config.getTotalScreenCountY(); ++y)
     {
-        screenshot = image;
-    });
-
-    const QSize screenSize{ config.getScreenWidth(), config.getScreenHeight() };
-    const auto screenCount = config.getTotalScreenCountY() *
-                             config.getTotalScreenCountX();
-
-    QImage screen{ screenSize, QImage::Format_RGB32 };
-
-    for( auto y = 0; y < config.getTotalScreenCountY(); ++y )
-    {
-        for( auto x = 0; x < config.getTotalScreenCountX(); ++x )
+        for (auto x = 0; x < config.getTotalScreenCountX(); ++x)
         {
             const auto index = x + y * config.getTotalScreenCountX();
-            screen.fill( QColor{ x * 64, y * 64, 128 } );
-            assembler.addImage( screen, index );
-            if( index < screenCount - 1 )
-                BOOST_CHECK( screenshot.isNull( ));
+            screen.fill(QColor{x * 64, y * 64, 128});
+            assembler.addImage(screen, index);
+            if (index < screenCount - 1)
+                BOOST_CHECK(screenshot.isNull());
         }
     }
 
-    BOOST_CHECK( !screenshot.isNull( ));
-    BOOST_CHECK_EQUAL( screenshot.size(), config.getTotalSize( ));
+    BOOST_CHECK(!screenshot.isNull());
+    BOOST_CHECK_EQUAL(screenshot.size(), config.getTotalSize());
 
     QImage reference;
-    BOOST_REQUIRE( reference.load( REFERENCE_SCREENSHOT ));
-    compareImages( screenshot, reference );
+    BOOST_REQUIRE(reference.load(REFERENCE_SCREENSHOT));
+    compareImages(screenshot, reference);
 }

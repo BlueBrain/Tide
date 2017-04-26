@@ -55,41 +55,41 @@ namespace
 const int RANK0 = 0;
 }
 
-WallFromMasterChannel::WallFromMasterChannel( MPIChannelPtr mpiChannel )
-    : _mpiChannel( mpiChannel )
-    , _processMessages( true )
+WallFromMasterChannel::WallFromMasterChannel(MPIChannelPtr mpiChannel)
+    : _mpiChannel(mpiChannel)
+    , _processMessages(true)
 {
 }
 
 bool WallFromMasterChannel::isMessageAvailable()
 {
-    return _mpiChannel->isMessageAvailable( RANK0 );
+    return _mpiChannel->isMessageAvailable(RANK0);
 }
 
 void WallFromMasterChannel::receiveMessage()
 {
-    MPIHeader mh = _mpiChannel->receiveHeader( RANK0 );
+    MPIHeader mh = _mpiChannel->receiveHeader(RANK0);
 
-    switch( mh.type )
+    switch (mh.type)
     {
     case MPIMessageType::DISPLAYGROUP:
-        emit received( receiveQObjectBroadcast<DisplayGroupPtr>( mh.size ));
+        emit received(receiveQObjectBroadcast<DisplayGroupPtr>(mh.size));
         break;
     case MPIMessageType::OPTIONS:
-        emit received( receiveQObjectBroadcast<OptionsPtr>( mh.size ));
+        emit received(receiveQObjectBroadcast<OptionsPtr>(mh.size));
         break;
     case MPIMessageType::MARKERS:
-        emit received( receiveQObjectBroadcast<MarkersPtr>( mh.size ));
+        emit received(receiveQObjectBroadcast<MarkersPtr>(mh.size));
         break;
     case MPIMessageType::PIXELSTREAM:
 #if BOOST_VERSION >= 106000
-        emit received( receiveBroadcast<deflect::FramePtr>( mh.size ));
+        emit received(receiveBroadcast<deflect::FramePtr>(mh.size));
 #else
         // WAR missing support for std::shared_ptr
         // The copy of the Frame object is not too expensive because its
         // Segments are QByteArray (implicitly shared).
-        emit received( std::make_shared<deflect::Frame>(
-                           receiveBroadcast<deflect::Frame>( mh.size )));
+        emit received(std::make_shared<deflect::Frame>(
+            receiveBroadcast<deflect::Frame>(mh.size)));
 #endif
         break;
     case MPIMessageType::IMAGE:
@@ -106,22 +106,22 @@ void WallFromMasterChannel::receiveMessage()
 
 void WallFromMasterChannel::processMessages()
 {
-    while( _processMessages )
+    while (_processMessages)
         receiveMessage();
 }
 
 template <typename T>
-T WallFromMasterChannel::receiveBroadcast( const size_t messageSize )
+T WallFromMasterChannel::receiveBroadcast(const size_t messageSize)
 {
-    _buffer.setSize( messageSize );
-    _mpiChannel->receiveBroadcast( _buffer.data(), messageSize, RANK0 );
-    return serialization::get<T>( _buffer );
+    _buffer.setSize(messageSize);
+    _mpiChannel->receiveBroadcast(_buffer.data(), messageSize, RANK0);
+    return serialization::get<T>(_buffer);
 }
 
 template <typename T>
-T WallFromMasterChannel::receiveQObjectBroadcast( const size_t messageSize )
+T WallFromMasterChannel::receiveQObjectBroadcast(const size_t messageSize)
 {
-    auto qobject = receiveBroadcast<T>( messageSize );
-    qobject->moveToThread( QApplication::instance()->thread( ));
+    auto qobject = receiveBroadcast<T>(messageSize);
+    qobject->moveToThread(QApplication::instance()->thread());
     return qobject;
 }

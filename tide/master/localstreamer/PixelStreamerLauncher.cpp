@@ -39,10 +39,10 @@
 
 #include "PixelStreamerLauncher.h"
 
-#include "log.h"
 #include "CommandLineOptions.h"
 #include "MasterConfiguration.h"
 #include "PixelStreamWindowManager.h"
+#include "log.h"
 #include "scene/ContentType.h"
 #include "scene/ContentWindow.h"
 #include "scene/WebbrowserContent.h"
@@ -53,28 +53,28 @@
 namespace
 {
 #ifdef _WIN32
-const QString LOCALSTREAMER_BIN( "tideLocalstreamer.exe" );
-const QString LAUNCHER_BIN( "tideLauncher.exe" );
-const QString WEBBROWSER_BIN( "tideWebbrowser.exe" );
-const QString WHITEBOARD_BIN( "tideWhiteboard.exe" );
+const QString LOCALSTREAMER_BIN("tideLocalstreamer.exe");
+const QString LAUNCHER_BIN("tideLauncher.exe");
+const QString WEBBROWSER_BIN("tideWebbrowser.exe");
+const QString WHITEBOARD_BIN("tideWhiteboard.exe");
 #else
-const QString LOCALSTREAMER_BIN( "tideLocalstreamer" );
-const QString WHITEBOARD_BIN( "tideWhiteboard" );
-const QString LAUNCHER_BIN( "tideLauncher" );
-const QString WEBBROWSER_BIN( "tideWebbrowser" );
+const QString LOCALSTREAMER_BIN("tideLocalstreamer");
+const QString WHITEBOARD_BIN("tideWhiteboard");
+const QString LAUNCHER_BIN("tideLauncher");
+const QString WEBBROWSER_BIN("tideWebbrowser");
 #endif
 
-const QSize WEBBROWSER_DEFAULT_SIZE( 1280, 1024 );
-const QSize WHITEBOARD_DEFAULT_SIZE( 1920, 1080 );
+const QSize WEBBROWSER_DEFAULT_SIZE(1280, 1024);
+const QSize WHITEBOARD_DEFAULT_SIZE(1920, 1080);
 }
 
-QString _getLauncherCommand( const QString& args )
+QString _getLauncherCommand(const QString& args)
 {
     const auto appDir = QCoreApplication::applicationDirPath();
-    return QString( "%1/%2 %3" ).arg( appDir, LAUNCHER_BIN, args );
+    return QString("%1/%2 %3").arg(appDir, LAUNCHER_BIN, args);
 }
 
-QString _getWebbrowserCommand( const QString& args )
+QString _getWebbrowserCommand(const QString& args)
 {
     const auto appDir = QCoreApplication::applicationDirPath();
 #ifdef TIDE_USE_QT5WEBENGINE
@@ -82,116 +82,116 @@ QString _getWebbrowserCommand( const QString& args )
 #else
     const auto& app = LOCALSTREAMER_BIN;
 #endif
-    return QString( "%1/%2 %3" ).arg( appDir, app, args );
+    return QString("%1/%2 %3").arg(appDir, app, args);
 }
 
-QString _getWhiteboardCommand( const QString& args )
+QString _getWhiteboardCommand(const QString& args)
 {
     const auto appDir = QCoreApplication::applicationDirPath();
-    return QString( "%1/%2 %3" ).arg( appDir, WHITEBOARD_BIN, args );
+    return QString("%1/%2 %3").arg(appDir, WHITEBOARD_BIN, args);
 }
 
-const QString PixelStreamerLauncher::launcherUri = QString( "Launcher" );
+const QString PixelStreamerLauncher::launcherUri = QString("Launcher");
 
-PixelStreamerLauncher::PixelStreamerLauncher( PixelStreamWindowManager& manager,
-                                              const MasterConfiguration& config)
-    : _windowManager( manager )
-    , _config( config )
+PixelStreamerLauncher::PixelStreamerLauncher(PixelStreamWindowManager& manager,
+                                             const MasterConfiguration& config)
+    : _windowManager(manager)
+    , _config(config)
 {
-    connect( &_windowManager, &PixelStreamWindowManager::streamWindowClosed,
-             this, &PixelStreamerLauncher::_dereferenceLocalStreamer,
-             Qt::QueuedConnection );
+    connect(&_windowManager, &PixelStreamWindowManager::streamWindowClosed,
+            this, &PixelStreamerLauncher::_dereferenceLocalStreamer,
+            Qt::QueuedConnection);
 }
 
-void PixelStreamerLauncher::openWebBrowser( QPointF pos, QSize size,
-                                            const QString url )
+void PixelStreamerLauncher::openWebBrowser(QPointF pos, QSize size,
+                                           const QString url)
 {
-    if( pos.isNull( ))
+    if (pos.isNull())
         pos = _getDefaultWindowPosition();
-    if( size.isEmpty( ))
+    if (size.isEmpty())
         size = WEBBROWSER_DEFAULT_SIZE;
 
     const auto uri = QUuid::createUuid().toString();
-    _windowManager.openWindow( uri, pos, size, StreamType::WEBBROWSER );
+    _windowManager.openWindow(uri, pos, size, StreamType::WEBBROWSER);
 
-    auto content = _windowManager.getWindow( uri )->getContent();
-    auto& webbrowser = dynamic_cast<WebbrowserContent&>( *content );
-    webbrowser.setUrl( url );
-    launch( webbrowser );
+    auto content = _windowManager.getWindow(uri)->getContent();
+    auto& webbrowser = dynamic_cast<WebbrowserContent&>(*content);
+    webbrowser.setUrl(url);
+    launch(webbrowser);
 }
 
-void PixelStreamerLauncher::launch( const WebbrowserContent& webbrowser )
+void PixelStreamerLauncher::launch(const WebbrowserContent& webbrowser)
 {
     CommandLineOptions options;
-    options.setStreamId( webbrowser.getURI( ));
-    options.setUrl( webbrowser.getUrl( ));
-    options.setWidth( webbrowser.width( ));
-    options.setHeight( webbrowser.height( ));
+    options.setStreamId(webbrowser.getURI());
+    options.setUrl(webbrowser.getUrl());
+    options.setWidth(webbrowser.width());
+    options.setHeight(webbrowser.height());
 #ifdef TIDE_USE_QT5WEBKITWIDGETS
-    options.setPixelStreamerType( PS_WEBKIT );
+    options.setPixelStreamerType(PS_WEBKIT);
 #endif
-    const auto command = _getWebbrowserCommand( options.getCommandLine( ));
+    const auto command = _getWebbrowserCommand(options.getCommandLine());
 
-    _processes.insert( webbrowser.getURI( ));
-    emit start( command, QDir::currentPath(), {} );
+    _processes.insert(webbrowser.getURI());
+    emit start(command, QDir::currentPath(), {});
 }
 
 void PixelStreamerLauncher::openLauncher()
 {
     const QString& uri = launcherUri;
-    if( _processes.count( uri ))
+    if (_processes.count(uri))
     {
-        _windowManager.showWindow( uri );
+        _windowManager.showWindow(uri);
         return;
     }
 
     const qreal width = 0.25 * _config.getTotalWidth();
-    const QSize launcherSize( width, 0.85 * width );
+    const QSize launcherSize(width, 0.85 * width);
     const qreal x = 0.25 * _config.getTotalWidth();
     const qreal y = 0.35 * _config.getTotalHeight();
-    const QPointF centerPos( x, y );
+    const QPointF centerPos(x, y);
 
-    _windowManager.openWindow( uri, centerPos, launcherSize );
+    _windowManager.openWindow(uri, centerPos, launcherSize);
 
     CommandLineOptions options;
-    options.setStreamId( launcherUri );
-    options.setConfiguration( _config.getFilename( ));
-    options.setWidth( launcherSize.width( ));
-    options.setHeight( launcherSize.height( ));
-    const auto command = _getLauncherCommand( options.getCommandLine( ));
+    options.setStreamId(launcherUri);
+    options.setConfiguration(_config.getFilename());
+    options.setWidth(launcherSize.width());
+    options.setHeight(launcherSize.height());
+    const auto command = _getLauncherCommand(options.getCommandLine());
 
     QStringList env;
-    if( !_config.getLauncherDisplay().isEmpty( ))
-        env.append( QString("DISPLAY=%1").arg( _config.getLauncherDisplay( )));
+    if (!_config.getLauncherDisplay().isEmpty())
+        env.append(QString("DISPLAY=%1").arg(_config.getLauncherDisplay()));
 
-    _processes.insert( uri );
-    emit start( command, QDir::currentPath(), env );
+    _processes.insert(uri);
+    emit start(command, QDir::currentPath(), env);
 }
 
 void PixelStreamerLauncher::openWhiteboard()
 {
     static int whiteboardCounter = 0;
-    const auto uri = QString( "Whiteboard%1" ).arg( whiteboardCounter++ );
-    const auto centerPos = _getDefaultWindowPosition() ;
+    const auto uri = QString("Whiteboard%1").arg(whiteboardCounter++);
+    const auto centerPos = _getDefaultWindowPosition();
     const auto size = WHITEBOARD_DEFAULT_SIZE;
 
-    _windowManager.openWindow( uri, centerPos, size, StreamType::WHITEBOARD );
+    _windowManager.openWindow(uri, centerPos, size, StreamType::WHITEBOARD);
 
     CommandLineOptions options;
-    options.setStreamId( uri );
-    options.setConfiguration( _config.getFilename( ));
-    const auto command = _getWhiteboardCommand( options.getCommandLine( ));
+    options.setStreamId(uri);
+    options.setConfiguration(_config.getFilename());
+    const auto command = _getWhiteboardCommand(options.getCommandLine());
 
-    _processes.insert( uri );
-    emit start( command, QDir::currentPath(), {} );
+    _processes.insert(uri);
+    emit start(command, QDir::currentPath(), {});
 }
 
-void PixelStreamerLauncher::_dereferenceLocalStreamer( const QString uri )
+void PixelStreamerLauncher::_dereferenceLocalStreamer(const QString uri)
 {
-    _processes.erase( uri );
+    _processes.erase(uri);
 }
 
 QPointF PixelStreamerLauncher::_getDefaultWindowPosition() const
 {
-    return { 0.5 * _config.getTotalWidth(), 0.35 * _config.getTotalHeight() };
+    return {0.5 * _config.getTotalWidth(), 0.35 * _config.getTotalHeight()};
 }

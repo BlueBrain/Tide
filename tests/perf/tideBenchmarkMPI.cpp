@@ -52,10 +52,10 @@
 // Example ways to run this program:
 // mpirun -n 6 -H localhost ./tideBenchmarkMPI --datasize 60 --packets 100
 //
-//Object size [Mbytes]: 60
-//Time to send 100 objects: 3.445
-//Time per object: 0.03445
-//Throughput [Mbytes/sec]: 1741.66
+// Object size [Mbytes]: 60
+// Time to send 100 objects: 3.445
+// Time per object: 0.03445
+// Throughput [Mbytes/sec]: 1741.66
 
 namespace
 {
@@ -65,11 +65,10 @@ public:
     using clock = std::chrono::high_resolution_clock;
 
     void start() { _startTime = clock::now(); }
-
     float elapsed() const
     {
         const auto now = clock::now();
-        return std::chrono::duration<float>{ now - _startTime }.count();
+        return std::chrono::duration<float>{now - _startTime}.count();
     }
 
 private:
@@ -83,12 +82,14 @@ class BenchmarkOptions : public CommandLineParser
 public:
     BenchmarkOptions()
     {
+        // clang-format off
         desc.add_options()
             ("datasize,s", po::value<float>()->default_value( 0.f ),
              "Size of each data packet [MB]")
             ("packets,p", po::value<size_t>()->default_value( 0u ),
              "number of packets to transmit")
         ;
+        // clang-format on
     }
     size_t dataSize() const { return vm["datasize"].as<float>() * MEGABYTE; }
     size_t packetsCount() const { return vm["packets"].as<size_t>(); }
@@ -98,17 +99,17 @@ public:
 /**
  * Send data via MPI to benchmark the effective link speed at application level.
  */
-int main( int argc, char** argv )
+int main(int argc, char** argv)
 {
-    COMMAND_LINE_PARSER_CHECK( BenchmarkOptions, "tideBenchmarkMPI" );
+    COMMAND_LINE_PARSER_CHECK(BenchmarkOptions, "tideBenchmarkMPI");
 
-    MPIChannel mpiChannel( argc, argv );
+    MPIChannel mpiChannel(argc, argv);
 
     // Send buffer
-    std::vector<char> noiseBuffer( commandLine.dataSize( ));
-    for( auto& elem : noiseBuffer )
+    std::vector<char> noiseBuffer(commandLine.dataSize());
+    for (auto& elem : noiseBuffer)
         elem = rand();
-    const auto serializedData = serialization::toBinary( noiseBuffer );
+    const auto serializedData = serialization::toBinary(noiseBuffer);
 
     // Receive buffer
     ReceiveBuffer buffer;
@@ -118,27 +119,31 @@ int main( int argc, char** argv )
     mpiChannel.globalBarrier();
     timer.start();
 
-    while( counter < commandLine.packetsCount( ))
+    while (counter < commandLine.packetsCount())
     {
-        if( mpiChannel.getRank() == RANK0 )
-            mpiChannel.broadcast( MPIMessageType::NONE, serializedData );
+        if (mpiChannel.getRank() == RANK0)
+            mpiChannel.broadcast(MPIMessageType::NONE, serializedData);
         else
         {
-            const MPIHeader header = mpiChannel.receiveHeader( RANK0 );
-            buffer.setSize( header.size );
-            mpiChannel.receiveBroadcast( buffer.data(), header.size, RANK0 );
+            const MPIHeader header = mpiChannel.receiveHeader(RANK0);
+            buffer.setSize(header.size);
+            mpiChannel.receiveBroadcast(buffer.data(), header.size, RANK0);
         }
         ++counter;
     }
 
     const float time = timer.elapsed();
 
-    if( mpiChannel.getRank() == RANK0 )
+    if (mpiChannel.getRank() == RANK0)
     {
-        std::cout << "Object size [Mbytes]: " << (float)serializedData.size() / MEGABYTE << std::endl;
-        std::cout << "Time to send " << counter << " objects: " << time << std::endl;
+        std::cout << "Object size [Mbytes]: "
+                  << (float)serializedData.size() / MEGABYTE << std::endl;
+        std::cout << "Time to send " << counter << " objects: " << time
+                  << std::endl;
         std::cout << "Time per object: " << time / counter << std::endl;
-        std::cout << "Throughput [Mbytes/sec]: " << counter * serializedData.size() / time / MEGABYTE << std::endl;
+        std::cout << "Throughput [Mbytes/sec]: "
+                  << counter * serializedData.size() / time / MEGABYTE
+                  << std::endl;
     }
 
     return EXIT_SUCCESS;

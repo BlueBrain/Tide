@@ -68,7 +68,7 @@ public:
      * Does the necessary OpenGL setup. Needs to be called from the main thread
      * after the uploader has been moved to the dedicated upload thread.
      */
-    void init( QOpenGLContext* shareContext );
+    void init(QOpenGLContext* shareContext);
 
     /**
      * Does the necessary OpenGL teardown. Needs to be called before the
@@ -78,19 +78,19 @@ public:
 
 public slots:
     /** Performs the upload of pixels into the given tile's back texture. */
-    void uploadTexture( ImagePtr image, TileWeakPtr tile );
+    void uploadTexture(ImagePtr image, TileWeakPtr tile);
 
 signals:
     /** Emitted after a texture was successfully uploaded. */
     void uploaded();
 
 private slots:
-    void _createGLContext( QOpenGLContext* shareContext );
+    void _createGLContext(QOpenGLContext* shareContext);
     void _deleteGLContext();
 
 private:
-    bool _upload( const Image& image, const Tile& tile );
-    void _upload( const Image& image, uint srcTexture, uint textureID );
+    bool _upload(const Image& image, const Tile& tile);
+    void _upload(const Image& image, uint srcTexture, uint textureID);
 
     std::unique_ptr<QOffscreenSurface> _offscreenSurface;
     std::unique_ptr<QOpenGLContext> _glContext;

@@ -43,41 +43,42 @@
 
 #include <cmath>
 
-SwipeDetector::SwipeDetector( const qreal swipeMaxFingersIntervalPx,
-                              const qreal swipeThresholdPx )
-    : _swipeMaxFingersIntervalPx( swipeMaxFingersIntervalPx )
-    , _swipeThresholdPx( swipeThresholdPx )
-{}
-
-void SwipeDetector::initGesture( const QPointF& p0, const QPointF& p1 )
+SwipeDetector::SwipeDetector(const qreal swipeMaxFingersIntervalPx,
+                             const qreal swipeThresholdPx)
+    : _swipeMaxFingersIntervalPx(swipeMaxFingersIntervalPx)
+    , _swipeThresholdPx(swipeThresholdPx)
 {
-    _canBeSwipe = _checkFingersDistanceForSwipe( p0, p1 );
-    _swipeStartPos = MathUtils::getCenter( p0, p1 );
 }
 
-void SwipeDetector::updateGesture( const QPointF& p0, const QPointF& p1 )
+void SwipeDetector::initGesture(const QPointF& p0, const QPointF& p1)
 {
-    if( !_canBeSwipe )
+    _canBeSwipe = _checkFingersDistanceForSwipe(p0, p1);
+    _swipeStartPos = MathUtils::getCenter(p0, p1);
+}
+
+void SwipeDetector::updateGesture(const QPointF& p0, const QPointF& p1)
+{
+    if (!_canBeSwipe)
         return;
 
-    if( !_checkFingersDistanceForSwipe( p0, p1 ))
+    if (!_checkFingersDistanceForSwipe(p0, p1))
     {
         cancelGesture();
         return;
     }
 
-    const auto twoFingersPos = MathUtils::getCenter( p0, p1 );
+    const auto twoFingersPos = MathUtils::getCenter(p0, p1);
     const auto twoFingersStartPos = _swipeStartPos;
-    const auto dist = MathUtils::getDist( twoFingersStartPos, twoFingersPos );
-    if( dist > _swipeThresholdPx )
+    const auto dist = MathUtils::getDist(twoFingersStartPos, twoFingersPos);
+    if (dist > _swipeThresholdPx)
     {
         const qreal dx = twoFingersPos.x() - twoFingersStartPos.x();
         const qreal dy = twoFingersPos.y() - twoFingersStartPos.y();
 
-        if( std::abs( dx ) > std::abs( dy ))
+        if (std::abs(dx) > std::abs(dy))
         {
             // Horizontal swipe
-            if( dx > 0.0 )
+            if (dx > 0.0)
                 emit swipeRight();
             else
                 emit swipeLeft();
@@ -85,7 +86,7 @@ void SwipeDetector::updateGesture( const QPointF& p0, const QPointF& p1 )
         else
         {
             // Vertical swipe
-            if( dy > 0.0 )
+            if (dy > 0.0)
                 emit swipeDown();
             else
                 emit swipeUp();
@@ -99,9 +100,9 @@ void SwipeDetector::cancelGesture()
     _canBeSwipe = false;
 }
 
-bool SwipeDetector::_checkFingersDistanceForSwipe( const QPointF& p0,
-                                                   const QPointF& p1 ) const
+bool SwipeDetector::_checkFingersDistanceForSwipe(const QPointF& p0,
+                                                  const QPointF& p1) const
 {
-    const qreal fingersInterval = MathUtils::getDist( p0, p1 );
+    const qreal fingersInterval = MathUtils::getDist(p0, p1);
     return fingersInterval < _swipeMaxFingersIntervalPx;
 }

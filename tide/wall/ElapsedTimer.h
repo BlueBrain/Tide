@@ -54,10 +54,10 @@ public:
     ElapsedTimer();
 
     /** Set the current time. */
-    void setCurrentTime( const clock::time_point& time );
+    void setCurrentTime(const clock::time_point& time);
 
     /** Reset any elapsed time. */
-    void resetTime( const clock::time_point& time );
+    void resetTime(const clock::time_point& time);
 
     /** Get the elapsed time between the last two calls to setCurrentTime(). */
     clock::duration getElapsedTime() const;

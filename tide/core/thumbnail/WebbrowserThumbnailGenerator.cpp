@@ -41,16 +41,17 @@
 
 #include <QUrl>
 
-WebbrowserThumbnailGenerator::WebbrowserThumbnailGenerator( const QSize& size )
-    : ThumbnailGenerator( size )
-{}
-
-QImage WebbrowserThumbnailGenerator::generate( const QString& url ) const
+WebbrowserThumbnailGenerator::WebbrowserThumbnailGenerator(const QSize& size)
+    : ThumbnailGenerator(size)
 {
-    auto image = createGradientImage( Qt::darkCyan, Qt::white );
-    auto host = QUrl{ url }.host();
-    if( host.startsWith( "www." ))
-        host.remove( 0, 4 );
-    paintText( image, host );
+}
+
+QImage WebbrowserThumbnailGenerator::generate(const QString& url) const
+{
+    auto image = createGradientImage(Qt::darkCyan, Qt::white);
+    auto host = QUrl{url}.host();
+    if (host.startsWith("www."))
+        host.remove(0, 4);
+    paintText(image, host);
     return image;
 }

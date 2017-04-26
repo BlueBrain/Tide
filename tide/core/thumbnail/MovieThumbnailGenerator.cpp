@@ -42,24 +42,24 @@
 #include "data/FFMPEGMovie.h"
 #include "data/FFMPEGPicture.h"
 
-#define PREVIEW_RELATIVE_POSITION  0.5
+#define PREVIEW_RELATIVE_POSITION 0.5
 
-MovieThumbnailGenerator::MovieThumbnailGenerator( const QSize& size )
-    : ThumbnailGenerator( size )
+MovieThumbnailGenerator::MovieThumbnailGenerator(const QSize& size)
+    : ThumbnailGenerator(size)
 {
 }
 
-QImage MovieThumbnailGenerator::generate( const QString& filename ) const
+QImage MovieThumbnailGenerator::generate(const QString& filename) const
 {
-    FFMPEGMovie movie( filename );
-    movie.setFormat( TextureFormat::rgba );
+    FFMPEGMovie movie(filename);
+    movie.setFormat(TextureFormat::rgba);
 
-    if( !movie.isValid( ))
-        return createErrorImage( "movie" );
+    if (!movie.isValid())
+        return createErrorImage("movie");
 
     const double target = PREVIEW_RELATIVE_POSITION * movie.getDuration();
-    if( auto picture = movie.getFrame( target ))
-        return picture->toQImage().scaled( _size, _aspectRatioMode );
+    if (auto picture = movie.getFrame(target))
+        return picture->toQImage().scaled(_size, _aspectRatioMode);
 
-    return createErrorImage( "movie" );
+    return createErrorImage("movie");
 }

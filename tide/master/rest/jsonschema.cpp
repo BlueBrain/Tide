@@ -44,11 +44,11 @@
 #include <QStringList>
 
 // forward declaration
-QJsonObject _getPropertySchema( const QString& name, const QJsonValue& value );
+QJsonObject _getPropertySchema(const QString& name, const QJsonValue& value);
 
-QString _toString( const QJsonValue::Type type )
+QString _toString(const QJsonValue::Type type)
 {
-    switch( type )
+    switch (type)
     {
     case QJsonValue::Null:
         return "null";
@@ -68,50 +68,47 @@ QString _toString( const QJsonValue::Type type )
     }
 }
 
-QJsonObject _getValueSchema( const QJsonValue::Type type )
+QJsonObject _getValueSchema(const QJsonValue::Type type)
 {
-    return QJsonObject{{ "type", _toString( type ) }};
+    return QJsonObject{{"type", _toString(type)}};
 }
 
-QJsonObject _getArraySchema( const QString& name, const QJsonArray& array )
+QJsonObject _getArraySchema(const QString& name, const QJsonArray& array)
 {
-    if( array.isEmpty( ))
+    if (array.isEmpty())
         return {};
 
-    return QJsonObject{
-        { "type", "array" },
-        { "title", name },
-        { "items", _getPropertySchema( name+"_items", array.first( )) }
-    };
+    return QJsonObject{{"type", "array"},
+                       {"title", name},
+                       {"items",
+                        _getPropertySchema(name + "_items", array.first())}};
 }
 
-QJsonObject _getObjectSchema( const QString& title, const QJsonObject& object )
+QJsonObject _getObjectSchema(const QString& title, const QJsonObject& object)
 {
     QJsonObject properties;
-    for( auto it = object.begin(); it != object.end(); ++it )
-        properties[it.key()] = _getPropertySchema( it.key(), it.value( ));
+    for (auto it = object.begin(); it != object.end(); ++it)
+        properties[it.key()] = _getPropertySchema(it.key(), it.value());
 
-    return QJsonObject{
-        { "$schema", "http://json-schema.org/schema#" },
-        { "title", title },
-        { "type", "object" },
-        { "additionalProperties", false },
-        { "properties", properties }
-    };
+    return QJsonObject{{"$schema", "http://json-schema.org/schema#"},
+                       {"title", title},
+                       {"type", "object"},
+                       {"additionalProperties", false},
+                       {"properties", properties}};
 }
 
-QJsonObject _getPropertySchema( const QString& name, const QJsonValue& value )
+QJsonObject _getPropertySchema(const QString& name, const QJsonValue& value)
 {
-    switch( value.type( ))
+    switch (value.type())
     {
     case QJsonValue::Bool:
     case QJsonValue::Double:
     case QJsonValue::String:
-        return _getValueSchema( value.type( ));
+        return _getValueSchema(value.type());
     case QJsonValue::Array:
-        return _getArraySchema( name, value.toArray( ));
+        return _getArraySchema(name, value.toArray());
     case QJsonValue::Object:
-        return _getObjectSchema( name, value.toObject( ));
+        return _getObjectSchema(name, value.toObject());
     case QJsonValue::Null:
     case QJsonValue::Undefined:
     default:
@@ -121,26 +118,24 @@ QJsonObject _getPropertySchema( const QString& name, const QJsonValue& value )
 
 namespace jsonschema
 {
-
-std::string create( const QString& title, const QJsonObject& object,
-                    const QString& description )
+std::string create(const QString& title, const QJsonObject& object,
+                   const QString& description)
 {
-    auto schema = _getObjectSchema( title, object );
+    auto schema = _getObjectSchema(title, object);
     schema["description"] = description;
-    return json::toString( schema );
+    return json::toString(schema);
 }
 
-std::string create( const QString& title, const QJsonArray& array,
-                    const QString& description, const bool fixedSize )
+std::string create(const QString& title, const QJsonArray& array,
+                   const QString& description, const bool fixedSize)
 {
-    auto schema = _getArraySchema( title, array );
+    auto schema = _getArraySchema(title, array);
     schema["description"] = description;
-    if( fixedSize )
+    if (fixedSize)
     {
         schema["minItems"] = array.size();
         schema["maxItems"] = array.size();
     }
-    return json::toString( schema );
+    return json::toString(schema);
 }
-
 }

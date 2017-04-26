@@ -39,30 +39,29 @@
 
 #include "Application.h"
 
+#include "localstreamer/CommandLineOptions.h"
 #include "localstreamer/PixelStreamer.h"
 #include "localstreamer/PixelStreamerFactory.h"
 
-#include "localstreamer/CommandLineOptions.h"
-
-#include <QTimer>
 #include <QNetworkProxy>
+#include <QTimer>
 
 #include <iostream>
 
 #define TIDE_STREAM_HOST_ADDRESS "localhost"
 //#define COMPRESS_IMAGES
 
-Application::Application( int &argc_, char** argv_ )
-    : QApplication( argc_, argv_ )
-    , _pixelStreamer( 0 )
-    , _deflectStream( 0 )
+Application::Application(int& argc_, char** argv_)
+    : QApplication(argc_, argv_)
+    , _pixelStreamer(0)
+    , _deflectStream(0)
 {
     // Correctly setup the proxy from the 'http_proxy' environment variable
-    const QUrl url( qgetenv( "http_proxy" ).constData( ));
-    if( url.scheme() == "http" )
+    const QUrl url(qgetenv("http_proxy").constData());
+    if (url.scheme() == "http")
     {
-        QNetworkProxy proxy( QNetworkProxy::HttpProxy, url.host(), url.port( ));
-        QNetworkProxy::setApplicationProxy( proxy );
+        QNetworkProxy proxy(QNetworkProxy::HttpProxy, url.host(), url.port());
+        QNetworkProxy::setApplicationProxy(proxy);
     }
 }
 
@@ -72,21 +71,21 @@ Application::~Application()
     delete _pixelStreamer;
 }
 
-bool Application::initialize( const CommandLineOptions& options )
+bool Application::initialize(const CommandLineOptions& options)
 {
     // Create the streamer
-    _pixelStreamer = PixelStreamerFactory::create( options );
-    if( !_pixelStreamer)
+    _pixelStreamer = PixelStreamerFactory::create(options);
+    if (!_pixelStreamer)
         return false;
-    connect( _pixelStreamer, &PixelStreamer::imageUpdated,
-             this, &Application::sendImage );
-    connect( _pixelStreamer, &PixelStreamer::stateChanged,
-             this, &Application::sendData );
+    connect(_pixelStreamer, &PixelStreamer::imageUpdated, this,
+            &Application::sendImage);
+    connect(_pixelStreamer, &PixelStreamer::stateChanged, this,
+            &Application::sendData);
 
     // Connect to Tide
-    _deflectStream = new deflect::Stream( options.getStreamId().toStdString(),
-                                          TIDE_STREAM_HOST_ADDRESS );
-    if( !_deflectStream->isConnected( ))
+    _deflectStream = new deflect::Stream(options.getStreamId().toStdString(),
+                                         TIDE_STREAM_HOST_ADDRESS);
+    if (!_deflectStream->isConnected())
     {
         std::cerr << "Could not connect to host!" << std::endl;
         delete _deflectStream;
@@ -96,12 +95,12 @@ bool Application::initialize( const CommandLineOptions& options )
     _deflectStream->registerForEvents();
 
     // Make sure to quit the application if the connection is closed.
-    _deflectStream->setDisconnectedCallback( QApplication::quit );
+    _deflectStream->setDisconnectedCallback(QApplication::quit);
 
     // Use a timer to process Event received from the deflect::Stream
-    QTimer* timer = new QTimer( this );
-    connect( timer, SIGNAL( timeout( )), SLOT( processPendingEvents( )));
-    timer->start( 1 );
+    QTimer* timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), SLOT(processPendingEvents()));
+    timer->start(1);
 
     return true;
 }
@@ -111,35 +110,33 @@ void Application::sendImage(QImage image)
 #ifdef COMPRESS_IMAGES
     // QImage Format_RGB32 (0xffRRGGBB) corresponds in fact to
     // GL_BGRA == deflect::BGRA
-    deflect::ImageWrapper deflectImage( (const void*)image.bits(),
-                                        image.width(), image.height(),
-                                        deflect::BGRA );
+    deflect::ImageWrapper deflectImage((const void*)image.bits(), image.width(),
+                                       image.height(), deflect::BGRA);
     deflectImage.compressionPolicy = deflect::COMPRESSION_ON;
 #else
     // This conversion is suboptimal, but the only solution until we send the
     // PixelFormat with the PixelStreamSegment
     image = image.rgbSwapped();
-    deflect::ImageWrapper deflectImage( (const void*)image.bits(),
-                                        image.width(), image.height(),
-                                        deflect::RGBA );
+    deflect::ImageWrapper deflectImage((const void*)image.bits(), image.width(),
+                                       image.height(), deflect::RGBA);
     deflectImage.compressionPolicy = deflect::COMPRESSION_OFF;
 #endif
-    const bool success = _deflectStream->sendAndFinish( deflectImage ).get();
-    if( !success )
+    const bool success = _deflectStream->sendAndFinish(deflectImage).get();
+    if (!success)
     {
         QApplication::quit();
         return;
     }
 }
 
-void Application::sendData( const QByteArray data )
+void Application::sendData(const QByteArray data)
 {
-    if( !_deflectStream->sendData( data.constData(), data.size( )))
+    if (!_deflectStream->sendData(data.constData(), data.size()))
         QApplication::quit();
 }
 
 void Application::processPendingEvents()
 {
-    while( _deflectStream->hasEvent( ))
-        _pixelStreamer->processEvent( _deflectStream->getEvent( ));
+    while (_deflectStream->hasEvent())
+        _pixelStreamer->processEvent(_deflectStream->getEvent());
 }

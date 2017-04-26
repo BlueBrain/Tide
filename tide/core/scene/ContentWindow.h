@@ -44,8 +44,8 @@
 
 #include "types.h"
 
-#include "Rectangle.h"               // base class
-#include "Content.h"                 // member, needed for serialization
+#include "Content.h"   // member, needed for serialization
+#include "Rectangle.h" // base class
 #include "serialization/includes.h"
 
 #include <QUuid>
@@ -58,24 +58,24 @@
 class ContentWindow : public Rectangle
 {
     Q_OBJECT
-    Q_PROPERTY( QUuid id READ getID CONSTANT )
-    Q_PROPERTY( bool isPanel READ isPanel CONSTANT )
-    Q_PROPERTY( Content* content READ getContentPtr CONSTANT )
-    Q_PROPERTY( WindowMode mode READ getMode NOTIFY modeChanged )
-    Q_PROPERTY( bool focused READ isFocused NOTIFY modeChanged )
-    Q_PROPERTY( QRectF focusedCoordinates READ getFocusedCoordinates
-                NOTIFY focusedCoordinatesChanged )
-    Q_PROPERTY( bool fullscreen READ isFullscreen NOTIFY modeChanged )
-    Q_PROPERTY( QRectF fullscreenCoordinates READ getFullscreenCoordinates
-                NOTIFY fullscreenCoordinatesChanged )
-    Q_PROPERTY( WindowState state READ getState WRITE setState
-                NOTIFY stateChanged )
-    Q_PROPERTY( ResizeHandle activeHandle READ getActiveHandle
-                WRITE setActiveHandle NOTIFY activeHandleChanged )
-    Q_PROPERTY( ResizePolicy resizePolicy READ getResizePolicy
-                WRITE setResizePolicy NOTIFY resizePolicyChanged )
-    Q_PROPERTY( bool selected READ isSelected
-                WRITE setSelected NOTIFY selectedChanged )
+    Q_PROPERTY(QUuid id READ getID CONSTANT)
+    Q_PROPERTY(bool isPanel READ isPanel CONSTANT)
+    Q_PROPERTY(Content* content READ getContentPtr CONSTANT)
+    Q_PROPERTY(WindowMode mode READ getMode NOTIFY modeChanged)
+    Q_PROPERTY(bool focused READ isFocused NOTIFY modeChanged)
+    Q_PROPERTY(QRectF focusedCoordinates READ getFocusedCoordinates NOTIFY
+                   focusedCoordinatesChanged)
+    Q_PROPERTY(bool fullscreen READ isFullscreen NOTIFY modeChanged)
+    Q_PROPERTY(QRectF fullscreenCoordinates READ getFullscreenCoordinates NOTIFY
+                   fullscreenCoordinatesChanged)
+    Q_PROPERTY(
+        WindowState state READ getState WRITE setState NOTIFY stateChanged)
+    Q_PROPERTY(ResizeHandle activeHandle READ getActiveHandle WRITE
+                   setActiveHandle NOTIFY activeHandleChanged)
+    Q_PROPERTY(ResizePolicy resizePolicy READ getResizePolicy WRITE
+                   setResizePolicy NOTIFY resizePolicyChanged)
+    Q_PROPERTY(
+        bool selected READ isSelected WRITE setSelected NOTIFY selectedChanged)
 
 public:
     /** The current active resize handle. */
@@ -91,43 +91,43 @@ public:
         LEFT,
         NOHANDLE
     };
-    Q_ENUMS( ResizeHandle )
+    Q_ENUMS(ResizeHandle)
 
     /** The policy for the active resize operation. */
     enum ResizePolicy
     {
-        KEEP_ASPECT_RATIO,   // adjust the window aspect ratio to the content's
-        ADJUST_CONTENT       // only for compatible contents
+        KEEP_ASPECT_RATIO, // adjust the window aspect ratio to the content's
+        ADJUST_CONTENT     // only for compatible contents
     };
-    Q_ENUMS( ResizePolicy )
+    Q_ENUMS(ResizePolicy)
 
     /** The possible rendering modes of a window. */
     enum WindowMode
     {
-        STANDARD,    // standard window mode on the desktop
-        FOCUSED,     // window focused for presentation
-        FULLSCREEN   // fullscreen
+        STANDARD,  // standard window mode on the desktop
+        FOCUSED,   // window focused for presentation
+        FULLSCREEN // fullscreen
     };
-    Q_ENUMS( WindowMode )
+    Q_ENUMS(WindowMode)
 
     /** The possible states of a window. */
     enum WindowState
     {
-        NONE,       // not selected, interaction modifies position/size
-        MOVING,     // the window is being moved
-        RESIZING,   // the window is being resized
-        HIDDEN      // the window is hidden (invisible, not interacting)
+        NONE,     // not selected, interaction modifies position/size
+        MOVING,   // the window is being moved
+        RESIZING, // the window is being resized
+        HIDDEN    // the window is hidden (invisible, not interacting)
     };
-    Q_ENUMS( WindowState )
+    Q_ENUMS(WindowState)
 
     /** The different types of windows. */
     enum WindowType
     {
-        DEFAULT,    // A regular window
-        PANEL       // An overlay window without a control bar, cannot be
-                    // focused or fullscreen
+        DEFAULT, // A regular window
+        PANEL    // An overlay window without a control bar, cannot be
+                 // focused or fullscreen
     };
-    Q_ENUMS( WindowType )
+    Q_ENUMS(WindowType)
 
     /**
      * Create a new window.
@@ -136,7 +136,7 @@ public:
      *        style and behaviour.
      * @note Rank0 only.
      */
-    ContentWindow( ContentPtr content, WindowType type = DEFAULT );
+    ContentWindow(ContentPtr content, WindowType type = DEFAULT);
 
     /** Destructor. */
     ~ContentWindow();
@@ -154,11 +154,10 @@ public:
     ContentPtr getContent() const;
 
     /** Set the content, replacing the existing one. @note Rank0 only. */
-    void setContent( ContentPtr content );
-
+    void setContent(ContentPtr content);
 
     /** Set the coordinates in pixel units. */
-    void setCoordinates( const QRectF& coordinates );
+    void setCoordinates(const QRectF& coordinates);
 
     /** @return the current active resize handle. */
     ContentWindow::ResizeHandle getActiveHandle() const;
@@ -166,12 +165,11 @@ public:
     /** Get the current resize policy. */
     ContentWindow::ResizePolicy getResizePolicy() const;
 
-
     /** Get the current state. */
     ContentWindow::WindowMode getMode() const;
 
     /** Set the current mode. */
-    void setMode( const ContentWindow::WindowMode mode );
+    void setMode(const ContentWindow::WindowMode mode);
 
     /** Is the window focused. */
     bool isFocused() const;
@@ -179,25 +177,23 @@ public:
     /** Is the window fullscreen. */
     bool isFullscreen() const;
 
-
     /** @return the focused coordinates of this window. */
     const QRectF& getFocusedCoordinates() const;
 
     /** Set the focused coordinates of this window. */
-    void setFocusedCoordinates( const QRectF& coordinates );
+    void setFocusedCoordinates(const QRectF& coordinates);
 
     /** @return the fullscreen coordinates of this window. */
     const QRectF& getFullscreenCoordinates() const;
 
     /** Set the fullscreen coordinates of this window. */
-    void setFullscreenCoordinates( const QRectF& coordinates );
+    void setFullscreenCoordinates(const QRectF& coordinates);
 
     /** @return the actual display coordinates (depending on the mode). */
     const QRectF& getDisplayCoordinates() const;
 
     /** Set the actual display coordinates (depending on the mode). */
-    void setDisplayCoordinates( const QRectF& coordinates );
-
+    void setDisplayCoordinates(const QRectF& coordinates);
 
     /** Get the current state. */
     ContentWindow::WindowState getState() const;
@@ -211,22 +207,21 @@ public:
     /** Check if hidden. */
     bool isHidden() const;
 
-
     /** @return true if the window is selected. */
     bool isSelected() const;
 
     /** Select or deselect the window. */
-    void setSelected( bool value );
+    void setSelected(bool value);
 
 public slots:
     /** Set the current active resize handle. */
-    void setActiveHandle( ContentWindow::ResizeHandle handle );
+    void setActiveHandle(ContentWindow::ResizeHandle handle);
 
     /** Set the resize policy. */
-    bool setResizePolicy( ContentWindow::ResizePolicy policy );
+    bool setResizePolicy(ContentWindow::ResizePolicy policy);
 
     /** Set the current state. */
-    bool setState( const ContentWindow::WindowState state );
+    bool setState(const ContentWindow::WindowState state);
 
 signals:
     /** Emitted when the Content signals that it has been modified. */
@@ -250,7 +245,7 @@ signals:
     void fullscreenCoordinatesChanged();
     void stateChanged();
     void selectedChanged();
-    void hiddenChanged( bool hidden );
+    void hiddenChanged(bool hidden);
     //@}
 
 private:
@@ -260,9 +255,10 @@ private:
     ContentWindow();
 
     /** Serialize for sending to Wall applications. */
-    template< class Archive >
-    void serialize( Archive & ar, const unsigned int )
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int)
     {
+        // clang-format off
         ar & _coordinates;
         ar & _type;
         ar & _uuid;
@@ -274,62 +270,65 @@ private:
         ar & _fullscreenCoordinates;
         ar & _windowState;
         ar & _selected;
+        // clang-format on
     }
 
     /** Serialize members to and from xml. */
-    template< class Archive >
-    void serialize_members_xml( Archive & ar, const unsigned int version )
+    template <class Archive>
+    void serialize_members_xml(Archive& ar, const unsigned int version)
     {
-        ar & boost::serialization::make_nvp( "content", _content );
-        if( version < 1 )
+        // clang-format off
+        ar & boost::serialization::make_nvp("content", _content);
+        if (version < 1)
         {
             int contentWidth = 0, contentHeight = 0;
-            ar & boost::serialization::make_nvp( "contentWidth", contentWidth );
-            ar & boost::serialization::make_nvp( "contentHeight", contentHeight );
+            ar & boost::serialization::make_nvp("contentWidth", contentWidth);
+            ar & boost::serialization::make_nvp("contentHeight", contentHeight);
         }
-        ar & boost::serialization::make_nvp( "coordinates", _coordinates );
-        if( version < 3 )
+        ar & boost::serialization::make_nvp("coordinates", _coordinates);
+        if (version < 3)
         {
             QRectF backup;
-            ar & boost::serialization::make_nvp( "coordinatesBackup", backup );
+            ar & boost::serialization::make_nvp("coordinatesBackup", backup);
         }
         QPointF zoomCenter = _content->getZoomRect().center();
         qreal zoom = 1.0 / _content->getZoomRect().width();
-        ar & boost::serialization::make_nvp( "centerX", zoomCenter.rx( ));
-        ar & boost::serialization::make_nvp( "centerY", zoomCenter.ry( ));
-        ar & boost::serialization::make_nvp( "zoom", zoom );
-        if( version >= 3 )
+        ar & boost::serialization::make_nvp("centerX", zoomCenter.rx());
+        ar & boost::serialization::make_nvp("centerY", zoomCenter.ry());
+        ar & boost::serialization::make_nvp("zoom", zoom);
+        if (version >= 3)
         {
             bool focused = isFocused();
-            ar & boost::serialization::make_nvp( "focused", focused );
-            if( focused )
-                setMode( WindowMode::FOCUSED );
+            ar & boost::serialization::make_nvp("focused", focused);
+            if (focused)
+                setMode(WindowMode::FOCUSED);
         }
         QRectF zoomRect;
-        zoomRect.setSize( QSizeF( 1.0/zoom, 1.0/zoom ));
-        zoomRect.moveCenter( zoomCenter );
-        _content->setZoomRect( zoomRect );
-        if( version < 1 )
+        zoomRect.setSize(QSizeF(1.0 / zoom, 1.0 / zoom));
+        zoomRect.moveCenter(zoomCenter);
+        _content->setZoomRect(zoomRect);
+        if (version < 1)
         {
             int controlState = 0;
-            ar & boost::serialization::make_nvp( "controlState", controlState );
+            ar & boost::serialization::make_nvp("controlState", controlState);
         }
-        ar & boost::serialization::make_nvp( "windowState", _windowState );
+        ar & boost::serialization::make_nvp("windowState", _windowState);
+        // clang-format on
     }
 
     /** Loading from xml. */
-    void serialize_for_xml( boost::archive::xml_iarchive& ar,
-                            const unsigned int version )
+    void serialize_for_xml(boost::archive::xml_iarchive& ar,
+                           const unsigned int version)
     {
-        serialize_members_xml( ar, version );
+        serialize_members_xml(ar, version);
         _init();
     }
 
     /** Saving to xml. */
-    void serialize_for_xml( boost::archive::xml_oarchive& ar,
-                            const unsigned int version )
+    void serialize_for_xml(boost::archive::xml_oarchive& ar,
+                           const unsigned int version)
     {
-        serialize_members_xml( ar, version );
+        serialize_members_xml(ar, version);
     }
 
     void _init();
@@ -346,8 +345,8 @@ private:
     bool _selected;
 };
 
-BOOST_CLASS_VERSION( ContentWindow, 3 )
+BOOST_CLASS_VERSION(ContentWindow, 3)
 
-DECLARE_SERIALIZE_FOR_XML( ContentWindow )
+DECLARE_SERIALIZE_FOR_XML(ContentWindow)
 
 #endif

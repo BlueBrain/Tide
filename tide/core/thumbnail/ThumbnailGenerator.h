@@ -56,11 +56,10 @@ public:
      *
      * @param size target size for the generated thumbnails.
      */
-    ThumbnailGenerator( const QSize& size );
+    ThumbnailGenerator(const QSize& size);
 
     /** Virtual destructor. */
     virtual ~ThumbnailGenerator() {}
-
     /**
      * Generate a thumbnail for a given file.
      *
@@ -71,7 +70,7 @@ public:
      * @param filename the content to generate the image for.
      * @return thumbnail the desired thumbnail, or a placeholder image.
      */
-    virtual QImage generate( const QString& filename ) const = 0;
+    virtual QImage generate(const QString& filename) const = 0;
 
 protected:
     /** Target size for the thumbnails. */
@@ -81,14 +80,14 @@ protected:
     const Qt::AspectRatioMode _aspectRatioMode;
 
     /** Create a generic placeholder image indicating that an error occured. */
-    QImage createErrorImage( const QString& message ) const;
+    QImage createErrorImage(const QString& message) const;
 
     /** Create a gradient image, can be used as background for a placeholder. */
-    QImage createGradientImage( const QColor& bgcolor1,
-                                const QColor& bgcolor2 ) const;
+    QImage createGradientImage(const QColor& bgcolor1,
+                               const QColor& bgcolor2) const;
 
     /** Paint text over an image, for example on top of a placeholder image. */
-    void paintText( QImage& img, const QString& text ) const;
+    void paintText(QImage& img, const QString& text) const;
 };
 
 #endif

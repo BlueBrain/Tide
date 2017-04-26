@@ -48,12 +48,12 @@
 
 #include <QFile>
 
-std::unique_ptr<SVGBackend> _createSvgBackend( const QByteArray& svgData )
+std::unique_ptr<SVGBackend> _createSvgBackend(const QByteArray& svgData)
 {
 #if TIDE_USE_CAIRO && TIDE_USE_RSVG
-    return make_unique<SVGCairoRSVGBackend>( svgData );
+    return make_unique<SVGCairoRSVGBackend>(svgData);
 #else
-    return make_unique<SVGQtGpuBackend>( svgData );
+    return make_unique<SVGQtGpuBackend>(svgData);
 #endif
 }
 
@@ -64,33 +64,35 @@ struct SVG::Impl
     std::unique_ptr<SVGBackend> svg;
 };
 
-SVG::SVG( const QString& uri )
-    : _impl( new Impl )
+SVG::SVG(const QString& uri)
+    : _impl(new Impl)
 {
     _impl->filename = uri;
     try
     {
-        QFile file( uri );
-        if( !file.open( QIODevice::ReadOnly ))
-            throw std::runtime_error( "invalid file" );
+        QFile file(uri);
+        if (!file.open(QIODevice::ReadOnly))
+            throw std::runtime_error("invalid file");
         _impl->svgData = file.readAll();
-        _impl->svg = _createSvgBackend( _impl->svgData );
+        _impl->svg = _createSvgBackend(_impl->svgData);
     }
-    catch( const std::runtime_error& e )
+    catch (const std::runtime_error& e)
     {
-        put_flog( LOG_DEBUG, "Could not open document '%s': '%s'",
-                  uri.toLocal8Bit().constData( ), e.what( ));
+        put_flog(LOG_DEBUG, "Could not open document '%s': '%s'",
+                 uri.toLocal8Bit().constData(), e.what());
     }
 }
 
-SVG::SVG( const QByteArray& svgData )
-    : _impl( new Impl )
+SVG::SVG(const QByteArray& svgData)
+    : _impl(new Impl)
 {
     _impl->svgData = svgData;
-    _impl->svg = _createSvgBackend( _impl->svgData );
+    _impl->svg = _createSvgBackend(_impl->svgData);
 }
 
-SVG::~SVG() {}
+SVG::~SVG()
+{
+}
 
 const QString& SVG::getFilename() const
 {
@@ -112,7 +114,7 @@ const QByteArray& SVG::getData() const
     return _impl->svgData;
 }
 
-QImage SVG::renderToImage( const QSize& imageSize, const QRectF& region ) const
+QImage SVG::renderToImage(const QSize& imageSize, const QRectF& region) const
 {
-    return isValid() ? _impl->svg->renderToImage( imageSize, region ) : QImage();
+    return isValid() ? _impl->svg->renderToImage(imageSize, region) : QImage();
 }

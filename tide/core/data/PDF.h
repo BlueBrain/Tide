@@ -59,7 +59,7 @@ public:
      * Open a document.
      * @param uri the file to open.
      */
-    PDF( const QString& uri );
+    PDF(const QString& uri);
 
     /** Close the document. */
     ~PDF();
@@ -80,7 +80,7 @@ public:
      * Go to a given page number.
      * @param pageNumber the page to open. If invalid, the page is not changed.
      */
-    void setPage( int pageNumber );
+    void setPage(int pageNumber);
 
     /** @return the number of pages in the document. */
     int getPageCount() const;
@@ -91,8 +91,8 @@ public:
      * @param region the target area of the page to render, in normalized coord.
      * @return the rendered image region, or an empty QImage on failure.
      */
-    QImage renderToImage( const QSize& imageSize,
-                          const QRectF& region = UNIT_RECTF ) const;
+    QImage renderToImage(const QSize& imageSize,
+                         const QRectF& region = UNIT_RECTF) const;
 
 private:
     struct Impl;

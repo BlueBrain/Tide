@@ -40,8 +40,8 @@
 #ifndef MASTERTOWALLCHANNEL_H
 #define MASTERTOWALLCHANNEL_H
 
-#include "types.h"
 #include "network/MPIHeader.h"
+#include "types.h"
 
 #include <QObject>
 
@@ -65,36 +65,36 @@
 class MasterToWallChannel : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY( MasterToWallChannel )
+    Q_DISABLE_COPY(MasterToWallChannel)
 
 public:
     /** Constructor */
-    MasterToWallChannel( MPIChannelPtr mpiChannel );
+    MasterToWallChannel(MPIChannelPtr mpiChannel);
 
 public slots:
     /**
      * Send the given DisplayGroup to the wall processes.
      * @param displayGroup The DisplayGroup to send
      */
-    void sendAsync( DisplayGroupPtr displayGroup );
+    void sendAsync(DisplayGroupPtr displayGroup);
 
     /**
      * Send the given Options to the wall processes.
      * @param options The options to send
      */
-    void sendAsync( OptionsPtr options );
+    void sendAsync(OptionsPtr options);
 
     /**
      * Send the given Markers to the wall processes.
      * @param markers The markers to send
      */
-    void sendAsync( MarkersPtr markers );
+    void sendAsync(MarkersPtr markers);
 
     /**
      * Send pixel stream frame to the wall processes.
      * @param frame The frame to send
      */
-    void send( deflect::FramePtr frame );
+    void send(deflect::FramePtr frame);
 
     /**
      * Send a screenshot request to the wall processes.
@@ -109,13 +109,13 @@ public slots:
 private:
     MPIChannelPtr _mpiChannel;
 
-    template< typename T >
-    void broadcast( const T& object, const MPIMessageType type );
-    template< typename T >
-    void broadcastAsync( const T& object, const MPIMessageType type );
+    template <typename T>
+    void broadcast(const T& object, const MPIMessageType type);
+    template <typename T>
+    void broadcastAsync(const T& object, const MPIMessageType type);
 
 private slots:
-    void _broadcast( MPIMessageType type, std::string data );
+    void _broadcast(MPIMessageType type, std::string data);
 };
 
 #endif

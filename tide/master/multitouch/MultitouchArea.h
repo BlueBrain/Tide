@@ -57,16 +57,16 @@ class MultitouchArea : public QQuickItem
     Q_OBJECT
 
     /** Set a target item to enable the touch area to move it. */
-    Q_PROPERTY( QQuickItem* referenceItem READ getReferenceItem
-                WRITE setReferenceItem NOTIFY referenceItemChanged )
+    Q_PROPERTY(QQuickItem* referenceItem READ getReferenceItem WRITE
+                   setReferenceItem NOTIFY referenceItemChanged)
 
     /** The minimum displacement until a gesture is considered as a pan. */
-    Q_PROPERTY( qreal panThreshold READ getPanThreshold WRITE setPanThreshold
-                NOTIFY panThresholdChanged )
+    Q_PROPERTY(qreal panThreshold READ getPanThreshold WRITE setPanThreshold
+                   NOTIFY panThresholdChanged)
 
 public:
     /** Constructor. */
-    MultitouchArea( QQuickItem* parent = 0 );
+    MultitouchArea(QQuickItem* parent = 0);
 
     /** @name Q_PROPERTY getters. */
     //@{
@@ -77,33 +77,33 @@ public:
 public slots:
     /** @name Q_PROPERTY setters. */
     //@{
-    void setReferenceItem( QQuickItem* arg );
-    void setPanThreshold( qreal arg );
+    void setReferenceItem(QQuickItem* arg);
+    void setPanThreshold(qreal arg);
     //@}
 
 signals:
     /** @name Q_PROPERTY notifiers. */
     //@{
-    void referenceItemChanged( QQuickItem* arg );
-    void panThresholdChanged( qreal arg );
+    void referenceItemChanged(QQuickItem* arg);
+    void panThresholdChanged(qreal arg);
     //@}
 
     /** @name Basic touch events. */
     //@{
     /** Always emitted for the first finger that touches the area. */
-    void touchStarted( QPointF pos );
+    void touchStarted(QPointF pos);
 
     /** Always emitted for the last finger that is removed from the area. */
-    void touchEnded( QPointF pos );
+    void touchEnded(QPointF pos);
 
     /** Emitted when a new touch point is added. */
-    void touchPointAdded( int id, QPointF pos );
+    void touchPointAdded(int id, QPointF pos);
 
     /** Emitted when an existing touch point is updated. */
-    void touchPointUpdated( int id, QPointF pos );
+    void touchPointUpdated(int id, QPointF pos);
 
     /** Emitted when an existing touch point is removed. */
-    void touchPointRemoved( int id, QPointF pos );
+    void touchPointRemoved(int id, QPointF pos);
     //@}
 
     /** @name Two-finger gestures. */
@@ -112,7 +112,7 @@ signals:
     void pinchStarted();
 
     /** @copydoc PinchDetector::pinch */
-    void pinch( QPointF pos, QPointF pixelDelta );
+    void pinch(QPointF pos, QPointF pixelDelta);
 
     /** @copydoc PinchDetector::pinchEnded */
     void pinchEnded();
@@ -130,42 +130,42 @@ signals:
     /** @name Multi-finger gestures. */
     //@{
     /** @copydoc TapDetector::tap */
-    void tap( QPointF pos, uint numPoints );
+    void tap(QPointF pos, uint numPoints);
 
     /** @copydoc DoubleTapDetector::doubleTap */
-    void doubleTap( QPointF pos, uint numPoints );
+    void doubleTap(QPointF pos, uint numPoints);
 
     /** @copydoc TapAndHoldDetector::tapAndHold */
-    void tapAndHold( QPointF pos, uint numPoints );
+    void tapAndHold(QPointF pos, uint numPoints);
 
     /** @copydoc PanDetector::panStarted */
-    void panStarted( QPointF pos, uint numPoints );
+    void panStarted(QPointF pos, uint numPoints);
 
     /** @copydoc PanDetector::pan */
-    void pan( QPointF pos, QPointF delta, uint numPoints );
+    void pan(QPointF pos, QPointF delta, uint numPoints);
 
     /** @copydoc PanDetector::panEnded */
     void panEnded();
     //@}
 
 private:
-    void mousePressEvent( QMouseEvent* event ) override;
-    void mouseMoveEvent( QMouseEvent* event ) override;
-    void mouseReleaseEvent( QMouseEvent* event ) override;
-    void wheelEvent( QWheelEvent* event ) override;
-    void touchEvent( QTouchEvent* event ) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
+    void wheelEvent(QWheelEvent* event) override;
+    void touchEvent(QTouchEvent* event) override;
 
     using TouchPoints = QList<QTouchEvent::TouchPoint>;
 
-    Positions _getPositions( const QMouseEvent& mouse );
-    Positions _getPositions( const TouchPoints& points );
+    Positions _getPositions(const QMouseEvent& mouse);
+    Positions _getPositions(const TouchPoints& points);
 
-    QPointF _getScenePos( const QMouseEvent& mouse );
-    QPointF _getScenePos( const QTouchEvent::TouchPoint& point );
-    QPointF _getScenePos( const QWheelEvent& wheel );
+    QPointF _getScenePos(const QMouseEvent& mouse);
+    QPointF _getScenePos(const QTouchEvent::TouchPoint& point);
+    QPointF _getScenePos(const QWheelEvent& wheel);
 
-    void _handleGestures( const Positions& positions );
-    void _handleTouch( const TouchPoints& points );
+    void _handleGestures(const Positions& positions);
+    void _handleTouch(const TouchPoints& points);
 
     QQuickItem* _referenceItem = nullptr;
 

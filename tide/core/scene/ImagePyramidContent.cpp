@@ -41,11 +41,12 @@
 
 #include "data/TiffPyramidReader.h"
 
-BOOST_CLASS_EXPORT_GUID( ImagePyramidContent, "ImagePyramidContent" )
+BOOST_CLASS_EXPORT_GUID(ImagePyramidContent, "ImagePyramidContent")
 
-ImagePyramidContent::ImagePyramidContent( const QString& uri )
-    : Content( uri )
-{}
+ImagePyramidContent::ImagePyramidContent(const QString& uri)
+    : Content(uri)
+{
+}
 
 CONTENT_TYPE ImagePyramidContent::getType() const
 {
@@ -56,9 +57,9 @@ bool ImagePyramidContent::readMetadata()
 {
     try
     {
-        _size = TiffPyramidReader{ _uri }.getImageSize();
+        _size = TiffPyramidReader{_uri}.getImageSize();
     }
-    catch( ... )
+    catch (...)
     {
         return false;
     }
@@ -74,8 +75,9 @@ const QStringList& ImagePyramidContent::getSupportedExtensions()
 {
     static QStringList extensions;
 
-    if( extensions.empty( ))
-        extensions << "tif" << "tiff";
+    if (extensions.empty())
+        extensions << "tif"
+                   << "tiff";
 
     return extensions;
 }

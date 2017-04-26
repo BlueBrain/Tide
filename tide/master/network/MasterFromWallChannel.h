@@ -40,9 +40,9 @@
 #ifndef MASTERFROMWALLCHANNEL_H
 #define MASTERFROMWALLCHANNEL_H
 
-#include "types.h"
 #include "network/MPIHeader.h"
 #include "network/ReceiveBuffer.h"
+#include "types.h"
 
 #include <QObject>
 
@@ -52,10 +52,11 @@
 class MasterFromWallChannel : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY(MasterFromWallChannel)
 
 public:
     /** Constructor */
-    MasterFromWallChannel( MPIChannelPtr mpiChannel );
+    MasterFromWallChannel(MPIChannelPtr mpiChannel);
 
 public slots:
     /**
@@ -68,18 +69,16 @@ signals:
      * Emitted when the given pixel stream was requested to send the next frame
      * @param uri The URI of the pixel stream
      */
-    void receivedRequestFrame( QString uri );
+    void receivedRequestFrame(QString uri);
 
     /**
      * Emitted after each wall process has rendered a screenshot
      * @param image The rendered image
      * @param source The identifier of the wall process that sent the image
      */
-    void receivedScreenshot( QImage image, int source );
+    void receivedScreenshot(QImage image, int source);
 
 private:
-    Q_DISABLE_COPY( MasterFromWallChannel )
-
     MPIChannelPtr _mpiChannel;
     ReceiveBuffer _buffer;
     bool _processMessages;

@@ -45,13 +45,15 @@
 class DummyContent : public Content
 {
 public:
-    DummyContent( const QString& uri = QString( )) : Content( uri ) {}
+    DummyContent(const QString& uri = QString())
+        : Content(uri)
+    {
+    }
 
     CONTENT_TYPE getType() const final { return type; }
     bool readMetadata() final { return true; }
     bool hasFixedAspectRatio() const final { return fixedAspectRatio; }
     bool canBeZoomed() const final { return zoomable; }
-
     int dummyParam_ = 0;
     CONTENT_TYPE type = CONTENT_TYPE_ANY;
     bool fixedAspectRatio = true;
@@ -60,15 +62,17 @@ public:
 private:
     friend class boost::serialization::access;
 
-    template<class Archive>
-    void serialize(Archive & ar, const unsigned int)
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int)
     {
         // serialize base class information (with NVP for xml archives)
-        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP( Content );
-        ar & BOOST_SERIALIZATION_NVP( dummyParam_ );
+        // clang-format off
+        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Content);
+        ar & BOOST_SERIALIZATION_NVP(dummyParam_);
+        // clang-format on
     }
 };
 
-BOOST_CLASS_EXPORT_GUID( DummyContent, "DummyContent" )
+BOOST_CLASS_EXPORT_GUID(DummyContent, "DummyContent")
 
 #endif

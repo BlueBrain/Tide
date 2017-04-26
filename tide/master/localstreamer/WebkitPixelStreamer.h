@@ -73,7 +73,7 @@ public:
      *        stream dimensions will be: size * default zoom factor (2x).
      * @param url The webpage to load.
      */
-    WebkitPixelStreamer( const QSize& webpageSize, const QString& url );
+    WebkitPixelStreamer(const QSize& webpageSize, const QString& url);
 
     /** Destructor. */
     ~WebkitPixelStreamer();
@@ -86,14 +86,14 @@ public:
      *
      * @param url The address of the webpage to load.
      */
-    void setUrl( const QString& url );
+    void setUrl(const QString& url);
 
     /** Get the QWebView used internally by the streamer. */
     const QWebView* getView() const;
 
 public slots:
     /** Process an Event. */
-    void processEvent( deflect::Event event ) override;
+    void processEvent(deflect::Event event) override;
 
 private slots:
     void _update();
@@ -120,7 +120,7 @@ private:
     void processKeyRelease(const deflect::Event& keyEvent);
     void processViewSizeChange(const deflect::Event& sizeEvent);
 
-    QWebHitTestResult performHitTest(const deflect::Event &event) const;
+    QWebHitTestResult performHitTest(const deflect::Event& event) const;
     QPoint getPointerPosition(const deflect::Event& event) const;
     bool isWebGLElement(const QWebElement& element) const;
     void setSize(const QSize& webpageSize);

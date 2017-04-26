@@ -39,13 +39,14 @@
 
 #include "DefaultThumbnailGenerator.h"
 
-DefaultThumbnailGenerator::DefaultThumbnailGenerator( const QSize& size )
-    : ThumbnailGenerator( size )
-{}
-
-QImage DefaultThumbnailGenerator::generate( const QString& ) const
+DefaultThumbnailGenerator::DefaultThumbnailGenerator(const QSize& size)
+    : ThumbnailGenerator(size)
 {
-    QImage img = createGradientImage( QColor( Qt::black ), QColor( Qt::white ));
-    paintText( img, "FILE" );
+}
+
+QImage DefaultThumbnailGenerator::generate(const QString&) const
+{
+    QImage img = createGradientImage(QColor(Qt::black), QColor(Qt::white));
+    paintText(img, "FILE");
     return img;
 }

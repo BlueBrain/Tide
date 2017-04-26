@@ -46,22 +46,22 @@
 #include "thumbnail/thumbnail.h"
 
 #include <QFileInfo>
-#include <QPainter>
 #include <QImageReader>
+#include <QPainter>
 
 namespace
 {
-const QSize PREVIEW_IMAGE_SIZE( 512, 512 );
+const QSize PREVIEW_IMAGE_SIZE(512, 512);
 }
 
-StatePreview::StatePreview( const QString &dcxFileName )
-    : _dcxFileName( dcxFileName )
+StatePreview::StatePreview(const QString& dcxFileName)
+    : _dcxFileName(dcxFileName)
 {
 }
 
 QString StatePreview::getFileExtension()
 {
-    return QString( ".dcxpreview" );
+    return QString(".dcxpreview");
 }
 
 QImage StatePreview::getImage() const
@@ -71,40 +71,42 @@ QImage StatePreview::getImage() const
 
 QString StatePreview::previewFilename() const
 {
-    QFileInfo fileinfo( _dcxFileName );
+    QFileInfo fileinfo(_dcxFileName);
 
     const QString extension = fileinfo.suffix().toLower();
-    if( extension != "dcx" )
+    if (extension != "dcx")
     {
-        put_flog( LOG_WARN, "wrong state file extension: '%s' for session: '%s'"
-                            "(expected: .dcx)",
-                  extension.toLocal8Bit().constData( ),
-                  _dcxFileName.toLocal8Bit().constData( ));
+        put_flog(LOG_WARN,
+                 "wrong state file extension: '%s' for session: '%s'"
+                 "(expected: .dcx)",
+                 extension.toLocal8Bit().constData(),
+                 _dcxFileName.toLocal8Bit().constData());
         return QString();
     }
-    return fileinfo.path() + "/" + fileinfo.completeBaseName() + getFileExtension();
+    return fileinfo.path() + "/" + fileinfo.completeBaseName() +
+           getFileExtension();
 }
 
-void StatePreview::generateImage( const QSize& wallDimensions,
-                                  const ContentWindowPtrs& contentWindows )
+void StatePreview::generateImage(const QSize& wallDimensions,
+                                 const ContentWindowPtrs& contentWindows)
 {
-    const auto previewDimension = wallDimensions.scaled( PREVIEW_IMAGE_SIZE,
-                                                         Qt::KeepAspectRatio );
+    const auto previewDimension =
+        wallDimensions.scaled(PREVIEW_IMAGE_SIZE, Qt::KeepAspectRatio);
     // Transparent image
-    QImage preview( previewDimension, QImage::Format_ARGB32 );
-    preview.fill( qRgba( 0, 0, 0, 0 ));
+    QImage preview(previewDimension, QImage::Format_ARGB32);
+    preview.fill(qRgba(0, 0, 0, 0));
 
     // Paint all Contents at their correct location
-    QPainter painter{ &preview };
-    for( const auto& window : contentWindows )
+    QPainter painter{&preview};
+    for (const auto& window : contentWindows)
     {
-        const auto ratio = (qreal)previewDimension.width() /
-                           (qreal)wallDimensions.width();
-        const auto area = QRectF{ window->getCoordinates().topLeft() * ratio,
-                                  window->size() * ratio };
-        const auto thumbnail = thumbnail::create( *window->getContent(),
-                                                  area.size().toSize( ));
-        painter.drawImage( area, thumbnail );
+        const auto ratio =
+            (qreal)previewDimension.width() / (qreal)wallDimensions.width();
+        const auto area = QRectF{window->getCoordinates().topLeft() * ratio,
+                                 window->size() * ratio};
+        const auto thumbnail =
+            thumbnail::create(*window->getContent(), area.size().toSize());
+        painter.drawImage(area, thumbnail);
     }
     painter.end();
 
@@ -113,17 +115,17 @@ void StatePreview::generateImage( const QSize& wallDimensions,
 
 bool StatePreview::saveToFile() const
 {
-    const bool success = _previewImage.save( previewFilename(), "PNG" );
+    const bool success = _previewImage.save(previewFilename(), "PNG");
 
-    if( !success )
-        put_flog( LOG_ERROR, "Saving StatePreview image failed: '%s'",
-                  previewFilename().toLocal8Bit().constData( ));
+    if (!success)
+        put_flog(LOG_ERROR, "Saving StatePreview image failed: '%s'",
+                 previewFilename().toLocal8Bit().constData());
 
     return success;
 }
 
 bool StatePreview::loadFromFile()
 {
-    QImageReader reader( previewFilename( ));
-    return reader.canRead() && reader.read( &_previewImage );
+    QImageReader reader(previewFilename());
+    return reader.canRead() && reader.read(&_previewImage);
 }

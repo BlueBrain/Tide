@@ -47,7 +47,6 @@
  */
 namespace geometry
 {
-
 /**
  * Get the size of a surface scaled to fit inside another one
  * @param source the source size
@@ -55,10 +54,10 @@ namespace geometry
  * @return the adjusted size
  */
 template <typename Source, typename Target>
-inline QSizeF getAdjustedSize( const Source& source, const Target& target )
+inline QSizeF getAdjustedSize(const Source& source, const Target& target)
 {
-    auto size = QSizeF( source.width(), source.height( ));
-    return size.scaled( target.size(), Qt::KeepAspectRatio );
+    auto size = QSizeF(source.width(), source.height());
+    return size.scaled(target.size(), Qt::KeepAspectRatio);
 }
 
 /**
@@ -68,10 +67,10 @@ inline QSizeF getAdjustedSize( const Source& source, const Target& target )
  * @return the adjusted size
  */
 template <typename Source, typename Target>
-inline QSizeF getExpandedSize( const Source& source, const Target& target )
+inline QSizeF getExpandedSize(const Source& source, const Target& target)
 {
-    auto size = QSizeF( source.width(), source.height( ));
-    return size.scaled( target.size(), Qt::KeepAspectRatioByExpanding );
+    auto size = QSizeF(source.width(), source.height());
+    return size.scaled(target.size(), Qt::KeepAspectRatioByExpanding);
 }
 
 /**
@@ -81,10 +80,10 @@ inline QSizeF getExpandedSize( const Source& source, const Target& target )
  * @return the adjusted rectangle
  */
 template <typename Source, typename Target>
-QRectF adjustAndCenter( const Source& source, const Target& target )
+QRectF adjustAndCenter(const Source& source, const Target& target)
 {
-    auto rect = QRectF{ QPointF(), getAdjustedSize( source, target ) };
-    rect.moveCenter( target.center( ));
+    auto rect = QRectF{QPointF(), getAdjustedSize(source, target)};
+    rect.moveCenter(target.center());
     return rect;
 }
 
@@ -96,8 +95,8 @@ QRectF adjustAndCenter( const Source& source, const Target& target )
  * @param size the new absolute size to resize to
  * @return the resized rectangle
  */
-QRectF resizeAroundPosition( const QRectF& rect, const QPointF& position,
-                             const QSizeF& size );
+QRectF resizeAroundPosition(const QRectF& rect, const QPointF& position,
+                            const QSizeF& size);
 
 /**
  * Constrain a size between min and max values.
@@ -106,8 +105,7 @@ QRectF resizeAroundPosition( const QRectF& rect, const QPointF& position,
  * @param max the maximum size (ignored if not valid)
  * @return the size comprised between min and max
  */
-QSizeF constrain( const QSizeF& size, const QSizeF& min, const QSizeF& max );
-
+QSizeF constrain(const QSizeF& size, const QSizeF& min, const QSizeF& max);
 }
 
 #endif

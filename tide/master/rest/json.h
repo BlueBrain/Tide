@@ -48,14 +48,13 @@
  */
 namespace json
 {
-
 /**
  * Parse a json document.
  *
  * @param data json document to parse.
  * @return json object, empty on error.
  */
-QJsonObject toObject( const std::string& data );
+QJsonObject toObject(const std::string& data);
 
 /**
  * Serialize a json array.
@@ -63,7 +62,7 @@ QJsonObject toObject( const std::string& data );
  * @param array json array to serialize.
  * @return json string.
  */
-std::string toString( const QJsonArray& array );
+std::string toString(const QJsonArray& array);
 
 /**
  * Serialize a json object.
@@ -71,8 +70,7 @@ std::string toString( const QJsonArray& array );
  * @param object json object to serialize.
  * @return json string.
  */
-std::string toString( const QJsonObject& object );
-
+std::string toString(const QJsonObject& object);
 }
 
 #endif

@@ -58,7 +58,7 @@ public:
      * @param processIndex MPI index in the range [1;n] of the process
      * @throw std::runtime_error if the file could not be read
      */
-    WallConfiguration( const QString& filename, int processIndex );
+    WallConfiguration(const QString& filename, int processIndex);
 
     /** Get the index of the process. */
     int getProcessIndex() const;
@@ -99,7 +99,7 @@ private:
 
     deflect::View _stereoMode = deflect::View::mono;
 
-    void _loadWallSettings( int processIndex );
+    void _loadWallSettings(int processIndex);
 };
 
 #endif

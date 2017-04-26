@@ -41,32 +41,32 @@
 
 #include "MathUtils.h"
 
-TapAndHoldDetector::TapAndHoldDetector( const uint tapAndHoldTimeoutMs,
-                                        const qreal moveThresholdPx )
-    : _moveThresholdPx( moveThresholdPx )
+TapAndHoldDetector::TapAndHoldDetector(const uint tapAndHoldTimeoutMs,
+                                       const qreal moveThresholdPx)
+    : _moveThresholdPx(moveThresholdPx)
 {
-    _tapAndHoldTimer.setInterval( tapAndHoldTimeoutMs );
-    connect( &_tapAndHoldTimer, &QTimer::timeout, [this]() {
-        emit tapAndHold( MathUtils::computeCenter( _touchStartPos ),
-                         _touchStartPos.size( ));
+    _tapAndHoldTimer.setInterval(tapAndHoldTimeoutMs);
+    connect(&_tapAndHoldTimer, &QTimer::timeout, [this]() {
+        emit tapAndHold(MathUtils::computeCenter(_touchStartPos),
+                        _touchStartPos.size());
     });
 }
 
-void TapAndHoldDetector::initGesture( const Positions& positions )
+void TapAndHoldDetector::initGesture(const Positions& positions)
 {
     cancelGesture();
 
-    if( !positions.empty( ))
+    if (!positions.empty())
     {
         _touchStartPos = positions;
         _tapAndHoldTimer.start();
     }
 }
 
-void TapAndHoldDetector::updateGesture( const Positions& positions )
+void TapAndHoldDetector::updateGesture(const Positions& positions)
 {
-    if( _tapAndHoldTimer.isActive( ))
-        _cancelGestureIfMoved( positions );
+    if (_tapAndHoldTimer.isActive())
+        _cancelGestureIfMoved(positions);
 }
 
 void TapAndHoldDetector::cancelGesture()
@@ -74,8 +74,8 @@ void TapAndHoldDetector::cancelGesture()
     _tapAndHoldTimer.stop();
 }
 
-void TapAndHoldDetector::_cancelGestureIfMoved( const Positions& positions )
+void TapAndHoldDetector::_cancelGestureIfMoved(const Positions& positions)
 {
-    if( MathUtils::hasMoved( positions, _touchStartPos, _moveThresholdPx ))
+    if (MathUtils::hasMoved(positions, _touchStartPos, _moveThresholdPx))
         cancelGesture();
 }

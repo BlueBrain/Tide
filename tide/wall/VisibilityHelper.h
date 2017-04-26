@@ -48,10 +48,10 @@
 class VisibilityHelper
 {
 public:
-    VisibilityHelper( const DisplayGroup& displayGroup,
-                      const QRect& visibleArea );
+    VisibilityHelper(const DisplayGroup& displayGroup,
+                     const QRect& visibleArea);
 
-    QRectF getVisibleArea( const ContentWindow& window ) const;
+    QRectF getVisibleArea(const ContentWindow& window) const;
 
 private:
     const DisplayGroup& _displayGroup;

@@ -48,65 +48,66 @@
 
 namespace
 {
-const QUrl QML_ROOT_COMPONENT( "qrc:/qml/master/Root.qml" );
-const QString WALL_OBJECT_NAME( "Wall" );
+const QUrl QML_ROOT_COMPONENT("qrc:/qml/master/Root.qml");
+const QString WALL_OBJECT_NAME("Wall");
 }
 
-MasterQuickView::MasterQuickView( OptionsPtr options,
-                                  const MasterConfiguration& config )
+MasterQuickView::MasterQuickView(OptionsPtr options,
+                                 const MasterConfiguration& config)
 {
-    setResizeMode( QQuickView::SizeRootObjectToView );
+    setResizeMode(QQuickView::SizeRootObjectToView);
 
-    rootContext()->setContextProperty( "options", options.get( ));
-    rootContext()->setContextProperty( "view", this );
+    rootContext()->setContextProperty("options", options.get());
+    rootContext()->setContextProperty("view", this);
 
-    setSource( QML_ROOT_COMPONENT );
+    setSource(QML_ROOT_COMPONENT);
 
-    _wallItem = rootObject()->findChild<QQuickItem*>( WALL_OBJECT_NAME );
-    _wallItem->setProperty( "numberOfTilesX", config.getTotalScreenCountX( ));
-    _wallItem->setProperty( "numberOfTilesY", config.getTotalScreenCountY( ));
-    _wallItem->setProperty( "mullionWidth", config.getMullionWidth( ));
-    _wallItem->setProperty( "mullionHeight", config.getMullionHeight( ));
-    _wallItem->setProperty( "screenWidth", config.getScreenWidth( ));
-    _wallItem->setProperty( "screenHeight", config.getScreenHeight( ));
-    _wallItem->setProperty( "wallWidth", config.getTotalWidth( ));
-    _wallItem->setProperty( "wallHeight", config.getTotalHeight( ));
+    _wallItem = rootObject()->findChild<QQuickItem*>(WALL_OBJECT_NAME);
+    _wallItem->setProperty("numberOfTilesX", config.getTotalScreenCountX());
+    _wallItem->setProperty("numberOfTilesY", config.getTotalScreenCountY());
+    _wallItem->setProperty("mullionWidth", config.getMullionWidth());
+    _wallItem->setProperty("mullionHeight", config.getMullionHeight());
+    _wallItem->setProperty("screenWidth", config.getScreenWidth());
+    _wallItem->setProperty("screenHeight", config.getScreenHeight());
+    _wallItem->setProperty("wallWidth", config.getTotalWidth());
+    _wallItem->setProperty("wallHeight", config.getTotalHeight());
 }
 
-MasterQuickView::~MasterQuickView() {}
+MasterQuickView::~MasterQuickView()
+{
+}
 
 QQuickItem* MasterQuickView::wallItem()
 {
     return _wallItem;
 }
 
-QPointF MasterQuickView::mapToWallPos( const QPointF& normalizedPos ) const
+QPointF MasterQuickView::mapToWallPos(const QPointF& normalizedPos) const
 {
-    const auto scale = QQmlProperty::read( _wallItem, "scale" ).toFloat();
-    const auto offsetX = QQmlProperty::read( _wallItem, "offsetX" ).toFloat();
-    const auto offsetY = QQmlProperty::read( _wallItem, "offsetY" ).toFloat();
+    const auto scale = QQmlProperty::read(_wallItem, "scale").toFloat();
+    const auto offsetX = QQmlProperty::read(_wallItem, "offsetX").toFloat();
+    const auto offsetY = QQmlProperty::read(_wallItem, "offsetY").toFloat();
 
-    const auto screenPosX = normalizedPos.x() * _wallItem->width() *
-                            scale + offsetX;
-    const auto screenPosY = normalizedPos.y() * _wallItem->height() *
-                            scale + offsetY;
-    return { screenPosX, screenPosY };
+    const auto screenPosX =
+        normalizedPos.x() * _wallItem->width() * scale + offsetX;
+    const auto screenPosY =
+        normalizedPos.y() * _wallItem->height() * scale + offsetY;
+    return {screenPosX, screenPosY};
 }
 
-bool MasterQuickView::event( QEvent *evt )
+bool MasterQuickView::event(QEvent* evt)
 {
-    switch( evt->type( ))
+    switch (evt->type())
     {
     case QEvent::KeyPress:
     {
-        QKeyEvent* k = static_cast< QKeyEvent* >( evt );
+        QKeyEvent* k = static_cast<QKeyEvent*>(evt);
 
         // Override default behaviour to process TAB key events
-        QQuickView::keyPressEvent( k );
+        QQuickView::keyPressEvent(k);
 
-        if( k->key() == Qt::Key_Backtab ||
-            k->key() == Qt::Key_Tab ||
-           ( k->key() == Qt::Key_Tab && ( k->modifiers() & Qt::ShiftModifier )))
+        if (k->key() == Qt::Key_Backtab || k->key() == Qt::Key_Tab ||
+            (k->key() == Qt::Key_Tab && (k->modifiers() & Qt::ShiftModifier)))
         {
             evt->accept();
         }
@@ -114,27 +115,27 @@ bool MasterQuickView::event( QEvent *evt )
     }
     case QEvent::MouseButtonPress:
     {
-        QMouseEvent* e = static_cast< QMouseEvent* >( evt );
-        if( e->button() == Qt::LeftButton )
-            emit mousePressed( _wallItem->mapFromScene( e->localPos( )));
+        QMouseEvent* e = static_cast<QMouseEvent*>(evt);
+        if (e->button() == Qt::LeftButton)
+            emit mousePressed(_wallItem->mapFromScene(e->localPos()));
         break;
     }
     case QEvent::MouseMove:
     {
-        QMouseEvent* e = static_cast< QMouseEvent* >( evt );
-        if( e->buttons() & Qt::LeftButton )
-            emit mouseMoved( _wallItem->mapFromScene( e->localPos( )));
+        QMouseEvent* e = static_cast<QMouseEvent*>(evt);
+        if (e->buttons() & Qt::LeftButton)
+            emit mouseMoved(_wallItem->mapFromScene(e->localPos()));
         break;
     }
     case QEvent::MouseButtonRelease:
     {
-        QMouseEvent* e = static_cast< QMouseEvent* >( evt );
-        if( e->button() == Qt::LeftButton )
-            emit mouseReleased( _wallItem->mapFromScene( e->localPos( )));
+        QMouseEvent* e = static_cast<QMouseEvent*>(evt);
+        if (e->button() == Qt::LeftButton)
+            emit mouseReleased(_wallItem->mapFromScene(e->localPos()));
         break;
     }
     default:
         break;
     }
-    return QQuickView::event( evt );
+    return QQuickView::event(evt);
 }

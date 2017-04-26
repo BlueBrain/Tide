@@ -44,8 +44,8 @@
 
 #include "QmlWindowRenderer.h"
 
-#include <QtCore/QObject>
 #include <QtCore/QMap>
+#include <QtCore/QObject>
 #include <QtCore/QUuid>
 
 class QQuickItem;
@@ -56,6 +56,7 @@ class QQuickItem;
 class DisplayGroupRenderer : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY(DisplayGroupRenderer)
 
 public:
     /**
@@ -65,31 +66,29 @@ public:
      * @param screenRect the rectangle this renderers is rendering wrt global
      *                   screen setup
      */
-    DisplayGroupRenderer( WallWindow& parentWindow, DataProvider& provider,
-                          const QRect& screenRect );
+    DisplayGroupRenderer(WallWindow& parentWindow, DataProvider& provider,
+                         const QRect& screenRect);
 
     /** Set different options used for rendering. */
-    void setRenderingOptions( OptionsPtr options );
+    void setRenderingOptions(OptionsPtr options);
 
     /** Set different touchpoint's markers. */
-    void setMarkers( MarkersPtr markers );
+    void setMarkers(MarkersPtr markers);
 
     /** Update the contents, using the channel to synchronize processes. */
-    void synchronize( WallToWallChannel& channel );
+    void synchronize(WallToWallChannel& channel);
 
     /** @return true if the renderer requires a redraw. */
     bool needRedraw() const;
 
 public slots:
     /** Set the DisplayGroup to render, replacing the previous one. */
-    void setDisplayGroup( DisplayGroupPtr displayGroup );
+    void setDisplayGroup(DisplayGroupPtr displayGroup);
 
     /** Increment number of rendered/swapped frames for FPS display. */
     void updateRenderedFrames();
 
 private:
-    Q_DISABLE_COPY( DisplayGroupRenderer )
-
     QQmlEngine& _engine;
     DataProvider& _provider;
     DisplayGroupPtr _displayGroup;
@@ -104,11 +103,11 @@ private:
 
     const QRect _screenRect;
 
-    void _createDisplayGroupQmlItem( QQuickItem& parentItem );
-    void _createWindowQmlItem( ContentWindowPtr window );
-    bool _hasBackgroundChanged( const QString& newUri ) const;
-    void _setBackground( ContentPtr backgroundContent );
-    void _adjustBackgroundTo( const DisplayGroup& displayGroup );
+    void _createDisplayGroupQmlItem(QQuickItem& parentItem);
+    void _createWindowQmlItem(ContentWindowPtr window);
+    bool _hasBackgroundChanged(const QString& newUri) const;
+    void _setBackground(ContentPtr backgroundContent);
+    void _adjustBackgroundTo(const DisplayGroup& displayGroup);
 };
 
 #endif

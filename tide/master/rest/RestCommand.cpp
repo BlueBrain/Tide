@@ -39,8 +39,8 @@
 
 #include "RestCommand.h"
 
-#include "jsonschema.h"
 #include "json.h"
+#include "jsonschema.h"
 
 #include <QStringList>
 
@@ -49,24 +49,25 @@ namespace
 const QString description = "Command '%1' of Tide application";
 }
 
-std::string _makeSchema( const std::string& name, const bool takesValue )
+std::string _makeSchema(const std::string& name, const bool takesValue)
 {
-    const auto data = QString::fromStdString( name ).split( '/' );
-    if( data.size() != 2 )
+    const auto data = QString::fromStdString(name).split('/');
+    if (data.size() != 2)
         return "";
 
     QJsonObject obj;
-    if( takesValue )
+    if (takesValue)
         obj["uri"] = QString();
 
-    return jsonschema::create( data[1], obj, description.arg( data[1] ));
+    return jsonschema::create(data[1], obj, description.arg(data[1]));
 }
 
-RestCommand::RestCommand( const std::string& name, const bool takesValue )
-    : _name{ name }
-    , _schema{ _makeSchema( name, takesValue ) }
-    , _takesValue( takesValue )
-{}
+RestCommand::RestCommand(const std::string& name, const bool takesValue)
+    : _name{name}
+    , _schema{_makeSchema(name, takesValue)}
+    , _takesValue(takesValue)
+{
+}
 
 std::string RestCommand::getTypeName() const
 {
@@ -78,18 +79,18 @@ std::string RestCommand::getSchema() const
     return _schema;
 }
 
-bool RestCommand::_fromJSON( const std::string& string )
+bool RestCommand::_fromJSON(const std::string& string)
 {
-    if( !_takesValue )
+    if (!_takesValue)
     {
-        emit received( "" );
+        emit received("");
         return true;
     }
 
-    const auto object = json::toObject( string );
-    if( !object["uri"].isString( ))
+    const auto object = json::toObject(string);
+    if (!object["uri"].isString())
         return false;
 
-    emit received( object["uri"].toString( ));
+    emit received(object["uri"].toString());
     return true;
 }

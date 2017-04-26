@@ -43,44 +43,45 @@
 
 #include <QImageReader>
 
-ImageSource::ImageSource( const QString& uri )
-    : _uri( uri )
-    , _imageSize( QImageReader( _uri ).size( ))
-{}
-
-QRect ImageSource::getTileRect( const uint tileIndex ) const
+ImageSource::ImageSource(const QString& uri)
+    : _uri(uri)
+    , _imageSize(QImageReader(_uri).size())
 {
-    Q_UNUSED( tileIndex );
-    return QRect( QPoint( 0, 0 ), _imageSize );
 }
 
-QSize ImageSource::getTilesArea( const uint lod ) const
+QRect ImageSource::getTileRect(const uint tileIndex) const
 {
-    Q_UNUSED( lod );
+    Q_UNUSED(tileIndex);
+    return QRect(QPoint(0, 0), _imageSize);
+}
+
+QSize ImageSource::getTilesArea(const uint lod) const
+{
+    Q_UNUSED(lod);
     return _imageSize;
 }
 
-QImage ImageSource::getCachableTileImage( const uint tileIndex ) const
+QImage ImageSource::getCachableTileImage(const uint tileIndex) const
 {
-    Q_UNUSED( tileIndex );
+    Q_UNUSED(tileIndex);
 
     // Make sure image format is 32-bits per pixel as required by the GL texture
-    QImage image( _uri );
-    if( !QtImage::is32Bits( image ))
-        image = image.convertToFormat( QImage::Format_ARGB32 );
+    QImage image(_uri);
+    if (!QtImage::is32Bits(image))
+        image = image.convertToFormat(QImage::Format_ARGB32);
 
     return image;
 }
 
-Indices ImageSource::computeVisibleSet( const QRectF& visibleTilesArea,
-                                        const uint lod ) const
+Indices ImageSource::computeVisibleSet(const QRectF& visibleTilesArea,
+                                       const uint lod) const
 {
-    Q_UNUSED( lod );
+    Q_UNUSED(lod);
 
-    if( visibleTilesArea.isEmpty( ))
+    if (visibleTilesArea.isEmpty())
         return Indices();
 
-    return { 0 };
+    return {0};
 }
 
 uint ImageSource::getMaxLod() const

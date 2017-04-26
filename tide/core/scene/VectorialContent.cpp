@@ -41,9 +41,10 @@
 
 qreal VectorialContent::_maxScale = 6.0;
 
-VectorialContent::VectorialContent( const QString& uri )
-    : Content( uri )
-{}
+VectorialContent::VectorialContent(const QString& uri)
+    : Content(uri)
+{
+}
 
 QSize VectorialContent::getMaxDimensions() const
 {
@@ -60,8 +61,8 @@ qreal VectorialContent::getMaxScale()
     return _maxScale;
 }
 
-void VectorialContent::setMaxScale( const qreal value )
+void VectorialContent::setMaxScale(const qreal value)
 {
-    if( value > 0.0 )
+    if (value > 0.0)
         _maxScale = value;
 }

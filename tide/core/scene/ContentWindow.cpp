@@ -41,34 +41,37 @@
 
 #include "ContentWindow.h"
 
-IMPLEMENT_SERIALIZE_FOR_XML( ContentWindow )
+IMPLEMENT_SERIALIZE_FOR_XML(ContentWindow)
 
-ContentWindow::ContentWindow( ContentPtr content, const WindowType type )
-    : _uuid( QUuid::createUuid( ))
-    , _type( type )
-    , _content( content )
-    , _activeHandle( NOHANDLE )
-    , _resizePolicy( KEEP_ASPECT_RATIO )
-    , _mode( WindowMode::STANDARD )
-    , _windowState( NONE )
-    , _selected( false )
+ContentWindow::ContentWindow(ContentPtr content, const WindowType type)
+    : _uuid(QUuid::createUuid())
+    , _type(type)
+    , _content(content)
+    , _activeHandle(NOHANDLE)
+    , _resizePolicy(KEEP_ASPECT_RATIO)
+    , _mode(WindowMode::STANDARD)
+    , _windowState(NONE)
+    , _selected(false)
 {
-    assert( content );
+    assert(content);
     _init();
-    _coordinates.setSize( content->getDimensions( ));
+    _coordinates.setSize(content->getDimensions());
 }
 
 ContentWindow::ContentWindow()
-    : _uuid( QUuid::createUuid( ))
-    , _type( WindowType::DEFAULT )
-    , _activeHandle( NOHANDLE )
-    , _resizePolicy( KEEP_ASPECT_RATIO )
-    , _mode( WindowMode::STANDARD )
-    , _windowState( NONE )
-    , _selected( false )
-{}
+    : _uuid(QUuid::createUuid())
+    , _type(WindowType::DEFAULT)
+    , _activeHandle(NOHANDLE)
+    , _resizePolicy(KEEP_ASPECT_RATIO)
+    , _mode(WindowMode::STANDARD)
+    , _windowState(NONE)
+    , _selected(false)
+{
+}
 
-ContentWindow::~ContentWindow() {}
+ContentWindow::~ContentWindow()
+{
+}
 
 const QUuid& ContentWindow::getID() const
 {
@@ -90,27 +93,27 @@ ContentPtr ContentWindow::getContent() const
     return _content;
 }
 
-void ContentWindow::setContent( ContentPtr content )
+void ContentWindow::setContent(ContentPtr content)
 {
-    assert( content );
+    assert(content);
 
-    if( _content )
-        _content->disconnect( this, SIGNAL( contentModified( )));
+    if (_content)
+        _content->disconnect(this, SIGNAL(contentModified()));
 
-    content->moveToThread( thread( ));
+    content->moveToThread(thread());
     _content = content;
     _init();
 }
 
-void ContentWindow::setCoordinates( const QRectF& coordinates )
+void ContentWindow::setCoordinates(const QRectF& coordinates)
 {
-    if( coordinates == _coordinates )
+    if (coordinates == _coordinates)
         return;
 
-    setX( coordinates.x( ));
-    setY( coordinates.y( ));
-    setWidth( coordinates.width( ));
-    setHeight( coordinates.height( ));
+    setX(coordinates.x());
+    setY(coordinates.y());
+    setWidth(coordinates.width());
+    setHeight(coordinates.height());
 
     emit coordinatesChanged();
 
@@ -122,9 +125,9 @@ ContentWindow::ResizeHandle ContentWindow::getActiveHandle() const
     return _activeHandle;
 }
 
-void ContentWindow::setActiveHandle( const ContentWindow::ResizeHandle handle )
+void ContentWindow::setActiveHandle(const ContentWindow::ResizeHandle handle)
 {
-    if( _activeHandle == handle )
+    if (_activeHandle == handle)
         return;
 
     _activeHandle = handle;
@@ -137,13 +140,13 @@ ContentWindow::ResizePolicy ContentWindow::getResizePolicy() const
     return _resizePolicy;
 }
 
-bool ContentWindow::setResizePolicy( const ContentWindow::ResizePolicy policy )
+bool ContentWindow::setResizePolicy(const ContentWindow::ResizePolicy policy)
 {
-    if( policy == _resizePolicy )
+    if (policy == _resizePolicy)
         return true;
 
-    if( policy == ADJUST_CONTENT && _content->hasFixedAspectRatio() &&
-            !_content->canBeZoomed( ))
+    if (policy == ADJUST_CONTENT && _content->hasFixedAspectRatio() &&
+        !_content->canBeZoomed())
     {
         return false;
     }
@@ -164,9 +167,9 @@ ContentWindow::WindowMode ContentWindow::getMode() const
     return _mode;
 }
 
-void ContentWindow::setMode( const ContentWindow::WindowMode mode )
+void ContentWindow::setMode(const ContentWindow::WindowMode mode)
 {
-    if( mode == _mode )
+    if (mode == _mode)
         return;
 
     _mode = mode;
@@ -189,9 +192,9 @@ const QRectF& ContentWindow::getFocusedCoordinates() const
     return _focusedCoordinates;
 }
 
-void ContentWindow::setFocusedCoordinates( const QRectF& coordinates )
+void ContentWindow::setFocusedCoordinates(const QRectF& coordinates)
 {
-    if( coordinates == _focusedCoordinates )
+    if (coordinates == _focusedCoordinates)
         return;
 
     _focusedCoordinates = coordinates;
@@ -204,9 +207,9 @@ const QRectF& ContentWindow::getFullscreenCoordinates() const
     return _fullscreenCoordinates;
 }
 
-void ContentWindow::setFullscreenCoordinates( const QRectF& coordinates )
+void ContentWindow::setFullscreenCoordinates(const QRectF& coordinates)
 {
-    if( coordinates == _fullscreenCoordinates )
+    if (coordinates == _fullscreenCoordinates)
         return;
 
     _fullscreenCoordinates = coordinates;
@@ -216,7 +219,7 @@ void ContentWindow::setFullscreenCoordinates( const QRectF& coordinates )
 
 const QRectF& ContentWindow::getDisplayCoordinates() const
 {
-    switch( getMode( ))
+    switch (getMode())
     {
     case WindowMode::FULLSCREEN:
         return getFullscreenCoordinates();
@@ -228,36 +231,36 @@ const QRectF& ContentWindow::getDisplayCoordinates() const
     }
 }
 
-void ContentWindow::setDisplayCoordinates( const QRectF& coordinates )
+void ContentWindow::setDisplayCoordinates(const QRectF& coordinates)
 {
-    switch( getMode( ))
+    switch (getMode())
     {
     case WindowMode::FULLSCREEN:
-        setFullscreenCoordinates( coordinates );
+        setFullscreenCoordinates(coordinates);
         break;
     case WindowMode::FOCUSED:
-        setFocusedCoordinates( coordinates );
+        setFocusedCoordinates(coordinates);
         break;
     case WindowMode::STANDARD:
     default:
-        setCoordinates( coordinates );
+        setCoordinates(coordinates);
         break;
     }
 }
 
-bool ContentWindow::setState( const ContentWindow::WindowState state )
+bool ContentWindow::setState(const ContentWindow::WindowState state)
 {
-    if( _windowState == state )
+    if (_windowState == state)
         return false;
 
     const ContentWindow::WindowState prevState = _windowState;
 
     _windowState = state;
 
-    if ( prevState == ContentWindow::HIDDEN )
-        emit hiddenChanged( false );
-    else if ( state == ContentWindow::HIDDEN )
-        emit hiddenChanged( true );
+    if (prevState == ContentWindow::HIDDEN)
+        emit hiddenChanged(false);
+    else if (state == ContentWindow::HIDDEN)
+        emit hiddenChanged(true);
 
     emit stateChanged();
     emit modified();
@@ -284,9 +287,9 @@ bool ContentWindow::isSelected() const
     return _selected;
 }
 
-void ContentWindow::setSelected( const bool value )
+void ContentWindow::setSelected(const bool value)
 {
-    if( value == _selected )
+    if (value == _selected)
         return;
 
     _selected = value;
@@ -296,7 +299,7 @@ void ContentWindow::setSelected( const bool value )
 
 void ContentWindow::_init()
 {
-    setResizePolicy( _content->hasFixedAspectRatio() ? KEEP_ASPECT_RATIO :
-                                                       ADJUST_CONTENT );
-    connect( _content.get(), SIGNAL( modified( )), SIGNAL( contentModified( )));
+    setResizePolicy(_content->hasFixedAspectRatio() ? KEEP_ASPECT_RATIO
+                                                    : ADJUST_CONTENT);
+    connect(_content.get(), SIGNAL(modified()), SIGNAL(contentModified()));
 }

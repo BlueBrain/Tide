@@ -50,51 +50,51 @@
 class AddressBar : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY( AddressBar )
+    Q_DISABLE_COPY(AddressBar)
 
-    Q_PROPERTY( bool focused READ isFocused WRITE setFocused
-                NOTIFY focusedChanged )
-    Q_PROPERTY( int cursorPosition READ getCursorPosition
-                WRITE setCursorPosition NOTIFY cursorPositionChanged )
-    Q_PROPERTY( int selectionStart READ getSelectionStart
-                WRITE setSelectionStart NOTIFY selectionStartChanged )
-    Q_PROPERTY( int selectionEnd READ getSelectionEnd
-                WRITE setSelectionEnd NOTIFY selectionEndChanged )
-    Q_PROPERTY( QString url READ getUrl WRITE setUrl NOTIFY urlChanged )
+    Q_PROPERTY(
+        bool focused READ isFocused WRITE setFocused NOTIFY focusedChanged)
+    Q_PROPERTY(int cursorPosition READ getCursorPosition WRITE setCursorPosition
+                   NOTIFY cursorPositionChanged)
+    Q_PROPERTY(int selectionStart READ getSelectionStart WRITE setSelectionStart
+                   NOTIFY selectionStartChanged)
+    Q_PROPERTY(int selectionEnd READ getSelectionEnd WRITE setSelectionEnd
+                   NOTIFY selectionEndChanged)
+    Q_PROPERTY(QString url READ getUrl WRITE setUrl NOTIFY urlChanged)
 
 public:
     /** Constructor */
-    explicit AddressBar( QObject* parentObject = nullptr );
+    explicit AddressBar(QObject* parentObject = nullptr);
 
     /** @return true if the address bar has focus (capture keyboard events). */
     bool isFocused() const;
 
     /** Give the keyboard focus to the address bar. */
-    void setFocused( bool set );
+    void setFocused(bool set);
 
     /** Get the position (index) of the cursor. */
     int getCursorPosition() const;
 
     /** Set the position (index) of the cursor. */
-    void setCursorPosition( int index );
+    void setCursorPosition(int index);
 
     /** Get the start position of the selection in the address bar. */
     int getSelectionStart() const;
 
     /** Set the start position of the selection in the address bar. */
-    void setSelectionStart( int pos );
+    void setSelectionStart(int pos);
 
     /** Get the end position of the selection in the address bar. */
     int getSelectionEnd() const;
 
     /** Set the end position of the selection in the address bar. */
-    void setSelectionEnd( int pos );
+    void setSelectionEnd(int pos);
 
     /** Get the url in the address bar. */
     QString getUrl() const;
 
     /** Set the url in the address bar. */
-    void setUrl( QString url );
+    void setUrl(QString url);
 
 signals:
     /** @name QProperty notifiers */
@@ -112,14 +112,16 @@ private:
     friend class boost::serialization::access;
 
     /** Serialize for sending to Wall applications. */
-    template< class Archive >
-    void serialize( Archive & ar, const unsigned int /*version*/ )
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int /*version*/)
     {
+        // clang-format off
         ar & _focused;
         ar & _cursorPosition;
         ar & _selectionStart;
         ar & _selectionEnd;
         ar & _url;
+        // clang-format on
     }
 
     /** State of the address bar on master shared with the wall processes. */

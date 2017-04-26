@@ -63,7 +63,7 @@ public:
      * @param server used to register HTTP endpoints.
      * @param group target for control commands.
      */
-    RestController( zeroeq::http::Server& httpServer, DisplayGroup& group );
+    RestController(zeroeq::http::Server& httpServer, DisplayGroup& group);
 
 private:
     DisplayGroup& _group;
@@ -74,12 +74,12 @@ private:
     bool _focusWindows();
     bool _unfocusWindows();
 
-    bool _moveWindow( const std::string& payload );
-    bool _moveWindowToFront( const std::string& payload );
-    bool _moveWindowToFullscreen( const std::string& payload );
-    bool _resizeWindow( const std::string& payload );
-    bool _toggleSelectWindow( const std::string& payload );
-    bool _unfocusWindow( const std::string& payload );
+    bool _moveWindow(const std::string& payload);
+    bool _moveWindowToFront(const std::string& payload);
+    bool _moveWindowToFullscreen(const std::string& payload);
+    bool _resizeWindow(const std::string& payload);
+    bool _toggleSelectWindow(const std::string& payload);
+    bool _unfocusWindow(const std::string& payload);
 };
 
 #endif

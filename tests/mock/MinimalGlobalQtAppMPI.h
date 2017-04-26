@@ -52,12 +52,9 @@ struct MinimalGlobalQtAppMPI : public MinimalGlobalQtApp
         : MinimalGlobalQtApp()
     {
         ut::master_test_suite_t& testSuite = ut::framework::master_test_suite();
-        MPI_Init( &testSuite.argc, &testSuite.argv );
+        MPI_Init(&testSuite.argc, &testSuite.argv);
     }
-    ~MinimalGlobalQtAppMPI()
-    {
-        MPI_Finalize();
-    }
+    ~MinimalGlobalQtAppMPI() { MPI_Finalize(); }
 };
 
-#endif // MINIMALGLOBALQTAPPMPI_H
+#endif

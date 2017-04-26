@@ -56,7 +56,7 @@ public:
      * @param svgData the svg data, typically read from an svg file
      * @throw std::runtime_error if an error occurs
      */
-    explicit SVGQtGpuBackend( const QByteArray& svgData );
+    explicit SVGQtGpuBackend(const QByteArray& svgData);
 
     /** @copydoc SVGBackend::getSize */
     QSize getSize() const final;
@@ -65,8 +65,8 @@ public:
      * Render the specified area on the GPU and downloads it into core memory.
      * This function must be called on a thread with an active GL context.
      */
-    QImage renderToImage( const QSize& imageSize,
-                          const QRectF& region ) const final;
+    QImage renderToImage(const QSize& imageSize,
+                         const QRectF& region) const final;
 
 private:
     mutable QMutex _mutex;

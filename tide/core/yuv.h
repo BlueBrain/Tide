@@ -47,10 +47,8 @@
  */
 namespace yuv
 {
-
 /** @return the U and V texture size for a given Y size and format. */
-QSize getUVSize( const QSize& ySize, TextureFormat format );
-
+QSize getUVSize(const QSize& ySize, TextureFormat format);
 }
 
 #endif

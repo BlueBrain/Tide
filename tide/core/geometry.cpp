@@ -43,27 +43,26 @@
 
 #include <QTransform>
 
-QRectF geometry::resizeAroundPosition( const QRectF& rect,
-                                       const QPointF& position,
-                                       const QSizeF& size )
+QRectF geometry::resizeAroundPosition(const QRectF& rect,
+                                      const QPointF& position,
+                                      const QSizeF& size)
 {
     QTransform transform;
-    transform.translate( position.x(), position.y( ));
-    transform.scale( size.width() / rect.width(),
-                     size.height() / rect.height( ));
-    transform.translate( -position.x(), -position.y( ));
+    transform.translate(position.x(), position.y());
+    transform.scale(size.width() / rect.width(), size.height() / rect.height());
+    transform.translate(-position.x(), -position.y());
 
-    return transform.mapRect( rect );
+    return transform.mapRect(rect);
 }
 
-QSizeF geometry::constrain( const QSizeF& size, const QSizeF& min,
-                            const QSizeF& max )
+QSizeF geometry::constrain(const QSizeF& size, const QSizeF& min,
+                           const QSizeF& max)
 {
-    if( max.isValid() && ( min > max || size > max ))
-        return size.scaled( max, Qt::KeepAspectRatio );
+    if (max.isValid() && (min > max || size > max))
+        return size.scaled(max, Qt::KeepAspectRatio);
 
-    if( min.isValid() && size < min )
-        return size.scaled( min, Qt::KeepAspectRatioByExpanding );
+    if (min.isValid() && size < min)
+        return size.scaled(min, Qt::KeepAspectRatioByExpanding);
 
     return size;
 }

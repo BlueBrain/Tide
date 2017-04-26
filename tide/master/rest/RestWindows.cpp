@@ -54,111 +54,107 @@ using namespace zeroeq;
 namespace
 {
 const QRegExp _regex = QRegExp("\\{|\\}");
-const QSize thumbnailSize{ 512, 512 };
+const QSize thumbnailSize{512, 512};
 
-QString _getUuid( const ContentWindow& window )
+QString _getUuid(const ContentWindow& window)
 {
-   return window.getID().toString().replace( _regex, "" );
+    return window.getID().toString().replace(_regex, "");
 }
 
-QJsonObject _toJsonObject( ContentWindowPtr window, const DisplayGroup& group )
+QJsonObject _toJsonObject(ContentWindowPtr window, const DisplayGroup& group)
 {
-    const ContentWindowController controller( *window , group );
+    const ContentWindowController controller(*window, group);
     return QJsonObject{
-        { "aspectRatio", window->getContent()->getAspectRatio() },
-        { "minWidth", controller.getMinSizeAspectRatioCorrect().width() },
-        { "minHeight", controller.getMinSizeAspectRatioCorrect().height() },
-        { "width", window->getDisplayCoordinates().width() },
-        { "height", window->getDisplayCoordinates().height() },
-        { "x", window->getDisplayCoordinates().x() },
-        { "y", window->getDisplayCoordinates().y() },
-        { "z", group.getZindex( window ) },
-        { "title", window->getContent()->getTitle() },
-        { "mode", window->getMode() },
-        { "selected", window->isSelected() },
-        { "fullscreen", window->isFullscreen() },
-        { "focus", window->isFocused() },
-        { "uri", window->getContent()->getURI() },
-        { "uuid", _getUuid( *window ) }
-    };
+        {"aspectRatio", window->getContent()->getAspectRatio()},
+        {"minWidth", controller.getMinSizeAspectRatioCorrect().width()},
+        {"minHeight", controller.getMinSizeAspectRatioCorrect().height()},
+        {"width", window->getDisplayCoordinates().width()},
+        {"height", window->getDisplayCoordinates().height()},
+        {"x", window->getDisplayCoordinates().x()},
+        {"y", window->getDisplayCoordinates().y()},
+        {"z", group.getZindex(window)},
+        {"title", window->getContent()->getTitle()},
+        {"mode", window->getMode()},
+        {"selected", window->isSelected()},
+        {"fullscreen", window->isFullscreen()},
+        {"focus", window->isFocused()},
+        {"uri", window->getContent()->getURI()},
+        {"uuid", _getUuid(*window)}};
 }
 
-QJsonObject _toJsonObject( const DisplayGroup& group )
+QJsonObject _toJsonObject(const DisplayGroup& group)
 {
     QJsonArray windows;
-    for( const auto& window : group.getContentWindows( ))
+    for (const auto& window : group.getContentWindows())
     {
-        if( window->getContent()->getURI() == "Launcher" )
+        if (window->getContent()->getURI() == "Launcher")
             continue;
 
-        windows.append( _toJsonObject( window, group ));
+        windows.append(_toJsonObject(window, group));
     }
-    return QJsonObject{{ "windows", windows }};
+    return QJsonObject{{"windows", windows}};
 }
 }
 
-RestWindows::RestWindows( const DisplayGroup& displayGroup )
-    : _displayGroup( displayGroup )
+RestWindows::RestWindows(const DisplayGroup& displayGroup)
+    : _displayGroup(displayGroup)
 {
-    QObject::connect( &displayGroup, &DisplayGroup::contentWindowAdded,
-                      [this]( ContentWindowPtr window )
-    {
-        _cacheThumbnail( window );
-    });
+    QObject::connect(&displayGroup, &DisplayGroup::contentWindowAdded,
+                     [this](ContentWindowPtr window) {
+                         _cacheThumbnail(window);
+                     });
 
-    QObject::connect( &displayGroup, &DisplayGroup::contentWindowRemoved,
-                      [this]( ContentWindowPtr window )
-    {
-        _thumbnailCache.remove( _getUuid( *window ));
-    });
+    QObject::connect(&displayGroup, &DisplayGroup::contentWindowRemoved,
+                     [this](ContentWindowPtr window) {
+                         _thumbnailCache.remove(_getUuid(*window));
+                     });
 }
 
-std::future<http::Response>
-RestWindows::getWindowList( const http::Request& ) const
+std::future<http::Response> RestWindows::getWindowList(
+    const http::Request&) const
 {
-    const auto body = json::toString( _toJsonObject( _displayGroup ));
-    return make_ready_response( http::Code::OK, body, "application/json" );
+    const auto body = json::toString(_toJsonObject(_displayGroup));
+    return make_ready_response(http::Code::OK, body, "application/json");
 }
 
-std::future<http::Response>
-RestWindows::getWindowInfo( const http::Request& request ) const
+std::future<http::Response> RestWindows::getWindowInfo(
+    const http::Request& request) const
 {
-    const auto path = QString::fromStdString( request.path );
-    if( path.endsWith( "/thumbnail" ))
+    const auto path = QString::fromStdString(request.path);
+    if (path.endsWith("/thumbnail"))
     {
-        const auto pathSplit = path.split( "/" );
-        if( pathSplit.size() == 2 && pathSplit[1] == "thumbnail")
-            return _getThumbnail( pathSplit[0] );
+        const auto pathSplit = path.split("/");
+        if (pathSplit.size() == 2 && pathSplit[1] == "thumbnail")
+            return _getThumbnail(pathSplit[0]);
     }
-    return make_ready_response( http::Code::BAD_REQUEST );
+    return make_ready_response(http::Code::BAD_REQUEST);
 }
 
-void RestWindows::_cacheThumbnail( ContentWindowPtr window )
+void RestWindows::_cacheThumbnail(ContentWindowPtr window)
 {
     const auto uri = window->getContent()->getURI();
 
-    _thumbnailCache[_getUuid( *window )] = QtConcurrent::run( [uri]()
-    {
-        const auto image = thumbnail::create( uri, thumbnailSize );
+    _thumbnailCache[_getUuid(*window)] = QtConcurrent::run([uri]() {
+        const auto image = thumbnail::create(uri, thumbnailSize);
         QByteArray imageArray;
-        QBuffer buffer( &imageArray );
-        buffer.open( QIODevice::WriteOnly );
-        if( !image.save( &buffer, "PNG" ))
+        QBuffer buffer(&imageArray);
+        buffer.open(QIODevice::WriteOnly);
+        if (!image.save(&buffer, "PNG"))
             return std::string();
         buffer.close();
         return "data:image/png;base64," + imageArray.toBase64().toStdString();
     });
 }
 
-std::future<http::Response>
-RestWindows::_getThumbnail( const QString& uuid ) const
+std::future<http::Response> RestWindows::_getThumbnail(
+    const QString& uuid) const
 {
-    if( !_thumbnailCache.contains( uuid ))
-        return make_ready_response( http::Code::NOT_FOUND );
+    if (!_thumbnailCache.contains(uuid))
+        return make_ready_response(http::Code::NOT_FOUND);
 
-    const auto& image = _thumbnailCache[ uuid ];
-    if( !image.isFinished( ))
-        return make_ready_response( http::Code::NO_CONTENT );
+    const auto& image = _thumbnailCache[uuid];
+    if (!image.isFinished())
+        return make_ready_response(http::Code::NO_CONTENT);
 
-    return make_ready_response( http::Code::OK, image.result(), "image/png" );
+    return make_ready_response(http::Code::OK, image.result(), "image/png");
 }

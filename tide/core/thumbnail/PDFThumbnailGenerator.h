@@ -49,7 +49,7 @@ class PDFThumbnailGenerator : public ThumbnailGenerator
 {
 public:
     /** @copydoc ThumbnailGenerator::ThumbnailGenerator */
-    PDFThumbnailGenerator( const QSize& size );
+    PDFThumbnailGenerator(const QSize& size);
 
     /**
      * Generate a thumbnail of the first page of a PDF document.
@@ -58,7 +58,7 @@ public:
      * @return the desired thumbnail, or a placeholder image if the document is
      *         too large (>2MB) or an error occured.
      */
-    QImage generate( const QString& filename ) const final;
+    QImage generate(const QString& filename) const final;
 
 private:
     QImage _createLargePdfPlaceholder() const;

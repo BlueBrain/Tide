@@ -49,16 +49,16 @@ class QuadLineNode : public QSGGeometryNode
 {
 public:
     /** Constructor. */
-    QuadLineNode( const QRectF& rect, qreal lineWidth );
+    QuadLineNode(const QRectF& rect, qreal lineWidth);
 
     /** Set the geometry. */
-    void setRect( const QRectF& rect );
+    void setRect(const QRectF& rect);
 
     /** Set the line width. */
-    void setLineWidth( qreal width );
+    void setLineWidth(qreal width);
 
     /** Set the color of the lines. */
-    void setColor( const QColor& color );
+    void setColor(const QColor& color);
 };
 
 #endif

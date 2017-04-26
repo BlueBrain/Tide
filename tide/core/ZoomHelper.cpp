@@ -41,16 +41,17 @@
 
 #include "scene/ContentWindow.h"
 
-ZoomHelper::ZoomHelper( const ContentWindow& window )
-    : _contentWindow( window )
-{}
+ZoomHelper::ZoomHelper(const ContentWindow& window)
+    : _contentWindow(window)
+{
+}
 
 QRectF ZoomHelper::getContentRect() const
 {
-    return toContentRect( _contentWindow.getContent()->getZoomRect( ));
+    return toContentRect(_contentWindow.getContent()->getZoomRect());
 }
 
-QRectF ZoomHelper::toContentRect( const QRectF& zoomRect ) const
+QRectF ZoomHelper::toContentRect(const QRectF& zoomRect) const
 {
     const QRectF& window = _contentWindow.getDisplayCoordinates();
 
@@ -60,10 +61,10 @@ QRectF ZoomHelper::toContentRect( const QRectF& zoomRect ) const
     const qreal posX = -zoomRect.x() * w;
     const qreal posY = -zoomRect.y() * h;
 
-    return QRectF( posX, posY, w, h );
+    return QRectF(posX, posY, w, h);
 }
 
-QRectF ZoomHelper::toZoomRect( const QRectF& contentRect ) const
+QRectF ZoomHelper::toZoomRect(const QRectF& contentRect) const
 {
     const QRectF& window = _contentWindow.getDisplayCoordinates();
 
@@ -73,23 +74,23 @@ QRectF ZoomHelper::toZoomRect( const QRectF& contentRect ) const
     const qreal posX = -contentRect.x() / contentRect.width();
     const qreal posY = -contentRect.y() / contentRect.height();
 
-    return QRectF( posX, posY, w, h );
+    return QRectF(posX, posY, w, h);
 }
 
-QRectF ZoomHelper::toTilesArea( const QRectF& windowArea,
-                                const QSize& tilesSurface ) const
+QRectF ZoomHelper::toTilesArea(const QRectF& windowArea,
+                               const QSize& tilesSurface) const
 {
     const QRectF contentRect = getContentRect();
 
     // Map window visibleArea to content space for tiles origin at (0,0)
-    const QRectF visibleContentArea = windowArea.translated( -contentRect.x(),
-                                                             -contentRect.y( ));
+    const QRectF visibleContentArea =
+        windowArea.translated(-contentRect.x(), -contentRect.y());
     // Scale content area to tiles area size
     const qreal xScale = tilesSurface.width() / contentRect.width();
     const qreal yScale = tilesSurface.height() / contentRect.height();
-    const QRectF visibleTilesArea( visibleContentArea.x() * xScale,
-                                   visibleContentArea.y() * yScale,
-                                   visibleContentArea.width() * xScale,
-                                   visibleContentArea.height() * yScale );
+    const QRectF visibleTilesArea(visibleContentArea.x() * xScale,
+                                  visibleContentArea.y() * yScale,
+                                  visibleContentArea.width() * xScale,
+                                  visibleContentArea.height() * yScale);
     return visibleTilesArea;
 }

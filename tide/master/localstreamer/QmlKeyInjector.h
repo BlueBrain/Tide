@@ -60,7 +60,7 @@ public:
      * @param rootItem the root item of the scene.
      * @return true if the event could be delivered
      */
-    static bool send( QInputMethodEvent* inputEvent, QQuickItem* rootItem );
+    static bool send(QInputMethodEvent* inputEvent, QQuickItem* rootItem);
 
     /**
      * Send an InputMethodEvent (keyboard input) to an offscreen WebEngineView.
@@ -71,8 +71,8 @@ public:
      * @param webengineItem a Qml WebEngineView item.
      * @return true if the event could be delivered
      */
-    static bool sendToWebengine( QInputMethodEvent* inputEvent,
-                                 QQuickItem* webengineItem );
+    static bool sendToWebengine(QInputMethodEvent* inputEvent,
+                                QQuickItem* webengineItem);
 };
 
 #endif

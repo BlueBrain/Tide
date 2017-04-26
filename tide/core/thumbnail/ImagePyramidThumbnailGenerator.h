@@ -49,7 +49,7 @@ class ImagePyramidThumbnailGenerator : public ThumbnailGenerator
 {
 public:
     /** @copydoc ThumbnailGenerator::ThumbnailGenerator */
-    ImagePyramidThumbnailGenerator( const QSize& size );
+    ImagePyramidThumbnailGenerator(const QSize& size);
 
     /**
      * Generate a thumbnail of a TIFF image pyramid.
@@ -57,7 +57,7 @@ public:
      * @param filename the image pyramid file.
      * @return the desired thumbnail, or a placeholder if an error occured.
      */
-    QImage generate( const QString& filename ) const final;
+    QImage generate(const QString& filename) const final;
 };
 
 #endif

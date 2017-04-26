@@ -58,7 +58,7 @@ class MasterQuickView : public QQuickView
 
 public:
     /** Constructor. */
-    MasterQuickView( OptionsPtr options, const MasterConfiguration& config );
+    MasterQuickView(OptionsPtr options, const MasterConfiguration& config);
 
     /** Destructor */
     ~MasterQuickView();
@@ -67,19 +67,19 @@ public:
     QQuickItem* wallItem();
 
     /** Map a normalized touch event on the wall to this view's coordinates. */
-    QPointF mapToWallPos( const QPointF& normalizedPos ) const;
+    QPointF mapToWallPos(const QPointF& normalizedPos) const;
 
 signals:
     /** @name Emitted when a user interactacts with the mouse. */
     //@{
-    void mousePressed( QPointF pos );
-    void mouseMoved( QPointF pos );
-    void mouseReleased( QPointF pos );
+    void mousePressed(QPointF pos);
+    void mouseMoved(QPointF pos);
+    void mouseReleased(QPointF pos);
     //@}
 
 private:
     /** Re-implement QWindow event to capture tab key. */
-    bool event( QEvent* event ) final;
+    bool event(QEvent* event) final;
 
     QQuickItem* _wallItem = nullptr;
 };

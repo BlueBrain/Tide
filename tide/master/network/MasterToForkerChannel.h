@@ -51,11 +51,11 @@
 class MasterToForkerChannel : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY( MasterToForkerChannel )
+    Q_DISABLE_COPY(MasterToForkerChannel)
 
 public:
     /** Constructor */
-    MasterToForkerChannel( MPIChannelPtr mpiChannel );
+    MasterToForkerChannel(MPIChannelPtr mpiChannel);
 
 public slots:
     /**
@@ -64,8 +64,8 @@ public slots:
      * @param workingDir The working directory for the new process
      * @param env An optional list of ENV variables to override
      */
-    void sendStart( QString command, QString workingDir,
-                    QStringList env = QStringList( ));
+    void sendStart(QString command, QString workingDir,
+                   QStringList env = QStringList());
 
     /**
      * Send quit message to the forker application

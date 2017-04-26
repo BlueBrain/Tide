@@ -53,22 +53,22 @@ class PixelStreamController : public ContentController
 
 public:
     /** Constructor */
-    explicit PixelStreamController( ContentWindow& contentWindow );
+    explicit PixelStreamController(ContentWindow& contentWindow);
 
     /** @name Touch gesture handlers. */
     //@{
-    void touchBegin( QPointF position ) override;
-    void touchEnd( QPointF position ) override;
+    void touchBegin(QPointF position) override;
+    void touchEnd(QPointF position) override;
 
-    void addTouchPoint( int id, QPointF position ) override;
-    void updateTouchPoint( int id, QPointF position ) override;
-    void removeTouchPoint( int id, QPointF position ) override;
+    void addTouchPoint(int id, QPointF position) override;
+    void updateTouchPoint(int id, QPointF position) override;
+    void removeTouchPoint(int id, QPointF position) override;
 
-    void tap( QPointF position, uint numPoints ) override;
-    void doubleTap( QPointF position, uint numPoints ) override;
-    void tapAndHold( QPointF position, uint numPoints ) override;
-    void pan( QPointF position, QPointF delta, uint numPoints ) override;
-    void pinch( QPointF position, QPointF pixelDelta ) override;
+    void tap(QPointF position, uint numPoints) override;
+    void doubleTap(QPointF position, uint numPoints) override;
+    void tapAndHold(QPointF position, uint numPoints) override;
+    void pan(QPointF position, QPointF delta, uint numPoints) override;
+    void pinch(QPointF position, QPointF pixelDelta) override;
 
     void swipeLeft() override;
     void swipeRight() override;
@@ -78,8 +78,8 @@ public:
 
     /** @name Keyboard event handlers. */
     //@{
-    void keyPress( int key, int modifiers, QString text ) override;
-    void keyRelease( int key, int modifiers, QString text ) override;
+    void keyPress(int key, int modifiers, QString text) override;
+    void keyRelease(int key, int modifiers, QString text) override;
     //@}
 
     /** @name UI event handlers. */
@@ -90,13 +90,13 @@ public:
 
 signals:
     /** Emitted when an Event occured. */
-    void notify( deflect::Event event );
+    void notify(deflect::Event event);
 
 private slots:
     void _sendSizeChangedEvent();
 
 private:
-    deflect::Event _getNormEvent( const QPointF& position ) const;
+    deflect::Event _getNormEvent(const QPointF& position) const;
 };
 
 #endif

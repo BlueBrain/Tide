@@ -40,7 +40,7 @@
 #ifndef CONTENTACTIONSMODEL_H
 #define CONTENTACTIONSMODEL_H
 
-#include "ContentAction.h"           // needed for serialization
+#include "ContentAction.h" // needed for serialization
 #include "serialization/includes.h"
 
 #include <QAbstractListModel>
@@ -51,16 +51,16 @@
 class ContentActionsModel : public QAbstractListModel
 {
     Q_OBJECT
-    Q_DISABLE_COPY( ContentActionsModel )
+    Q_DISABLE_COPY(ContentActionsModel)
 
 public:
-    ContentActionsModel( QObject* parent = 0 );
+    ContentActionsModel(QObject* parent = 0);
 
-    QVariant data( const QModelIndex &index, int role ) const override;
-    int rowCount( const QModelIndex& parent = QModelIndex( )) const override;
+    QVariant data(const QModelIndex& index, int role) const override;
+    int rowCount(const QModelIndex& parent = QModelIndex()) const override;
 
     /** Add an action and retains ownership by setting itself as the parent. */
-    void add( ContentAction* action );
+    void add(ContentAction* action);
 
 private:
     friend class boost::serialization::access;
@@ -69,18 +69,18 @@ private:
 
     std::vector<ContentAction*> _actions; // Children QObjects, don't free
 
-    template<class Archive>
-    void save( Archive& ar, const unsigned int ) const
+    template <class Archive>
+    void save(Archive& ar, const unsigned int) const
     {
-        ar << boost::serialization::make_nvp( "actions", _actions );
+        ar << boost::serialization::make_nvp("actions", _actions);
     }
 
-    template<class Archive>
-    void load( Archive& ar, const unsigned int )
+    template <class Archive>
+    void load(Archive& ar, const unsigned int)
     {
-        ar >> boost::serialization::make_nvp( "actions", _actions );
-        for( auto action : _actions )
-            action->setParent( this );
+        ar >> boost::serialization::make_nvp("actions", _actions);
+        for (auto action : _actions)
+            action->setParent(this);
     }
 
     BOOST_SERIALIZATION_SPLIT_MEMBER()

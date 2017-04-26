@@ -49,7 +49,7 @@ class StateThumbnailGenerator : public ThumbnailGenerator
 {
 public:
     /** @copydoc ThumbnailGenerator::ThumbnailGenerator */
-    StateThumbnailGenerator( const QSize& size );
+    StateThumbnailGenerator(const QSize& size);
 
     /**
      * Generate a thumbnail for a saved session file.
@@ -58,10 +58,10 @@ public:
      * @return the session thumbnail, or a placeholder image if the session
      *         preview image can't be found or an error occured.
      */
-    QImage generate( const QString& filename ) const final;
+    QImage generate(const QString& filename) const final;
 
 private:
-    QRect _scaleRectAroundCenter( const QRect& rect, float scaleFactor ) const;
+    QRect _scaleRectAroundCenter(const QRect& rect, float scaleFactor) const;
 };
 
 #endif

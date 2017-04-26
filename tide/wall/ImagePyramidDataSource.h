@@ -49,15 +49,15 @@ class ImagePyramidDataSource : public LodTiler
 {
 public:
     /** Constructor. */
-    explicit ImagePyramidDataSource( const QString& uri );
+    explicit ImagePyramidDataSource(const QString& uri);
 
     /** @copydoc DataSource::getTileRect */
-    QRect getTileRect( uint tileId ) const final;
+    QRect getTileRect(uint tileId) const final;
 
 private:
     const QString _uri;
 
-    QImage getCachableTileImage( uint tileId ) const final; // threadsafe
+    QImage getCachableTileImage(uint tileId) const final; // threadsafe
 };
 
 #endif

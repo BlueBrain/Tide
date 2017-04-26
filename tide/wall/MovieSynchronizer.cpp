@@ -40,50 +40,52 @@
 #include "MovieSynchronizer.h"
 
 #include "MovieUpdater.h"
+#include "Tile.h"
 #include "network/WallToWallChannel.h"
 #include "scene/ContentWindow.h"
 #include "scene/MovieContent.h"
-#include "Tile.h"
 
-MovieSynchronizer::MovieSynchronizer( const QString& uri )
+MovieSynchronizer::MovieSynchronizer(const QString& uri)
     : ContentSynchronizer()
-    , _updater( new MovieUpdater( uri ))
-    , _tileAdded( false )
-    , _swapReady( false )
-    , _visible( false )
+    , _updater(new MovieUpdater(uri))
+    , _tileAdded(false)
+    , _swapReady(false)
+    , _visible(false)
 {
 }
 
-MovieSynchronizer::~MovieSynchronizer() {}
+MovieSynchronizer::~MovieSynchronizer()
+{
+}
 
-void MovieSynchronizer::update( const ContentWindow& window,
-                                const QRectF& visibleArea )
+void MovieSynchronizer::update(const ContentWindow& window,
+                               const QRectF& visibleArea)
 {
     // we only have one tile, which we add once, and we don't update it in
     // synchronize() if it's not visible.
-    if( !_tileAdded )
+    if (!_tileAdded)
     {
-        emit addTile( std::make_shared<Tile>( 0, QRect( QPoint( 0, 0 ),
-                                                        getTilesArea( )),
-                                              _updater->getTileFormat( 0 )));
+        emit addTile(std::make_shared<Tile>(0,
+                                            QRect(QPoint(0, 0), getTilesArea()),
+                                            _updater->getTileFormat(0)));
         emit tilesAreaChanged();
         _tileAdded = true;
     }
 
     _visible = !visibleArea.isEmpty();
 
-    const auto& movie = static_cast<const MovieContent&>( *window.getContent());
-    _updater->update( movie, _visible );
+    const auto& movie = static_cast<const MovieContent&>(*window.getContent());
+    _updater->update(movie, _visible);
 
-    if( _updater->isSkipping( ))
+    if (_updater->isSkipping())
         emit sliderPositionChanged();
 }
 
-void MovieSynchronizer::synchronize( WallToWallChannel& channel )
+void MovieSynchronizer::synchronize(WallToWallChannel& channel)
 {
-    if( channel.allReady( _swapReady ))
+    if (channel.allReady(_swapReady))
     {
-        if( _tile )
+        if (_tile)
             _tile->swapImage();
         _tile.reset();
         _swapReady = false;
@@ -93,11 +95,11 @@ void MovieSynchronizer::synchronize( WallToWallChannel& channel )
         emit sliderPositionChanged();
     }
 
-    if( _updater->advanceToNextFrame( channel ))
+    if (_updater->advanceToNextFrame(channel))
     {
-        if( _updater->canRequestNewFrame( ))
-            emit updateTile( 0, _updater->getTileRect( 0 ),
-                             _updater->getTileFormat( 0 ));
+        if (_updater->canRequestNewFrame())
+            emit updateTile(0, _updater->getTileRect(0),
+                            _updater->getTileFormat(0));
         else
             _swapReady = true;
     }
@@ -105,7 +107,7 @@ void MovieSynchronizer::synchronize( WallToWallChannel& channel )
 
 QSize MovieSynchronizer::getTilesArea() const
 {
-    return _updater->getTilesArea( 0 );
+    return _updater->getTilesArea(0);
 }
 
 QString MovieSynchronizer::getStatistics() const
@@ -113,12 +115,12 @@ QString MovieSynchronizer::getStatistics() const
     return _updater->getStatistics();
 }
 
-ImagePtr MovieSynchronizer::getTileImage( const uint tileIndex ) const
+ImagePtr MovieSynchronizer::getTileImage(const uint tileIndex) const
 {
-    return _updater->getTileImage( tileIndex );
+    return _updater->getTileImage(tileIndex);
 }
 
-void MovieSynchronizer::onSwapReady( TilePtr tile )
+void MovieSynchronizer::onSwapReady(TilePtr tile)
 {
     _tile = tile;
     _swapReady = true;
@@ -127,6 +129,6 @@ void MovieSynchronizer::onSwapReady( TilePtr tile )
 qreal MovieSynchronizer::getSliderPosition() const
 {
     // The slider follows user input while skipping to keep things smooth
-    return _updater->isSkipping() ? _updater->getSkipPosition() :
-                                    _updater->getPosition();
+    return _updater->isSkipping() ? _updater->getSkipPosition()
+                                  : _updater->getPosition();
 }

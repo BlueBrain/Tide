@@ -43,24 +43,24 @@
 #include "tide/core/log.h"
 #include "tide/master/localstreamer/CommandLineOptions.h"
 
-int main( int argc, char** argv )
+int main(int argc, char** argv)
 {
     logger_id = "whiteboard";
-    qInstallMessageHandler( qtMessageLogger );
+    qInstallMessageHandler(qtMessageLogger);
 
-    COMMAND_LINE_PARSER_CHECK( CommandLineOptions, "tideWhiteboard" );
+    COMMAND_LINE_PARSER_CHECK(CommandLineOptions, "tideWhiteboard");
 
     // Load virtualkeyboard input context plugin
-    qputenv( "QT_IM_MODULE", QByteArray( "virtualkeyboard" ));
+    qputenv("QT_IM_MODULE", QByteArray("virtualkeyboard"));
 
     std::unique_ptr<Whiteboard> whiteboard;
     try
     {
-        whiteboard.reset( new Whiteboard( argc, argv ));
+        whiteboard.reset(new Whiteboard(argc, argv));
     }
-    catch( const std::runtime_error& exception )
+    catch (const std::runtime_error& exception)
     {
-        put_flog( LOG_FATAL, "failed to start: %s", exception.what( ));
+        put_flog(LOG_FATAL, "failed to start: %s", exception.what());
         return EXIT_FAILURE;
     }
     return whiteboard->exec();

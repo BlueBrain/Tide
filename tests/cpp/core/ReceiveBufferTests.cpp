@@ -44,60 +44,59 @@
 #include "network/ReceiveBuffer.h"
 #include "serialization/utils.h"
 
-
-BOOST_AUTO_TEST_CASE( testReceiveBufferConstruction )
+BOOST_AUTO_TEST_CASE(testReceiveBufferConstruction)
 {
     const ReceiveBuffer buffer;
-    BOOST_CHECK_EQUAL( buffer.size(), 0 );
+    BOOST_CHECK_EQUAL(buffer.size(), 0);
 }
 
-BOOST_AUTO_TEST_CASE( testSetSize )
+BOOST_AUTO_TEST_CASE(testSetSize)
 {
     ReceiveBuffer buffer;
-    buffer.setSize( 1 );
-    BOOST_CHECK_EQUAL( buffer.size(), 1 );
+    buffer.setSize(1);
+    BOOST_CHECK_EQUAL(buffer.size(), 1);
 
-    buffer.setSize( 11 );
-    BOOST_CHECK_EQUAL( buffer.size(), 11 );
+    buffer.setSize(11);
+    BOOST_CHECK_EQUAL(buffer.size(), 11);
 
-    buffer.setSize( 5 );
-    BOOST_CHECK_EQUAL( buffer.size(), 5 );
+    buffer.setSize(5);
+    BOOST_CHECK_EQUAL(buffer.size(), 5);
 }
 
 namespace
 {
-template< typename T >
-T serializeAndDeserialize( const T& data )
+template <typename T>
+T serializeAndDeserialize(const T& data)
 {
-    const auto serialized = serialization::toBinary( data );
+    const auto serialized = serialization::toBinary(data);
 
     ReceiveBuffer buffer;
-    buffer.setSize( serialized.size( ));
-    memcpy( buffer.data(), serialized.data(), serialized.size( ));
+    buffer.setSize(serialized.size());
+    memcpy(buffer.data(), serialized.data(), serialized.size());
 
-    return serialization::get<T>( buffer );
+    return serialization::get<T>(buffer);
 }
 }
 
-BOOST_AUTO_TEST_CASE( testSerializeInt )
+BOOST_AUTO_TEST_CASE(testSerializeInt)
 {
     const int foo = 42;
-    const int newFoo = serializeAndDeserialize( foo );
+    const int newFoo = serializeAndDeserialize(foo);
 
-    BOOST_CHECK_EQUAL( foo, newFoo );
+    BOOST_CHECK_EQUAL(foo, newFoo);
 }
 
-BOOST_AUTO_TEST_CASE( testSerializeMultipleData )
+BOOST_AUTO_TEST_CASE(testSerializeMultipleData)
 {
-    const std::string dataString( "hello world" );
-    const bool dataBool( false );
-    const float dataFloat( 42.56f );
+    const std::string dataString("hello world");
+    const bool dataBool(false);
+    const float dataFloat(42.56f);
 
-    const std::string newDataString = serializeAndDeserialize( dataString );
-    const bool newDataBool = serializeAndDeserialize( dataBool );
-    const float newDataFloat = serializeAndDeserialize( dataFloat );
+    const std::string newDataString = serializeAndDeserialize(dataString);
+    const bool newDataBool = serializeAndDeserialize(dataBool);
+    const float newDataFloat = serializeAndDeserialize(dataFloat);
 
-    BOOST_CHECK_EQUAL( dataString, newDataString );
-    BOOST_CHECK_EQUAL( dataBool, newDataBool );
-    BOOST_CHECK_EQUAL( dataFloat, newDataFloat );
+    BOOST_CHECK_EQUAL(dataString, newDataString);
+    BOOST_CHECK_EQUAL(dataBool, newDataBool);
+    BOOST_CHECK_EQUAL(dataFloat, newDataFloat);
 }

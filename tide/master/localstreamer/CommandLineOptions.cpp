@@ -39,8 +39,8 @@
 
 #include "CommandLineOptions.h"
 
-#include <iostream>
 #include <QStringList>
+#include <iostream>
 
 namespace po = boost::program_options;
 
@@ -49,16 +49,16 @@ CommandLineOptions::CommandLineOptions()
     _fillDesc();
 }
 
-CommandLineOptions::CommandLineOptions( const int argc, char** argv )
+CommandLineOptions::CommandLineOptions(const int argc, char** argv)
 {
     _fillDesc();
-    parse( argc, argv );
+    parse(argc, argv);
 }
 
-void CommandLineOptions::parse( const int argc, char** argv )
+void CommandLineOptions::parse(const int argc, char** argv)
 {
-    CommandLineParser::parse( argc, argv );
-    if( getHelp( ))
+    CommandLineParser::parse(argc, argv);
+    if (getHelp())
         return;
 
     _streamId = vm["streamid"].as<std::string>().c_str();
@@ -71,6 +71,7 @@ void CommandLineOptions::parse( const int argc, char** argv )
 
 void CommandLineOptions::_fillDesc()
 {
+    // clang-format off
     desc.add_options()
         ("streamid", po::value<std::string>()->required(),
          "unique identifier for this stream")
@@ -85,41 +86,43 @@ void CommandLineOptions::_fillDesc()
         ("config", po::value<std::string>()->default_value( "" ),
          "Launcher only: Tide xml configuation file")
     ;
+    // clang-format on
 }
 
-void CommandLineOptions::showSyntax( const std::string& appName ) const
+void CommandLineOptions::showSyntax(const std::string& appName) const
 {
-    CommandLineParser::showSyntax( appName );
+    CommandLineParser::showSyntax(appName);
     std::cout << std::endl;
     std::cout << "Normally launched as a subprocess by tideMaster, not "
-                 "intended to be run manually." << std::endl;
+                 "intended to be run manually."
+              << std::endl;
 }
 
 QString CommandLineOptions::getCommandLine() const
 {
-    return getCommandLineArguments().join( ' ' );
+    return getCommandLineArguments().join(' ');
 }
 
 QStringList CommandLineOptions::getCommandLineArguments() const
 {
     QStringList arguments;
 
-    if( _streamerType != PS_UNKNOWN )
-        arguments << "--type" << getStreamerTypeString( _streamerType );
+    if (_streamerType != PS_UNKNOWN)
+        arguments << "--type" << getStreamerTypeString(_streamerType);
 
-    if( _width > 0 )
-        arguments << "--width" << QString::number( _width );
+    if (_width > 0)
+        arguments << "--width" << QString::number(_width);
 
-    if( _height > 0 )
-        arguments << "--height" << QString::number( _height );
+    if (_height > 0)
+        arguments << "--height" << QString::number(_height);
 
-    if( !_streamId.isEmpty( ))
+    if (!_streamId.isEmpty())
         arguments << "--streamid" << _streamId;
 
-    if( !_url.isEmpty( ))
+    if (!_url.isEmpty())
         arguments << "--url" << _url;
 
-    if( !_configuration.isEmpty( ))
+    if (!_configuration.isEmpty())
         arguments << "--config" << _configuration;
 
     return arguments;
@@ -155,32 +158,32 @@ const QString& CommandLineOptions::getConfiguration() const
     return _configuration;
 }
 
-void CommandLineOptions::setPixelStreamerType( const PixelStreamerType type )
+void CommandLineOptions::setPixelStreamerType(const PixelStreamerType type)
 {
     _streamerType = type;
 }
 
-void CommandLineOptions::setUrl( const QString& url )
+void CommandLineOptions::setUrl(const QString& url)
 {
     _url = url;
 }
 
-void CommandLineOptions::setStreamId( const QString& id )
+void CommandLineOptions::setStreamId(const QString& id)
 {
     _streamId = id;
 }
 
-void CommandLineOptions::setConfiguration( const QString& file )
+void CommandLineOptions::setConfiguration(const QString& file)
 {
     _configuration = file;
 }
 
-void CommandLineOptions::setWidth( const unsigned int width )
+void CommandLineOptions::setWidth(const unsigned int width)
 {
     _width = width;
 }
 
-void CommandLineOptions::setHeight( const unsigned int height )
+void CommandLineOptions::setHeight(const unsigned int height)
 {
     _height = height;
 }

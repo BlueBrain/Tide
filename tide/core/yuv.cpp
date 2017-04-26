@@ -41,15 +41,14 @@
 
 namespace yuv
 {
-
-QSize getUVSize( const QSize& ySize, const TextureFormat format )
+QSize getUVSize(const QSize& ySize, const TextureFormat format)
 {
-    switch( format )
+    switch (format)
     {
     case TextureFormat::yuv444:
         return ySize;
     case TextureFormat::yuv422:
-        return { ySize.width() >> 1, ySize.height() };
+        return {ySize.width() >> 1, ySize.height()};
     case TextureFormat::yuv420:
         return ySize / 2;
     case TextureFormat::rgba:
@@ -57,5 +56,4 @@ QSize getUVSize( const QSize& ySize, const TextureFormat format )
         return QSize();
     }
 }
-
 }

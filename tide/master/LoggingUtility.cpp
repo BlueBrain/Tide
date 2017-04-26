@@ -73,40 +73,40 @@ size_t LoggingUtility::getWindowCount() const
     return _windowCounter;
 }
 
-void LoggingUtility::contentWindowAdded( ContentWindowPtr contentWindow )
+void LoggingUtility::contentWindowAdded(ContentWindowPtr contentWindow)
 {
+    connect(contentWindow.get(), &ContentWindow::stateChanged,
+            [this]() { _log("state changed"); });
 
-    connect( contentWindow.get(), &ContentWindow::stateChanged,
-             [this]() { _log( "state changed" ); });
+    connect(contentWindow.get(), &ContentWindow::hiddenChanged,
+            [this](bool hidden) {
+                hidden ? _decrementWindowCount() : _incrementWindowCount();
+            });
 
-    connect( contentWindow.get(), &ContentWindow::hiddenChanged,
-             [this](bool hidden) { hidden ? _decrementWindowCount() :
-                                            _incrementWindowCount(); });
-
-    connect( contentWindow.get(), &ContentWindow::modeChanged,
-             [this]() { _log( "mode changed" ); });
+    connect(contentWindow.get(), &ContentWindow::modeChanged,
+            [this]() { _log("mode changed"); });
 
     _incrementWindowCount();
     ++_windowCounterTotal;
     _counterModificationTime = _getTimeStamp();
-    _log( __func__ );
+    _log(__func__);
 }
 
 void LoggingUtility::contentWindowMovedToFront()
 {
-    _log( __func__ );
+    _log(__func__);
 }
 
 void LoggingUtility::contentWindowRemoved()
 {
     _decrementWindowCount();
     _counterModificationTime = _getTimeStamp();
-    _log( __func__ );
+    _log(__func__);
 }
 
 void LoggingUtility::_decrementWindowCount()
 {
-    if( _windowCounter > 0 )
+    if (_windowCounter > 0)
         --_windowCounter;
 }
 
@@ -115,9 +115,9 @@ void LoggingUtility::_incrementWindowCount()
     ++_windowCounter;
 }
 
-uint _getMilliseconds( std::chrono::system_clock::duration timePoint )
+uint _getMilliseconds(std::chrono::system_clock::duration timePoint)
 {
-    timePoint -= std::chrono::duration_cast<std::chrono::seconds>( timePoint );
+    timePoint -= std::chrono::duration_cast<std::chrono::seconds>(timePoint);
     return timePoint.count();
 }
 
@@ -125,15 +125,15 @@ QString LoggingUtility::_getTimeStamp() const
 {
     // ISO extended format: "2016-09-23T10:31:36.776385"
     const auto now = std::chrono::system_clock::now();
-    std::time_t now_c = std::chrono::system_clock::to_time_t( now );
+    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
 
-    std::vector<char> buf( 21 );
-    std::strftime( buf.data(), buf.size(), "%FT%T", std::localtime( &now_c ));
-    const auto ms = _getMilliseconds( now.time_since_epoch( ));
-    return QString{ buf.data() } + '.' + QString::number( ms ).left( 6 );
+    std::vector<char> buf(21);
+    std::strftime(buf.data(), buf.size(), "%FT%T", std::localtime(&now_c));
+    const auto ms = _getMilliseconds(now.time_since_epoch());
+    return QString{buf.data()} + '.' + QString::number(ms).left(6);
 }
 
-void LoggingUtility::_log( const QString& s )
+void LoggingUtility::_log(const QString& s)
 {
     _lastInteraction = s;
     _lastInteractionTime = _getTimeStamp();

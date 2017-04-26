@@ -60,7 +60,7 @@ public:
      * @param format The desired data output format for the picture
      * @return The converted picture, or nullptr on error
      */
-    PicturePtr convert( const FFMPEGFrame& srcFrame, TextureFormat format );
+    PicturePtr convert(const FFMPEGFrame& srcFrame, TextureFormat format);
 
 private:
     struct Impl;

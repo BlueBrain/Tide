@@ -41,8 +41,8 @@
 #ifndef PIXEL_STREAM_WINDOW_MANAGER_H
 #define PIXEL_STREAM_WINDOW_MANAGER_H
 
-#include "types.h"
 #include "scene/ContentType.h"
+#include "types.h"
 
 #include <deflect/SizeHints.h>
 
@@ -59,7 +59,7 @@
 class PixelStreamWindowManager : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY( PixelStreamWindowManager )
+    Q_DISABLE_COPY(PixelStreamWindowManager)
 
 public:
     /**
@@ -68,7 +68,7 @@ public:
      * @param displayGroup the content windows of streamers will be added
      *                     to and removed from this DisplayGroup.
      */
-    PixelStreamWindowManager( DisplayGroup& displayGroup );
+    PixelStreamWindowManager(DisplayGroup& displayGroup);
 
     /**
      * @param uri the URI of streamer
@@ -76,21 +76,21 @@ public:
      * @note this function is public only for the purpose of unit testing.
      * @internal
      */
-    ContentWindowPtr getWindow( const QString& uri ) const;
+    ContentWindowPtr getWindow(const QString& uri) const;
 
     /**
      * Hide the associated content window of the stream.
      *
      * @param uri the URI of the streamer
      */
-    void hideWindow( const QString& uri );
+    void hideWindow(const QString& uri);
 
     /**
      * Show the associated content window of the stream.
      *
      * @param uri the URI of the streamer
      */
-    void showWindow( const QString& uri );
+    void showWindow(const QString& uri);
 
     /**
      * Open a window for a new PixelStream.
@@ -101,8 +101,8 @@ public:
      * @param size the desired size of the window in pixels.
      * @param stream the type of stream for the window.
      */
-    void openWindow( const QString& uri, const QPointF& pos, const QSize& size,
-                     const StreamType stream = StreamType::EXTERNAL );
+    void openWindow(const QString& uri, const QPointF& pos, const QSize& size,
+                    const StreamType stream = StreamType::EXTERNAL);
 
     /** Check if new windows open in focus mode. */
     bool getAutoFocusNewWindows() const;
@@ -112,14 +112,14 @@ public:
      *
      * @param uri the URI of the streamer
      */
-    void handleStreamStart( QString uri );
+    void handleStreamStart(QString uri);
 
     /**
      * Handle the end of a stream, closing its window.
      *
      * @param uri the URI of the streamer
      */
-    void handleStreamEnd( QString uri );
+    void handleStreamEnd(QString uri);
 
     /**
      * Is called when the streamer wants to enable event handling. This will
@@ -131,15 +131,15 @@ public:
      * @param receiver the event receiver instance
      * @param success promise that will receive the success of the operation
      */
-    void registerEventReceiver( QString uri, bool exclusive,
-                                deflect::EventReceiver* receiver,
-                                deflect::BoolPromisePtr success );
+    void registerEventReceiver(QString uri, bool exclusive,
+                               deflect::EventReceiver* receiver,
+                               deflect::BoolPromisePtr success);
 
     /**
      * Update the dimension of the content according to the stream's dimension
      * @param frame the new stream frame to check its dimension
      */
-    void updateStreamDimensions( deflect::FramePtr frame );
+    void updateStreamDimensions(deflect::FramePtr frame);
 
     /**
      * Update the size hints for the content, sent by the streamer.
@@ -147,7 +147,7 @@ public:
      * @param uri the URI of the streamer
      * @param hints the new size hints to use for the content
      */
-    void updateSizeHints( QString uri, deflect::SizeHints hints );
+    void updateSizeHints(QString uri, deflect::SizeHints hints);
 
     /**
      * Send data to window.
@@ -155,10 +155,10 @@ public:
      * @param uri the URI of the streamer
      * @param data the data to send
      */
-    void sendDataToWindow( QString uri, QByteArray data );
+    void sendDataToWindow(QString uri, QByteArray data);
 
     /** Open new windows in focus mode. */
-    void setAutoFocusNewWindows( bool set );
+    void setAutoFocusNewWindows(bool set);
 
 signals:
     /**
@@ -166,7 +166,7 @@ signals:
      *
      * @param uri the URI of the streamer
      */
-    void streamWindowClosed( QString uri );
+    void streamWindowClosed(QString uri);
 
     /**
      * Emitted when handleStreamStart is called for a stream which already has a
@@ -180,16 +180,16 @@ signals:
      *
      * @param uri the URI of the streamer
      */
-    void requestFirstFrame( QString uri );
+    void requestFirstFrame(QString uri);
 
 private:
     DisplayGroup& _displayGroup;
-    std::map< QString, QUuid > _streamWindows;
+    std::map<QString, QUuid> _streamWindows;
     bool _autoFocusNewWindows = true;
 
-    bool _isWindowOpen( const QString& uri ) const;
-    void _onWindowAdded( ContentWindowPtr window );
-    void _onWindowRemoved( ContentWindowPtr window );
+    bool _isWindowOpen(const QString& uri) const;
+    void _onWindowAdded(ContentWindowPtr window);
+    void _onWindowRemoved(ContentWindowPtr window);
 };
 
 #endif

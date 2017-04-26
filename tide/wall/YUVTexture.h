@@ -50,7 +50,12 @@ struct YUVTexture
     int v = 0;
 
     YUVTexture() = default;
-    YUVTexture( int y_, int u_, int v_ ) : y{ y_ }, u{ u_ }, v{ v_ } {}
+    YUVTexture(int y_, int u_, int v_)
+        : y{y_}
+        , u{u_}
+        , v{v_}
+    {
+    }
 };
 
 #endif

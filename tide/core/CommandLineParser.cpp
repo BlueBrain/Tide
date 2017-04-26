@@ -48,29 +48,31 @@ CommandLineParser::CommandLineParser()
     desc.add_options()("help,h", "produce help message");
 }
 
-CommandLineParser::~CommandLineParser() {}
+CommandLineParser::~CommandLineParser()
+{
+}
 
-void CommandLineParser::parse( const int argc, char** argv )
+void CommandLineParser::parse(const int argc, char** argv)
 {
     try
     {
-        po::store( po::parse_command_line( argc, argv, desc ), vm );
-        po::notify( vm );
+        po::store(po::parse_command_line(argc, argv, desc), vm);
+        po::notify(vm);
     }
-    catch( const po::required_option& )
+    catch (const po::required_option&)
     {
         // ignore missing required argument when --help is given
-        if( !vm.count( "help" ))
+        if (!vm.count("help"))
             throw;
     }
 }
 
 bool CommandLineParser::getHelp() const
 {
-    return vm.count( "help" );
+    return vm.count("help");
 }
 
-void CommandLineParser::showSyntax( const std::string& appName ) const
+void CommandLineParser::showSyntax(const std::string& appName) const
 {
     std::cout << "Usage: " << appName << " [OPTIONS...]\n\n";
     std::cout << desc;

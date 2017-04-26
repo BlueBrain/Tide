@@ -40,62 +40,64 @@
 /*********************************************************************/
 
 #include "CommandLineParameters.h"
-#include "log.h"
-#include "network/MPIChannel.h"
 #include "WallApplication.h"
 #include "WallConfiguration.h"
+#include "log.h"
+#include "network/MPIChannel.h"
+
+#include <QThreadPool>
 
 #include <memory>
 #include <stdexcept>
-#include <QThreadPool>
 
-int main( int argc, char* argv[] )
+int main(int argc, char* argv[])
 {
-    COMMAND_LINE_PARSER_CHECK( CommandLineParameters, "tideWall" );
+    COMMAND_LINE_PARSER_CHECK(CommandLineParameters, "tideWall");
 
     // Load virtualkeyboard input context plugin
-    qputenv( "QT_IM_MODULE", QByteArray( "virtualkeyboard" ));
+    qputenv("QT_IM_MODULE", QByteArray("virtualkeyboard"));
 
     {
-        MPIChannelPtr worldChannel( new MPIChannel( argc, argv ));
-        if( worldChannel->getSize() < 2 )
+        MPIChannelPtr worldChannel(new MPIChannel(argc, argv));
+        if (worldChannel->getSize() < 2)
         {
             std::cerr << "MPI group size < 2 detected. Use tide script or check"
-                         " MPI configuration." << std::endl;
+                         " MPI configuration."
+                      << std::endl;
             return EXIT_FAILURE;
         }
 
         const int rank = worldChannel->getRank();
-        logger_id = QString( "wall%1" ).arg( rank ).toStdString();
-        qInstallMessageHandler( qtMessageLogger );
+        logger_id = QString("wall%1").arg(rank).toStdString();
+        qInstallMessageHandler(qtMessageLogger);
 
-        MPIChannelPtr localChannel( new MPIChannel( *worldChannel, 1, rank ));
-        MPIChannelPtr mainChannel( new MPIChannel( *worldChannel, 1, rank ));
+        MPIChannelPtr localChannel(new MPIChannel(*worldChannel, 1, rank));
+        MPIChannelPtr mainChannel(new MPIChannel(*worldChannel, 1, rank));
 
-        std::unique_ptr< WallApplication > app;
+        std::unique_ptr<WallApplication> app;
         try
         {
             const auto config = commandLine.getConfigFilename();
-            app.reset( new WallApplication( argc, argv, config, mainChannel,
-                                            localChannel ));
+            app.reset(new WallApplication(argc, argv, config, mainChannel,
+                                          localChannel));
         }
-        catch( const std::runtime_error& e )
+        catch (const std::runtime_error& e)
         {
-            put_flog( LOG_FATAL, "Could not initialize application. %s",
-                      e.what( ));
+            put_flog(LOG_FATAL, "Could not initialize application. %s",
+                     e.what());
 
             // Always send QUIT to the master application that will wait on it
             // to exit (normally done by WallApplication destructor).
-            if( localChannel->getRank() == 0 )
-                mainChannel->send( MPIMessageType::QUIT, "", 0 );
+            if (localChannel->getRank() == 0)
+                mainChannel->send(MPIMessageType::QUIT, "", 0);
 
             return EXIT_FAILURE;
         }
         app->exec(); // enter Qt event loop
 
-        put_flog( LOG_DEBUG, "waiting for threads to finish..." );
+        put_flog(LOG_DEBUG, "waiting for threads to finish...");
         QThreadPool::globalInstance()->waitForDone();
     }
-    put_flog( LOG_DEBUG, "done." );
+    put_flog(LOG_DEBUG, "done.");
     return EXIT_SUCCESS;
 }

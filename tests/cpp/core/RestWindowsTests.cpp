@@ -60,25 +60,25 @@
 
 namespace
 {
-const QString imageUri{ "wall.png" };
-const QSize thumbnailSize{ 512, 512 };
-const QSize wallSize{ 1000, 1000 };
-const QRegExp _regex{ "\\{|\\}" };
+const QString imageUri{"wall.png"};
+const QSize thumbnailSize{512, 512};
+const QSize wallSize{1000, 1000};
+const QRegExp _regex{"\\{|\\}"};
 
 std::string _getThumbnail()
 {
-    const auto image = thumbnail::create( imageUri, thumbnailSize );
+    const auto image = thumbnail::create(imageUri, thumbnailSize);
     QByteArray imageArray;
-    QBuffer buffer( &imageArray );
-    buffer.open( QIODevice::WriteOnly );
-    image.save( &buffer,"PNG" );
+    QBuffer buffer(&imageArray);
+    buffer.open(QIODevice::WriteOnly);
+    image.save(&buffer, "PNG");
     buffer.close();
     return "data:image/png;base64," + imageArray.toBase64().toStdString();
 }
 
-zeroeq::http::Request _makeThumbnailRequest( const ContentWindow& window )
+zeroeq::http::Request _makeThumbnailRequest(const ContentWindow& window)
 {
-    const auto uuid = window.getID().toString().replace( _regex, "" );
+    const auto uuid = window.getID().toString().replace(_regex, "");
 
     zeroeq::http::Request request;
     request.path = uuid.toStdString() + "/thumbnail";
@@ -86,79 +86,78 @@ zeroeq::http::Request _makeThumbnailRequest( const ContentWindow& window )
 }
 }
 
-BOOST_AUTO_TEST_CASE( testWindowList )
+BOOST_AUTO_TEST_CASE(testWindowList)
 {
-    DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
+    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
 
-    RestWindows restWindows{ *displayGroup };
+    RestWindows restWindows{*displayGroup};
 
-    ContentPtr content = ContentFactory::getContent( imageUri );
-    ContentWindowPtr contentWindow( new ContentWindow( content ));
-    contentWindow->setCoordinates( { QPointF{ 64, 79 },
-                                     content->getDimensions() } );
-    displayGroup->addContentWindow( contentWindow );
+    ContentPtr content = ContentFactory::getContent(imageUri);
+    ContentWindowPtr contentWindow(new ContentWindow(content));
+    contentWindow->setCoordinates({QPointF{64, 79}, content->getDimensions()});
+    displayGroup->addContentWindow(contentWindow);
 
-    auto response = restWindows.getWindowList( zeroeq::http::Request( )).get();
-    BOOST_CHECK_EQUAL( response.code, 200 );
+    auto response = restWindows.getWindowList(zeroeq::http::Request()).get();
+    BOOST_CHECK_EQUAL(response.code, 200);
     const auto& type = response.headers[zeroeq::http::Header::CONTENT_TYPE];
-    BOOST_CHECK_EQUAL( type, "application/json" );
+    BOOST_CHECK_EQUAL(type, "application/json");
 
-    const auto object = json::toObject( response.body );
-    BOOST_REQUIRE( object.contains( "windows" ));
+    const auto object = json::toObject(response.body);
+    BOOST_REQUIRE(object.contains("windows"));
 
-    const auto windows = object.value( "windows" ).toArray();
-    BOOST_REQUIRE_EQUAL( windows.size(), 1 );
-    BOOST_REQUIRE( windows[0].isObject( ));
+    const auto windows = object.value("windows").toArray();
+    BOOST_REQUIRE_EQUAL(windows.size(), 1);
+    BOOST_REQUIRE(windows[0].isObject());
 
     const auto window = windows[0].toObject();
 
-    BOOST_CHECK_EQUAL( window.value("aspectRatio").toDouble(), 2.0 );
-    BOOST_CHECK_EQUAL( window.value("height").toInt(), 128 );
-    BOOST_CHECK_EQUAL( window.value("width").toInt(), 256 );
-    BOOST_CHECK_EQUAL( window.value("minHeight").toInt(), 300 );
-    BOOST_CHECK_EQUAL( window.value("minWidth").toInt(), 600 );
-    BOOST_CHECK_EQUAL( window.value("focus").toBool( true ), false );
-    BOOST_CHECK_EQUAL( window.value("fullscreen").toBool( true ), false );
-    BOOST_CHECK_EQUAL( window.value("selected").toBool( true ), false );
-    BOOST_CHECK_EQUAL( window.value("mode").toInt( 99 ), 0 );
-    BOOST_CHECK_EQUAL( window.value("title").toString(), imageUri );
-    BOOST_CHECK_EQUAL( window.value("uri").toString(), imageUri );
-    const auto uuid = QString( "{%1}" ).arg( window.value("uuid").toString( ));
-    BOOST_CHECK_EQUAL( uuid, contentWindow->getID().toString( ));
-    BOOST_CHECK_EQUAL( window.value("x").toInt(), 64 );
-    BOOST_CHECK_EQUAL( window.value("y").toInt(), 79 );
-    BOOST_CHECK_EQUAL( window.value("z").toInt( 99 ), 0 );
+    BOOST_CHECK_EQUAL(window.value("aspectRatio").toDouble(), 2.0);
+    BOOST_CHECK_EQUAL(window.value("height").toInt(), 128);
+    BOOST_CHECK_EQUAL(window.value("width").toInt(), 256);
+    BOOST_CHECK_EQUAL(window.value("minHeight").toInt(), 300);
+    BOOST_CHECK_EQUAL(window.value("minWidth").toInt(), 600);
+    BOOST_CHECK_EQUAL(window.value("focus").toBool(true), false);
+    BOOST_CHECK_EQUAL(window.value("fullscreen").toBool(true), false);
+    BOOST_CHECK_EQUAL(window.value("selected").toBool(true), false);
+    BOOST_CHECK_EQUAL(window.value("mode").toInt(99), 0);
+    BOOST_CHECK_EQUAL(window.value("title").toString(), imageUri);
+    BOOST_CHECK_EQUAL(window.value("uri").toString(), imageUri);
+    const auto uuid = QString("{%1}").arg(window.value("uuid").toString());
+    BOOST_CHECK_EQUAL(uuid, contentWindow->getID().toString());
+    BOOST_CHECK_EQUAL(window.value("x").toInt(), 64);
+    BOOST_CHECK_EQUAL(window.value("y").toInt(), 79);
+    BOOST_CHECK_EQUAL(window.value("z").toInt(99), 0);
 }
 
-BOOST_AUTO_TEST_CASE( testWindowInfo )
+BOOST_AUTO_TEST_CASE(testWindowInfo)
 {
-    DisplayGroupPtr displayGroup( new DisplayGroup( wallSize ));
+    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
 
-    RestWindows windows{ *displayGroup };
+    RestWindows windows{*displayGroup};
 
-    ContentPtr content = ContentFactory::getContent( imageUri );
-    ContentWindowPtr window( new ContentWindow( content ));
-    displayGroup->addContentWindow( window );
+    ContentPtr content = ContentFactory::getContent(imageUri);
+    ContentWindowPtr window(new ContentWindow(content));
+    displayGroup->addContentWindow(window);
 
-    auto thumbnailRequest = _makeThumbnailRequest( *window );
+    auto thumbnailRequest = _makeThumbnailRequest(*window);
 
     // Thumbnail not ready yet
-    auto response = windows.getWindowInfo( thumbnailRequest ).get();
-    BOOST_CHECK_EQUAL( response.code, 204 );
+    auto response = windows.getWindowInfo(thumbnailRequest).get();
+    BOOST_CHECK_EQUAL(response.code, 204);
 
     // Wait for async thumnbnail generation to finish
-    sleep( 2 );
-    response = windows.getWindowInfo( thumbnailRequest ).get();
-    BOOST_CHECK_EQUAL( response.code, 200 );
-    BOOST_CHECK_EQUAL( response.body, _getThumbnail( ));
-    BOOST_CHECK_EQUAL( response.headers[zeroeq::http::Header::CONTENT_TYPE],
-                       "image/png" );
+    sleep(2);
+    response = windows.getWindowInfo(thumbnailRequest).get();
+    BOOST_CHECK_EQUAL(response.code, 200);
+    BOOST_CHECK_EQUAL(response.body, _getThumbnail());
+    BOOST_CHECK_EQUAL(response.headers[zeroeq::http::Header::CONTENT_TYPE],
+                      "image/png");
 
-    displayGroup->removeContentWindow( window );
-    response = windows.getWindowInfo( thumbnailRequest ).get();
-    BOOST_CHECK_EQUAL( response.code, 404 );
+    displayGroup->removeContentWindow(window);
+    response = windows.getWindowInfo(thumbnailRequest).get();
+    BOOST_CHECK_EQUAL(response.code, 404);
 
     thumbnailRequest.path = "uuid/notDefinedAction";
-    response = windows.getWindowInfo( thumbnailRequest ).get();
-    BOOST_CHECK_EQUAL( response.code, 400 );
+    response = windows.getWindowInfo(thumbnailRequest).get();
+    BOOST_CHECK_EQUAL(response.code, 400);
 }

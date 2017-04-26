@@ -55,11 +55,11 @@ class WebbrowserWidget : public QDialog
 
 public:
     /** Constructor. */
-    WebbrowserWidget( const MasterConfiguration& config, QWidget* parent = 0 );
+    WebbrowserWidget(const MasterConfiguration& config, QWidget* parent = 0);
 
 signals:
     /** Emitted when users want to open a webbrowser. */
-    void openWebBrowser( QPointF pos, QSize size, QString url );
+    void openWebBrowser(QPointF pos, QSize size, QString url);
 
 public slots:
     /** Store the new settings and close the widget */

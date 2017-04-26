@@ -45,16 +45,15 @@
 #include "config.h"
 #include "control/ContentController.h"
 #if TIDE_ENABLE_PDF_SUPPORT
-#  include "control/PDFController.h"
+#include "control/PDFController.h"
 #endif
 #include "control/PixelStreamController.h"
 #if TIDE_USE_QT5WEBKITWIDGETS
-#  include "control/WebbrowserController.h"
+#include "control/WebbrowserController.h"
 #endif
 #include "control/ZoomController.h"
 #include "scene/ContentFactory.h"
 #include "scene/ContentWindow.h"
-
 
 namespace
 {
@@ -65,83 +64,82 @@ const int HEIGHT = 256;
 class TestController : public ContentController
 {
 public:
-    explicit TestController( ContentWindow& window )
-        : ContentController( window )
-    {}
-
-    QPointF normalize( const QPointF& point ) const
+    explicit TestController(ContentWindow& window)
+        : ContentController(window)
     {
-        return getNormalizedPoint( point );
+    }
+
+    QPointF normalize(const QPointF& point) const
+    {
+        return getNormalizedPoint(point);
     }
 };
 
-BOOST_AUTO_TEST_CASE( testFactoryMethod )
+BOOST_AUTO_TEST_CASE(testFactoryMethod)
 {
-    ContentPtr content( new DummyContent );
-    content->setDimensions( QSize( WIDTH, HEIGHT ));
-    ContentWindow window( content );
+    ContentPtr content(new DummyContent);
+    content->setDimensions(QSize(WIDTH, HEIGHT));
+    ContentWindow window(content);
 
-    auto& dummyContent = dynamic_cast<DummyContent&>( *content );
+    auto& dummyContent = dynamic_cast<DummyContent&>(*content);
 
-    auto controller = ContentController::create( window );
-    BOOST_CHECK( dynamic_cast<ContentController*>( controller.get( )));
+    auto controller = ContentController::create(window);
+    BOOST_CHECK(dynamic_cast<ContentController*>(controller.get()));
 
     dummyContent.type = CONTENT_TYPE_PIXEL_STREAM;
-    BOOST_CHECK_THROW( ContentController::create( window ),
-                       std::bad_cast );
-    ContentWindow streamWin( ContentFactory::getPixelStreamContent( "xyz" ));
-    BOOST_CHECK_NO_THROW( controller = ContentController::create( streamWin ));
-    BOOST_CHECK( dynamic_cast<PixelStreamController*>( controller.get( )));
+    BOOST_CHECK_THROW(ContentController::create(window), std::bad_cast);
+    ContentWindow streamWin(ContentFactory::getPixelStreamContent("xyz"));
+    BOOST_CHECK_NO_THROW(controller = ContentController::create(streamWin));
+    BOOST_CHECK(dynamic_cast<PixelStreamController*>(controller.get()));
 
 #if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
     dummyContent.type = CONTENT_TYPE_WEBBROWSER;
-    BOOST_CHECK_THROW( ContentController::create( window ),
-                       std::bad_cast );
+    BOOST_CHECK_THROW(ContentController::create(window), std::bad_cast);
     ContentWindow webWindow(
-       ContentFactory::getPixelStreamContent( "abc", StreamType::WEBBROWSER ));
-    BOOST_CHECK_NO_THROW( controller = ContentController::create( webWindow ));
+        ContentFactory::getPixelStreamContent("abc", StreamType::WEBBROWSER));
+    BOOST_CHECK_NO_THROW(controller = ContentController::create(webWindow));
 #endif
 #if TIDE_USE_QT5WEBKITWIDGETS
-    BOOST_CHECK( dynamic_cast<WebbrowserController*>( controller.get( )));
+    BOOST_CHECK(dynamic_cast<WebbrowserController*>(controller.get()));
 #elif TIDE_USE_QT5WEBENGINE
-    BOOST_CHECK( dynamic_cast<PixelStreamController*>( controller.get( )));
+    BOOST_CHECK(dynamic_cast<PixelStreamController*>(controller.get()));
 #endif
 
 #if TIDE_ENABLE_PDF_SUPPORT
     dummyContent.type = CONTENT_TYPE_PDF;
-    controller = ContentController::create( window );
-    BOOST_CHECK( dynamic_cast<PDFController*>( controller.get( )));
+    controller = ContentController::create(window);
+    BOOST_CHECK(dynamic_cast<PDFController*>(controller.get()));
 #endif
 
     dummyContent.type = CONTENT_TYPE_IMAGE_PYRAMID;
-    controller = ContentController::create( window );
-    BOOST_CHECK( dynamic_cast<ZoomController*>( controller.get( )));
+    controller = ContentController::create(window);
+    BOOST_CHECK(dynamic_cast<ZoomController*>(controller.get()));
 
     dummyContent.type = CONTENT_TYPE_TEXTURE;
-    controller = ContentController::create( window );
-    BOOST_CHECK( dynamic_cast<ZoomController*>( controller.get( )));
+    controller = ContentController::create(window);
+    BOOST_CHECK(dynamic_cast<ZoomController*>(controller.get()));
 
     dummyContent.type = CONTENT_TYPE_SVG;
-    controller = ContentController::create( window );
-    BOOST_CHECK( dynamic_cast<ContentController*>( controller.get( )));
+    controller = ContentController::create(window);
+    BOOST_CHECK(dynamic_cast<ContentController*>(controller.get()));
 
     dummyContent.type = CONTENT_TYPE_MOVIE;
-    controller = ContentController::create( window );
-    BOOST_CHECK( dynamic_cast<ContentController*>( controller.get( )));
+    controller = ContentController::create(window);
+    BOOST_CHECK(dynamic_cast<ContentController*>(controller.get()));
 }
 
-BOOST_AUTO_TEST_CASE( testNormalizedPosition )
+BOOST_AUTO_TEST_CASE(testNormalizedPosition)
 {
-    ContentPtr content( new DummyContent );
-    content->setDimensions( QSize( WIDTH, HEIGHT ));
-    ContentWindow window( content );
+    ContentPtr content(new DummyContent);
+    content->setDimensions(QSize(WIDTH, HEIGHT));
+    ContentWindow window(content);
 
-    TestController controller( window );
-    const QPointF point( WIDTH * 0.5, HEIGHT * 0.25 );
-    const QPointF zero( 0.0, 0.0 );
-    const QPointF one( WIDTH, HEIGHT );
+    TestController controller(window);
+    const QPointF point(WIDTH * 0.5, HEIGHT * 0.25);
+    const QPointF zero(0.0, 0.0);
+    const QPointF one(WIDTH, HEIGHT);
 
-    BOOST_CHECK_EQUAL( controller.normalize( point ), QPointF( 0.5, 0.25 ));
-    BOOST_CHECK_EQUAL( controller.normalize( zero ), QPointF( 0.0, 0.0 ));
-    BOOST_CHECK_EQUAL( controller.normalize( one ), QPointF( 1.0, 1.0 ));
+    BOOST_CHECK_EQUAL(controller.normalize(point), QPointF(0.5, 0.25));
+    BOOST_CHECK_EQUAL(controller.normalize(zero), QPointF(0.0, 0.0));
+    BOOST_CHECK_EQUAL(controller.normalize(one), QPointF(1.0, 1.0));
 }

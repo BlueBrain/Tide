@@ -43,24 +43,23 @@
 #include <QOpenGLFunctions>
 #include <QQuickWindow>
 
-TextureNode::TextureNode( const QSize& size, QQuickWindow* window,
-                          TextureFormat )
-    : _window( window )
-    , _frontTexture( window->createTextureFromId( 0 , QSize( 1 ,1 )))
-    , _backTexture( _createTexture( size ))
+TextureNode::TextureNode(const QSize& size, QQuickWindow* window, TextureFormat)
+    : _window(window)
+    , _frontTexture(window->createTextureFromId(0, QSize(1, 1)))
+    , _backTexture(_createTexture(size))
 {
-    setTexture( _frontTexture.get( ));
-    setFiltering( QSGTexture::Linear );
-    setMipmapFiltering( QSGTexture::Linear );
+    setTexture(_frontTexture.get());
+    setFiltering(QSGTexture::Linear);
+    setMipmapFiltering(QSGTexture::Linear);
 }
 
-void TextureNode::setMipmapFiltering( const QSGTexture::Filtering filtering_ )
+void TextureNode::setMipmapFiltering(const QSGTexture::Filtering filtering_)
 {
-    auto mat = static_cast<QSGOpaqueTextureMaterial*>( material( ));
-    auto opaqueMat = static_cast<QSGOpaqueTextureMaterial*>( opaqueMaterial( ));
+    auto mat = static_cast<QSGOpaqueTextureMaterial*>(material());
+    auto opaqueMat = static_cast<QSGOpaqueTextureMaterial*>(opaqueMaterial());
 
-    mat->setMipmapFiltering( filtering_ );
-    opaqueMat->setMipmapFiltering( filtering_ );
+    mat->setMipmapFiltering(filtering_);
+    opaqueMat->setMipmapFiltering(filtering_);
 }
 
 uint TextureNode::getBackGlTexture() const
@@ -70,42 +69,40 @@ uint TextureNode::getBackGlTexture() const
 
 void TextureNode::swap()
 {
-    std::swap( _frontTexture, _backTexture );
+    std::swap(_frontTexture, _backTexture);
 
-    setTexture( _frontTexture.get( ));
-    markDirty( DirtyMaterial );
+    setTexture(_frontTexture.get());
+    markDirty(DirtyMaterial);
 }
 
-void TextureNode::prepareBackTexture( const QSize& size, TextureFormat )
+void TextureNode::prepareBackTexture(const QSize& size, TextureFormat)
 {
-    if( _backTexture->textureSize() == size )
+    if (_backTexture->textureSize() == size)
         return;
 
-    _backTexture = _createTexture( size );
+    _backTexture = _createTexture(size);
 }
 
-TextureNode::QSGTexturePtr
-TextureNode::_createTexture( const QSize& size ) const
+TextureNode::QSGTexturePtr TextureNode::_createTexture(const QSize& size) const
 {
     uint textureID;
     auto gl = QOpenGLContext::currentContext()->functions();
-    gl->glActiveTexture( GL_TEXTURE0 );
-    gl->glGenTextures( 1, &textureID );
-    gl->glBindTexture( GL_TEXTURE_2D, textureID );
-    gl->glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, size.width(), size.height(),
-                      0, GL_RGBA, GL_UNSIGNED_BYTE, 0 );
-    gl->glBindTexture( GL_TEXTURE_2D, 0 );
+    gl->glActiveTexture(GL_TEXTURE0);
+    gl->glGenTextures(1, &textureID);
+    gl->glBindTexture(GL_TEXTURE_2D, textureID);
+    gl->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size.width(), size.height(), 0,
+                     GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    gl->glBindTexture(GL_TEXTURE_2D, 0);
 
-    return _createWrapper( textureID, size );
+    return _createWrapper(textureID, size);
 }
 
-TextureNode::QSGTexturePtr
-TextureNode::_createWrapper( const uint textureID, const QSize& size ) const
+TextureNode::QSGTexturePtr TextureNode::_createWrapper(const uint textureID,
+                                                       const QSize& size) const
 {
     const auto textureFlags = QQuickWindow::CreateTextureOptions(
-                                  QQuickWindow::TextureHasAlphaChannel |
-                                  QQuickWindow::TextureHasMipmaps |
-                                  QQuickWindow::TextureOwnsGLTexture );
-    return QSGTexturePtr( _window->createTextureFromId( textureID, size,
-                                                        textureFlags ));
+        QQuickWindow::TextureHasAlphaChannel | QQuickWindow::TextureHasMipmaps |
+        QQuickWindow::TextureOwnsGLTexture);
+    return QSGTexturePtr(
+        _window->createTextureFromId(textureID, size, textureFlags));
 }

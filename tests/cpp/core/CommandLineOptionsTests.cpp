@@ -37,95 +37,94 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-
 #define BOOST_TEST_MODULE CommandLineOptions
 #include <boost/test/unit_test.hpp>
 
 #include "localstreamer/CommandLineOptions.h"
 
 #include <QStringList>
-#include <vector>
 #include <string>
+#include <vector>
 
-BOOST_AUTO_TEST_CASE( testCommandLineDefaults )
+BOOST_AUTO_TEST_CASE(testCommandLineDefaults)
 {
     CommandLineOptions options;
 
-    BOOST_CHECK( !options.getHelp() );
-    BOOST_CHECK_EQUAL( options.getStreamId().toStdString(), "" );
-    BOOST_CHECK_EQUAL( options.getPixelStreamerType(), PS_UNKNOWN );
-    BOOST_CHECK_EQUAL( options.getUrl().toStdString(), "" );
-    BOOST_CHECK_EQUAL( options.getConfiguration().toStdString(), "" );
+    BOOST_CHECK(!options.getHelp());
+    BOOST_CHECK_EQUAL(options.getStreamId().toStdString(), "");
+    BOOST_CHECK_EQUAL(options.getPixelStreamerType(), PS_UNKNOWN);
+    BOOST_CHECK_EQUAL(options.getUrl().toStdString(), "");
+    BOOST_CHECK_EQUAL(options.getConfiguration().toStdString(), "");
 
-    BOOST_CHECK_EQUAL( options.getHeight(), 0 );
-    BOOST_CHECK_EQUAL( options.getWidth(), 0 );
+    BOOST_CHECK_EQUAL(options.getHeight(), 0);
+    BOOST_CHECK_EQUAL(options.getWidth(), 0);
 
-    BOOST_CHECK_EQUAL( options.getCommandLine().toStdString(), "" );
+    BOOST_CHECK_EQUAL(options.getCommandLine().toStdString(), "");
 }
 
-void setOptionParameters( CommandLineOptions& options )
+void setOptionParameters(CommandLineOptions& options)
 {
-    options.setStreamId( "MyStreamer" );
-    options.setPixelStreamerType( PS_WEBKIT );
-    options.setUrl( "http://www.perdu.com" );
-    options.setHeight( 640 );
-    options.setWidth( 480 );
-    options.setConfiguration( "/path/to/configuration.xml" );
+    options.setStreamId("MyStreamer");
+    options.setPixelStreamerType(PS_WEBKIT);
+    options.setUrl("http://www.perdu.com");
+    options.setHeight(640);
+    options.setWidth(480);
+    options.setConfiguration("/path/to/configuration.xml");
 }
 
-void checkOptionParameters( const CommandLineOptions& options )
+void checkOptionParameters(const CommandLineOptions& options)
 {
-    BOOST_CHECK( !options.getHelp() );
-    BOOST_CHECK_EQUAL( options.getStreamId().toStdString(), "MyStreamer" );
-    BOOST_CHECK_EQUAL( options.getPixelStreamerType(), PS_WEBKIT );
-    BOOST_CHECK_EQUAL( options.getUrl().toStdString(), "http://www.perdu.com" );
-    BOOST_CHECK_EQUAL( options.getHeight(), 640 );
-    BOOST_CHECK_EQUAL( options.getWidth(), 480 );
-    BOOST_CHECK_EQUAL( options.getConfiguration().toStdString(),
-                       "/path/to/configuration.xml" );
+    BOOST_CHECK(!options.getHelp());
+    BOOST_CHECK_EQUAL(options.getStreamId().toStdString(), "MyStreamer");
+    BOOST_CHECK_EQUAL(options.getPixelStreamerType(), PS_WEBKIT);
+    BOOST_CHECK_EQUAL(options.getUrl().toStdString(), "http://www.perdu.com");
+    BOOST_CHECK_EQUAL(options.getHeight(), 640);
+    BOOST_CHECK_EQUAL(options.getWidth(), 480);
+    BOOST_CHECK_EQUAL(options.getConfiguration().toStdString(),
+                      "/path/to/configuration.xml");
 
-    BOOST_CHECK_EQUAL( options.getCommandLine().toStdString(),
-                       "--type webkit --width 480 --height 640 "
-                       "--streamid MyStreamer --url http://www.perdu.com "
-                       "--config /path/to/configuration.xml" );
+    BOOST_CHECK_EQUAL(options.getCommandLine().toStdString(),
+                      "--type webkit --width 480 --height 640 "
+                      "--streamid MyStreamer --url http://www.perdu.com "
+                      "--config /path/to/configuration.xml");
 }
 
-BOOST_AUTO_TEST_CASE( testCommandLineManualCreation )
-{
-    CommandLineOptions options;
-    setOptionParameters( options );
-
-    checkOptionParameters( options );
-}
-
-BOOST_AUTO_TEST_CASE( testCommandLineFromCommandLineArguments )
+BOOST_AUTO_TEST_CASE(testCommandLineManualCreation)
 {
     CommandLineOptions options;
-    setOptionParameters( options );
+    setOptionParameters(options);
+
+    checkOptionParameters(options);
+}
+
+BOOST_AUTO_TEST_CASE(testCommandLineFromCommandLineArguments)
+{
+    CommandLineOptions options;
+    setOptionParameters(options);
 
     // Create a c-style representation of the command line options
     QStringList arguments = options.getCommandLineArguments();
     int argc = arguments.size() + 1;
-    std::vector<char*> argv( argc );
+    std::vector<char*> argv(argc);
     std::vector<char>* argList = new std::vector<char>[argc];
 
     // Program name
     {
-        const std::string tmp( "/test/program" );
-        argList[0].assign( tmp.begin(), tmp.end( ));
-        argList[0].push_back( '\0' );
+        const std::string tmp("/test/program");
+        argList[0].assign(tmp.begin(), tmp.end());
+        argList[0].push_back('\0');
         argv[0] = argList[0].data();
     }
     // Command line arguments
-    for( int i = 1; i < argc; ++i )
+    for (int i = 1; i < argc; ++i)
     {
-        const std::string tmp = arguments.at( i-1 ).toStdString();
-        argList[i].assign( tmp.begin(), tmp.end( ));
-        argList[i].push_back( '\0' );
+        const std::string tmp = arguments.at(i - 1).toStdString();
+        argList[i].assign(tmp.begin(), tmp.end());
+        argList[i].push_back('\0');
         argv[i] = argList[i].data();
     }
 
-    CommandLineOptions optionsDeserialized( argc, argv.data( ));
-    checkOptionParameters( optionsDeserialized );
-    delete [] argList;
+    CommandLineOptions optionsDeserialized(argc, argv.data());
+    checkOptionParameters(optionsDeserialized);
+    delete[] argList;
 }

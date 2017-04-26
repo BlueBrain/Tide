@@ -51,8 +51,8 @@ RestServer::RestServer()
     _init();
 }
 
-RestServer::RestServer( const int port )
-    : _httpServer{ zeroeq::URI { QString(":%1").arg( port ).toStdString( )}}
+RestServer::RestServer(const int port)
+    : _httpServer{zeroeq::URI{QString(":%1").arg(port).toStdString()}}
 {
     _init();
 }
@@ -69,6 +69,6 @@ zeroeq::http::Server& RestServer::get()
 
 void RestServer::_init()
 {
-    _socketNotifier.connect( &_socketNotifier, &QSocketNotifier::activated,
-                             [this]() { _httpServer.receive( TIMEOUT ); });
+    _socketNotifier.connect(&_socketNotifier, &QSocketNotifier::activated,
+                            [this]() { _httpServer.receive(TIMEOUT); });
 }

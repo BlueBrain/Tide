@@ -42,74 +42,72 @@
 
 #include <QTouchEvent>
 
-const QSize wallSize( 1600, 800 );
-const QRect widget( QPoint( 510, 353 ), QSize( 435, 212 ));
+const QSize wallSize(1600, 800);
+const QRect widget(QPoint(510, 353), QSize(435, 212));
 
-QMap< int, QTouchEvent::TouchPoint > touchPointMap;
+QMap<int, QTouchEvent::TouchPoint> touchPointMap;
 
 QTouchDevice touchDevice;
 
-QEvent* createTouchEvent( const int id, const QEvent::Type eventType,
-                          const Qt::TouchPointState touchPointStates,
-                          const QPointF& normalizedPos,
-                          const QTouchDevice::DeviceType deviceType =
-                                                     QTouchDevice::TouchScreen )
+QEvent* createTouchEvent(
+    const int id, const QEvent::Type eventType,
+    const Qt::TouchPointState touchPointStates, const QPointF& normalizedPos,
+    const QTouchDevice::DeviceType deviceType = QTouchDevice::TouchScreen)
 {
-    const QPoint scenePos( wallSize.width()  * normalizedPos.x(),
-                           wallSize.height() * normalizedPos.y( ));
+    const QPoint scenePos(wallSize.width() * normalizedPos.x(),
+                          wallSize.height() * normalizedPos.y());
 
-    const QPoint screenPos( widget.x() + widget.width()  * normalizedPos.x(),
-                            widget.y() + widget.height() * normalizedPos.y( ));
+    const QPoint screenPos(widget.x() + widget.width() * normalizedPos.x(),
+                           widget.y() + widget.height() * normalizedPos.y());
 
-    QTouchEvent::TouchPoint touchPoint( id );
-    touchPoint.setPressure( 1.0 );
-    touchPoint.setNormalizedPos( normalizedPos );
-    touchPoint.setPos( scenePos );
-    touchPoint.setScenePos( scenePos );
-    touchPoint.setScreenPos( screenPos );
+    QTouchEvent::TouchPoint touchPoint(id);
+    touchPoint.setPressure(1.0);
+    touchPoint.setNormalizedPos(normalizedPos);
+    touchPoint.setPos(scenePos);
+    touchPoint.setScenePos(scenePos);
+    touchPoint.setScreenPos(screenPos);
 
-    switch( eventType )
+    switch (eventType)
     {
     case QEvent::TouchBegin:
-        touchPoint.setStartNormalizedPos( touchPoint.normalizedPos( ));
-        touchPoint.setStartPos( touchPoint.pos( ));
-        touchPoint.setStartScreenPos( touchPoint.screenPos( ));
-        touchPoint.setStartScenePos( touchPoint.scenePos( ));
+        touchPoint.setStartNormalizedPos(touchPoint.normalizedPos());
+        touchPoint.setStartPos(touchPoint.pos());
+        touchPoint.setStartScreenPos(touchPoint.screenPos());
+        touchPoint.setStartScenePos(touchPoint.scenePos());
 
-        touchPoint.setLastNormalizedPos( touchPoint.normalizedPos( ));
-        touchPoint.setLastPos( touchPoint.pos( ));
-        touchPoint.setLastScreenPos( touchPoint.screenPos( ));
-        touchPoint.setLastScenePos( touchPoint.scenePos( ));
+        touchPoint.setLastNormalizedPos(touchPoint.normalizedPos());
+        touchPoint.setLastPos(touchPoint.pos());
+        touchPoint.setLastScreenPos(touchPoint.screenPos());
+        touchPoint.setLastScenePos(touchPoint.scenePos());
         break;
 
     case QEvent::TouchUpdate:
     case QEvent::TouchEnd:
     {
-        const QTouchEvent::TouchPoint& prevPoint = touchPointMap.value( id );
-        touchPoint.setStartNormalizedPos( prevPoint.startNormalizedPos( ));
-        touchPoint.setStartPos( prevPoint.startPos( ));
-        touchPoint.setStartScreenPos( prevPoint.startScreenPos( ));
-        touchPoint.setStartScenePos( prevPoint.startScenePos( ));
+        const QTouchEvent::TouchPoint& prevPoint = touchPointMap.value(id);
+        touchPoint.setStartNormalizedPos(prevPoint.startNormalizedPos());
+        touchPoint.setStartPos(prevPoint.startPos());
+        touchPoint.setStartScreenPos(prevPoint.startScreenPos());
+        touchPoint.setStartScenePos(prevPoint.startScenePos());
 
-        touchPoint.setLastNormalizedPos( prevPoint.normalizedPos( ));
-        touchPoint.setLastPos( prevPoint.pos( ));
-        touchPoint.setLastScreenPos( prevPoint.screenPos( ));
-        touchPoint.setLastScenePos( prevPoint.scenePos( ));
+        touchPoint.setLastNormalizedPos(prevPoint.normalizedPos());
+        touchPoint.setLastPos(prevPoint.pos());
+        touchPoint.setLastScreenPos(prevPoint.screenPos());
+        touchPoint.setLastScenePos(prevPoint.scenePos());
         break;
     }
-    default:
-        ;
+    default:;
     }
 
-    touchPointMap.insert( id, touchPoint );
+    touchPointMap.insert(id, touchPoint);
 
-    touchDevice.setType( deviceType );
+    touchDevice.setType(deviceType);
 
-    QEvent* event = new QTouchEvent( eventType, &touchDevice, Qt::NoModifier,
-                                     touchPointStates, touchPointMap.values( ));
+    QEvent* event = new QTouchEvent(eventType, &touchDevice, Qt::NoModifier,
+                                    touchPointStates, touchPointMap.values());
 
-    if( eventType == QEvent::TouchEnd )
-        touchPointMap.remove( id );
+    if (eventType == QEvent::TouchEnd)
+        touchPointMap.remove(id);
 
     return event;
 }

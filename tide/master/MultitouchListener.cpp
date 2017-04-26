@@ -43,32 +43,32 @@
 MultitouchListener::MultitouchListener()
     : TUIO::TuioListener()
 {
-    _client.addTuioListener( this );
+    _client.addTuioListener(this);
     _client.connect();
 }
 
 MultitouchListener::~MultitouchListener()
 {
-    _client.removeTuioListener( this );
+    _client.removeTuioListener(this);
     _client.disconnect();
 }
 
-inline QPointF _getPos( TUIO::TuioCursor* tcur )
+inline QPointF _getPos(TUIO::TuioCursor* tcur)
 {
-    return QPointF{ tcur->getX(), tcur->getY() };
+    return QPointF{tcur->getX(), tcur->getY()};
 }
 
-void MultitouchListener::addTuioCursor( TUIO::TuioCursor* tcur )
+void MultitouchListener::addTuioCursor(TUIO::TuioCursor* tcur)
 {
-    emit touchPointAdded( tcur->getCursorID(), _getPos( tcur ));
+    emit touchPointAdded(tcur->getCursorID(), _getPos(tcur));
 }
 
-void MultitouchListener::updateTuioCursor( TUIO::TuioCursor* tcur )
+void MultitouchListener::updateTuioCursor(TUIO::TuioCursor* tcur)
 {
-    emit touchPointUpdated( tcur->getCursorID(), _getPos( tcur ));
+    emit touchPointUpdated(tcur->getCursorID(), _getPos(tcur));
 }
 
-void MultitouchListener::removeTuioCursor( TUIO::TuioCursor* tcur )
+void MultitouchListener::removeTuioCursor(TUIO::TuioCursor* tcur)
 {
-    emit touchPointRemoved( tcur->getCursorID( ), _getPos( tcur ));
+    emit touchPointRemoved(tcur->getCursorID(), _getPos(tcur));
 }

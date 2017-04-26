@@ -48,8 +48,8 @@
 
 #include <boost/enable_shared_from_this.hpp>
 
-#include <QObject>
 #include <QColor>
+#include <QObject>
 
 /**
  * Rendering options which can be changed during runtime.
@@ -60,25 +60,25 @@
 class Options : public QObject, public boost::enable_shared_from_this<Options>
 {
     Q_OBJECT
-    Q_DISABLE_COPY( Options )
-    Q_PROPERTY( bool alphaBlending READ isAlphaBlendingEnabled
-                NOTIFY alphaBlendingEnabledChanged )
-    Q_PROPERTY( bool showClock READ getShowClock WRITE setShowClock
-                NOTIFY showClockChanged )
-    Q_PROPERTY( bool showContentTiles READ getShowContentTiles
-                NOTIFY showContentTilesChanged )
-    Q_PROPERTY( bool showControlArea READ getShowControlArea
-                NOTIFY showControlAreaChanged )
-    Q_PROPERTY( bool showStatistics READ getShowStatistics
-                NOTIFY showStatisticsChanged )
-    Q_PROPERTY( bool showTouchPoints READ getShowTouchPoints
-                NOTIFY showTouchPointsChanged )
-    Q_PROPERTY( bool showWindowBorders READ getShowWindowBorders
-                NOTIFY showWindowBordersChanged )
-    Q_PROPERTY( bool showWindowTitles READ getShowWindowTitles
-                NOTIFY showWindowTitlesChanged )
-    Q_PROPERTY( bool showZoomContext READ getShowZoomContext
-                NOTIFY showZoomContextChanged )
+    Q_DISABLE_COPY(Options)
+    Q_PROPERTY(bool alphaBlending READ isAlphaBlendingEnabled NOTIFY
+                   alphaBlendingEnabledChanged)
+    Q_PROPERTY(bool showClock READ getShowClock WRITE setShowClock NOTIFY
+                   showClockChanged)
+    Q_PROPERTY(bool showContentTiles READ getShowContentTiles NOTIFY
+                   showContentTilesChanged)
+    Q_PROPERTY(bool showControlArea READ getShowControlArea NOTIFY
+                   showControlAreaChanged)
+    Q_PROPERTY(
+        bool showStatistics READ getShowStatistics NOTIFY showStatisticsChanged)
+    Q_PROPERTY(bool showTouchPoints READ getShowTouchPoints NOTIFY
+                   showTouchPointsChanged)
+    Q_PROPERTY(bool showWindowBorders READ getShowWindowBorders NOTIFY
+                   showWindowBordersChanged)
+    Q_PROPERTY(bool showWindowTitles READ getShowWindowTitles NOTIFY
+                   showWindowTitlesChanged)
+    Q_PROPERTY(bool showZoomContext READ getShowZoomContext NOTIFY
+                   showZoomContextChanged)
 
 public:
     /** Default constructor */
@@ -114,69 +114,70 @@ public:
      * direct children of this class.
      * @param thread the target thread.
      */
-    void moveToThread( QThread* thread );
+    void moveToThread(QThread* thread);
 
 public slots:
     /** @name QProperty setters. @see updated() */
     //@{
-    void enableAlphaBlending( bool set );
-    void setAutoFocusPixelStreams( bool set );
-    void setShowClock( bool set );
-    void setShowContentTiles( bool set );
-    void setShowControlArea( bool set );
-    void setShowStatistics( bool set );
-    void setShowTestPattern( bool set );
-    void setShowTouchPoints( bool set );
-    void setShowWindowBorders( bool set );
-    void setShowWindowTitles( bool set );
-    void setShowZoomContext( bool set );
+    void enableAlphaBlending(bool set);
+    void setAutoFocusPixelStreams(bool set);
+    void setShowClock(bool set);
+    void setShowContentTiles(bool set);
+    void setShowControlArea(bool set);
+    void setShowStatistics(bool set);
+    void setShowTestPattern(bool set);
+    void setShowTouchPoints(bool set);
+    void setShowWindowBorders(bool set);
+    void setShowWindowTitles(bool set);
+    void setShowZoomContext(bool set);
     //@}
 
     /** @name Background settings. @see updated(). */
     //@{
     /** Set the color of the background. */
-    void setBackgroundColor( QColor color );
+    void setBackgroundColor(QColor color);
 
     /**
      * Set the background content.
      * @param content The content to set.
      *        A null pointer removes the current background.
      */
-    void setBackgroundContent( ContentPtr content );
+    void setBackgroundContent(ContentPtr content);
 
     /**
      * Set the background content from a uri.
      * @param uri The uri of the content to set. If the uri is invalid, the
      *        content is not modified. An empty uri removes the content.
      */
-    void setBackgroundUri( const QString& uri );
+    void setBackgroundUri(const QString& uri);
     //@}
 
 signals:
     /** @name QProperty notifiers */
     //@{
-    void alphaBlendingEnabledChanged( bool set );
-    void autoFocusPixelStreamsChanged( bool set );
-    void showContentTilesChanged( bool set );
-    void showClockChanged( bool set );
-    void showControlAreaChanged( bool set );
-    void showStatisticsChanged( bool set );
-    void showTestPatternChanged( bool set );
-    void showTouchPointsChanged( bool set );
-    void showWindowBordersChanged( bool set );
-    void showWindowTitlesChanged( bool set );
-    void showZoomContextChanged( bool set );
+    void alphaBlendingEnabledChanged(bool set);
+    void autoFocusPixelStreamsChanged(bool set);
+    void showContentTilesChanged(bool set);
+    void showClockChanged(bool set);
+    void showControlAreaChanged(bool set);
+    void showStatisticsChanged(bool set);
+    void showTestPatternChanged(bool set);
+    void showTouchPointsChanged(bool set);
+    void showWindowBordersChanged(bool set);
+    void showWindowTitlesChanged(bool set);
+    void showZoomContextChanged(bool set);
     //@}
 
     /** Emitted when any value is changed by one of the setters. */
-    void updated( OptionsPtr );
+    void updated(OptionsPtr);
 
 private:
     friend class boost::serialization::access;
 
-    template<class Archive>
-    void serialize( Archive & ar, const unsigned int )
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int)
     {
+        // clang-format off
         ar & _alphaBlendingEnabled;
         ar & _autoFocusPixelStreams;
         ar & _showClock;
@@ -190,6 +191,7 @@ private:
         ar & _showZoomContext;
         ar & _backgroundColor;
         ar & _backgroundContent;
+        // clang-format on
     }
 
     bool _alphaBlendingEnabled;

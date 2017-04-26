@@ -56,39 +56,41 @@
 #endif
 #include "SVGSynchronizer.h"
 
-ContentSynchronizer::~ContentSynchronizer() {}
+ContentSynchronizer::~ContentSynchronizer()
+{
+}
 
-std::unique_ptr<ContentSynchronizer>
-ContentSynchronizer::create( ContentPtr content )
+std::unique_ptr<ContentSynchronizer> ContentSynchronizer::create(
+    ContentPtr content)
 {
     const QString& uri = content->getURI();
-    switch( content->getType( ))
+    switch (content->getType())
     {
 #if TIDE_USE_TIFF
     case CONTENT_TYPE_IMAGE_PYRAMID:
-        return make_unique<ImagePyramidSynchronizer>( uri );
+        return make_unique<ImagePyramidSynchronizer>(uri);
 #endif
 #if TIDE_ENABLE_MOVIE_SUPPORT
     case CONTENT_TYPE_MOVIE:
-        return make_unique<MovieSynchronizer>( uri );
+        return make_unique<MovieSynchronizer>(uri);
 #endif
     case CONTENT_TYPE_PIXEL_STREAM:
     case CONTENT_TYPE_WEBBROWSER:
         return make_unique<PixelStreamSynchronizer>();
 #if TIDE_ENABLE_PDF_SUPPORT
     case CONTENT_TYPE_PDF:
-        return make_unique<PDFSynchronizer>( uri );
+        return make_unique<PDFSynchronizer>(uri);
 #endif
     case CONTENT_TYPE_SVG:
-        return make_unique<SVGSynchronizer>( uri );
+        return make_unique<SVGSynchronizer>(uri);
     case CONTENT_TYPE_TEXTURE:
-        return make_unique<ImageSynchronizer>( uri );
+        return make_unique<ImageSynchronizer>(uri);
     default:
-        throw std::runtime_error( "No ContentSynchronizer for ContentType" );
+        throw std::runtime_error("No ContentSynchronizer for ContentType");
     }
 }
 
-void ContentSynchronizer::onTextureReady( TilePtr tile )
+void ContentSynchronizer::onTextureReady(TilePtr tile)
 {
-    emit requestTileUpdate( shared_from_this(), TileWeakPtr( tile ));
+    emit requestTileUpdate(shared_from_this(), TileWeakPtr(tile));
 }

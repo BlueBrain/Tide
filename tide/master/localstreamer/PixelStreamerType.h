@@ -50,9 +50,9 @@ enum PixelStreamerType
 };
 
 /** Get the String representation for a PixelStreamerType. */
-QString getStreamerTypeString( const PixelStreamerType type );
+QString getStreamerTypeString(const PixelStreamerType type);
 
 /** Get the PixelStreamerType from its String representation. */
-PixelStreamerType getStreamerType( const QString& typeString );
+PixelStreamerType getStreamerType(const QString& typeString);
 
 #endif

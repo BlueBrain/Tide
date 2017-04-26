@@ -54,9 +54,9 @@ class WebbrowserHistory
 public:
     WebbrowserHistory() = default;
 #ifdef TIDE_USE_QT5WEBKITWIDGETS
-    explicit WebbrowserHistory( const QWebHistory& history );
+    explicit WebbrowserHistory(const QWebHistory& history);
 #endif
-    WebbrowserHistory( std::vector<QString>&& items, size_t currentItemIndex );
+    WebbrowserHistory(std::vector<QString>&& items, size_t currentItemIndex);
 
     const std::vector<QString>& items() const;
     size_t currentItemIndex() const;
@@ -68,23 +68,27 @@ private:
     std::vector<QString> _items;
     size_t _currentItemIndex = 0;
 
-    template<class Archive>
-    void save( Archive& ar, const unsigned int ) const
+    template <class Archive>
+    void save(Archive& ar, const unsigned int) const
     {
+        // clang-format off
         ar & _items;
         ar & _currentItemIndex;
+        // clang-format on
     }
 
-    template<class Archive>
-    void load( Archive& ar, const unsigned int )
+    template <class Archive>
+    void load(Archive& ar, const unsigned int)
     {
 #if BOOST_VERSION == 105800
         // WAR bug for std::vector of strings affecting Boost 1.58 only
         // https://bugs.launchpad.net/ubuntu/+source/boost/+bug/1583805
         _items.clear();
 #endif
+        // clang-format off
         ar & _items;
         ar & _currentItemIndex;
+        // clang-format on
     }
 
     BOOST_SERIALIZATION_SPLIT_MEMBER()

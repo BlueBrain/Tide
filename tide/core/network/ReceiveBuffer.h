@@ -40,8 +40,8 @@
 #ifndef RECEIVEBUFFER_H
 #define RECEIVEBUFFER_H
 
-#include <vector>
 #include <boost/noncopyable.hpp>
+#include <vector>
 
 /**
  * Utility class to optimize the reception of any type of serialized data.
@@ -56,25 +56,23 @@ class ReceiveBuffer : boost::noncopyable
 {
 public:
     /** Construct an empty buffer. */
-    ReceiveBuffer() {}
+    ReceiveBuffer() = default;
 
     /**
      * Set the new size of the buffer and grow the storage if necessary.
      * @param minSize the minimum size required for a following deserialization.
      */
-    void setSize( const size_t minSize )
+    void setSize(const size_t minSize)
     {
-        if( _buffer.size() < minSize )
-            _buffer.resize( minSize );
+        if (_buffer.size() < minSize)
+            _buffer.resize(minSize);
         _size = minSize;
     }
 
     /** @return the current size of the buffer. */
     size_t size() const { return _size; }
-
     /** Direct write access to the buffer, don't write beyond size(). */
     char* data() { return _buffer.data(); }
-
 private:
     std::vector<char> _buffer;
     size_t _size = 0;

@@ -40,31 +40,32 @@
 #include "LodSynchronizer.h"
 
 #include "DataSource.h"
-#include "scene/ContentWindow.h"
 #include "Tile.h"
 #include "ZoomHelper.h"
+#include "scene/ContentWindow.h"
 
 #include <QTextStream>
 
-LodSynchronizer::LodSynchronizer( const TileSwapPolicy policy )
-    : TiledSynchronizer( policy )
-{}
-
-void LodSynchronizer::update( const ContentWindow& window,
-                              const QRectF& visibleArea )
+LodSynchronizer::LodSynchronizer(const TileSwapPolicy policy)
+    : TiledSynchronizer(policy)
 {
-    const ZoomHelper helper( window );
-    const uint lod = getLod( helper.getContentRect().size().toSize( ));
-    const QSize tilesSurface = getDataSource().getTilesArea( lod );
-    const QRectF visibleTilesArea = helper.toTilesArea( visibleArea,
-                                                        tilesSurface );
+}
 
-    if( visibleTilesArea == _visibleTilesArea && lod == _lod )
+void LodSynchronizer::update(const ContentWindow& window,
+                             const QRectF& visibleArea)
+{
+    const ZoomHelper helper(window);
+    const uint lod = getLod(helper.getContentRect().size().toSize());
+    const QSize tilesSurface = getDataSource().getTilesArea(lod);
+    const QRectF visibleTilesArea =
+        helper.toTilesArea(visibleArea, tilesSurface);
+
+    if (visibleTilesArea == _visibleTilesArea && lod == _lod)
         return;
 
     _visibleTilesArea = visibleTilesArea;
 
-    if( lod != _lod )
+    if (lod != _lod)
     {
         _lod = lod;
 
@@ -72,70 +73,69 @@ void LodSynchronizer::update( const ContentWindow& window,
         emit tilesAreaChanged();
     }
 
-    setBackgroundTile( 0 );
+    setBackgroundTile(0);
 
-    TiledSynchronizer::updateTiles( getDataSource(), false );
+    TiledSynchronizer::updateTiles(getDataSource(), false);
 }
 
 QSize LodSynchronizer::getTilesArea() const
 {
-    return getDataSource().getTilesArea( _lod );
+    return getDataSource().getTilesArea(_lod);
 }
 
 QString LodSynchronizer::getStatistics() const
 {
     QString stats;
-    QTextStream stream( &stats );
+    QTextStream stream(&stats);
     stream << "LOD:  " << _lod << "/" << getDataSource().getMaxLod();
     const QSize& area = getTilesArea();
     stream << "  res: " << area.width() << "x" << area.height();
     return stats;
 }
 
-ImagePtr LodSynchronizer::getTileImage( const uint tileIndex ) const
+ImagePtr LodSynchronizer::getTileImage(const uint tileIndex) const
 {
-    return getDataSource().getTileImage( tileIndex );
+    return getDataSource().getTileImage(tileIndex);
 }
 
 TilePtr LodSynchronizer::getZoomContextTile() const
 {
-    const auto rect = getDataSource().getTileRect( 0 );
-    return std::make_shared<Tile>( 0, rect );
+    const auto rect = getDataSource().getTileRect(0);
+    return std::make_shared<Tile>(0, rect);
 }
 
-uint LodSynchronizer::getLod( const QSize& targetDisplaySize ) const
+uint LodSynchronizer::getLod(const QSize& targetDisplaySize) const
 {
     uint lod = 0;
-    QSize nextLOD = getDataSource().getTilesArea( 1 );
+    QSize nextLOD = getDataSource().getTilesArea(1);
     const uint maxLod = getDataSource().getMaxLod();
-    while( targetDisplaySize.width() < nextLOD.width() &&
-           targetDisplaySize.height() < nextLOD.height( ) &&
-           lod < maxLod )
+    while (targetDisplaySize.width() < nextLOD.width() &&
+           targetDisplaySize.height() < nextLOD.height() && lod < maxLod)
     {
-        nextLOD = getDataSource().getTilesArea( ++lod + 1 );
+        nextLOD = getDataSource().getTilesArea(++lod + 1);
     }
     return lod;
 }
 
-void LodSynchronizer::setBackgroundTile( const uint tileId )
+void LodSynchronizer::setBackgroundTile(const uint tileId)
 {
     // Add an lod-0 tile always visible in the background to smooth LOD
     // transitions. TODO: implement a finer control to switch tiles after the
     // new LOD is ready [DISCL-345].
 
-    if( !_ignoreSet.count( tileId ))
+    if (!_ignoreSet.count(tileId))
     {
-        for( auto tile : _ignoreSet )
-            emit removeTile( tile );
+        for (auto tile : _ignoreSet)
+            emit removeTile(tile);
         _ignoreSet.clear();
     }
 
-    if( _ignoreSet.empty( ))
+    if (_ignoreSet.empty())
     {
-        _ignoreSet.insert( tileId );
-        auto tile = std::make_shared<Tile>(
-                        tileId, getDataSource().getTileRect( tileId ));
-        tile->setSizePolicy( Tile::FillParent );
-        emit addTile( tile );
+        _ignoreSet.insert(tileId);
+        auto tile =
+            std::make_shared<Tile>(tileId, getDataSource().getTileRect(tileId));
+        tile->setSizePolicy(Tile::FillParent);
+        emit addTile(tile);
     }
 }

@@ -71,13 +71,16 @@ public:
     size_t getWindowCount() const;
 
 public slots:
-    /** Log the event, update the counters and update the timestamp of last interaction */
-    void contentWindowAdded( ContentWindowPtr contentWindow );
+    /** Log the event, update the counters and update the timestamp of last
+     * interaction */
+    void contentWindowAdded(ContentWindowPtr contentWindow);
 
-    /** Log the event, update the counters and update the timestamp of last interaction */
+    /** Log the event, update the counters and update the timestamp of last
+     * interaction */
     void contentWindowMovedToFront();
 
-    /** Log the event, update the counters and update the timestamp of last interaction */
+    /** Log the event, update the counters and update the timestamp of last
+     * interaction */
     void contentWindowRemoved();
 
 private:
@@ -91,7 +94,7 @@ private:
     void _decrementWindowCount();
     void _incrementWindowCount();
     QString _getTimeStamp() const;
-    void _log( const QString& s );
+    void _log(const QString& s);
 };
 
 #endif

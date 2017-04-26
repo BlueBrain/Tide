@@ -41,21 +41,20 @@
 
 #include "PixelStreamContent.h"
 
-BOOST_CLASS_EXPORT_IMPLEMENT( PixelStreamContent )
+BOOST_CLASS_EXPORT_IMPLEMENT(PixelStreamContent)
 
-IMPLEMENT_SERIALIZE_FOR_XML( PixelStreamContent )
+IMPLEMENT_SERIALIZE_FOR_XML(PixelStreamContent)
 
 namespace
 {
-const QString ICON_KEYBOARD( "qrc:///img/keyboard.svg" );
+const QString ICON_KEYBOARD("qrc:///img/keyboard.svg");
 }
 
-PixelStreamContent::PixelStreamContent( const QString& uri,
-                                        const bool keyboard )
-    : Content( uri )
-    , _eventReceiversCount( 0 )
+PixelStreamContent::PixelStreamContent(const QString& uri, const bool keyboard)
+    : Content(uri)
+    , _eventReceiversCount(0)
 {
-    if( keyboard )
+    if (keyboard)
         _createActions();
 }
 
@@ -71,8 +70,8 @@ bool PixelStreamContent::readMetadata()
 
 Content::Interaction PixelStreamContent::getInteractionPolicy() const
 {
-    return hasEventReceivers() ? Content::Interaction::ON :
-                                 Content::Interaction::OFF;
+    return hasEventReceivers() ? Content::Interaction::ON
+                               : Content::Interaction::OFF;
 }
 
 bool PixelStreamContent::hasEventReceivers() const
@@ -82,7 +81,7 @@ bool PixelStreamContent::hasEventReceivers() const
 
 void PixelStreamContent::incrementEventReceiverCount()
 {
-    if( ++_eventReceiversCount == 1 )
+    if (++_eventReceiversCount == 1)
     {
         emit interactionPolicyChanged();
         emit modified();
@@ -92,12 +91,12 @@ void PixelStreamContent::incrementEventReceiverCount()
 void PixelStreamContent::_createActions()
 {
     ContentAction* keyboardAction = new ContentAction();
-    keyboardAction->setCheckable( true );
-    keyboardAction->setIcon( ICON_KEYBOARD );
-    keyboardAction->setIconChecked( ICON_KEYBOARD );
-    connect( keyboardAction, &ContentAction::triggered,
-             &_keyboardState, &KeyboardState::setVisible );
-    connect( &_keyboardState, &KeyboardState::visibleChanged,
-             keyboardAction, &ContentAction::setChecked );
-    _actions.add( keyboardAction );
+    keyboardAction->setCheckable(true);
+    keyboardAction->setIcon(ICON_KEYBOARD);
+    keyboardAction->setIconChecked(ICON_KEYBOARD);
+    connect(keyboardAction, &ContentAction::triggered, &_keyboardState,
+            &KeyboardState::setVisible);
+    connect(&_keyboardState, &KeyboardState::visibleChanged, keyboardAction,
+            &ContentAction::setChecked);
+    _actions.add(keyboardAction);
 }

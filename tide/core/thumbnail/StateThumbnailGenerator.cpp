@@ -43,42 +43,37 @@
 
 #include <QPainter>
 
-StateThumbnailGenerator::StateThumbnailGenerator( const QSize& size )
-    : ThumbnailGenerator( size )
+StateThumbnailGenerator::StateThumbnailGenerator(const QSize& size)
+    : ThumbnailGenerator(size)
 {
 }
 
-QImage StateThumbnailGenerator::generate( const QString& filename ) const
+QImage StateThumbnailGenerator::generate(const QString& filename) const
 {
-    QImage thumbnail = createGradientImage( Qt::darkCyan, Qt::cyan );
+    QImage thumbnail = createGradientImage(Qt::darkCyan, Qt::cyan);
 
-    StatePreview filePreview( filename );
-    if( filePreview.loadFromFile( ))
+    StatePreview filePreview(filename);
+    if (filePreview.loadFromFile())
     {
         const QImage preview = filePreview.getImage();
-        const QSize newSize = preview.size().scaled( thumbnail.size(),
-                                                     Qt::KeepAspectRatio );
-        thumbnail = thumbnail.scaled( newSize );
-        QPainter painter( &thumbnail );
-        const QRect rect = _scaleRectAroundCenter( thumbnail.rect(), 0.9f );
-        painter.drawImage( rect, preview );
+        const QSize newSize =
+            preview.size().scaled(thumbnail.size(), Qt::KeepAspectRatio);
+        thumbnail = thumbnail.scaled(newSize);
+        QPainter painter(&thumbnail);
+        const QRect rect = _scaleRectAroundCenter(thumbnail.rect(), 0.9f);
+        painter.drawImage(rect, preview);
     }
     else
-        paintText( thumbnail, "session" );
+        paintText(thumbnail, "session");
 
     return thumbnail;
 }
 
-
-QRect
-StateThumbnailGenerator::_scaleRectAroundCenter( const QRect& rect,
-                                                 const float scaleFactor ) const
+QRect StateThumbnailGenerator::_scaleRectAroundCenter(
+    const QRect& rect, const float scaleFactor) const
 {
-    const float topLeftFactor = 0.5f * ( 1.0f - scaleFactor );
+    const float topLeftFactor = 0.5f * (1.0f - scaleFactor);
 
-    return QRect( topLeftFactor*rect.width(),
-                  topLeftFactor*rect.height(),
-                  scaleFactor*rect.width(),
-                  scaleFactor*rect.height()
-                 );
+    return QRect(topLeftFactor * rect.width(), topLeftFactor * rect.height(),
+                 scaleFactor * rect.width(), scaleFactor * rect.height());
 }

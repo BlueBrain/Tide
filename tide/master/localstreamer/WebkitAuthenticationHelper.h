@@ -68,7 +68,7 @@ public:
      *
      * @param webView The QWebView for which to add authentication handling.
      */
-    WebkitAuthenticationHelper( QWebView& webView );
+    WebkitAuthenticationHelper(QWebView& webView);
 
 protected slots:
     /** @name Internal Callbacks
@@ -76,23 +76,23 @@ protected slots:
      * private, otherwise the compiler ignores them at compilation time.
      */
     //@{
-    void loginFormInputChanged( const QString& inputName,
-                                const QString& inputValue );
+    void loginFormInputChanged(const QString& inputName,
+                               const QString& inputValue);
     void loginFormSubmitted();
     //@}
 
 private slots:
-    void handleAuthenticationRequest( QNetworkReply*,
-                                      QAuthenticator* authenticator );
-    void errorPageFinishedLoading( bool ok );
+    void handleAuthenticationRequest(QNetworkReply*,
+                                     QAuthenticator* authenticator);
+    void errorPageFinishedLoading(bool ok);
 
 private:
-    Q_DISABLE_COPY( WebkitAuthenticationHelper )
+    Q_DISABLE_COPY(WebkitAuthenticationHelper)
 
     void _displayLoginPage();
     void _registerLoginFormCallbacks();
-    void _sendCredentials( QAuthenticator* authenticator ) const;
-    QString _readQrcFile( const QString& filename );
+    void _sendCredentials(QAuthenticator* authenticator) const;
+    QString _readQrcFile(const QString& filename);
 
     QWebView& _webView;
 
@@ -101,4 +101,4 @@ private:
     QString _password;
 };
 
-#endif // WEBKITAUTHENTICATIONHELPER_H
+#endif

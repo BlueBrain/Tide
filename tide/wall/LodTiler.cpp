@@ -39,28 +39,30 @@
 
 #include "LodTiler.h"
 
-LodTiler::LodTiler( const QSize& contentSize, const uint tileSize )
-    : _lodTool( contentSize, tileSize )
-{}
-
-LodTiler::LodTiler( std::pair<QSize, uint> args )
-    : _lodTool( args.first, args.second )
-{}
-
-QRect LodTiler::getTileRect( const uint tileId ) const
+LodTiler::LodTiler(const QSize& contentSize, const uint tileSize)
+    : _lodTool(contentSize, tileSize)
 {
-    return _lodTool.getTileCoord( tileId );
 }
 
-QSize LodTiler::getTilesArea( const uint lod ) const
+LodTiler::LodTiler(std::pair<QSize, uint> args)
+    : _lodTool(args.first, args.second)
 {
-    return _lodTool.getTilesArea( lod );
 }
 
-Indices LodTiler::computeVisibleSet( const QRectF& visibleTilesArea,
-                                     const uint lod ) const
+QRect LodTiler::getTileRect(const uint tileId) const
 {
-    return _lodTool.getVisibleTiles( visibleTilesArea, lod );
+    return _lodTool.getTileCoord(tileId);
+}
+
+QSize LodTiler::getTilesArea(const uint lod) const
+{
+    return _lodTool.getTilesArea(lod);
+}
+
+Indices LodTiler::computeVisibleSet(const QRectF& visibleTilesArea,
+                                    const uint lod) const
+{
+    return _lodTool.getVisibleTiles(visibleTilesArea, lod);
 }
 
 uint LodTiler::getMaxLod() const
@@ -68,13 +70,13 @@ uint LodTiler::getMaxLod() const
     return _lodTool.getMaxLod();
 }
 
-QRectF LodTiler::getNormalizedTileRect( const uint tileId ) const
+QRectF LodTiler::getNormalizedTileRect(const uint tileId) const
 {
-    const QRectF tile( getTileRect( tileId ));
-    const uint lod = _lodTool.getTileIndex( tileId ).lod;
-    const QSize area = getTilesArea( lod );
+    const QRectF tile(getTileRect(tileId));
+    const uint lod = _lodTool.getTileIndex(tileId).lod;
+    const QSize area = getTilesArea(lod);
 
-    const auto t = QTransform::fromScale( 1.0 / area.width(),
-                                          1.0 / area.height( ));
-    return t.mapRect( tile );
+    const auto t =
+        QTransform::fromScale(1.0 / area.width(), 1.0 / area.height());
+    return t.mapRect(tile);
 }

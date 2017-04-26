@@ -39,66 +39,68 @@
 
 #include "ThumbnailGeneratorFactory.h"
 
-#include "config.h"
 #include "DefaultThumbnailGenerator.h"
 #include "FolderThumbnailGenerator.h"
 #include "ImageThumbnailGenerator.h"
-#include "scene/TextureContent.h"
 #include "StateThumbnailGenerator.h"
+#include "config.h"
+#include "scene/TextureContent.h"
 
 #if TIDE_ENABLE_MOVIE_SUPPORT
-#include "scene/MovieContent.h"
 #include "MovieThumbnailGenerator.h"
+#include "scene/MovieContent.h"
 #endif
 #if TIDE_ENABLE_PDF_SUPPORT
-#  include "scene/PDFContent.h"
-#  include "PDFThumbnailGenerator.h"
+#include "PDFThumbnailGenerator.h"
+#include "scene/PDFContent.h"
 #endif
 #if TIDE_USE_TIFF
-#  include "data/TiffPyramidReader.h"
-#  include "scene/ImagePyramidContent.h"
-#  include "ImagePyramidThumbnailGenerator.h"
+#include "ImagePyramidThumbnailGenerator.h"
+#include "data/TiffPyramidReader.h"
+#include "scene/ImagePyramidContent.h"
 #endif
 
 #include <QDir>
 
-ThumbnailGeneratorPtr
-ThumbnailGeneratorFactory::getGenerator( const QString& filename,
-                                         const QSize& size )
+ThumbnailGeneratorPtr ThumbnailGeneratorFactory::getGenerator(
+    const QString& filename, const QSize& size)
 {
-    if( !filename.isEmpty() && QDir( filename ).exists( ))
-        return ThumbnailGeneratorPtr( new FolderThumbnailGenerator( size ));
+    if (!filename.isEmpty() && QDir(filename).exists())
+        return ThumbnailGeneratorPtr(new FolderThumbnailGenerator(size));
 
-    const auto extension = QFileInfo( filename ).suffix().toLower();
+    const auto extension = QFileInfo(filename).suffix().toLower();
 
-    if( extension == "dcx" )
-        return ThumbnailGeneratorPtr( new StateThumbnailGenerator( size ));
+    if (extension == "dcx")
+        return ThumbnailGeneratorPtr(new StateThumbnailGenerator(size));
 
 #if TIDE_ENABLE_MOVIE_SUPPORT
-    if( MovieContent::getSupportedExtensions().contains( extension ))
-        return ThumbnailGeneratorPtr( new MovieThumbnailGenerator( size ));
+    if (MovieContent::getSupportedExtensions().contains(extension))
+        return ThumbnailGeneratorPtr(new MovieThumbnailGenerator(size));
 #endif
 
 #if TIDE_USE_TIFF
-    if( ImagePyramidContent::getSupportedExtensions().contains( extension ))
+    if (ImagePyramidContent::getSupportedExtensions().contains(extension))
     {
         try
         {
-            TiffPyramidReader tif{ filename };
+            TiffPyramidReader tif{filename};
             return ThumbnailGeneratorPtr(
-                        new ImagePyramidThumbnailGenerator( size ));
+                new ImagePyramidThumbnailGenerator(size));
         }
-        catch( ... ) { /* not a pyramid file, pass */ }
+        catch (...)
+        {
+            /* not a pyramid file, pass */
+        }
     }
 #endif
 
-    if( TextureContent::getSupportedExtensions().contains( extension ))
-        return ThumbnailGeneratorPtr( new ImageThumbnailGenerator( size ));
+    if (TextureContent::getSupportedExtensions().contains(extension))
+        return ThumbnailGeneratorPtr(new ImageThumbnailGenerator(size));
 
 #if TIDE_ENABLE_PDF_SUPPORT
-    if( PDFContent::getSupportedExtensions().contains( extension ))
-        return ThumbnailGeneratorPtr( new PDFThumbnailGenerator( size ));
+    if (PDFContent::getSupportedExtensions().contains(extension))
+        return ThumbnailGeneratorPtr(new PDFThumbnailGenerator(size));
 #endif
 
-    return ThumbnailGeneratorPtr( new DefaultThumbnailGenerator( size ));
+    return ThumbnailGeneratorPtr(new DefaultThumbnailGenerator(size));
 }

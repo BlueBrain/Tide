@@ -42,20 +42,21 @@
 #include <QUrl>
 
 #ifdef TIDE_USE_QT5WEBKITWIDGETS
-WebbrowserHistory::WebbrowserHistory( const QWebHistory& history )
+WebbrowserHistory::WebbrowserHistory(const QWebHistory& history)
     : _items()
-    , _currentItemIndex( history.currentItemIndex( ))
+    , _currentItemIndex(history.currentItemIndex())
 {
-    for( auto item : history.items( ))
-        _items.push_back( item.url().toString( ));
+    for (auto item : history.items())
+        _items.push_back(item.url().toString());
 }
 #endif
 
-WebbrowserHistory::WebbrowserHistory( std::vector<QString>&& items_,
-                                      const size_t currentItemIndex_ )
-    : _items{ items_ }
-    , _currentItemIndex{ currentItemIndex_ }
-{}
+WebbrowserHistory::WebbrowserHistory(std::vector<QString>&& items_,
+                                     const size_t currentItemIndex_)
+    : _items{items_}
+    , _currentItemIndex{currentItemIndex_}
+{
+}
 
 size_t WebbrowserHistory::currentItemIndex() const
 {
@@ -69,8 +70,8 @@ const std::vector<QString>& WebbrowserHistory::items() const
 
 QString WebbrowserHistory::currentItem() const
 {
-    if( _currentItemIndex >= _items.size( ))
+    if (_currentItemIndex >= _items.size())
         return QString();
 
-    return _items[ _currentItemIndex ];
+    return _items[_currentItemIndex];
 }

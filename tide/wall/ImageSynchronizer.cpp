@@ -41,30 +41,31 @@
 
 #include "Tile.h"
 
-ImageSynchronizer::ImageSynchronizer( const QString& uri )
-    : _dataSource( uri )
-{}
-
-void ImageSynchronizer::update( const ContentWindow& window,
-                                const QRectF& visibleArea )
+ImageSynchronizer::ImageSynchronizer(const QString& uri)
+    : _dataSource(uri)
 {
-    Q_UNUSED( window );
+}
+
+void ImageSynchronizer::update(const ContentWindow& window,
+                               const QRectF& visibleArea)
+{
+    Q_UNUSED(window);
 
     // Override BasicSynchronizer::update behaviour.
     // The error content stores the size of the original content, which is
     // generally different than the error image's size. But the tile must
     // always have the same size as the texture, otherwise the texture upload
     // fails.
-    if( !visibleArea.isEmpty( ))
-        createTile( _dataSource.getTilesArea( 0 ));
+    if (!visibleArea.isEmpty())
+        createTile(_dataSource.getTilesArea(0));
 }
 
-ImagePtr ImageSynchronizer::getTileImage( const uint tileIndex ) const
+ImagePtr ImageSynchronizer::getTileImage(const uint tileIndex) const
 {
-    return _dataSource.getTileImage( tileIndex );
+    return _dataSource.getTileImage(tileIndex);
 }
 
 TilePtr ImageSynchronizer::getZoomContextTile() const
 {
-    return std::make_shared<Tile>( 0, _dataSource.getTileRect( 0 ));
+    return std::make_shared<Tile>(0, _dataSource.getTileRect(0));
 }

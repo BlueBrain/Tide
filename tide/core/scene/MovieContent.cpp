@@ -45,19 +45,19 @@
 
 #include <QtCore/QFileInfo>
 
-BOOST_CLASS_EXPORT_IMPLEMENT( MovieContent )
+BOOST_CLASS_EXPORT_IMPLEMENT(MovieContent)
 
-IMPLEMENT_SERIALIZE_FOR_XML( MovieContent )
+IMPLEMENT_SERIALIZE_FOR_XML(MovieContent)
 
 namespace
 {
-const QString ICON_PAUSE( "qrc:///img/pause.svg" );
-const QString ICON_PLAY( "qrc:///img/play.svg" );
-const QString MOVIE_CONTROLS( "qrc:///qml/core/MovieControls.qml" );
+const QString ICON_PAUSE("qrc:///img/pause.svg");
+const QString ICON_PLAY("qrc:///img/play.svg");
+const QString MOVIE_CONTROLS("qrc:///qml/core/MovieControls.qml");
 }
 
-MovieContent::MovieContent( const QString& uri )
-    : Content( uri )
+MovieContent::MovieContent(const QString& uri)
+    : Content(uri)
 {
     _createActions();
 }
@@ -69,15 +69,15 @@ CONTENT_TYPE MovieContent::getType() const
 
 bool MovieContent::readMetadata()
 {
-    QFileInfo file( getURI( ));
-    if( !file.exists() || !file.isReadable( ))
+    QFileInfo file(getURI());
+    if (!file.exists() || !file.isReadable())
         return false;
 
-    const FFMPEGMovie movie( getURI( ));
-    if( !movie.isValid( ))
+    const FFMPEGMovie movie(getURI());
+    if (!movie.isValid())
         return false;
 
-    _size = QSize( movie.getWidth(), movie.getHeight( ));
+    _size = QSize(movie.getWidth(), movie.getHeight());
     _duration = movie.getDuration();
     return true;
 }
@@ -96,10 +96,17 @@ const QStringList& MovieContent::getSupportedExtensions()
 {
     static QStringList extensions;
 
-    if( extensions.empty( ))
+    if (extensions.empty())
     {
-        extensions << "mov" << "avi" << "mp4" << "mkv" << "mpg" << "mpeg"
-                   << "flv" << "webm" << "wmv";
+        extensions << "mov"
+                   << "avi"
+                   << "mp4"
+                   << "mkv"
+                   << "mpg"
+                   << "mpeg"
+                   << "flv"
+                   << "webm"
+                   << "wmv";
     }
 
     return extensions;
@@ -120,13 +127,13 @@ qreal MovieContent::getPosition() const
     return _position;
 }
 
-void MovieContent::setPosition( const qreal pos )
+void MovieContent::setPosition(const qreal pos)
 {
-    if( pos == _position || pos < 0.0 || pos >= getDuration( ))
+    if (pos == _position || pos < 0.0 || pos >= getDuration())
         return;
 
     _position = pos;
-    emit positionChanged( pos );
+    emit positionChanged(pos);
     emit modified();
 }
 
@@ -135,13 +142,13 @@ bool MovieContent::isSkipping() const
     return _skipping;
 }
 
-void MovieContent::setSkipping( const bool skipping )
+void MovieContent::setSkipping(const bool skipping)
 {
-    if( skipping == _skipping )
+    if (skipping == _skipping)
         return;
 
     _skipping = skipping;
-    emit skippingChanged( skipping );
+    emit skippingChanged(skipping);
     emit modified();
 }
 
@@ -162,13 +169,13 @@ void MovieContent::_pause()
 void MovieContent::_createActions()
 {
     ContentAction* playPauseAction = new ContentAction();
-    playPauseAction->setCheckable( true );
-    playPauseAction->setIcon( ICON_PAUSE );
-    playPauseAction->setIconChecked( ICON_PLAY );
-    playPauseAction->setChecked( _controlState & STATE_PAUSED );
-    connect( playPauseAction, &ContentAction::checked,
-             this, &MovieContent::_pause );
-    connect( playPauseAction, &ContentAction::unchecked,
-             this, &MovieContent::_play );
-    _actions.add( playPauseAction );
+    playPauseAction->setCheckable(true);
+    playPauseAction->setIcon(ICON_PAUSE);
+    playPauseAction->setIconChecked(ICON_PLAY);
+    playPauseAction->setChecked(_controlState & STATE_PAUSED);
+    connect(playPauseAction, &ContentAction::checked, this,
+            &MovieContent::_pause);
+    connect(playPauseAction, &ContentAction::unchecked, this,
+            &MovieContent::_play);
+    _actions.add(playPauseAction);
 }

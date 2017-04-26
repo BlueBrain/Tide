@@ -58,7 +58,7 @@ public:
      * @param svgData the svg data, typically read from an svg file
      * @throw std::runtime_error if an error occurs
      */
-    explicit SVGCairoRSVGBackend( const QByteArray& svgData );
+    explicit SVGCairoRSVGBackend(const QByteArray& svgData);
 
     /** Free the SVG renderer. */
     ~SVGCairoRSVGBackend();
@@ -67,8 +67,8 @@ public:
     QSize getSize() const final;
 
     /** @copydoc SVGBackend::renderToImage */
-    QImage renderToImage( const QSize& imageSize,
-                          const QRectF& region ) const final;
+    QImage renderToImage(const QSize& imageSize,
+                         const QRectF& region) const final;
 
 private:
     struct Impl;

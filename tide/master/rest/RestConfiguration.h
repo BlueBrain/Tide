@@ -57,7 +57,7 @@ public:
      *
      * @param config MasterConfiguration object which is to be exposed.
      */
-    RestConfiguration( const MasterConfiguration& config );
+    RestConfiguration(const MasterConfiguration& config);
 
     /** @return the string used as an endpoint by REST interface. */
     std::string getTypeName() const final;

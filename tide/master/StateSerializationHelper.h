@@ -56,7 +56,7 @@ public:
      *
      * @param group The group to be saved, or used as a reference for loading.
      */
-    StateSerializationHelper( DisplayGroupPtr group );
+    StateSerializationHelper(DisplayGroupPtr group);
 
     /**
      * Save the state of the application.
@@ -66,15 +66,15 @@ public:
      * @param uploadDir folder to move content to (uploaded via web interface.)
      * @param generatePreview Also generate a .dcxpreview thumbnail image.
      */
-    QFuture<bool> save( QString filename, const QString& uploadDir = QString(),
-                        bool generatePreview = true );
+    QFuture<bool> save(QString filename, const QString& uploadDir = QString(),
+                       bool generatePreview = true);
 
     /**
      * Load the state from a given xml file.
      *
      * @return the loaded display group on success, nullptr on failure.
      */
-    QFuture<DisplayGroupConstPtr> load( const QString& filename ) const;
+    QFuture<DisplayGroupConstPtr> load(const QString& filename) const;
 
 private:
     DisplayGroupPtr _displayGroup;

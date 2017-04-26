@@ -40,29 +40,29 @@
 #include "RenderController.h"
 
 #include "DisplayGroupRenderer.h"
+#include "TextureUploader.h"
+#include "WallWindow.h"
 #include "network/WallToWallChannel.h"
 #include "scene/DisplayGroup.h"
 #include "scene/Options.h"
-#include "TextureUploader.h"
-#include "WallWindow.h"
 
-RenderController::RenderController( WallWindow& window )
-    : _window( window )
-    , _syncDisplayGroup( boost::make_shared<DisplayGroup>( QSize( )))
-    , _syncOptions( boost::make_shared<Options>( ))
+RenderController::RenderController(WallWindow& window)
+    : _window(window)
+    , _syncDisplayGroup(boost::make_shared<DisplayGroup>(QSize()))
+    , _syncOptions(boost::make_shared<Options>())
 {
-    _syncDisplayGroup.setCallback( std::bind( &WallWindow::setDisplayGroup,
-                                              &_window, std::placeholders::_1));
-    _syncMarkers.setCallback( std::bind( &WallWindow::setMarkers,
-                                         &_window, std::placeholders::_1 ));
-    _syncOptions.setCallback( std::bind( &WallWindow::setRenderOptions,
-                                         &_window, std::placeholders::_1 ));
+    _syncDisplayGroup.setCallback(std::bind(&WallWindow::setDisplayGroup,
+                                            &_window, std::placeholders::_1));
+    _syncMarkers.setCallback(
+        std::bind(&WallWindow::setMarkers, &_window, std::placeholders::_1));
+    _syncOptions.setCallback(std::bind(&WallWindow::setRenderOptions, &_window,
+                                       std::placeholders::_1));
 
-    connect( &window.getUploader(), &TextureUploader::uploaded,
-             this, [this] { _needRedraw = true; }, Qt::QueuedConnection );
+    connect(&window.getUploader(), &TextureUploader::uploaded, this,
+            [this] { _needRedraw = true; }, Qt::QueuedConnection);
 
-    connect( &window, &WallWindow::imageGrabbed,
-             this, &RenderController::screenshotRendered );
+    connect(&window, &WallWindow::imageGrabbed, this,
+            &RenderController::screenshotRendered);
 }
 
 DisplayGroupPtr RenderController::getDisplayGroup() const
@@ -70,60 +70,60 @@ DisplayGroupPtr RenderController::getDisplayGroup() const
     return _syncDisplayGroup.get();
 }
 
-void RenderController::timerEvent( QTimerEvent* qtEvent )
+void RenderController::timerEvent(QTimerEvent* qtEvent)
 {
-    if( qtEvent->timerId() == _renderTimer )
+    if (qtEvent->timerId() == _renderTimer)
         _syncAndRender();
-    else if( qtEvent->timerId() == _idleRedrawTimer )
+    else if (qtEvent->timerId() == _idleRedrawTimer)
         requestRender();
-    else if( qtEvent->timerId() == _stopRenderingDelayTimer )
+    else if (qtEvent->timerId() == _stopRenderingDelayTimer)
     {
-        killTimer( _renderTimer );
-        killTimer( _stopRenderingDelayTimer );
+        killTimer(_renderTimer);
+        killTimer(_stopRenderingDelayTimer);
         _renderTimer = 0;
         _stopRenderingDelayTimer = 0;
 
         // Redraw screen every minute so that the on-screen clock is up to date
-        if( _idleRedrawTimer == 0 )
-            _idleRedrawTimer = startTimer( 60000 /*ms*/ );
+        if (_idleRedrawTimer == 0)
+            _idleRedrawTimer = startTimer(60000 /*ms*/);
     }
 }
 
 void RenderController::requestRender()
 {
-    killTimer( _stopRenderingDelayTimer );
+    killTimer(_stopRenderingDelayTimer);
     _stopRenderingDelayTimer = 0;
-    killTimer( _idleRedrawTimer );
+    killTimer(_idleRedrawTimer);
     _idleRedrawTimer = 0;
 
-    if( _renderTimer == 0 )
-        _renderTimer = startTimer( 5, Qt::PreciseTimer );
+    if (_renderTimer == 0)
+        _renderTimer = startTimer(5, Qt::PreciseTimer);
 }
 
 void RenderController::_syncAndRender()
 {
     WallToWallChannel& wallChannel = _window.getWallChannel();
-    auto versionCheckFunc = std::bind( &WallToWallChannel::checkVersion,
-                                       &wallChannel, std::placeholders::_1 );
-    _syncQuit.sync( versionCheckFunc );
-    if( _syncQuit.get( ))
+    auto versionCheckFunc = std::bind(&WallToWallChannel::checkVersion,
+                                      &wallChannel, std::placeholders::_1);
+    _syncQuit.sync(versionCheckFunc);
+    if (_syncQuit.get())
     {
-        killTimer( _renderTimer );
-        killTimer( _stopRenderingDelayTimer );
+        killTimer(_renderTimer);
+        killTimer(_stopRenderingDelayTimer);
         _window.deleteLater();
         return;
     }
 
-    _synchronizeObjects( versionCheckFunc );
+    _synchronizeObjects(versionCheckFunc);
 
     const bool grab = _syncScreenshot.get();
-    if( grab )
-        _syncScreenshot = SwapSyncObject<bool>{ false };
+    if (grab)
+        _syncScreenshot = SwapSyncObject<bool>{false};
 
-    if( !_window.syncAndRender( grab ) && wallChannel.allReady( !_needRedraw ))
+    if (!_window.syncAndRender(grab) && wallChannel.allReady(!_needRedraw))
     {
-        if( _stopRenderingDelayTimer == 0 )
-            _stopRenderingDelayTimer = startTimer( 5000 /*ms*/ );
+        if (_stopRenderingDelayTimer == 0)
+            _stopRenderingDelayTimer = startTimer(5000 /*ms*/);
     }
     else
         requestRender();
@@ -133,39 +133,38 @@ void RenderController::_syncAndRender()
 
 void RenderController::updateQuit()
 {
-    _syncQuit.update( true );
+    _syncQuit.update(true);
     requestRender();
 }
 
 void RenderController::updateRequestScreenshot()
 {
-    _syncScreenshot.update( true );
+    _syncScreenshot.update(true);
     requestRender();
 }
 
-void RenderController::updateDisplayGroup( DisplayGroupPtr displayGroup )
+void RenderController::updateDisplayGroup(DisplayGroupPtr displayGroup)
 {
-    _syncDisplayGroup.update( displayGroup );
+    _syncDisplayGroup.update(displayGroup);
     requestRender();
 }
 
-void RenderController::updateOptions( OptionsPtr options )
+void RenderController::updateOptions(OptionsPtr options)
 {
-    _syncOptions.update( options );
+    _syncOptions.update(options);
     requestRender();
 }
 
-void RenderController::updateMarkers( MarkersPtr markers )
+void RenderController::updateMarkers(MarkersPtr markers)
 {
-    _syncMarkers.update( markers );
+    _syncMarkers.update(markers);
     requestRender();
 }
 
-void RenderController::_synchronizeObjects( const SyncFunction&
-                                            versionCheckFunc )
+void RenderController::_synchronizeObjects(const SyncFunction& versionCheckFunc)
 {
-    _syncScreenshot.sync( versionCheckFunc );
-    _syncDisplayGroup.sync( versionCheckFunc );
-    _syncMarkers.sync( versionCheckFunc );
-    _syncOptions.sync( versionCheckFunc );
+    _syncScreenshot.sync(versionCheckFunc);
+    _syncDisplayGroup.sync(versionCheckFunc);
+    _syncMarkers.sync(versionCheckFunc);
+    _syncOptions.sync(versionCheckFunc);
 }

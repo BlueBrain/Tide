@@ -53,7 +53,7 @@ public:
      * Construct and expose the html content.
      * @param httpServer used to expose the content
      */
-    HtmlContent( zeroeq::http::Server& httpServer );
+    HtmlContent(zeroeq::http::Server& httpServer);
 };
 
 #endif

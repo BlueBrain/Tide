@@ -48,18 +48,18 @@
 class BasicSynchronizer : public ContentSynchronizer
 {
     Q_OBJECT
-    Q_DISABLE_COPY( BasicSynchronizer )
+    Q_DISABLE_COPY(BasicSynchronizer)
 
 public:
     /** Constructor */
     BasicSynchronizer();
 
     /** @copydoc ContentSynchronizer::update */
-    void update( const ContentWindow& window,
-                 const QRectF& visibleArea ) override;
+    void update(const ContentWindow& window,
+                const QRectF& visibleArea) override;
 
     /** @copydoc ContentSynchronizer::synchronize */
-    void synchronize( WallToWallChannel& channel ) override;
+    void synchronize(WallToWallChannel& channel) override;
 
     /** @copydoc ContentSynchronizer::getTilesArea */
     QSize getTilesArea() const override;
@@ -68,15 +68,15 @@ public:
     QString getStatistics() const override;
 
     /** @copydoc ContentSynchronizer::onSwapReady */
-    void onSwapReady( TilePtr tile ) override;
+    void onSwapReady(TilePtr tile) override;
 
 protected:
     /** Create this content's unique tile with the given dimensions. */
-    void createTile( const QSize& size );
+    void createTile(const QSize& size);
 
 private:
     bool _tileAdded;
     QSize _tileSize;
 };
 
-#endif // BASICSYNCHRONIZER_H
+#endif

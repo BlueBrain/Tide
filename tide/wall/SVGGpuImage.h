@@ -54,7 +54,7 @@ class SVGGpuImage : public Image
 {
 public:
     /** Constructor. */
-    SVGGpuImage( const SVGTiler& dataSource, uint tileId );
+    SVGGpuImage(const SVGTiler& dataSource, uint tileId);
 
     /** @copydoc Image::getWidth */
     int getWidth() const override;
@@ -63,7 +63,7 @@ public:
     int getHeight() const override;
 
     /** @copydoc Image::getData */
-    const uint8_t* getData( uint texture = 0 ) const override;
+    const uint8_t* getData(uint texture = 0) const override;
 
     /** @copydoc Image::getFormat */
     TextureFormat getFormat() const override;

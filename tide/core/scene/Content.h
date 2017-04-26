@@ -42,8 +42,8 @@
 #ifndef CONTENT_H
 #define CONTENT_H
 
-#include "ContentType.h"
 #include "ContentActionsModel.h"
+#include "ContentType.h"
 #include "KeyboardState.h"
 #include "serialization/includes.h"
 #include "types.h"
@@ -63,33 +63,33 @@
 class Content : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY( Content )
+    Q_DISABLE_COPY(Content)
 
-    Q_PROPERTY( QString title READ getTitle NOTIFY titleChanged )
-    Q_PROPERTY( QSize size READ getDimensions NOTIFY dimensionsChanged )
-    Q_PROPERTY( qreal aspectRatio READ getAspectRatio CONSTANT )
-    Q_PROPERTY( bool hasFixedAspectRatio READ hasFixedAspectRatio CONSTANT )
-    Q_PROPERTY( QRectF zoomRect READ getZoomRect CONSTANT )
-    Q_PROPERTY( ContentActionsModel* actions READ getActions CONSTANT )
-    Q_PROPERTY( QString qmlControls READ getQmlControls CONSTANT )
-    Q_PROPERTY( KeyboardState* keyboard READ getKeyboardState CONSTANT )
-    Q_PROPERTY( Interaction interactionPolicy READ getInteractionPolicy
-                NOTIFY interactionPolicyChanged )
-    Q_PROPERTY( bool captureInteraction READ getCaptureInteraction
-                WRITE setCaptureInteraction NOTIFY captureInteractionChanged )
+    Q_PROPERTY(QString title READ getTitle NOTIFY titleChanged)
+    Q_PROPERTY(QSize size READ getDimensions NOTIFY dimensionsChanged)
+    Q_PROPERTY(qreal aspectRatio READ getAspectRatio CONSTANT)
+    Q_PROPERTY(bool hasFixedAspectRatio READ hasFixedAspectRatio CONSTANT)
+    Q_PROPERTY(QRectF zoomRect READ getZoomRect CONSTANT)
+    Q_PROPERTY(ContentActionsModel* actions READ getActions CONSTANT)
+    Q_PROPERTY(QString qmlControls READ getQmlControls CONSTANT)
+    Q_PROPERTY(KeyboardState* keyboard READ getKeyboardState CONSTANT)
+    Q_PROPERTY(Interaction interactionPolicy READ getInteractionPolicy NOTIFY
+                   interactionPolicyChanged)
+    Q_PROPERTY(bool captureInteraction READ getCaptureInteraction WRITE
+                   setCaptureInteraction NOTIFY captureInteractionChanged)
 
 public:
     /** The different types of interaction. */
     enum Interaction
     {
-        AUTO,       // interaction is enabled automatically (default)
-        ON,         // force interaction with content
-        OFF         // never interact with content
+        AUTO, // interaction is enabled automatically (default)
+        ON,   // force interaction with content
+        OFF   // never interact with content
     };
-    Q_ENUMS( Interaction )
+    Q_ENUMS(Interaction)
 
     /** Constructor **/
-    Content( const QString& uri );
+    Content(const QString& uri);
 
     /** Get the content URI **/
     const QString& getURI() const;
@@ -102,7 +102,9 @@ public:
 
     /**
      * Read content metadata from the data source.
-     * Used on Rank0 for file-based content types to refresh data from source URI.
+     *
+     * Used on Rank0 for file-based content types to refresh data from source
+     * URI.
      * @return true if the informations could be read.
     **/
     virtual bool readMetadata() = 0;
@@ -126,7 +128,7 @@ public:
     virtual QSize getMaxDimensions() const;
 
     /** Set the dimensions. */
-    void setDimensions( const QSize& dimensions );
+    void setDimensions(const QSize& dimensions);
 
     /** Get the aspect ratio. */
     qreal getAspectRatio() const;
@@ -141,7 +143,7 @@ public:
     const QRectF& getZoomRect() const;
 
     /** Set the zoom rectangle in normalized coordinates. */
-    void setZoomRect( const QRectF& zoomRect );
+    void setZoomRect(const QRectF& zoomRect);
 
     /** Resets the zoom to [0,0,1,1]. */
     Q_INVOKABLE void resetZoom();
@@ -159,16 +161,16 @@ public:
     virtual Interaction getInteractionPolicy() const;
 
     /** Set optional size hints to constrain resize/scale and 1:1 size. */
-    void setSizeHints( const deflect::SizeHints& sizeHints );
+    void setSizeHints(const deflect::SizeHints& sizeHints);
 
     /** @return true if the content captures interaction. */
     bool getCaptureInteraction() const;
 
     /** Tell the content to capture interaction (only for Policy::AUTO). */
-    void setCaptureInteraction( bool enable );
+    void setCaptureInteraction(bool enable);
 
     /** Set the maximum factor for zoom and resize; value times content size */
-    static void setMaxScale( qreal value );
+    static void setMaxScale(qreal value);
 
     /** @return the maxium scale factor for zoom and resize */
     static qreal getMaxScale();
@@ -176,7 +178,7 @@ public:
 signals:
     /** @name QProperty notifiers */
     //@{
-    void titleChanged( QString title );
+    void titleChanged(QString title);
     void interactionPolicyChanged();
     void captureInteractionChanged();
     void dimensionsChanged();
@@ -192,47 +194,51 @@ protected:
     Content();
 
     /** Serialize for sending to Wall applications. */
-    template< class Archive >
-    void serialize( Archive & ar, const unsigned int /*version*/ )
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int /*version*/)
     {
+        // clang-format off
         ar & _uri;
         ar & _size.rwidth();
         ar & _size.rheight();
         ar & _zoomRect;
         ar & _actions;
-        _actions.setParent( this );
+        _actions.setParent(this);
         ar & _keyboardState;
-        _keyboardState.setParent( this );
+        _keyboardState.setParent(this);
         ar & _captureInteraction;
+        // clang-format on
     }
 
     /** Serialize for saving to an xml file */
-    template< class Archive >
-    void serialize_members_xml( Archive & ar, const unsigned int version )
+    template <class Archive>
+    void serialize_members_xml(Archive& ar, const unsigned int version)
     {
-        ar & boost::serialization::make_nvp( "uri", _uri );
-        ar & boost::serialization::make_nvp( "width", _size.rwidth( ));
-        ar & boost::serialization::make_nvp( "height", _size.rheight( ));
+        // clang-format off
+        ar & boost::serialization::make_nvp("uri", _uri);
+        ar & boost::serialization::make_nvp("width", _size.rwidth());
+        ar & boost::serialization::make_nvp("height", _size.rheight());
 
-        if( version < 2 )
+        if (version < 2)
         {
             bool blockAdvance = false;
-            ar & boost::serialization::make_nvp( "block_advance", blockAdvance );
+            ar & boost::serialization::make_nvp("block_advance", blockAdvance);
         }
+        // clang-format on
     }
 
     /** Loading from xml. */
-    void serialize_for_xml( boost::archive::xml_iarchive& ar,
-                            const unsigned int version )
+    void serialize_for_xml(boost::archive::xml_iarchive& ar,
+                           const unsigned int version)
     {
-        serialize_members_xml( ar, version );
+        serialize_members_xml(ar, version);
     }
 
     /** Saving to xml. */
-    void serialize_for_xml( boost::archive::xml_oarchive& ar,
-                            const unsigned int version )
+    void serialize_for_xml(boost::archive::xml_oarchive& ar,
+                           const unsigned int version)
     {
-        serialize_members_xml( ar, version );
+        serialize_members_xml(ar, version);
     }
 
     void _init();
@@ -248,10 +254,10 @@ protected:
     static qreal _maxScale;
 };
 
-BOOST_CLASS_VERSION( Content, 2 )
+BOOST_CLASS_VERSION(Content, 2)
 
-DECLARE_SERIALIZE_FOR_XML( Content )
+DECLARE_SERIALIZE_FOR_XML(Content)
 
-BOOST_SERIALIZATION_ASSUME_ABSTRACT( Content )
+BOOST_SERIALIZATION_ASSUME_ABSTRACT(Content)
 
 #endif

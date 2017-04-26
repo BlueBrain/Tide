@@ -55,7 +55,7 @@ public:
      * @param argc main program arguments count
      * @param argv main program arguments
      */
-    MPIContext( int argc, char* argv[] );
+    MPIContext(int argc, char* argv[]);
 
     /** Destructor, finalize the MPI context. */
     ~MPIContext();

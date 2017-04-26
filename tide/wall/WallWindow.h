@@ -40,8 +40,8 @@
 #ifndef WALLWINDOW_H
 #define WALLWINDOW_H
 
-#include "types.h"
 #include "network/WallToWallChannel.h"
+#include "types.h"
 
 #include <QQuickWindow>
 
@@ -62,9 +62,9 @@ public:
      * @param renderControl the Qt render control for QML scene rendering
      * @param wallChannel to synchronize clocks and swapBuffers()
      */
-    WallWindow( const WallConfiguration& config,
-                QQuickRenderControl* renderControl,
-                WallToWallChannel& wallChannel );
+    WallWindow(const WallConfiguration& config,
+               QQuickRenderControl* renderControl,
+               WallToWallChannel& wallChannel);
 
     ~WallWindow();
 
@@ -74,16 +74,16 @@ public:
      * @param grab indicate that the frame should be grabbed after rendering.
      * @return true if none of the wall windows need to redraw.
      */
-    bool syncAndRender( bool grab = false );
+    bool syncAndRender(bool grab = false);
 
     /** Set new render options. */
-    void setRenderOptions( OptionsPtr options );
+    void setRenderOptions(OptionsPtr options);
 
     /** Set new display group. */
-    void setDisplayGroup( DisplayGroupPtr displayGroup );
+    void setDisplayGroup(DisplayGroupPtr displayGroup);
 
     /** Set new touchpoint's markers. */
-    void setMarkers( MarkersPtr markers );
+    void setMarkers(MarkersPtr markers);
 
     /** @return the data provider. */
     DataProvider& getDataProvider();
@@ -92,7 +92,7 @@ public:
     QQmlEngine* engine() const;
 
     /** @return the root object of the QML scene. */
-    QQuickItem*	rootObject() const;
+    QQuickItem* rootObject() const;
 
     /** @return the communication channel to synchronize with other windows. */
     WallToWallChannel& getWallChannel();
@@ -102,12 +102,12 @@ public:
 
 signals:
     /** Emitted after syncAndRender() has been called with grab set to true. */
-    void imageGrabbed( QImage image );
+    void imageGrabbed(QImage image);
 
 private:
-    void exposeEvent( QExposeEvent* exposeEvent ) final;
+    void exposeEvent(QExposeEvent* exposeEvent) final;
 
-    void _startQuick( const WallConfiguration& config );
+    void _startQuick(const WallConfiguration& config);
 
     DisplayGroupRenderer* _displayGroupRenderer;
     TestPattern* _testPattern;

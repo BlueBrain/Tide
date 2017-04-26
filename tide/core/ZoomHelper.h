@@ -48,18 +48,18 @@
 class ZoomHelper
 {
 public:
-    ZoomHelper( const ContentWindow& window );
+    ZoomHelper(const ContentWindow& window);
 
     QRectF getContentRect() const;
 
-    QRectF toContentRect( const QRectF& zoomRect ) const;
-    QRectF toZoomRect( const QRectF& contentRect ) const;
+    QRectF toContentRect(const QRectF& zoomRect) const;
+    QRectF toZoomRect(const QRectF& contentRect) const;
 
-    QRectF toTilesArea( const QRectF& windowArea,
-                        const QSize& tilesSurface ) const;
+    QRectF toTilesArea(const QRectF& windowArea,
+                       const QSize& tilesSurface) const;
 
 private:
     const ContentWindow& _contentWindow;
 };
 
-#endif // ZOOMHELPER_H
+#endif

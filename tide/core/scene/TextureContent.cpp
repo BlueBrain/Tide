@@ -43,11 +43,12 @@
 
 #include <QImageReader>
 
-BOOST_CLASS_EXPORT_GUID( TextureContent, "TextureContent" )
+BOOST_CLASS_EXPORT_GUID(TextureContent, "TextureContent")
 
-TextureContent::TextureContent( const QString& uri )
-    : Content( uri )
-{}
+TextureContent::TextureContent(const QString& uri)
+    : Content(uri)
+{
+}
 
 CONTENT_TYPE TextureContent::getType() const
 {
@@ -56,8 +57,8 @@ CONTENT_TYPE TextureContent::getType() const
 
 bool TextureContent::readMetadata()
 {
-    const QImageReader imageReader( _uri );
-    if( !imageReader.canRead( ))
+    const QImageReader imageReader(_uri);
+    if (!imageReader.canRead())
         return false;
 
     _size = imageReader.size();
@@ -73,11 +74,11 @@ const QStringList& TextureContent::getSupportedExtensions()
 {
     static QStringList extensions;
 
-    if( extensions.empty( ))
+    if (extensions.empty())
     {
         const QList<QByteArray>& imageFormats =
-                QImageReader::supportedImageFormats();
-        foreach( const QByteArray entry, imageFormats )
+            QImageReader::supportedImageFormats();
+        foreach (const QByteArray entry, imageFormats)
             extensions << entry;
     }
     return extensions;

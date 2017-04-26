@@ -39,23 +39,22 @@
 
 #include "PixelStreamerType.h"
 
-#include <boost/bimap.hpp>
 #include <boost/assign/list_of.hpp>
+#include <boost/bimap.hpp>
 
-typedef boost::bimap< PixelStreamerType, QString > TypeMap;
-static TypeMap typemap = boost::assign::list_of< TypeMap::relation >
-        (PS_UNKNOWN, QString("unknown"))
-        (PS_WEBKIT, QString("webkit"));
+typedef boost::bimap<PixelStreamerType, QString> TypeMap;
+static TypeMap typemap = boost::assign::list_of<TypeMap::relation>(
+    PS_UNKNOWN, QString("unknown"))(PS_WEBKIT, QString("webkit"));
 
-QString getStreamerTypeString( const PixelStreamerType type )
+QString getStreamerTypeString(const PixelStreamerType type)
 {
-    return typemap.left.find( type )->second;
+    return typemap.left.find(type)->second;
 }
 
-PixelStreamerType getStreamerType( const QString& typeString )
+PixelStreamerType getStreamerType(const QString& typeString)
 {
-    if( typemap.right.count( typeString ))
-        return typemap.right.find( typeString )->second;
+    if (typemap.right.count(typeString))
+        return typemap.right.find(typeString)->second;
 
     return PS_UNKNOWN;
 }

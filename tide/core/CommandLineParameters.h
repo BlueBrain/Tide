@@ -54,7 +54,7 @@ public:
     CommandLineParameters();
 
     /** @copydoc CommandLineParser::showSyntax */
-    void showSyntax( const std::string& appName ) const final;
+    void showSyntax(const std::string& appName) const final;
 
     /** Get the config filename */
     QString getConfigFilename() const;

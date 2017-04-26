@@ -41,14 +41,12 @@
 #include <boost/test/unit_test.hpp>
 namespace ut = boost::unit_test;
 
-#include "serialization/includes.h"
 #include "serialization/deflectTypes.h"
+#include "serialization/includes.h"
 
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/archive/binary_iarchive.hpp>
 #include <iostream>
 
-BOOST_AUTO_TEST_CASE( testSegementParametersSerialization )
+BOOST_AUTO_TEST_CASE(testSegementParametersSerialization)
 {
     deflect::SegmentParameters params;
     params.x = 212;
@@ -60,29 +58,29 @@ BOOST_AUTO_TEST_CASE( testSegementParametersSerialization )
     // serialize
     std::stringstream stream;
     {
-        boost::archive::binary_oarchive oa( stream );
+        boost::archive::binary_oarchive oa(stream);
         oa << params;
     }
 
     // deserialize
     deflect::SegmentParameters paramsDeserialized;
     {
-        boost::archive::binary_iarchive ia( stream );
+        boost::archive::binary_iarchive ia(stream);
         ia >> paramsDeserialized;
     }
 
-    BOOST_CHECK_EQUAL( params.x, paramsDeserialized.x );
-    BOOST_CHECK_EQUAL( params.y, paramsDeserialized.y );
-    BOOST_CHECK_EQUAL( params.height, paramsDeserialized.height );
-    BOOST_CHECK_EQUAL( params.width, paramsDeserialized.width );
-    BOOST_CHECK_EQUAL( (int)params.dataType, (int)paramsDeserialized.dataType );
+    BOOST_CHECK_EQUAL(params.x, paramsDeserialized.x);
+    BOOST_CHECK_EQUAL(params.y, paramsDeserialized.y);
+    BOOST_CHECK_EQUAL(params.height, paramsDeserialized.height);
+    BOOST_CHECK_EQUAL(params.width, paramsDeserialized.width);
+    BOOST_CHECK_EQUAL((int)params.dataType, (int)paramsDeserialized.dataType);
 }
 
-BOOST_AUTO_TEST_CASE( testFrameSerialization )
+BOOST_AUTO_TEST_CASE(testFrameSerialization)
 {
     deflect::Frame frame;
-    frame.segments.push_back( deflect::Segment() );
-    frame.segments.push_back( deflect::Segment() );
+    frame.segments.push_back(deflect::Segment());
+    frame.segments.push_back(deflect::Segment());
     frame.uri = "SomeUri";
 
     frame.segments[0].view = deflect::View::right_eye;
@@ -91,23 +89,22 @@ BOOST_AUTO_TEST_CASE( testFrameSerialization )
     // serialize
     std::stringstream stream;
     {
-        boost::archive::binary_oarchive oa( stream );
+        boost::archive::binary_oarchive oa(stream);
         oa << frame;
     }
 
     // deserialize
     deflect::Frame frameDeserialized;
     {
-        boost::archive::binary_iarchive ia( stream );
+        boost::archive::binary_iarchive ia(stream);
         ia >> frameDeserialized;
     }
 
-    BOOST_CHECK_EQUAL( frame.segments.size(),
-                       frameDeserialized.segments.size( ));
-    BOOST_CHECK_EQUAL( frame.uri.toStdString(),
-                       frameDeserialized.uri.toStdString() );
-    BOOST_CHECK_EQUAL( (int)frame.segments[0].view,
-                       (int)frameDeserialized.segments[0].view );
-    BOOST_CHECK_EQUAL( (int)frame.segments[1].view,
-                       (int)frameDeserialized.segments[1].view );
+    BOOST_CHECK_EQUAL(frame.segments.size(), frameDeserialized.segments.size());
+    BOOST_CHECK_EQUAL(frame.uri.toStdString(),
+                      frameDeserialized.uri.toStdString());
+    BOOST_CHECK_EQUAL((int)frame.segments[0].view,
+                      (int)frameDeserialized.segments[0].view);
+    BOOST_CHECK_EQUAL((int)frame.segments[1].view,
+                      (int)frameDeserialized.segments[1].view);
 }

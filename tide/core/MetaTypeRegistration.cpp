@@ -52,23 +52,26 @@ struct MetaTypeRegistration
 {
     MetaTypeRegistration()
     {
-        qRegisterMetaType< ContentWindowPtr >( "ContentWindowPtr" );
-        qRegisterMetaType< ContentWindowPtrs >( "ContentWindowPtrs" );
-        qRegisterMetaType< ContentWindow::ResizeHandle >( "ContentWindow::ResizeHandle" );
-        qRegisterMetaType< ContentWindow::WindowState >( "ContentWindow::WindowState" );
-        qRegisterMetaType< ContentSynchronizerSharedPtr >( "ContentSynchronizerSharedPtr" );
-        qRegisterMetaType< DisplayGroupPtr >( "DisplayGroupPtr" );
-        qRegisterMetaType< DisplayGroupConstPtr >( "DisplayGroupConstPtr" );
-        qRegisterMetaType< ImagePtr >( "ImagePtr" );
-        qRegisterMetaType< MarkersPtr >( "MarkersPtr" );
-        qRegisterMetaType< MPIMessageType >( "MPIMessageType" );
-        qRegisterMetaType< OptionsPtr >( "OptionsPtr" );
-        qRegisterMetaType< QUuid >( "QUuid" );
-        qRegisterMetaType< std::string >( "std::string" );
-        qRegisterMetaType< TilePtr >( "TilePtr" );
-        qRegisterMetaType< TileWeakPtr >( "TileWeakPtr" );
-        qRegisterMetaTypeStreamOperators< QUuid >( "QUuid" );
-        qRegisterMetaType< promisePtr > ( "promisePtr");
+        qRegisterMetaType<ContentWindowPtr>("ContentWindowPtr");
+        qRegisterMetaType<ContentWindowPtrs>("ContentWindowPtrs");
+        qRegisterMetaType<ContentWindow::ResizeHandle>(
+            "ContentWindow::ResizeHandle");
+        qRegisterMetaType<ContentWindow::WindowState>(
+            "ContentWindow::WindowState");
+        qRegisterMetaType<ContentSynchronizerSharedPtr>(
+            "ContentSynchronizerSharedPtr");
+        qRegisterMetaType<DisplayGroupPtr>("DisplayGroupPtr");
+        qRegisterMetaType<DisplayGroupConstPtr>("DisplayGroupConstPtr");
+        qRegisterMetaType<ImagePtr>("ImagePtr");
+        qRegisterMetaType<MarkersPtr>("MarkersPtr");
+        qRegisterMetaType<MPIMessageType>("MPIMessageType");
+        qRegisterMetaType<OptionsPtr>("OptionsPtr");
+        qRegisterMetaType<QUuid>("QUuid");
+        qRegisterMetaType<std::string>("std::string");
+        qRegisterMetaType<TilePtr>("TilePtr");
+        qRegisterMetaType<TileWeakPtr>("TileWeakPtr");
+        qRegisterMetaTypeStreamOperators<QUuid>("QUuid");
+        qRegisterMetaType<promisePtr>("promisePtr");
     }
 };
 

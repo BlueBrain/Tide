@@ -59,7 +59,7 @@ public:
      * Constructor.
      * @param webView The QWebView on which to operate.
      */
-    WebkitHtmlSelectReplacer( QWebView& webView );
+    WebkitHtmlSelectReplacer(QWebView& webView);
 
     /**
      * Replace all \<select\> elements by HTML equivalents.
@@ -74,7 +74,7 @@ private:
     HtmlSelectReplacer _replacer;
 
     void _loadScripts();
-    QVariant _evaluateJavascript( const QString& script );
+    QVariant _evaluateJavascript(const QString& script);
 };
 
 #endif

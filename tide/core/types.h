@@ -42,10 +42,13 @@
 #define TYPES_H
 
 #include <deflect/types.h>
-#include <boost/shared_ptr.hpp>
-#include <boost/make_shared.hpp>
+
 #include <QRectF>
 #include <QString>
+
+#include <boost/make_shared.hpp>
+#include <boost/shared_ptr.hpp>
+
 #include <future>
 #include <iostream>
 #include <set>
@@ -93,94 +96,94 @@ class WallToWallChannel;
 class WallWindow;
 class WebbrowserContent;
 
-typedef boost::shared_ptr< Content > ContentPtr;
+typedef boost::shared_ptr<Content> ContentPtr;
 typedef std::shared_ptr<ContentSynchronizer> ContentSynchronizerSharedPtr;
-typedef boost::shared_ptr< ContentWindow > ContentWindowPtr;
-typedef boost::shared_ptr< DisplayGroup > DisplayGroupPtr;
-typedef boost::shared_ptr< const DisplayGroup > DisplayGroupConstPtr;
+typedef boost::shared_ptr<ContentWindow> ContentWindowPtr;
+typedef boost::shared_ptr<DisplayGroup> DisplayGroupPtr;
+typedef boost::shared_ptr<const DisplayGroup> DisplayGroupConstPtr;
 typedef std::shared_ptr<Image> ImagePtr;
 typedef std::shared_ptr<FFMPEGPicture> PicturePtr;
-typedef boost::shared_ptr< Markers > MarkersPtr;
-typedef boost::shared_ptr< MPIChannel > MPIChannelPtr;
-typedef boost::shared_ptr< Options > OptionsPtr;
-typedef std::weak_ptr< PixelStreamUpdater > PixelStreamUpdaterWeakPtr;
-typedef std::shared_ptr< PixelStreamUpdater > PixelStreamUpdaterSharedPtr;
+typedef boost::shared_ptr<Markers> MarkersPtr;
+typedef boost::shared_ptr<MPIChannel> MPIChannelPtr;
+typedef boost::shared_ptr<Options> OptionsPtr;
+typedef std::weak_ptr<PixelStreamUpdater> PixelStreamUpdaterWeakPtr;
+typedef std::shared_ptr<PixelStreamUpdater> PixelStreamUpdaterSharedPtr;
 typedef std::shared_ptr<Tile> TilePtr;
 typedef std::weak_ptr<Tile> TileWeakPtr;
-typedef std::shared_ptr< std::promise<bool> > promisePtr;
+typedef std::shared_ptr<std::promise<bool>> promisePtr;
 
-typedef std::set< ContentWindowPtr > ContentWindowSet;
-typedef std::vector< ContentWindowPtr > ContentWindowPtrs;
+typedef std::set<ContentWindowPtr> ContentWindowSet;
+typedef std::vector<ContentWindowPtr> ContentWindowPtrs;
 typedef std::set<size_t> Indices;
 typedef std::vector<QPointF> Positions;
 
-static const QRectF UNIT_RECTF( 0.0, 0.0, 1.0, 1.0 );
-static const QSize UNDEFINED_SIZE( -1, -1 );
+static const QRectF UNIT_RECTF(0.0, 0.0, 1.0, 1.0);
+static const QSize UNDEFINED_SIZE(-1, -1);
 
-inline bool operator < ( const QSizeF& a, const QSizeF& b )
+inline bool operator<(const QSizeF& a, const QSizeF& b)
 {
     return (a.width() < b.width() || a.height() < b.height());
 }
 
-inline bool operator <= ( const QSizeF& a, const QSizeF& b )
+inline bool operator<=(const QSizeF& a, const QSizeF& b)
 {
     return (a.width() <= b.width() || a.height() <= b.height());
 }
 
-inline bool operator > ( const QSizeF& a, const QSizeF& b )
+inline bool operator>(const QSizeF& a, const QSizeF& b)
 {
     return (a.width() > b.width() || a.height() > b.height());
 }
 
-inline bool operator >= ( const QSizeF& a, const QSizeF& b )
+inline bool operator>=(const QSizeF& a, const QSizeF& b)
 {
     return (a.width() >= b.width() || a.height() >= b.height());
 }
 
-inline std::ostream& operator << ( std::ostream& str, const QSizeF& s )
+inline std::ostream& operator<<(std::ostream& str, const QSizeF& s)
 {
     str << s.width() << 'x' << s.height();
     return str;
 }
 
-inline std::ostream& operator << ( std::ostream& str, const QPointF& p )
+inline std::ostream& operator<<(std::ostream& str, const QPointF& p)
 {
     str << p.x() << ',' << p.y();
     return str;
 }
 
-inline std::ostream& operator << ( std::ostream& str, const QRectF& r )
+inline std::ostream& operator<<(std::ostream& str, const QRectF& r)
 {
     str << r.x() << ',' << r.y() << ' ' << r.width() << 'x' << r.height();
     return str;
 }
 
-inline std::ostream& operator << ( std::ostream &str, const QString& s )
+inline std::ostream& operator<<(std::ostream& str, const QString& s)
 {
-   str << s.toStdString();
-   return str;
+    str << s.toStdString();
+    return str;
 }
 
 // missing make_unique() implementation in C++11 standard
 // source: http://herbsutter.com/gotw/_102/
-template<typename T, typename ...Args>
-std::unique_ptr<T> make_unique( Args&& ...args )
+template <typename T, typename... Args>
+std::unique_ptr<T> make_unique(Args&&... args)
 {
-    return std::unique_ptr<T>( new T( std::forward<Args>(args)... ) );
+    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
-template<typename R>
-bool is_ready( std::future<R> const& f )
+template <typename R>
+bool is_ready(std::future<R> const& f)
 {
-    return f.wait_for( std::chrono::seconds( 0 )) == std::future_status::ready;
+    return f.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
 }
 
 template <typename T>
-T set_difference( const T& v1, const T& v2 )
+T set_difference(const T& v1, const T& v2)
 {
     T diff;
-    std::set_difference( v1.begin(), v1.end(), v2.begin(), v2.end(),
-                         std::inserter( diff, diff.begin( )));
+    std::set_difference(v1.begin(), v1.end(), v2.begin(), v2.end(),
+                        std::inserter(diff, diff.begin()));
     return diff;
 }
 

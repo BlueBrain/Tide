@@ -42,8 +42,8 @@
 
 #include "types.h"
 
-#include <QQmlEngine>
 #include <QQmlContext>
+#include <QQmlEngine>
 #include <QQuickItem>
 
 /**
@@ -52,23 +52,21 @@
 class QmlWindowRenderer : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY( QmlWindowRenderer )
+    Q_DISABLE_COPY(QmlWindowRenderer)
 
 public:
     /** Constructor. */
-    QmlWindowRenderer( QQmlEngine& engine,
-                       DataProvider& provider,
-                       QQuickItem& parentItem,
-                       ContentWindowPtr contentWindow,
-                       bool isBackground = false );
+    QmlWindowRenderer(QQmlEngine& engine, DataProvider& provider,
+                      QQuickItem& parentItem, ContentWindowPtr contentWindow,
+                      bool isBackground = false);
     /** Destructor. */
     ~QmlWindowRenderer();
 
     /** Update the qml object with a new data model. */
-    void update( ContentWindowPtr contentWindow, const QRectF& visibleArea );
+    void update(ContentWindowPtr contentWindow, const QRectF& visibleArea);
 
     /** Update the contents, using the channel to synchronize processes. */
-    void synchronize( WallToWallChannel& channel );
+    void synchronize(WallToWallChannel& channel);
 
     /** Get the QML item. */
     QQuickItem* getQuickItem();
@@ -77,11 +75,11 @@ public:
     ContentWindowPtr getContentWindow();
 
 private slots:
-    void _addTile( TilePtr tile );
+    void _addTile(TilePtr tile);
     void _createZoomContextTile();
-    void _removeTile( uint tileIndex );
-    void _updateTile( uint tileIndex, const QRect& coordinates,
-                      TextureFormat format );
+    void _removeTile(uint tileIndex);
+    void _updateTile(uint tileIndex, const QRect& coordinates,
+                     TextureFormat format);
 
 private:
     DataProvider& _provider;
@@ -90,12 +88,12 @@ private:
     QQuickItem* _windowItem;
     ContentSynchronizerSharedPtr _synchronizer;
 
-    typedef std::map<uint,TilePtr> TilesMap;
+    typedef std::map<uint, TilePtr> TilesMap;
     TilesMap _tiles;
 
     TilePtr _zoomContextTile;
 
-    QQuickItem* _createQmlItem( const QUrl& url );
+    QQuickItem* _createQmlItem(const QUrl& url);
 };
 
 #endif

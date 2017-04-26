@@ -56,7 +56,7 @@ public:
      * @param uri The unique stream identifier.
      * @param keyboard Show the keyboard action.
      */
-    explicit PixelStreamContent( const QString& uri, bool keyboard = true );
+    explicit PixelStreamContent(const QString& uri, bool keyboard = true);
 
     /** Get the content type **/
     CONTENT_TYPE getType() const override;
@@ -77,17 +77,16 @@ public:
     Interaction getInteractionPolicy() const final;
 
     /** Parse data received from the deflect::Stream. */
-    virtual void parseData( QByteArray data ) { Q_UNUSED( data ); }
-
+    virtual void parseData(QByteArray data) { Q_UNUSED(data); }
 signals:
     /** Emitted when an Event occured. */
-    void notify( deflect::Event event );
+    void notify(deflect::Event event);
 
 protected:
     // Default constructor required for boost::serialization
-    PixelStreamContent( const bool keyboard = true )
+    PixelStreamContent(const bool keyboard = true)
     {
-        if( keyboard )
+        if (keyboard)
             _createActions();
     }
 
@@ -95,33 +94,37 @@ private:
     friend class boost::serialization::access;
 
     /** Serialize for sending to Wall applications. */
-    template< class Archive >
-    void serialize( Archive & ar, const unsigned int /*version*/ )
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int /*version*/)
     {
-        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP( Content );
+        // clang-format off
+        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Content);
         ar & _eventReceiversCount;
+        // clang-format on
     }
 
     /** Serialize for saving to an xml file */
-    template< class Archive >
-    void serialize_members_xml( Archive & ar, const unsigned int /*version*/ )
+    template <class Archive>
+    void serialize_members_xml(Archive& ar, const unsigned int /*version*/)
     {
         // serialize base class information (with NVP for xml archives)
-        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP( Content );
+        // clang-format off
+        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Content);
+        // clang-format on
     }
 
     /** Loading from xml. */
-    void serialize_for_xml( boost::archive::xml_iarchive& ar,
-                            const unsigned int version )
+    void serialize_for_xml(boost::archive::xml_iarchive& ar,
+                           const unsigned int version)
     {
-        serialize_members_xml( ar, version );
+        serialize_members_xml(ar, version);
     }
 
     /** Saving to xml. */
-    void serialize_for_xml( boost::archive::xml_oarchive& ar,
-                            const unsigned int version )
+    void serialize_for_xml(boost::archive::xml_oarchive& ar,
+                           const unsigned int version)
     {
-        serialize_members_xml( ar, version );
+        serialize_members_xml(ar, version);
     }
 
     unsigned int _eventReceiversCount = 0;
@@ -129,8 +132,8 @@ private:
     void _createActions();
 };
 
-DECLARE_SERIALIZE_FOR_XML( PixelStreamContent )
+DECLARE_SERIALIZE_FOR_XML(PixelStreamContent)
 
-BOOST_CLASS_EXPORT_KEY( PixelStreamContent )
+BOOST_CLASS_EXPORT_KEY(PixelStreamContent)
 
 #endif

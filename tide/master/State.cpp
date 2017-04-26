@@ -47,50 +47,51 @@
 #include <QtXmlPatterns/QXmlQuery>
 
 State::State()
-    : _displayGroup( new DisplayGroup( QSizeF( )))
-    , _version( INVALID_FILE_VERSION )
-{}
-
-State::State( DisplayGroupPtr displayGroup )
-    : _displayGroup( displayGroup )
-    , _version( INVALID_FILE_VERSION )
+    : _displayGroup(new DisplayGroup(QSizeF()))
+    , _version(INVALID_FILE_VERSION)
 {
 }
 
-bool _isLegacyVersion( QXmlQuery& query )
+State::State(DisplayGroupPtr displayGroup)
+    : _displayGroup(displayGroup)
+    , _version(INVALID_FILE_VERSION)
+{
+}
+
+bool _isLegacyVersion(QXmlQuery& query)
 {
     QString qstring;
 
     int version = -1;
-    query.setQuery( "string(/state/version)" );
+    query.setQuery("string(/state/version)");
 
-    if( query.evaluateTo( &qstring ))
+    if (query.evaluateTo(&qstring))
         version = qstring.toInt();
 
-    if( version == LEGACY_FILE_VERSION )
+    if (version == LEGACY_FILE_VERSION)
         return true;
 
-    put_flog( LOG_DEBUG, "not a legacy state file. version: %i, legacy: %i",
-              version, LEGACY_FILE_VERSION );
+    put_flog(LOG_DEBUG, "not a legacy state file. version: %i, legacy: %i",
+             version, LEGACY_FILE_VERSION);
     return false;
 }
 
-ContentPtr _loadContent( QXmlQuery& query, const int index )
+ContentPtr _loadContent(QXmlQuery& query, const int index)
 {
     char string[1024];
-    sprintf( string, "string(//state/ContentWindow[%i]/URI)", index );
-    query.setQuery( string );
+    sprintf(string, "string(//state/ContentWindow[%i]/URI)", index);
+    query.setQuery(string);
 
     QString qstring;
-    if( !query.evaluateTo( &qstring ))
+    if (!query.evaluateTo(&qstring))
         return ContentPtr();
 
     const QString uri = qstring.trimmed(); // remove any whitespace
-    return ContentFactory::getContent( uri );
+    return ContentFactory::getContent(uri);
 }
 
-ContentWindowPtr _restoreContent( QXmlQuery& query, ContentPtr content,
-                                  const int index )
+ContentWindowPtr _restoreContent(QXmlQuery& query, ContentPtr content,
+                                 const int index)
 {
     double x, y, w, h, centerX, centerY, zoom;
     x = y = w = h = centerX = centerY = zoom = -1.;
@@ -100,7 +101,7 @@ ContentWindowPtr _restoreContent( QXmlQuery& query, ContentPtr content,
     query.setQuery(string);
 
     QString qstring;
-    if(query.evaluateTo(&qstring))
+    if (query.evaluateTo(&qstring))
     {
         x = qstring.toDouble();
     }
@@ -108,7 +109,7 @@ ContentWindowPtr _restoreContent( QXmlQuery& query, ContentPtr content,
     sprintf(string, "string(//state/ContentWindow[%i]/y)", index);
     query.setQuery(string);
 
-    if(query.evaluateTo(&qstring))
+    if (query.evaluateTo(&qstring))
     {
         y = qstring.toDouble();
     }
@@ -116,7 +117,7 @@ ContentWindowPtr _restoreContent( QXmlQuery& query, ContentPtr content,
     sprintf(string, "string(//state/ContentWindow[%i]/w)", index);
     query.setQuery(string);
 
-    if(query.evaluateTo(&qstring))
+    if (query.evaluateTo(&qstring))
     {
         w = qstring.toDouble();
     }
@@ -124,7 +125,7 @@ ContentWindowPtr _restoreContent( QXmlQuery& query, ContentPtr content,
     sprintf(string, "string(//state/ContentWindow[%i]/h)", index);
     query.setQuery(string);
 
-    if(query.evaluateTo(&qstring))
+    if (query.evaluateTo(&qstring))
     {
         h = qstring.toDouble();
     }
@@ -132,7 +133,7 @@ ContentWindowPtr _restoreContent( QXmlQuery& query, ContentPtr content,
     sprintf(string, "string(//state/ContentWindow[%i]/centerX)", index);
     query.setQuery(string);
 
-    if(query.evaluateTo(&qstring))
+    if (query.evaluateTo(&qstring))
     {
         centerX = qstring.toDouble();
     }
@@ -140,7 +141,7 @@ ContentWindowPtr _restoreContent( QXmlQuery& query, ContentPtr content,
     sprintf(string, "string(//state/ContentWindow[%i]/centerY)", index);
     query.setQuery(string);
 
-    if(query.evaluateTo(&qstring))
+    if (query.evaluateTo(&qstring))
     {
         centerY = qstring.toDouble();
     }
@@ -148,68 +149,68 @@ ContentWindowPtr _restoreContent( QXmlQuery& query, ContentPtr content,
     sprintf(string, "string(//state/ContentWindow[%i]/zoom)", index);
     query.setQuery(string);
 
-    if(query.evaluateTo(&qstring))
+    if (query.evaluateTo(&qstring))
     {
         zoom = qstring.toDouble();
     }
 
-    ContentWindowPtr contentWindow( new ContentWindow( content ));
+    ContentWindowPtr contentWindow(new ContentWindow(content));
 
-    QRectF windowCoordinates( contentWindow->getCoordinates( ));
-    if( x != -1. || y != -1. )
-        windowCoordinates.moveTopLeft( QPointF( x, y ));
-    if( w != -1. || h != -1. )
-        windowCoordinates.setSize( QSizeF( w, h ));
-    contentWindow->setCoordinates( windowCoordinates );
+    QRectF windowCoordinates(contentWindow->getCoordinates());
+    if (x != -1. || y != -1.)
+        windowCoordinates.moveTopLeft(QPointF(x, y));
+    if (w != -1. || h != -1.)
+        windowCoordinates.setSize(QSizeF(w, h));
+    contentWindow->setCoordinates(windowCoordinates);
 
-    QRectF zoomRect( contentWindow->getContent()->getZoomRect( ));
-    if( zoom != -1. )
-        zoomRect.setSize( QSizeF( 1.0/zoom, 1.0/zoom ));
-    if( centerX != -1. || centerY != -1. )
-        zoomRect.moveCenter( QPointF( centerX, centerY ));
-    contentWindow->getContent()->setZoomRect( zoomRect );
+    QRectF zoomRect(contentWindow->getContent()->getZoomRect());
+    if (zoom != -1.)
+        zoomRect.setSize(QSizeF(1.0 / zoom, 1.0 / zoom));
+    if (centerX != -1. || centerY != -1.)
+        zoomRect.moveCenter(QPointF(centerX, centerY));
+    contentWindow->getContent()->setZoomRect(zoomRect);
 
     return contentWindow;
 }
 
-bool State::legacyLoadXML( const QString& filename )
+bool State::legacyLoadXML(const QString& filename)
 {
     QXmlQuery query;
 
-    if( !query.setFocus( QUrl( filename )))
+    if (!query.setFocus(QUrl(filename)))
     {
-        put_flog( LOG_DEBUG, "Not a valid legacy session: '%s'",
-                  filename.toLocal8Bit().constData( ));
+        put_flog(LOG_DEBUG, "Not a valid legacy session: '%s'",
+                 filename.toLocal8Bit().constData());
         return false;
     }
 
-    if( !_isLegacyVersion( query ))
+    if (!_isLegacyVersion(query))
         return false;
 
     int numContentWindows = 0;
-    query.setQuery( "string(count(//state/ContentWindow))" );
+    query.setQuery("string(count(//state/ContentWindow))");
 
     QString qstring;
-    if( query.evaluateTo( &qstring ))
+    if (query.evaluateTo(&qstring))
         numContentWindows = qstring.toInt();
 
     ContentWindowPtrs contentWindows;
-    contentWindows.reserve( numContentWindows );
-    for( int i = 1; i <= numContentWindows; ++i )
+    contentWindows.reserve(numContentWindows);
+    for (int i = 1; i <= numContentWindows; ++i)
     {
-        ContentPtr content = _loadContent( query, i );
-        if( !content )
+        ContentPtr content = _loadContent(query, i);
+        if (!content)
             content = ContentFactory::getErrorContent();
 
-        ContentWindowPtr contentWindow = _restoreContent( query, content, i );
-        if( contentWindow )
-            contentWindows.push_back( contentWindow );
+        ContentWindowPtr contentWindow = _restoreContent(query, content, i);
+        if (contentWindow)
+            contentWindows.push_back(contentWindow);
     }
 
-    _displayGroup->setContentWindows( contentWindows );
+    _displayGroup->setContentWindows(contentWindows);
     // Preserve appearence of legacy sessions.
-    _displayGroup->setShowWindowTitles( false );
-    _displayGroup->setCoordinates( UNIT_RECTF );
+    _displayGroup->setShowWindowTitles(false);
+    _displayGroup->setCoordinates(UNIT_RECTF);
     _version = LEGACY_FILE_VERSION;
 
     return true;

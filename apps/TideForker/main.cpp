@@ -47,28 +47,29 @@
 class CommandLineHelper : public CommandLineParser
 {
 public:
-    void showSyntax( const std::string& appName ) const final
+    void showSyntax(const std::string& appName) const final
     {
         std::cout << "Usage: " << appName << " is an internal subprocess of "
-                     "tideMaster, do not run manually." << std::endl;
+                                             "tideMaster, do not run manually."
+                  << std::endl;
     }
 };
 
-int main( int argc, char* argv[] )
+int main(int argc, char* argv[])
 {
     logger_id = "forker";
-    qInstallMessageHandler( qtMessageLogger );
+    qInstallMessageHandler(qtMessageLogger);
 
-    COMMAND_LINE_PARSER_CHECK( CommandLineHelper, "tideForker" );
+    COMMAND_LINE_PARSER_CHECK(CommandLineHelper, "tideForker");
 
     {
-        MPIChannelPtr worldChannel( new MPIChannel( argc, argv ));
+        MPIChannelPtr worldChannel(new MPIChannel(argc, argv));
         const int rank = worldChannel->getRank();
-        MPIChannelPtr localChannel( new MPIChannel( *worldChannel, 0, rank ));
-        MPIChannelPtr mainChannel( new MPIChannel( *worldChannel, 0, rank ));
+        MPIChannelPtr localChannel(new MPIChannel(*worldChannel, 0, rank));
+        MPIChannelPtr mainChannel(new MPIChannel(*worldChannel, 0, rank));
 
-        ProcessForker( localChannel ).run();
+        ProcessForker(localChannel).run();
     }
-    put_flog( LOG_DEBUG, "done." );
+    put_flog(LOG_DEBUG, "done.");
     return EXIT_SUCCESS;
 }

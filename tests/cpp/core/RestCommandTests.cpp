@@ -42,24 +42,22 @@
 
 #include "rest/RestCommand.h"
 
-BOOST_AUTO_TEST_CASE( test_receive_json_command )
+BOOST_AUTO_TEST_CASE(test_receive_json_command)
 {
-    RestCommand command( "tide::open" );
+    RestCommand command("tide::open");
 
     QString receivedUri;
-    QObject::connect( &command, &RestCommand::received, [&]( const QString uri )
-    {
-        receivedUri = uri;
-    });
+    QObject::connect(&command, &RestCommand::received,
+                     [&](const QString uri) { receivedUri = uri; });
 
-    BOOST_CHECK_EQUAL( command.getTypeName(), "tide::open" );
+    BOOST_CHECK_EQUAL(command.getTypeName(), "tide::open");
 
-    BOOST_CHECK( !command.fromJSON( "I am not a json string" ));
-    BOOST_REQUIRE( receivedUri.isEmpty( ));
+    BOOST_CHECK(!command.fromJSON("I am not a json string"));
+    BOOST_REQUIRE(receivedUri.isEmpty());
 
-    BOOST_CHECK( !command.fromJSON( "{\"invalid_key\":\"image.png\"}" ));
-    BOOST_REQUIRE( receivedUri.isEmpty( ));
+    BOOST_CHECK(!command.fromJSON("{\"invalid_key\":\"image.png\"}"));
+    BOOST_REQUIRE(receivedUri.isEmpty());
 
-    BOOST_CHECK( command.fromJSON( "{\"uri\":\"image.png\"}" ));
-    BOOST_CHECK_EQUAL( receivedUri.toStdString(), "image.png" );
+    BOOST_CHECK(command.fromJSON("{\"uri\":\"image.png\"}"));
+    BOOST_CHECK_EQUAL(receivedUri.toStdString(), "image.png");
 }

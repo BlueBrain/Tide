@@ -45,17 +45,17 @@
 
 #include <mutex>
 
-#define RSVG_HAS_LARGE_FILE_SUPPORT LIBRSVG_CHECK_VERSION(2,40,3)
+#define RSVG_HAS_LARGE_FILE_SUPPORT LIBRSVG_CHECK_VERSION(2, 40, 3)
 
 struct RsvgHandleDeleter
 {
-    void operator()( RsvgHandle* rsvg ) { g_object_unref( rsvg ); }
+    void operator()(RsvgHandle* rsvg) { g_object_unref(rsvg); }
 };
 typedef std::unique_ptr<RsvgHandle, RsvgHandleDeleter> RsvgHandlePtr;
 
 struct GInputStreamDeleter
 {
-    void operator()( GInputStream* rsvg ) { g_object_unref( rsvg ); }
+    void operator()(GInputStream* rsvg) { g_object_unref(rsvg); }
 };
 typedef std::unique_ptr<GInputStream, GInputStreamDeleter> GInputStreamPtr;
 
@@ -65,36 +65,39 @@ struct SVGCairoRSVGBackend::Impl
     std::mutex renderMutex;
 };
 
-SVGCairoRSVGBackend::SVGCairoRSVGBackend( const QByteArray& svgData )
-    : _impl{ new Impl }
+SVGCairoRSVGBackend::SVGCairoRSVGBackend(const QByteArray& svgData)
+    : _impl{new Impl}
 {
 #if RSVG_HAS_LARGE_FILE_SUPPORT
     const auto flags = RSVG_HANDLE_FLAG_UNLIMITED;
 #else
     const auto flags = RSVG_HANDLE_FLAGS_NONE;
 #endif
-    _impl->svg.reset( rsvg_handle_new_with_flags( flags ));
-    GInputStreamPtr input( g_memory_input_stream_new_from_data(
-                               svgData.constData(), svgData.size(), nullptr ));
+    _impl->svg.reset(rsvg_handle_new_with_flags(flags));
+    GInputStreamPtr input(
+        g_memory_input_stream_new_from_data(svgData.constData(), svgData.size(),
+                                            nullptr));
     GError* gerror = nullptr;
-    if( !rsvg_handle_read_stream_sync( _impl->svg.get(), input.get(), nullptr,
-                                       &gerror ))
-        throw std::runtime_error( gerror->message );
+    if (!rsvg_handle_read_stream_sync(_impl->svg.get(), input.get(), nullptr,
+                                      &gerror))
+        throw std::runtime_error(gerror->message);
 }
 
-SVGCairoRSVGBackend::~SVGCairoRSVGBackend() {}
+SVGCairoRSVGBackend::~SVGCairoRSVGBackend()
+{
+}
 
 QSize SVGCairoRSVGBackend::getSize() const
 {
     RsvgDimensionData dimensions;
-    rsvg_handle_get_dimensions( _impl->svg.get(), &dimensions );
-    return QSize{ dimensions.width, dimensions.height };
+    rsvg_handle_get_dimensions(_impl->svg.get(), &dimensions);
+    return QSize{dimensions.width, dimensions.height};
 }
 
-QImage SVGCairoRSVGBackend::renderToImage( const QSize& imageSize,
-                                           const QRectF& region ) const
+QImage SVGCairoRSVGBackend::renderToImage(const QSize& imageSize,
+                                          const QRectF& region) const
 {
-    const QSizeF svgSize( getSize( ));
+    const QSizeF svgSize(getSize());
 
     const qreal zoomX = 1.0 / region.width();
     const qreal zoomY = 1.0 / region.height();
@@ -102,22 +105,22 @@ QImage SVGCairoRSVGBackend::renderToImage( const QSize& imageSize,
     const qreal resX = imageSize.width() / svgSize.width();
     const qreal resY = imageSize.height() / svgSize.height();
 
-    const QPointF topLeft( region.x() * svgSize.width(),
-                           region.y() * svgSize.height( ));
+    const QPointF topLeft(region.x() * svgSize.width(),
+                          region.y() * svgSize.height());
 
-    QImage image( imageSize, QImage::Format_ARGB32 );
-    image.fill( Qt::white );
-    CairoSurfacePtr surface( cairo_image_surface_create_for_data(
-                                 image.bits(), CAIRO_FORMAT_ARGB32,
-                                 image.width(), image.height(),
-                                 4 * image.width( )));
-    CairoPtr context( cairo_create( surface.get( )));
+    QImage image(imageSize, QImage::Format_ARGB32);
+    image.fill(Qt::white);
+    CairoSurfacePtr surface(
+        cairo_image_surface_create_for_data(image.bits(), CAIRO_FORMAT_ARGB32,
+                                            image.width(), image.height(),
+                                            4 * image.width()));
+    CairoPtr context(cairo_create(surface.get()));
 
-    cairo_scale( context.get(), zoomX * resX, zoomY * resY );
-    cairo_translate( context.get(), -topLeft.x(), -topLeft.y( ));
+    cairo_scale(context.get(), zoomX * resX, zoomY * resY);
+    cairo_translate(context.get(), -topLeft.x(), -topLeft.y());
 
-    const std::lock_guard<std::mutex> lock( _impl->renderMutex );
-    rsvg_handle_render_cairo( _impl->svg.get(), context.get( ));
+    const std::lock_guard<std::mutex> lock(_impl->renderMutex);
+    rsvg_handle_render_cairo(_impl->svg.get(), context.get());
 
     return image;
 }

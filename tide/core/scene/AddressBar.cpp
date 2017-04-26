@@ -39,18 +39,19 @@
 
 #include "AddressBar.h"
 
-AddressBar::AddressBar( QObject* parentObject )
-    : QObject( parentObject )
-{}
+AddressBar::AddressBar(QObject* parentObject)
+    : QObject(parentObject)
+{
+}
 
 bool AddressBar::isFocused() const
 {
     return _focused;
 }
 
-void AddressBar::setFocused( const bool set )
+void AddressBar::setFocused(const bool set)
 {
-    if( _focused == set )
+    if (_focused == set)
         return;
 
     _focused = set;
@@ -63,9 +64,9 @@ int AddressBar::getCursorPosition() const
     return _cursorPosition;
 }
 
-void AddressBar::setCursorPosition( const int arg )
+void AddressBar::setCursorPosition(const int arg)
 {
-    if( _cursorPosition == arg )
+    if (_cursorPosition == arg)
         return;
 
     _cursorPosition = arg;
@@ -77,9 +78,9 @@ int AddressBar::getSelectionStart() const
     return _selectionStart;
 }
 
-void AddressBar::setSelectionStart( const int pos )
+void AddressBar::setSelectionStart(const int pos)
 {
-    if( _selectionStart == pos )
+    if (_selectionStart == pos)
         return;
 
     _selectionStart = pos;
@@ -92,9 +93,9 @@ int AddressBar::getSelectionEnd() const
     return _selectionEnd;
 }
 
-void AddressBar::setSelectionEnd( const int pos )
+void AddressBar::setSelectionEnd(const int pos)
 {
-    if( _selectionEnd == pos )
+    if (_selectionEnd == pos)
         return;
 
     _selectionEnd = pos;
@@ -107,9 +108,9 @@ QString AddressBar::getUrl() const
     return _url;
 }
 
-void AddressBar::setUrl( const QString url )
+void AddressBar::setUrl(const QString url)
 {
-    if( getUrl() == url )
+    if (getUrl() == url)
         return;
 
     _url = url;

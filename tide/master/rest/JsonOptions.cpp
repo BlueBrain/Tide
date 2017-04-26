@@ -39,32 +39,32 @@
 
 #include "JsonOptions.h"
 
-#include "jsonschema.h"
 #include "json.h"
+#include "jsonschema.h"
 #include "scene/Options.h"
 
-QJsonObject _makeJsonObject( const Options& options )
+QJsonObject _makeJsonObject(const Options& options)
 {
     return QJsonObject{
-        { "alphaBlending", options.isAlphaBlendingEnabled() },
-        { "autoFocusStreamers", options.getAutoFocusPixelStreams() },
-        { "backgroundColor", options.getBackgroundColor().name() },
-        { "background", options.getBackgroundUri() },
-        { "clock", options.getShowClock() },
-        { "contentTiles", options.getShowContentTiles() },
-        { "controlArea", options.getShowControlArea() },
-        { "statistics", options.getShowStatistics() },
-        { "testPattern", options.getShowTestPattern() },
-        { "touchPoints", options.getShowTouchPoints() },
-        { "windowBorders", options.getShowWindowBorders() },
-        { "windowTitles", options.getShowWindowTitles() },
-        { "zoomContext", options.getShowZoomContext() }
-    };
+        {"alphaBlending", options.isAlphaBlendingEnabled()},
+        {"autoFocusStreamers", options.getAutoFocusPixelStreams()},
+        {"backgroundColor", options.getBackgroundColor().name()},
+        {"background", options.getBackgroundUri()},
+        {"clock", options.getShowClock()},
+        {"contentTiles", options.getShowContentTiles()},
+        {"controlArea", options.getShowControlArea()},
+        {"statistics", options.getShowStatistics()},
+        {"testPattern", options.getShowTestPattern()},
+        {"touchPoints", options.getShowTouchPoints()},
+        {"windowBorders", options.getShowWindowBorders()},
+        {"windowTitles", options.getShowWindowTitles()},
+        {"zoomContext", options.getShowZoomContext()}};
 }
 
-JsonOptions::JsonOptions( OptionsPtr options )
-    : _options( options )
-{}
+JsonOptions::JsonOptions(OptionsPtr options)
+    : _options(options)
+{
+}
 
 std::string JsonOptions::getTypeName() const
 {
@@ -73,83 +73,83 @@ std::string JsonOptions::getTypeName() const
 
 std::string JsonOptions::getSchema() const
 {
-    return jsonschema::create( "Options", _makeJsonObject( *_options ),
-                               "Options of the Tide application" );
+    return jsonschema::create("Options", _makeJsonObject(*_options),
+                              "Options of the Tide application");
 }
 
 std::string JsonOptions::_toJSON() const
 {
-    if( !_options )
+    if (!_options)
         return std::string();
 
-    return json::toString( _makeJsonObject( *_options ));
+    return json::toString(_makeJsonObject(*_options));
 }
 
-bool JsonOptions::_fromJSON( const std::string& string )
+bool JsonOptions::_fromJSON(const std::string& string)
 {
-    if( !_options )
+    if (!_options)
         return false;
 
-    const auto obj = json::toObject( string );
-    if( obj.isEmpty( ))
+    const auto obj = json::toObject(string);
+    if (obj.isEmpty())
         return false;
 
     QJsonValue value;
     value = obj["alphaBlending"];
-    if( value.isBool( ))
-        _options->enableAlphaBlending( value.toBool( ));
+    if (value.isBool())
+        _options->enableAlphaBlending(value.toBool());
 
     value = obj["autoFocusStreamers"];
-    if( value.isBool( ))
-        _options->setAutoFocusPixelStreams( value.toBool( ));
+    if (value.isBool())
+        _options->setAutoFocusPixelStreams(value.toBool());
 
     value = obj["backgroundColor"];
-    if( value.isString( ))
-        _options->setBackgroundColor( QColor( value.toString( )));
+    if (value.isString())
+        _options->setBackgroundColor(QColor(value.toString()));
 
     value = obj["background"];
-    if( value.isString( ))
-        _options->setBackgroundUri( value.toString( ));
+    if (value.isString())
+        _options->setBackgroundUri(value.toString());
 
     value = obj["clock"];
-    if( value.isBool( ))
-        _options->setShowClock( value.toBool( ));
+    if (value.isBool())
+        _options->setShowClock(value.toBool());
 
     value = obj["contentTiles"];
-    if( value.isBool( ))
-        _options->setShowContentTiles( value.toBool( ));
+    if (value.isBool())
+        _options->setShowContentTiles(value.toBool());
 
     value = obj["controlArea"];
-    if( value.isBool( ))
-        _options->setShowControlArea( value.toBool( ));
+    if (value.isBool())
+        _options->setShowControlArea(value.toBool());
 
     value = obj["clock"];
-    if( value.isBool( ))
-        _options->setShowClock( value.toBool( ));
+    if (value.isBool())
+        _options->setShowClock(value.toBool());
 
     value = obj["statistics"];
-    if( value.isBool( ))
-        _options->setShowStatistics( value.toBool( ));
+    if (value.isBool())
+        _options->setShowStatistics(value.toBool());
 
     value = obj["testPattern"];
-    if( value.isBool( ))
-       _options->setShowTestPattern( value.toBool( ));
+    if (value.isBool())
+        _options->setShowTestPattern(value.toBool());
 
     value = obj["touchPoints"];
-    if( value.isBool( ))
-        _options->setShowTouchPoints( value.toBool( ));
+    if (value.isBool())
+        _options->setShowTouchPoints(value.toBool());
 
     value = obj["windowBorders"];
-    if( value.isBool( ))
-        _options->setShowWindowBorders( value.toBool( ));
+    if (value.isBool())
+        _options->setShowWindowBorders(value.toBool());
 
     value = obj["windowTitles"];
-    if( value.isBool( ))
-        _options->setShowWindowTitles( value.toBool( ));
+    if (value.isBool())
+        _options->setShowWindowTitles(value.toBool());
 
     value = obj["zoomContext"];
-    if( value.isBool( ))
-        _options->setShowZoomContext( value.toBool( ));
+    if (value.isBool())
+        _options->setShowZoomContext(value.toBool());
 
     return true;
 }

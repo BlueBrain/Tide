@@ -58,18 +58,18 @@ public:
 
     /** @return always false, no longer supported. */
     bool readMetadata() final { return false; }
-
 private:
     friend class boost::serialization::access;
 
     // Default constructor required for boost::serialization
     DynamicTextureContent() {}
-
-    template<class Archive>
-    void serialize( Archive & ar, const unsigned int )
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int)
     {
         // serialize base class information (with NVP for xml archives)
-        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP( Content );
+        // clang-format off
+        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Content);
+        // clang-format on
     }
 };
 

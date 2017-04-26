@@ -53,13 +53,13 @@ class Whiteboard : public QGuiApplication
     Q_OBJECT
 
 public:
-    Whiteboard( int& argc, char* argv[] );
+    Whiteboard(int& argc, char* argv[]);
 
 private:
     std::unique_ptr<deflect::qt::QmlStreamer> _qmlStreamer;
     FileInfoHelper _fileInfoHelper;
 
-    bool event( QEvent* event ) final;
+    bool event(QEvent* event) final;
 };
 
 #endif

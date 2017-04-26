@@ -47,20 +47,20 @@
 
 namespace
 {
-const std::vector<uint8_t> expectedY( 8 * 8, 92 );
-const std::vector<uint8_t> expectedU( 8 * 8, 28 );
-const std::vector<uint8_t> expectedV( 8 * 8, 79 );
+const std::vector<uint8_t> expectedY(8 * 8, 92);
+const std::vector<uint8_t> expectedU(8 * 8, 28);
+const std::vector<uint8_t> expectedV(8 * 8, 79);
 }
 
-deflect::FramePtr createTestFrame( const QSize& size, const int subsamp )
+deflect::FramePtr createTestFrame(const QSize& size, const int subsamp)
 {
-    deflect::FramePtr frame( new deflect::Frame );
+    deflect::FramePtr frame(new deflect::Frame);
     deflect::Segment segment;
 
     segment.parameters.dataType = deflect::DataType::yuv444;
-    if( subsamp == 1 )
+    if (subsamp == 1)
         segment.parameters.dataType = deflect::DataType::yuv422;
-    else if( subsamp == 2 )
+    else if (subsamp == 2)
         segment.parameters.dataType = deflect::DataType::yuv420;
 
     segment.parameters.width = size.width();
@@ -68,39 +68,39 @@ deflect::FramePtr createTestFrame( const QSize& size, const int subsamp )
 
     const auto ySize = size.width() * size.height();
     const auto uvSize = ySize >> subsamp;
-    segment.imageData.append( QByteArray( ySize, 92 ));  // Y
-    segment.imageData.append( QByteArray( uvSize, 28 )); // U
-    segment.imageData.append( QByteArray( uvSize, 79 )); // V
+    segment.imageData.append(QByteArray(ySize, 92));  // Y
+    segment.imageData.append(QByteArray(uvSize, 28)); // U
+    segment.imageData.append(QByteArray(uvSize, 79)); // V
 
-    frame->segments.push_back( segment );
+    frame->segments.push_back(segment);
     return frame;
 }
 
-BOOST_AUTO_TEST_CASE( testStreamImageYUV )
+BOOST_AUTO_TEST_CASE(testStreamImageYUV)
 {
-    for( int subsamp = 0; subsamp <= 2; ++subsamp )
+    for (int subsamp = 0; subsamp <= 2; ++subsamp)
     {
-        StreamImage image( createTestFrame( { 8, 8 }, subsamp ), 0 );
+        StreamImage image(createTestFrame({8, 8}, subsamp), 0);
 
-        const auto y = image.getData( 0 );
-        const auto u = image.getData( 1 );
-        const auto v = image.getData( 2 );
-        const auto imageSizeY = image.getTextureSize( 0 );
-        const auto imageSizeU = image.getTextureSize( 1 );
-        const auto imageSizeV = image.getTextureSize( 2 );
+        const auto y = image.getData(0);
+        const auto u = image.getData(1);
+        const auto v = image.getData(2);
+        const auto imageSizeY = image.getTextureSize(0);
+        const auto imageSizeU = image.getTextureSize(1);
+        const auto imageSizeV = image.getTextureSize(2);
         const auto ySize = imageSizeY.width() * imageSizeY.height();
         const auto uSize = imageSizeU.width() * imageSizeU.height();
         const auto vSize = imageSizeV.width() * imageSizeV.height();
 
-        BOOST_CHECK_EQUAL( ySize, 8 * 8 );
-        BOOST_CHECK_EQUAL( uSize, 8 * 8 >> subsamp );
-        BOOST_CHECK_EQUAL( vSize, 8 * 8 >> subsamp );
+        BOOST_CHECK_EQUAL(ySize, 8 * 8);
+        BOOST_CHECK_EQUAL(uSize, 8 * 8 >> subsamp);
+        BOOST_CHECK_EQUAL(vSize, 8 * 8 >> subsamp);
 
-        BOOST_CHECK_EQUAL_COLLECTIONS( y, y + ySize, expectedY.data(),
-                                       expectedY.data() + ySize );
-        BOOST_CHECK_EQUAL_COLLECTIONS( u, u + uSize, expectedU.data(),
-                                       expectedU.data() + uSize );
-        BOOST_CHECK_EQUAL_COLLECTIONS( v, v + vSize, expectedV.data(),
-                                       expectedV.data() + vSize );
+        BOOST_CHECK_EQUAL_COLLECTIONS(y, y + ySize, expectedY.data(),
+                                      expectedY.data() + ySize);
+        BOOST_CHECK_EQUAL_COLLECTIONS(u, u + uSize, expectedU.data(),
+                                      expectedU.data() + uSize);
+        BOOST_CHECK_EQUAL_COLLECTIONS(v, v + vSize, expectedV.data(),
+                                      expectedV.data() + vSize);
     }
 }

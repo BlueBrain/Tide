@@ -50,26 +50,25 @@
 class PanDetector : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY( PanDetector )
+    Q_DISABLE_COPY(PanDetector)
 
 public:
-    PanDetector( qreal panThreshold );
+    PanDetector(qreal panThreshold);
 
-    void initGesture( const Positions& positions );
-    void updateGesture( const Positions& positions );
+    void initGesture(const Positions& positions);
+    void updateGesture(const Positions& positions);
     void cancelGesture();
 
     bool isPanning() const { return _panning; }
-
     qreal getPanThreshold() const;
-    void setPanThreshold( qreal arg );
+    void setPanThreshold(qreal arg);
 
 signals:
     /** Emitted when a pan starts (i.e. one or more finger(s) start moving). */
-    void panStarted( QPointF pos, uint numPoints );
+    void panStarted(QPointF pos, uint numPoints);
 
     /** Emitted for each finger movement between panStarted-panEnded. */
-    void pan( QPointF pos, QPointF delta, uint numPoints );
+    void pan(QPointF pos, QPointF delta, uint numPoints);
 
     /** Emitted when a pan ends (finger released or new finger detected). */
     void panEnded();
@@ -80,7 +79,7 @@ private:
     QPointF _startPanPos;
     QPointF _lastPanPos;
 
-    void _startGesture( const QPointF& pos, uint numPoints );
+    void _startGesture(const QPointF& pos, uint numPoints);
 };
 
 #endif

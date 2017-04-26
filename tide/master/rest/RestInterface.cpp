@@ -43,7 +43,6 @@
 #include "FileSystemQuery.h"
 #include "HtmlContent.h"
 #include "JsonOptions.h"
-#include "json.h"
 #include "MasterConfiguration.h"
 #include "RestCommand.h"
 #include "RestConfiguration.h"
@@ -51,14 +50,15 @@
 #include "RestLogger.h"
 #include "RestServer.h"
 #include "RestWindows.h"
+#include "json.h"
 #include "scene/ContentFactory.h"
 
 #include <tide/master/version.h>
 
 #include <zeroeq/http/helpers.h>
 
-#include <functional>
 #include <QDir>
+#include <functional>
 
 using namespace std::placeholders;
 using namespace zeroeq;
@@ -67,41 +67,41 @@ namespace
 {
 struct HtmlInterface
 {
-    HtmlInterface( http::Server& server, DisplayGroup& group,
-                   const MasterConfiguration& config )
-        : htmlContent{ server }
-        , jsonConfig{ config }
-        , windowsContent{ group }
-        , sceneController{ server, group }
-        , contentDirQuery{ config.getContentDir(),
-                           ContentFactory::getSupportedFilesFilter() }
-        , sessionDirQuery{ config.getSessionsDir(), QStringList{ "*.dcx" }}
+    HtmlInterface(http::Server& server, DisplayGroup& group,
+                  const MasterConfiguration& config)
+        : htmlContent{server}
+        , jsonConfig{config}
+        , windowsContent{group}
+        , sceneController{server, group}
+        , contentDirQuery{config.getContentDir(),
+                          ContentFactory::getSupportedFilesFilter()}
+        , sessionDirQuery{config.getSessionsDir(), QStringList{"*.dcx"}}
     {
-        server.handleGET( jsonConfig );
+        server.handleGET(jsonConfig);
 
-        server.handle( http::Method::GET, "tide/windows",
-                       std::bind( &RestWindows::getWindowList, &windowsContent,
-                                  std::placeholders::_1 ) );
+        server.handle(http::Method::GET, "tide/windows",
+                      std::bind(&RestWindows::getWindowList, &windowsContent,
+                                std::placeholders::_1));
 
-        server.handle( http::Method::GET, "tide/windows/",
-                       std::bind( &RestWindows::getWindowInfo, &windowsContent,
-                                  std::placeholders::_1 ));
+        server.handle(http::Method::GET, "tide/windows/",
+                      std::bind(&RestWindows::getWindowInfo, &windowsContent,
+                                std::placeholders::_1));
 
-        server.handle( http::Method::POST, "tide/upload",
-                       std::bind( &FileReceiver::prepareUpload, &fileReceiver,
-                                  std::placeholders::_1 ));
+        server.handle(http::Method::POST, "tide/upload",
+                      std::bind(&FileReceiver::prepareUpload, &fileReceiver,
+                                std::placeholders::_1));
 
-        server.handle( http::Method::PUT, "tide/upload/",
-                       std::bind( &FileReceiver::handleUpload, &fileReceiver,
-                                  std::placeholders::_1 ));
+        server.handle(http::Method::PUT, "tide/upload/",
+                      std::bind(&FileReceiver::handleUpload, &fileReceiver,
+                                std::placeholders::_1));
 
-        server.handle( http::Method::GET, "tide/files/",
-                       std::bind( &FileSystemQuery::list, &contentDirQuery,
-                                  std::placeholders::_1 ));
+        server.handle(http::Method::GET, "tide/files/",
+                      std::bind(&FileSystemQuery::list, &contentDirQuery,
+                                std::placeholders::_1));
 
-        server.handle( http::Method::GET, "tide/sessions/",
-                       std::bind( &FileSystemQuery::list, &sessionDirQuery,
-                                  std::placeholders::_1 ));
+        server.handle(http::Method::GET, "tide/sessions/",
+                      std::bind(&FileSystemQuery::list, &sessionDirQuery,
+                                std::placeholders::_1));
     }
 
     HtmlContent htmlContent;
@@ -114,28 +114,27 @@ struct HtmlInterface
 };
 
 using AsyncAction = std::function<void(QString, promisePtr)>;
-std::future<http::Response> _handleUriRequest( const http::Request& request,
-                                               AsyncAction action,
-                                               const QString& baseDir )
+std::future<http::Response> _handleUriRequest(const http::Request& request,
+                                              AsyncAction action,
+                                              const QString& baseDir)
 {
-    const auto obj = json::toObject( request.body );
-    if( obj.empty() || !obj["uri"].isString( ))
-        return http::make_ready_response( http::Code::BAD_REQUEST );
+    const auto obj = json::toObject(request.body);
+    if (obj.empty() || !obj["uri"].isString())
+        return http::make_ready_response(http::Code::BAD_REQUEST);
 
     auto uri = obj["uri"].toString();
-    if( QDir::isRelativePath( uri ))
+    if (QDir::isRelativePath(uri))
         uri = baseDir + "/" + uri;
 
-    return std::async( std::launch::deferred, [action, uri]()
-    {
+    return std::async(std::launch::deferred, [action, uri]() {
         auto promise = std::make_shared<std::promise<bool>>();
         auto future = promise->get_future();
 
-        action( uri, std::move( promise ));
+        action(uri, std::move(promise));
 
-        if( !future.get( ))
-            return http::Response{ http::Code::INTERNAL_SERVER_ERROR };
-        return http::Response{ http::Code::OK };
+        if (!future.get())
+            return http::Response{http::Code::INTERNAL_SERVER_ERROR};
+        return http::Response{http::Code::OK};
     });
 }
 }
@@ -143,107 +142,105 @@ std::future<http::Response> _handleUriRequest( const http::Request& request,
 class RestInterface::Impl
 {
 public:
-    Impl( const int port, OptionsPtr options,
-          const MasterConfiguration& config_ )
-        : httpServer{ port }
-        , jsonOptions{ options }
-        , jsonSize{ config_.getTotalSize() }
+    Impl(const int port, OptionsPtr options, const MasterConfiguration& config_)
+        : httpServer{port}
+        , jsonOptions{options}
+        , jsonSize{config_.getTotalSize()}
     {
         auto& server = httpServer.get();
-        server.handleGET( "tide/version", tide::Version::getSchema(),
-                          &tide::Version::toJSON );
-        server.handlePUT( browseCmd );
-        server.handlePUT( clearCmd );
-        server.handlePUT( exitCmd );
-        server.handlePUT( screenshotCmd );
-        server.handlePUT( whiteboardCmd );
+        server.handleGET("tide/version", tide::Version::getSchema(),
+                         &tide::Version::toJSON);
+        server.handlePUT(browseCmd);
+        server.handlePUT(clearCmd);
+        server.handlePUT(exitCmd);
+        server.handlePUT(screenshotCmd);
+        server.handlePUT(whiteboardCmd);
 
-        server.handle( jsonOptions );
+        server.handle(jsonOptions);
 
-        server.handleGET( jsonSize );
+        server.handleGET(jsonSize);
     }
 
     RestServer httpServer;
 
-    RestCommand browseCmd{ "tide/browse" };
-    RestCommand clearCmd{ "tide/clear", false };
-    RestCommand exitCmd{ "tide/exit", false };
-    RestCommand screenshotCmd{ "tide/screenshot" };
-    RestCommand whiteboardCmd{ "tide/whiteboard", false };
+    RestCommand browseCmd{"tide/browse"};
+    RestCommand clearCmd{"tide/clear", false};
+    RestCommand exitCmd{"tide/exit", false};
+    RestCommand screenshotCmd{"tide/screenshot"};
+    RestCommand whiteboardCmd{"tide/whiteboard", false};
 
     JsonOptions jsonOptions;
     JsonSize jsonSize;
 
-    std::unique_ptr<RestLogger> logContent; // Statistics (optional)
+    std::unique_ptr<RestLogger> logContent;       // Statistics (optional)
     std::unique_ptr<HtmlInterface> htmlInterface; // HTML interface (optional)
 };
 
-RestInterface::RestInterface( const int port, OptionsPtr options,
-                              const MasterConfiguration& config )
-    : _impl( new Impl( port, options, config ))
+RestInterface::RestInterface(const int port, OptionsPtr options,
+                             const MasterConfiguration& config)
+    : _impl(new Impl(port, options, config))
 {
     // Note: using same formatting as TUIO instead of put_flog() here
-    std::cout << "listening to REST messages on TCP port " <<
-                 _impl->httpServer.getPort() << std::endl;
+    std::cout << "listening to REST messages on TCP port "
+              << _impl->httpServer.getPort() << std::endl;
 
-    connect( &_impl->browseCmd, &RestCommand::received,
-             this, &RestInterface::browse );
+    connect(&_impl->browseCmd, &RestCommand::received, this,
+            &RestInterface::browse);
 
-    connect( &_impl->clearCmd, &RestCommand::received,
-             this, &RestInterface::clear );
+    connect(&_impl->clearCmd, &RestCommand::received, this,
+            &RestInterface::clear);
 
-    connect( &_impl->exitCmd, &RestCommand::received,
-             this, &RestInterface::exit );
+    connect(&_impl->exitCmd, &RestCommand::received, this,
+            &RestInterface::exit);
 
-    connect( &_impl->screenshotCmd, &RestCommand::received,
-             this, &RestInterface::screenshot );
+    connect(&_impl->screenshotCmd, &RestCommand::received, this,
+            &RestInterface::screenshot);
 
-    connect( &_impl->whiteboardCmd, &RestCommand::received,
-             this, &RestInterface::whiteboard );
+    connect(&_impl->whiteboardCmd, &RestCommand::received, this,
+            &RestInterface::whiteboard);
 
     const auto contentDir = config.getContentDir();
     const auto sessionsDir = config.getSessionsDir();
 
-    const auto openFunc = std::bind( &RestInterface::open, this, _1, QPointF(),
-                                     _2 );
-    const auto loadFunc = std::bind( &RestInterface::load, this, _1, _2 );
-    const auto saveFunc = std::bind( &RestInterface::save, this, _1, _2 );
+    const auto openFunc =
+        std::bind(&RestInterface::open, this, _1, QPointF(), _2);
+    const auto loadFunc = std::bind(&RestInterface::load, this, _1, _2);
+    const auto saveFunc = std::bind(&RestInterface::save, this, _1, _2);
 
     auto& server = _impl->httpServer.get();
 
-    server.handle( http::Method::PUT, "tide/open",
-                   [openFunc, contentDir]( const http::Request& request )
-    {
-        return _handleUriRequest( request, openFunc, contentDir );
-    });
+    server.handle(http::Method::PUT, "tide/open",
+                  [openFunc, contentDir](const http::Request& request) {
+                      return _handleUriRequest(request, openFunc, contentDir);
+                  });
 
-    server.handle( http::Method::PUT, "tide/load",
-                   [loadFunc, sessionsDir]( const http::Request& request )
-    {
-        return _handleUriRequest( request, loadFunc, sessionsDir );
-    });
+    server.handle(http::Method::PUT, "tide/load",
+                  [loadFunc, sessionsDir](const http::Request& request) {
+                      return _handleUriRequest(request, loadFunc, sessionsDir);
+                  });
 
-    server.handle( http::Method::PUT, "tide/save",
-                   [saveFunc, sessionsDir]( const http::Request& request )
-    {
-        return _handleUriRequest( request, saveFunc, sessionsDir );
-    });
+    server.handle(http::Method::PUT, "tide/save",
+                  [saveFunc, sessionsDir](const http::Request& request) {
+                      return _handleUriRequest(request, saveFunc, sessionsDir);
+                  });
 }
 
-RestInterface::~RestInterface() {}
-
-void RestInterface::exposeStatistics( const LoggingUtility& logger ) const
+RestInterface::~RestInterface()
 {
-    _impl->logContent.reset( new RestLogger( logger ));
-    _impl->httpServer.get().handleGET( *_impl->logContent );
 }
 
-void RestInterface::setupHtmlInterface( DisplayGroup& group,
-                                        const MasterConfiguration& config )
+void RestInterface::exposeStatistics(const LoggingUtility& logger) const
+{
+    _impl->logContent.reset(new RestLogger(logger));
+    _impl->httpServer.get().handleGET(*_impl->logContent);
+}
+
+void RestInterface::setupHtmlInterface(DisplayGroup& group,
+                                       const MasterConfiguration& config)
 {
     auto& server = _impl->httpServer.get();
-    _impl->htmlInterface.reset( new HtmlInterface( server, group, config ));
+    _impl->htmlInterface.reset(new HtmlInterface(server, group, config));
 
-    connect( &_impl->htmlInterface->fileReceiver, &FileReceiver::open,
-             this, &RestInterface::open );
+    connect(&_impl->htmlInterface->fileReceiver, &FileReceiver::open, this,
+            &RestInterface::open);
 }

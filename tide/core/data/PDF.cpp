@@ -52,12 +52,12 @@ namespace
 const int INVALID_PAGE_NUMBER = -1;
 }
 
-std::unique_ptr<PDFBackend> _createPdfBackend( const QString& uri )
+std::unique_ptr<PDFBackend> _createPdfBackend(const QString& uri)
 {
 #if TIDE_USE_CAIRO && TIDE_USE_POPPLER_GLIB
-    return make_unique<PDFPopplerCairoBackend>( uri );
+    return make_unique<PDFPopplerCairoBackend>(uri);
 #else
-    return make_unique<PDFPopplerQtBackend>( uri );
+    return make_unique<PDFPopplerQtBackend>(uri);
 #endif
 }
 
@@ -68,22 +68,24 @@ struct PDF::Impl
     std::unique_ptr<PDFBackend> pdf;
 };
 
-PDF::PDF( const QString& uri )
-    : _impl( new Impl )
+PDF::PDF(const QString& uri)
+    : _impl(new Impl)
 {
     _impl->filename = uri;
     try
     {
-        _impl->pdf = _createPdfBackend( uri );
+        _impl->pdf = _createPdfBackend(uri);
     }
-    catch( const std::runtime_error& e )
+    catch (const std::runtime_error& e)
     {
-        put_flog( LOG_DEBUG, "Could not open document '%s': '%s'",
-                  uri.toLocal8Bit().constData( ), e.what( ));
+        put_flog(LOG_DEBUG, "Could not open document '%s': '%s'",
+                 uri.toLocal8Bit().constData(), e.what());
     }
 }
 
-PDF::~PDF() {}
+PDF::~PDF()
+{
+}
 
 const QString& PDF::getFilename() const
 {
@@ -105,17 +107,17 @@ int PDF::getPage() const
     return isValid() ? _impl->currentPage : INVALID_PAGE_NUMBER;
 }
 
-void PDF::setPage( const int pageNumber )
+void PDF::setPage(const int pageNumber)
 {
-    if( pageNumber == getPage( ))
+    if (pageNumber == getPage())
         return;
-    if( pageNumber < 0 || pageNumber >= getPageCount( ))
+    if (pageNumber < 0 || pageNumber >= getPageCount())
         return;
 
-    if( !_impl->pdf->setPage( pageNumber ))
+    if (!_impl->pdf->setPage(pageNumber))
     {
-        put_flog( LOG_WARN, "Could not open page: %d in PDF document: '%s'",
-                  pageNumber, _impl->filename.toLocal8Bit().constData( ));
+        put_flog(LOG_WARN, "Could not open page: %d in PDF document: '%s'",
+                 pageNumber, _impl->filename.toLocal8Bit().constData());
         return;
     }
     _impl->currentPage = pageNumber;
@@ -126,7 +128,7 @@ int PDF::getPageCount() const
     return isValid() ? _impl->pdf->getPageCount() : 0;
 }
 
-QImage PDF::renderToImage( const QSize& imageSize, const QRectF& region ) const
+QImage PDF::renderToImage(const QSize& imageSize, const QRectF& region) const
 {
-    return isValid() ? _impl->pdf->renderToImage( imageSize, region ) : QImage();
+    return isValid() ? _impl->pdf->renderToImage(imageSize, region) : QImage();
 }

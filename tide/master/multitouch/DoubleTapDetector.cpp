@@ -41,52 +41,52 @@
 
 #include "MathUtils.h"
 
-DoubleTapDetector::DoubleTapDetector( const qreal doubleTapThresholdPx,
-                                      const uint doubleTapTimeoutMs )
-    : _doubleTapThresholdPx( doubleTapThresholdPx )
+DoubleTapDetector::DoubleTapDetector(const qreal doubleTapThresholdPx,
+                                     const uint doubleTapTimeoutMs)
+    : _doubleTapThresholdPx(doubleTapThresholdPx)
 {
-    _doubleTapTimer.setInterval( doubleTapTimeoutMs );
-    _doubleTapTimer.setSingleShot( true );
+    _doubleTapTimer.setInterval(doubleTapTimeoutMs);
+    _doubleTapTimer.setSingleShot(true);
 
-    connect( &_doubleTapTimer, &QTimer::timeout, this,
-             &DoubleTapDetector::cancelGesture );
+    connect(&_doubleTapTimer, &QTimer::timeout, this,
+            &DoubleTapDetector::cancelGesture);
 }
 
-void DoubleTapDetector::initGesture( const Positions& positions )
+void DoubleTapDetector::initGesture(const Positions& positions)
 {
-    if( !_canBeDoubleTap )
+    if (!_canBeDoubleTap)
     {
         // adding initial points
-        if( positions.size() > _touchStartPos.size( ))
+        if (positions.size() > _touchStartPos.size())
         {
-            if( _touchStartPos.empty( ))
-                _startGesture( positions );
+            if (_touchStartPos.empty())
+                _startGesture(positions);
             else
                 _touchStartPos = positions;
             return;
         }
 
         // all points released, decide if potential double tap or abort
-        if( positions.empty( ))
+        if (positions.empty())
         {
             _canBeDoubleTap = _doubleTapTimer.isActive();
-            if( !_canBeDoubleTap )
+            if (!_canBeDoubleTap)
                 cancelGesture();
         }
         return;
     }
 
     // points pressed again, check for double tap
-    if( positions.size() == _touchStartPos.size() &&
-        !MathUtils::hasMoved( positions, _touchStartPos, _doubleTapThresholdPx))
+    if (positions.size() == _touchStartPos.size() &&
+        !MathUtils::hasMoved(positions, _touchStartPos, _doubleTapThresholdPx))
     {
-        emit doubleTap( MathUtils::computeCenter( _touchStartPos ),
-                        _touchStartPos.size( ));
+        emit doubleTap(MathUtils::computeCenter(_touchStartPos),
+                       _touchStartPos.size());
         _doubleTapTimer.stop();
     }
 
     // all points released, reset everything for next detection
-    if( positions.empty( ))
+    if (positions.empty())
         cancelGesture();
 }
 
@@ -97,7 +97,7 @@ void DoubleTapDetector::cancelGesture()
     _touchStartPos.clear();
 }
 
-void DoubleTapDetector::_startGesture( const Positions& positions )
+void DoubleTapDetector::_startGesture(const Positions& positions)
 {
     _touchStartPos = positions;
     _doubleTapTimer.start();

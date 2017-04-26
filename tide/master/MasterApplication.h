@@ -83,8 +83,8 @@ public:
      * @param forkChannel The MPI channel for forking processes
      * @throw std::runtime_error if an error occured during initialization
      */
-    MasterApplication( int &argc, char **argv, const QString& config,
-                       MPIChannelPtr worldChannel, MPIChannelPtr forkChannel );
+    MasterApplication(int &argc, char **argv, const QString &config,
+                      MPIChannelPtr worldChannel, MPIChannelPtr forkChannel);
 
     /** Destructor */
     virtual ~MasterApplication();
@@ -94,7 +94,7 @@ public:
      * @param sessionFile a .dcx session file
      * @param promise an optional promise to return the result of the action
      */
-    void load( QString sessionFile, promisePtr promise = promisePtr( ));
+    void load(QString sessionFile, promisePtr promise = promisePtr());
 
 private:
     std::unique_ptr<MasterConfiguration> _config;
@@ -135,8 +135,8 @@ private:
     std::unique_ptr<ScreenshotAssembler> _screenshotAssembler;
     QString _screenshotFilename;
 
-    void _open( QString uri, QPointF coords, promisePtr promise );
-    void _save( QString sessionFile, promisePtr promise );
+    void _open(QString uri, QPointF coords, promisePtr promise);
+    void _save(QString sessionFile, promisePtr promise);
 
     void _init();
     void _initMasterWindow();
@@ -151,8 +151,8 @@ private:
     void _initRestInterface();
 #endif
     void _restoreBackground();
-    void _apply( DisplayGroupConstPtr group );
-    void _deleteTempContentFile( ContentWindowPtr window );
+    void _apply(DisplayGroupConstPtr group);
+    void _deleteTempContentFile(ContentWindowPtr window);
 };
 
 #endif

@@ -42,24 +42,24 @@
 #include "tide/core/log.h"
 #include "tide/master/localstreamer/CommandLineOptions.h"
 
-int main( int argc, char** argv )
+int main(int argc, char** argv)
 {
     logger_id = "launcher";
-    qInstallMessageHandler( qtMessageLogger );
+    qInstallMessageHandler(qtMessageLogger);
 
-    COMMAND_LINE_PARSER_CHECK( CommandLineOptions, "tideLauncher" );
+    COMMAND_LINE_PARSER_CHECK(CommandLineOptions, "tideLauncher");
 
     // Load virtualkeyboard input context plugin
-    qputenv( "QT_IM_MODULE", QByteArray( "virtualkeyboard" ));
+    qputenv("QT_IM_MODULE", QByteArray("virtualkeyboard"));
 
     std::unique_ptr<Launcher> launcher;
     try
     {
-        launcher.reset( new Launcher( argc, argv ));
+        launcher.reset(new Launcher(argc, argv));
     }
-    catch( const std::runtime_error& exception )
+    catch (const std::runtime_error& exception)
     {
-        put_flog( LOG_ERROR, "failed to start: %s", exception.what( ));
+        put_flog(LOG_ERROR, "failed to start: %s", exception.what());
         return EXIT_FAILURE;
     }
     return launcher->exec();

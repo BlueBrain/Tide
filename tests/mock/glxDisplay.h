@@ -46,13 +46,12 @@
 
 bool hasGLXDisplay()
 {
-    Display* display = XOpenDisplay( 0 );
-    if( !display )
+    Display* display = XOpenDisplay(0);
+    if (!display)
         return false;
     int major, event, error;
-    const bool hasGLX = XQueryExtension( display, "GLX", &major, &event,
-                                         &error );
-    XCloseDisplay( display );
+    const bool hasGLX = XQueryExtension(display, "GLX", &major, &event, &error);
+    XCloseDisplay(display);
     return hasGLX;
 }
 
@@ -66,4 +65,4 @@ bool hasGLXDisplay()
 
 #endif
 
-#endif // GLXDISPLAY_H
+#endif

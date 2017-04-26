@@ -49,7 +49,7 @@ class MovieThumbnailGenerator : public ThumbnailGenerator
 {
 public:
     /** @copydoc ThumbnailGenerator::ThumbnailGenerator */
-    MovieThumbnailGenerator( const QSize& size );
+    MovieThumbnailGenerator(const QSize& size);
 
     /**
      * Generate a thumbnail of a movie.
@@ -58,7 +58,7 @@ public:
      * @return a preview taken at the middle of the movie, or a placeholder
      *         image if an error occured.
      */
-    QImage generate( const QString& filename ) const final;
+    QImage generate(const QString& filename) const final;
 };
 
 #endif

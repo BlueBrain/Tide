@@ -42,16 +42,17 @@
 #include "data/TiffPyramidReader.h"
 #include "log.h"
 
-ImagePyramidThumbnailGenerator::ImagePyramidThumbnailGenerator( const QSize&
-                                                                size )
-    : ThumbnailGenerator( size )
-{}
-
-QImage ImagePyramidThumbnailGenerator::generate( const QString& filename ) const
+ImagePyramidThumbnailGenerator::ImagePyramidThumbnailGenerator(
+    const QSize& size)
+    : ThumbnailGenerator(size)
 {
-    const QImage image = TiffPyramidReader{ filename }.readTopLevelImage();
+}
 
-    if( !image.isNull( ))
-        return image.scaled( _size, _aspectRatioMode );
-    return createErrorImage( "pyramid" );
+QImage ImagePyramidThumbnailGenerator::generate(const QString& filename) const
+{
+    const QImage image = TiffPyramidReader{filename}.readTopLevelImage();
+
+    if (!image.isNull())
+        return image.scaled(_size, _aspectRatioMode);
+    return createErrorImage("pyramid");
 }

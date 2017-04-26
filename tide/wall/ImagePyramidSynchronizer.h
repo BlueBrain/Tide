@@ -48,17 +48,17 @@
 class ImagePyramidSynchronizer : public LodSynchronizer
 {
     Q_OBJECT
-    Q_DISABLE_COPY( ImagePyramidSynchronizer )
+    Q_DISABLE_COPY(ImagePyramidSynchronizer)
 
 public:
     /** Constructor */
-    ImagePyramidSynchronizer( const QString& uri );
+    ImagePyramidSynchronizer(const QString& uri);
 
     /** Destructor */
     ~ImagePyramidSynchronizer();
 
     /** @copydoc ContentSynchronizer::synchronize */
-    void synchronize( WallToWallChannel& channel ) final;
+    void synchronize(WallToWallChannel& channel) final;
 
 private:
     std::unique_ptr<ImagePyramidDataSource> _dataSource;

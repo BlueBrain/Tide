@@ -55,94 +55,104 @@ namespace boost
 {
 namespace serialization
 {
-
-template< class Archive >
-void serialize( Archive& ar, QColor& color, const unsigned int )
+template <class Archive>
+void serialize(Archive& ar, QColor& color, const unsigned int)
 {
+    // clang-format off
     unsigned char t;
-    t = color.red(); ar & t; color.setRed( t );
-    t = color.green(); ar & t; color.setGreen( t );
-    t = color.blue(); ar & t; color.setBlue( t );
-    t = color.alpha(); ar & t; color.setAlpha( t );
+    t = color.red(); ar & t; color.setRed(t);
+    t = color.green(); ar & t; color.setGreen(t);
+    t = color.blue(); ar & t; color.setBlue(t);
+    t = color.alpha(); ar & t; color.setAlpha(t);
+    // clang-format on
 }
 
-template< class Archive >
-void save( Archive& ar, const QString& s, const unsigned int )
+template <class Archive>
+void save(Archive& ar, const QString& s, const unsigned int)
 {
     std::string stdStr = s.toStdString();
-    ar << make_nvp( "value", stdStr );
+    ar << make_nvp("value", stdStr);
 }
 
-template< class Archive >
-void load( Archive& ar, QString& s, const unsigned int )
+template <class Archive>
+void load(Archive& ar, QString& s, const unsigned int)
 {
     std::string stdStr;
-    ar >> make_nvp( "value", stdStr );
-    s = QString::fromStdString( stdStr );
+    ar >> make_nvp("value", stdStr);
+    s = QString::fromStdString(stdStr);
 }
 
-template< class Archive >
-void serialize( Archive& ar, QString& s, const unsigned int version )
+template <class Archive>
+void serialize(Archive& ar, QString& s, const unsigned int version)
 {
-    split_free( ar, s, version );
+    split_free(ar, s, version);
 }
 
-template< class Archive >
-void serialize( Archive& ar, QUuid& uuid, const unsigned int /*version*/ )
+template <class Archive>
+void serialize(Archive& ar, QUuid& uuid, const unsigned int /*version*/)
 {
-    ar & make_nvp( "data1", uuid.data1 );
-    ar & make_nvp( "data2", uuid.data2 );
-    ar & make_nvp( "data3", uuid.data3 );
-    ar & make_nvp( "data40", uuid.data4[0] );
-    ar & make_nvp( "data41", uuid.data4[1] );
-    ar & make_nvp( "data42", uuid.data4[2] );
-    ar & make_nvp( "data43", uuid.data4[3] );
-    ar & make_nvp( "data44", uuid.data4[4] );
-    ar & make_nvp( "data45", uuid.data4[5] );
-    ar & make_nvp( "data46", uuid.data4[6] );
-    ar & make_nvp( "data47", uuid.data4[7] );
+    // clang-format off
+    ar & make_nvp("data1", uuid.data1);
+    ar & make_nvp("data2", uuid.data2);
+    ar & make_nvp("data3", uuid.data3);
+    ar & make_nvp("data40", uuid.data4[0]);
+    ar & make_nvp("data41", uuid.data4[1]);
+    ar & make_nvp("data42", uuid.data4[2]);
+    ar & make_nvp("data43", uuid.data4[3]);
+    ar & make_nvp("data44", uuid.data4[4]);
+    ar & make_nvp("data45", uuid.data4[5]);
+    ar & make_nvp("data46", uuid.data4[6]);
+    ar & make_nvp("data47", uuid.data4[7]);
+    // clang-format on
 }
 
-template< class Archive >
-void serialize( Archive& ar, QPointF& point, const unsigned int )
+template <class Archive>
+void serialize(Archive& ar, QPointF& point, const unsigned int)
 {
-    ar & make_nvp( "x", point.rx( ));
-    ar & make_nvp( "y", point.ry( ));
+    // clang-format off
+    ar & make_nvp("x", point.rx());
+    ar & make_nvp("y", point.ry());
+    // clang-format on
 }
 
-template< class Archive >
-void serialize( Archive& ar, QSize& size, const unsigned int )
+template <class Archive>
+void serialize(Archive& ar, QSize& size, const unsigned int)
 {
-    ar & make_nvp( "w", size.rwidth( ));
-    ar & make_nvp( "h", size.rheight( ));
+    // clang-format off
+    ar & make_nvp("w", size.rwidth());
+    ar & make_nvp("h", size.rheight());
+    // clang-format on
 }
 
-template< class Archive >
-void serialize( Archive& ar, QRectF& rect, const unsigned int )
+template <class Archive>
+void serialize(Archive& ar, QRectF& rect, const unsigned int)
 {
     qreal t;
-    t = rect.x(); ar & make_nvp( "x", t ); rect.setX( t );
-    t = rect.y(); ar & make_nvp( "y", t ); rect.setY( t );
-    t = rect.width(); ar & make_nvp( "w", t ); rect.setWidth( t );
-    t = rect.height(); ar & make_nvp( "h", t ); rect.setHeight( t );
+    // clang-format off
+    t = rect.x(); ar & make_nvp("x", t); rect.setX(t);
+    t = rect.y(); ar & make_nvp("y", t); rect.setY(t);
+    t = rect.width(); ar & make_nvp("w", t); rect.setWidth(t);
+    t = rect.height(); ar & make_nvp("h", t); rect.setHeight(t);
+    // clang-format on
 }
 
-template< class Archive >
-void serialize( Archive& ar, QImage& image, const unsigned int )
+template <class Archive>
+void serialize(Archive& ar, QImage& image, const unsigned int)
 {
+    // clang-format off
     auto size = image.size();
-    ar & make_nvp( "size", size );
+    ar & make_nvp("size", size);
 
     auto format = image.format();
-    ar & make_nvp( "format", format );
+    ar & make_nvp("format", format);
 
-    if( Archive::is_loading::value )
-        image = QImage{ size, format };
+    if (Archive::is_loading::value)
+        image = QImage{size, format};
 
     const size_t count = image.width() * image.height() * 4;
-    ar & make_nvp( "data", make_array( image.bits(), count ));
+    ar & make_nvp("data", make_array(image.bits(), count));
+    // clang-format on
 }
-
 }
 }
 

@@ -53,13 +53,13 @@ public:
     CommandLineOptions();
 
     /** Construct from command line parameters. */
-    CommandLineOptions( int argc, char** argv );
+    CommandLineOptions(int argc, char** argv);
 
     /** @copydoc CommandLineParser::parse */
-    void parse( int argc, char** argv ) final;
+    void parse(int argc, char** argv) final;
 
     /** @copydoc CommandLineParser::showSyntax */
-    void showSyntax( const std::string& appName ) const final;
+    void showSyntax(const std::string& appName) const final;
 
     /** Get the arguments joined in command line format. */
     QString getCommandLine() const;
@@ -79,12 +79,12 @@ public:
 
     /** @name Setters */
     //@{
-    void setPixelStreamerType( PixelStreamerType type );
-    void setUrl( const QString& url );
-    void setStreamId( const QString& id );
-    void setWidth( unsigned int width );
-    void setHeight( unsigned int height );
-    void setConfiguration( const QString& file );
+    void setPixelStreamerType(PixelStreamerType type);
+    void setUrl(const QString& url);
+    void setStreamId(const QString& id);
+    void setWidth(unsigned int width);
+    void setHeight(unsigned int height);
+    void setConfiguration(const QString& file);
     //@}
 
 private:

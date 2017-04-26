@@ -39,9 +39,9 @@
 
 #include "PixelStreamUpdater.h"
 
+#include "StreamImage.h"
 #include "log.h"
 #include "network/WallToWallChannel.h"
-#include "StreamImage.h"
 
 #include <deflect/Frame.h>
 #include <deflect/SegmentDecoder.h>
@@ -49,43 +49,43 @@
 #include <QImage>
 #include <QThreadStorage>
 
-PixelStreamUpdater::PixelStreamUpdater( deflect::View view )
-    : _view{ view }
-    , _headerDecoder{ new deflect::SegmentDecoder }
+PixelStreamUpdater::PixelStreamUpdater(deflect::View view)
+    : _view{view}
+    , _headerDecoder{new deflect::SegmentDecoder}
 {
-    _swapSyncFrame.setCallback( std::bind( &PixelStreamUpdater::_onFrameSwapped,
-                                           this, std::placeholders::_1 ));
+    _swapSyncFrame.setCallback(std::bind(&PixelStreamUpdater::_onFrameSwapped,
+                                         this, std::placeholders::_1));
 }
 
 PixelStreamUpdater::~PixelStreamUpdater()
 {
 }
 
-void PixelStreamUpdater::synchronizeFramesSwap( WallToWallChannel& channel )
+void PixelStreamUpdater::synchronizeFramesSwap(WallToWallChannel& channel)
 {
-    if( !_readyToSwap )
+    if (!_readyToSwap)
         return;
 
-    const auto versionCheckFunc = std::bind( &WallToWallChannel::checkVersion,
-                                             &channel, std::placeholders::_1 );
-    _swapSyncFrame.sync( versionCheckFunc );
+    const auto versionCheckFunc = std::bind(&WallToWallChannel::checkVersion,
+                                            &channel, std::placeholders::_1);
+    _swapSyncFrame.sync(versionCheckFunc);
 }
 
-QRect toRect( const deflect::SegmentParameters& params )
+QRect toRect(const deflect::SegmentParameters& params)
 {
-    return QRect( params.x, params.y, params.width, params.height );
+    return QRect(params.x, params.y, params.width, params.height);
 }
 
-QRect PixelStreamUpdater::getTileRect( const uint tileIndex ) const
+QRect PixelStreamUpdater::getTileRect(const uint tileIndex) const
 {
-    return toRect( _currentFrame->segments.at( tileIndex ).parameters );
+    return toRect(_currentFrame->segments.at(tileIndex).parameters);
 }
 
-TextureFormat PixelStreamUpdater::getTileFormat( const uint tileIndex ) const
+TextureFormat PixelStreamUpdater::getTileFormat(const uint tileIndex) const
 {
 #ifndef DEFLECT_USE_LEGACY_LIBJPEGTURBO
-    const auto& segment = _currentFrame->segments.at( tileIndex );
-    switch( segment.parameters.dataType )
+    const auto& segment = _currentFrame->segments.at(tileIndex);
+    switch (segment.parameters.dataType)
     {
     case deflect::DataType::rgba:
         return TextureFormat::rgba;
@@ -96,7 +96,7 @@ TextureFormat PixelStreamUpdater::getTileFormat( const uint tileIndex ) const
     case deflect::DataType::yuv420:
         return TextureFormat::yuv420;
     case deflect::DataType::jpeg:
-        switch( _headerDecoder->decodeType( segment ))
+        switch (_headerDecoder->decodeType(segment))
         {
         case deflect::ChromaSubsampling::YUV444:
             return TextureFormat::yuv444;
@@ -106,73 +106,73 @@ TextureFormat PixelStreamUpdater::getTileFormat( const uint tileIndex ) const
             return TextureFormat::yuv420;
         }
     default:
-        throw std::runtime_error( "Invalid data type for Tile" );
+        throw std::runtime_error("Invalid data type for Tile");
     }
 #else
-    Q_UNUSED( tileIndex );
+    Q_UNUSED(tileIndex);
     return TextureFormat::rgba;
 #endif
 }
 
-QSize PixelStreamUpdater::getTilesArea( const uint lod ) const
+QSize PixelStreamUpdater::getTilesArea(const uint lod) const
 {
-    Q_UNUSED( lod );
-    if( !_currentFrame )
+    Q_UNUSED(lod);
+    if (!_currentFrame)
         return QSize();
     return _currentFrame->computeDimensions();
 }
 
-ImagePtr PixelStreamUpdater::getTileImage( const uint tileIndex ) const
+ImagePtr PixelStreamUpdater::getTileImage(const uint tileIndex) const
 {
-    if( !_currentFrame )
+    if (!_currentFrame)
     {
-        put_flog( LOG_ERROR, "No frames yet" );
+        put_flog(LOG_ERROR, "No frames yet");
         return ImagePtr();
     }
 
-    const QReadLocker lock( &_mutex );
+    const QReadLocker lock(&_mutex);
 
-    auto& segment = _currentFrame->segments.at( tileIndex );
-    if( segment.parameters.dataType == deflect::DataType::jpeg )
+    auto& segment = _currentFrame->segments.at(tileIndex);
+    if (segment.parameters.dataType == deflect::DataType::jpeg)
     {
         // turbojpeg handles need to be per thread, and this function may be
         // called from multiple threads
-        static QThreadStorage< deflect::SegmentDecoder > decoder;
+        static QThreadStorage<deflect::SegmentDecoder> decoder;
         try
         {
 #ifndef DEFLECT_USE_LEGACY_LIBJPEGTURBO
-            decoder.localData().decodeToYUV( segment );
+            decoder.localData().decodeToYUV(segment);
 #else
-            decoder.localData().decode( segment );
+            decoder.localData().decode(segment);
 #endif
         }
-        catch( const std::runtime_error& e )
+        catch (const std::runtime_error& e)
         {
-            put_flog( LOG_ERROR, "Error decoding stream tile: '%s'", e.what( ));
+            put_flog(LOG_ERROR, "Error decoding stream tile: '%s'", e.what());
             return ImagePtr();
         }
     }
 
-    return std::make_shared<StreamImage>( _currentFrame, tileIndex );
+    return std::make_shared<StreamImage>(_currentFrame, tileIndex);
 }
 
-Indices PixelStreamUpdater::computeVisibleSet( const QRectF& visibleTilesArea,
-                                               const uint lod ) const
+Indices PixelStreamUpdater::computeVisibleSet(const QRectF& visibleTilesArea,
+                                              const uint lod) const
 {
-    Q_UNUSED( lod );
+    Q_UNUSED(lod);
 
     Indices visibleSet;
 
-    if( !_currentFrame || visibleTilesArea.isEmpty( ))
+    if (!_currentFrame || visibleTilesArea.isEmpty())
         return visibleSet;
 
-    for( size_t i = 0; i < _currentFrame->segments.size(); ++i )
+    for (size_t i = 0; i < _currentFrame->segments.size(); ++i)
     {
         const auto& segment = _currentFrame->segments[i];
-        const auto segmentRect = toRect( segment.parameters );
+        const auto segmentRect = toRect(segment.parameters);
 
-        if( _checkView( segment ) && visibleTilesArea.intersects( segmentRect ))
-            visibleSet.insert( i );
+        if (_checkView(segment) && visibleTilesArea.intersects(segmentRect))
+            visibleSet.insert(i);
     }
     return visibleSet;
 }
@@ -187,33 +187,32 @@ void PixelStreamUpdater::getNextFrame()
     _readyToSwap = true;
 }
 
-void PixelStreamUpdater::updatePixelStream( deflect::FramePtr frame )
+void PixelStreamUpdater::updatePixelStream(deflect::FramePtr frame)
 {
-    _swapSyncFrame.update( frame );
+    _swapSyncFrame.update(frame);
 }
 
-void PixelStreamUpdater::_onFrameSwapped( deflect::FramePtr frame )
+void PixelStreamUpdater::_onFrameSwapped(deflect::FramePtr frame)
 {
     _readyToSwap = false;
 
-    std::sort( frame->segments.begin(), frame->segments.end(),
-               []( const deflect::Segment& s1, const deflect::Segment& s2 )
-        {
-            return ( s1.parameters.y == s2.parameters.y ?
-                         s1.parameters.x < s2.parameters.x :
-                         s1.parameters.y < s2.parameters.y );
-        } );
+    std::sort(frame->segments.begin(), frame->segments.end(),
+              [](const deflect::Segment& s1, const deflect::Segment& s2) {
+                  return (s1.parameters.y == s2.parameters.y
+                              ? s1.parameters.x < s2.parameters.x
+                              : s1.parameters.y < s2.parameters.y);
+              });
 
     {
-        const QWriteLocker lock( &_mutex );
+        const QWriteLocker lock(&_mutex);
         _currentFrame = frame;
     }
 
     emit pictureUpdated();
-    emit requestFrame( _currentFrame->uri );
+    emit requestFrame(_currentFrame->uri);
 }
 
-bool PixelStreamUpdater::_checkView( const deflect::Segment& segment ) const
+bool PixelStreamUpdater::_checkView(const deflect::Segment& segment) const
 {
     return segment.view == _view || segment.view == deflect::View::mono ||
            (_view == deflect::View::mono &&

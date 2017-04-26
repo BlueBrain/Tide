@@ -67,7 +67,7 @@ enum WindowPoint
 class ContentWindowController : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY( ContentWindowController )
+    Q_DISABLE_COPY(ContentWindowController)
 
 public:
     /**
@@ -87,40 +87,39 @@ public:
      * @param displayGroup the display group to which the window belongs
      * @param target the set of coordinates to modify (default: AUTO)
      */
-    ContentWindowController( ContentWindow& contentWindow,
-                             const DisplayGroup& displayGroup,
-                             Coordinates target = Coordinates::AUTO );
+    ContentWindowController(ContentWindow& contentWindow,
+                            const DisplayGroup& displayGroup,
+                            Coordinates target = Coordinates::AUTO);
 
     /** Resize the window. */
-    Q_INVOKABLE void resize( QSizeF size, WindowPoint fixedPoint = TOP_LEFT );
+    Q_INVOKABLE void resize(QSizeF size, WindowPoint fixedPoint = TOP_LEFT);
 
     /** Resize the window relative to the current active window border */
-    Q_INVOKABLE void resizeRelative( const QPointF& delta );
+    Q_INVOKABLE void resizeRelative(const QPointF& delta);
 
     /** Scale the window by the given pixel delta (around the given center). */
-    Q_INVOKABLE void scale( const QPointF& center, double pixelDelta );
+    Q_INVOKABLE void scale(const QPointF& center, double pixelDelta);
 
     /** Adjust the window coordinates to match the desired state. */
-    void adjustSize( const SizeState state );
+    void adjustSize(const SizeState state);
 
     /** Adjust the window coordinates to match the Content dimensions. */
-    Q_INVOKABLE void adjustSizeOneToOne() { adjustSize( SIZE_1TO1 ); }
-
+    Q_INVOKABLE void adjustSizeOneToOne() { adjustSize(SIZE_1TO1); }
     /** Toggle between SIZE_FULLSCREEN and SIZE_FULLSCREEN_MAX. */
     Q_INVOKABLE void toogleFullscreenMaxSize();
 
     /** Move the window to the desired position. */
-    Q_INVOKABLE void moveTo( const QPointF& position,
-                             WindowPoint handle = TOP_LEFT );
+    Q_INVOKABLE void moveTo(const QPointF& position,
+                            WindowPoint handle = TOP_LEFT);
 
     /** Move the center of the window to the desired position. */
-    inline void moveCenterTo( const QPointF& position )
+    inline void moveCenterTo(const QPointF& position)
     {
-        moveTo( position, CENTER );
+        moveTo(position, CENTER);
     }
 
     /** Move the window by the given delta. */
-    Q_INVOKABLE void moveBy( const QPointF& delta );
+    Q_INVOKABLE void moveBy(const QPointF& delta);
 
     /** @return the minimum size of the window, 5% of wall size or 300px. */
     QSizeF getMinSize() const;
@@ -130,7 +129,7 @@ public:
     QSizeF getMaxSize() const;
 
     /** Constrain the given size between getMinSize() and getMaxSize(). */
-    void constrainSize( QSizeF& windowSize ) const;
+    void constrainSize(QSizeF& windowSize) const;
 
     /** @return the minimum size of the window respecting its aspect ratio. */
     QSizeF getMinSizeAspectRatioCorrect() const;
@@ -141,17 +140,17 @@ private:
      * @param center the center of scaling
      * @param size the new desired size
      */
-    void _resize( const QPointF& center, QSizeF size );
+    void _resize(const QPointF& center, QSizeF size);
 
-    void _constrainAspectRatio( QSizeF& windowSize ) const;
-    bool _isCloseToContentAspectRatio( const QSizeF& windowSize ) const;
-    void _snapToContentAspectRatio( QSizeF& windowSize ) const;
-    void _constrainPosition( QRectF& window ) const;
-    QRectF _getCenteredCoordinates( const QSizeF& size ) const;
+    void _constrainAspectRatio(QSizeF& windowSize) const;
+    bool _isCloseToContentAspectRatio(const QSizeF& windowSize) const;
+    void _snapToContentAspectRatio(QSizeF& windowSize) const;
+    void _constrainPosition(QRectF& window) const;
+    QRectF _getCenteredCoordinates(const QSizeF& size) const;
 
     bool _targetIsFullscreen() const;
     const QRectF& _getCoordinates() const;
-    void _apply( const QRectF& coordinates );
+    void _apply(const QRectF& coordinates);
 
     ContentWindow& _contentWindow;
     const DisplayGroup& _displayGroup;

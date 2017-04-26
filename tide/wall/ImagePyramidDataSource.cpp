@@ -43,56 +43,56 @@
 
 namespace
 {
-const QSize previewSize{ 1920, 1920 };
+const QSize previewSize{1920, 1920};
 }
 
-std::pair<QSize, uint> _getLodParameters( const QString& uri )
+std::pair<QSize, uint> _getLodParameters(const QString& uri)
 {
-    const TiffPyramidReader tif{ uri };
+    const TiffPyramidReader tif{uri};
     const QSize tileSize = tif.getTileSize();
-    if( tileSize.width() != tileSize.height( ))
-        throw std::runtime_error( "Non-square tiles are not supported" );
-    return std::make_pair( tif.getImageSize(), tileSize.width( ));
+    if (tileSize.width() != tileSize.height())
+        throw std::runtime_error("Non-square tiles are not supported");
+    return std::make_pair(tif.getImageSize(), tileSize.width());
 }
 
-ImagePyramidDataSource::ImagePyramidDataSource( const QString& uri )
-    : LodTiler{ _getLodParameters( uri )}
-    , _uri{ uri }
-{}
-
-
-QRect ImagePyramidDataSource::getTileRect( const uint tileId ) const
+ImagePyramidDataSource::ImagePyramidDataSource(const QString& uri)
+    : LodTiler{_getLodParameters(uri)}
+    , _uri{uri}
 {
-    if( tileId == 0 )
+}
+
+QRect ImagePyramidDataSource::getTileRect(const uint tileId) const
+{
+    if (tileId == 0)
     {
-        TiffPyramidReader tif{ _uri };
-        return { QPoint(), tif.readSize( tif.findLevel( previewSize )) };
+        TiffPyramidReader tif{_uri};
+        return {QPoint(), tif.readSize(tif.findLevel(previewSize))};
     }
-    return LodTiler::getTileRect( tileId );
+    return LodTiler::getTileRect(tileId);
 }
 
-QImage ImagePyramidDataSource::getCachableTileImage( const uint tileId ) const
+QImage ImagePyramidDataSource::getCachableTileImage(const uint tileId) const
 {
-    TiffPyramidReader tif{ _uri };
+    TiffPyramidReader tif{_uri};
 
     QImage image;
-    if( tileId == 0 )
-        image = tif.readImage( tif.findLevel( previewSize ));
+    if (tileId == 0)
+        image = tif.readImage(tif.findLevel(previewSize));
     else
     {
-        const auto index = _lodTool.getTileIndex( tileId );
-        image = tif.readTile( index.x, index.y, index.lod );
+        const auto index = _lodTool.getTileIndex(tileId);
+        image = tif.readTile(index.x, index.y, index.lod);
     }
 
     // TIFF tiles all have a fixed size. Those at the top of the pyramid
     // (or at the borders) are padded, but Tide expects to get tiles of the
     // exact dimensions (not padding) for uploading as GL textures.
-    const QSize expectedSize = getTileRect( tileId ).size();
-    if( image.size() != expectedSize )
-        image = image.copy( QRect( QPoint(), expectedSize ));
+    const QSize expectedSize = getTileRect(tileId).size();
+    if (image.size() != expectedSize)
+        image = image.copy(QRect(QPoint(), expectedSize));
 
     // Tide currently only supports 32 bit textures, convert if needed.
-    if( image.pixelFormat().bitsPerPixel() != 32 )
-        image = image.convertToFormat( QImage::Format_RGB32 );
+    if (image.pixelFormat().bitsPerPixel() != 32)
+        image = image.convertToFormat(QImage::Format_RGB32);
     return image;
 }

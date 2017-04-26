@@ -48,68 +48,67 @@
 
 #include <deflect/Frame.h>
 
-MasterToWallChannel::MasterToWallChannel( MPIChannelPtr mpiChannel )
-    : _mpiChannel( mpiChannel )
+MasterToWallChannel::MasterToWallChannel(MPIChannelPtr mpiChannel)
+    : _mpiChannel(mpiChannel)
 {
 }
 
-template< typename T >
-void MasterToWallChannel::broadcast( const T& object,
-                                     const MPIMessageType type )
+template <typename T>
+void MasterToWallChannel::broadcast(const T& object, const MPIMessageType type)
 {
-    _mpiChannel->broadcast( type, serialization::toBinary( object ));
+    _mpiChannel->broadcast(type, serialization::toBinary(object));
 }
 
-template< typename T >
-void MasterToWallChannel::broadcastAsync( const T& object,
-                                          const MPIMessageType type )
+template <typename T>
+void MasterToWallChannel::broadcastAsync(const T& object,
+                                         const MPIMessageType type)
 {
-    const auto data = serialization::toBinary( object );
+    const auto data = serialization::toBinary(object);
 
-    QMetaObject::invokeMethod( this, "_broadcast", Qt::QueuedConnection,
-                               Q_ARG( MPIMessageType, type ),
-                               Q_ARG( std::string, data ));
+    QMetaObject::invokeMethod(this, "_broadcast", Qt::QueuedConnection,
+                              Q_ARG(MPIMessageType, type),
+                              Q_ARG(std::string, data));
 }
 
-void MasterToWallChannel::sendAsync( DisplayGroupPtr displayGroup )
+void MasterToWallChannel::sendAsync(DisplayGroupPtr displayGroup)
 {
-    broadcastAsync( displayGroup, MPIMessageType::DISPLAYGROUP );
+    broadcastAsync(displayGroup, MPIMessageType::DISPLAYGROUP);
 }
 
-void MasterToWallChannel::sendAsync( OptionsPtr options )
+void MasterToWallChannel::sendAsync(OptionsPtr options)
 {
-    broadcastAsync( options, MPIMessageType::OPTIONS );
+    broadcastAsync(options, MPIMessageType::OPTIONS);
 }
 
-void MasterToWallChannel::sendAsync( MarkersPtr markers )
+void MasterToWallChannel::sendAsync(MarkersPtr markers)
 {
-    broadcastAsync( markers, MPIMessageType::MARKERS );
+    broadcastAsync(markers, MPIMessageType::MARKERS);
 }
 
-void MasterToWallChannel::send( deflect::FramePtr frame )
+void MasterToWallChannel::send(deflect::FramePtr frame)
 {
-    assert( !frame->segments.empty() && "received an empty frame" );
+    assert(!frame->segments.empty() && "received an empty frame");
 #if BOOST_VERSION >= 106000
-    broadcast( frame, MPIMessageType::PIXELSTREAM );
+    broadcast(frame, MPIMessageType::PIXELSTREAM);
 #else
     // WAR missing support for std::shared_ptr
-    broadcast( *frame, MPIMessageType::PIXELSTREAM );
+    broadcast(*frame, MPIMessageType::PIXELSTREAM);
 #endif
 }
 
 void MasterToWallChannel::sendRequestScreenshot()
 {
-    _mpiChannel->sendAll( MPIMessageType::IMAGE );
+    _mpiChannel->sendAll(MPIMessageType::IMAGE);
 }
 
 void MasterToWallChannel::sendQuit()
 {
-    _mpiChannel->sendAll( MPIMessageType::QUIT );
+    _mpiChannel->sendAll(MPIMessageType::QUIT);
 }
 
 // cppcheck-suppress passedByValue
-void MasterToWallChannel::_broadcast( const MPIMessageType type,
-                                      const std::string data )
+void MasterToWallChannel::_broadcast(const MPIMessageType type,
+                                     const std::string data)
 {
-    _mpiChannel->broadcast( type, data );
+    _mpiChannel->broadcast(type, data);
 }

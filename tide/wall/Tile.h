@@ -57,11 +57,11 @@ class TextureNodeYUV;
 class Tile : public QQuickItem, public std::enable_shared_from_this<Tile>
 {
     Q_OBJECT
-    Q_DISABLE_COPY( Tile )
+    Q_DISABLE_COPY(Tile)
 
-    Q_PROPERTY( uint id READ getId CONSTANT )
-    Q_PROPERTY( bool showBorder READ getShowBorder WRITE setShowBorder
-                NOTIFY showBorderChanged )
+    Q_PROPERTY(uint id READ getId CONSTANT)
+    Q_PROPERTY(bool showBorder READ getShowBorder WRITE setShowBorder NOTIFY
+                   showBorderChanged)
 
 public:
     enum SizePolicy
@@ -76,8 +76,8 @@ public:
      * @param rect the nominal size of the tile's texture
      * @param format the texture format to use for rendering
      */
-    Tile( uint id, const QRect& rect,
-          TextureFormat format = TextureFormat::rgba );
+    Tile(uint id, const QRect& rect,
+         TextureFormat format = TextureFormat::rgba);
 
     /** @return the unique identifier for this tile. */
     uint getId() const;
@@ -94,7 +94,7 @@ public:
      * @param format the new format for the back texture. Changing between RGBA
      *        and YUV texture formats is not allowed.
      */
-    void update( const QRect& rect, TextureFormat format );
+    void update(const QRect& rect, TextureFormat format);
 
     /** @return the back texture's identifier. */
     uint getBackGlTexture() const;
@@ -109,7 +109,7 @@ public:
      * Set the size policy.
      * @param policy defines how the tile should resize and position itself
      */
-    void setSizePolicy( SizePolicy policy );
+    void setSizePolicy(SizePolicy policy);
 
 signals:
     /** Notifier for the showBorder property. */
@@ -120,7 +120,7 @@ signals:
      * It is emitted after the texture has been created on the render thread,
      * or after a call to update().
      */
-    void textureReady( TilePtr tile );
+    void textureReady(TilePtr tile);
 
     /**
      * Notify that the back texture has been updated and it can be swapped.
@@ -129,18 +129,18 @@ signals:
      * This signal is designed to be emitted from the TextureUploader thread.
      * Only connect to it using a Qt::QueuedConnection.
      */
-    void textureUpdated( TilePtr tile );
+    void textureUpdated(TilePtr tile);
 
 public slots:
     /** Show a border around the tile (for debugging purposes). */
-    void setShowBorder( bool set );
+    void setShowBorder(bool set);
 
     /** Swap the front and back texture. */
     void swapImage();
 
 protected:
     /** Called on the render thread to update the scene graph. */
-    QSGNode* updatePaintNode( QSGNode* oldNode, UpdatePaintNodeData* ) override;
+    QSGNode* updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData*) override;
 
 private:
     const uint _tileId;
@@ -157,16 +157,16 @@ private:
     bool _showBorder;
     QuadLineNode* _border;
 
-    template<class NodeT>
-    QSGNode* _updateTextureNode( QSGNode* oldNode );
+    template <class NodeT>
+    QSGNode* _updateTextureNode(QSGNode* oldNode);
 
-    void _storeBackTextureIndex( const TextureNode& node );
-    void _storeBackTextureIndex( const TextureNodeYUV& node );
+    void _storeBackTextureIndex(const TextureNode& node);
+    void _storeBackTextureIndex(const TextureNodeYUV& node);
 
-    template<class NodeT>
-    void _updateBorderNode( NodeT* parentNode );
+    template <class NodeT>
+    void _updateBorderNode(NodeT* parentNode);
 
-    void _onParentChanged( QQuickItem* newParent );
+    void _onParentChanged(QQuickItem* newParent);
 
     QMetaObject::Connection _widthConn;
     QMetaObject::Connection _heightConn;

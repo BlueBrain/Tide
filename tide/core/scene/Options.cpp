@@ -47,18 +47,19 @@
 // false-positive on qt signals for Q_PROPERTY notifiers
 // cppcheck-suppress uninitMemberVar
 Options::Options()
-    : _alphaBlendingEnabled( false )
-    , _autoFocusPixelStreams( true )
-    , _showClock( false )
-    , _showContentTiles( false )
-    , _showControlArea( true )
-    , _showStreamingStatistics( false )
-    , _showTestPattern( false )
-    , _showTouchPoints( true )
-    , _showWindowBorders( true )
-    , _showWindowTitles( true )
-    , _showZoomContext( true )
-{}
+    : _alphaBlendingEnabled(false)
+    , _autoFocusPixelStreams(true)
+    , _showClock(false)
+    , _showContentTiles(false)
+    , _showControlArea(true)
+    , _showStreamingStatistics(false)
+    , _showTestPattern(false)
+    , _showTouchPoints(true)
+    , _showWindowBorders(true)
+    , _showWindowTitles(true)
+    , _showZoomContext(true)
+{
+}
 
 bool Options::isAlphaBlendingEnabled() const
 {
@@ -130,159 +131,159 @@ QString Options::getBackgroundUri() const
     return _backgroundContent ? _backgroundContent->getURI() : QString();
 }
 
-void Options::enableAlphaBlending( const bool set )
+void Options::enableAlphaBlending(const bool set)
 {
-    if( _alphaBlendingEnabled == set )
+    if (_alphaBlendingEnabled == set)
         return;
 
     _alphaBlendingEnabled = set;
-    emit alphaBlendingEnabledChanged( set );
-    emit updated( shared_from_this( ));
+    emit alphaBlendingEnabledChanged(set);
+    emit updated(shared_from_this());
 }
 
-void Options::setAutoFocusPixelStreams( const bool set )
+void Options::setAutoFocusPixelStreams(const bool set)
 {
-    if( _autoFocusPixelStreams == set )
+    if (_autoFocusPixelStreams == set)
         return;
 
     _autoFocusPixelStreams = set;
-    emit autoFocusPixelStreamsChanged( set );
-    emit updated( shared_from_this( ));
+    emit autoFocusPixelStreamsChanged(set);
+    emit updated(shared_from_this());
 }
 
-void Options::setShowClock( const bool set )
+void Options::setShowClock(const bool set)
 {
-    if( _showClock == set )
+    if (_showClock == set)
         return;
 
     _showClock = set;
-    emit showClockChanged( set );
-    emit updated( shared_from_this( ));
+    emit showClockChanged(set);
+    emit updated(shared_from_this());
 }
 
-void Options::setShowContentTiles( const bool set )
+void Options::setShowContentTiles(const bool set)
 {
-    if( _showContentTiles == set )
+    if (_showContentTiles == set)
         return;
 
     _showContentTiles = set;
-    emit showContentTilesChanged( set );
-    emit updated( shared_from_this( ));
+    emit showContentTilesChanged(set);
+    emit updated(shared_from_this());
 }
 
-void Options::setShowControlArea( const bool set )
+void Options::setShowControlArea(const bool set)
 {
-    if( _showControlArea == set )
+    if (_showControlArea == set)
         return;
 
     _showControlArea = set;
-    emit showControlAreaChanged( set );
-    emit updated( shared_from_this( ));
+    emit showControlAreaChanged(set);
+    emit updated(shared_from_this());
 }
 
-void Options::setShowStatistics( const bool set )
+void Options::setShowStatistics(const bool set)
 {
-    if( _showStreamingStatistics == set )
+    if (_showStreamingStatistics == set)
         return;
 
     _showStreamingStatistics = set;
-    emit showStatisticsChanged( set );
-    emit updated( shared_from_this( ));
+    emit showStatisticsChanged(set);
+    emit updated(shared_from_this());
 }
 
-void Options::setShowTestPattern( const bool set )
+void Options::setShowTestPattern(const bool set)
 {
-    if( _showTestPattern == set )
+    if (_showTestPattern == set)
         return;
 
     _showTestPattern = set;
-    emit showTestPatternChanged( set );
-    emit updated( shared_from_this( ));
+    emit showTestPatternChanged(set);
+    emit updated(shared_from_this());
 }
 
-void Options::setShowTouchPoints( const bool set )
+void Options::setShowTouchPoints(const bool set)
 {
-    if( _showTouchPoints == set )
+    if (_showTouchPoints == set)
         return;
 
     _showTouchPoints = set;
-    emit showTouchPointsChanged( set );
-    emit updated( shared_from_this( ));
+    emit showTouchPointsChanged(set);
+    emit updated(shared_from_this());
 }
 
-void Options::setShowWindowBorders( const bool set )
+void Options::setShowWindowBorders(const bool set)
 {
-    if( _showWindowBorders == set )
+    if (_showWindowBorders == set)
         return;
 
     _showWindowBorders = set;
-    emit showWindowBordersChanged( set );
-    emit updated( shared_from_this( ));
+    emit showWindowBordersChanged(set);
+    emit updated(shared_from_this());
 }
 
-void Options::setShowWindowTitles( const bool set )
+void Options::setShowWindowTitles(const bool set)
 {
-    if( _showWindowTitles == set )
+    if (_showWindowTitles == set)
         return;
 
     _showWindowTitles = set;
-    emit showWindowTitlesChanged( set );
-    emit updated( shared_from_this( ));
+    emit showWindowTitlesChanged(set);
+    emit updated(shared_from_this());
 }
 
-void Options::setShowZoomContext( const bool set )
+void Options::setShowZoomContext(const bool set)
 {
-    if( _showZoomContext == set )
+    if (_showZoomContext == set)
         return;
 
     _showZoomContext = set;
-    emit showZoomContextChanged( set );
-    emit updated( shared_from_this( ));
+    emit showZoomContextChanged(set);
+    emit updated(shared_from_this());
 }
 
-void Options::setBackgroundColor( const QColor color )
+void Options::setBackgroundColor(const QColor color)
 {
-    if( color == _backgroundColor || !color.isValid( ))
+    if (color == _backgroundColor || !color.isValid())
         return;
 
     _backgroundColor = color;
-    emit updated( shared_from_this( ));
+    emit updated(shared_from_this());
 }
 
-void Options::setBackgroundContent( ContentPtr content )
+void Options::setBackgroundContent(ContentPtr content)
 {
-    if( _backgroundContent == content )
+    if (_backgroundContent == content)
         return;
 
     _backgroundContent = content;
-    emit updated( shared_from_this( ));
+    emit updated(shared_from_this());
 }
 
-void Options::setBackgroundUri( const QString& uri )
+void Options::setBackgroundUri(const QString& uri)
 {
-    if( uri == getBackgroundUri( ))
+    if (uri == getBackgroundUri())
         return;
 
-    if( uri.isEmpty( ))
+    if (uri.isEmpty())
     {
-        setBackgroundContent( ContentPtr( ));
+        setBackgroundContent(ContentPtr());
         return;
     }
 
-    ContentPtr content = ContentFactory::getContent( uri );
-    if( content )
-        setBackgroundContent( content );
+    ContentPtr content = ContentFactory::getContent(uri);
+    if (content)
+        setBackgroundContent(content);
 }
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wshadow"
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wshadow"
-void Options::moveToThread( QThread* thread )
+void Options::moveToThread(QThread* thread)
 {
-    if( _backgroundContent )
-        _backgroundContent->moveToThread( thread );
-    QObject::moveToThread( thread );
+    if (_backgroundContent)
+        _backgroundContent->moveToThread(thread);
+    QObject::moveToThread(thread);
 }
 #pragma GCC diagnostic pop
 #pragma clang diagnostic pop

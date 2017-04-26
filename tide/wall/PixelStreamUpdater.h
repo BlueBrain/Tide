@@ -54,7 +54,7 @@
 class PixelStreamUpdater : public QObject, public DataSource
 {
     Q_OBJECT
-    Q_DISABLE_COPY( PixelStreamUpdater )
+    Q_DISABLE_COPY(PixelStreamUpdater)
 
 public:
     /**
@@ -62,7 +62,7 @@ public:
      * @param view which the data source provides. Left and right views also
      *        include mono contents.
      */
-    PixelStreamUpdater( deflect::View view );
+    PixelStreamUpdater(deflect::View view);
 
     /** Destructor. */
     ~PixelStreamUpdater();
@@ -71,40 +71,40 @@ public:
      * @copydoc DataSource::getTileImage
      * threadsafe
      */
-    ImagePtr getTileImage( uint tileIndex ) const final;
+    ImagePtr getTileImage(uint tileIndex) const final;
 
     /** @copydoc DataSource::getTileRect */
-    QRect getTileRect( uint tileIndex ) const final;
+    QRect getTileRect(uint tileIndex) const final;
 
     /** @copydoc DataSource::getTileFormat */
-    TextureFormat getTileFormat( uint tileIndex ) const final;
+    TextureFormat getTileFormat(uint tileIndex) const final;
 
     /** @copydoc DataSource::getTilesArea */
-    QSize getTilesArea( uint lod ) const final;
+    QSize getTilesArea(uint lod) const final;
 
     /** @copydoc DataSource::computeVisibleSet */
-    Indices computeVisibleSet( const QRectF& visibleTilesArea,
-                               uint lod ) const final;
+    Indices computeVisibleSet(const QRectF& visibleTilesArea,
+                              uint lod) const final;
 
     /** @copydoc DataSource::getMaxLod */
     uint getMaxLod() const final;
 
     /** Synchronize the update of the PixelStreams. */
-    void synchronizeFramesSwap( WallToWallChannel& channel );
+    void synchronizeFramesSwap(WallToWallChannel& channel);
 
     /** Allow the updater to request next frame (flow control). */
     void getNextFrame();
 
 public slots:
     /** Update the appropriate PixelStream with the given frame. */
-    void updatePixelStream( deflect::FramePtr frame );
+    void updatePixelStream(deflect::FramePtr frame);
 
 signals:
     /** Emitted when a new picture has become available. */
     void pictureUpdated();
 
     /** Emitted to request a new frame after a successful swap. */
-    void requestFrame( QString uri );
+    void requestFrame(QString uri);
 
 private:
     const deflect::View _view;
@@ -114,8 +114,8 @@ private:
     mutable QReadWriteLock _mutex;
     bool _readyToSwap = true;
 
-    void _onFrameSwapped( deflect::FramePtr frame );
-    bool _checkView( const deflect::Segment& segment ) const;
+    void _onFrameSwapped(deflect::FramePtr frame);
+    bool _checkView(const deflect::Segment& segment) const;
 };
 
 #endif

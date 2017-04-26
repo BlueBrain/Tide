@@ -43,56 +43,56 @@
 #include "scene/ContentWindow.h"
 
 #if TIDE_ENABLE_PDF_SUPPORT
-#  include "PDFController.h"
+#include "PDFController.h"
 #endif
 #include "PixelStreamController.h"
 #if TIDE_USE_QT5WEBKITWIDGETS
-#  include "WebbrowserController.h"
+#include "WebbrowserController.h"
 #endif
 #include "ZoomController.h"
 
-
-std::unique_ptr<ContentController>
-ContentController::create( ContentWindow& window )
+std::unique_ptr<ContentController> ContentController::create(
+    ContentWindow& window)
 {
-    assert( window.getContent( ));
+    assert(window.getContent());
 
-    switch ( window.getContent()->getType( ))
+    switch (window.getContent()->getType())
     {
     case CONTENT_TYPE_PIXEL_STREAM:
-        return make_unique<PixelStreamController>( window );
+        return make_unique<PixelStreamController>(window);
 #if TIDE_USE_QT5WEBKITWIDGETS
     case CONTENT_TYPE_WEBBROWSER:
-        return make_unique<WebbrowserController>( window );
+        return make_unique<WebbrowserController>(window);
 #elif TIDE_USE_QT5WEBENGINE
     case CONTENT_TYPE_WEBBROWSER:
-        return make_unique<PixelStreamController>( window );
+        return make_unique<PixelStreamController>(window);
 #endif
 #if TIDE_ENABLE_PDF_SUPPORT
     case CONTENT_TYPE_PDF:
-        return make_unique<PDFController>( window );
+        return make_unique<PDFController>(window);
 #endif
     case CONTENT_TYPE_IMAGE_PYRAMID:
     case CONTENT_TYPE_TEXTURE:
     case CONTENT_TYPE_SVG:
-        return make_unique<ZoomController>( window );
+        return make_unique<ZoomController>(window);
     case CONTENT_TYPE_MOVIE:
     case CONTENT_TYPE_ANY:
     default:
-        return make_unique<ContentController>( window );
+        return make_unique<ContentController>(window);
     }
 }
 
-ContentController::ContentController( ContentWindow& window )
-    : _contentWindow( window )
-{}
+ContentController::ContentController(ContentWindow& window)
+    : _contentWindow(window)
+{
+}
 
-ContentController::~ContentController() {}
+ContentController::~ContentController()
+{
+}
 
-QPointF
-ContentController::getNormalizedPoint( const QPointF& point ) const
+QPointF ContentController::getNormalizedPoint(const QPointF& point) const
 {
     const QRectF& window = _contentWindow.getDisplayCoordinates();
-    return QPointF( point.x() / window.width(),
-                    point.y() / window.height( ));
+    return QPointF(point.x() / window.width(), point.y() / window.height());
 }

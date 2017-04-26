@@ -41,52 +41,53 @@
 #include <boost/test/unit_test.hpp>
 
 #include "localstreamer/CommandLineOptions.h"
-#include "localstreamer/PixelStreamerType.h"
-#include "localstreamer/PixelStreamerFactory.h"
 #include "localstreamer/PixelStreamer.h"
+#include "localstreamer/PixelStreamerFactory.h"
+#include "localstreamer/PixelStreamerType.h"
 #ifdef TIDE_USE_QT5WEBKITWIDGETS
-#  include "localstreamer/WebkitPixelStreamer.h"
+#include "localstreamer/WebkitPixelStreamer.h"
 #endif
+#include "types.h"
 
 #include "GlobalQtApp.h"
 
-BOOST_GLOBAL_FIXTURE( GlobalQtApp );
+BOOST_GLOBAL_FIXTURE(GlobalQtApp);
 
-BOOST_AUTO_TEST_CASE( test_local_pixel_streamer_type )
+BOOST_AUTO_TEST_CASE(test_local_pixel_streamer_type)
 {
-    BOOST_CHECK_EQUAL( getStreamerTypeString(PS_UNKNOWN).toStdString(), "unknown" );
+    BOOST_CHECK_EQUAL(getStreamerTypeString(PS_UNKNOWN), "unknown");
 #ifdef TIDE_USE_QT5WEBKITWIDGETS
-    BOOST_CHECK_EQUAL( getStreamerTypeString(PS_WEBKIT).toStdString(), "webkit" );
+    BOOST_CHECK_EQUAL(getStreamerTypeString(PS_WEBKIT), "webkit");
 #endif
 
-    BOOST_CHECK_EQUAL( getStreamerType(""), PS_UNKNOWN );
-    BOOST_CHECK_EQUAL( getStreamerType("zorglump"), PS_UNKNOWN );
+    BOOST_CHECK_EQUAL(getStreamerType(""), PS_UNKNOWN);
+    BOOST_CHECK_EQUAL(getStreamerType("zorglump"), PS_UNKNOWN);
 #ifdef TIDE_USE_QT5WEBKITWIDGETS
-    BOOST_CHECK_EQUAL( getStreamerType("webkit"), PS_WEBKIT );
+    BOOST_CHECK_EQUAL(getStreamerType("webkit"), PS_WEBKIT);
 #endif
 }
 
-BOOST_AUTO_TEST_CASE( test_local_pixel_streamer_factory_unknown_type )
+BOOST_AUTO_TEST_CASE(test_local_pixel_streamer_factory_unknown_type)
 {
     CommandLineOptions options;
     // Create should return a nullptr
-    BOOST_CHECK( !PixelStreamerFactory::create( options ));
+    BOOST_CHECK(!PixelStreamerFactory::create(options));
 }
 
 #ifdef TIDE_USE_QT5WEBKITWIDGETS
-BOOST_AUTO_TEST_CASE( test_local_pixel_streamer_factory_webkit_type )
+BOOST_AUTO_TEST_CASE(test_local_pixel_streamer_factory_webkit_type)
 {
-    if( !hasGLXDisplay( ))
-      return;
+    if (!hasGLXDisplay())
+        return;
 
     CommandLineOptions options;
     options.setPixelStreamerType(PS_WEBKIT);
-    PixelStreamer* streamer = PixelStreamerFactory::create( options );
+    PixelStreamer* streamer = PixelStreamerFactory::create(options);
 
-    BOOST_CHECK( streamer );
+    BOOST_CHECK(streamer);
 
     WebkitPixelStreamer* webkit = dynamic_cast<WebkitPixelStreamer*>(streamer);
-    BOOST_CHECK( webkit );
+    BOOST_CHECK(webkit);
 
     delete streamer;
 }

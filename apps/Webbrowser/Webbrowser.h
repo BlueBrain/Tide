@@ -54,11 +54,11 @@ class Webbrowser : public QGuiApplication
     Q_OBJECT
 
 public:
-    Webbrowser( int& argc, char* argv[] );
+    Webbrowser(int& argc, char* argv[]);
     ~Webbrowser();
 
 private slots:
-    void _processAddressBarInput( QString url );
+    void _processAddressBarInput(QString url);
     void _sendData();
 
 private:
@@ -66,7 +66,7 @@ private:
     QQuickItem* _webengine = nullptr; // reference, don't free
     std::unique_ptr<HtmlSelectReplacer> _selectReplacer;
 
-    bool event( QEvent* event ) final;
+    bool event(QEvent* event) final;
 };
 
 #endif

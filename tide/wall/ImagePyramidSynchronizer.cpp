@@ -41,16 +41,19 @@
 
 #include "ImagePyramidDataSource.h"
 
-ImagePyramidSynchronizer::ImagePyramidSynchronizer( const QString& uri )
-    : LodSynchronizer( TileSwapPolicy::SwapTilesIndependently )
-    , _dataSource( new ImagePyramidDataSource( uri ))
-{}
-
-ImagePyramidSynchronizer::~ImagePyramidSynchronizer() {}
-
-void ImagePyramidSynchronizer::synchronize( WallToWallChannel& channel )
+ImagePyramidSynchronizer::ImagePyramidSynchronizer(const QString& uri)
+    : LodSynchronizer(TileSwapPolicy::SwapTilesIndependently)
+    , _dataSource(new ImagePyramidDataSource(uri))
 {
-    Q_UNUSED( channel );
+}
+
+ImagePyramidSynchronizer::~ImagePyramidSynchronizer()
+{
+}
+
+void ImagePyramidSynchronizer::synchronize(WallToWallChannel& channel)
+{
+    Q_UNUSED(channel);
 }
 
 const DataSource& ImagePyramidSynchronizer::getDataSource() const

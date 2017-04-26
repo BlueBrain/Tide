@@ -39,29 +39,28 @@
 
 #include "RestLogger.h"
 
-#include "jsonschema.h"
 #include "json.h"
+#include "jsonschema.h"
 
 #include <QJsonObject>
 
-QJsonObject _makeJsonObject( const LoggingUtility& logger )
+QJsonObject _makeJsonObject(const LoggingUtility& logger)
 {
-    const QJsonObject event{
-        { "last_event", logger.getLastInteraction() },
-        { "last_event_date", logger.getLastInteractionTime() },
-        { "count", logger.getInteractionCount() }
-    };
-    const QJsonObject window{
-        { "count", int(logger.getWindowCount()) },
-        { "date_set", logger.getCounterModificationTime() },
-        { "accumulated_count", int(logger.getAccumulatedWindowCount()) }
-    };
-    return QJsonObject{{ "event", event }, { "window", window }};
+    const QJsonObject event{{"last_event", logger.getLastInteraction()},
+                            {"last_event_date",
+                             logger.getLastInteractionTime()},
+                            {"count", logger.getInteractionCount()}};
+    const QJsonObject window{{"count", int(logger.getWindowCount())},
+                             {"date_set", logger.getCounterModificationTime()},
+                             {"accumulated_count",
+                              int(logger.getAccumulatedWindowCount())}};
+    return QJsonObject{{"event", event}, {"window", window}};
 }
 
-RestLogger::RestLogger( const LoggingUtility& logger )
-    : _logger( logger )
-{}
+RestLogger::RestLogger(const LoggingUtility& logger)
+    : _logger(logger)
+{
+}
 
 std::string RestLogger::getTypeName() const
 {
@@ -70,11 +69,11 @@ std::string RestLogger::getTypeName() const
 
 std::string RestLogger::getSchema() const
 {
-    return jsonschema::create( "Stats", _makeJsonObject( _logger ),
-                               "Usage statistics of the Tide application" );
+    return jsonschema::create("Stats", _makeJsonObject(_logger),
+                              "Usage statistics of the Tide application");
 }
 
 std::string RestLogger::_toJSON() const
 {
-    return json::toString( _makeJsonObject( _logger ));
+    return json::toString(_makeJsonObject(_logger));
 }

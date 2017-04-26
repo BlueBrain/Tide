@@ -46,22 +46,23 @@
 #include "network/WallToWallChannel.h"
 #include "scene/MovieContent.h"
 
-
-MovieUpdater::MovieUpdater( const QString& uri )
-    : _ffmpegMovie( new FFMPEGMovie( uri ))
+MovieUpdater::MovieUpdater(const QString& uri)
+    : _ffmpegMovie(new FFMPEGMovie(uri))
 {
     // Observed bug [DISCL-295]: opening a movie might fail on WallProcesses
     // despite correctly reading metadata on the MasterProcess.
     // bool FFMPEGMovie::openVideoStreamDecoder(): could not open codec
     // error: -11 Resource temporarily unavailable
-    if( !_ffmpegMovie->isValid( ))
-        put_flog( LOG_WARN, "Movie is invalid: %s",
-                  uri.toLocal8Bit().constData( ));
+    if (!_ffmpegMovie->isValid())
+        put_flog(LOG_WARN, "Movie is invalid: %s",
+                 uri.toLocal8Bit().constData());
 }
 
-MovieUpdater::~MovieUpdater() {}
+MovieUpdater::~MovieUpdater()
+{
+}
 
-void MovieUpdater::update( const MovieContent& movie, const bool visible )
+void MovieUpdater::update(const MovieContent& movie, const bool visible)
 {
     _paused = movie.getControlState() & STATE_PAUSED;
     _loop = movie.getControlState() & STATE_LOOP;
@@ -70,41 +71,41 @@ void MovieUpdater::update( const MovieContent& movie, const bool visible )
     _skipPosition = movie.getPosition();
 }
 
-QRect MovieUpdater::getTileRect( const uint tileIndex ) const
+QRect MovieUpdater::getTileRect(const uint tileIndex) const
 {
-    Q_UNUSED( tileIndex );
-    return QRect( 0, 0, _ffmpegMovie->getWidth(), _ffmpegMovie->getHeight( ));
+    Q_UNUSED(tileIndex);
+    return QRect(0, 0, _ffmpegMovie->getWidth(), _ffmpegMovie->getHeight());
 }
 
-TextureFormat MovieUpdater::getTileFormat( const uint tileIndex ) const
+TextureFormat MovieUpdater::getTileFormat(const uint tileIndex) const
 {
-    Q_UNUSED( tileIndex );
+    Q_UNUSED(tileIndex);
     return _ffmpegMovie->getFormat();
 }
 
-QSize MovieUpdater::getTilesArea( const uint lod ) const
+QSize MovieUpdater::getTilesArea(const uint lod) const
 {
-    Q_UNUSED( lod );
-    return getTileRect( 0 ).size();
+    Q_UNUSED(lod);
+    return getTileRect(0).size();
 }
 
-ImagePtr MovieUpdater::getTileImage( const uint tileIndex ) const
+ImagePtr MovieUpdater::getTileImage(const uint tileIndex) const
 {
-    Q_UNUSED( tileIndex );
+    Q_UNUSED(tileIndex);
     double timestamp;
     {
-        const QMutexLocker lock( &_mutex );
+        const QMutexLocker lock(&_mutex);
         timestamp = _sharedTimestamp;
     }
 
-    ImagePtr image = _ffmpegMovie->getFrame( timestamp );
+    ImagePtr image = _ffmpegMovie->getFrame(timestamp);
 
     const bool loopBack = _loop && !image;
-    if( loopBack )
-        image = _ffmpegMovie->getFrame( 0.0 );
+    if (loopBack)
+        image = _ffmpegMovie->getFrame(0.0);
 
     {
-        const QMutexLocker lock( &_mutex );
+        const QMutexLocker lock(&_mutex);
         _currentPosition = _ffmpegMovie->getPosition();
         // stay inSync for start != 0.0 and loop conditions
         _sharedTimestamp = _currentPosition;
@@ -114,15 +115,15 @@ ImagePtr MovieUpdater::getTileImage( const uint tileIndex ) const
     return image;
 }
 
-Indices MovieUpdater::computeVisibleSet( const QRectF& visibleTilesArea,
-                                         const uint lod ) const
+Indices MovieUpdater::computeVisibleSet(const QRectF& visibleTilesArea,
+                                        const uint lod) const
 {
-    Q_UNUSED( lod );
+    Q_UNUSED(lod);
 
-    if( visibleTilesArea.isEmpty( ))
+    if (visibleTilesArea.isEmpty())
         return Indices();
 
-    return { 0 };
+    return {0};
 }
 
 uint MovieUpdater::getMaxLod() const
@@ -146,11 +147,12 @@ bool MovieUpdater::canRequestNewFrame() const
 QString MovieUpdater::getStatistics() const
 {
     const QString fps =
-            QString::number( 1.0 / _ffmpegMovie->getFrameDuration(), 'g', 3 );
-    const QString progress = QString::number( getPosition() * 100.0, 'g', 3 );
-    return QString( "%1 / %2 fps %3 %").arg(_fpsCounter.toString())
-                                       .arg( fps )
-                                       .arg( progress );
+        QString::number(1.0 / _ffmpegMovie->getFrameDuration(), 'g', 3);
+    const QString progress = QString::number(getPosition() * 100.0, 'g', 3);
+    return QString("%1 / %2 fps %3 %")
+        .arg(_fpsCounter.toString())
+        .arg(fps)
+        .arg(progress);
 }
 
 qreal MovieUpdater::getPosition() const
@@ -168,15 +170,15 @@ qreal MovieUpdater::getSkipPosition() const
     return _skipPosition / _ffmpegMovie->getDuration();
 }
 
-bool MovieUpdater::advanceToNextFrame( WallToWallChannel& channel )
+bool MovieUpdater::advanceToNextFrame(WallToWallChannel& channel)
 {
     const double frameDuration = _ffmpegMovie->getFrameDuration();
 
     // protect _sharedTimestamp & _currentPosition from getTileImage()
-    const QMutexLocker lock( &_mutex );
+    const QMutexLocker lock(&_mutex);
 
     // Jump to the skip position
-    if( _skipping && !_loopedBack )
+    if (_skipping && !_loopedBack)
         _sharedTimestamp = _skipPosition;
 
     // If any visible updater is out-of-sync, only update those ones. This
@@ -184,12 +186,12 @@ bool MovieUpdater::advanceToNextFrame( WallToWallChannel& channel )
     // this case to avoid seeking of all processes if this seek takes longer
     // than frameDuration.
     const bool inSync =
-            std::abs( _sharedTimestamp - _currentPosition ) <= frameDuration;
-    _lastFrameDone = channel.allReady( _lastFrameDone );
-    if( !channel.allReady( !_visible || inSync ))
+        std::abs(_sharedTimestamp - _currentPosition) <= frameDuration;
+    _lastFrameDone = channel.allReady(_lastFrameDone);
+    if (!channel.allReady(!_visible || inSync))
     {
-        _timer.resetTime( channel.getTime( ));
-        if( !_lastFrameDone )
+        _timer.resetTime(channel.getTime());
+        if (!_lastFrameDone)
             return false;
         _lastFrameDone = false;
         _requestNewFrame = _visible && !inSync;
@@ -197,17 +199,17 @@ bool MovieUpdater::advanceToNextFrame( WallToWallChannel& channel )
     }
 
     // Don't advance time if paused or skipping
-    if( _paused || _skipping )
+    if (_paused || _skipping)
     {
-        _timer.resetTime( channel.getTime( ));
+        _timer.resetTime(channel.getTime());
         return false;
     }
 
     // If everybody is in sync, do a proper increment and throttle to movie
     // frame duration and decode speed accordingly.
-    _timer.setCurrentTime( channel.getTime( ));
+    _timer.setCurrentTime(channel.getTime());
     _elapsedTime += _timer.getElapsedTimeInSeconds();
-    if( !_lastFrameDone || _elapsedTime < frameDuration )
+    if (!_lastFrameDone || _elapsedTime < frameDuration)
         return false;
 
     // advance to the next frame, keep correct elapsedTime as vsync frequency
@@ -217,22 +219,22 @@ bool MovieUpdater::advanceToNextFrame( WallToWallChannel& channel )
 
     // Always exchange timestamp for processes where _currentPosition is not
     // advancing to allow seek if visible again.
-    _exchangeSharedTimestamp( channel, inSync );
+    _exchangeSharedTimestamp(channel, inSync);
 
     _lastFrameDone = false;
     _requestNewFrame = _visible;
     return true;
 }
 
-void MovieUpdater::_exchangeSharedTimestamp( WallToWallChannel& channel,
-                                             const bool inSync )
+void MovieUpdater::_exchangeSharedTimestamp(WallToWallChannel& channel,
+                                            const bool inSync)
 {
-    const int leader = channel.electLeader( _visible && inSync );
-    if( leader < 0 )
+    const int leader = channel.electLeader(_visible && inSync);
+    if (leader < 0)
         return;
 
-    if( leader == channel.getRank( ))
-        channel.broadcast( _sharedTimestamp );
+    if (leader == channel.getRank())
+        channel.broadcast(_sharedTimestamp);
     else
-        _sharedTimestamp = channel.receiveTimestampBroadcast( leader );
+        _sharedTimestamp = channel.receiveTimestampBroadcast(leader);
 }

@@ -42,19 +42,19 @@
 #include "log.h"
 
 FFMPEGFrame::FFMPEGFrame()
-#if(LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55,28,0))
-    : _avFrame( avcodec_alloc_frame( ))
+#if (LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55, 28, 0))
+    : _avFrame(avcodec_alloc_frame())
 #else
-    : _avFrame( av_frame_alloc( ))
+    : _avFrame(av_frame_alloc())
 #endif
 {
-    if( !_avFrame )
-        put_flog( LOG_ERROR, "Error allocating RGB frame" );
+    if (!_avFrame)
+        put_flog(LOG_ERROR, "Error allocating RGB frame");
 }
 
 FFMPEGFrame::~FFMPEGFrame()
 {
-    av_free( _avFrame );
+    av_free(_avFrame);
 }
 
 int FFMPEGFrame::getWidth() const

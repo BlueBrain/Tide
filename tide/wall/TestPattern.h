@@ -43,8 +43,8 @@
 #include "types.h"
 
 #include <QList>
-#include <QString>
 #include <QQuickPaintedItem>
+#include <QString>
 
 /**
  * Render a test pattern to help setup and debug the display configuration.
@@ -57,18 +57,18 @@ public:
      * @param configuration The configuration to get information from
      * @param parent the parent object which renders this test pattern
      */
-    TestPattern( const WallConfiguration& configuration, QQuickItem* parent );
+    TestPattern(const WallConfiguration& configuration, QQuickItem* parent);
 
     /** Render the test pattern. */
-    void paint( QPainter* painter ) final;
+    void paint(QPainter* painter) final;
 
 private:
     QList<QString> _labels;
     const QSize _wallSize;
     QRect _windowRect;
 
-    void renderCrossPattern( QPainter* painter );
-    void renderLabels( QPainter* painter );
+    void renderCrossPattern(QPainter* painter);
+    void renderLabels(QPainter* painter);
 };
 
-#endif // TESTPATTERN_H
+#endif

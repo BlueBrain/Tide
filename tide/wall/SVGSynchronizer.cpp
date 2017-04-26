@@ -39,39 +39,43 @@
 
 #include "SVGSynchronizer.h"
 
-#include "data/SVG.h"
 #include "SVGGpuImage.h"
 #include "SVGTiler.h"
+#include "data/SVG.h"
 
 struct SVGSynchronizer::Impl
 {
-    Impl( const QString& uri )
-        : svg( uri )
-        , dataSource( svg )
-    {}
+    Impl(const QString& uri)
+        : svg(uri)
+        , dataSource(svg)
+    {
+    }
     SVG svg;
     SVGTiler dataSource;
 };
 
-SVGSynchronizer::SVGSynchronizer( const QString& uri )
-    : LodSynchronizer( TileSwapPolicy::SwapTilesIndependently )
-    , _impl( new Impl( uri ))
-{}
-
-SVGSynchronizer::~SVGSynchronizer() {}
-
-void SVGSynchronizer::synchronize( WallToWallChannel& channel )
+SVGSynchronizer::SVGSynchronizer(const QString& uri)
+    : LodSynchronizer(TileSwapPolicy::SwapTilesIndependently)
+    , _impl(new Impl(uri))
 {
-    Q_UNUSED( channel );
 }
 
-ImagePtr SVGSynchronizer::getTileImage( const uint tileId ) const
+SVGSynchronizer::~SVGSynchronizer()
+{
+}
+
+void SVGSynchronizer::synchronize(WallToWallChannel& channel)
+{
+    Q_UNUSED(channel);
+}
+
+ImagePtr SVGSynchronizer::getTileImage(const uint tileId) const
 {
 #if !(TIDE_USE_CAIRO && TIDE_USE_RSVG)
-    if( !_impl->dataSource.contains( tileId ))
-        return std::make_shared<SVGGpuImage>( _impl->dataSource, tileId );
+    if (!_impl->dataSource.contains(tileId))
+        return std::make_shared<SVGGpuImage>(_impl->dataSource, tileId);
 #endif
-    return LodSynchronizer::getTileImage( tileId );
+    return LodSynchronizer::getTileImage(tileId);
 }
 
 const DataSource& SVGSynchronizer::getDataSource() const

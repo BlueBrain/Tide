@@ -45,28 +45,26 @@
 
 namespace json
 {
-
-QJsonObject toObject( const std::string& data )
+QJsonObject toObject(const std::string& data)
 {
-    const auto input = QByteArray::fromRawData( data.c_str(), data.size( ));
-    const auto doc = QJsonDocument::fromJson( input );
+    const auto input = QByteArray::fromRawData(data.c_str(), data.size());
+    const auto doc = QJsonDocument::fromJson(input);
 
-    if( doc.isNull() || !doc.isObject( ))
+    if (doc.isNull() || !doc.isObject())
     {
-        put_flog( LOG_INFO, "Error parsing JSON string: '%s'", data.c_str( ));
+        put_flog(LOG_INFO, "Error parsing JSON string: '%s'", data.c_str());
         return QJsonObject{};
     }
     return doc.object();
 }
 
-std::string toString( const QJsonArray& array )
+std::string toString(const QJsonArray& array)
 {
-    return QJsonDocument{ array }.toJson().toStdString();
+    return QJsonDocument{array}.toJson().toStdString();
 }
 
-std::string toString( const QJsonObject& object )
+std::string toString(const QJsonObject& object)
 {
-    return QJsonDocument{ object }.toJson().toStdString();
+    return QJsonDocument{object}.toJson().toStdString();
 }
-
 }

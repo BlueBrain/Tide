@@ -51,32 +51,32 @@ const size_t sizeOfMegabyte = 1024 * 1024;
 const qint64 maxPdfPageSize = 2 * sizeOfMegabyte;
 }
 
-PDFThumbnailGenerator::PDFThumbnailGenerator( const QSize& size )
-    : ThumbnailGenerator( size )
+PDFThumbnailGenerator::PDFThumbnailGenerator(const QSize& size)
+    : ThumbnailGenerator(size)
 {
 }
 
-QImage PDFThumbnailGenerator::generate( const QString& filename ) const
+QImage PDFThumbnailGenerator::generate(const QString& filename) const
 {
-    const PDF pdf( filename );
+    const PDF pdf(filename);
 
-    if( !pdf.isValid( ))
+    if (!pdf.isValid())
     {
-        put_flog( LOG_ERROR, "could not open pdf file: '%s'",
-                  filename.toLatin1().constData( ));
-        return createErrorImage( "pdf" );
+        put_flog(LOG_ERROR, "could not open pdf file: '%s'",
+                 filename.toLatin1().constData());
+        return createErrorImage("pdf");
     }
 
-    if( QFileInfo( filename ).size() > maxPdfPageSize * pdf.getPageCount( ))
+    if (QFileInfo(filename).size() > maxPdfPageSize * pdf.getPageCount())
         return _createLargePdfPlaceholder();
 
-    const QSize imageSize = pdf.getSize().scaled( _size, _aspectRatioMode );
-    const QImage image = pdf.renderToImage( imageSize );
-    if( image.isNull( ))
+    const QSize imageSize = pdf.getSize().scaled(_size, _aspectRatioMode);
+    const QImage image = pdf.renderToImage(imageSize);
+    if (image.isNull())
     {
-        put_flog( LOG_ERROR, "could not render pdf file: '%s'",
-                  filename.toLatin1().constData( ));
-        return createErrorImage( "pdf" );
+        put_flog(LOG_ERROR, "could not render pdf file: '%s'",
+                 filename.toLatin1().constData());
+        return createErrorImage("pdf");
     }
 
     return image;
@@ -84,7 +84,7 @@ QImage PDFThumbnailGenerator::generate( const QString& filename ) const
 
 QImage PDFThumbnailGenerator::_createLargePdfPlaceholder() const
 {
-    QImage img = createGradientImage( Qt::darkBlue, Qt::white );
-    paintText( img, "LARGE\nPDF" );
+    QImage img = createGradientImage(Qt::darkBlue, Qt::white);
+    paintText(img, "LARGE\nPDF");
     return img;
 }

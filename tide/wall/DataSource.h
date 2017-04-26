@@ -48,23 +48,23 @@
 class DataSource
 {
 public:
-    virtual ~DataSource() {}
+    virtual ~DataSource() = default;
 
     /** Get a tile image by its id. threadsafe */
-    virtual ImagePtr getTileImage( uint tileId ) const = 0;
+    virtual ImagePtr getTileImage(uint tileId) const = 0;
 
     /** Get the coordinates of a tile. */
-    virtual QRect getTileRect( uint tileId ) const = 0;
+    virtual QRect getTileRect(uint tileId) const = 0;
 
     /** @return the texture format of a given tile. */
-    virtual TextureFormat getTileFormat( uint tileId ) const = 0;
+    virtual TextureFormat getTileFormat(uint tileId) const = 0;
 
     /** @return the image size for the requested lod. */
-    virtual QSize getTilesArea( uint lod ) const = 0;
+    virtual QSize getTilesArea(uint lod) const = 0;
 
     /** Compute the indices of the tiles which are visible in the given area. */
-    virtual Indices computeVisibleSet( const QRectF& visibleTilesArea,
-                                       uint lod ) const = 0;
+    virtual Indices computeVisibleSet(const QRectF& visibleTilesArea,
+                                      uint lod) const = 0;
 
     /** @return the max LOD level (top of pyramid, lowest resolution). */
     virtual uint getMaxLod() const = 0;

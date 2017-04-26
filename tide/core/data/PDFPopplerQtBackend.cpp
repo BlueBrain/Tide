@@ -48,14 +48,16 @@ namespace
 const qreal PDF_RES = 72.0;
 }
 
-PDFPopplerQtBackend::PDFPopplerQtBackend( const QString& uri )
-    : _pdfDoc( Poppler::Document::load( uri ))
+PDFPopplerQtBackend::PDFPopplerQtBackend(const QString& uri)
+    : _pdfDoc(Poppler::Document::load(uri))
 {
-    if( !_pdfDoc || _pdfDoc->isLocked( ) || !setPage( 0 ))
-        throw std::runtime_error( "Could not open document" );
+    if (!_pdfDoc || _pdfDoc->isLocked() || !setPage(0))
+        throw std::runtime_error("Could not open document");
 }
 
-PDFPopplerQtBackend::~PDFPopplerQtBackend() {}
+PDFPopplerQtBackend::~PDFPopplerQtBackend()
+{
+}
 
 QSize PDFPopplerQtBackend::getSize() const
 {
@@ -67,32 +69,32 @@ int PDFPopplerQtBackend::getPageCount() const
     return _pdfDoc->numPages();
 }
 
-bool PDFPopplerQtBackend::setPage( const int pageNumber )
+bool PDFPopplerQtBackend::setPage(const int pageNumber)
 {
-    Poppler::Page* page = _pdfDoc->page( pageNumber );
-    if( !page )
+    Poppler::Page* page = _pdfDoc->page(pageNumber);
+    if (!page)
         return false;
 
-    _pdfPage.reset( page );
+    _pdfPage.reset(page);
     return true;
 }
 
-QImage PDFPopplerQtBackend::renderToImage( const QSize& imageSize,
-                                           const QRectF& region ) const
+QImage PDFPopplerQtBackend::renderToImage(const QSize& imageSize,
+                                          const QRectF& region) const
 {
-    const QSize pageSize( _pdfPage->pageSize( ));
+    const QSize pageSize(_pdfPage->pageSize());
 
     const qreal zoomX = 1.0 / region.width();
     const qreal zoomY = 1.0 / region.height();
 
-    const QPointF topLeft( region.x() * imageSize.width(),
-                           region.y() * imageSize.height( ));
+    const QPointF topLeft(region.x() * imageSize.width(),
+                          region.y() * imageSize.height());
 
     const qreal resX = PDF_RES * imageSize.width() / pageSize.width();
     const qreal resY = PDF_RES * imageSize.height() / pageSize.height();
 
-    _pdfDoc->setRenderHint( Poppler::Document::TextAntialiasing );
-    return _pdfPage->renderToImage( resX * zoomX, resY * zoomY,
-                                    topLeft.x() * zoomX, topLeft.y() * zoomY,
-                                    imageSize.width(), imageSize.height( ));
+    _pdfDoc->setRenderHint(Poppler::Document::TextAntialiasing);
+    return _pdfPage->renderToImage(resX * zoomX, resY * zoomY,
+                                   topLeft.x() * zoomX, topLeft.y() * zoomY,
+                                   imageSize.width(), imageSize.height());
 }
