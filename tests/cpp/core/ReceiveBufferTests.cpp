@@ -46,7 +46,7 @@
 
 BOOST_AUTO_TEST_CASE(testReceiveBufferConstruction)
 {
-    const ReceiveBuffer buffer;
+    ReceiveBuffer buffer;
     BOOST_CHECK_EQUAL(buffer.size(), 0);
 }
 
