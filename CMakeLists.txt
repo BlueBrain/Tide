@@ -94,7 +94,10 @@ if(Deflect_IS_SUBPROJECT)
   set(TIDE_PACKAGE_REPLACES desktopstreamer)
 endif()
 if(ZeroEQ_IS_SUBPROJECT)
-  set(_zeroeq_deb libc6 libboost-all-dev libzmq5 libssl1.0.0)
+  set(_cppnetlib_deb libboost-atomic-dev libboost-chrono-dev
+    libboost-date-time-dev libboost-filesystem-dev libboost-program-options-dev
+    libboost-regex-dev libboost-system-dev libboost-thread-dev libssl1.0.0)
+  set(_zeroeq_deb libc6 libzmq5 ${_cppnetlib_deb})
   set(TIDE_PACKAGE_CONFLICTS libcppnetlib0 libcppnetlib-dev)
 endif()
 set(TIDE_PACKAGE_DEB_DEPENDS ${_deflect_deb} ${_zeroeq_deb} ${TIDE_DEB_DEPENDS})
