@@ -158,6 +158,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   thumbnail/FolderThumbnailGenerator.h
   thumbnail/ImageThumbnailGenerator.h
   thumbnail/StateThumbnailGenerator.h
+  thumbnail/StreamThumbnailGenerator.h
   thumbnail/thumbnail.h
   thumbnail/ThumbnailGeneratorFactory.h
   thumbnail/ThumbnailGenerator.h
@@ -202,6 +203,7 @@ list(APPEND TIDECORE_SOURCES
   thumbnail/FolderThumbnailGenerator.cpp
   thumbnail/ImageThumbnailGenerator.cpp
   thumbnail/StateThumbnailGenerator.cpp
+  thumbnail/StreamThumbnailGenerator.cpp
   thumbnail/thumbnail.cpp
   thumbnail/ThumbnailGenerator.cpp
   thumbnail/ThumbnailGeneratorFactory.cpp

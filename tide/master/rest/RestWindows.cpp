@@ -132,10 +132,10 @@ std::future<http::Response> RestWindows::getWindowInfo(
 
 void RestWindows::_cacheThumbnail(ContentWindowPtr window)
 {
-    const auto uri = window->getContent()->getURI();
+    const auto content = window->getContent();
 
-    _thumbnailCache[_getUuid(*window)] = QtConcurrent::run([uri]() {
-        const auto image = thumbnail::create(uri, thumbnailSize);
+    _thumbnailCache[_getUuid(*window)] = QtConcurrent::run([content]() {
+        const auto image = thumbnail::create(*content, thumbnailSize);
         QByteArray imageArray;
         QBuffer buffer(&imageArray);
         buffer.open(QIODevice::WriteOnly);

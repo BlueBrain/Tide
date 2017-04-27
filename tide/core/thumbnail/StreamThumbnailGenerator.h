@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,21 +37,28 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "WebbrowserThumbnailGenerator.h"
+#ifndef STREAMTHUMBNAILGENERATOR_H
+#define STREAMTHUMBNAILGENERATOR_H
 
-#include <QUrl>
+#include "ThumbnailGenerator.h"
 
-WebbrowserThumbnailGenerator::WebbrowserThumbnailGenerator(const QSize& size)
-    : ThumbnailGenerator(size)
+/**
+ * Generate placeholder images for stream windows.
+ */
+class StreamThumbnailGenerator : public ThumbnailGenerator
 {
-}
+public:
+    /** @copydoc ThumbnailGenerator::ThumbnailGenerator */
+    StreamThumbnailGenerator(const QSize& size);
 
-QImage WebbrowserThumbnailGenerator::generate(const QString& url) const
-{
-    auto image = createGradientImage(Qt::darkCyan, Qt::white);
-    auto host = QUrl{url}.host();
-    if (host.startsWith("www."))
-        host.remove(0, 4);
-    paintText(image, host.isEmpty() ? "Webbrowser" : host);
-    return image;
-}
+    /**
+     * Generate a thumbnail for a stream window.
+     *
+     * @param streamTitle the title of a stream.
+     * @return a placeholder image showing the type of content (STREAM) and
+     * its title.
+     */
+    QImage generate(const QString& streamTitle) const final;
+};
+
+#endif
