@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,21 +37,18 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "WebbrowserThumbnailGenerator.h"
+#include "StreamThumbnailGenerator.h"
 
 #include <QUrl>
 
-WebbrowserThumbnailGenerator::WebbrowserThumbnailGenerator(const QSize& size)
+StreamThumbnailGenerator::StreamThumbnailGenerator(const QSize& size)
     : ThumbnailGenerator(size)
 {
 }
 
-QImage WebbrowserThumbnailGenerator::generate(const QString& url) const
+QImage StreamThumbnailGenerator::generate(const QString& streamTitle) const
 {
-    auto image = createGradientImage(Qt::darkCyan, Qt::white);
-    auto host = QUrl{url}.host();
-    if (host.startsWith("www."))
-        host.remove(0, 4);
-    paintText(image, host.isEmpty() ? "Webbrowser" : host);
+    auto image = createGradientImage(Qt::red, Qt::white);
+    paintText(image, "Stream\n" + streamTitle);
     return image;
 }
