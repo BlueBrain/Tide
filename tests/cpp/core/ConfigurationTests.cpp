@@ -53,6 +53,8 @@
 #define CONFIG_TEST_FILENAME_II "./configuration_default.xml"
 #define CONFIG_TEST_FILENAME_STEREO "./configuration_stereo.xml"
 
+#define CONFIG_EXPECTED_BEZELS_VERTICAL 2
+#define CONFIG_EXPECTED_BEZELS_HORIZONAL 2
 #define CONFIG_EXPECTED_BACKGROUND "/nfs4/bbp.epfl.ch/visualization/DisplayWall/media/background.png"
 #define CONFIG_EXPECTED_BACKGROUND_COLOR "#242424"
 #define CONFIG_EXPECTED_CONTENT_DIR "/nfs4/bbp.epfl.ch/visualization/DisplayWall/media"
@@ -77,6 +79,12 @@ BOOST_GLOBAL_FIXTURE(MinimalGlobalQtApp);
 void testBaseParameters(const Configuration& config)
 {
     BOOST_CHECK_EQUAL(config.getFullscreen(), true);
+
+    BOOST_CHECK_EQUAL(config.getBezelsVertical(),
+                      CONFIG_EXPECTED_BEZELS_VERTICAL);
+
+    BOOST_CHECK_EQUAL(config.getBezelsHorizontal(),
+                      CONFIG_EXPECTED_BEZELS_HORIZONAL);
 
     BOOST_CHECK_EQUAL(config.getMullionHeight(), 12);
     BOOST_CHECK_EQUAL(config.getMullionWidth(), 14);

@@ -84,6 +84,12 @@ public:
     /** Get the filename passed to the constructor. */
     const QString& getFilename() const;
 
+    /** Get the number of vertical bezels. */
+    int getBezelsVertical() const;
+
+    /** Get the number of horizonal bezels. */
+    int getBezelsHorizontal() const;
+
     /** Get the total number of screens along the x axis. */
     int getTotalScreenCountX() const;
 
@@ -151,6 +157,8 @@ protected:
     bool getBool(const QXmlQuery& query, bool& value) const;
 
 private:
+    int _bezelsVertical;
+    int _bezelsHorizontal;
     int _totalScreenCountX;
     int _totalScreenCountY;
     int _screenWidth;

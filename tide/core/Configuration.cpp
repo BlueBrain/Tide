@@ -54,6 +54,8 @@ const QRegExp TRIM_REGEX("[\\n\\t\\r]");
 
 Configuration::Configuration(const QString& filename)
     : _filename(filename)
+    , _bezelsVertical(0)
+    , _bezelsHorizontal(0)
     , _totalScreenCountX(0)
     , _totalScreenCountY(0)
     , _screenWidth(0)
@@ -94,6 +96,12 @@ void Configuration::_load()
 
     query.setQuery("string(/configuration/dimensions/@mullionHeight)");
     getInt(query, _mullionHeight);
+
+    query.setQuery("string(/configuration/dimensions/@bezelsVertical)");
+    getInt(query, _bezelsVertical);
+
+    query.setQuery("string(/configuration/dimensions/@bezelsHorizontal)");
+    getInt(query, _bezelsHorizontal);
 
     int fullscreen = 0;
     query.setQuery("string(/configuration/dimensions/@fullscreen)");
@@ -160,6 +168,16 @@ QSize Configuration::getTotalSize() const
 double Configuration::getAspectRatio() const
 {
     return double(getTotalWidth()) / getTotalHeight();
+}
+
+int Configuration::getBezelsVertical() const
+{
+    return _bezelsVertical;
+}
+
+int Configuration::getBezelsHorizontal() const
+{
+    return _bezelsHorizontal;
 }
 
 QRect Configuration::getScreenRect(const QPoint& tileIndex) const
