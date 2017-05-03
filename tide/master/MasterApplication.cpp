@@ -508,7 +508,7 @@ void MasterApplication::_deleteTempContentFile(ContentWindowPtr window)
 {
     const bool isFile = contentTypeIsFile(window->getContent()->getType());
     const auto& filename = window->getContent()->getURI();
-    if (isFile && filename.startsWith(QDir::tempPath() + "/"))
+    if (isFile && QFileInfo(filename).absolutePath() == QDir::tempPath())
     {
         QDir().remove(filename);
         put_flog(LOG_INFO, "Deleted temporary file: %s",
