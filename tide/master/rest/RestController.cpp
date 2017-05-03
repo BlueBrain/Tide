@@ -133,19 +133,19 @@ bool RestController::_unfocusWindows()
 
 bool RestController::_moveWindowToFront(const std::string& payload)
 {
-    const auto id = json::toObject(payload)["uri"].toString();
+    const auto id = json::toObject(payload)["id"].toString();
     return _controller->moveWindowToFront(id);
 }
 
 bool RestController::_moveWindowToFullscreen(const std::string& payload)
 {
-    const auto id = json::toObject(payload)["uri"].toString();
+    const auto id = json::toObject(payload)["id"].toString();
     return _controller->showFullscreen(id);
 }
 
 bool RestController::_toggleSelectWindow(const std::string& payload)
 {
-    const auto id = json::toObject(payload)["uri"].toString();
+    const auto id = json::toObject(payload)["id"].toString();
     if (auto window = _group.getContentWindow(id))
     {
         window->setSelected(!window->isSelected());
@@ -156,20 +156,21 @@ bool RestController::_toggleSelectWindow(const std::string& payload)
 
 bool RestController::_unfocusWindow(const std::string& payload)
 {
-    const auto id = json::toObject(payload)["uri"].toString();
+    const auto id = json::toObject(payload)["id"].toString();
     return _controller->unfocus(id);
 }
 
 bool RestController::_moveWindow(const std::string& payload)
 {
     const auto obj = json::toObject(payload);
-    if (obj.empty() || !obj["uri"].isString() || !obj["x"].isDouble() ||
+    if (obj.empty() || !obj["id"].isString() || !obj["x"].isDouble() ||
         !obj["y"].isDouble())
     {
         return false;
     }
 
-    auto window = _group.getContentWindow(obj["uri"].toString());
+    const auto id = obj["id"].toString();
+    auto window = _group.getContentWindow(id);
     if (!window)
         return false;
 
@@ -178,20 +179,20 @@ bool RestController::_moveWindow(const std::string& payload)
 
     ContentWindowController(*window, _group).moveTo(windowPos, fixedPoint);
 
-    _controller->moveWindowToFront(window->getContent()->getURI());
+    _controller->moveWindowToFront(id);
     return true;
 }
 
 bool RestController::_resizeWindow(const std::string& payload)
 {
     const auto obj = json::toObject(payload);
-    if (obj.empty() || !obj["uri"].isString() || !obj["w"].isDouble() ||
+    if (obj.empty() || !obj["id"].isString() || !obj["w"].isDouble() ||
         !obj["h"].isDouble() || !obj["centered"].isBool())
     {
         return false;
     }
 
-    auto window = _group.getContentWindow(obj["uri"].toString());
+    auto window = _group.getContentWindow(obj["id"].toString());
     if (!window)
         return false;
 
