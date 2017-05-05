@@ -1,8 +1,14 @@
 "use strict";
+var bezelWidth;
+var bezelHeight;
+var bezelsPerScreenX;
+var bezelsPerScreenY;
 var focus;
 var fullscreen;
-var timer;
+var screenCountX;
+var screenCountY;
 var sessionFiles = [];
+var timer;
 var wallWidth;
 var wallHeight;
 var windowList = [];
@@ -579,6 +585,14 @@ function init() {
     var config = JSON.parse(xhr.responseText)["config"];
     wallWidth = config["wallSize"]["width"];
     wallHeight = config["wallSize"]["height"];
+    screenCountX=config["dimensions"]["screenCountX"];
+    screenCountY=config["dimensions"]["screenCountY"];
+    bezelWidth=config["dimensions"]["bezelWidth"];
+    bezelHeight=config["dimensions"]["bezelHeight"];
+    bezelsPerScreenX=config["dimensions"]["bezelsPerScreenX"];
+    bezelsPerScreenY=config["dimensions"]["bezelsPerScreenY"];
+
+    setBezels();
     setScale();
 
     filters = config["filters"];
@@ -600,7 +614,6 @@ function init() {
       }
 
     });
-    $("#wallOutline").css("width", wallWidth).css("height", wallHeight);
 
     $("#buttonContainer").append("Tide ", config["version"], " rev ",
       "<a href=\"https://github.com/BlueBrain/Tide/commit/" + config["revision"] + "\">" + config["revision"],
@@ -825,6 +838,29 @@ function saveSession() {
     });
 }
 
+function setBezels() {
+  $('#wallOutline').css("grid-template-columns", "repeat("+screenCountX +", 1fr)").
+  css("grid-template-rows", "repeat("+screenCountY+", 1fr)").
+  css("grid-column-gap", bezelWidth).css("grid-row-gap", bezelHeight);
+
+  var totalScreens = screenCountX * screenCountY;
+  var monitorsPerScreenX = bezelsPerScreenX + 1;
+  var monitorsPerScreenY = bezelsPerScreenY + 1;
+
+  for (var i = 0; i< totalScreens; i++)
+  {
+    var div = $("<div class=bezel > </div>");
+    $("#wallOutline").append(div);
+    div.css("grid-template-rows", "repeat("+monitorsPerScreenX+ ", 1fr)");
+    div.css("grid-template-columns", "repeat("+monitorsPerScreenY+", 1fr)");
+    var totalDisplaysPerScreen = monitorsPerScreenX * monitorsPerScreenY;
+
+    for (var j = 0; j < totalDisplaysPerScreen; j++)
+      div.append("<div class='bezel'></div>");
+  }
+  $(".bezel").css("grid-column-gap", bezelWidth).css("grid-row-gap", bezelHeight).hide();
+}
+
 function setCurtain(type) {
   if ($('#' + type).length)
     return;
@@ -965,6 +1001,11 @@ function updateOptions() {
     }
   };
   xhr.send(null);
+}
+
+function showBezels()
+{
+  $(".bezel").toggle();
 }
 
 function updateTile(tile) {

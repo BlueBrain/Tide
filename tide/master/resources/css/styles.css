@@ -39,6 +39,12 @@ label {
   height: 0px;
 }
 
+.bezel {
+  border: 1px dashed black;
+  height: auto;
+  display:grid;
+}
+
 .buttonPressed {
   background-color: #0096d3;
 }
@@ -253,10 +259,14 @@ label {
 
 #wallOutline {
   outline: 10px solid black;
-  z-index: 100;
+  z-index: 101;
   -moz-transform-origin: 0 0;
   -webkit-transform-origin: 0 0;
-  pointer-events: none
+  pointer-events: none;
+  display: grid;
+  position: absolute;
+  width: 100%;
+  height: 100%;
 }
 
 #wallContainer {

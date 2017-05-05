@@ -78,6 +78,9 @@ void testBaseParameters(const Configuration& config)
 {
     BOOST_CHECK_EQUAL(config.getFullscreen(), true);
 
+    BOOST_CHECK_EQUAL(config.getBezelsPerScreenX(), 0);
+    BOOST_CHECK_EQUAL(config.getBezelsPerScreenY(), 1);
+
     BOOST_CHECK_EQUAL(config.getMullionHeight(), 12);
     BOOST_CHECK_EQUAL(config.getMullionWidth(), 14);
 
