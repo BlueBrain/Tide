@@ -624,7 +624,7 @@ function init() {
 }
 
 function jsonUuidHelper(tile) {
-  return JSON.stringify({"uri": tile.uuid})
+  return JSON.stringify({"id": tile.uuid})
 }
 
 function markAsFocused(tile) {
@@ -781,7 +781,7 @@ function resizeOnWheelEvent(event, tile) {
     newHeight = oldHeight + incrementSize;
   }
 
-  var params = JSON.stringify({"uri": tile.uuid, "w": newWidth, "h": newHeight, "centered": true});
+  var params = JSON.stringify({"id": tile.uuid, "w": newWidth, "h": newHeight, "centered": true});
   requestPUT("resize-window", params, updateWall);
 }
 
@@ -878,7 +878,7 @@ function setHandles(tile) {
       ui.position.top = newTop;
     },
     stop: function () {
-      var params = JSON.stringify({"uri": tile.uuid, "x": newLeft, "y": newTop});
+      var params = JSON.stringify({"id": tile.uuid, "x": newLeft, "y": newTop});
       requestPUT("move-window", params, updateWall);
     },
     disabled: false,
@@ -909,7 +909,7 @@ function setHandles(tile) {
         tile.height = ui.size.height;
         tile.width = ui.size.width
       }
-      var params = JSON.stringify({"uri": tile.uuid, "w": tile.width, "h": tile.height, "centered": false});
+      var params = JSON.stringify({"id": tile.uuid, "w": tile.width, "h": tile.height, "centered": false});
       requestPUT("resize-window", params, function () {
         return requestPUT("move-window-to-front", jsonUuidHelper(tile), updateWall);
       });
@@ -973,7 +973,7 @@ function updateTile(tile) {
   if (!tile.focus) {
     windowDiv.css("min-height", tile.minHeight);
     windowDiv.css("min-width", tile.minWidth);
-    windowDiv.css("zIndex", tile.zIndex);
+    windowDiv.css("zIndex", tile.z);
   }
   else
   {
