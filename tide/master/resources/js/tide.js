@@ -1,8 +1,8 @@
 "use strict";
 var bezelWidth;
 var bezelHeight;
-var bezelsVertical;
-var bezelsHorizontal;
+var bezelsPerScreenX;
+var bezelsPerScreenY;
 var focus;
 var fullscreen;
 var screenCountX;
@@ -589,10 +589,10 @@ function init() {
     screenCountY=config["dimensions"]["screenCountY"];
     bezelWidth=config["dimensions"]["bezelWidth"];
     bezelHeight=config["dimensions"]["bezelHeight"];
-    bezelsVertical=config["dimensions"]["bezelsVertical"];
-    bezelsHorizontal=config["dimensions"]["bezelsHorizontal"];
+    bezelsPerScreenX=config["dimensions"]["bezelsPerScreenX"];
+    bezelsPerScreenY=config["dimensions"]["bezelsPerScreenY"];
 
-    setBezel();
+    setBezels();
     setScale();
 
     filters = config["filters"];
@@ -838,28 +838,27 @@ function saveSession() {
     });
 }
 
-function setBezel() {
+function setBezels() {
   $('#wallOutline').css("grid-template-columns", "repeat("+screenCountX +", 1fr)").
   css("grid-template-rows", "repeat("+screenCountY+", 1fr)").
   css("grid-column-gap", bezelWidth).css("grid-row-gap", bezelHeight);
 
-  var totalScreens = screenCountX  * screenCountY;
-  var displayPerScreenVertical  = bezelsVertical + 1;
-  var displayPerScreenHorizontal = bezelsHorizontal + 1;
+  var totalScreens = screenCountX * screenCountY;
+  var monitorsPerScreenX = bezelsPerScreenX + 1;
+  var monitorsPerScreenY = bezelsPerScreenY + 1;
 
   for (var i = 0; i< totalScreens; i++)
   {
     var div = $("<div class=bezel > </div>");
     $("#wallOutline").append(div);
-    div.css("grid-template-columns", "repeat("+displayPerScreenVertical+", 1fr)");
-    div.css("grid-template-rows", "repeat("+displayPerScreenHorizontal+ ", 1fr)");
-    var totalDisplaysPerScreen = displayPerScreenHorizontal * displayPerScreenVertical;
+    div.css("grid-template-rows", "repeat("+monitorsPerScreenX+ ", 1fr)");
+    div.css("grid-template-columns", "repeat("+monitorsPerScreenY+", 1fr)");
+    var totalDisplaysPerScreen = monitorsPerScreenX * monitorsPerScreenY;
 
     for (var j = 0; j < totalDisplaysPerScreen; j++)
       div.append("<div class='bezel'></div>");
-
-    $(".bezel").css("grid-column-gap", bezelWidth).css("grid-row-gap", bezelHeight).hide();
   }
+  $(".bezel").css("grid-column-gap", bezelWidth).css("grid-row-gap", bezelHeight).hide();
 }
 
 function setCurtain(type) {
@@ -1004,7 +1003,7 @@ function updateOptions() {
   xhr.send(null);
 }
 
-function showBezel()
+function showBezels()
 {
   $(".bezel").toggle();
 }

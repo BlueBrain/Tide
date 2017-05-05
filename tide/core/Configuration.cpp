@@ -54,8 +54,8 @@ const QRegExp TRIM_REGEX("[\\n\\t\\r]");
 
 Configuration::Configuration(const QString& filename)
     : _filename(filename)
-    , _bezelsVertical(0)
-    , _bezelsHorizontal(0)
+    , _bezelsPerScreenX(0)
+    , _bezelsPerScreenY(0)
     , _totalScreenCountX(0)
     , _totalScreenCountY(0)
     , _screenWidth(0)
@@ -97,11 +97,11 @@ void Configuration::_load()
     query.setQuery("string(/configuration/dimensions/@mullionHeight)");
     getInt(query, _mullionHeight);
 
-    query.setQuery("string(/configuration/dimensions/@bezelsVertical)");
-    getInt(query, _bezelsVertical);
+    query.setQuery("string(/configuration/dimensions/@bezelsPerScreenX)");
+    getInt(query, _bezelsPerScreenX);
 
-    query.setQuery("string(/configuration/dimensions/@bezelsHorizontal)");
-    getInt(query, _bezelsHorizontal);
+    query.setQuery("string(/configuration/dimensions/@bezelsPerScreenY)");
+    getInt(query, _bezelsPerScreenY);
 
     int fullscreen = 0;
     query.setQuery("string(/configuration/dimensions/@fullscreen)");
@@ -170,14 +170,14 @@ double Configuration::getAspectRatio() const
     return double(getTotalWidth()) / getTotalHeight();
 }
 
-int Configuration::getBezelsVertical() const
+int Configuration::getBezelsPerScreenX() const
 {
-    return _bezelsVertical;
+    return _bezelsPerScreenX;
 }
 
-int Configuration::getBezelsHorizontal() const
+int Configuration::getBezelsPerScreenY() const
 {
-    return _bezelsHorizontal;
+    return _bezelsPerScreenY;
 }
 
 QRect Configuration::getScreenRect(const QPoint& tileIndex) const
