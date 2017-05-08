@@ -529,7 +529,7 @@ function handleUpload(evt) {
   if (notUploaded > 0)
     swal({
       type: "warning",
-      title: (notUploaded > 1) ? notUploaded + " unsuported files" : notUploaded + " unsuported file",
+      title: (notUploaded > 1) ? notUploaded + " unsupported files" : notUploaded + " unsupported file",
       text: "Supported files are: " + filters.join(" "),
       confirmButtonColor: "#014f86",
       confirmButtonText: "OK",
