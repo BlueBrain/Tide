@@ -301,5 +301,6 @@ void ContentWindow::_init()
 {
     setResizePolicy(_content->hasFixedAspectRatio() ? KEEP_ASPECT_RATIO
                                                     : ADJUST_CONTENT);
-    connect(_content.get(), SIGNAL(modified()), SIGNAL(contentModified()));
+    connect(_content.get(), &Content::modified, this,
+            &ContentWindow::contentModified);
 }
