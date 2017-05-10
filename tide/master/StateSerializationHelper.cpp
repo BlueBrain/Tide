@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -94,22 +94,37 @@ void _relocateTempContent(ContentWindow& window, const QString& dstDir)
     window.setContent(ContentFactory::getContent(newUri));
 }
 
-void _relocateTempContent(DisplayGroup& group, const QString& uploadDir)
+void _relocateTempContent(DisplayGroup& group, const QString& dstDir)
 {
-    if (QDir(uploadDir).exists())
+    if (QDir{dstDir}.exists())
     {
-        put_flog(LOG_WARN, "Moving content to existing session folder: %s!",
-                 uploadDir.toLocal8Bit().constData());
+        put_flog(LOG_WARN, "Moving content to existing session folder: '%s'",
+                 dstDir.toLocal8Bit().constData());
     }
-    else if (!QDir().mkpath(uploadDir))
+    else if (!QDir().mkpath(dstDir))
     {
-        put_flog(LOG_WARN, "Cannot create a new session folder: %s!",
-                 uploadDir.toLocal8Bit().constData());
+        put_flog(LOG_WARN, "Cannot create a new session folder: '%s'",
+                 dstDir.toLocal8Bit().constData());
         return;
     }
 
+    std::vector<ContentWindowPtr> windowsToRelocate;
     for (const auto& window : group.getContentWindows())
-        _relocateTempContent(*window, uploadDir);
+    {
+        const auto& uri = window->getContent()->getURI();
+        if (QFileInfo{uri}.absolutePath() == QDir::tempPath())
+            windowsToRelocate.push_back(window);
+    }
+    for (const auto& window : windowsToRelocate)
+    {
+        _relocateTempContent(*window, dstDir);
+        // Remove the window and add back a copy of it to ensure that the wall
+        // processes use the new URI to access the file.
+        // Note: the content must be relocated before removing the window,
+        // otherwise the MasterApplication destroys the temporary file.
+        group.removeContentWindow(window);
+        group.addContentWindow(serialization::xmlCopy(window));
+    }
 }
 
 bool _validateContent(const ContentWindowPtr& window)
@@ -271,12 +286,12 @@ QFuture<bool> StateSerializationHelper::save(QString filename,
 
     if (!uploadDir.isEmpty())
     {
-        const QString sessionName = QFileInfo(filename).baseName();
+        const auto sessionName = QFileInfo{filename}.baseName();
         _relocateTempContent(*_displayGroup, uploadDir + "/" + sessionName);
     }
 
     // Important: use xml archive not binary as they use different code paths
-    DisplayGroupPtr group = serialization::xmlCopy(_displayGroup);
+    auto group = serialization::xmlCopy(_displayGroup);
     return QtConcurrent::run([group, filename, generatePreview]() {
         _filterContents(*group);
 

@@ -441,7 +441,6 @@ function getOptions() {
 }
 
 function getSessionFolderContent() {
-
   var url = restUrl + "sessions/";
   var xhr = new XMLHttpRequest();
   var data;
@@ -823,10 +822,13 @@ function saveSession() {
       showCancelButton: true
     },
     function () {
-      requestPUT("save", params, getSessionFolderContent);
+      requestPUT("save", params, function(){
+          getSessionFolderContent();
+          updateWall(); // contents may have been relocated changing some window UUIDs
+      });
       swal({
         title: "Saved!",
-        text: "Your file has been saved as: " + uri,
+        text: "Your session has been saved as: " + uri,
         type: "success",
         confirmButtonText: "OK",
         confirmButtonColor: "#014f86"
