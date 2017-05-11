@@ -290,7 +290,7 @@ std::unique_ptr<ContentSynchronizer> DataProvider::_makeSynchronizer(
     {
         auto updater = _get(_movieSources, window);
         updater->update(static_cast<const MovieContent&>(*window.getContent()));
-        return make_unique<MovieSynchronizer>(updater);
+        return make_unique<MovieSynchronizer>(updater, view);
     }
 #endif
 #if TIDE_ENABLE_PDF_SUPPORT

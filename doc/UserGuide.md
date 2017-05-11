@@ -32,6 +32,23 @@ an existing image to a TIFF pyramid one can use for instance ImageMagick:
 Or even more simply use the *pyramidmaker* script provided by Tide:
 > pyramidmaker myimage.xyz myimage.tif
 
+## Stereo 3D movies
+
+Tide can render 3D movies in side-by-side format if the movie file contains
+information about the stereo mode. For example, the webm and mkv containers can
+store such metadata. A valid side-by-side stereo movie can be created using
+[ffmpeg](https://ffmpeg.org/ffmpeg-formats.html#Metadata):
+
+> ffmpeg -i left_right_clip.mpg -an -c:v libvpx -metadata stereo_mode=left_right -y stereo_clip.webm
+
+To check if a movie has the correct stereo metadata, use ffprobe:
+
+> ffprobe stereo_clip.webm
+Metadata:
+stereo_mode : left_right
+Side data:
+stereo3d: side by side
+
 ## Open ports
 
 Tide listens on the following ports:
