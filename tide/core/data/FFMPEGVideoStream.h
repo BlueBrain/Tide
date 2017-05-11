@@ -47,6 +47,7 @@ extern "C" {
 #include <libavformat/avformat.h>
 #include <libavutil/error.h>
 #include <libavutil/mathematics.h>
+#include <libavutil/stereo3d.h>
 }
 
 #include "types.h"
@@ -102,6 +103,9 @@ public:
 
     /** Get the height of the video stream. */
     unsigned int getHeight() const;
+
+    /** @return true if the video stream has side-by-side stereo format. */
+    bool isStereo() const;
 
     /**
      * Get the video stream duration in seconds.

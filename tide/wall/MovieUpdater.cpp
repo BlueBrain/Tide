@@ -46,6 +46,36 @@
 #include "network/WallToWallChannel.h"
 #include "scene/MovieContent.h"
 
+namespace
+{
+void _splitSideBySide(const FFMPEGPicture& image, PicturePtr& left,
+                      PicturePtr& right)
+{
+    const auto width = image.getWidth() / 2;
+    const auto height = image.getHeight();
+    const auto format = image.getFormat();
+
+    left = std::make_shared<FFMPEGPicture>(width, height, format);
+    right = std::make_shared<FFMPEGPicture>(width, height, format);
+
+    const uint numTextures = (format == TextureFormat::rgba) ? 1 : 3 /*YUV*/;
+    for (uint texture = 0; texture < numTextures; ++texture)
+    {
+        const auto uvSize = image.getTextureSize(texture);
+        const size_t lineWidth = uvSize.width();
+        const size_t targetWidth = lineWidth / 2;
+        for (size_t y = 0; y < size_t(uvSize.height()); ++y)
+        {
+            const auto input = image.getData(texture) + y * lineWidth;
+            const auto outLeft = left->getData(texture) + y * targetWidth;
+            const auto outRight = right->getData(texture) + y * targetWidth;
+            std::copy(input, input + targetWidth, outLeft);
+            std::copy(input + targetWidth, input + lineWidth, outRight);
+        }
+    }
+}
+}
+
 MovieUpdater::MovieUpdater(const QString& uri)
     : _ffmpegMovie(new FFMPEGMovie(uri))
 {
@@ -92,11 +122,15 @@ ImagePtr MovieUpdater::getTileImage(const uint tileIndex,
                                     const deflect::View view) const
 {
     Q_UNUSED(tileIndex);
-    Q_UNUSED(view);
 
     const QMutexLocker multiWindowLock(&_multiWindowMutex);
-    if (_picture)
-        return _picture;
+    if (_ffmpegMovie->isStereo() && _pictureLeftOrMono && _pictureRight)
+    {
+        return view == deflect::View::right_eye ? _pictureRight
+                                                : _pictureLeftOrMono;
+    }
+    else if (_pictureLeftOrMono)
+        return _pictureLeftOrMono;
 
     double timestamp;
     {
@@ -118,7 +152,13 @@ ImagePtr MovieUpdater::getTileImage(const uint tileIndex,
         // WAR a risk of deadlock when skipping movies with incorrect duration
         _loopedBack = loopBack;
     }
-    _picture = image;
+    if (_ffmpegMovie->isStereo())
+    {
+        _splitSideBySide(*image, _pictureLeftOrMono, _pictureRight);
+        return view == deflect::View::right_eye ? _pictureRight
+                                                : _pictureLeftOrMono;
+    }
+    _pictureLeftOrMono = image;
     return image;
 }
 
@@ -241,7 +281,8 @@ void MovieUpdater::_triggerFrameUpdate()
     _readyForNextFrame = false;
     {
         const QMutexLocker multiWindowLock(&_multiWindowMutex);
-        _picture.reset();
+        _pictureLeftOrMono.reset();
+        _pictureRight.reset();
     }
     emit pictureUpdated();
 }

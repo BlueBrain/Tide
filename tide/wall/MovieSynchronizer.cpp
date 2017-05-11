@@ -44,9 +44,11 @@
 #include "ZoomHelper.h"
 #include "scene/ContentWindow.h"
 
-MovieSynchronizer::MovieSynchronizer(std::shared_ptr<MovieUpdater> updater)
+MovieSynchronizer::MovieSynchronizer(std::shared_ptr<MovieUpdater> updater,
+                                     const deflect::View view)
     : TiledSynchronizer{TileSwapPolicy::SwapTilesSynchronously}
     , _updater{std::move(updater)}
+    , _view{view}
 {
     _updater->synchronizers.push_back(this);
 
@@ -82,6 +84,11 @@ QString MovieSynchronizer::getStatistics() const
 {
     return QString("%1 / %2").arg(_fpsCounter.toString(),
                                   _updater->getStatistics());
+}
+
+deflect::View MovieSynchronizer::getView() const
+{
+    return _view;
 }
 
 const DataSource& MovieSynchronizer::getDataSource() const

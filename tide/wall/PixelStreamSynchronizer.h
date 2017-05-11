@@ -56,6 +56,7 @@ class PixelStreamSynchronizer : public TiledSynchronizer
 public:
     /**
      * Construct a synchronizer for a stream.
+     * @param updater The shared pixel stream data source.
      * @param view which the data source provides. Left and right views also
      *        include mono contents.
      */

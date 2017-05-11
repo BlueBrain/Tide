@@ -57,8 +57,11 @@ public:
     /**
      * Construct a synchronizer for a movie, referencing it in the updater.
      * @param updater The shared movie data source.
+     * @param view which the data source provides. Left and right views also
+     *        include mono contents.
      */
-    explicit MovieSynchronizer(std::shared_ptr<MovieUpdater> updater);
+    MovieSynchronizer(std::shared_ptr<MovieUpdater> updater,
+                      deflect::View view);
 
     /** @copydoc ContentSynchronizer::update */
     void update(const ContentWindow& window, const QRectF& visibleArea) final;
@@ -68,6 +71,9 @@ public:
 
     /** @copydoc ContentSynchronizer::getStatistics */
     QString getStatistics() const final;
+
+    /** @copydoc ContentSynchronizer::getView */
+    deflect::View getView() const final;
 
     /**
      * Swap the image before rendering.
@@ -93,6 +99,7 @@ signals:
 
 private:
     std::shared_ptr<MovieUpdater> _updater;
+    deflect::View _view;
     FpsCounter _fpsCounter;
 
     bool _tilesDirty = true;
