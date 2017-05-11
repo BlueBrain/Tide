@@ -77,6 +77,9 @@ public:
     /** Get the frame height. */
     unsigned int getHeight() const;
 
+    /** @return true if the movie has side-by-side stereo format. */
+    bool isStereo() const;
+
     /** Get the current time position in seconds. */
     double getPosition() const;
 

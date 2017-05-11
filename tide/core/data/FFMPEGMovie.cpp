@@ -183,12 +183,17 @@ bool FFMPEGMovie::isValid() const
 
 unsigned int FFMPEGMovie::getWidth() const
 {
-    return _videoStream->getWidth();
+    return isStereo() ? _videoStream->getWidth() / 2 : _videoStream->getWidth();
 }
 
 unsigned int FFMPEGMovie::getHeight() const
 {
     return _videoStream->getHeight();
+}
+
+bool FFMPEGMovie::isStereo() const
+{
+    return _videoStream->isStereo();
 }
 
 double FFMPEGMovie::getPosition() const
