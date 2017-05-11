@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.4 (git master)
 
+* [151](https://github.com/BlueBrain/Tide/issues/151):
+  Added support for playing stereo 3D movies.
 * [147](https://github.com/BlueBrain/Tide/issues/147):
   Performance improvement: added support for multiple windows per process.
   The windows can be located on different X11 displays and still share resources

@@ -175,6 +175,19 @@ unsigned int FFMPEGVideoStream::getHeight() const
     return _videoCodecContext->height;
 }
 
+bool FFMPEGVideoStream::isStereo() const
+{
+#if (LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(55, 35, 100)) // ffmpeg-2.3.x
+    for (int i = 0; i < _videoStream->nb_side_data; ++i)
+    {
+        const auto& sideData = _videoStream->side_data[i];
+        if (sideData.type == AV_PKT_DATA_STEREO3D)
+            return ((AVStereo3D*)sideData.data)->type == AV_STEREO3D_SIDEBYSIDE;
+    }
+#endif
+    return false;
+}
+
 double FFMPEGVideoStream::getDuration() const
 {
     return std::max(_frameDurationInSeconds * _numFrames, 0.0);

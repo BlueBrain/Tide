@@ -138,7 +138,8 @@ private:
     mutable bool _loopedBack = false;
 
     mutable QMutex _multiWindowMutex;
-    mutable PicturePtr _picture;
+    mutable PicturePtr _pictureLeftOrMono;
+    mutable PicturePtr _pictureRight;
 
     void _triggerFrameUpdate();
     void _exchangeSharedTimestamp(WallToWallChannel& channel, bool isCandidate);
