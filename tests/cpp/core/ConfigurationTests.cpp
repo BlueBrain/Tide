@@ -56,6 +56,7 @@
 #define CONFIG_EXPECTED_BACKGROUND "/nfs4/bbp.epfl.ch/visualization/DisplayWall/media/background.png"
 #define CONFIG_EXPECTED_BACKGROUND_COLOR "#242424"
 #define CONFIG_EXPECTED_CONTENT_DIR "/nfs4/bbp.epfl.ch/visualization/DisplayWall/media"
+#define CONFIG_EXPECTED_SERIAL_PORT "/dev/ttyS0"
 #define CONFIG_EXPECTED_SESSIONS_DIR "/nfs4/bbp.epfl.ch/visualization/DisplayWall/sessions"
 #define CONFIG_EXPECTED_LAUNCHER_DISPLAY ":0"
 #define CONFIG_EXPECTED_DEMO_SERVICE_URL "https://visualization-dev.humanbrainproject.eu/viz/rendering-resource-manager/v1"
@@ -171,6 +172,9 @@ BOOST_AUTO_TEST_CASE(test_master_configuration)
     MasterConfiguration config(CONFIG_TEST_FILENAME);
 
     BOOST_CHECK_EQUAL(config.getHeadless(), true);
+
+    BOOST_CHECK_EQUAL(config.getPlanarSerialPort(),
+                      CONFIG_EXPECTED_SERIAL_PORT);
 
     BOOST_CHECK_EQUAL(config.getContentDir(), CONFIG_EXPECTED_CONTENT_DIR);
     BOOST_CHECK_EQUAL(config.getSessionsDir(), CONFIG_EXPECTED_SESSIONS_DIR);

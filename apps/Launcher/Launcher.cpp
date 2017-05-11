@@ -98,6 +98,8 @@ Launcher::Launcher(int& argc, char* argv[])
     item->setProperty("demoServiceImageFolder",
                       config.getDemoServiceImageFolder());
     item->setProperty("demoServiceDeflectHost", QHostInfo::localHostName());
+    if (!config.getPlanarSerialPort().isEmpty())
+        item->setProperty("powerButtonVisible", true);
 }
 
 Launcher::~Launcher()

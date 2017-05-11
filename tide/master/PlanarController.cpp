@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,60 +37,86 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "RestLogger.h"
+#include "PlanarController.h"
 
-#include "json.h"
-#include "jsonschema.h"
-
-#include <QJsonObject>
+#include "log.h"
 
 namespace
 {
-QString stateToString(screenState state)
-{
-    if (state == screenState::ON)
-        return "ON";
-    else if (state == screenState::OFF)
-        return "OFF";
-    return "UNDEF";
-}
+const int serialTimeout = 1000;    // in ms
+const int powerStateTimer = 60000; // in ms
 }
 
-QJsonObject _makeJsonObject(const LoggingUtility& logger)
+PlanarController::PlanarController(const QString& serialport)
 {
-    const QJsonObject event{{"last_event", logger.getLastInteraction()},
-                            {"last_event_date",
-                             logger.getLastInteractionTime()},
-                            {"count", logger.getInteractionCount()}};
-    const QJsonObject window{{"count", int(logger.getWindowCount())},
-                             {"date_set", logger.getCounterModificationTime()},
-                             {"accumulated_count",
-                              int(logger.getAccumulatedWindowCount())}};
-    const QJsonObject screens{{"state", stateToString(logger.getScreenState())},
-                              {"last_change",
-                               logger.getLastScreenStateChanged()}};
-    return QJsonObject{{"event", event},
-                       {"window", window},
-                       {"screens", screens}};
+    _serial.setPortName(serialport);
+    _serial.setBaudRate(QSerialPort::Baud9600, QSerialPort::AllDirections);
+    _serial.setDataBits(QSerialPort::Data8);
+    _serial.setParity(QSerialPort::NoParity);
+    _serial.setStopBits(QSerialPort::OneStop);
+    _serial.setFlowControl(QSerialPort::NoFlowControl);
+    if (!_serial.open(QIODevice::ReadWrite))
+        throw std::runtime_error("Could not open " + serialport.toStdString());
+
+    connect(&_serial, &QSerialPort::readyRead, [this]() {
+        if (_serial.canReadLine())
+        {
+            QString output(_serial.readLine());
+            output = output.trimmed();
+            screenState previousState = _powered;
+            if (output.endsWith("OFF"))
+                _powered = screenState::OFF;
+            else if (output.endsWith("ON"))
+                _powered = screenState::ON;
+            else
+                _powered = screenState::UNDEF;
+
+            if (_powered != previousState)
+                emit powerStateChanged(_powered);
+        }
+    });
+
+    connect(&_timer, &QTimer::timeout, [this]() { checkPowerState(); });
+    _timer.start(powerStateTimer);
 }
 
-RestLogger::RestLogger(const LoggingUtility& logger)
-    : _logger(logger)
+bool PlanarController::powerOn()
 {
+    if (_serial.isOpen())
+    {
+        _serial.write("OPA1DISPLAY.POWER=ON\r");
+        return _serial.waitForBytesWritten(serialTimeout);
+    }
+    else
+        put_flog(LOG_INFO, "serial device not open ");
+    return false;
 }
 
-std::string RestLogger::getTypeName() const
+bool PlanarController::powerOff()
 {
-    return "tide/stats";
+    if (_serial.isOpen())
+    {
+        _serial.write("OPA1DISPLAY.POWER=OFF\r");
+        return _serial.waitForBytesWritten(serialTimeout);
+    }
+    else
+        put_flog(LOG_INFO, "serial device not open ");
+    return false;
 }
 
-std::string RestLogger::getSchema() const
+screenState PlanarController::getState() const
 {
-    return jsonschema::create("Stats", _makeJsonObject(_logger),
-                              "Usage statistics of the Tide application");
+    return _powered;
 }
 
-std::string RestLogger::_toJSON() const
+void PlanarController::checkPowerState()
 {
-    return json::toString(_makeJsonObject(_logger));
+    if (_serial.isOpen())
+    {
+        _serial.write("OPA1DISPLAY.POWER?\r");
+        _serial.waitForBytesWritten(serialTimeout);
+        put_flog(LOG_INFO, "checkPowerState()");
+    }
+    else
+        put_flog(LOG_INFO, "serial device not open ");
 }

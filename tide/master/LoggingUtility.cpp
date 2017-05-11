@@ -115,6 +115,22 @@ void LoggingUtility::_incrementWindowCount()
     ++_windowCounter;
 }
 
+void LoggingUtility::powerStateChanged(screenState state)
+{
+    _state = state;
+    _lastPowerStateChanged = _getTimeStamp();
+}
+
+QString LoggingUtility::getLastScreenStateChanged() const
+{
+    return _lastPowerStateChanged;
+}
+
+screenState LoggingUtility::getScreenState() const
+{
+    return _state;
+}
+
 uint _getMilliseconds(std::chrono::system_clock::duration timePoint)
 {
     timePoint -= std::chrono::duration_cast<std::chrono::seconds>(timePoint);

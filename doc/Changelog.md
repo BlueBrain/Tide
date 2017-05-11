@@ -3,6 +3,11 @@ Changelog {#changelog}
 
 # Release 1.3 (git master)
 
+* [152](https://github.com/BlueBrain/Tide/pull/152):
+  Tide can control Planar displays now. User can:
+  - turn off the screens using power off button in the Launcher
+  - turn on the screens by touching the wall
+  - check the screens state via REST interface at: tide/stats
 * [150](https://github.com/BlueBrain/Tide/issues/150):
   Ignore legacy window titles option from saved sessions.
 * [146](https://github.com/BlueBrain/Tide/pull/146):

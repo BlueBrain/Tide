@@ -15,10 +15,12 @@ Rectangle {
     signal showDemosPanel()
     signal startWebbrowser()
     signal startWhiteboard()
+    signal poweroffScreens()
 
     color: Style.menuColor
 
     property bool demoItemVisible: false
+    property bool poweroffItemVisible: false
 
     property real textSize: Style.menuRelTextSize * menu.width
 
@@ -95,6 +97,13 @@ Rectangle {
             category: "Demos"
             isPanel: true
         }
+        ListElement {
+            action: "poweroffScreens"
+            name: "Power off"
+            image: "qrc:/images/poweroff.svg"
+            category: "Control"
+            isPanel: false
+        }
     }
 
     Component {
@@ -113,8 +122,10 @@ Rectangle {
         id: menuButtonDelegate
         Item {
             id: button
-            visible: model.category === "Demos" ? menu.demoItemVisible : true
-            height: image.height + caption.height + 0.2 * menuListView.width
+            visible: model.category === "Control" ? menu.poweroffItemVisible :
+                     model.category === "Demos" ? menu.demoItemVisible : true
+            height: visible === true ? image.height + caption.height +
+                                       0.15 * menuListView.width : 0
             width: menuListView.width * 0.8
             anchors.horizontalCenter: parent.horizontalCenter
             Column {

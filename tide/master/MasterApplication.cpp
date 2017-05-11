@@ -222,6 +222,11 @@ void MasterApplication::_init()
                 }
             });
 
+#if TIDE_ENABLE_PLANAR_CONTROLLER
+    _planarController.reset(
+        new PlanarController(_config->getPlanarSerialPort()));
+#endif
+
 #if TIDE_ENABLE_REST_INTERFACE
     _initRestInterface();
 #endif
@@ -410,6 +415,13 @@ void MasterApplication::_initTouchListener()
     connect(_touchListener.get(), &MultitouchListener::touchPointAdded,
             [this, getWallPos](const int id, const QPointF normalizedPos) {
                 _markers->addMarker(id, getWallPos(normalizedPos));
+#if TIDE_ENABLE_PLANAR_CONTROLLER
+                if (_planarController->getState() == screenState::OFF)
+                    if (!_planarController->powerOn())
+                        put_flog(LOG_INFO,
+                                 "Could not power on the screens"
+                                 "touching the wall");
+#endif
             });
     connect(_touchListener.get(), &MultitouchListener::touchPointUpdated,
             [this, getWallPos](const int id, const QPointF normalizedPos) {
@@ -476,6 +488,16 @@ void MasterApplication::_initRestInterface()
     _restInterface.get()->exposeStatistics(*_logger);
 
     _restInterface.get()->setupHtmlInterface(*_displayGroup, *_config);
+
+#if TIDE_ENABLE_PLANAR_CONTROLLER
+    connect(_planarController.get(), &PlanarController::powerStateChanged,
+            _logger.get(), &LoggingUtility::powerStateChanged);
+
+    connect(_restInterface.get(), &RestInterface::powerOff, [this]() {
+        if (!_planarController->powerOff())
+            put_flog(LOG_INFO, "Could not power off the screens");
+    });
+#endif
 }
 #endif
 

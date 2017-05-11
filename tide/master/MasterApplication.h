@@ -48,6 +48,10 @@
 #include <deflect/qt/TouchInjector.h>
 #endif
 
+#if TIDE_ENABLE_PLANAR_CONTROLLER
+#include "PlanarController.h"
+#endif
+
 #include <QApplication>
 #include <QFutureWatcher>
 #include <QThread>
@@ -125,6 +129,10 @@ private:
 #if TIDE_ENABLE_REST_INTERFACE
     std::unique_ptr<RestInterface> _restInterface;
     std::unique_ptr<LoggingUtility> _logger;
+#endif
+
+#if TIDE_ENABLE_PLANAR_CONTROLLER
+    std::unique_ptr<PlanarController> _planarController;
 #endif
 
     QFutureWatcher<DisplayGroupConstPtr> _loadSessionOp;
