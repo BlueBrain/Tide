@@ -14,7 +14,7 @@ set(TIDE_DESCRIPTION "Tiled Interactive DisplayWall Environment")
 set(TIDE_MAINTAINER "Blue Brain Project <bbp-open-source@googlegroups.com>")
 set(TIDE_VENDOR "Blue Brain Project")
 set(TIDE_LICENSE BSD)
-set(TIDE_DEB_DEPENDS python libopenmpi-dev openmpi-bin
+set(TIDE_DEB_DEPENDS python imagemagick libopenmpi-dev openmpi-bin
   libboost-program-options-dev libboost-serialization-dev libboost-test-dev
   qtbase5-dev qtdeclarative5-dev libqt5svg5-dev libqt5webkit5-dev
   libqt5xmlpatterns5-dev libqt5x11extras5-dev qml-module-qtquick-controls
