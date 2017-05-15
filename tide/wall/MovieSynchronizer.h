@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -40,12 +40,13 @@
 #ifndef MOVIESYNCHRONIZER_H
 #define MOVIESYNCHRONIZER_H
 
-#include "ContentSynchronizer.h"
+#include "FpsCounter.h"
+#include "TiledSynchronizer.h"
 
 /**
  * Synchronizes a Movie between different QML windows.
  */
-class MovieSynchronizer : public ContentSynchronizer
+class MovieSynchronizer : public TiledSynchronizer
 {
     Q_OBJECT
     Q_DISABLE_COPY(MovieSynchronizer)
@@ -54,15 +55,10 @@ class MovieSynchronizer : public ContentSynchronizer
 
 public:
     /**
-     * Construct a synchronizer for a movie, opening it in the provider.
-     * @param uri The uri of the movie to open.
+     * Construct a synchronizer for a movie, referencing it in the updater.
+     * @param updater The shared movie data source.
      */
-    explicit MovieSynchronizer(const QString& uri);
-
-    ~MovieSynchronizer();
-
-    /** Update the movies, using the channel to synchronize accross processes.*/
-    void synchronize(WallToWallChannel& channel) final;
+    explicit MovieSynchronizer(std::shared_ptr<MovieUpdater> updater);
 
     /** @copydoc ContentSynchronizer::update */
     void update(const ContentWindow& window, const QRectF& visibleArea) final;
@@ -73,11 +69,18 @@ public:
     /** @copydoc ContentSynchronizer::getStatistics */
     QString getStatistics() const final;
 
-    /** @copydoc ContentSynchronizer::getTileImage */
-    ImagePtr getTileImage(uint tileIndex) const final;
+    /**
+     * Swap the image before rendering.
+     *
+     * Should only be called when canSwapTiles returns true on all processes.
+     */
+    void swapTiles() final;
 
-    /** @copydoc ContentSynchronizer::onSwapReady */
-    void onSwapReady(TilePtr tile) final;
+    /** Update the tiles. */
+    void updateTiles();
+
+    /** @return true if the movie is visible on this window. */
+    bool hasVisibleTiles() const;
 
     /** @return the normalized position in the move. */
     qreal getSliderPosition() const;
@@ -89,12 +92,14 @@ signals:
     //@}
 
 private:
-    std::unique_ptr<MovieUpdater> _updater;
+    std::shared_ptr<MovieUpdater> _updater;
+    FpsCounter _fpsCounter;
 
-    bool _tileAdded;
-    bool _swapReady;
-    bool _visible;
-    TilePtr _tile;
+    bool _tilesDirty = true;
+    bool _updateExistingTiles = false;
+
+    const DataSource& getDataSource() const final;
+    void _onPictureUpdated();
 };
 
 #endif

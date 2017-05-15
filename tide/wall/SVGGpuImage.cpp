@@ -79,6 +79,6 @@ bool SVGGpuImage::isGpuImage() const
 bool SVGGpuImage::generateGpuImage()
 {
     // Call getTileImage so that the image gets cached for the next request
-    _image = _dataSource.getTileImage(_tileId);
+    _image = _dataSource.getTileImage(_tileId, deflect::View::mono);
     return true;
 }

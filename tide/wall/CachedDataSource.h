@@ -53,7 +53,7 @@ class CachedDataSource : public DataSource
 {
 public:
     /** @copydoc DataSource::getTileImage threadsafe */
-    ImagePtr getTileImage(uint tileId) const final;
+    ImagePtr getTileImage(uint tileId, deflect::View view) const override;
 
     /** @copydoc DataSource::getTileFormat threadsafe */
     TextureFormat getTileFormat(uint tileId) const final;

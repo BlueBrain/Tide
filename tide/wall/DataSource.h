@@ -51,7 +51,7 @@ public:
     virtual ~DataSource() = default;
 
     /** Get a tile image by its id. threadsafe */
-    virtual ImagePtr getTileImage(uint tileId) const = 0;
+    virtual ImagePtr getTileImage(uint tileId, deflect::View view) const = 0;
 
     /** Get the coordinates of a tile. */
     virtual QRect getTileRect(uint tileId) const = 0;

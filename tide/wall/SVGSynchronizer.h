@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -41,6 +41,7 @@
 #define SVGSYNCHRONIZER_H
 
 #include "LodSynchronizer.h"
+#include "SVGTiler.h"
 
 /**
  * Synchronize SVG content.
@@ -52,23 +53,13 @@ class SVGSynchronizer : public LodSynchronizer
 
 public:
     /** Constructor. */
-    explicit SVGSynchronizer(const QString& uri);
-
-    /** Destructor. */
-    ~SVGSynchronizer();
-
-    /** @copydoc ContentSynchronizer::synchronize */
-    void synchronize(WallToWallChannel& channel) final;
-
-    /** @copydoc ContentSynchronizer::getTileImage */
-    ImagePtr getTileImage(uint tileId) const final;
+    explicit SVGSynchronizer(std::shared_ptr<SVGTiler> source);
 
 private:
-    /** @copydoc LodSynchronizer::getDataSource */
+    /** @copydoc ContentSynchronizer::getDataSource */
     const DataSource& getDataSource() const final;
 
-    struct Impl;
-    std::unique_ptr<Impl> _impl;
+    std::shared_ptr<SVGTiler> _source;
 };
 
 #endif

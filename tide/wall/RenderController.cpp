@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,6 +39,7 @@
 
 #include "RenderController.h"
 
+#include "DataProvider.h"
 #include "DisplayGroupRenderer.h"
 #include "InactivityTimer.h"
 #include "TextureUploader.h"
@@ -47,33 +48,42 @@
 #include "scene/DisplayGroup.h"
 #include "scene/Options.h"
 
-RenderController::RenderController(WallWindow& window)
-    : _window(window)
-    , _syncDisplayGroup(boost::make_shared<DisplayGroup>(QSize()))
-    , _syncInactivityTimer(boost::make_shared<InactivityTimer>())
-    , _syncOptions(boost::make_shared<Options>())
+RenderController::RenderController(std::vector<WallWindow*> windows,
+                                   DataProvider& provider,
+                                   WallToWallChannel& wallChannel)
+    : _windows{std::move(windows)}
+    , _provider{provider}
+    , _wallChannel{wallChannel}
+    , _syncDisplayGroup{boost::make_shared<DisplayGroup>(QSize())}
+    , _syncInactivityTimer{boost::make_shared<InactivityTimer>()}
+    , _syncOptions{boost::make_shared<Options>()}
 {
-    _syncDisplayGroup.setCallback(std::bind(&WallWindow::setDisplayGroup,
-                                            &_window, std::placeholders::_1));
-    _syncMarkers.setCallback(
-        std::bind(&WallWindow::setMarkers, &_window, std::placeholders::_1));
-    _syncOptions.setCallback(std::bind(&WallWindow::setRenderOptions, &_window,
-                                       std::placeholders::_1));
+    _syncDisplayGroup.setCallback([this](DisplayGroupPtr group) {
+        _provider.updateDataSources(*group);
+        for (auto window : _windows)
+            window->setDisplayGroup(group);
+    });
+    _syncInactivityTimer.setCallback([this](InactivityTimerPtr timer) {
+        for (auto window : _windows)
+            window->setInactivityTimer(timer);
+    });
+    _syncMarkers.setCallback([this](MarkersPtr markers) {
+        for (auto window : _windows)
+            window->setMarkers(markers);
+    });
+    _syncOptions.setCallback([this](OptionsPtr options) {
+        for (auto window : _windows)
+            window->setRenderOptions(options);
+    });
 
-    _syncInactivityTimer.setCallback(std::bind(&WallWindow::setInactivityTimer,
-                                               &_window,
-                                               std::placeholders::_1));
+    for (auto window : _windows)
+    {
+        connect(&window->getUploader(), &TextureUploader::uploaded, this,
+                [this] { _needRedraw = true; }, Qt::QueuedConnection);
 
-    connect(&window.getUploader(), &TextureUploader::uploaded, this,
-            [this] { _needRedraw = true; }, Qt::QueuedConnection);
-
-    connect(&window, &WallWindow::imageGrabbed, this,
-            &RenderController::screenshotRendered);
-}
-
-DisplayGroupPtr RenderController::getDisplayGroup() const
-{
-    return _syncDisplayGroup.get();
+        connect(window, &WallWindow::imageGrabbed, this,
+                &RenderController::screenshotRendered);
+    }
 }
 
 void RenderController::timerEvent(QTimerEvent* qtEvent)
@@ -108,15 +118,15 @@ void RenderController::requestRender()
 
 void RenderController::_syncAndRender()
 {
-    WallToWallChannel& wallChannel = _window.getWallChannel();
     auto versionCheckFunc = std::bind(&WallToWallChannel::checkVersion,
-                                      &wallChannel, std::placeholders::_1);
+                                      &_wallChannel, std::placeholders::_1);
     _syncQuit.sync(versionCheckFunc);
     if (_syncQuit.get())
     {
         killTimer(_renderTimer);
         killTimer(_stopRenderingDelayTimer);
-        _window.deleteLater();
+        for (auto window : _windows)
+            window->deleteLater();
         return;
     }
 
@@ -126,7 +136,7 @@ void RenderController::_syncAndRender()
     if (grab)
         _syncScreenshot = SwapSyncObject<bool>{false};
 
-    if (!_window.syncAndRender(grab) && wallChannel.allReady(!_needRedraw))
+    if (_syncAndRenderWindows(grab))
     {
         if (_stopRenderingDelayTimer == 0)
             _stopRenderingDelayTimer = startTimer(5000 /*ms*/);
@@ -135,6 +145,23 @@ void RenderController::_syncAndRender()
         requestRender();
 
     _needRedraw = false;
+}
+
+bool RenderController::_syncAndRenderWindows(const bool grab)
+{
+    _wallChannel.synchronizeClock();
+
+    _provider.synchronizeTilesSwap(_wallChannel);
+
+    for (auto window : _windows)
+    {
+        if (!window->isInitialized())
+            return false;
+
+        window->render(grab);
+        _needRedraw = _needRedraw || window->needRedraw();
+    }
+    return _wallChannel.allReady(!_needRedraw);
 }
 
 void RenderController::updateQuit()

@@ -56,23 +56,17 @@ class QmlWindowRenderer : public QObject
 
 public:
     /** Constructor. */
-    QmlWindowRenderer(QQmlEngine& engine, DataProvider& provider,
-                      QQuickItem& parentItem, ContentWindowPtr contentWindow,
-                      bool isBackground = false);
+    QmlWindowRenderer(std::unique_ptr<ContentSynchronizer> synchronizer,
+                      ContentWindowPtr contentWindow, QQuickItem& parentItem,
+                      QQmlContext* parentContext, bool isBackground = false);
     /** Destructor. */
     ~QmlWindowRenderer();
 
     /** Update the qml object with a new data model. */
     void update(ContentWindowPtr contentWindow, const QRectF& visibleArea);
 
-    /** Update the contents, using the channel to synchronize processes. */
-    void synchronize(WallToWallChannel& channel);
-
     /** Get the QML item. */
     QQuickItem* getQuickItem();
-
-    /** Get the ContentWindow. */
-    ContentWindowPtr getContentWindow();
 
 private slots:
     void _addTile(TilePtr tile);
@@ -82,18 +76,15 @@ private slots:
                      TextureFormat format);
 
 private:
-    DataProvider& _provider;
+    ContentSynchronizerSharedPtr _synchronizer;
     ContentWindowPtr _contentWindow;
     std::unique_ptr<QQmlContext> _windowContext;
-    QQuickItem* _windowItem;
-    ContentSynchronizerSharedPtr _synchronizer;
+    std::unique_ptr<QQuickItem> _windowItem;
 
     typedef std::map<uint, TilePtr> TilesMap;
     TilesMap _tiles;
 
     TilePtr _zoomContextTile;
-
-    QQuickItem* _createQmlItem(const QUrl& url);
 };
 
 #endif

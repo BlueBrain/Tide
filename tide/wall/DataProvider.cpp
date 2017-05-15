@@ -39,18 +39,82 @@
 
 #include "DataProvider.h"
 
-#include "ContentSynchronizer.h"
-#include "PixelStreamUpdater.h"
 #include "Tile.h"
-
+#include "config.h"
 #include "log.h"
+#include "network/WallToWallChannel.h"
+#include "scene/Content.h"
+#include "scene/DisplayGroup.h"
+#include "scene/MovieContent.h"
+#include "scene/PDFContent.h"
 
-#include <QtConcurrent>
+#include "BasicSynchronizer.h"
+#if TIDE_ENABLE_MOVIE_SUPPORT
+#include "MovieSynchronizer.h"
+#include "MovieUpdater.h"
+#endif
+#include "PixelStreamSynchronizer.h"
+#include "PixelStreamUpdater.h"
+#if TIDE_ENABLE_PDF_SUPPORT
+#include "PDFSynchronizer.h"
+#endif
+
 #include <deflect/Frame.h>
 
-DataProvider::DataProvider(const deflect::View view)
-    : _view{view}
+#include <QtConcurrent>
+
+namespace
 {
+template <typename Map>
+std::shared_ptr<typename Map::mapped_type::element_type> _get(
+    Map& map, const ContentWindow& window)
+{
+    const auto& id = window.getID();
+    std::shared_ptr<typename Map::mapped_type::element_type> source;
+    if (map.count(id))
+        source = map[id].lock();
+
+    if (!source)
+    {
+        const auto& uri = window.getContent()->getURI();
+        source = std::make_shared<typename Map::mapped_type::element_type>(uri);
+        map[id] = source;
+    }
+    return source;
+}
+
+template <typename Map>
+void _removeUnused(Map& map, const std::set<typename Map::key_type>& validKeys)
+{
+    auto it = map.begin();
+    while (it != map.end())
+    {
+        if (validKeys.count(it->first))
+            ++it;
+        else
+            it = map.erase(it);
+    }
+}
+
+template <typename Updater>
+void _synchronize(WallToWallChannel& channel, Updater& updater)
+{
+    bool swap = true;
+    for (auto synchronizer : updater.synchronizers)
+        swap = swap && synchronizer->canSwapTiles();
+
+    if (channel.allReady(swap))
+    {
+        for (auto synchronizer : updater.synchronizers)
+            synchronizer->swapTiles();
+        updater.getNextFrame();
+    }
+
+    updater.synchronizeFrameAdvance(channel);
+
+    for (auto synchronizer : updater.synchronizers)
+        synchronizer->updateTiles();
+}
 }
 
 DataProvider::~DataProvider()
@@ -63,34 +127,80 @@ DataProvider::~DataProvider()
     }
 }
 
-PixelStreamUpdaterSharedPtr DataProvider::getStreamDataSource(
-    const QString& uri)
+std::unique_ptr<ContentSynchronizer> DataProvider::createSynchronizer(
+    const ContentWindow& window, const deflect::View view)
 {
-    PixelStreamUpdaterSharedPtr updater;
-    if (_streamUpdaters.count(uri))
-        updater = _streamUpdaters[uri].lock();
+    auto synchronizer = _makeSynchronizer(window, view);
 
-    if (!updater)
+    connect(synchronizer.get(), &ContentSynchronizer::requestTileUpdate, this,
+            &DataProvider::loadAsync);
+
+    return synchronizer;
+}
+
+void DataProvider::updateDataSources(const DisplayGroup& group)
+{
+    std::set<QString> updatedStreams;
+#if TIDE_ENABLE_MOVIE_SUPPORT
+    std::set<QUuid> updatedMovies;
+#endif
+
+    for (const auto& window : group.getContentWindows())
     {
-        updater = std::make_shared<PixelStreamUpdater>(_view);
-        connect(updater.get(), &PixelStreamUpdater::requestFrame, this,
-                &DataProvider::requestFrame);
-        _streamUpdaters[uri] = PixelStreamUpdaterWeakPtr(updater);
-
-        // Fix DISCL-382: New frames are requested after showing the current
-        // one,
-        // but it's conditional to _streamUpdaters[uri] in setNewFrame(), hence
-        // request a frame once we have a PixelStreamUpdater.
-        emit requestFrame(uri);
+        const auto& content = *window->getContent();
+        switch (content.getType())
+        {
+#if TIDE_ENABLE_MOVIE_SUPPORT
+        case CONTENT_TYPE_MOVIE:
+        {
+            const auto& movie = static_cast<const MovieContent&>(content);
+            _get(_movieSources, *window)->update(movie);
+            updatedMovies.insert(window->getID());
+        }
+        break;
+#endif
+#if TIDE_ENABLE_PDF_SUPPORT
+        case CONTENT_TYPE_PDF:
+        {
+            const auto& pdf = static_cast<const PDFContent&>(content);
+            _get(_pdfSources, *window)->update(pdf);
+        }
+        break;
+#endif
+        case CONTENT_TYPE_PIXEL_STREAM:
+        case CONTENT_TYPE_WEBBROWSER:
+            updatedStreams.insert(content.getURI());
+            break;
+        default:
+            break; /** nothing to do */
+        }
     }
 
-    return updater;
+    // Streams and movies must be removed synchronously here. Otherwise, in
+    // synchronizeTilesSwap() locking the weak pointer may succeed on processes
+    // that are asynchronously getting a tile image but fail on the others,
+    // causing a deadlock.
+    _removeUnused(_streamSources, updatedStreams);
+#if TIDE_ENABLE_MOVIE_SUPPORT
+    _removeUnused(_movieSources, updatedMovies);
+#endif
+}
+
+void DataProvider::synchronizeTilesSwap(WallToWallChannel& channel)
+{
+    for (auto stream : _streamSources)
+        _synchronize(channel, *stream.second.lock());
+
+#if TIDE_ENABLE_MOVIE_SUPPORT
+    for (auto movie : _movieSources)
+        _synchronize(channel, *movie.second.lock());
+#endif
 }
 
 void DataProvider::loadAsync(ContentSynchronizerSharedPtr source,
                              TileWeakPtr tile)
 {
-    Watcher* watcher = new Watcher;
+    auto watcher = new Watcher;
     _watchers.append(watcher);
     connect(watcher, &Watcher::finished, this, &DataProvider::_handleFinished);
     watcher->setFuture(
@@ -99,13 +209,37 @@ void DataProvider::loadAsync(ContentSynchronizerSharedPtr source,
 
 void DataProvider::setNewFrame(deflect::FramePtr frame)
 {
-    if (!_streamUpdaters.count(frame->uri))
+    if (!_streamSources.count(frame->uri))
         return;
 
-    if (auto updater = _streamUpdaters[frame->uri].lock())
+    if (auto updater = _streamSources[frame->uri].lock())
         updater->updatePixelStream(frame);
     else
-        _streamUpdaters.erase(frame->uri);
+        _streamSources.erase(frame->uri);
+}
+
+std::shared_ptr<PixelStreamUpdater> DataProvider::_getStreamSource(
+    const ContentWindow& window)
+{
+    const auto& uri = window.getContent()->getURI();
+    std::shared_ptr<PixelStreamUpdater> updater;
+    if (_streamSources.count(uri))
+        updater = _streamSources[uri].lock();
+
+    if (!updater)
+    {
+        updater = std::make_shared<PixelStreamUpdater>();
+        connect(updater.get(), &PixelStreamUpdater::requestFrame, this,
+                &DataProvider::requestFrame);
+        _streamSources[uri] = updater;
+
+        // Fix DISCL-382: New frames are requested after showing the current
+        // one, but it's conditional to _streamSources[id] in setNewFrame(),
+        // hence request a frame once we have a PixelStreamUpdater.
+        emit requestFrame(uri);
+    }
+
+    return updater;
 }
 
 void DataProvider::_load(ContentSynchronizerSharedPtr source, TileWeakPtr tile_)
@@ -119,7 +253,8 @@ void DataProvider::_load(ContentSynchronizerSharedPtr source, TileWeakPtr tile_)
     ImagePtr image;
     try
     {
-        image = source->getTileImage(tile->getId());
+        image = source->getDataSource().getTileImage(tile->getId(),
+                                                     source->getView());
     }
     catch (...)
     {
@@ -131,12 +266,50 @@ void DataProvider::_load(ContentSynchronizerSharedPtr source, TileWeakPtr tile_)
         put_flog(LOG_DEBUG, "Empty image for tile: %d", tile->getId());
         return;
     }
-    emit imageLoaded(image, tile_);
+    source->imageLoaded(image, tile_);
 }
 
 void DataProvider::_handleFinished()
 {
-    Watcher* watcher = static_cast<Watcher*>(sender());
+    auto watcher = static_cast<Watcher*>(sender());
     _watchers.removeOne(watcher);
     watcher->deleteLater();
+}
+
+std::unique_ptr<ContentSynchronizer> DataProvider::_makeSynchronizer(
+    const ContentWindow& window, const deflect::View view)
+{
+    switch (window.getContent()->getType())
+    {
+#if TIDE_USE_TIFF
+    case CONTENT_TYPE_IMAGE_PYRAMID:
+        return make_unique<LodSynchronizer>(_get(_imagePyrSources, window));
+#endif
+#if TIDE_ENABLE_MOVIE_SUPPORT
+    case CONTENT_TYPE_MOVIE:
+    {
+        auto updater = _get(_movieSources, window);
+        updater->update(static_cast<const MovieContent&>(*window.getContent()));
+        return make_unique<MovieSynchronizer>(updater);
+    }
+#endif
+#if TIDE_ENABLE_PDF_SUPPORT
+    case CONTENT_TYPE_PDF:
+    {
+        auto updater = _get(_pdfSources, window);
+        updater->update(static_cast<const PDFContent&>(*window.getContent()));
+        return make_unique<PDFSynchronizer>(updater);
+    }
+#endif
+    case CONTENT_TYPE_PIXEL_STREAM:
+    case CONTENT_TYPE_WEBBROWSER:
+        return make_unique<PixelStreamSynchronizer>(_getStreamSource(window),
+                                                    view);
+    case CONTENT_TYPE_SVG:
+        return make_unique<LodSynchronizer>(_get(_svgSources, window));
+    case CONTENT_TYPE_TEXTURE:
+        return make_unique<BasicSynchronizer>(_get(_imageSources, window));
+    default:
+        throw std::runtime_error("No ContentSynchronizer for ContentType");
+    }
 }

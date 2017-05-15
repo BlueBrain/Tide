@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -73,9 +73,9 @@ BOOST_AUTO_TEST_CASE(test_assemble_screenshot)
     {
         for (auto x = 0; x < config.getTotalScreenCountX(); ++x)
         {
-            const auto index = x + y * config.getTotalScreenCountX();
             screen.fill(QColor{x * 64, y * 64, 128});
-            assembler.addImage(screen, index);
+            assembler.addImage(screen, {x, y});
+            const auto index = x + y * config.getTotalScreenCountX();
             if (index < screenCount - 1)
                 BOOST_CHECK(screenshot.isNull());
         }

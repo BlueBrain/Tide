@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,26 +37,25 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "ImagePyramidSynchronizer.h"
+#include "WallSynchronizer.h"
 
-#include "ImagePyramidDataSource.h"
-
-ImagePyramidSynchronizer::ImagePyramidSynchronizer(const QString& uri)
-    : LodSynchronizer(TileSwapPolicy::SwapTilesIndependently)
-    , _dataSource(new ImagePyramidDataSource(uri))
+WallSynchronizer::WallSynchronizer(WallToWallChannel& wallChannel,
+                                   const uint windowCount)
+    : _wallChannel(wallChannel)
+    , _windowCount(windowCount)
 {
 }
 
-ImagePyramidSynchronizer::~ImagePyramidSynchronizer()
+void WallSynchronizer::globalBarrier()
 {
-}
-
-void ImagePyramidSynchronizer::synchronize(WallToWallChannel& channel)
-{
-    Q_UNUSED(channel);
-}
-
-const DataSource& ImagePyramidSynchronizer::getDataSource() const
-{
-    return *_dataSource;
+    std::unique_lock<std::mutex> lock(_mutex);
+    ++_barrierCount;
+    if (_barrierCount < _windowCount)
+        _condition.wait(lock);
+    else
+    {
+        _wallChannel.globalBarrier();
+        _condition.notify_all();
+        _barrierCount = 0;
+    }
 }

@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -50,15 +50,13 @@ ScreenshotAssembler::ScreenshotAssembler(const Configuration& config)
     _imagesReceived.resize(count, false);
 }
 
-void ScreenshotAssembler::addImage(const QImage image, const int source)
+void ScreenshotAssembler::addImage(const QImage image, const QPoint index)
 {
     {
-        const auto x = source % _config.getTotalScreenCountX();
-        const auto y = source / _config.getTotalScreenCountX();
-        QPainter painter{&_screenshot};
-        painter.drawImage(_config.getScreenRect({x, y}), image);
+        QPainter{&_screenshot}.drawImage(_config.getScreenRect(index), image);
     }
 
+    const auto source = index.x() + index.y() * _config.getTotalScreenCountX();
     _imagesReceived[source] = true;
     for (const auto& received : _imagesReceived)
         if (!received)
