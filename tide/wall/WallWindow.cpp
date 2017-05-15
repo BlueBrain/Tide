@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -48,6 +48,7 @@
 #include "log.h"
 #include "qmlUtils.h"
 #include "scene/Options.h"
+#include "screens.h"
 
 #include <deflect/qt/QuickRenderer.h>
 
@@ -62,34 +63,36 @@ namespace
 const QUrl QML_ROOT_COMPONENT("qrc:/qml/wall/Background.qml");
 }
 
-WallWindow::WallWindow(const WallConfiguration& config,
-                       QQuickRenderControl* renderControl,
-                       WallToWallChannel& wallChannel)
-    : QQuickWindow(renderControl)
-    , _displayGroupRenderer(nullptr)
-    , _testPattern(nullptr)
-    , _wallChannel(wallChannel)
-    , _renderControl(renderControl)
+WallWindow::WallWindow(const WallConfiguration& config, const uint windowIndex,
+                       DataProvider& provider,
+                       std::unique_ptr<QQuickRenderControl> renderControl,
+                       WallSynchronizer& synchronizer)
+    : QQuickWindow(renderControl.get())
+    , _provider(provider)
+    , _renderControl(std::move(renderControl))
+    , _synchronizer(synchronizer)
     , _quickRenderer(new deflect::qt::QuickRenderer(*this, *_renderControl))
     , _quickRendererThread(new QThread)
-    , _rendererInitialized(false)
-    , _qmlEngine(new QQmlEngine)
-    , _qmlComponent(nullptr)
-    , _rootItem(nullptr)
-    , _uploadThread(new QThread)
     , _uploader(new TextureUploader)
-    , _provider(new DataProvider{config.getStereoMode()})
+    , _uploadThread(new QThread)
+    , _qmlEngine(new QQmlEngine)
 {
-    connect(_provider, &DataProvider::imageLoaded, _uploader,
-            &TextureUploader::uploadTexture);
+    const auto windowNumber = QString::number(windowIndex);
+    _quickRendererThread->setObjectName("Render #" + windowNumber);
+    _uploadThread->setObjectName("Upload #" + windowNumber);
 
-    const QPoint& screenIndex = config.getGlobalScreenIndex();
-    const QRect& screenRect = config.getScreenRect(screenIndex);
-    const QPoint& windowPos = config.getWindowPos();
+    const auto& screen = config.getScreens().at(windowIndex);
+    const auto screenSize = config.getScreenRect(screen.globalIndex).size();
+
+    if (auto qscreen = screens::find(screen.display))
+        setScreen(qscreen);
+    else if (!screen.display.isEmpty())
+        put_flog(LOG_FATAL, "Could not find display: '%s'",
+                 screen.display.toLocal8Bit().constData());
 
     setFlags(Qt::FramelessWindowHint);
-    setPosition(windowPos);
-    resize(screenRect.size());
+    setPosition(screen.position);
+    resize(screenSize);
 
     if (config.getFullscreen())
     {
@@ -99,28 +102,28 @@ WallWindow::WallWindow(const WallConfiguration& config,
     else
         show();
 
-    _startQuick(config);
+    _startQuick(config, windowIndex);
 }
 
 WallWindow::~WallWindow()
 {
-    delete _provider;
-
     _uploader->stop();
     _uploadThread->quit();
     _uploadThread->wait();
-    delete _uploadThread;
 
     _quickRenderer->stop();
     _quickRendererThread->quit();
     _quickRendererThread->wait();
-    delete _quickRendererThread;
+}
 
-    delete _displayGroupRenderer;
-    delete _qmlComponent;
-    delete _qmlEngine;
-    delete _quickRenderer;
-    delete _uploader;
+bool WallWindow::isInitialized() const
+{
+    return _rendererInitialized;
+}
+
+bool WallWindow::needRedraw() const
+{
+    return _displayGroupRenderer->needRedraw();
 }
 
 void WallWindow::exposeEvent(QExposeEvent*)
@@ -132,7 +135,7 @@ void WallWindow::exposeEvent(QExposeEvent*)
 
 #if QT_VERSION >= 0x050500
         // Call required to make QtGraphicalEffects work in the initial scene.
-        _renderControl->prepareThread(_quickRendererThread);
+        _renderControl->prepareThread(_quickRendererThread.get());
 #else
         put_flog(LOG_DEBUG,
                  "missing QQuickRenderControl::prepareThread() on "
@@ -140,72 +143,80 @@ void WallWindow::exposeEvent(QExposeEvent*)
                  "QtGraphicalEffects.");
 #endif
 
-        _quickRenderer->moveToThread(_quickRendererThread);
-
-        _quickRendererThread->setObjectName("Render");
+        _quickRenderer->moveToThread(_quickRendererThread.get());
         _quickRendererThread->start();
-
         _quickRenderer->init();
 
-        _uploader->moveToThread(_uploadThread);
-        _uploadThread->setObjectName("Upload");
+        _uploader->moveToThread(_uploadThread.get());
         _uploadThread->start();
+        _uploader->init(_quickRenderer->context(), screen());
 
-        _uploader->init(_quickRenderer->context());
-
-        _wallChannel.globalBarrier();
         _rendererInitialized = true;
     }
 }
 
-void WallWindow::_startQuick(const WallConfiguration& config)
+void WallWindow::_startQuick(const WallConfiguration& config,
+                             const uint windowIndex)
 {
-    _qmlComponent = new QQmlComponent(_qmlEngine, QML_ROOT_COMPONENT);
-    qmlCheckOrThrow(*_qmlComponent);
-    QObject* rootObject_ = _qmlComponent->create();
-    _rootItem = qobject_cast<QQuickItem*>(rootObject_);
+    _rootItem = qml::makeItem(*_qmlEngine, QML_ROOT_COMPONENT);
     _rootItem->setParentItem(contentItem());
 
     // behave like SizeRootObjectToView
     _rootItem->setWidth(width());
     _rootItem->setHeight(height());
 
-    const QPoint& screenIndex = config.getGlobalScreenIndex();
-    const QRect& screenRect = config.getScreenRect(screenIndex);
-    _displayGroupRenderer =
-        new DisplayGroupRenderer(*this, *_provider, screenRect);
-    connect(_quickRenderer, &deflect::qt::QuickRenderer::afterRender, [&] {
-        _wallChannel.globalBarrier();
-        _quickRenderer->context()->swapBuffers(this);
-        _quickRenderer->context()->functions()->glFlush();
-        QMetaObject::invokeMethod(_displayGroupRenderer, "updateRenderedFrames",
-                                  Qt::QueuedConnection);
-        if (_grabImage)
-        {
-            emit imageGrabbed(_renderControl->grab());
-            _grabImage = false;
-        }
-    });
+    const auto& screen = config.getScreens().at(windowIndex);
+    const auto screenRect = config.getScreenRect(screen.globalIndex);
+    const auto view = config.getScreens().at(windowIndex).stereoMode;
 
-    _testPattern = new TestPattern(config, _rootItem);
+    // DisplayGroupRenderer needs _engine and _rootItem from *this*
+    _displayGroupRenderer.reset(
+        new DisplayGroupRenderer(*this, _provider, screenRect, view));
+
+    connect(_displayGroupRenderer.get(), &DisplayGroupRenderer::imageLoaded,
+            _uploader.get(), &TextureUploader::uploadTexture);
+
+    const auto globalIndex = screen.globalIndex;
+    connect(_quickRenderer.get(), &deflect::qt::QuickRenderer::afterRender,
+            [this, globalIndex] {
+                _synchronizer.globalBarrier();
+                _quickRenderer->context()->swapBuffers(this);
+                _quickRenderer->context()->functions()->glFlush();
+                QMetaObject::invokeMethod(_displayGroupRenderer.get(),
+                                          "updateRenderedFrames",
+                                          Qt::QueuedConnection);
+                if (_grabImage)
+                {
+                    emit imageGrabbed(_renderControl->grab(), globalIndex);
+                    _grabImage = false;
+                }
+            });
+
+    _testPattern.reset(new TestPattern(config, _rootItem));
     _testPattern->setPosition(-screenRect.topLeft());
 }
 
-bool WallWindow::syncAndRender(const bool grab)
+void WallWindow::render(const bool grab)
 {
-    if (!_rendererInitialized)
-        return true;
-
-    _wallChannel.synchronizeClock();
-    _displayGroupRenderer->synchronize(_wallChannel);
-
     _grabImage = grab;
 
     _renderControl->polishItems();
     _quickRenderer->render();
+}
 
-    const bool needRedraw = _displayGroupRenderer->needRedraw();
-    return !_wallChannel.allReady(!needRedraw);
+void WallWindow::setDisplayGroup(DisplayGroupPtr displayGroup)
+{
+    _displayGroupRenderer->setDisplayGroup(displayGroup);
+}
+
+void WallWindow::setInactivityTimer(InactivityTimerPtr timer)
+{
+    _displayGroupRenderer->setTimer(timer);
+}
+
+void WallWindow::setMarkers(MarkersPtr markers)
+{
+    _displayGroupRenderer->setMarkers(markers);
 }
 
 void WallWindow::setRenderOptions(OptionsPtr options)
@@ -217,39 +228,14 @@ void WallWindow::setRenderOptions(OptionsPtr options)
     _displayGroupRenderer->setRenderingOptions(options);
 }
 
-void WallWindow::setDisplayGroup(DisplayGroupPtr displayGroup)
-{
-    _displayGroupRenderer->setDisplayGroup(displayGroup);
-}
-
-void WallWindow::setMarkers(MarkersPtr markers)
-{
-    _displayGroupRenderer->setMarkers(markers);
-}
-
-void WallWindow::setInactivityTimer(InactivityTimerPtr timer)
-{
-    _displayGroupRenderer->setTimer(timer);
-}
-
-DataProvider& WallWindow::getDataProvider()
-{
-    return *_provider;
-}
-
 QQmlEngine* WallWindow::engine() const
 {
-    return _qmlEngine;
+    return _qmlEngine.get();
 }
 
 QQuickItem* WallWindow::rootObject() const
 {
     return _rootItem;
-}
-
-WallToWallChannel& WallWindow::getWallChannel()
-{
-    return _wallChannel;
 }
 
 TextureUploader& WallWindow::getUploader()

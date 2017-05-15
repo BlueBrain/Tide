@@ -45,6 +45,24 @@
 #include <QPoint>
 
 /**
+ * Configuration for an individual screen of a wall process.
+ */
+struct ScreenConfiguration
+{
+    /** Display identifier in string format matching Linux DISPLAY env_var. */
+    QString display;
+
+    /** Coordinates of the screen in pixel units. */
+    QPoint position;
+
+    /** Global index for the screen starting at {0,0} from the top-left. */
+    QPoint globalIndex;
+
+    /** Stereo mode for this screen. */
+    deflect::View stereoMode = deflect::View::mono;
+};
+
+/**
  * Read the parameters needed to setup a Wall process from an xml file.
  *
  * @warning: this class can only be used AFTER creating a QApplication.
@@ -66,40 +84,25 @@ public:
     /** Get the name of the host on which this process is running. */
     const QString& getHost() const;
 
-    /**
-     * Get the display identifier in string format matching the current Linux
-     * DISPLAY env_var.
-     */
-    const QString& getDisplay() const;
+    /** @return the screen configurations for this process. */
+    const std::vector<ScreenConfiguration>& getScreens() const;
 
     /** @return the number of wall processes running on the same host. */
     int getProcessCountForHost() const;
 
-    /**
-     * Get the global index for the screen.
-     * @return index starting at {0,0} from the top-left
-     */
-    const QPoint& getGlobalScreenIndex() const;
-
-    /** Get the coordinates of the screen in pixel units. */
-    const QPoint& getWindowPos() const;
-
-    /** @return the stereo mode for this process. */
-    deflect::View getStereoMode() const;
-
 private:
     const int _processIndex;
-
     QString _host;
-    QString _display;
+    std::vector<ScreenConfiguration> _screens;
+
     int _processCountForHost = 0;
 
-    QPoint _screenPosition;
-    QPoint _screenGlobalIndex;
-
     deflect::View _stereoMode = deflect::View::mono;
+    QString _display;
 
-    void _loadWallSettings(int processIndex);
+    void _loadWallSettings();
+    ScreenConfiguration _loadScreenSettings(QXmlQuery& query,
+                                            int screenIndex) const;
 };
 
 #endif

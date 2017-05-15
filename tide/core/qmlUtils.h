@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -41,14 +41,17 @@
 #define QMLUTILS_H
 
 #include <QDebug>
+#include <QQmlComponent>
+#include <QQuickItem>
+
 #include <stdexcept>
 
 /**
  * Qml utility functions.
  */
-
-template <typename T>
-static void qmlCheckOrThrow(const T& component)
+namespace qml
+{
+inline void checkOrThrow(const QQmlComponent& component)
 {
     if (component.isError())
     {
@@ -56,6 +59,15 @@ static void qmlCheckOrThrow(const T& component)
             qWarning() << error.url() << error.line() << error;
         throw std::runtime_error("Invadid QML component");
     }
+}
+
+inline QQuickItem* makeItem(QQmlEngine& engine, const QUrl& url,
+                            QQmlContext* context = nullptr)
+{
+    QQmlComponent component(&engine, url);
+    checkOrThrow(component);
+    return qobject_cast<QQuickItem*>(component.create(context));
+}
 }
 
 #endif

@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>     */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/*                          Daniel Nachbaur <daniel.nachbaur@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -74,9 +75,9 @@ signals:
     /**
      * Emitted after each wall process has rendered a screenshot
      * @param image The rendered image
-     * @param source The identifier of the wall process that sent the image
+     * @param index The global index of the window that sent the image
      */
-    void receivedScreenshot(QImage image, int source);
+    void receivedScreenshot(QImage image, QPoint index);
 
 private:
     MPIChannelPtr _mpiChannel;

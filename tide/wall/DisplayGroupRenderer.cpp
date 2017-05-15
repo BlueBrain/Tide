@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,6 +39,7 @@
 
 #include "DisplayGroupRenderer.h"
 
+#include "DataProvider.h"
 #include "InactivityTimer.h"
 #include "VisibilityHelper.h"
 #include "WallWindow.h"
@@ -62,15 +63,16 @@ const QUrl QML_DISPLAYGROUP_URL("qrc:/qml/wall/WallDisplayGroup.qml");
 
 DisplayGroupRenderer::DisplayGroupRenderer(WallWindow& parentWindow,
                                            DataProvider& provider,
-                                           const QRect& screenRect)
-    : _engine(*parentWindow.engine())
-    , _provider(provider)
-    , _displayGroup(new DisplayGroup(QSize()))
-    , _displayGroupItem(0)
-    , _options(new Options)
-    , _markers(new Markers)
-    , _timer(new InactivityTimer)
-    , _screenRect(screenRect)
+                                           const QRect& screenRect,
+                                           const deflect::View view)
+    : _engine{*parentWindow.engine()}
+    , _provider{provider}
+    , _displayGroup{new DisplayGroup(QSize())}
+    , _markers{new Markers}
+    , _options{new Options}
+    , _timer{new InactivityTimer}
+    , _screenRect{screenRect}
+    , _view{view}
 {
     _engine.rootContext()->setContextProperty("markers", _markers.get());
     _engine.rootContext()->setContextProperty("options", _options.get());
@@ -80,35 +82,9 @@ DisplayGroupRenderer::DisplayGroupRenderer(WallWindow& parentWindow,
     _setBackground(_options->getBackgroundContent());
 }
 
-void DisplayGroupRenderer::synchronize(WallToWallChannel& channel)
-{
-    for (auto& windowRenderer : _windowItems)
-        windowRenderer->synchronize(channel);
-}
-
 bool DisplayGroupRenderer::needRedraw() const
 {
     return _options->getShowStatistics() || _options->getShowClock();
-}
-
-void DisplayGroupRenderer::setRenderingOptions(OptionsPtr options)
-{
-    _engine.rootContext()->setContextProperty("options", options.get());
-    _setBackground(options->getBackgroundContent());
-    _displayGroupItem->setVisible(!options->getShowTestPattern());
-    _options = options; // Retain the new Options
-}
-
-void DisplayGroupRenderer::setMarkers(MarkersPtr markers)
-{
-    _engine.rootContext()->setContextProperty("markers", markers.get());
-    _markers = markers; // Retain the new Markers
-}
-
-void DisplayGroupRenderer::setTimer(InactivityTimerPtr timer)
-{
-    _engine.rootContext()->setContextProperty("timer", timer.get());
-    _timer = timer; // Retain the new InactivityTimer
 }
 
 void DisplayGroupRenderer::setDisplayGroup(DisplayGroupPtr displayGroup)
@@ -117,15 +93,13 @@ void DisplayGroupRenderer::setDisplayGroup(DisplayGroupPtr displayGroup)
     _engine.rootContext()->setContextProperty("displaygroup",
                                               displayGroup.get());
 
-    ContentWindowPtrs contentWindows = displayGroup->getContentWindows();
-
     // Update windows, creating new ones if needed
     QSet<QUuid> updatedWindows;
     const QQuickItem* parentItem = nullptr;
     const VisibilityHelper helper(*displayGroup, _screenRect);
-    for (ContentWindowPtr window : contentWindows)
+    for (const auto& window : displayGroup->getContentWindows())
     {
-        const QUuid& id = window->getID();
+        const auto& id = window->getID();
 
         updatedWindows.insert(id);
 
@@ -135,10 +109,10 @@ void DisplayGroupRenderer::setDisplayGroup(DisplayGroupPtr displayGroup)
         _windowItems[id]->update(window, helper.getVisibleArea(*window));
 
         // Update stacking order
-        QQuickItem* item = _windowItems[id]->getQuickItem();
+        auto quickItem = _windowItems[id]->getQuickItem();
         if (parentItem)
-            item->stackAfter(parentItem);
-        parentItem = item;
+            quickItem->stackAfter(parentItem);
+        parentItem = quickItem;
     }
 
     // Remove old windows
@@ -161,12 +135,32 @@ void DisplayGroupRenderer::setDisplayGroup(DisplayGroupPtr displayGroup)
         !displayGroup->hasFullscreenWindows() &&
         !displayGroup->hasVisiblePanels())
     {
-        for (QQuickItem* child : _displayGroupItem->childItems())
+        for (auto child : _displayGroupItem->childItems())
         {
             if (child->objectName() == "focuscontext")
                 child->setProperty("opacity", 0.0);
         }
     }
+}
+
+void DisplayGroupRenderer::setMarkers(MarkersPtr markers)
+{
+    _engine.rootContext()->setContextProperty("markers", markers.get());
+    _markers = markers; // Retain the new Markers
+}
+
+void DisplayGroupRenderer::setRenderingOptions(OptionsPtr options)
+{
+    _engine.rootContext()->setContextProperty("options", options.get());
+    _setBackground(options->getBackgroundContent());
+    _displayGroupItem->setVisible(!options->getShowTestPattern());
+    _options = options; // Retain the new Options
+}
+
+void DisplayGroupRenderer::setTimer(InactivityTimerPtr timer)
+{
+    _engine.rootContext()->setContextProperty("timer", timer.get());
+    _timer = timer; // Retain the new InactivityTimer
 }
 
 void DisplayGroupRenderer::updateRenderedFrames()
@@ -180,17 +174,19 @@ void DisplayGroupRenderer::_createDisplayGroupQmlItem(QQuickItem& parentItem)
     _engine.rootContext()->setContextProperty("displaygroup",
                                               _displayGroup.get());
 
-    QQmlComponent component(&_engine, QML_DISPLAYGROUP_URL);
-    qmlCheckOrThrow(component);
-    _displayGroupItem = qobject_cast<QQuickItem*>(component.create());
+    _displayGroupItem = qml::makeItem(_engine, QML_DISPLAYGROUP_URL);
     _displayGroupItem->setParentItem(&parentItem);
 }
 
 void DisplayGroupRenderer::_createWindowQmlItem(ContentWindowPtr window)
 {
-    const QUuid& id = window->getID();
-    _windowItems[id].reset(
-        new QmlWindowRenderer(_engine, _provider, *_displayGroupItem, window));
+    const auto& id = window->getID();
+    auto sync = _provider.createSynchronizer(*window, _view);
+    connect(sync.get(), &ContentSynchronizer::imageLoaded, this,
+            &DisplayGroupRenderer::imageLoaded);
+    _windowItems[id].reset(new QmlWindowRenderer(std::move(sync), window,
+                                                 *_displayGroupItem,
+                                                 _engine.rootContext()));
 }
 
 bool DisplayGroupRenderer::_hasBackgroundChanged(const QString& newUri) const
@@ -211,11 +207,14 @@ void DisplayGroupRenderer::_setBackground(ContentPtr content)
     if (!_hasBackgroundChanged(content->getURI()))
         return;
 
-    ContentWindowPtr window = boost::make_shared<ContentWindow>(content);
+    auto window = boost::make_shared<ContentWindow>(content);
     window->setCoordinates(geometry::adjustAndCenter(*window, *_displayGroup));
-    _backgroundWindowItem.reset(new QmlWindowRenderer(_engine, _provider,
-                                                      *_displayGroupItem,
-                                                      window, true));
+    auto sync = _provider.createSynchronizer(*window, _view);
+    connect(sync.get(), &ContentSynchronizer::imageLoaded, this,
+            &DisplayGroupRenderer::imageLoaded);
+    _backgroundWindowItem.reset(
+        new QmlWindowRenderer(std::move(sync), window, *_displayGroupItem,
+                              _engine.rootContext(), true));
 
     DisplayGroup emptyGroup(_screenRect.size());
     const VisibilityHelper helper(emptyGroup, _screenRect);

@@ -47,6 +47,7 @@
 
 class QOffscreenSurface;
 class QOpenGLContext;
+class QScreen;
 
 /**
  * A class responsible for uploading pixel data from CPU memory to GPU memory
@@ -57,6 +58,7 @@ class QOpenGLContext;
 class TextureUploader : public QObject
 {
     Q_OBJECT
+
 public:
     /** Construction does not need any OpenGL context. */
     TextureUploader();
@@ -68,7 +70,7 @@ public:
      * Does the necessary OpenGL setup. Needs to be called from the main thread
      * after the uploader has been moved to the dedicated upload thread.
      */
-    void init(QOpenGLContext* shareContext);
+    void init(QOpenGLContext* shareContext, QScreen* screen);
 
     /**
      * Does the necessary OpenGL teardown. Needs to be called before the
@@ -85,7 +87,7 @@ signals:
     void uploaded();
 
 private slots:
-    void _createGLContext(QOpenGLContext* shareContext);
+    void _createGLContext(QOpenGLContext* shareContext, QScreen* screen);
     void _deleteGLContext();
 
 private:

@@ -52,10 +52,12 @@ ContentWindow::ContentWindow(ContentPtr content, const WindowType type)
     , _mode(WindowMode::STANDARD)
     , _windowState(NONE)
     , _selected(false)
+    , _version(0)
 {
     assert(content);
     _init();
     _coordinates.setSize(content->getDimensions());
+    connect(this, &ContentWindow::modified, [this] { ++_version; });
 }
 
 ContentWindow::ContentWindow()
@@ -66,7 +68,9 @@ ContentWindow::ContentWindow()
     , _mode(WindowMode::STANDARD)
     , _windowState(NONE)
     , _selected(false)
+    , _version(0)
 {
+    connect(this, &ContentWindow::modified, [this] { ++_version; });
 }
 
 ContentWindow::~ContentWindow()
@@ -287,6 +291,11 @@ bool ContentWindow::isSelected() const
     return _selected;
 }
 
+size_t ContentWindow::getVersion() const
+{
+    return _version;
+}
+
 void ContentWindow::setSelected(const bool value)
 {
     if (value == _selected)
@@ -301,6 +310,7 @@ void ContentWindow::_init()
 {
     setResizePolicy(_content->hasFixedAspectRatio() ? KEEP_ASPECT_RATIO
                                                     : ADJUST_CONTENT);
+    connect(_content.get(), &Content::modified, [this] { ++_version; });
     connect(_content.get(), &Content::modified, this,
             &ContentWindow::contentModified);
 }

@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -41,7 +41,6 @@
 
 #include "DataSource.h"
 #include "Tile.h"
-#include "network/WallToWallChannel.h"
 
 TiledSynchronizer::TiledSynchronizer(const TileSwapPolicy policy)
     : _lod(0)
@@ -100,15 +99,13 @@ void TiledSynchronizer::updateTiles(const DataSource& source,
     _visibleSet = visibleSet;
 }
 
-bool TiledSynchronizer::swapTiles(WallToWallChannel& channel)
+bool TiledSynchronizer::canSwapTiles() const
 {
-    if (!_syncSwapPending)
-        return false;
+    return _syncSwapPending && set_difference(_syncSet, _tilesReadySet).empty();
+}
 
-    const bool swap = set_difference(_syncSet, _tilesReadySet).empty();
-    if (!channel.allReady(swap))
-        return false;
-
+void TiledSynchronizer::swapTiles()
+{
     for (auto i : _removeLaterSet)
         emit removeTile(i);
     _removeLaterSet.clear();
@@ -120,7 +117,6 @@ bool TiledSynchronizer::swapTiles(WallToWallChannel& channel)
     _syncSet.clear();
 
     _syncSwapPending = false;
-    return true;
 }
 
 void TiledSynchronizer::_removeTile(const size_t tileIndex)

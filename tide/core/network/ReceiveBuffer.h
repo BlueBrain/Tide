@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -73,6 +73,8 @@ public:
     size_t size() const { return _size; }
     /** Direct write access to the buffer, don't write beyond size(). */
     char* data() { return _buffer.data(); }
+    /** Direct read access to the buffer, don't read beyond size(). */
+    const char* data() const { return _buffer.data(); }
 private:
     std::vector<char> _buffer;
     size_t _size = 0;

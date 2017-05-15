@@ -65,14 +65,11 @@ public:
     ContentSynchronizer() = default;
 
     /** Virtual destructor */
-    virtual ~ContentSynchronizer();
+    virtual ~ContentSynchronizer() = default;
 
     /** Update the Content. */
     virtual void update(const ContentWindow& window,
                         const QRectF& visibleArea) = 0;
-
-    /** Synchronize content advance accross processes.*/
-    virtual void synchronize(WallToWallChannel& channel) = 0;
 
     /** The total area covered by the tiles (may depend on current LOD). */
     virtual QSize getTilesArea() const = 0;
@@ -80,14 +77,13 @@ public:
     /** Get statistics about this Content. */
     virtual QString getStatistics() const = 0;
 
-    /** Get the image for a given tile index. threadsafe */
-    virtual ImagePtr getTileImage(uint tileIndex) const = 0;
+    /** Get the data source. */
+    virtual const DataSource& getDataSource() const = 0;
 
     /** Notify the window to add a tile for the zoom context. */
     virtual TilePtr getZoomContextTile() const { return TilePtr(); }
-    /** @return a ContentSynchronizer for the given content. */
-    static std::unique_ptr<ContentSynchronizer> create(ContentPtr content);
-
+    /** Get the view for this synchronizer. */
+    virtual deflect::View getView() const { return deflect::View::mono; }
 public slots:
     /**
      * Called when a tile is ready to swap.
@@ -121,6 +117,9 @@ signals:
 
     /** Notify that the zoom context tile has changed and must be recreated. */
     void zoomContextTileChanged();
+
+    /** Called by DataProvider when an image has completed loading. */
+    void imageLoaded(ImagePtr image, TileWeakPtr tile);
 };
 
 #endif

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,35 +37,30 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef IMAGESYNCHRONIZER_H
-#define IMAGESYNCHRONIZER_H
+#ifndef WALLSYNCHRONIZER_H
+#define WALLSYNCHRONIZER_H
 
-#include "BasicSynchronizer.h" // base class
-#include "ImageSource.h"       // member
+#include "network/WallToWallChannel.h"
+
+#include <mutex>
 
 /**
- * Synchronizer for simple images.
+ * Synchonize execution accross multiple wall windows and process.
  */
-class ImageSynchronizer : public BasicSynchronizer
+class WallSynchronizer
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(ImageSynchronizer)
-
 public:
-    /** Constructor. */
-    explicit ImageSynchronizer(const QString& uri);
+    WallSynchronizer(WallToWallChannel& wallChannel, uint windowCount);
 
-    /** @copydoc ContentSynchronizer::update */
-    void update(const ContentWindow& window, const QRectF& visibleArea) final;
-
-    /** @copydoc ContentSynchronizer::getTileImage */
-    ImagePtr getTileImage(uint tileIndex) const final;
-
-    /** @copydoc ContentSynchronizer::getZoomContextTile */
-    TilePtr getZoomContextTile() const final;
+    void globalBarrier();
 
 private:
-    ImageSource _dataSource;
+    WallToWallChannel& _wallChannel;
+    uint _windowCount = 0;
+
+    std::mutex _mutex;
+    std::condition_variable _condition;
+    uint _barrierCount = 0;
 };
 
 #endif

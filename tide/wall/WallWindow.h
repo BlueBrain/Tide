@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -40,7 +40,7 @@
 #ifndef WALLWINDOW_H
 #define WALLWINDOW_H
 
-#include "network/WallToWallChannel.h"
+#include "WallSynchronizer.h"
 #include "types.h"
 
 #include <QQuickWindow>
@@ -59,37 +59,39 @@ public:
      * Create a wall window.
      * @param config the wall configuration to setup this window wrt position,
      *               size, etc.
+     * @param windowIndex the index of the window for this process
+     * @param provider the provider of data for the windows
      * @param renderControl the Qt render control for QML scene rendering
-     * @param wallChannel to synchronize clocks and swapBuffers()
+     * @param synchronizer to synchronize swapBuffers()
      */
-    WallWindow(const WallConfiguration& config,
-               QQuickRenderControl* renderControl,
-               WallToWallChannel& wallChannel);
+    WallWindow(const WallConfiguration& config, uint windowIndex,
+               DataProvider& provider,
+               std::unique_ptr<QQuickRenderControl> renderControl,
+               WallSynchronizer& synchronizer);
 
     ~WallWindow();
 
+    bool isInitialized() const;
+    bool needRedraw() const;
+
     /**
-     * Update and synchronize scene objects and trigger frame rendering.
+     * Synchronize scene objects with render thread and trigger frame rendering.
      *
      * @param grab indicate that the frame should be grabbed after rendering.
-     * @return true if none of the wall windows need to redraw.
      */
-    bool syncAndRender(bool grab = false);
-
-    /** Set new render options. */
-    void setRenderOptions(OptionsPtr options);
+    void render(bool grab = false);
 
     /** Set new display group. */
     void setDisplayGroup(DisplayGroupPtr displayGroup);
 
-    /** Set new touchpoint's markers. */
-    void setMarkers(MarkersPtr markers);
-
     /** Set new inactivity timer. */
     void setInactivityTimer(InactivityTimerPtr timer);
 
-    /** @return the data provider. */
-    DataProvider& getDataProvider();
+    /** Set new touchpoint's markers. */
+    void setMarkers(MarkersPtr markers);
+
+    /** Set new render options. */
+    void setRenderOptions(OptionsPtr options);
 
     /** @return the QML engine. */
     QQmlEngine* engine() const;
@@ -97,39 +99,34 @@ public:
     /** @return the root object of the QML scene. */
     QQuickItem* rootObject() const;
 
-    /** @return the communication channel to synchronize with other windows. */
-    WallToWallChannel& getWallChannel();
-
     /** @return the texture uploader. */
     TextureUploader& getUploader();
 
 signals:
     /** Emitted after syncAndRender() has been called with grab set to true. */
-    void imageGrabbed(QImage image);
+    void imageGrabbed(QImage image, QPoint index);
 
 private:
     void exposeEvent(QExposeEvent* exposeEvent) final;
 
-    void _startQuick(const WallConfiguration& config);
+    void _startQuick(const WallConfiguration& config, const uint windowIndex);
 
-    DisplayGroupRenderer* _displayGroupRenderer;
-    TestPattern* _testPattern;
-    WallToWallChannel& _wallChannel;
-
-    QQuickRenderControl* _renderControl;
-    deflect::qt::QuickRenderer* _quickRenderer;
-    QThread* _quickRendererThread;
-    bool _rendererInitialized;
-
-    QQmlEngine* _qmlEngine;
-    QQmlComponent* _qmlComponent;
-    QQuickItem* _rootItem;
-
-    QThread* _uploadThread;
-    TextureUploader* _uploader;
-    DataProvider* _provider;
-
+    DataProvider& _provider;
+    std::unique_ptr<QQuickRenderControl> _renderControl;
+    WallSynchronizer& _synchronizer;
+    bool _rendererInitialized = false;
     bool _grabImage = false;
+
+    std::unique_ptr<deflect::qt::QuickRenderer> _quickRenderer;
+    std::unique_ptr<QThread> _quickRendererThread;
+
+    std::unique_ptr<TextureUploader> _uploader;
+    std::unique_ptr<QThread> _uploadThread;
+
+    std::unique_ptr<QQmlEngine> _qmlEngine;
+    QQuickItem* _rootItem = nullptr; // child qobject of contentItem()
+    std::unique_ptr<DisplayGroupRenderer> _displayGroupRenderer;
+    std::unique_ptr<TestPattern> _testPattern;
 };
 
 #endif

@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -59,9 +59,11 @@ WallApplication::WallApplication(int& argc_, char** argv_,
                                  const QString& config,
                                  MPIChannelPtr worldChannel,
                                  MPIChannelPtr wallChannel)
-    : QGuiApplication(argc_, argv_)
-    , _config(new WallConfiguration(config, worldChannel->getRank()))
-    , _wallChannel(new WallToWallChannel(wallChannel))
+    : QGuiApplication{argc_, argv_}
+    , _config{new WallConfiguration{config, worldChannel->getRank()}}
+    , _provider{new DataProvider}
+    , _wallChannel{new WallToWallChannel{wallChannel}}
+    , _synchronizer{*_wallChannel, (uint)_config->getScreens().size()}
 {
     core::registerQmlTypes();
 
@@ -71,7 +73,7 @@ WallApplication::WallApplication(int& argc_, char** argv_,
     const int maxThreads = std::max(QThread::idealThreadCount() / prCount, 2);
     QThreadPool::globalInstance()->setMaxThreadCount(maxThreads);
 
-    _initWallWindow();
+    _initWallWindows();
     _initMPIConnection(worldChannel);
 }
 
@@ -94,20 +96,28 @@ WallApplication::~WallApplication()
     _mpiSendThread.wait();
 }
 
-void WallApplication::_initWallWindow()
+void WallApplication::_initWallWindows()
 {
+    std::vector<WallWindow*> windows;
     try
     {
-        _window = new WallWindow(*_config, new QQuickRenderControl(this),
-                                 *_wallChannel);
+        for (uint screen = 0; screen < _config->getScreens().size(); ++screen)
+            windows.push_back(_makeWindow(screen));
     }
     catch (const std::runtime_error& e)
     {
         put_flog(LOG_FATAL, "Error creating WallWindow: '%s'", e.what());
         throw std::runtime_error("WallApplication: initialization failed.");
     }
+    _renderController.reset(
+        new RenderController(std::move(windows), *_provider, *_wallChannel));
+}
 
-    _renderController.reset(new RenderController(*_window));
+WallWindow* WallApplication::_makeWindow(const uint screen)
+{
+    return new WallWindow(*_config, screen, *_provider,
+                          make_unique<QQuickRenderControl>(this),
+                          _synchronizer);
 }
 
 void WallApplication::_initMPIConnection(MPIChannelPtr worldChannel)
@@ -118,8 +128,8 @@ void WallApplication::_initMPIConnection(MPIChannelPtr worldChannel)
     _fromMasterChannel->moveToThread(&_mpiReceiveThread);
     _toMasterChannel->moveToThread(&_mpiSendThread);
 
-    connect(_fromMasterChannel.get(), SIGNAL(receivedQuit()),
-            _renderController.get(), SLOT(updateQuit()));
+    connect(_fromMasterChannel.get(), &WallFromMasterChannel::receivedQuit,
+            _renderController.get(), &RenderController::updateQuit);
 
     connect(_fromMasterChannel.get(),
             &WallFromMasterChannel::receivedScreenshotRequest,
@@ -140,22 +150,22 @@ void WallApplication::_initMPIConnection(MPIChannelPtr worldChannel)
             _renderController.get(), SLOT(updateMarkers(MarkersPtr)));
 
     connect(_fromMasterChannel.get(), SIGNAL(received(deflect::FramePtr)),
-            &_window->getDataProvider(), SLOT(setNewFrame(deflect::FramePtr)));
-
-    connect(_fromMasterChannel.get(), SIGNAL(received(deflect::FramePtr)),
             _renderController.get(), SLOT(requestRender()));
 
     connect(_renderController.get(), &RenderController::screenshotRendered,
             _toMasterChannel.get(), &WallToMasterChannel::sendScreenshot);
 
+    connect(_fromMasterChannel.get(), SIGNAL(received(deflect::FramePtr)),
+            _provider.get(), SLOT(setNewFrame(deflect::FramePtr)));
+
     if (_wallChannel->getRank() == 0)
     {
-        connect(&_window->getDataProvider(), &DataProvider::requestFrame,
+        connect(_provider.get(), &DataProvider::requestFrame,
                 _toMasterChannel.get(), &WallToMasterChannel::sendRequestFrame);
     }
 
-    connect(&_mpiReceiveThread, SIGNAL(started()), _fromMasterChannel.get(),
-            SLOT(processMessages()));
+    connect(&_mpiReceiveThread, &QThread::started, _fromMasterChannel.get(),
+            &WallFromMasterChannel::processMessages);
 
     _mpiReceiveThread.setObjectName("Recv");
     _mpiSendThread.setObjectName("Send");

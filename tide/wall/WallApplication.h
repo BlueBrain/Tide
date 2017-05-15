@@ -40,6 +40,7 @@
 #ifndef WALLAPPLICATION_H
 #define WALLAPPLICATION_H
 
+#include "WallSynchronizer.h"
 #include "types.h"
 
 #include <QGuiApplication>
@@ -78,8 +79,7 @@ public:
 
 private:
     std::unique_ptr<WallConfiguration> _config;
-
-    WallWindow* _window; // deleteLater from syncQuit in RenderController
+    std::unique_ptr<DataProvider> _provider;
     std::unique_ptr<RenderController> _renderController;
 
     std::unique_ptr<WallFromMasterChannel> _fromMasterChannel;
@@ -89,7 +89,10 @@ private:
     QThread _mpiSendThread;
     QThread _mpiReceiveThread;
 
-    void _initWallWindow();
+    WallSynchronizer _synchronizer;
+
+    void _initWallWindows();
+    WallWindow* _makeWindow(uint screen);
     void _initMPIConnection(MPIChannelPtr worldChannel);
 };
 

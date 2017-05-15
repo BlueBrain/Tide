@@ -42,21 +42,33 @@
 #include <QtXmlPatterns>
 #include <stdexcept>
 
+namespace
+{
+deflect::View _toView(const QString& viewString)
+{
+    if (viewString == "left")
+        return deflect::View::left_eye;
+    else if (viewString == "right")
+        return deflect::View::right_eye;
+    else
+        return deflect::View::mono;
+}
+}
+
 WallConfiguration::WallConfiguration(const QString& filename,
                                      const int processIndex)
     : Configuration(filename)
     , _processIndex(processIndex)
 {
-    _loadWallSettings(processIndex);
-}
-
-void WallConfiguration::_loadWallSettings(const int processIndex)
-{
     assert(processIndex > 0 &&
            "WallConfiguration::loadWallSettings is only"
            "valid for processes of rank > 0");
+    _loadWallSettings();
+}
 
-    const int xpathIndex = processIndex; // xpath index also starts from 1
+void WallConfiguration::_loadWallSettings()
+{
+    const int xpathIndex = getProcessIndex(); // xpath index also starts from 1
 
     QXmlQuery query;
     if (!query.setFocus(QUrl(_filename)))
@@ -70,20 +82,7 @@ void WallConfiguration::_loadWallSettings(const int processIndex)
     if (query.evaluateTo(&queryResult))
         _host = queryResult.remove(QRegExp("[\\n\\t\\r]"));
 
-    // read display (optional attribute)
-    query.setQuery(QString("string(//process[%1]/@display)").arg(xpathIndex));
-    if (query.evaluateTo(&queryResult))
-        _display = queryResult.remove(QRegExp("[\\n\\t\\r]"));
-    else
-        _display = QString("default (:0)"); // the default
-
     int value = 0;
-
-    // read number of tiles for this process
-    query.setQuery(
-        QString("string(count(//process[%1]/screen))").arg(xpathIndex));
-    if (!getInt(query, value) || value != 1)
-        throw std::runtime_error("Expect exactly one screen per process");
 
     // read number of wall processes on the same host
     query.setQuery(
@@ -93,33 +92,78 @@ void WallConfiguration::_loadWallSettings(const int processIndex)
             "Could not determine the number of wall processes on that host");
     _processCountForHost = value;
 
-    query.setQuery(QString("string(//process[%1]/screen/@x)").arg(xpathIndex));
-    if (getInt(query, value))
-        _screenPosition.setX(value);
-
-    query.setQuery(QString("string(//process[%1]/screen/@y)").arg(xpathIndex));
-    if (getInt(query, value))
-        _screenPosition.setY(value);
-
-    query.setQuery(QString("string(//process[%1]/screen/@i)").arg(xpathIndex));
-    if (getInt(query, value))
-        _screenGlobalIndex.setX(value);
-
-    query.setQuery(QString("string(//process[%1]/screen/@j)").arg(xpathIndex));
-    if (getInt(query, value))
-        _screenGlobalIndex.setY(value);
-
-    // read stereo mode
+    // read stereo mode for the process (legacy)
     query.setQuery(QString("string(//process[%1]/@stereo)").arg(xpathIndex));
     if (getString(query, queryResult))
-    {
-        if (queryResult == "left")
-            _stereoMode = deflect::View::left_eye;
-        else if (queryResult == "right")
-            _stereoMode = deflect::View::right_eye;
-        else
-            _stereoMode = deflect::View::mono;
-    }
+        _stereoMode = _toView(queryResult);
+
+    // read display mode for the process (legacy, optional)
+    query.setQuery(QString("string(//process[%1]/@display)").arg(xpathIndex));
+    if (query.evaluateTo(&queryResult))
+        _display = queryResult.remove(QRegExp("[\\n\\t\\r]"));
+
+    // read all screens for this process
+    query.setQuery(
+        QString("string(count(//process[%1]/screen))").arg(xpathIndex));
+    if (!getInt(query, value))
+        throw std::runtime_error(
+            "Could not determine the number of screens for this process");
+
+    for (int i = 1; i <= value; ++i) // xpath index starts from 1
+        _screens.emplace_back(_loadScreenSettings(query, i));
+}
+
+ScreenConfiguration WallConfiguration::_loadScreenSettings(
+    QXmlQuery& query, const int screenIndex) const
+{
+    const int xpathIndex = getProcessIndex(); // xpath index also starts from 1
+    QString queryResult;
+    int value = 0;
+
+    ScreenConfiguration screen;
+
+    query.setQuery(QString("string(//process[%1]/screen[%2]/@display)")
+                       .arg(xpathIndex)
+                       .arg(screenIndex));
+    if (query.evaluateTo(&queryResult))
+        screen.display = queryResult.remove(QRegExp("[\\n\\t\\r]"));
+    if (screen.display.isEmpty())
+        screen.display = _display;
+
+    query.setQuery(QString("string(//process[%1]/screen[%2]/@x)")
+                       .arg(xpathIndex)
+                       .arg(screenIndex));
+    if (getInt(query, value))
+        screen.position.setX(value);
+
+    query.setQuery(QString("string(//process[%1]/screen[%2]/@y)")
+                       .arg(xpathIndex)
+                       .arg(screenIndex));
+    if (getInt(query, value))
+        screen.position.setY(value);
+
+    query.setQuery(QString("string(//process[%1]/screen[%2]/@i)")
+                       .arg(xpathIndex)
+                       .arg(screenIndex));
+    if (getInt(query, value))
+        screen.globalIndex.setX(value);
+
+    query.setQuery(QString("string(//process[%1]/screen[%2]/@j)")
+                       .arg(xpathIndex)
+                       .arg(screenIndex));
+    if (getInt(query, value))
+        screen.globalIndex.setY(value);
+
+    // read stereo mode
+    query.setQuery(QString("string(//process[%1]/screen[%2]/@stereo)")
+                       .arg(xpathIndex)
+                       .arg(screenIndex));
+    if (getString(query, queryResult) && !queryResult.isEmpty())
+        screen.stereoMode = _toView(queryResult);
+    else
+        screen.stereoMode = _stereoMode;
+
+    return screen;
 }
 
 int WallConfiguration::getProcessIndex() const
@@ -132,27 +176,12 @@ const QString& WallConfiguration::getHost() const
     return _host;
 }
 
-const QString& WallConfiguration::getDisplay() const
+const std::vector<ScreenConfiguration>& WallConfiguration::getScreens() const
 {
-    return _display;
+    return _screens;
 }
 
 int WallConfiguration::getProcessCountForHost() const
 {
     return _processCountForHost;
-}
-
-const QPoint& WallConfiguration::getGlobalScreenIndex() const
-{
-    return _screenGlobalIndex;
-}
-
-const QPoint& WallConfiguration::getWindowPos() const
-{
-    return _screenPosition;
-}
-
-deflect::View WallConfiguration::getStereoMode() const
-{
-    return _stereoMode;
 }

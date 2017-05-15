@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -38,57 +38,6 @@
 /*********************************************************************/
 
 #include "ContentSynchronizer.h"
-
-#include "config.h"
-#include "scene/Content.h"
-
-#include "BasicSynchronizer.h"
-#include "ImageSynchronizer.h"
-#if TIDE_USE_TIFF
-#include "ImagePyramidSynchronizer.h"
-#endif
-#if TIDE_ENABLE_MOVIE_SUPPORT
-#include "MovieSynchronizer.h"
-#endif
-#include "PixelStreamSynchronizer.h"
-#if TIDE_ENABLE_PDF_SUPPORT
-#include "PDFSynchronizer.h"
-#endif
-#include "SVGSynchronizer.h"
-
-ContentSynchronizer::~ContentSynchronizer()
-{
-}
-
-std::unique_ptr<ContentSynchronizer> ContentSynchronizer::create(
-    ContentPtr content)
-{
-    const QString& uri = content->getURI();
-    switch (content->getType())
-    {
-#if TIDE_USE_TIFF
-    case CONTENT_TYPE_IMAGE_PYRAMID:
-        return make_unique<ImagePyramidSynchronizer>(uri);
-#endif
-#if TIDE_ENABLE_MOVIE_SUPPORT
-    case CONTENT_TYPE_MOVIE:
-        return make_unique<MovieSynchronizer>(uri);
-#endif
-    case CONTENT_TYPE_PIXEL_STREAM:
-    case CONTENT_TYPE_WEBBROWSER:
-        return make_unique<PixelStreamSynchronizer>();
-#if TIDE_ENABLE_PDF_SUPPORT
-    case CONTENT_TYPE_PDF:
-        return make_unique<PDFSynchronizer>(uri);
-#endif
-    case CONTENT_TYPE_SVG:
-        return make_unique<SVGSynchronizer>(uri);
-    case CONTENT_TYPE_TEXTURE:
-        return make_unique<ImageSynchronizer>(uri);
-    default:
-        throw std::runtime_error("No ContentSynchronizer for ContentType");
-    }
-}
 
 void ContentSynchronizer::onTextureReady(TilePtr tile)
 {

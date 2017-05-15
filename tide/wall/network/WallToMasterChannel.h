@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>     */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/*                          Daniel Nachbaur <daniel.nachbaur@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -66,8 +67,9 @@ public slots:
     /**
      * Send a screenshot to the master application
      * @param image the rendered image
+     * @param index the global index of the window sending the image
      */
-    void sendScreenshot(QImage image);
+    void sendScreenshot(QImage image, QPoint index);
 
     /**
      * Send quit message to the master application to stop the receiver.
