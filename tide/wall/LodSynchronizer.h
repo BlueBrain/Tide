@@ -69,19 +69,24 @@ public:
 
 protected:
     /**
-     * Get the appropriate LOD for a given display size.
-     * @param targetDisplaySize The size at which the content will be displayed.
+     * Update the tiles.
+     *
+     * @param window for area and zoom calculations.
+     * @param visibleArea the visible area of the window.
+     * @param forceUpdate the tiles, e.g. if the source has changed (pdf page).
+     * @param backgroundTileId to use as background tile to smooth LOD change.
      */
-    uint getLod(const QSize& targetDisplaySize) const;
-
-    /** Create the background tile to smooth the LOD change. */
-    void setBackgroundTile(uint backgroundTileId);
+    void update(const ContentWindow& window, const QRectF& visibleArea,
+                bool forceUpdate, int backgroundTileId);
 
     /** @copydoc ContentSynchronizer::getDataSource */
     const DataSource& getDataSource() const final;
 
 private:
     std::shared_ptr<DataSource> _source;
+
+    uint _getLod(const QSize& targetDisplaySize) const;
+    void _setBackgroundTile(uint backgroundTileId);
 };
 
 #endif

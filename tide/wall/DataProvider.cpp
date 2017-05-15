@@ -46,6 +46,7 @@
 #include "scene/Content.h"
 #include "scene/DisplayGroup.h"
 #include "scene/MovieContent.h"
+#include "scene/PDFContent.h"
 
 #include "BasicSynchronizer.h"
 #if TIDE_ENABLE_MOVIE_SUPPORT
@@ -160,8 +161,11 @@ void DataProvider::updateDataSources(const DisplayGroup& group)
 #endif
 #if TIDE_ENABLE_PDF_SUPPORT
         case CONTENT_TYPE_PDF:
-            _get(_pdfSources, *window)->update(*window);
-            break;
+        {
+            const auto& pdf = static_cast<const PDFContent&>(content);
+            _get(_pdfSources, *window)->update(pdf);
+        }
+        break;
 #endif
         case CONTENT_TYPE_PIXEL_STREAM:
         case CONTENT_TYPE_WEBBROWSER:
@@ -291,7 +295,11 @@ std::unique_ptr<ContentSynchronizer> DataProvider::_makeSynchronizer(
 #endif
 #if TIDE_ENABLE_PDF_SUPPORT
     case CONTENT_TYPE_PDF:
-        return make_unique<PDFSynchronizer>(_get(_pdfSources, window));
+    {
+        auto updater = _get(_pdfSources, window);
+        updater->update(static_cast<const PDFContent&>(*window.getContent()));
+        return make_unique<PDFSynchronizer>(updater);
+    }
 #endif
     case CONTENT_TYPE_PIXEL_STREAM:
     case CONTENT_TYPE_WEBBROWSER:

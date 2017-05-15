@@ -42,16 +42,24 @@
 
 #include "LodTiler.h"
 
-#include "data/PDF.h" // member
+#include <QObject>
+
+class PDF;
 
 /**
  * Represent a PDF document as a multi-LOD tiled data source.
  */
-class PDFTiler : public LodTiler
+class PDFTiler : public QObject, public LodTiler
 {
+    Q_OBJECT
+    Q_DISABLE_COPY(PDFTiler)
+
 public:
     /** Constructor. */
     explicit PDFTiler(const QString& uri);
+
+    /** Destructor. */
+    ~PDFTiler();
 
     /** @copydoc DataSource::getTileRect */
     QRect getTileRect(uint tileId) const final;
@@ -69,19 +77,24 @@ public:
     /** @return the ID of the preview (lowest res.) tile for the current page */
     uint getPreviewTileId() const;
 
-    int getPage() const;
+    /** Update this datasource according to pdf content (set page info). */
+    void update(const PDFContent& content);
 
-    void update(const ContentWindow& window);
-
+    /** @return the current page / total number of pages of the document. */
     QString getStatistics() const;
 
+signals:
+    /** Emitted when the PDF page has changed. */
+    void pageChanged();
+
 private:
-    PDF _pdf;
+    const QString _uri;
     const uint _tilesPerPage;
+    int _currentPage = 0;
+    int _pageCount = 0;
 
     mutable QMutex _threadMapMutex;
-    typedef std::unique_ptr<PDF> PDFPtr;
-    mutable std::map<Qt::HANDLE, PDFPtr> _perThreadPDF;
+    mutable std::map<Qt::HANDLE, std::unique_ptr<PDF>> _perThreadPDF;
 };
 
 #endif

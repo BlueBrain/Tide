@@ -40,7 +40,7 @@
 #include "PDFTiler.h"
 
 #include "LodTools.h"
-#include "scene/ContentWindow.h"
+#include "data/PDF.h"
 #include "scene/PDFContent.h"
 #include "scene/VectorialContent.h"
 
@@ -57,8 +57,12 @@ const uint tileSize = 2048;
 
 PDFTiler::PDFTiler(const QString& uri)
     : LodTiler{PDF{uri}.getSize() * VectorialContent::getMaxScale(), tileSize}
-    , _pdf{uri}
+    , _uri{uri}
     , _tilesPerPage{_lodTool.getTilesCount()}
+{
+}
+
+PDFTiler::~PDFTiler()
 {
 }
 
@@ -68,23 +72,23 @@ QRect PDFTiler::getTileRect(uint tileId) const
     return LodTiler::getTileRect(tileId);
 }
 
-void PDFTiler::update(const ContentWindow& window)
+void PDFTiler::update(const PDFContent& content)
 {
-    const auto& content = dynamic_cast<const PDFContent&>(*window.getContent());
-    _pdf.setPage(content.getPage());
+    _pageCount = content.getPageCount();
+    if (_currentPage != content.getPage())
+    {
+        _currentPage = content.getPage();
+        emit pageChanged();
+    }
 }
 
 Indices PDFTiler::computeVisibleSet(const QRectF& visibleTilesArea,
                                     const uint lod) const
 {
-    const Indices visibleSet =
-        LodTiler::computeVisibleSet(visibleTilesArea, lod);
-
-    Indices offsetSet;
     const auto pageOffset = getPreviewTileId();
-    for (auto tileId : visibleSet)
+    Indices offsetSet;
+    for (auto tileId : LodTiler::computeVisibleSet(visibleTilesArea, lod))
         offsetSet.insert(tileId + pageOffset);
-
     return offsetSet;
 }
 
@@ -96,29 +100,22 @@ QImage PDFTiler::getCachableTileImage(uint tileId) const
     {
         QMutexLocker lock(&_threadMapMutex);
         if (!_perThreadPDF.count(id))
-            _perThreadPDF[id] = make_unique<PDF>(_pdf.getFilename());
+            _perThreadPDF[id] = make_unique<PDF>(_uri);
         pdf = _perThreadPDF[id].get();
     }
     pdf->setPage(tileId / _tilesPerPage);
 
     tileId = tileId % _tilesPerPage;
-    const QRect tile = getTileRect(tileId);
-    return pdf->renderToImage(tile.size(), getNormalizedTileRect(tileId));
+    const auto tileRect = getTileRect(tileId);
+    return pdf->renderToImage(tileRect.size(), getNormalizedTileRect(tileId));
 }
 
 uint PDFTiler::getPreviewTileId() const
 {
-    return _tilesPerPage * _pdf.getPage();
-}
-
-int PDFTiler::getPage() const
-{
-    return _pdf.getPage();
+    return _tilesPerPage * _currentPage;
 }
 
 QString PDFTiler::getStatistics() const
 {
-    return QString("page %1/%2")
-        .arg(_pdf.getPage() + 1)
-        .arg(_pdf.getPageCount());
+    return QString("page %1/%2").arg(_currentPage + 1).arg(_pageCount);
 }

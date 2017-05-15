@@ -40,57 +40,33 @@
 #include "PDFSynchronizer.h"
 
 #include "Tile.h"
-#include "ZoomHelper.h"
-#include "scene/ContentWindow.h"
-#include "scene/PDFContent.h"
 
 PDFSynchronizer::PDFSynchronizer(std::shared_ptr<PDFTiler> source)
     : LodSynchronizer(source)
     , _source(std::move(source))
 {
+    connect(_source.get(), &PDFTiler::pageChanged,
+            [this] { _pageChanged = true; });
 }
 
 void PDFSynchronizer::update(const ContentWindow& window,
                              const QRectF& visibleArea)
 {
-    const auto& content = dynamic_cast<const PDFContent&>(*window.getContent());
-    const bool pageChanged = content.getPage() != _currentPage;
-    _currentPage = content.getPage();
+    LodSynchronizer::update(window, visibleArea, _pageChanged,
+                            _source->getPreviewTileId());
 
-    // Adapted from LODSynchronizer::update to support page change.
-    const ZoomHelper helper(window);
-    const uint lod = getLod(helper.getContentRect().size().toSize());
-    const QSize tilesSurface = getDataSource().getTilesArea(lod);
-    const QRectF visibleTilesArea =
-        helper.toTilesArea(visibleArea, tilesSurface);
-
-    if (!pageChanged && visibleTilesArea == _visibleTilesArea && lod == _lod)
-        return;
-
-    _visibleTilesArea = visibleTilesArea;
-
-    if (pageChanged)
-        emit zoomContextTileChanged();
-
-    const bool lodChanged = lod != _lod;
-    if (lodChanged)
+    if (_pageChanged)
     {
-        _lod = lod;
-        emit tilesAreaChanged();
-    }
-
-    if (pageChanged || lodChanged)
+        _pageChanged = false;
+        emit zoomContextTileChanged();
         emit statisticsChanged();
-
-    setBackgroundTile(_source->getPreviewTileId());
-
-    TiledSynchronizer::updateTiles(getDataSource(), false);
+    }
 }
 
 QString PDFSynchronizer::getStatistics() const
 {
-    const auto page = _source->getStatistics();
-    return LodSynchronizer::getStatistics() + QString(" ") + page;
+    const auto pageStatistics = _source->getStatistics();
+    return LodSynchronizer::getStatistics() + QString(" ") + pageStatistics;
 }
 
 TilePtr PDFSynchronizer::getZoomContextTile() const

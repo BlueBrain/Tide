@@ -67,7 +67,7 @@ public:
 
 private:
     std::shared_ptr<PDFTiler> _source;
-    int _currentPage = 0;
+    bool _pageChanged = false;
 };
 
 #endif

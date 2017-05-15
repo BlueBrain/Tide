@@ -55,28 +55,7 @@ LodSynchronizer::LodSynchronizer(std::shared_ptr<DataSource> source)
 void LodSynchronizer::update(const ContentWindow& window,
                              const QRectF& visibleArea)
 {
-    const ZoomHelper helper(window);
-    const uint lod = getLod(helper.getContentRect().size().toSize());
-    const QSize tilesSurface = getDataSource().getTilesArea(lod);
-    const QRectF visibleTilesArea =
-        helper.toTilesArea(visibleArea, tilesSurface);
-
-    if (visibleTilesArea == _visibleTilesArea && lod == _lod)
-        return;
-
-    _visibleTilesArea = visibleTilesArea;
-
-    if (lod != _lod)
-    {
-        _lod = lod;
-
-        emit statisticsChanged();
-        emit tilesAreaChanged();
-    }
-
-    setBackgroundTile(0);
-
-    TiledSynchronizer::updateTiles(getDataSource(), false);
+    update(window, visibleArea, false, 0);
 }
 
 QSize LodSynchronizer::getTilesArea() const
@@ -100,7 +79,38 @@ TilePtr LodSynchronizer::getZoomContextTile() const
     return std::make_shared<Tile>(0, rect);
 }
 
-uint LodSynchronizer::getLod(const QSize& targetDisplaySize) const
+void LodSynchronizer::update(const ContentWindow& window,
+                             const QRectF& visibleArea, const bool forceUpdate,
+                             const int backgroundTileId)
+{
+    const ZoomHelper helper(window);
+    const auto lod = _getLod(helper.getContentRect().size().toSize());
+    const auto tilesSurface = getDataSource().getTilesArea(lod);
+    const auto visibleTilesArea = helper.toTilesArea(visibleArea, tilesSurface);
+
+    if (!forceUpdate && visibleTilesArea == _visibleTilesArea && lod == _lod)
+        return;
+
+    _visibleTilesArea = visibleTilesArea;
+
+    if (lod != _lod)
+    {
+        _lod = lod;
+        emit statisticsChanged();
+        emit tilesAreaChanged();
+    }
+
+    _setBackgroundTile(backgroundTileId);
+
+    TiledSynchronizer::updateTiles(getDataSource(), false);
+}
+
+const DataSource& LodSynchronizer::getDataSource() const
+{
+    return *_source;
+}
+
+uint LodSynchronizer::_getLod(const QSize& targetDisplaySize) const
 {
     uint lod = 0;
     QSize nextLOD = getDataSource().getTilesArea(1);
@@ -113,7 +123,7 @@ uint LodSynchronizer::getLod(const QSize& targetDisplaySize) const
     return lod;
 }
 
-void LodSynchronizer::setBackgroundTile(const uint tileId)
+void LodSynchronizer::_setBackgroundTile(const uint tileId)
 {
     // Add an lod-0 tile always visible in the background to smooth LOD
     // transitions. TODO: implement a finer control to switch tiles after the
@@ -134,9 +144,4 @@ void LodSynchronizer::setBackgroundTile(const uint tileId)
         tile->setSizePolicy(Tile::FillParent);
         emit addTile(tile);
     }
-}
-
-const DataSource& LodSynchronizer::getDataSource() const
-{
-    return *_source;
 }

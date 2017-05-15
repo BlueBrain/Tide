@@ -59,7 +59,7 @@ ImagePtr SVGTiler::getTileImage(const uint tileId, deflect::View view) const
 {
 #if !(TIDE_USE_CAIRO && TIDE_USE_RSVG)
     if (!contains(tileId))
-        return std::make_shared<SVGGpuImage>(this, tileId);
+        return std::make_shared<SVGGpuImage>(*this, tileId);
 #endif
     return CachedDataSource::getTileImage(tileId, view);
 }
@@ -81,7 +81,7 @@ QImage SVGTiler::getCachableTileImage(const uint tileId) const
     }
 #else
     // The SvgQtGpuBackend is always called from the GPU thread
-    SVG* svg = &_svg;
+    const SVG* svg = &_svg;
 #endif
     return svg->renderToImage(imageRect.size(), zoomRect);
 }

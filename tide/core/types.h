@@ -87,6 +87,7 @@ class MovieContent;
 class MovieUpdater;
 class MPIChannel;
 class Options;
+class PDFContent;
 class PixelStreamUpdater;
 class PixelStreamWindowManager;
 class TestPattern;
