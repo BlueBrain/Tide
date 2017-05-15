@@ -1,8 +1,8 @@
 /*********************************************************************/
-/* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael.Dumusc@epfl.ch                        */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/* Copyright (c) 2011-2012, The University of Texas at Austin.       */
+/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael.Dumusc@epfl.ch                   */
+/*                          Daniel.Nachbaur@epfl.ch                  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -162,15 +162,6 @@ public:
      */
     void moveToThread(QThread* thread);
 
-    /** @name For session serialization, on Master application only */
-    //@{
-    /** @return true if window titles were visible when session was saved. */
-    bool getShowWindowTitles() const;
-
-    /** Enable/Disable visibility of window titles when saving the session. */
-    void setShowWindowTitles(bool set);
-    //@}
-
 signals:
     /** Emitted whenever the DisplayGroup is modified */
     void modified(DisplayGroupPtr displayGroup);
@@ -216,11 +207,16 @@ private:
 
     /** Serialize for saving to an xml file */
     template <class Archive>
-    void serialize_members_xml(Archive& ar, const unsigned int)
+    void serialize_members_xml(Archive& ar, const unsigned int version)
     {
         // clang-format off
-        ar & boost::serialization::make_nvp("showWindowTitles",
-                                            _showWindowTitlesInSavedSession);
+        if (version == FIRST_DISPLAYGROUP_VERSION)
+        {
+            // legacy field, ignored but not removed yet to maintain full
+            // compatibility of sessions with previous Tide versions < 1.3.
+            bool _titles = true;
+            ar & boost::serialization::make_nvp("showWindowTitles", _titles);
+        }
         ar & boost::serialization::make_nvp("contentWindows", _contentWindows);
         ar & boost::serialization::make_nvp("coordinates", _coordinates);
         // clang-format on
@@ -252,7 +248,6 @@ private:
     void _sendDisplayGroup();
     void _watchChanges(ContentWindow& window);
 
-    bool _showWindowTitlesInSavedSession = true;
     ContentWindowPtrs _contentWindows;
     ContentWindowSet _focusedWindows;
     ContentWindowPtr _fullscreenWindow;

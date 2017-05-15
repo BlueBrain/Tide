@@ -209,7 +209,6 @@ bool State::legacyLoadXML(const QString& filename)
 
     _displayGroup->setContentWindows(contentWindows);
     // Preserve appearence of legacy sessions.
-    _displayGroup->setShowWindowTitles(false);
     _displayGroup->setCoordinates(UNIT_RECTF);
     _version = LEGACY_FILE_VERSION;
 

@@ -100,10 +100,8 @@ BOOST_AUTO_TEST_CASE(
 {
     State state = makeTestStateCopy();
     auto contentWindows = state.getDisplayGroup()->getContentWindows();
-    bool showWindowTitles = state.getDisplayGroup()->getShowWindowTitles();
 
     BOOST_REQUIRE_EQUAL(contentWindows.size(), 1);
-    BOOST_REQUIRE_EQUAL(showWindowTitles, true);
     Content* content = contentWindows[0]->getContent().get();
     DummyContent* dummyContent = dynamic_cast<DummyContent*>(content);
     BOOST_REQUIRE(dummyContent);
@@ -131,7 +129,6 @@ BOOST_AUTO_TEST_CASE(testWhenOpeningValidLegacyStateThenContentIsLoaded)
         state.getDisplayGroup()->getContentWindows();
 
     BOOST_REQUIRE_EQUAL(contentWindows.size(), 1);
-    BOOST_REQUIRE_EQUAL(state.getDisplayGroup()->getShowWindowTitles(), false);
 }
 
 BOOST_AUTO_TEST_CASE(testStateSerializationHelperReadingFromLegacyFile)
@@ -145,7 +142,6 @@ BOOST_AUTO_TEST_CASE(testStateSerializationHelperReadingFromLegacyFile)
     BOOST_CHECK(group);
 
     BOOST_CHECK_EQUAL(group->getContentWindows().size(), 1);
-    BOOST_CHECK_EQUAL(group->getShowWindowTitles(), false);
 }
 
 BOOST_AUTO_TEST_CASE(testWhenOpeningBrokenStateThenNoExceptionIsThrown)
@@ -240,7 +236,6 @@ BOOST_AUTO_TEST_CASE(testWhenOpeningValidStateThenContentIsLoaded)
 
     const auto& windows = state.getDisplayGroup()->getContentWindows();
     BOOST_REQUIRE_EQUAL(windows.size(), 1);
-    BOOST_CHECK_EQUAL(state.getDisplayGroup()->getShowWindowTitles(), false);
 
     checkLegacyWindow(windows[0]);
 }
@@ -255,7 +250,6 @@ BOOST_AUTO_TEST_CASE(testStateSerializationHelperReadingFromVersion0File)
     BOOST_CHECK_NO_THROW(group = helper.load(STATE_V0_URI).result());
     BOOST_REQUIRE(group);
     BOOST_REQUIRE_EQUAL(group->getContentWindows().size(), 1);
-    BOOST_REQUIRE_EQUAL(group->getShowWindowTitles(), false);
 
     // The file contains only normalized coordinates, so all the windows have
     // to be denormalized to be adjusted to the new displaygroup.
@@ -273,7 +267,6 @@ BOOST_AUTO_TEST_CASE(testWhenOpeningValidVersion3StateThenContentIsLoaded)
 
     const auto& windows = state.getDisplayGroup()->getContentWindows();
     BOOST_REQUIRE_EQUAL(windows.size(), 1);
-    BOOST_CHECK_EQUAL(state.getDisplayGroup()->getShowWindowTitles(), true);
     BOOST_CHECK_EQUAL(state.getDisplayGroup()->getCoordinates(),
                       QRectF(0, 0, 1536, 648));
 
@@ -291,7 +284,6 @@ BOOST_AUTO_TEST_CASE(testStateSerializationHelperReadingFromVersion3File)
     BOOST_REQUIRE(group);
 
     BOOST_REQUIRE_EQUAL(group->getContentWindows().size(), 1);
-    BOOST_CHECK_EQUAL(group->getShowWindowTitles(), true);
     BOOST_CHECK_EQUAL(group->getCoordinates(), QRectF(QPointF(0, 0), wallSize));
 
     checkWindowVersion3(group->getContentWindows()[0]);
@@ -309,7 +301,6 @@ BOOST_AUTO_TEST_CASE(
     BOOST_REQUIRE(group);
 
     BOOST_REQUIRE_EQUAL(group->getContentWindows().size(), 1);
-    BOOST_CHECK_EQUAL(group->getShowWindowTitles(), false);
     BOOST_CHECK_EQUAL(group->getCoordinates(), QRectF(QPointF(0, 0), wallSize));
 
     checkWindowVersion3(group->getContentWindows()[0]);
@@ -327,7 +318,6 @@ BOOST_AUTO_TEST_CASE(testStateSerializationHelperReadingFromVersion4File)
     BOOST_REQUIRE(group);
 
     BOOST_REQUIRE_EQUAL(group->getContentWindows().size(), 1);
-    BOOST_CHECK_EQUAL(group->getShowWindowTitles(), true);
     BOOST_CHECK_EQUAL(group->getCoordinates(), QRectF(QPointF(0, 0), wallSize));
     BOOST_CHECK_EQUAL(group->hasFocusedWindows(), true);
 
@@ -390,8 +380,6 @@ BOOST_AUTO_TEST_CASE(testStateSerializationToFile)
 
     BOOST_REQUIRE_EQUAL(loadedGroup->getContentWindows().size(),
                         displayGroup->getContentWindows().size());
-    BOOST_REQUIRE_EQUAL(loadedGroup->getShowWindowTitles(),
-                        displayGroup->getShowWindowTitles());
     BOOST_REQUIRE_EQUAL(loadedGroup->getCoordinates(),
                         QRectF(QPointF(0, 0), wallSize));
     checkWindow(loadedGroup->getContentWindows()[0]);

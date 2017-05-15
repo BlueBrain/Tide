@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.3 (git master)
 
+* [150](https://github.com/BlueBrain/Tide/issues/150):
+  Ignore legacy window titles option from saved sessions.
 * [146](https://github.com/BlueBrain/Tide/pull/146):
   Added an optional bezel to the wall in web interface.
 * [128](https://github.com/BlueBrain/Tide/pull/128):
