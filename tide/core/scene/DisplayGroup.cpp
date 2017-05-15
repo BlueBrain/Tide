@@ -1,8 +1,8 @@
 /*********************************************************************/
-/* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael.Dumusc@epfl.ch                        */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/* Copyright (c) 2011-2012, The University of Texas at Austin.       */
+/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael.Dumusc@epfl.ch                   */
+/*                          Daniel.Nachbaur@epfl.ch                  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -271,11 +271,6 @@ void DisplayGroup::moveToThread(QThread* thread)
 #pragma GCC diagnostic pop
 #pragma clang diagnostic pop
 
-bool DisplayGroup::getShowWindowTitles() const
-{
-    return _showWindowTitlesInSavedSession;
-}
-
 ContentWindow* DisplayGroup::getFullscreenWindow() const
 {
     return _fullscreenWindow.get();
@@ -304,11 +299,6 @@ void DisplayGroup::setFullscreenWindow(ContentWindowPtr window)
     _fullscreenWindow = window;
     emit hasFullscreenWindowsChanged();
     _sendDisplayGroup();
-}
-
-void DisplayGroup::setShowWindowTitles(const bool set)
-{
-    _showWindowTitlesInSavedSession = set;
 }
 
 void DisplayGroup::_sendDisplayGroup()

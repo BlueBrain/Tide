@@ -448,15 +448,13 @@ void MasterWindow::_openSession()
 
 void MasterWindow::_saveSession()
 {
-    QString filename =
+    const auto filename =
         QFileDialog::getSaveFileName(this, "Save Session", _sessionFolder,
                                      SESSION_FILES_FILTER);
     if (filename.isEmpty())
         return;
 
     _sessionFolder = QFileInfo(filename).absoluteDir().path();
-
-    _displayGroup->setShowWindowTitles(_options->getShowWindowTitles());
     _saveSessionOp.setFuture(
         StateSerializationHelper(_displayGroup).save(filename, _uploadDir));
 }

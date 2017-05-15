@@ -168,8 +168,6 @@ void MasterApplication::_save(const QString sessionFile, promisePtr promise)
     _saveSessionOp.waitForFinished();
     _saveSessionPromise = promise;
 
-    _displayGroup->setShowWindowTitles(_options->getShowWindowTitles());
-
     StateSerializationHelper helper(_displayGroup);
     _saveSessionOp.setFuture(helper.save(sessionFile, _config->getUploadDir()));
 }
@@ -494,8 +492,6 @@ void MasterApplication::_restoreBackground()
 void MasterApplication::_apply(DisplayGroupConstPtr group)
 {
     _displayGroup->setContentWindows(group->getContentWindows());
-    _displayGroup->setShowWindowTitles(group->getShowWindowTitles());
-    _options->setShowWindowTitles(group->getShowWindowTitles());
 
     // Restore webbrowsers
     using WebContent = const WebbrowserContent*;
