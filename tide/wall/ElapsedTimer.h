@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -52,6 +52,9 @@ public:
 
     /** Constructor. */
     ElapsedTimer();
+
+    /** Get the current time. */
+    const clock::time_point& getCurrentTime() const;
 
     /** Set the current time. */
     void setCurrentTime(const clock::time_point& time);

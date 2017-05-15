@@ -62,11 +62,10 @@ MovieUpdater::~MovieUpdater()
 {
 }
 
-void MovieUpdater::update(const MovieContent& movie, const bool visible)
+void MovieUpdater::update(const MovieContent& movie)
 {
     _paused = movie.getControlState() & STATE_PAUSED;
     _loop = movie.getControlState() & STATE_LOOP;
-    _visible = visible;
     _skipping = movie.isSkipping();
     _skipPosition = movie.getPosition();
 }
@@ -89,16 +88,23 @@ QSize MovieUpdater::getTilesArea(const uint lod) const
     return getTileRect(0).size();
 }
 
-ImagePtr MovieUpdater::getTileImage(const uint tileIndex) const
+ImagePtr MovieUpdater::getTileImage(const uint tileIndex,
+                                    const deflect::View view) const
 {
     Q_UNUSED(tileIndex);
+    Q_UNUSED(view);
+
+    const QMutexLocker multiWindowLock(&_multiWindowMutex);
+    if (_picture)
+        return _picture;
+
     double timestamp;
     {
         const QMutexLocker lock(&_mutex);
         timestamp = _sharedTimestamp;
     }
 
-    ImagePtr image = _ffmpegMovie->getFrame(timestamp);
+    auto image = _ffmpegMovie->getFrame(timestamp);
 
     const bool loopBack = _loop && !image;
     if (loopBack)
@@ -112,6 +118,7 @@ ImagePtr MovieUpdater::getTileImage(const uint tileIndex) const
         // WAR a risk of deadlock when skipping movies with incorrect duration
         _loopedBack = loopBack;
     }
+    _picture = image;
     return image;
 }
 
@@ -131,28 +138,17 @@ uint MovieUpdater::getMaxLod() const
     return 0;
 }
 
-void MovieUpdater::lastFrameDone()
+void MovieUpdater::getNextFrame()
 {
-    _fpsCounter.tick();
-
-    _requestNewFrame = false;
-    _lastFrameDone = true;
-}
-
-bool MovieUpdater::canRequestNewFrame() const
-{
-    return _requestNewFrame;
+    _readyForNextFrame = true;
 }
 
 QString MovieUpdater::getStatistics() const
 {
-    const QString fps =
-        QString::number(1.0 / _ffmpegMovie->getFrameDuration(), 'g', 3);
-    const QString progress = QString::number(getPosition() * 100.0, 'g', 3);
-    return QString("%1 / %2 fps %3 %")
-        .arg(_fpsCounter.toString())
-        .arg(fps)
-        .arg(progress);
+    const auto frameDuration = _ffmpegMovie->getFrameDuration();
+    const auto fps = QString::number(1.0 / frameDuration, 'g', 3);
+    const auto progress = QString::number(getPosition() * 100.0, 'g', 3);
+    return QString("%2 fps %3 %").arg(fps, progress);
 }
 
 qreal MovieUpdater::getPosition() const
@@ -165,71 +161,95 @@ bool MovieUpdater::isSkipping() const
     return _skipping;
 }
 
+bool MovieUpdater::isPaused() const
+{
+    return _paused;
+}
+
 qreal MovieUpdater::getSkipPosition() const
 {
     return _skipPosition / _ffmpegMovie->getDuration();
 }
 
-bool MovieUpdater::advanceToNextFrame(WallToWallChannel& channel)
+void MovieUpdater::synchronizeFrameAdvance(WallToWallChannel& channel)
 {
+    bool visible = false;
+    for (auto synchronizer : synchronizers)
+        visible = visible || synchronizer->hasVisibleTiles();
+
     const double frameDuration = _ffmpegMovie->getFrameDuration();
 
-    // protect _sharedTimestamp & _currentPosition from getTileImage()
-    const QMutexLocker lock(&_mutex);
+    bool inSync = false;
+    {
+        // protect _sharedTimestamp & _currentPosition from getTileImage()
+        const QMutexLocker lock(&_mutex);
 
-    // Jump to the skip position
-    if (_skipping && !_loopedBack)
-        _sharedTimestamp = _skipPosition;
+        // Jump to the skip position
+        if (_skipping && !_loopedBack)
+            _sharedTimestamp = _skipPosition;
+
+        inSync = std::abs(_sharedTimestamp - _currentPosition) <= frameDuration;
+    }
 
     // If any visible updater is out-of-sync, only update those ones. This
     // causes a seek in the movie to _sharedTimestamp. The time stands still in
     // this case to avoid seeking of all processes if this seek takes longer
     // than frameDuration.
-    const bool inSync =
-        std::abs(_sharedTimestamp - _currentPosition) <= frameDuration;
-    _lastFrameDone = channel.allReady(_lastFrameDone);
-    if (!channel.allReady(!_visible || inSync))
+    if (!channel.allReady(inSync || !visible))
     {
         _timer.resetTime(channel.getTime());
-        if (!_lastFrameDone)
-            return false;
-        _lastFrameDone = false;
-        _requestNewFrame = _visible && !inSync;
-        return true;
+        if (_readyForNextFrame)
+            _triggerFrameUpdate();
+        return;
     }
 
     // Don't advance time if paused or skipping
     if (_paused || _skipping)
     {
         _timer.resetTime(channel.getTime());
-        return false;
+        if (_skipping && _readyForNextFrame)
+            if (channel.allReady(!inSync || !visible))
+                _triggerFrameUpdate();
+        return;
     }
 
     // If everybody is in sync, do a proper increment and throttle to movie
     // frame duration and decode speed accordingly.
     _timer.setCurrentTime(channel.getTime());
     _elapsedTime += _timer.getElapsedTimeInSeconds();
-    if (!_lastFrameDone || _elapsedTime < frameDuration)
-        return false;
+    if (_elapsedTime < frameDuration || !_readyForNextFrame)
+        return;
+    {
+        // protect _sharedTimestamp & _currentPosition from getTileImage()
+        const QMutexLocker lock(&_mutex);
 
-    // advance to the next frame, keep correct elapsedTime as vsync frequency
-    // of this function might not match movie frequency.
-    _sharedTimestamp = _currentPosition + frameDuration;
-    _elapsedTime -= frameDuration;
+        // advance to the next frame, keep correct elapsedTime as vsync
+        // frequency of this function might not match movie frequency.
+        _sharedTimestamp = _currentPosition + frameDuration;
+        _elapsedTime -= frameDuration;
 
-    // Always exchange timestamp for processes where _currentPosition is not
-    // advancing to allow seek if visible again.
-    _exchangeSharedTimestamp(channel, inSync);
+        // Always exchange timestamp for processes where _currentPosition is not
+        // advancing to allow seek if visible again.
+        _exchangeSharedTimestamp(channel, visible && inSync);
+    }
+    // unlock _mutex before to avoid deadlocks
+    _triggerFrameUpdate();
+}
 
-    _lastFrameDone = false;
-    _requestNewFrame = _visible;
-    return true;
+void MovieUpdater::_triggerFrameUpdate()
+{
+    _readyForNextFrame = false;
+    {
+        const QMutexLocker multiWindowLock(&_multiWindowMutex);
+        _picture.reset();
+    }
+    emit pictureUpdated();
 }
 
 void MovieUpdater::_exchangeSharedTimestamp(WallToWallChannel& channel,
-                                            const bool inSync)
+                                            const bool isCandidate)
 {
-    const int leader = channel.electLeader(_visible && inSync);
+    const int leader = channel.electLeader(isCandidate);
     if (leader < 0)
         return;
 

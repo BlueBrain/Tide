@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -52,7 +52,7 @@ class LodSynchronizer : public TiledSynchronizer
 
 public:
     /** Constructor. */
-    LodSynchronizer(TileSwapPolicy policy);
+    LodSynchronizer(std::shared_ptr<DataSource> source);
 
     /** @copydoc ContentSynchronizer::update */
     void update(const ContentWindow& window,
@@ -64,26 +64,29 @@ public:
     /** @copydoc ContentSynchronizer::getStatistics */
     QString getStatistics() const override;
 
-    /** @copydoc ContentSynchronizer::getTileImage */
-    ImagePtr getTileImage(uint tileIndex) const override;
-
     /** @copydoc ContentSynchronizer::getZoomContextTile */
     TilePtr getZoomContextTile() const override;
 
 protected:
     /**
-     * Get the appropriate LOD for a given display size.
-     * @param targetDisplaySize The size at which the content will be displayed.
+     * Update the tiles.
+     *
+     * @param window for area and zoom calculations.
+     * @param visibleArea the visible area of the window.
+     * @param forceUpdate the tiles, e.g. if the source has changed (pdf page).
+     * @param backgroundTileId to use as background tile to smooth LOD change.
      */
-    uint getLod(const QSize& targetDisplaySize) const;
+    void update(const ContentWindow& window, const QRectF& visibleArea,
+                bool forceUpdate, int backgroundTileId);
 
-    /**
-     * Derived classes must implement this method to return their data source.
-     */
-    virtual const DataSource& getDataSource() const = 0;
+    /** @copydoc ContentSynchronizer::getDataSource */
+    const DataSource& getDataSource() const final;
 
-    /** Create the background tile to smooth the LOD change. */
-    void setBackgroundTile(uint backgroundTileId);
+private:
+    std::shared_ptr<DataSource> _source;
+
+    uint _getLod(const QSize& targetDisplaySize) const;
+    void _setBackgroundTile(uint backgroundTileId);
 };
 
 #endif

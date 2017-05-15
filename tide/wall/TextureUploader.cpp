@@ -56,17 +56,19 @@ TextureUploader::~TextureUploader()
 {
 }
 
-void TextureUploader::init(QOpenGLContext* shareContext)
+void TextureUploader::init(QOpenGLContext* shareContext, QScreen* screen)
 {
     QMetaObject::invokeMethod(this, "_createGLContext",
                               Qt::BlockingQueuedConnection,
-                              Q_ARG(QOpenGLContext*, shareContext));
+                              Q_ARG(QOpenGLContext*, shareContext),
+                              Q_ARG(QScreen*, screen));
 
     // OSX: The offscreen surface must be created on the main/GUI thread
     // because it is backed by a real window.
 
     _offscreenSurface.reset(new QOffscreenSurface);
     _offscreenSurface->setFormat(_glContext->format());
+    _offscreenSurface->setScreen(screen); // needed for multiple X displays
     _offscreenSurface->create();
 }
 
@@ -80,10 +82,12 @@ void TextureUploader::stop()
     _offscreenSurface.reset();
 }
 
-void TextureUploader::_createGLContext(QOpenGLContext* shareContext)
+void TextureUploader::_createGLContext(QOpenGLContext* shareContext,
+                                       QScreen* screen)
 {
     _glContext.reset(new QOpenGLContext);
     _glContext->setShareContext(shareContext);
+    _glContext->setScreen(screen); // needed for multiple X displays
     _glContext->create();
 }
 

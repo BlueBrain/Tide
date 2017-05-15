@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2016, EPFL/Blue Brain Project
+# Copyright (c) 2013-2017, EPFL/Blue Brain Project
 #                          Raphael Dumusc <raphael.dumusc@epfl.ch>
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
@@ -36,11 +36,9 @@ endif()
 if(TIDE_USE_TIFF)
   list(APPEND TIDEWALL_PUBLIC_HEADERS
     ImagePyramidDataSource.h
-    ImagePyramidSynchronizer.h
   )
   list(APPEND TIDEWALL_SOURCES
     ImagePyramidDataSource.cpp
-    ImagePyramidSynchronizer.cpp
   )
 endif()
 
@@ -54,7 +52,6 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   ElapsedTimer.h
   FpsCounter.h
   ImageSource.h
-  ImageSynchronizer.h
   LodSynchronizer.h
   LodTiler.h
   LodTools.h
@@ -66,9 +63,9 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   QmlWindowRenderer.h
   QuadLineNode.h
   RenderController.h
+  screens.h
   StreamImage.h
   SVGGpuImage.h
-  SVGSynchronizer.h
   SVGTiler.h
   TestPattern.h
   TextureNode.h
@@ -79,6 +76,7 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   VisibilityHelper.h
   WallApplication.h
   WallConfiguration.h
+  WallSynchronizer.h
   WallWindow.h
   YUVTexture.h
 )
@@ -92,7 +90,6 @@ list(APPEND TIDEWALL_SOURCES
   ElapsedTimer.cpp
   FpsCounter.cpp
   ImageSource.cpp
-  ImageSynchronizer.cpp
   LodSynchronizer.cpp
   LodTiler.cpp
   LodTools.cpp
@@ -104,9 +101,9 @@ list(APPEND TIDEWALL_SOURCES
   QmlWindowRenderer.cpp
   QuadLineNode.cpp
   RenderController.cpp
+  screens.cpp
   StreamImage.cpp
   SVGGpuImage.cpp
-  SVGSynchronizer.cpp
   SVGTiler.cpp
   TestPattern.cpp
   TextureNode.cpp
@@ -117,9 +114,12 @@ list(APPEND TIDEWALL_SOURCES
   VisibilityHelper.cpp
   WallApplication.cpp
   WallConfiguration.cpp
+  WallSynchronizer.cpp
   WallWindow.cpp
   resources/wall.qrc
 )
 
 set(TIDEWALL_INCLUDE_NAME tide/wall)
 common_library(TideWall)
+
+target_include_directories(TideWall PRIVATE ${Qt5Gui_PRIVATE_INCLUDE_DIRS})

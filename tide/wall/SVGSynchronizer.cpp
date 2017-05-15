@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,46 +39,15 @@
 
 #include "SVGSynchronizer.h"
 
-#include "SVGGpuImage.h"
 #include "SVGTiler.h"
-#include "data/SVG.h"
 
-struct SVGSynchronizer::Impl
-{
-    Impl(const QString& uri)
-        : svg(uri)
-        , dataSource(svg)
-    {
-    }
-    SVG svg;
-    SVGTiler dataSource;
-};
-
-SVGSynchronizer::SVGSynchronizer(const QString& uri)
+SVGSynchronizer::SVGSynchronizer(std::shared_ptr<SVGTiler> source)
     : LodSynchronizer(TileSwapPolicy::SwapTilesIndependently)
-    , _impl(new Impl(uri))
+    , _source(std::move(source))
 {
-}
-
-SVGSynchronizer::~SVGSynchronizer()
-{
-}
-
-void SVGSynchronizer::synchronize(WallToWallChannel& channel)
-{
-    Q_UNUSED(channel);
-}
-
-ImagePtr SVGSynchronizer::getTileImage(const uint tileId) const
-{
-#if !(TIDE_USE_CAIRO && TIDE_USE_RSVG)
-    if (!_impl->dataSource.contains(tileId))
-        return std::make_shared<SVGGpuImage>(_impl->dataSource, tileId);
-#endif
-    return LodSynchronizer::getTileImage(tileId);
 }
 
 const DataSource& SVGSynchronizer::getDataSource() const
 {
-    return _impl->dataSource;
+    return *_source;
 }

@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -65,6 +65,12 @@ public:
     /** @copydoc ContentSynchronizer::onSwapReady */
     void onSwapReady(TilePtr tile) override;
 
+    /**
+     * @return true if TileSwapPolicy is SwapTilesSynchronously and tiles are
+     *         ready to be swapped.
+     */
+    bool canSwapTiles() const;
+
 protected:
     uint _lod;
     QRectF _visibleTilesArea;
@@ -82,14 +88,11 @@ protected:
     void updateTiles(const DataSource& source, bool updateExistingTiles);
 
     /**
-     * Perform a synchronized tile swap across all processes.
+     * Call to swap tiles when TileSwapPolicy is SwapTilesSynchronously.
      *
-     * Does nothing if TileSwapPolicy is SwapTilesIndependently, if any
-     * tile is not ready on any of the processes.
-     * @param channel used to check if other processes have all the tiles ready
-     * @return true if tiles were swapped
+     * Should only be called when canSwapTiles returns true on all processes.
      */
-    bool swapTiles(WallToWallChannel& channel);
+    virtual void swapTiles();
 
 private:
     TileSwapPolicy _policy;

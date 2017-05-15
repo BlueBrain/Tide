@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -82,20 +82,21 @@ struct serialize<0>
  * Get an object of type T, stored in a container in binary serialized form.
  */
 template <typename T, typename Container>
-T get(Container& container)
+T get(const Container& container)
 {
-    std::istringstream iss(std::istringstream::binary);
+    std::istringstream iss{std::istringstream::binary};
 #ifdef __APPLE__
     // pubsetbuf() does nothing on OSX (and probably on Windows too).
     // so an intermediate copy of the data is required.
     const std::string dataStr(container.data(), container.size());
     iss.str(dataStr);
 #else
-    iss.rdbuf()->pubsetbuf(container.data(), container.size());
+    iss.rdbuf()->pubsetbuf(const_cast<char*>(container.data()),
+                           container.size());
 #endif
     T object;
     {
-        boost::archive::binary_iarchive ia(iss);
+        boost::archive::binary_iarchive ia{iss};
         ia >> object;
     }
     return object;
@@ -104,10 +105,19 @@ T get(Container& container)
 /**
  * Deserialize object(s) from a string of binary serialized data.
  */
-template <typename... Args>
-void fromBinary(const std::string& data, Args&... args)
+template <typename Container, typename... Args>
+void fromBinary(const Container& container, Args&... args)
 {
-    std::istringstream iss{data, std::istringstream::binary};
+    std::istringstream iss{std::istringstream::binary};
+#ifdef __APPLE__
+    // pubsetbuf() does nothing on OSX (and probably on Windows too).
+    // so an intermediate copy of the data is required.
+    const std::string dataStr(container.data(), container.size());
+    iss.str(dataStr);
+#else
+    iss.rdbuf()->pubsetbuf(const_cast<char*>(container.data()),
+                           container.size());
+#endif
     boost::archive::binary_iarchive ia{iss};
     detail::serialize<sizeof...(Args)>(ia, args...);
 }

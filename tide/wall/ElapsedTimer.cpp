@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -41,6 +41,11 @@
 
 ElapsedTimer::ElapsedTimer()
 {
+}
+
+const ElapsedTimer::clock::time_point& ElapsedTimer::getCurrentTime() const
+{
+    return _currentTime;
 }
 
 void ElapsedTimer::setCurrentTime(const clock::time_point& time)

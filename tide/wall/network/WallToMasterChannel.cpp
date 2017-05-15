@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>     */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/*                          Daniel Nachbaur <daniel.nachbaur@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -47,9 +48,9 @@ WallToMasterChannel::WallToMasterChannel(MPIChannelPtr mpiChannel)
 {
 }
 
-void WallToMasterChannel::sendScreenshot(const QImage image)
+void WallToMasterChannel::sendScreenshot(const QImage image, const QPoint index)
 {
-    const auto data = serialization::toBinary(image);
+    const auto data = serialization::toBinary(image, index);
     _mpiChannel->send(MPIMessageType::IMAGE, data, 0);
 }
 

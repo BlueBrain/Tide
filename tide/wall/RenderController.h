@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -52,13 +52,12 @@
 class RenderController : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY(RenderController)
 
 public:
     /** Constructor */
-    RenderController(WallWindow& window);
-
-    /** Get the DisplayGroup */
-    DisplayGroupPtr getDisplayGroup() const;
+    RenderController(std::vector<WallWindow*> windows, DataProvider& provider,
+                     WallToWallChannel& wallChannel);
 
 public slots:
     void updateQuit();
@@ -69,13 +68,12 @@ public slots:
     void requestRender();
 
 signals:
-    void screenshotRendered(QImage image);
+    void screenshotRendered(QImage image, QPoint index);
 
 private:
-    void timerEvent(QTimerEvent* qtEvent) final;
-    Q_DISABLE_COPY(RenderController)
-
-    WallWindow& _window;
+    std::vector<WallWindow*> _windows; // deleteLater from syncQuit
+    DataProvider& _provider;
+    WallToWallChannel& _wallChannel;
 
     SwapSyncObject<bool> _syncQuit{false};
     SwapSyncObject<bool> _syncScreenshot{false};
@@ -83,15 +81,17 @@ private:
     SwapSyncObject<OptionsPtr> _syncOptions;
     SwapSyncObject<MarkersPtr> _syncMarkers;
 
-    /** Update and synchronize scene objects before rendering a frame. */
-    void _syncAndRender();
-
-    void _synchronizeObjects(const SyncFunction& versionCheckFunc);
-
     int _renderTimer = 0;
     int _stopRenderingDelayTimer = 0;
     int _idleRedrawTimer = 0;
     bool _needRedraw = false;
+
+    void timerEvent(QTimerEvent* qtEvent) final;
+
+    /** Update and synchronize scene objects before rendering a frame. */
+    void _syncAndRender();
+    bool _syncAndRenderWindows(bool grab);
+    void _synchronizeObjects(const SyncFunction& versionCheckFunc);
 };
 
 #endif

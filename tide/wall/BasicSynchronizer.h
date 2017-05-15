@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -52,14 +52,11 @@ class BasicSynchronizer : public ContentSynchronizer
 
 public:
     /** Constructor */
-    BasicSynchronizer();
+    BasicSynchronizer(std::shared_ptr<DataSource> source);
 
     /** @copydoc ContentSynchronizer::update */
     void update(const ContentWindow& window,
                 const QRectF& visibleArea) override;
-
-    /** @copydoc ContentSynchronizer::synchronize */
-    void synchronize(WallToWallChannel& channel) override;
 
     /** @copydoc ContentSynchronizer::getTilesArea */
     QSize getTilesArea() const override;
@@ -70,13 +67,18 @@ public:
     /** @copydoc ContentSynchronizer::onSwapReady */
     void onSwapReady(TilePtr tile) override;
 
-protected:
-    /** Create this content's unique tile with the given dimensions. */
-    void createTile(const QSize& size);
+    /** @copydoc ContentSynchronizer::getZoomContextTile */
+    TilePtr getZoomContextTile() const override;
 
 private:
-    bool _tileAdded;
-    QSize _tileSize;
+    std::shared_ptr<DataSource> _dataSource;
+    bool _tileAdded = false;
+
+    /** @copydoc ContentSynchronizer::getDataSource */
+    const DataSource& getDataSource() const final;
+
+    /** Create this content's unique tile. */
+    void _createTile();
 };
 
 #endif
