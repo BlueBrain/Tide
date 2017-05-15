@@ -141,8 +141,7 @@ AddressBar* WebbrowserContent::getAddressBar() const
 
 void WebbrowserContent::parseData(const QByteArray data)
 {
-    serialization::fromBinary(data.toStdString(), _history, _pageTitle,
-                              _restPort);
+    serialization::fromBinary(data, _history, _pageTitle, _restPort);
 #if TIDE_USE_QT5WEBKITWIDGETS
     _addressBar->setUrl(_history.currentItem());
 #endif

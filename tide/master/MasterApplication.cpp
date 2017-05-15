@@ -283,7 +283,7 @@ void MasterApplication::_initMasterWindow()
     auto engine = view->engine();
     auto item = view->wallItem();
     _masterGroupRenderer.reset(
-        new MasterDisplayGroupRenderer{_displayGroup, engine, item});
+        new MasterDisplayGroupRenderer{_displayGroup, *engine, *item});
 }
 
 void MasterApplication::_initOffscreenView()
@@ -304,7 +304,7 @@ void MasterApplication::_initOffscreenView()
     auto engine = _offscreenQuickView->getEngine();
     auto item = _offscreenQuickView->getRootItem();
     _masterGroupRenderer.reset(
-        new MasterDisplayGroupRenderer{_displayGroup, engine, item});
+        new MasterDisplayGroupRenderer{_displayGroup, *engine, *item});
 }
 
 void MasterApplication::_startDeflectServer()

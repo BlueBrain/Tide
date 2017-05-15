@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>     */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/*                          Daniel Nachbaur <daniel.nachbaur@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -77,9 +78,13 @@ void MasterFromWallChannel::processMessages()
             break;
         }
         case MPIMessageType::IMAGE:
-            emit receivedScreenshot(serialization::get<QImage>(_buffer),
-                                    result.src - 1);
+        {
+            QImage image;
+            QPoint index;
+            serialization::fromBinary(_buffer, image, index);
+            emit receivedScreenshot(image, index);
             break;
+        }
         case MPIMessageType::QUIT:
             _processMessages = false;
             break;

@@ -114,11 +114,13 @@ else: # OpenMPI
     MPI_GLOBAL_HOST_LIST = '-host'
     MPI_PER_NODE_HOST = '-H'
     EXPORT_ENV_VAR = '-x {0}={1}'
-    mpi_args += '--mca hwloc_base_binding_policy none -x LD_LIBRARY_PATH'
     # "hwloc_base_binding_policy none" is equivalent to the new "--bind-to none"
     # option in OpenMPI >= 1.8, while being accepted by older versions as well.
     # It does nothing in that case, but the (now deprecated) "--bind-to-none"
     # was the default anyways.
+    mpi_args += '--mca hwloc_base_binding_policy none'
+    if 'LD_LIBRARY_PATH' in os.environ:
+        mpi_args += ' -x LD_LIBRARY_PATH'
 
 # Form the application parameters list
 TIDE_PARAMS = '--config ' + TIDE_CONFIG_FILE
@@ -146,15 +148,15 @@ try:
     XML_CONFIG = ET.parse(TIDE_CONFIG_FILE)
 
     # parse the masterProcess element
-    master_elem = XML_CONFIG.find('masterProcess')
-    if master_elem is None:
+    master_process = XML_CONFIG.find('masterProcess')
+    if master_process is None:
         print("masterProcess not found, using defaults: 'localhost' ':0'")
     else:
-        host = master_elem.get("host")
+        host = master_process.get("host")
         if using_vgl:
             display = os.environ["DISPLAY"]
         else:
-            display = master_elem.get('display')
+            display = master_process.get('display')
 
     if host is None:
         host = 'localhost'
@@ -182,9 +184,9 @@ try:
     # add a separate 'forker' process on the same host as the master process
     forkercmd = '%s -np 1 %s' % (environment, TIDEFORKER_BIN)
 
-    # parse the wall process elements
-    for elem in XML_CONFIG.findall('.//process'):
-        host = elem.get("host")
+    # parse the wall processes
+    for process in XML_CONFIG.findall('.//process'):
+        host = process.get("host")
 
         if host is None:
             print('Error, no host attribute in <process> tag.')
@@ -193,10 +195,17 @@ try:
         if using_vgl:
             display = os.environ["DISPLAY"]
         else:
-            display = elem.get('display')
+            display = process.get('display')
 
-        if display == None:
-            display = ':0'
+        if display is None:
+            displays = ['xcb']
+            for screen in process.findall('screen'):
+                displays.append(screen.get('display'))
+            export_display = EXPORT_ENV_VAR.format('DISPLAY', displays[1])
+            export_qpa = EXPORT_ENV_VAR.format('QT_QPA_PLATFORM', ':'.join(displays))
+            export_display = '%s %s' % (export_display, export_qpa)
+        else:
+            export_display = EXPORT_ENV_VAR.format('DISPLAY', display)
 
         if MPI_PER_NODE_HOST:
             node_host = '%s %s' % (MPI_PER_NODE_HOST, host)
@@ -206,7 +215,6 @@ try:
         if MPI_GLOBAL_HOST_LIST:
             hostlist.append(host)
 
-        export_display = EXPORT_ENV_VAR.format('DISPLAY', display)
         environment = '%s %s %s' % (MPI_SPECIAL_FLAGS, export_display, node_host)
         wallcmd = '%s -np 1 %s %s' % (environment, TIDEWALL_BIN, TIDE_PARAMS)
         runcommands.append(wallcmd)

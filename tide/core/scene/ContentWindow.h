@@ -213,6 +213,9 @@ public:
     /** Select or deselect the window. */
     void setSelected(bool value);
 
+    /** @return the version of the window to apply changes on Wall processes. */
+    size_t getVersion() const;
+
 public slots:
     /** Set the current active resize handle. */
     void setActiveHandle(ContentWindow::ResizeHandle handle);
@@ -270,6 +273,7 @@ private:
         ar & _fullscreenCoordinates;
         ar & _windowState;
         ar & _selected;
+        ar & _version;
         // clang-format on
     }
 
@@ -343,6 +347,7 @@ private:
     QRectF _fullscreenCoordinates;
     ContentWindow::WindowState _windowState;
     bool _selected;
+    size_t _version;
 };
 
 BOOST_CLASS_VERSION(ContentWindow, 3)

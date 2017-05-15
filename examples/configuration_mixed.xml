@@ -1,0 +1,21 @@
+<configuration>
+    <dimensions numTilesWidth="2" numTilesHeight="2" screenHeight="400" fullscreen="0" mullionHeight="0" screenWidth="400" mullionWidth="0"/>
+    <masterProcess display=":0" host="localhost" headless="false"/>
+    <process host="localhost">
+        <screen x="0" y="80" i="0" j="0" display=":0" stereo="left"/>
+        <screen x="0" y="480" i="0" j="1" display=":0" stereo="left"/>
+    </process>
+    <process host="localhost">
+        <screen x="400" y="80" i="1" j="0" display=":0" stereo="left"/>
+        <screen x="400" y="480" i="1" j="1" display=":0" stereo="left"/>
+    </process>
+    <process host="localhost">
+        <screen x="820" y="80" i="0" j="0" display=":0" stereo="right"/>
+        <screen x="820" y="480" i="0" j="1" display=":0" stereo="right"/>
+    </process>
+    <process host="localhost">
+        <screen x="1220" y="80" i="1" j="0" display=":0" stereo="right"/>
+        <screen x="1220" y="480" i="1" j="1" display=":0" stereo="right"/>
+    </process>
+    <background uri="" color="#00f5ff"/>
+</configuration>

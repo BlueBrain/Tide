@@ -41,7 +41,7 @@
 
 #include "data/QtImage.h"
 
-ImagePtr CachedDataSource::getTileImage(const uint tileId) const
+ImagePtr CachedDataSource::getTileImage(const uint tileId, deflect::View) const
 {
     {
         const QMutexLocker lock(&_mutex);

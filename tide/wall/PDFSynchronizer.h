@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -54,13 +54,10 @@ class PDFSynchronizer : public LodSynchronizer
 
 public:
     /** Constructor. */
-    PDFSynchronizer(const QString& uri);
+    PDFSynchronizer(std::shared_ptr<PDFTiler> source);
 
     /** @copydoc ContentSynchronizer::update */
     void update(const ContentWindow& window, const QRectF& visibleArea) final;
-
-    /** @copydoc ContentSynchronizer::synchronize */
-    void synchronize(WallToWallChannel& channel) final;
 
     /** @copydoc ContentSynchronizer::getStatistics */
     QString getStatistics() const final;
@@ -69,11 +66,8 @@ public:
     TilePtr getZoomContextTile() const final;
 
 private:
-    PDF _pdf;
-    PDFTiler _tileSource;
-
-    /** @copydoc LodSynchronizer::getDataSource */
-    const DataSource& getDataSource() const final;
+    std::shared_ptr<PDFTiler> _source;
+    bool _pageChanged = false;
 };
 
 #endif

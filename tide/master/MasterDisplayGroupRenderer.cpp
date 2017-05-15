@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -57,22 +57,19 @@ const QUrl QML_DISPLAYGROUP_URL("qrc:/qml/master/MasterDisplayGroup.qml");
 }
 
 MasterDisplayGroupRenderer::MasterDisplayGroupRenderer(DisplayGroupPtr group,
-                                                       QQmlEngine* engine,
-                                                       QQuickItem* parentItem)
+                                                       QQmlEngine& engine,
+                                                       QQuickItem& parentItem)
     : _displayGroup{group}
     , _engine{engine}
-    , _parentItem{parentItem}
 {
-    auto rootContext = _engine->rootContext();
+    auto rootContext = _engine.rootContext();
     rootContext->setContextProperty("displaygroup", _displayGroup.get());
 
     auto controller = make_unique<DisplayGroupController>(*_displayGroup);
     rootContext->setContextProperty("groupcontroller", controller.get());
 
-    QQmlComponent component(_engine, QML_DISPLAYGROUP_URL);
-    qmlCheckOrThrow(component);
-    _displayGroupItem = qobject_cast<QQuickItem*>(component.create());
-    _displayGroupItem->setParentItem(_parentItem);
+    _displayGroupItem = qml::makeItem(_engine, QML_DISPLAYGROUP_URL);
+    _displayGroupItem->setParentItem(&parentItem);
 
     // Transfer ownership of the controller to qml item
     controller->setParent(_displayGroupItem);
@@ -108,7 +105,7 @@ MasterDisplayGroupRenderer::~MasterDisplayGroupRenderer()
 void MasterDisplayGroupRenderer::_add(ContentWindowPtr window)
 {
     // New Context for the window, ownership retained by the windowItem
-    QQmlContext* windowContext = new QQmlContext(_engine->rootContext());
+    auto windowContext = new QQmlContext(_engine.rootContext());
     windowContext->setContextProperty("contentwindow", window.get());
 
     auto controller = new ContentWindowController(*window, *_displayGroup);
@@ -119,9 +116,8 @@ void MasterDisplayGroupRenderer::_add(ContentWindowPtr window)
     contentController->setParent(windowContext);
     windowContext->setContextProperty("contentcontroller", contentController);
 
-    QQmlComponent component(_engine, QML_CONTENTWINDOW_URL);
-    qmlCheckOrThrow(component);
-    QObject* windowItem = component.create(windowContext);
+    auto windowItem =
+        qml::makeItem(_engine, QML_CONTENTWINDOW_URL, windowContext);
     windowContext->setParent(windowItem);
 
     // Store a reference to the window and add it to the scene

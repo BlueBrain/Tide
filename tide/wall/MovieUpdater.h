@@ -43,6 +43,7 @@
 #include "DataSource.h"
 #include "ElapsedTimer.h"
 #include "FpsCounter.h"
+#include "MovieSynchronizer.h"
 #include "types.h"
 
 #include <QMutex>
@@ -53,8 +54,11 @@
  * A single movie is designed to provide images to multiple windows on each
  * process.
  */
-class MovieUpdater : public DataSource
+class MovieUpdater : public QObject, public DataSource
 {
+    Q_OBJECT
+    Q_DISABLE_COPY(MovieUpdater)
+
 public:
     explicit MovieUpdater(const QString& uri);
     ~MovieUpdater();
@@ -63,7 +67,7 @@ public:
      * @copydoc DataSource::getTileImage
      * threadsafe
      */
-    ImagePtr getTileImage(uint tileIndex) const final;
+    ImagePtr getTileImage(uint tileIndex, deflect::View view) const final;
 
     /** @copydoc DataSource::getTileRect */
     QRect getTileRect(uint tileIndex) const final;
@@ -82,22 +86,16 @@ public:
     uint getMaxLod() const final;
 
     /** Update this datasource according to visibility and movie content. */
-    void update(const MovieContent& movie, bool visible);
+    void update(const MovieContent& movie);
 
-    /** @return true if all processes advance to request a new movie frame. */
-    bool advanceToNextFrame(WallToWallChannel& channel);
-
-    /**
-     * @return true if after advanceToNextFrame() we need to decode a new
-     *         movie frame via getTileImage().
-     */
-    bool canRequestNewFrame() const;
+    /** Synchronize frame advance accross all processes. */
+    void synchronizeFrameAdvance(WallToWallChannel& channel);
 
     /**
      * Indicates that the last requested frame was consumed and we can advance
      * to the next frame.
      */
-    void lastFrameDone();
+    void getNextFrame();
 
     /** @return current / max fps, movie position in percentage. */
     QString getStatistics() const;
@@ -108,31 +106,42 @@ public:
     /** @return true if the user is currently skipping the movie. */
     bool isSkipping() const;
 
+    /** @return true if the movie is paused. */
+    bool isPaused() const;
+
     /** @return skip position of the movie, normalized between [0.0, 1.0]. */
     qreal getSkipPosition() const;
 
+    /** The synchronizers linked to this shared data source. */
+    std::vector<MovieSynchronizer*> synchronizers;
+
+signals:
+    /** Emitted when a new picture has become available. */
+    void pictureUpdated();
+
 private:
     std::unique_ptr<FFMPEGMovie> _ffmpegMovie;
-    FpsCounter _fpsCounter;
 
     bool _paused = false;
     bool _loop = true;
-    bool _visible = false;
     bool _skipping = false;
     double _skipPosition = 0.0;
 
-    bool _lastFrameDone = false;
-    bool _requestNewFrame = false;
+    bool _readyForNextFrame = true;
 
     ElapsedTimer _timer;
     double _elapsedTime = 0.0;
 
     mutable QMutex _mutex;
     mutable double _sharedTimestamp = 0.0;
-    mutable double _currentPosition = 0.0;
+    mutable double _currentPosition = -1.0;
     mutable bool _loopedBack = false;
 
-    void _exchangeSharedTimestamp(WallToWallChannel& channel, bool inSync);
+    mutable QMutex _multiWindowMutex;
+    mutable PicturePtr _picture;
+
+    void _triggerFrameUpdate();
+    void _exchangeSharedTimestamp(WallToWallChannel& channel, bool isCandidate);
 };
 
 #endif

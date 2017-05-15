@@ -1,7 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>     */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/*                          Daniel Nachbaur <daniel.nachbaur@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -40,9 +40,13 @@
 
 #include "MultitouchListener.h"
 
+#include <stdexcept>
+
 MultitouchListener::MultitouchListener()
     : TUIO::TuioListener()
 {
+    if (!_client.socket)
+        throw std::runtime_error("TUIO could not start listening on UDP 3333");
     _client.addTuioListener(this);
     _client.connect();
 }

@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -40,7 +40,18 @@
 #ifndef DATAPROVIDER_H
 #define DATAPROVIDER_H
 
+#include "config.h"
 #include "types.h"
+
+#include "ContentSynchronizer.h"
+#if TIDE_USE_TIFF
+#include "ImagePyramidDataSource.h"
+#endif
+#include "ImageSource.h"
+#if TIDE_ENABLE_PDF_SUPPORT
+#include "PDFTiler.h"
+#endif
+#include "SVGTiler.h"
 
 #include <QFutureWatcher>
 #include <QList>
@@ -55,17 +66,29 @@ class DataProvider : public QObject
     Q_DISABLE_COPY(DataProvider)
 
 public:
-    /**
-     * Construct a data provider.
-     * @param view to use for stereo contents.
-     */
-    explicit DataProvider(deflect::View view);
+    /** Construct a data provider. */
+    DataProvider() = default;
 
     /** Destructor. */
     ~DataProvider();
 
-    /** Get the data source for the given stream uri. */
-    PixelStreamUpdaterSharedPtr getStreamDataSource(const QString& uri);
+    /** @return a ContentSynchronizer for the given content. */
+    std::unique_ptr<ContentSynchronizer> createSynchronizer(
+        const ContentWindow& window, deflect::View view);
+
+    /**
+     * Update the data sources with information from a new display group.
+     *
+     * @param group containing updated information for the movies/pdfs/streams.
+     */
+    void updateDataSources(const DisplayGroup& group);
+
+    /**
+     * Synchronize the swap of Tiles just before rendering for movies/streams.
+     *
+     * @param channel to synchonize swap accross all wall processes.
+     */
+    void synchronizeTilesSwap(WallToWallChannel& channel);
 
 public slots:
     /** Load an image asynchronously. */
@@ -75,22 +98,32 @@ public slots:
     void setNewFrame(deflect::FramePtr frame);
 
 signals:
-    /** Notify that loadAsync has completed for the given tile. */
-    void imageLoaded(ImagePtr image, TileWeakPtr tile);
-
     /** Emitted to request a new frame after a successful swap. */
     void requestFrame(QString uri);
 
 private:
-    const deflect::View _view;
-
-    typedef QFutureWatcher<void> Watcher;
+    using Watcher = QFutureWatcher<void>;
     QList<Watcher*> _watchers;
 
-    std::map<QString, PixelStreamUpdaterWeakPtr> _streamUpdaters;
+    std::map<QUuid, std::weak_ptr<ImageSource>> _imageSources;
+#if TIDE_USE_TIFF
+    std::map<QUuid, std::weak_ptr<ImagePyramidDataSource>> _imagePyrSources;
+#endif
+#if TIDE_ENABLE_MOVIE_SUPPORT
+    std::map<QUuid, std::weak_ptr<MovieUpdater>> _movieSources;
+#endif
+#if TIDE_ENABLE_PDF_SUPPORT
+    std::map<QUuid, std::weak_ptr<PDFTiler>> _pdfSources;
+#endif
+    std::map<QString, std::weak_ptr<PixelStreamUpdater>> _streamSources;
+    std::map<QUuid, std::weak_ptr<SVGTiler>> _svgSources;
 
+    std::shared_ptr<PixelStreamUpdater> _getStreamSource(
+        const ContentWindow& window);
     void _load(ContentSynchronizerSharedPtr source, TileWeakPtr tile);
     void _handleFinished();
+    std::unique_ptr<ContentSynchronizer> _makeSynchronizer(
+        const ContentWindow& window, deflect::View view);
 };
 
 #endif

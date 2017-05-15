@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -57,18 +57,18 @@ TestPattern::TestPattern(const WallConfiguration& configuration,
     setVisible(false);
     setSize(configuration.getTotalSize());
 
-    const QPoint globalScreenIndex = configuration.getGlobalScreenIndex();
-    const QString fullsceenMode =
-        configuration.getFullscreen() ? "True" : "False";
+    const auto screenIndex = 0;
+    const auto fullsceenMode = configuration.getFullscreen() ? "True" : "False";
 
-    _windowRect = configuration.getScreenRect(globalScreenIndex);
+    const auto& screen = configuration.getScreens().at(screenIndex);
+    _windowRect = configuration.getScreenRect(screen.globalIndex);
 
     _labels.push_back(QString("Rank: %1").arg(configuration.getProcessIndex()));
     _labels.push_back(QString("Host: %1").arg(configuration.getHost()));
-    _labels.push_back(QString("Display: %1").arg(configuration.getDisplay()));
+    _labels.push_back(QString("Display: %1").arg(screen.display));
     _labels.push_back(QString("Tile coordinates: (%1,%2)")
-                          .arg(globalScreenIndex.x())
-                          .arg(globalScreenIndex.y()));
+                          .arg(screen.globalIndex.x())
+                          .arg(screen.globalIndex.y()));
     _labels.push_back(QString("Resolution: %1 x %2")
                           .arg(configuration.getScreenWidth())
                           .arg(configuration.getScreenHeight()));

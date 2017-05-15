@@ -41,89 +41,79 @@
 
 #include "MovieUpdater.h"
 #include "Tile.h"
-#include "network/WallToWallChannel.h"
+#include "ZoomHelper.h"
 #include "scene/ContentWindow.h"
-#include "scene/MovieContent.h"
 
-MovieSynchronizer::MovieSynchronizer(const QString& uri)
-    : ContentSynchronizer()
-    , _updater(new MovieUpdater(uri))
-    , _tileAdded(false)
-    , _swapReady(false)
-    , _visible(false)
+MovieSynchronizer::MovieSynchronizer(std::shared_ptr<MovieUpdater> updater)
+    : TiledSynchronizer{TileSwapPolicy::SwapTilesSynchronously}
+    , _updater{std::move(updater)}
 {
-}
+    _updater->synchronizers.push_back(this);
 
-MovieSynchronizer::~MovieSynchronizer()
-{
+    connect(_updater.get(), &MovieUpdater::pictureUpdated, this,
+            &MovieSynchronizer::_onPictureUpdated);
 }
 
 void MovieSynchronizer::update(const ContentWindow& window,
                                const QRectF& visibleArea)
 {
-    // we only have one tile, which we add once, and we don't update it in
-    // synchronize() if it's not visible.
-    if (!_tileAdded)
-    {
-        emit addTile(std::make_shared<Tile>(0,
-                                            QRect(QPoint(0, 0), getTilesArea()),
-                                            _updater->getTileFormat(0)));
-        emit tilesAreaChanged();
-        _tileAdded = true;
-    }
-
-    _visible = !visibleArea.isEmpty();
-
-    const auto& movie = static_cast<const MovieContent&>(*window.getContent());
-    _updater->update(movie, _visible);
-
     if (_updater->isSkipping())
         emit sliderPositionChanged();
-}
 
-void MovieSynchronizer::synchronize(WallToWallChannel& channel)
-{
-    if (channel.allReady(_swapReady))
-    {
-        if (_tile)
-            _tile->swapImage();
-        _tile.reset();
-        _swapReady = false;
+    // Tiles area corresponds to Content dimensions for Movies
+    const auto tilesSurface = window.getContent()->getDimensions();
 
-        _updater->lastFrameDone();
-        emit statisticsChanged();
-        emit sliderPositionChanged();
-    }
+    const auto visibleTilesArea =
+        ZoomHelper{window}.toTilesArea(visibleArea, tilesSurface);
 
-    if (_updater->advanceToNextFrame(channel))
-    {
-        if (_updater->canRequestNewFrame())
-            emit updateTile(0, _updater->getTileRect(0),
-                            _updater->getTileFormat(0));
-        else
-            _swapReady = true;
-    }
+    if (_visibleTilesArea == visibleTilesArea)
+        return;
+
+    _visibleTilesArea = visibleTilesArea;
+    _tilesDirty = true;
 }
 
 QSize MovieSynchronizer::getTilesArea() const
 {
-    return _updater->getTilesArea(0);
+    return getDataSource().getTilesArea(0);
 }
 
 QString MovieSynchronizer::getStatistics() const
 {
-    return _updater->getStatistics();
+    return QString("%1 / %2").arg(_fpsCounter.toString(),
+                                  _updater->getStatistics());
 }
 
-ImagePtr MovieSynchronizer::getTileImage(const uint tileIndex) const
+const DataSource& MovieSynchronizer::getDataSource() const
 {
-    return _updater->getTileImage(tileIndex);
+    return *_updater;
 }
 
-void MovieSynchronizer::onSwapReady(TilePtr tile)
+void MovieSynchronizer::swapTiles()
 {
-    _tile = tile;
-    _swapReady = true;
+    TiledSynchronizer::swapTiles();
+
+    if (!_updater->isPaused() || _updater->isSkipping())
+    {
+        _fpsCounter.tick();
+        emit statisticsChanged();
+        emit sliderPositionChanged();
+    }
+}
+
+void MovieSynchronizer::updateTiles()
+{
+    if (_tilesDirty)
+    {
+        TiledSynchronizer::updateTiles(*_updater, _updateExistingTiles);
+        _tilesDirty = false;
+        _updateExistingTiles = false;
+    }
+}
+
+bool MovieSynchronizer::hasVisibleTiles() const
+{
+    return !_visibleTilesArea.isEmpty();
 }
 
 qreal MovieSynchronizer::getSliderPosition() const
@@ -131,4 +121,10 @@ qreal MovieSynchronizer::getSliderPosition() const
     // The slider follows user input while skipping to keep things smooth
     return _updater->isSkipping() ? _updater->getSkipPosition()
                                   : _updater->getPosition();
+}
+
+void MovieSynchronizer::_onPictureUpdated()
+{
+    _updateExistingTiles = true;
+    _tilesDirty = true;
 }

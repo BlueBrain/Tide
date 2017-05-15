@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,34 +37,23 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef IMAGEPYRAMIDSYNCHRONIZER_H
-#define IMAGEPYRAMIDSYNCHRONIZER_H
+#ifndef SCREENS_H
+#define SCREENS_H
 
-#include "LodSynchronizer.h"
+#include <QScreen>
 
 /**
- * A synchronizer which provides the list of Tiles for image pyramids.
+ * Screen utility functions.
  */
-class ImagePyramidSynchronizer : public LodSynchronizer
+namespace screens
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(ImagePyramidSynchronizer)
-
-public:
-    /** Constructor */
-    ImagePyramidSynchronizer(const QString& uri);
-
-    /** Destructor */
-    ~ImagePyramidSynchronizer();
-
-    /** @copydoc ContentSynchronizer::synchronize */
-    void synchronize(WallToWallChannel& channel) final;
-
-private:
-    std::unique_ptr<ImagePyramidDataSource> _dataSource;
-
-    /** @copydoc LodSynchronizer::getDataSource */
-    const DataSource& getDataSource() const final;
-};
+/**
+ * Get a QScreen corresponding to a certain display (X11 only).
+ *
+ * @param display X11 DISPLAY string (e.g. ":0.1").
+ * @return the first QScreen matching the display or nullptr if none is found.
+ */
+QScreen* find(const QString& display);
+}
 
 #endif

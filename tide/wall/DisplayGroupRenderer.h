@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -65,47 +65,48 @@ public:
      * @param provider the provider of data for the windows
      * @param screenRect the rectangle this renderers is rendering wrt global
      *                   screen setup
+     * @param view to use for stereo contents.
      */
     DisplayGroupRenderer(WallWindow& parentWindow, DataProvider& provider,
-                         const QRect& screenRect);
+                         const QRect& screenRect, deflect::View view);
 
-    /** Set different options used for rendering. */
-    void setRenderingOptions(OptionsPtr options);
+    /** Set the DisplayGroup to render, replacing the previous one. */
+    void setDisplayGroup(DisplayGroupPtr displayGroup);
 
     /** Set different touchpoint's markers. */
     void setMarkers(MarkersPtr markers);
 
+    /** Set different options used for rendering. */
+    void setRenderingOptions(OptionsPtr options);
+
     /** Set timer used to notify about inactivity timeout. */
     void setTimer(InactivityTimerPtr timer);
-
-    /** Update the contents, using the channel to synchronize processes. */
-    void synchronize(WallToWallChannel& channel);
 
     /** @return true if the renderer requires a redraw. */
     bool needRedraw() const;
 
 public slots:
-    /** Set the DisplayGroup to render, replacing the previous one. */
-    void setDisplayGroup(DisplayGroupPtr displayGroup);
-
     /** Increment number of rendered/swapped frames for FPS display. */
     void updateRenderedFrames();
+
+signals:
+    /** Notify that an image has completed loading for the given tile. */
+    void imageLoaded(ImagePtr image, TileWeakPtr tile);
 
 private:
     QQmlEngine& _engine;
     DataProvider& _provider;
     DisplayGroupPtr _displayGroup;
-    QQuickItem* _displayGroupItem;
+    MarkersPtr _markers;
+    OptionsPtr _options;
+    InactivityTimerPtr _timer;
+    const QRect _screenRect;
+    const deflect::View _view;
 
+    QQuickItem* _displayGroupItem = nullptr; // child of parent item
     using QmlWindowPtr = std::shared_ptr<QmlWindowRenderer>;
     QMap<QUuid, QmlWindowPtr> _windowItems;
     QmlWindowPtr _backgroundWindowItem;
-
-    OptionsPtr _options;
-    MarkersPtr _markers;
-    InactivityTimerPtr _timer;
-
-    const QRect _screenRect;
 
     void _createDisplayGroupQmlItem(QQuickItem& parentItem);
     void _createWindowQmlItem(ContentWindowPtr window);

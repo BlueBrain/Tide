@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -64,9 +64,9 @@ public slots:
     /**
      * Add an image to the current screenshot.
      * @param image the image to add.
-     * @param source the index of the wall process that sent the image.
+     * @param index the index of the wall process that sent the image.
      */
-    void addImage(QImage image, int source);
+    void addImage(QImage image, QPoint index);
 
 signals:
     /** Emitted when the last image forming the screenshot has been added. */
