@@ -62,7 +62,7 @@
 namespace
 {
 const QString SESSION_FILES_FILTER("Session files (*.dcx)");
-const QSize DEFAULT_WINDOW_SIZE(800, 600);
+const QSize DEFAULT_WINDOW_SIZE(810, 600);
 }
 
 MasterWindow::MasterWindow(DisplayGroupPtr displayGroup, OptionsPtr options,
@@ -140,9 +140,8 @@ void MasterWindow::_setupMasterWindowUI(
             &MasterWindow::_openContent);
 
     // open contents directory action
-    QAction* openContentsDirectoryAction =
-        new QAction("Open Contents Directory", this);
-    openContentsDirectoryAction->setStatusTip("Open contents directory");
+    QAction* openContentsDirectoryAction = new QAction("Open Directory", this);
+    openContentsDirectoryAction->setStatusTip("Open directory of contents");
     connect(openContentsDirectoryAction, &QAction::triggered, this,
             &MasterWindow::_openContentsDirectory);
 
@@ -171,6 +170,12 @@ void MasterWindow::_setupMasterWindowUI(
     connect(webbrowserAction, &QAction::triggered, _webbrowserWidget,
             &WebbrowserWidget::show);
 #endif
+
+    // Open whiteboard action
+    QAction* whiteboardAction = new QAction("Whiteboard", this);
+    whiteboardAction->setStatusTip("Open a whiteboard");
+    connect(whiteboardAction, &QAction::triggered, this,
+            &MasterWindow::openWhiteboard);
 
     // quit action
     QAction* quitAction = new QAction("Quit", this);
@@ -315,6 +320,7 @@ void MasterWindow::_setupMasterWindowUI(
 #if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
     fileMenu->addAction(webbrowserAction);
 #endif
+    fileMenu->addAction(whiteboardAction);
     fileMenu->addAction(clearContentsAction);
     fileMenu->addAction(quitAction);
     editMenu->addAction(backgroundAction);
@@ -339,6 +345,7 @@ void MasterWindow::_setupMasterWindowUI(
 #if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
     toolbar->addAction(webbrowserAction);
 #endif
+    toolbar->addAction(whiteboardAction);
     toolbar->addAction(clearContentsAction);
     toolbar->addAction(backgroundAction);
 

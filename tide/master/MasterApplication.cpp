@@ -238,6 +238,10 @@ void MasterApplication::_initMasterWindow()
             _pixelStreamerLauncher.get(),
             &PixelStreamerLauncher::openWebBrowser);
 
+    connect(_masterWindow.get(), &MasterWindow::openWhiteboard,
+            _pixelStreamerLauncher.get(),
+            &PixelStreamerLauncher::openWhiteboard);
+
     connect(_masterWindow.get(), &MasterWindow::sessionLoaded, this,
             &MasterApplication::_apply);
 
