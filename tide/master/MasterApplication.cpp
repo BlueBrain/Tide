@@ -47,6 +47,7 @@
 #include "QmlTypeRegistration.h"
 #include "ScreenshotAssembler.h"
 #include "StateSerializationHelper.h"
+#include "control/DisplayGroupController.h"
 #include "localstreamer/PixelStreamerLauncher.h"
 #include "log.h"
 #include "network/MasterFromWallChannel.h"
@@ -503,7 +504,12 @@ void MasterApplication::_initRestInterface()
                 _logger.get(), &LoggingUtility::powerStateChanged);
 
         connect(_restInterface.get(), &RestInterface::powerOff, [this]() {
-            if (!_planarController->powerOff())
+            if (_planarController->powerOff())
+            {
+                DisplayGroupController controller(*_displayGroup.get());
+                controller.hidePanels();
+            }
+            else
                 put_flog(LOG_INFO, "Could not power off the screens");
         });
     }
