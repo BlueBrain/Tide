@@ -46,6 +46,9 @@
 #include <QSerialPort>
 #include <QTimer>
 
+/**
+ * Allow control of Planar device over serial connection.
+ */
 class PlanarController : public QObject
 {
     Q_OBJECT
@@ -60,7 +63,7 @@ public:
     PlanarController(const QString& serialport);
 
     /** Get the power state of Planar displays. */
-    screenState getState() const;
+    ScreenState getState() const;
 
     /** Refresh the power state of Planar displays */
     void checkPowerState();
@@ -72,10 +75,11 @@ public:
     bool powerOn();
 
 signals:
-    void powerStateChanged(screenState state);
+    /** Emitted when power state of Planar displays changes */
+    void powerStateChanged(ScreenState state);
 
 private:
-    screenState _powered;
+    ScreenState _powered;
     QSerialPort _serial;
     QTimer _timer;
 };

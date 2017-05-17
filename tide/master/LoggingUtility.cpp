@@ -115,7 +115,7 @@ void LoggingUtility::_incrementWindowCount()
     ++_windowCounter;
 }
 
-void LoggingUtility::powerStateChanged(screenState state)
+void LoggingUtility::powerStateChanged(const ScreenState state)
 {
     _state = state;
     _lastPowerStateChanged = _getTimeStamp();
@@ -126,7 +126,7 @@ QString LoggingUtility::getLastScreenStateChanged() const
     return _lastPowerStateChanged;
 }
 
-screenState LoggingUtility::getScreenState() const
+ScreenState LoggingUtility::getScreenState() const
 {
     return _state;
 }

@@ -63,13 +63,13 @@ PlanarController::PlanarController(const QString& serialport)
         {
             QString output(_serial.readLine());
             output = output.trimmed();
-            screenState previousState = _powered;
+            ScreenState previousState = _powered;
             if (output.endsWith("OFF"))
-                _powered = screenState::OFF;
+                _powered = ScreenState::OFF;
             else if (output.endsWith("ON"))
-                _powered = screenState::ON;
+                _powered = ScreenState::ON;
             else
-                _powered = screenState::UNDEF;
+                _powered = ScreenState::UNDEF;
 
             if (_powered != previousState)
                 emit powerStateChanged(_powered);
@@ -83,40 +83,23 @@ PlanarController::PlanarController(const QString& serialport)
 
 bool PlanarController::powerOn()
 {
-    if (_serial.isOpen())
-    {
-        _serial.write("OPA1DISPLAY.POWER=ON\r");
-        return _serial.waitForBytesWritten(serialTimeout);
-    }
-    else
-        put_flog(LOG_INFO, "serial device not open ");
-    return false;
+    _serial.write("OPA1DISPLAY.POWER=ON\r");
+    return _serial.waitForBytesWritten(serialTimeout);
 }
 
 bool PlanarController::powerOff()
 {
-    if (_serial.isOpen())
-    {
-        _serial.write("OPA1DISPLAY.POWER=OFF\r");
-        return _serial.waitForBytesWritten(serialTimeout);
-    }
-    else
-        put_flog(LOG_INFO, "serial device not open ");
-    return false;
+    _serial.write("OPA1DISPLAY.POWER=OFF\r");
+    return _serial.waitForBytesWritten(serialTimeout);
 }
 
-screenState PlanarController::getState() const
+ScreenState PlanarController::getState() const
 {
     return _powered;
 }
 
 void PlanarController::checkPowerState()
 {
-    if (_serial.isOpen())
-    {
-        _serial.write("OPA1DISPLAY.POWER?\r");
-        _serial.waitForBytesWritten(serialTimeout);
-    }
-    else
-        put_flog(LOG_INFO, "serial device not open ");
+    _serial.write("OPA1DISPLAY.POWER?\r");
+    _serial.waitForBytesWritten(serialTimeout);
 }

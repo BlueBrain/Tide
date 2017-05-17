@@ -68,7 +68,7 @@ enum class TextureFormat
 /**
  * The power state of Planar displays.
  */
-enum class screenState
+enum class ScreenState
 {
     ON,
     OFF,

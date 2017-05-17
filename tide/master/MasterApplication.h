@@ -133,6 +133,7 @@ private:
 
 #if TIDE_ENABLE_PLANAR_CONTROLLER
     std::unique_ptr<PlanarController> _planarController;
+    bool _planarControllerEnabled;
 #endif
 
     QFutureWatcher<DisplayGroupConstPtr> _loadSessionOp;

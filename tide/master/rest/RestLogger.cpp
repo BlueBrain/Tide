@@ -46,13 +46,19 @@
 
 namespace
 {
-QString stateToString(screenState state)
+QString stateToString(ScreenState state)
 {
-    if (state == screenState::ON)
+    switch (state)
+    {
+    case ScreenState::ON:
         return "ON";
-    else if (state == screenState::OFF)
+    case ScreenState::OFF:
         return "OFF";
-    return "UNDEF";
+    case ScreenState::UNDEF:
+        return "UNDEF";
+    default:
+        return "UNDEF";
+    }
 }
 }
 
