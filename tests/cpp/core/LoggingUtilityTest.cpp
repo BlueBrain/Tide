@@ -62,7 +62,7 @@ const QString regexJson{
     \},
     "screens": {
         "last_change": "",
-        "status": "UNDEF"
+        "state": "UNDEF"
     },
     "window": \{
         "accumulated_count": 2,
@@ -80,7 +80,7 @@ const std::string defaultJson{
     },
     "screens": {
         "last_change": "",
-        "status": "UNDEF"
+        "state": "UNDEF"
     },
     "window": {
         "accumulated_count": 0,

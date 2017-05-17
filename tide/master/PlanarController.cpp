@@ -76,6 +76,7 @@ PlanarController::PlanarController(const QString& serialport)
         }
     });
 
+    checkPowerState();
     connect(&_timer, &QTimer::timeout, [this]() { checkPowerState(); });
     _timer.start(powerStateTimer);
 }
@@ -115,7 +116,6 @@ void PlanarController::checkPowerState()
     {
         _serial.write("OPA1DISPLAY.POWER?\r");
         _serial.waitForBytesWritten(serialTimeout);
-        put_flog(LOG_INFO, "checkPowerState()");
     }
     else
         put_flog(LOG_INFO, "serial device not open ");
