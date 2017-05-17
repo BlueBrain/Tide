@@ -71,6 +71,9 @@ signals:
     /** Emitted when users want to open a webbrowser. */
     void openWebBrowser(QPointF pos, QSize size, QString url);
 
+    /** Emitted when users want to open a whiteboard. */
+    void openWhiteboard();
+
     /** Emitted when a session has been successfully loaded. */
     void sessionLoaded(DisplayGroupConstPtr group);
 

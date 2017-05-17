@@ -55,7 +55,7 @@ WebbrowserWidget::WebbrowserWidget(const MasterConfiguration& config,
     , _widthSpinBox(0)
     , _heightSpinBox(0)
 {
-    setWindowTitle(tr("Open Webbrowser"));
+    setWindowTitle(tr("Open Web Browser"));
 
     // URL input
 
