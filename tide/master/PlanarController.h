@@ -79,7 +79,7 @@ signals:
     void powerStateChanged(ScreenState state);
 
 private:
-    ScreenState _powered;
+    ScreenState _state;
     QSerialPort _serial;
     QTimer _timer;
 };

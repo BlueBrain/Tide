@@ -54,8 +54,6 @@ QString stateToString(ScreenState state)
         return "ON";
     case ScreenState::OFF:
         return "OFF";
-    case ScreenState::UNDEF:
-        return "UNDEF";
     default:
         return "UNDEF";
     }

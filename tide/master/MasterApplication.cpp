@@ -222,10 +222,9 @@ void MasterApplication::_init()
                     _saveSessionPromise.reset();
                 }
             });
-    _planarControllerEnabled = !_config->getPlanarSerialPort().isEmpty();
 
 #if TIDE_ENABLE_PLANAR_CONTROLLER
-    if (_planarControllerEnabled)
+    if (!_config->getPlanarSerialPort().isEmpty())
     {
         _planarController.reset(
             new PlanarController(_config->getPlanarSerialPort()));
@@ -421,7 +420,7 @@ void MasterApplication::_initTouchListener()
             [this, getWallPos](const int id, const QPointF normalizedPos) {
                 _markers->addMarker(id, getWallPos(normalizedPos));
 #if TIDE_ENABLE_PLANAR_CONTROLLER
-                if (_planarControllerEnabled)
+                if (_planarController)
                 {
                     if (_planarController->getState() == ScreenState::OFF)
                         if (!_planarController->powerOn())
@@ -498,17 +497,14 @@ void MasterApplication::_initRestInterface()
     _restInterface.get()->setupHtmlInterface(*_displayGroup, *_config);
 
 #if TIDE_ENABLE_PLANAR_CONTROLLER
-    if (_planarControllerEnabled)
+    if (_planarController)
     {
         connect(_planarController.get(), &PlanarController::powerStateChanged,
                 _logger.get(), &LoggingUtility::powerStateChanged);
 
         connect(_restInterface.get(), &RestInterface::powerOff, [this]() {
             if (_planarController->powerOff())
-            {
-                DisplayGroupController controller(*_displayGroup.get());
-                controller.hidePanels();
-            }
+                DisplayGroupController(*_displayGroup).hidePanels();
             else
                 put_flog(LOG_INFO, "Could not power off the screens");
         });
