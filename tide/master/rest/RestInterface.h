@@ -103,6 +103,9 @@ signals:
     /** Open a whiteboard. */
     void whiteboard();
 
+    /** Power off the screens. */
+    void powerOff();
+
     /** Browse a website. */
     void browse(QString uri);
 

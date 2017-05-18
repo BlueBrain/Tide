@@ -16,10 +16,11 @@ set(TIDE_VENDOR "Blue Brain Project")
 set(TIDE_LICENSE BSD)
 set(TIDE_DEB_DEPENDS python imagemagick libopenmpi-dev openmpi-bin
   libboost-program-options-dev libboost-serialization-dev libboost-test-dev
-  qtbase5-dev qtdeclarative5-dev libqt5svg5-dev libqt5webkit5-dev
-  libqt5xmlpatterns5-dev libqt5x11extras5-dev qml-module-qtquick-controls
-  libpoppler-glib-dev libcairo2-dev libpoppler-qt5-dev librsvg2-dev libtiff5-dev
-  libavutil-dev libavformat-dev libavcodec-dev libswscale-dev)
+  qtbase5-dev qtdeclarative5-dev libqt5svg5-dev libqt5serialport5-dev 
+  libqt5webkit5-dev libqt5xmlpatterns5-dev libqt5x11extras5-dev 
+  qml-module-qtquick-controls libpoppler-glib-dev libcairo2-dev 
+  libpoppler-qt5-dev librsvg2-dev libtiff5-dev libavutil-dev libavformat-dev
+  libavcodec-dev libswscale-dev)
 set(TIDE_PORT_DEPENDS boost ffmpeg mpich-devel qt5)
 
 include(Common)
@@ -75,6 +76,11 @@ endif()
 common_find_package(ZeroEQ)
 if(TARGET ZeroEQHTTP)
   option(TIDE_ENABLE_REST_INTERFACE "Enable REST interface using ZeroEQ" ON)
+endif()
+
+common_find_package(Qt5SerialPort)
+if(TARGET Qt5::SerialPort)
+  option(TIDE_ENABLE_PLANAR_CONTROLLER "Enable Planar screen control" ON)
 endif()
 
 common_find_package_post()

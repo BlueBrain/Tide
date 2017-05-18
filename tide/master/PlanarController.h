@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,64 +37,51 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "RestLogger.h"
+#ifndef PLANARCONTROLLER_H
+#define PLANARCONTROLLER_H
 
-#include "json.h"
-#include "jsonschema.h"
+#include "types.h"
 
-#include <QJsonObject>
+#include <QObject>
+#include <QSerialPort>
+#include <QTimer>
 
-namespace
+/**
+ * Allow control of Planar device over serial connection.
+ */
+class PlanarController : public QObject
 {
-QString stateToString(ScreenState state)
-{
-    switch (state)
-    {
-    case ScreenState::ON:
-        return "ON";
-    case ScreenState::OFF:
-        return "OFF";
-    default:
-        return "UNDEF";
-    }
-}
-}
+    Q_OBJECT
 
-QJsonObject _makeJsonObject(const LoggingUtility& logger)
-{
-    const QJsonObject event{{"last_event", logger.getLastInteraction()},
-                            {"last_event_date",
-                             logger.getLastInteractionTime()},
-                            {"count", logger.getInteractionCount()}};
-    const QJsonObject window{{"count", int(logger.getWindowCount())},
-                             {"date_set", logger.getCounterModificationTime()},
-                             {"accumulated_count",
-                              int(logger.getAccumulatedWindowCount())}};
-    const QJsonObject screens{{"state", stateToString(logger.getScreenState())},
-                              {"last_change",
-                               logger.getLastScreenStateChanged()}};
-    return QJsonObject{{"event", event},
-                       {"window", window},
-                       {"screens", screens}};
-}
+public:
+    /**
+     * Construct Planar equipment controller.
+     * @param serialport the serial port used to connect to Quad Controller
+     * @throw std::runtime_error if the port is already in use or a connection
+     *        issue occured.
+     */
+    PlanarController(const QString& serialport);
 
-RestLogger::RestLogger(const LoggingUtility& logger)
-    : _logger(logger)
-{
-}
+    /** Get the power state of Planar displays. */
+    ScreenState getState() const;
 
-std::string RestLogger::getTypeName() const
-{
-    return "tide/stats";
-}
+    /** Refresh the power state of Planar displays */
+    void checkPowerState();
 
-std::string RestLogger::getSchema() const
-{
-    return jsonschema::create("Stats", _makeJsonObject(_logger),
-                              "Usage statistics of the Tide application");
-}
+    /** Power off Planar displays */
+    bool powerOff();
 
-std::string RestLogger::_toJSON() const
-{
-    return json::toString(_makeJsonObject(_logger));
-}
+    /** Power on Planar displays */
+    bool powerOn();
+
+signals:
+    /** Emitted when power state of Planar displays changes */
+    void powerStateChanged(ScreenState state);
+
+private:
+    ScreenState _state;
+    QSerialPort _serial;
+    QTimer _timer;
+};
+
+#endif

@@ -65,6 +65,16 @@ enum class TextureFormat
     yuv444
 };
 
+/**
+ * The power state of Planar displays.
+ */
+enum class ScreenState
+{
+    ON,
+    OFF,
+    UNDEF
+};
+
 class Configuration;
 class Content;
 class ContentSynchronizer;

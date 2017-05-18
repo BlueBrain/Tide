@@ -107,6 +107,12 @@ public:
     const QString& getAppLauncherFile() const;
 
     /**
+     * Get the port name used to control Planar equipment
+     * @return empty string if unspecified
+     */
+    QString getPlanarSerialPort() const;
+
+    /**
      * Get the port where the WebService server will be listening for incoming
      * requests.
      * @return port for WebService server
@@ -169,6 +175,7 @@ private:
     void loadMasterProcessInfo(QXmlQuery& query);
     void loadContentDirectory(QXmlQuery& query);
     void loadLauncherSettings(QXmlQuery& query);
+    void loadPlanarSettings(QXmlQuery& query);
     void loadSessionsDirectory(QXmlQuery& query);
     void loadUploadDirectory(QXmlQuery& query);
     void loadWebService(QXmlQuery& query);
@@ -193,6 +200,8 @@ private:
 
     QString _backgroundUri;
     QColor _backgroundColor;
+
+    QString _planarSerialPort;
 };
 
 #endif

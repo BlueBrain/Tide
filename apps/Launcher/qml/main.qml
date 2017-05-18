@@ -20,6 +20,7 @@ Rectangle {
     property string demoServiceImageFolder: ""
     property string demoServiceDeflectHost: ""
 
+    property alias powerButtonVisible: menu.poweroffItemVisible // set from cpp
     property bool useListViewMode: false // retain presentation mode, shared for all panels
 
     width: Style.windowDefaultSize.width
@@ -35,6 +36,7 @@ Rectangle {
             demoItemVisible: demoServiceUrl && demoServiceImageFolder && demoServiceDeflectHost
             onClearSession: sendRestCommand("clear", "");
             onStartWebbrowser: sendRestCommand("browse", "");
+            onPoweroffScreens: sendRestCommand("poweroff", "");
             onStartWhiteboard: sendRestCommand("whiteboard", "");
             onShowFilesPanel: centralWidget.sourceComponent = fileBrowser
             onShowSessionsPanel: centralWidget.sourceComponent = sessionsBrowser

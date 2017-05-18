@@ -67,6 +67,12 @@ public:
     /** @return the timestamp of last interaction */
     const QString& getLastInteractionTime() const;
 
+    /** @return state of displays. */
+    ScreenState getScreenState() const;
+
+    /** @return the timestamp of last power action */
+    QString getLastScreenStateChanged() const;
+
     /** @return the number of currently open windows. */
     size_t getWindowCount() const;
 
@@ -83,6 +89,9 @@ public slots:
      * interaction */
     void contentWindowRemoved();
 
+    /** Log the event and update the timestamp of last power action */
+    void powerStateChanged(const ScreenState state);
+
 private:
     size_t _windowCounter = 0;
     size_t _windowCounterTotal = 0;
@@ -90,6 +99,9 @@ private:
     QString _lastInteraction;
     QString _lastInteractionTime;
     size_t _interactionCounter = 0;
+
+    QString _lastPowerStateChanged;
+    ScreenState _state = ScreenState::UNDEF;
 
     void _decrementWindowCount();
     void _incrementWindowCount();

@@ -146,7 +146,7 @@ void PixelStreamerLauncher::openLauncher()
     }
 
     const qreal width = 0.25 * _config.getTotalWidth();
-    const QSize launcherSize(width, 0.85 * width);
+    const QSize launcherSize(width, 0.9 * width);
     const qreal x = 0.25 * _config.getTotalWidth();
     const qreal y = 0.35 * _config.getTotalHeight();
     const QPointF centerPos(x, y);

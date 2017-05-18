@@ -77,6 +77,7 @@ void MasterConfiguration::loadMasterSettings()
     loadWebBrowserStartURL(query);
     loadWhiteboard(query);
     loadBackgroundProperties(query);
+    loadPlanarSettings(query);
 }
 
 void MasterConfiguration::loadMasterProcessInfo(QXmlQuery& query)
@@ -119,6 +120,12 @@ void MasterConfiguration::loadLauncherSettings(QXmlQuery& query)
 
     query.setQuery("string(/configuration/launcher/@demoServiceImageFolder)");
     getString(query, _demoServiceImageFolder);
+}
+
+void MasterConfiguration::loadPlanarSettings(QXmlQuery& query)
+{
+    query.setQuery("string(/configuration/planar/@serialport)");
+    getString(query, _planarSerialPort);
 }
 
 void MasterConfiguration::loadWebService(QXmlQuery& query)
@@ -172,6 +179,11 @@ bool MasterConfiguration::getHeadless() const
 const QString& MasterConfiguration::getContentDir() const
 {
     return _contentDir;
+}
+
+QString MasterConfiguration::getPlanarSerialPort() const
+{
+    return _planarSerialPort;
 }
 
 const QString& MasterConfiguration::getSessionsDir() const

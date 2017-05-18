@@ -53,6 +53,7 @@
 #include "json.h"
 #include "scene/ContentFactory.h"
 
+#include "config.h"
 #include <tide/master/version.h>
 
 #include <zeroeq/http/helpers.h>
@@ -159,6 +160,9 @@ public:
         server.handle(jsonOptions);
 
         server.handleGET(jsonSize);
+#if TIDE_ENABLE_PLANAR_CONTROLLER
+        server.handlePUT(poweroffCmd);
+#endif
     }
 
     RestServer httpServer;
@@ -168,12 +172,15 @@ public:
     RestCommand exitCmd{"tide/exit", false};
     RestCommand screenshotCmd{"tide/screenshot"};
     RestCommand whiteboardCmd{"tide/whiteboard", false};
-
     JsonOptions jsonOptions;
     JsonSize jsonSize;
 
     std::unique_ptr<RestLogger> logContent;       // Statistics (optional)
     std::unique_ptr<HtmlInterface> htmlInterface; // HTML interface (optional)
+
+#if TIDE_ENABLE_PLANAR_CONTROLLER
+    RestCommand poweroffCmd{"tide/poweroff"};
+#endif
 };
 
 RestInterface::RestInterface(const int port, OptionsPtr options,
@@ -198,6 +205,11 @@ RestInterface::RestInterface(const int port, OptionsPtr options,
 
     connect(&_impl->whiteboardCmd, &RestCommand::received, this,
             &RestInterface::whiteboard);
+
+#if TIDE_ENABLE_PLANAR_CONTROLLER
+    connect(&_impl->poweroffCmd, &RestCommand::received, this,
+            &RestInterface::powerOff);
+#endif
 
     const auto contentDir = config.getContentDir();
     const auto sessionsDir = config.getSessionsDir();

@@ -60,6 +60,10 @@ const QString regexJson{
         "last_event": "contentWindowAdded",
         "last_event_date": "\d{4}-\d{2}-\d{2}[A-Z]\d{2}:\d{2}:\d{2}.\d{6}"
     \},
+    "screens": {
+        "last_change": "",
+        "state": "UNDEF"
+    },
     "window": \{
         "accumulated_count": 2,
         "count": 2,
@@ -73,6 +77,10 @@ const std::string defaultJson{
         "count": 0,
         "last_event": "",
         "last_event_date": ""
+    },
+    "screens": {
+        "last_change": "",
+        "state": "UNDEF"
     },
     "window": {
         "accumulated_count": 0,
