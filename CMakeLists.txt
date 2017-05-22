@@ -5,9 +5,10 @@ cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
 project(Tide VERSION 1.3.0)
 set(Tide_VERSION_ABI 1)
 
-list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake
-                              ${CMAKE_SOURCE_DIR}/CMake/common)
-include(GitExternal)
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMake/common)
+if(NOT EXISTS ${CMAKE_SOURCE_DIR}/CMake/common/Common.cmake)
+  message(FATAL_ERROR "CMake/common missing, run: git submodule update --init")
+endif()
 
 set(TIDE_INCLUDE_NAME tide)
 set(TIDE_DESCRIPTION "Tiled Interactive DisplayWall Environment")
@@ -16,9 +17,9 @@ set(TIDE_VENDOR "Blue Brain Project")
 set(TIDE_LICENSE BSD)
 set(TIDE_DEB_DEPENDS python imagemagick libopenmpi-dev openmpi-bin
   libboost-program-options-dev libboost-serialization-dev libboost-test-dev
-  qtbase5-dev qtdeclarative5-dev libqt5svg5-dev libqt5serialport5-dev 
-  libqt5webkit5-dev libqt5xmlpatterns5-dev libqt5x11extras5-dev 
-  qml-module-qtquick-controls libpoppler-glib-dev libcairo2-dev 
+  qtbase5-dev qtdeclarative5-dev libqt5svg5-dev libqt5serialport5-dev
+  libqt5webkit5-dev libqt5xmlpatterns5-dev libqt5x11extras5-dev
+  qml-module-qtquick-controls libpoppler-glib-dev libcairo2-dev
   libpoppler-qt5-dev librsvg2-dev libtiff5-dev libavutil-dev libavformat-dev
   libavcodec-dev libswscale-dev)
 set(TIDE_PORT_DEPENDS boost ffmpeg mpich-devel qt5)

@@ -3,8 +3,6 @@
 *.autosave
 CMakeLists.txt.user*
 build/
-CMake/common/
-cppnetlib/
 Deflect/
 Servus/
 TUIO/
