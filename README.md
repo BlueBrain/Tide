@@ -60,10 +60,10 @@ direct REST API calls. Simply drag and drop a file to upload it to the wall.
 
 Basic procedure on Linux / OSX:
 
-    git clone https://github.com/BlueBrain/Tide.git
+    git clone --recursive https://github.com/BlueBrain/Tide.git
     mkdir Tide/build
     cd Tide/build
-    cmake -GNinja ..
+    cmake -GNinja -DCLONE_SUBPROJECTS=ON ..
     ninja
 
 The master branch always contains the latest development features (see
