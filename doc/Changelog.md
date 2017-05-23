@@ -9,6 +9,9 @@ Changelog {#changelog}
   Fix crash with malformed encoded pixel streams, e.g. JPEG quality > 100
 * [169](https://github.com/BlueBrain/Tide/issues/169):
   Performance improvement for PixelStreams with small tile size (64x64).
+* [167](https://github.com/BlueBrain/Tide/pull/167):
+  Tide can be locked now. It prevents unwanted streams from opening and
+  freezes HTML interface.
 * [162](https://github.com/BlueBrain/Tide/issues/162):
   Movies and pixel streams can be rendered at 60 fps (up from 30 fps).
 * [161](https://github.com/BlueBrain/Tide/issues/161):

@@ -41,6 +41,19 @@
 
 #include <zeroeq/uri.h>
 
+using namespace zeroeq;
+
+namespace
+{
+std::string _getHostname(const std::string& source)
+{
+    if (source.find(":") != std::string::npos)
+        return source.substr(0, source.find(":"));
+    else
+        return source;
+}
+}
+
 RestServer::RestServer()
 {
     _init();
@@ -57,8 +70,37 @@ int RestServer::getPort() const
     return getURI().getPort();
 }
 
+void RestServer::block(const zeroeq::http::Method method)
+{
+    _blockedMethods.insert(method);
+}
+
+void RestServer::unblock(const zeroeq::http::Method method)
+{
+    _blockedMethods.erase(method);
+}
+
 void RestServer::_init()
 {
     _socketNotifier.connect(&_socketNotifier, &QSocketNotifier::activated,
-                            [this]() { receive(0 /* non-blocking receive*/); });
+                            [this]() {
+                                while (receive(0 /* non-blocking receive*/))
+                                    ;
+                            });
+}
+
+bool RestServer::_isWhitelisted(const std::string& source) const
+{
+    return _getHostname(source) == "127.0.0.1";
+}
+
+std::future<http::Response> RestServer::respondTo(
+    zeroeq::http::Request& request) const
+{
+    if (_blockedMethods.count(request.method) &&
+        !_isWhitelisted(_getHostname(request.source)))
+    {
+        return zeroeq::http::make_ready_response(http::Code::FORBIDDEN);
+    }
+    return Server::respondTo(request);
 }

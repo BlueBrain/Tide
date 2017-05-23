@@ -206,6 +206,11 @@ void WallWindow::setDisplayGroup(DisplayGroupPtr displayGroup)
     _displayGroupRenderer->setDisplayGroup(displayGroup);
 }
 
+void WallWindow::setScreenLock(ScreenLockPtr lock)
+{
+    _displayGroupRenderer->setScreenLock(lock);
+}
+
 void WallWindow::setInactivityTimer(InactivityTimerPtr timer)
 {
     _displayGroupRenderer->setTimer(timer);

@@ -110,6 +110,7 @@ private:
     QThread _mpiReceiveThread;
 
     DisplayGroupPtr _displayGroup;
+    ScreenLockPtr _lock;
     MarkersPtr _markers;
     OptionsPtr _options;
     InactivityTimerPtr _inactivityTimer;

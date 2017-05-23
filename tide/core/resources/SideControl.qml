@@ -8,22 +8,20 @@ SideButton {
     property real innerMargin: 0.15
     delegateHeight: (1.0 - innerMargin) * 2.5 * width
 
-    property Component buttonDelegate: Item{
+    property Component buttonDelegate: Item {
     }
 
     delegate: Column {
         anchors.fill: parent
         anchors.margins: sideControl.innerMargin * parent.width
         Image {
-            source: displaygroup.hasFullscreenWindows ||
-                    displaygroup.hasFocusedWindows ? "qrc:/img/exit.svg" :
-                                                     "qrc:/img/launch.svg"
+            source: displaygroup.hasFullscreenWindows
+                    || displaygroup.hasFocusedWindows ? "qrc:/img/exit.svg" : "qrc:/img/launch.svg"
             width: parent.width
             height: width
             anchors.horizontalCenter: parent.horizontalCenter
             Loader {
-                property int buttonIndex: displaygroup.hasFullscreenWindows ? 2 :
-                                          displaygroup.hasFocusedWindows ? 1 : 0
+                property int buttonIndex: displaygroup.hasFullscreenWindows ? 2 : displaygroup.hasFocusedWindows ? 1 : 0
                 anchors.fill: parent
                 sourceComponent: buttonDelegate
             }
@@ -43,6 +41,7 @@ SideButton {
             id: bottomItem
             width: parent.width
             height: width
+
             ListView {
                 id: contentActionButton
                 anchors.fill: parent
@@ -58,13 +57,14 @@ SideButton {
                         onClicked: action.trigger()
                     }
                 }
-                model: displaygroup.fullscreenWindow ?
-                           displaygroup.fullscreenWindow.content.actions : undefined
+                model: displaygroup.fullscreenWindow ? displaygroup.fullscreenWindow.content.actions : undefined
             }
-            Clock {
-                displayedHeight: parent.width
+
+            Image {
+                source: lock.locked ? "qrc:/img/lock.svg" : "qrc:/img/unlock.svg"
+                width: parent.width
+                height: width
                 anchors.horizontalCenter: parent.horizontalCenter
-                showSeconds: false
                 visible: !contentActionButton.visible
                 Loader {
                     property int buttonIndex: 3

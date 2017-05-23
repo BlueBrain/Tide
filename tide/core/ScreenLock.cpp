@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,90 +37,105 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "MasterToWallChannel.h"
-
-#include "InactivityTimer.h"
 #include "ScreenLock.h"
-#include "network/MPIChannel.h"
-#include "scene/ContentWindow.h"
-#include "scene/DisplayGroup.h"
-#include "scene/Markers.h"
-#include "scene/Options.h"
-#include "serialization/utils.h"
 
-#include <deflect/Frame.h>
-
-MasterToWallChannel::MasterToWallChannel(MPIChannelPtr mpiChannel)
-    : _mpiChannel(mpiChannel)
+void ScreenLock::lock()
 {
+    if (_locked)
+        return;
+
+    _locked = true;
+    emit lockChanged(_locked);
+    emit modified(shared_from_this());
 }
 
-template <typename T>
-void MasterToWallChannel::broadcast(const T& object, const MPIMessageType type)
+void ScreenLock::unlock()
 {
-    _mpiChannel->broadcast(type, serialization::toBinary(object));
+    if (!_locked)
+        return;
+
+    _acceptAllStreams();
+
+    _locked = false;
+    emit lockChanged(_locked);
+    emit modified(shared_from_this());
 }
 
-template <typename T>
-void MasterToWallChannel::broadcastAsync(const T& object,
-                                         const MPIMessageType type)
+bool ScreenLock::isLocked() const
 {
-    const auto data = serialization::toBinary(object);
-
-    QMetaObject::invokeMethod(this, "_broadcast", Qt::QueuedConnection,
-                              Q_ARG(MPIMessageType, type),
-                              Q_ARG(std::string, data));
+    return _locked;
 }
 
-void MasterToWallChannel::sendAsync(DisplayGroupPtr displayGroup)
+void ScreenLock::acceptStream(const QString uri)
 {
-    broadcastAsync(displayGroup, MPIMessageType::DISPLAYGROUP);
+    if (!_isPending(uri))
+        return;
+
+    emit streamAccepted(uri);
+    _remove(uri);
 }
 
-void MasterToWallChannel::sendAsync(OptionsPtr options)
+void ScreenLock::rejectStream(const QString uri)
 {
-    broadcastAsync(options, MPIMessageType::OPTIONS);
+    if (!_isPending(uri))
+        return;
+
+    emit streamRejected(uri);
+    _remove(uri);
 }
 
-void MasterToWallChannel::sendAsync(InactivityTimerPtr timer)
+void ScreenLock::requestStreamAcceptance(const QString uri)
 {
-    broadcastAsync(timer, MPIMessageType::TIMER);
+    if (_locked)
+        _add(uri);
+    else
+        acceptStream(uri);
 }
 
-void MasterToWallChannel::sendAsync(ScreenLockPtr lock)
+void ScreenLock::cancelStreamAcceptance(const QString uri)
 {
-    broadcastAsync(lock, MPIMessageType::LOCK);
+    _remove(uri);
 }
 
-void MasterToWallChannel::sendAsync(MarkersPtr markers)
+QStringList ScreenLock::getPendingStreams() const
 {
-    broadcastAsync(markers, MPIMessageType::MARKERS);
+    return QStringList::fromStdList(_streams);
 }
 
-void MasterToWallChannel::send(deflect::FramePtr frame)
+void ScreenLock::_add(const QString& uri)
 {
-    assert(!frame->segments.empty() && "received an empty frame");
-#if BOOST_VERSION >= 106000
-    broadcast(frame, MPIMessageType::PIXELSTREAM);
-#else
-    // WAR missing support for std::shared_ptr
-    broadcast(*frame, MPIMessageType::PIXELSTREAM);
-#endif
+    if (_isPending(uri))
+        return;
+
+    _streams.push_back(uri);
+    emit streamListChanged();
+    emit modified(shared_from_this());
 }
 
-void MasterToWallChannel::sendRequestScreenshot()
+void ScreenLock::_remove(const QString& uri)
 {
-    _mpiChannel->sendAll(MPIMessageType::IMAGE);
+    const auto iter = std::find(_streams.begin(), _streams.end(), uri);
+    if (iter != _streams.end())
+    {
+        _streams.erase(iter);
+        emit streamListChanged();
+        emit modified(shared_from_this());
+    }
 }
 
-void MasterToWallChannel::sendQuit()
+bool ScreenLock::_isPending(const QString& uri) const
 {
-    _mpiChannel->sendAll(MPIMessageType::QUIT);
+    return std::find(_streams.begin(), _streams.end(), uri) != _streams.end();
 }
 
-// cppcheck-suppress passedByValue
-void MasterToWallChannel::_broadcast(const MPIMessageType type,
-                                     const std::string data)
+void ScreenLock::_acceptAllStreams()
 {
-    _mpiChannel->broadcast(type, data);
+    if (_streams.empty())
+        return;
+
+    for (auto stream : _streams)
+        emit streamAccepted(stream);
+
+    _streams.clear();
+    emit streamListChanged();
 }

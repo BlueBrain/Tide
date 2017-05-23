@@ -42,6 +42,7 @@
 #include "DataProvider.h"
 #include "DisplayGroupRenderer.h"
 #include "InactivityTimer.h"
+#include "ScreenLock.h"
 #include "WallWindow.h"
 #include "network/WallToWallChannel.h"
 #include "scene/DisplayGroup.h"
@@ -56,12 +57,17 @@ RenderController::RenderController(std::vector<WallWindow*> windows,
     , _wallChannel{wallChannel}
     , _syncDisplayGroup{boost::make_shared<DisplayGroup>(QSize())}
     , _syncInactivityTimer{boost::make_shared<InactivityTimer>()}
+    , _syncLock(ScreenLock::create())
     , _syncOptions{Options::create()}
 {
     _syncDisplayGroup.setCallback([this](DisplayGroupPtr group) {
         _provider.updateDataSources(*group);
         for (auto window : _windows)
             window->setDisplayGroup(group);
+    });
+    _syncLock.setCallback([this](ScreenLockPtr lock) {
+        for (auto window : _windows)
+            window->setScreenLock(lock);
     });
     _syncInactivityTimer.setCallback([this](InactivityTimerPtr timer) {
         for (auto window : _windows)
@@ -193,6 +199,12 @@ void RenderController::updateMarkers(MarkersPtr markers)
     requestRender();
 }
 
+void RenderController::updateLock(ScreenLockPtr lock)
+{
+    _syncLock.update(lock);
+    requestRender();
+}
+
 void RenderController::updateOptions(OptionsPtr options)
 {
     _syncOptions.update(options);
@@ -218,4 +230,5 @@ void RenderController::_synchronizeObjects(const SyncFunction& versionCheckFunc)
     _syncMarkers.sync(versionCheckFunc);
     _syncOptions.sync(versionCheckFunc);
     _syncInactivityTimer.sync(versionCheckFunc);
+    _syncLock.sync(versionCheckFunc);
 }

@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,70 +37,97 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef RENDERCONTROLLER_H
-#define RENDERCONTROLLER_H
+#ifndef SCREENLOCK_H
+#define SCREENLOCK_H
 
+#include "serialization/includes.h"
 #include "types.h"
 
-#include "SwapSyncObject.h"
-#include "SwapSynchronizer.h"
-
 #include <QObject>
+#include <boost/enable_shared_from_this.hpp>
 
 /**
- * Setup the scene and control the rendering options during runtime.
+ * Allow wall lock preventing unwanted streams from opening and making Web
+ * Interface view-only.
  */
-class RenderController : public QObject
+class ScreenLock : public QObject,
+                   public boost::enable_shared_from_this<ScreenLock>
 {
     Q_OBJECT
-    Q_DISABLE_COPY(RenderController)
+
+    Q_PROPERTY(bool locked READ isLocked NOTIFY lockChanged)
+    Q_PROPERTY(
+        QStringList streamList READ getPendingStreams NOTIFY streamListChanged)
 
 public:
-    /** Constructor */
-    RenderController(std::vector<WallWindow*> windows, DataProvider& provider,
-                     WallToWallChannel& wallChannel, SwapSync type);
+    /** Create a shared ScreenLock object. */
+    static ScreenLockPtr create() { return ScreenLockPtr(new ScreenLock); }
+    /**
+     * Lock the screen. Notify about incoming streams and disallow
+     * Web Interface to controll the wall
+     */
+    Q_INVOKABLE void lock();
 
-public slots:
-    void requestRender();
+    /**
+     * Unlock the screen. Open pending streams and allow wall control from
+     * Web Interface
+     */
+    Q_INVOKABLE void unlock();
 
-    void updateDisplayGroup(DisplayGroupPtr displayGroup);
-    void updateInactivityTimer(InactivityTimerPtr timer);
-    void updateLock(ScreenLockPtr lock);
-    void updateMarkers(MarkersPtr markers);
-    void updateOptions(OptionsPtr options);
-    void updateRequestScreenshot();
-    void updateQuit();
+    /** Check the state of the lock */
+    bool isLocked() const;
+
+    /** Accept the specified stream. */
+    Q_INVOKABLE void acceptStream(QString uri);
+
+    /** Reject the specified stream. */
+    Q_INVOKABLE void rejectStream(QString uri);
+
+    /** Request a new stream acceptance. */
+    void requestStreamAcceptance(QString uri);
+
+    /** Cancel acceptance of the specified stream. */
+    void cancelStreamAcceptance(QString uri);
+
+    /** Get the list of registered streams */
+    QStringList getPendingStreams() const;
 
 signals:
-    void screenshotRendered(QImage image, QPoint index);
+    /** Emitted when the state of the lock changes. */
+    void lockChanged(bool locked);
+
+    /** Emitted when the list of stream changes. */
+    void streamListChanged();
+
+    /** Emitted when the lock changes. */
+    void modified(ScreenLockPtr lock);
+
+    /** Emitted when a single stream is to be opened (accepted by user). */
+    void streamAccepted(QString uri);
+
+    /** Emitted when a single stream is to be closed (rejected by user). */
+    void streamRejected(QString uri);
 
 private:
-    std::vector<WallWindow*> _windows; // deleteLater from syncQuit
-    DataProvider& _provider;
-    WallToWallChannel& _wallChannel;
-    std::unique_ptr<SwapSynchronizer> _swapSynchronizer;
+    friend class boost::serialization::access;
 
-    SwapSyncObject<DisplayGroupPtr> _syncDisplayGroup;
-    SwapSyncObject<InactivityTimerPtr> _syncInactivityTimer;
-    SwapSyncObject<ScreenLockPtr> _syncLock;
-    SwapSyncObject<MarkersPtr> _syncMarkers;
-    SwapSyncObject<OptionsPtr> _syncOptions;
-    SwapSyncObject<bool> _syncScreenshot{false};
-    SwapSyncObject<bool> _syncQuit{false};
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int)
+    {
+        // clang-format off
+        ar & _locked;
+        ar & _streams;
+        // clang-format on
+    }
 
-    int _renderTimer = 0;
-    int _stopRenderingDelayTimer = 0;
-    int _idleRedrawTimer = 0;
-    bool _needRedraw = false;
+    bool _locked = false;
+    std::list<QString> _streams;
 
-    void _setupSwapSynchronization(SwapSync type);
-
-    void timerEvent(QTimerEvent* qtEvent) final;
-
-    /** Update and synchronize scene objects before rendering a frame. */
-    void _syncAndRender();
-    bool _syncAndRenderWindows(bool grab);
-    void _synchronizeObjects(const SyncFunction& versionCheckFunc);
+    ScreenLock() = default;
+    void _add(const QString& uri);
+    void _remove(const QString& uri);
+    bool _isPending(const QString& uri) const;
+    void _acceptAllStreams();
 };
 
 #endif
