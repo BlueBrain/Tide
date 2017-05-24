@@ -1008,6 +1008,10 @@ function updateOptions() {
 function showBezels()
 {
   $(".bezel").toggle();
+  if ($('.bezel').is(':visible'))
+    $("#showBezelsButton").addClass("buttonPressed");
+  else
+    $("#showBezelsButton").removeClass("buttonPressed");
 }
 
 function updateTile(tile) {
