@@ -39,10 +39,10 @@
 
 #include "thumbnail.h"
 
+#include "StreamThumbnailGenerator.h"
 #include "ThumbnailGeneratorFactory.h"
 #include "config.h"
-
-#include "StreamThumbnailGenerator.h"
+#include "scene/Content.h"
 
 #if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
 #include "WebbrowserThumbnailGenerator.h"
