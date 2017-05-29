@@ -85,6 +85,11 @@ public slots:
     void sendAsync(OptionsPtr options);
 
     /**
+     * Send the given Timer to the wall processes.
+     * @param timer The timer to send
+     */
+    void sendAsync(PowerTimerPtr timer);
+    /**
      * Send the given Markers to the wall processes.
      * @param markers The markers to send
      */

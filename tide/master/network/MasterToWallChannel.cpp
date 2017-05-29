@@ -39,6 +39,7 @@
 
 #include "MasterToWallChannel.h"
 
+#include "PowerTimer.h"
 #include "network/MPIChannel.h"
 #include "scene/ContentWindow.h"
 #include "scene/DisplayGroup.h"
@@ -78,6 +79,11 @@ void MasterToWallChannel::sendAsync(DisplayGroupPtr displayGroup)
 void MasterToWallChannel::sendAsync(OptionsPtr options)
 {
     broadcastAsync(options, MPIMessageType::OPTIONS);
+}
+
+void MasterToWallChannel::sendAsync(PowerTimerPtr timer)
+{
+    broadcastAsync(timer, MPIMessageType::TIMER);
 }
 
 void MasterToWallChannel::sendAsync(MarkersPtr markers)

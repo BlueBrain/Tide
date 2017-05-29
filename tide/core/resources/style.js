@@ -17,6 +17,7 @@ var fullscreenBackgroundZorder = 198;
 var fullscreenZorder = 199;
 var sideControlZorder = 200;
 var overlayZorder = 1000;
+var countdownZorder = 201;
 
 var focusContextColor = "black"
 var focusContextOpacity = 0.7;
@@ -24,6 +25,7 @@ var focusContextPanelsOpacity = 0.5;
 var focusContextFullscreenOpacity = 0.99;
 var focusTransitionTime = 500;
 var panelsAnimationTime = 300
+var countdownTransitionTime = 1500;
 
 var sideButtonColor = activeColor
 var sideButtonRelHeight = 0.3

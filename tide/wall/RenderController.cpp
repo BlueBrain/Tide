@@ -40,6 +40,7 @@
 #include "RenderController.h"
 
 #include "DisplayGroupRenderer.h"
+#include "PowerTimer.h"
 #include "TextureUploader.h"
 #include "WallWindow.h"
 #include "network/WallToWallChannel.h"
@@ -50,6 +51,7 @@ RenderController::RenderController(WallWindow& window)
     : _window(window)
     , _syncDisplayGroup(boost::make_shared<DisplayGroup>(QSize()))
     , _syncOptions(boost::make_shared<Options>())
+    , _syncTimer(boost::make_shared<PowerTimer>())
 {
     _syncDisplayGroup.setCallback(std::bind(&WallWindow::setDisplayGroup,
                                             &_window, std::placeholders::_1));
@@ -57,6 +59,9 @@ RenderController::RenderController(WallWindow& window)
         std::bind(&WallWindow::setMarkers, &_window, std::placeholders::_1));
     _syncOptions.setCallback(std::bind(&WallWindow::setRenderOptions, &_window,
                                        std::placeholders::_1));
+
+    _syncTimer.setCallback(
+        std::bind(&WallWindow::setTimer, &_window, std::placeholders::_1));
 
     connect(&window.getUploader(), &TextureUploader::uploaded, this,
             [this] { _needRedraw = true; }, Qt::QueuedConnection);
@@ -161,10 +166,17 @@ void RenderController::updateMarkers(MarkersPtr markers)
     requestRender();
 }
 
+void RenderController::updateTimer(PowerTimerPtr timer)
+{
+    _syncTimer.update(timer);
+    requestRender();
+}
+
 void RenderController::_synchronizeObjects(const SyncFunction& versionCheckFunc)
 {
     _syncScreenshot.sync(versionCheckFunc);
     _syncDisplayGroup.sync(versionCheckFunc);
     _syncMarkers.sync(versionCheckFunc);
     _syncOptions.sync(versionCheckFunc);
+    _syncTimer.sync(versionCheckFunc);
 }

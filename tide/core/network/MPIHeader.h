@@ -55,7 +55,8 @@ enum class MPIMessageType
     REQUEST_FRAME,
     TIMESTAMP,
     START_PROCESS,
-    IMAGE
+    IMAGE,
+    TIMER
 };
 
 /** Fixed-size message header. */

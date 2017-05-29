@@ -3,6 +3,7 @@
         <file>error.png</file>
     </qresource>
     <qresource prefix="/qml/wall">
+        <file>PowerTimer.qml</file>
         <file>Background.qml</file>
         <file>TouchPointMarker.qml</file>
         <file>WallContentWindow.qml</file>

@@ -75,6 +75,9 @@ public:
     /** Set different touchpoint's markers. */
     void setMarkers(MarkersPtr markers);
 
+    /** Set timer used to notify about inactivity timeout. */
+    void setTimer(PowerTimerPtr timer);
+
     /** Update the contents, using the channel to synchronize processes. */
     void synchronize(WallToWallChannel& channel);
 
@@ -102,6 +105,7 @@ private:
     MarkersPtr _markers;
 
     const QRect _screenRect;
+    PowerTimerPtr _timer;
 
     void _createDisplayGroupQmlItem(QQuickItem& parentItem);
     void _createWindowQmlItem(ContentWindowPtr window);

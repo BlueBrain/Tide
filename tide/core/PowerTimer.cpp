@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,98 +37,64 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef WALLFROMMASTERCHANNEL_H
-#define WALLFROMMASTERCHANNEL_H
+#include "PowerTimer.h"
 
-#include "network/ReceiveBuffer.h"
-#include "types.h"
+#include "log.h"
 
-#include <QObject>
-
-/**
- * Receiving channel from the master application to the wall processes.
- */
-class WallFromMasterChannel : public QObject
+PowerTimer::PowerTimer()
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(WallFromMasterChannel)
+}
 
-public:
-    /** Constructor */
-    WallFromMasterChannel(MPIChannelPtr mpiChannel);
+PowerTimer::PowerTimer(const int timeout)
+    : _timeout(timeout * 60000) // from ms to minute
+    , _countDownTimer(new QTimer())
+    , _inactivityTimer(new QTimer())
 
-    /** Check if a message is available from the Master process. */
-    bool isMessageAvailable();
+{
+    connect(_inactivityTimer.get(), &QTimer::timeout, [this]() {
+        if (!_countDownTimer->isActive())
+        {
+            _active = true;
+            _countDownTimer->start(_countdownTimeout);
+            emit updated(shared_from_this());
+        }
+    });
+    connect(_countDownTimer.get(), &QTimer::timeout,
+            [this]() { emit poweroff(); });
+}
 
-    /**
-     * Receive a message.
-     * A received() signal will be emitted according to the message type.
-     * This method is blocking.
-     */
-    void receiveMessage();
+int PowerTimer::getCountdownTimeout()
+{
+    return _countdownTimeout;
+}
 
-public slots:
-    /**
-     * Process messages until the QUIT message is received.
-     */
-    void processMessages();
+bool PowerTimer::isActive()
+{
+    return _active;
+}
 
-signals:
-    /**
-     * Emitted when a displayGroup was recieved
-     * @see receiveMessage()
-     * @param displayGroup The DisplayGroup that was received
-     */
-    void received(DisplayGroupPtr displayGroup);
+void PowerTimer::start()
+{
+    _inactivityTimer->start(_timeout);
+}
 
-    /**
-     * Emitted when new Options were recieved
-     * @see receiveMessage()
-     * @param options The options that were received
-     */
-    void received(OptionsPtr options);
+void PowerTimer::stop()
+{
+    _active = false;
+    emit updated(shared_from_this());
+    _inactivityTimer->stop();
+    _countDownTimer->stop();
+}
 
-    /** Emitted when new Timer is received
-     * @see receiveMessage()
-     * @param timer The Timer that were received
-     */
-    void received(PowerTimerPtr timer);
-
-    /**
-     * Emitted when new Markers were recieved
-     * @see receiveMessage()
-     * @param markers The markers that were received
-     */
-    void received(MarkersPtr markers);
-
-    /**
-     * Emitted when a new PixelStream frame was recieved
-     * @see receiveMessage()
-     * @param frame The frame that was received
-     */
-    void received(deflect::FramePtr frame);
-
-    /**
-     * Emitted when a screenshot was requested.
-     * @see receiveMessage()
-     */
-    void receivedScreenshotRequest();
-
-    /**
-     * Emitted when the quit message was recieved
-     * @see receiveMessage()
-     */
-    void receivedQuit();
-
-private:
-    MPIChannelPtr _mpiChannel;
-    ReceiveBuffer _buffer;
-    bool _processMessages;
-
-    template <typename T>
-    T receiveBroadcast(const size_t messageSize);
-    template <typename T>
-    T receiveQObjectBroadcast(const size_t messageSize);
-};
-
-#endif
+void PowerTimer::reset()
+{
+    _inactivityTimer->start();
+    if (_active)
+    {
+        put_flog(LOG_INFO,
+                 "Prevented powering off the screens during countdown");
+        _countDownTimer->stop();
+        _active = false;
+        emit updated(shared_from_this());
+    }
+}

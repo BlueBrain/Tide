@@ -129,6 +129,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   network/MPIHeader.h
   network/MPINospin.h
   network/ReceiveBuffer.h
+  PowerTimer.h
   QmlTypeRegistration.h
   qmlUtils.h
   StatePreview.h
@@ -182,6 +183,7 @@ list(APPEND TIDECORE_SOURCES
   network/MPIChannel.cpp
   network/MPIContext.cpp
   network/MPINospin.cpp
+  PowerTimer.cpp
   scene/ContentAction.cpp
   scene/ContentActionsModel.cpp
   scene/Content.cpp

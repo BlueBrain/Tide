@@ -39,6 +39,7 @@
 
 #include "WallFromMasterChannel.h"
 
+#include "PowerTimer.h"
 #include "network/MPIChannel.h"
 #include "scene/ContentWindow.h"
 #include "scene/DisplayGroup.h"
@@ -80,6 +81,9 @@ void WallFromMasterChannel::receiveMessage()
         break;
     case MPIMessageType::MARKERS:
         emit received(receiveQObjectBroadcast<MarkersPtr>(mh.size));
+        break;
+    case MPIMessageType::TIMER:
+        emit received(receiveQObjectBroadcast<PowerTimerPtr>(mh.size));
         break;
     case MPIMessageType::PIXELSTREAM:
 #if BOOST_VERSION >= 106000

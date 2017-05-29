@@ -98,6 +98,7 @@ class MPIChannel;
 class Options;
 class PixelStreamUpdater;
 class PixelStreamWindowManager;
+class PowerTimer;
 class TestPattern;
 class TextureUploader;
 class Tile;
@@ -121,6 +122,7 @@ typedef std::shared_ptr<PixelStreamUpdater> PixelStreamUpdaterSharedPtr;
 typedef std::shared_ptr<Tile> TilePtr;
 typedef std::weak_ptr<Tile> TileWeakPtr;
 typedef std::shared_ptr<std::promise<bool>> promisePtr;
+typedef boost::shared_ptr<PowerTimer> PowerTimerPtr;
 
 typedef std::set<ContentWindowPtr> ContentWindowSet;
 typedef std::vector<ContentWindowPtr> ContentWindowPtrs;

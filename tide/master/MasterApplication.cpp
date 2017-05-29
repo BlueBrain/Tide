@@ -44,6 +44,7 @@
 #include "MasterConfiguration.h"
 #include "MasterDisplayGroupRenderer.h"
 #include "PixelStreamWindowManager.h"
+#include "PowerTimer.h"
 #include "QmlTypeRegistration.h"
 #include "ScreenshotAssembler.h"
 #include "StateSerializationHelper.h"
@@ -192,6 +193,9 @@ void MasterApplication::_init()
 
     _screenshotAssembler.reset(new ScreenshotAssembler(*_config));
 
+    _timer.reset(new PowerTimer(_config->getPlanarTimeout()));
+    _timer->start();
+
     if (_config->getHeadless())
         _initOffscreenView();
     else
@@ -229,6 +233,11 @@ void MasterApplication::_init()
         _planarController.reset(
             new PlanarController(_config->getPlanarSerialPort()));
     }
+    connect(_timer.get(), &PowerTimer::poweroff, [this]() {
+        _planarController->powerOff();
+        put_flog(LOG_INFO, "Powering off the screens on inactivity timeout");
+        _timer->stop();
+    });
 #endif
 
 #if TIDE_ENABLE_REST_INTERFACE
@@ -367,6 +376,12 @@ void MasterApplication::_setupMPIConnections()
             },
             Qt::DirectConnection);
 
+    connect(_timer.get(), &PowerTimer::updated, _masterToWallChannel.get(),
+            [this](PowerTimerPtr timer) {
+                _masterToWallChannel->sendAsync(timer);
+            },
+            Qt::DirectConnection);
+
     connect(_markers.get(), &Markers::updated, _masterToWallChannel.get(),
             [this](MarkersPtr markers) {
                 _masterToWallChannel->sendAsync(markers);
@@ -410,6 +425,8 @@ void MasterApplication::_initTouchListener()
     connect(_touchListener.get(), &MultitouchListener::touchPointRemoved,
             _touchInjector.get(),
             &deflect::qt::TouchInjector::removeTouchPoint);
+    connect(_touchListener.get(), &MultitouchListener::touchPointAdded,
+            _timer.get(), &PowerTimer::reset);
 
     const auto wallSize = _config->getTotalSize();
     auto getWallPos = [wallSize](const QPointF& normalizedPos) {
@@ -423,10 +440,16 @@ void MasterApplication::_initTouchListener()
                 if (_planarController)
                 {
                     if (_planarController->getState() == ScreenState::OFF)
+                    {
                         if (!_planarController->powerOn())
                             put_flog(LOG_INFO,
                                      "Could not power on the screens by "
                                      "touching the wall");
+                        else
+                            put_flog(LOG_INFO,
+                                     "Powered on the screens by touching the "
+                                     "wall");
+                    }
                 }
 #endif
             });
@@ -501,6 +524,14 @@ void MasterApplication::_initRestInterface()
     {
         connect(_planarController.get(), &PlanarController::powerStateChanged,
                 _logger.get(), &LoggingUtility::powerStateChanged);
+
+        connect(_planarController.get(), &PlanarController::powerStateChanged,
+                [this](ScreenState state) {
+                    if (state == ScreenState::ON)
+                        _timer->reset();
+                    else
+                        _timer->stop();
+                });
 
         connect(_restInterface.get(), &RestInterface::powerOff, [this]() {
             if (_planarController->powerOff())

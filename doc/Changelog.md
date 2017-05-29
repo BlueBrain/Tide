@@ -3,6 +3,9 @@ Changelog {#changelog}
 
 # Release 1.3 (git master)
 
+* [157](https://github.com/BlueBrain/Tide/pull/153):
+  Tide will power off the screens after configurable period of inactivity.
+  User is notified about the imminent shutdown and can interupt it.
 * [153](https://github.com/BlueBrain/Tide/pull/153):
   Tide can control Planar displays now. Users can:
   - turn off the screens using power off button in the Launcher
