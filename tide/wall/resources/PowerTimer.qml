@@ -23,7 +23,7 @@ Item{
                 from: "hidden"; to: "visible"
                 NumberAnimation {
                     properties: "opacity"
-                    easing.type: Easing.InOutQuad
+                    easing.type: Easing.OutBack
                     duration: timer.getCountdownTimeout()
                 }
             },
@@ -31,7 +31,7 @@ Item{
                 from: "visible"; to: "hidden"
                 NumberAnimation {
                     properties: "opacity";
-                    easing.type: Easing.InOutQuad;
+                    easing.type: Easing.OutBack
                     duration: Style.countdownTransitionTime
                 }
             }]
