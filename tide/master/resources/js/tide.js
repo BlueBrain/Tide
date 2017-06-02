@@ -1021,7 +1021,7 @@ function updateTile(tile) {
 
   windowDiv.css("min-height", tile.focus ? 0 : tile.minHeight);
   windowDiv.css("min-width", tile.focus ? 0 : tile.minWidth);
-  windowDiv.css("zIndex", tile.fullscreen ?  zIndexFullscreen : tile.focus? zIndexFocus : tile.z);
+  windowDiv.css("zIndex", tile.fullscreen ?  zIndexFullscreen : tile.focus ? zIndexFocus : tile.z);
   windowDiv.css("top", tile.y);
   windowDiv.css("left", tile.x);
   windowDiv.css("height", tile.height);
