@@ -1,7 +1,7 @@
 Changelog {#changelog}
 ============
 
-# Release 1.3 (git master)
+# Release 1.3 (06-06-2017)
 
 * [157](https://github.com/BlueBrain/Tide/pull/153):
   Tide will power off the screens after a configurable period of inactivity.

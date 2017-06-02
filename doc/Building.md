@@ -7,15 +7,10 @@ Tide uses CMake 3.1 or later to create a platform-specific build environment.
 
 The standard build procedure using git and CMake is the following:
 
-    git clone https://github.com/BlueBrain/Tide.git
+    git clone --recursive https://github.com/BlueBrain/Tide.git
     mkdir Tide/build
     cd Tide/build
-    cmake ..
-    make
-
-or using the Ninja code generator (recommended):
-
-    cmake -GNinja ..
+    cmake -GNinja -DCLONE_SUBPROJECTS=ON ..
     ninja
 
 ## External Dependencies
@@ -25,7 +20,7 @@ functionalities such as rendering, serialization, file handling and network
 communication. Those dependencies are:
 * Boost 1.54 or later
 * MPI with MPI_THREAD_MULTIPLE support (openmpi 1.6.5 or later recommended)
-* Qt 5.4 or later (5.7.1 or later recommended)
+* Qt 5.4 or later (5.8 or later recommended)
 
 In addition, it also depends on some external projects that are automatically
 cloned by CMake during the configure step. They come with their own additional
@@ -34,8 +29,8 @@ requirements:
   - libjpeg-turbo
 * TUIO: multitouch interface
 * VirtualKeyboard: on-screen virtual keyboard (Qml)
-* ZeroEQ: http / REST interface (technically optional, but still needed to
-  operate on-screen Launcher panel)
+* ZeroEQ: http / REST interface (technically optional, but needed to operate
+  the on-screen Launcher panel)
   - Pthreads
   - ZeroMQ
 
@@ -81,10 +76,10 @@ MPI_THREAD_MULTIPLE.
 To boostrap the installation of Tide a on fresh install, do:
 
     sudo apt install git cmake
-    git clone https://github.com/BlueBrain/Tide.git
+    git clone --recursive https://github.com/BlueBrain/Tide.git
     mkdir Tide/build
     cd Tide/build
-    cmake .. -DINSTALL_PACKAGES=1
+    cmake .. -DCLONE_SUBPROJECTS=ON -DINSTALL_PACKAGES=ON
 
 After this step all the necessary system packages should be installed. Then use
 the following receipe to build and use a proper openmpi replacement:
