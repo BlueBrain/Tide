@@ -112,7 +112,7 @@ private:
     DisplayGroupPtr _displayGroup;
     MarkersPtr _markers;
     OptionsPtr _options;
-    PowerTimerPtr _timer;
+    InactivityTimerPtr _inactivityTimer;
 
     std::unique_ptr<MasterWindow> _masterWindow;
     std::unique_ptr<deflect::qt::OffscreenQuickView> _offscreenQuickView;

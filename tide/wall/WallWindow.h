@@ -86,7 +86,7 @@ public:
     void setMarkers(MarkersPtr markers);
 
     /** Set new inactivity timer. */
-    void setTimer(PowerTimerPtr timer);
+    void setInactivityTimer(InactivityTimerPtr timer);
 
     /** @return the data provider. */
     DataProvider& getDataProvider();

@@ -37,64 +37,70 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "PowerTimer.h"
+#ifndef INACTIVITYTIMER_H
+#define INACTIVITYTIMER_H
 
-#include "log.h"
+#include "serialization/includes.h"
+#include "types.h"
 
-PowerTimer::PowerTimer()
+#include <boost/enable_shared_from_this.hpp>
+
+#include <QObject>
+#include <QTimer>
+
+/**
+ * Inform user about inactivity timeout.
+ */
+class InactivityTimer : public QObject,
+                        public boost::enable_shared_from_this<InactivityTimer>
 {
-}
+    Q_OBJECT
+    Q_DISABLE_COPY(InactivityTimer)
 
-PowerTimer::PowerTimer(const int timeout)
-    : _timeout(timeout * 60000) // from ms to minute
-    , _countDownTimer(new QTimer())
-    , _inactivityTimer(new QTimer())
+public:
+    /**
+     * Construct a timer which can be used to turn off the displays.
+     * @param timeout value of the timer in minutes.
+     */
+    InactivityTimer(int timeout);
 
-{
-    connect(_inactivityTimer.get(), &QTimer::timeout, [this]() {
-        if (!_countDownTimer->isActive())
-        {
-            _active = true;
-            _countDownTimer->start(_countdownTimeout);
-            emit updated(shared_from_this());
-        }
-    });
-    connect(_countDownTimer.get(), &QTimer::timeout,
-            [this]() { emit poweroff(); });
-}
+    /** Default constructor, creates a read-only timer used on Wall processes */
+    InactivityTimer();
 
-int PowerTimer::getCountdownTimeout()
-{
-    return _countdownTimeout;
-}
+    /** Get the duration of countdown needed for transition in qml */
+    Q_INVOKABLE int getCountdownTimeout();
 
-bool PowerTimer::isActive()
-{
-    return _active;
-}
+    /** Check if countdown timer is active */
+    Q_INVOKABLE bool isCountdownActive();
 
-void PowerTimer::start()
-{
-    _inactivityTimer->start(_timeout);
-}
+    /** Stop the timer */
+    void stop();
 
-void PowerTimer::stop()
-{
-    _active = false;
-    emit updated(shared_from_this());
-    _inactivityTimer->stop();
-    _countDownTimer->stop();
-}
+    /** Restart the inactivity timer and interrupt the countdown if active */
+    void restart();
 
-void PowerTimer::reset()
-{
-    _inactivityTimer->start();
-    if (_active)
+signals:
+    /** Emitted when the countdown timer times-out */
+    void poweroff();
+
+    /** Emitted when the state of timer is modified */
+    void updated(InactivityTimerPtr);
+
+private:
+    friend class boost::serialization::access;
+
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int)
     {
-        put_flog(LOG_INFO,
-                 "Prevented powering off the screens during countdown");
-        _countDownTimer->stop();
-        _active = false;
-        emit updated(shared_from_this());
+        // clang-format off
+        ar & _countdownActive;
+        // clang-format on
     }
-}
+
+    bool _countdownActive = false;
+    int _timeout;
+
+    std::unique_ptr<QTimer> _countDownTimer;
+    std::unique_ptr<QTimer> _inactivityTimer;
+};
+#endif

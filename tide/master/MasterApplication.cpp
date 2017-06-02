@@ -41,10 +41,10 @@
 #include "MasterApplication.h"
 
 #include "ContentLoader.h"
+#include "InactivityTimer.h"
 #include "MasterConfiguration.h"
 #include "MasterDisplayGroupRenderer.h"
 #include "PixelStreamWindowManager.h"
-#include "PowerTimer.h"
 #include "QmlTypeRegistration.h"
 #include "ScreenshotAssembler.h"
 #include "StateSerializationHelper.h"
@@ -193,8 +193,7 @@ void MasterApplication::_init()
 
     _screenshotAssembler.reset(new ScreenshotAssembler(*_config));
 
-    _timer.reset(new PowerTimer(_config->getPlanarTimeout()));
-    _timer->start();
+    _inactivityTimer.reset(new InactivityTimer(_config->getPlanarTimeout()));
 
     if (_config->getHeadless())
         _initOffscreenView();
@@ -232,12 +231,13 @@ void MasterApplication::_init()
     {
         _planarController.reset(
             new PlanarController(_config->getPlanarSerialPort()));
+
+        connect(_inactivityTimer.get(), &InactivityTimer::poweroff, [this]() {
+            _planarController->powerOff();
+            put_flog(LOG_INFO,
+                     "Powering off the screens on inactivity timeout");
+        });
     }
-    connect(_timer.get(), &PowerTimer::poweroff, [this]() {
-        _planarController->powerOff();
-        put_flog(LOG_INFO, "Powering off the screens on inactivity timeout");
-        _timer->stop();
-    });
 #endif
 
 #if TIDE_ENABLE_REST_INTERFACE
@@ -376,8 +376,9 @@ void MasterApplication::_setupMPIConnections()
             },
             Qt::DirectConnection);
 
-    connect(_timer.get(), &PowerTimer::updated, _masterToWallChannel.get(),
-            [this](PowerTimerPtr timer) {
+    connect(_inactivityTimer.get(), &InactivityTimer::updated,
+            _masterToWallChannel.get(),
+            [this](InactivityTimerPtr timer) {
                 _masterToWallChannel->sendAsync(timer);
             },
             Qt::DirectConnection);
@@ -426,7 +427,7 @@ void MasterApplication::_initTouchListener()
             _touchInjector.get(),
             &deflect::qt::TouchInjector::removeTouchPoint);
     connect(_touchListener.get(), &MultitouchListener::touchPointAdded,
-            _timer.get(), &PowerTimer::reset);
+            _inactivityTimer.get(), &InactivityTimer::restart);
 
     const auto wallSize = _config->getTotalSize();
     auto getWallPos = [wallSize](const QPointF& normalizedPos) {
@@ -437,20 +438,20 @@ void MasterApplication::_initTouchListener()
             [this, getWallPos](const int id, const QPointF normalizedPos) {
                 _markers->addMarker(id, getWallPos(normalizedPos));
 #if TIDE_ENABLE_PLANAR_CONTROLLER
-                if (_planarController)
+                if (!_planarController ||
+                    _planarController->getState() != ScreenState::OFF)
                 {
-                    if (_planarController->getState() == ScreenState::OFF)
-                    {
-                        if (!_planarController->powerOn())
-                            put_flog(LOG_INFO,
-                                     "Could not power on the screens by "
-                                     "touching the wall");
-                        else
-                            put_flog(LOG_INFO,
-                                     "Powered on the screens by touching the "
-                                     "wall");
-                    }
+                    return;
                 }
+                if (_planarController->powerOn())
+                    put_flog(LOG_INFO,
+                             "Powered on the screens by touching the "
+                             "wall");
+
+                else
+                    put_flog(LOG_INFO,
+                             "Could not power on the screens by "
+                             "touching the wall");
 #endif
             });
     connect(_touchListener.get(), &MultitouchListener::touchPointUpdated,
@@ -528,9 +529,9 @@ void MasterApplication::_initRestInterface()
         connect(_planarController.get(), &PlanarController::powerStateChanged,
                 [this](ScreenState state) {
                     if (state == ScreenState::ON)
-                        _timer->reset();
+                        _inactivityTimer->restart();
                     else
-                        _timer->stop();
+                        _inactivityTimer->stop();
                 });
 
         connect(_restInterface.get(), &RestInterface::powerOff, [this]() {

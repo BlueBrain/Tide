@@ -64,9 +64,9 @@ public slots:
     void updateQuit();
     void updateRequestScreenshot();
     void updateDisplayGroup(DisplayGroupPtr displayGroup);
+    void updateInactivityTimer(InactivityTimerPtr timer);
     void updateOptions(OptionsPtr options);
     void updateMarkers(MarkersPtr markers);
-    void updateTimer(PowerTimerPtr timer);
     void requestRender();
 
 signals:
@@ -81,9 +81,9 @@ private:
     SwapSyncObject<bool> _syncQuit{false};
     SwapSyncObject<bool> _syncScreenshot{false};
     SwapSyncObject<DisplayGroupPtr> _syncDisplayGroup;
+    SwapSyncObject<InactivityTimerPtr> _syncInactivityTimer;
     SwapSyncObject<OptionsPtr> _syncOptions;
     SwapSyncObject<MarkersPtr> _syncMarkers;
-    SwapSyncObject<PowerTimerPtr> _syncTimer;
 
     /** Update and synchronize scene objects before rendering a frame. */
     void _syncAndRender();

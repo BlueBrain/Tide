@@ -220,6 +220,8 @@ BOOST_AUTO_TEST_CASE(test_master_configuration_default_values)
                       CONFIG_EXPECTED_DEFAULT_APPLAUNCHER);
     BOOST_CHECK_EQUAL(config.getWhiteboardSaveFolder(),
                       CONFIG_EXPECTED_DEFAULT_WHITEBOARD_SAVE_FOLDER);
+    BOOST_CHECK_EQUAL(config.getPlanarTimeout(),
+                      CONFIG_EXPECTED_DEFAULT_PLANAR_TIMEOUT);
 }
 
 BOOST_AUTO_TEST_CASE(test_save_configuration)

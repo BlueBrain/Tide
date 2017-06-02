@@ -40,7 +40,7 @@
 #include "RenderController.h"
 
 #include "DisplayGroupRenderer.h"
-#include "PowerTimer.h"
+#include "InactivityTimer.h"
 #include "TextureUploader.h"
 #include "WallWindow.h"
 #include "network/WallToWallChannel.h"
@@ -50,8 +50,8 @@
 RenderController::RenderController(WallWindow& window)
     : _window(window)
     , _syncDisplayGroup(boost::make_shared<DisplayGroup>(QSize()))
+    , _syncInactivityTimer(boost::make_shared<InactivityTimer>())
     , _syncOptions(boost::make_shared<Options>())
-    , _syncTimer(boost::make_shared<PowerTimer>())
 {
     _syncDisplayGroup.setCallback(std::bind(&WallWindow::setDisplayGroup,
                                             &_window, std::placeholders::_1));
@@ -60,8 +60,9 @@ RenderController::RenderController(WallWindow& window)
     _syncOptions.setCallback(std::bind(&WallWindow::setRenderOptions, &_window,
                                        std::placeholders::_1));
 
-    _syncTimer.setCallback(
-        std::bind(&WallWindow::setTimer, &_window, std::placeholders::_1));
+    _syncInactivityTimer.setCallback(std::bind(&WallWindow::setInactivityTimer,
+                                               &_window,
+                                               std::placeholders::_1));
 
     connect(&window.getUploader(), &TextureUploader::uploaded, this,
             [this] { _needRedraw = true; }, Qt::QueuedConnection);
@@ -166,9 +167,9 @@ void RenderController::updateMarkers(MarkersPtr markers)
     requestRender();
 }
 
-void RenderController::updateTimer(PowerTimerPtr timer)
+void RenderController::updateInactivityTimer(InactivityTimerPtr timer)
 {
-    _syncTimer.update(timer);
+    _syncInactivityTimer.update(timer);
     requestRender();
 }
 
@@ -178,5 +179,5 @@ void RenderController::_synchronizeObjects(const SyncFunction& versionCheckFunc)
     _syncDisplayGroup.sync(versionCheckFunc);
     _syncMarkers.sync(versionCheckFunc);
     _syncOptions.sync(versionCheckFunc);
-    _syncTimer.sync(versionCheckFunc);
+    _syncInactivityTimer.sync(versionCheckFunc);
 }

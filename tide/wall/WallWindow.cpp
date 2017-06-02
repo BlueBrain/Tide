@@ -41,7 +41,7 @@
 
 #include "DataProvider.h"
 #include "DisplayGroupRenderer.h"
-#include "PowerTimer.h"
+#include "InactivityTimer.h"
 #include "TestPattern.h"
 #include "TextureUploader.h"
 #include "WallConfiguration.h"
@@ -227,7 +227,7 @@ void WallWindow::setMarkers(MarkersPtr markers)
     _displayGroupRenderer->setMarkers(markers);
 }
 
-void WallWindow::setTimer(PowerTimerPtr timer)
+void WallWindow::setInactivityTimer(InactivityTimerPtr timer)
 {
     _displayGroupRenderer->setTimer(timer);
 }

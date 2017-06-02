@@ -129,7 +129,7 @@ void MasterConfiguration::loadPlanarSettings(QXmlQuery& query)
     query.setQuery("string(/configuration/planar/@serialport)");
     getString(query, _planarSerialPort);
 
-    query.setQuery("string(/configuration/planar/@timer)");
+    query.setQuery("string(/configuration/planar/@timeout)");
     getInt(query, _planarTimeout);
 }
 

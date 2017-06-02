@@ -39,7 +39,7 @@
 
 #include "DisplayGroupRenderer.h"
 
-#include "PowerTimer.h"
+#include "InactivityTimer.h"
 #include "VisibilityHelper.h"
 #include "WallWindow.h"
 #include "geometry.h"
@@ -69,8 +69,8 @@ DisplayGroupRenderer::DisplayGroupRenderer(WallWindow& parentWindow,
     , _displayGroupItem(0)
     , _options(new Options)
     , _markers(new Markers)
+    , _timer(new InactivityTimer)
     , _screenRect(screenRect)
-    , _timer(new PowerTimer)
 {
     _engine.rootContext()->setContextProperty("markers", _markers.get());
     _engine.rootContext()->setContextProperty("options", _options.get());
@@ -105,10 +105,10 @@ void DisplayGroupRenderer::setMarkers(MarkersPtr markers)
     _markers = markers; // Retain the new Markers
 }
 
-void DisplayGroupRenderer::setTimer(PowerTimerPtr timer)
+void DisplayGroupRenderer::setTimer(InactivityTimerPtr timer)
 {
     _engine.rootContext()->setContextProperty("timer", timer.get());
-    _timer = timer; // Retain the new timer
+    _timer = timer; // Retain the new InactivityTimer
 }
 
 void DisplayGroupRenderer::setDisplayGroup(DisplayGroupPtr displayGroup)

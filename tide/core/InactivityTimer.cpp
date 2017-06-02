@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,84 +37,75 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "MasterToWallChannel.h"
-
 #include "InactivityTimer.h"
-#include "network/MPIChannel.h"
-#include "scene/ContentWindow.h"
-#include "scene/DisplayGroup.h"
-#include "scene/Markers.h"
-#include "scene/Options.h"
-#include "serialization/utils.h"
 
-#include <deflect/Frame.h>
+#include "log.h"
 
-MasterToWallChannel::MasterToWallChannel(MPIChannelPtr mpiChannel)
-    : _mpiChannel(mpiChannel)
+namespace
+{
+const int COUNTDOWNTIMER = 15000; // ms
+}
+
+InactivityTimer::InactivityTimer()
 {
 }
 
-template <typename T>
-void MasterToWallChannel::broadcast(const T& object, const MPIMessageType type)
+InactivityTimer::InactivityTimer(const int timeout)
+    : _timeout(timeout * 60000) // from ms to minute
+    , _countDownTimer(new QTimer())
+    , _inactivityTimer(new QTimer())
 {
-    _mpiChannel->broadcast(type, serialization::toBinary(object));
+    _inactivityTimer->setInterval(_timeout);
+    _inactivityTimer->setSingleShot(true);
+    _inactivityTimer->start();
+    _countDownTimer->setSingleShot(true);
+    _countDownTimer->setInterval(COUNTDOWNTIMER);
+
+    connect(_inactivityTimer.get(), &QTimer::timeout, [this]() {
+        if (!_countDownTimer->isActive())
+        {
+            _countdownActive = true;
+            _countDownTimer->start();
+            emit updated(shared_from_this());
+        }
+    });
+    connect(_countDownTimer.get(), &QTimer::timeout, [this]() {
+        emit poweroff();
+        _countdownActive = false;
+        emit updated(shared_from_this());
+    });
 }
 
-template <typename T>
-void MasterToWallChannel::broadcastAsync(const T& object,
-                                         const MPIMessageType type)
+int InactivityTimer::getCountdownTimeout()
 {
-    const auto data = serialization::toBinary(object);
-
-    QMetaObject::invokeMethod(this, "_broadcast", Qt::QueuedConnection,
-                              Q_ARG(MPIMessageType, type),
-                              Q_ARG(std::string, data));
+    return COUNTDOWNTIMER;
 }
 
-void MasterToWallChannel::sendAsync(DisplayGroupPtr displayGroup)
+bool InactivityTimer::isCountdownActive()
 {
-    broadcastAsync(displayGroup, MPIMessageType::DISPLAYGROUP);
+    return _countdownActive;
 }
 
-void MasterToWallChannel::sendAsync(OptionsPtr options)
+void InactivityTimer::stop()
 {
-    broadcastAsync(options, MPIMessageType::OPTIONS);
+    _inactivityTimer->stop();
+    if (_countdownActive)
+    {
+        _countdownActive = false;
+        _countDownTimer->stop();
+        emit updated(shared_from_this());
+    }
 }
 
-void MasterToWallChannel::sendAsync(InactivityTimerPtr timer)
+void InactivityTimer::restart()
 {
-    broadcastAsync(timer, MPIMessageType::TIMER);
-}
-
-void MasterToWallChannel::sendAsync(MarkersPtr markers)
-{
-    broadcastAsync(markers, MPIMessageType::MARKERS);
-}
-
-void MasterToWallChannel::send(deflect::FramePtr frame)
-{
-    assert(!frame->segments.empty() && "received an empty frame");
-#if BOOST_VERSION >= 106000
-    broadcast(frame, MPIMessageType::PIXELSTREAM);
-#else
-    // WAR missing support for std::shared_ptr
-    broadcast(*frame, MPIMessageType::PIXELSTREAM);
-#endif
-}
-
-void MasterToWallChannel::sendRequestScreenshot()
-{
-    _mpiChannel->sendAll(MPIMessageType::IMAGE);
-}
-
-void MasterToWallChannel::sendQuit()
-{
-    _mpiChannel->sendAll(MPIMessageType::QUIT);
-}
-
-// cppcheck-suppress passedByValue
-void MasterToWallChannel::_broadcast(const MPIMessageType type,
-                                     const std::string data)
-{
-    _mpiChannel->broadcast(type, data);
+    _inactivityTimer->start();
+    if (_countdownActive)
+    {
+        put_flog(LOG_INFO,
+                 "Prevented powering off the screens during countdown");
+        _countDownTimer->stop();
+        _countdownActive = false;
+        emit updated(shared_from_this());
+    }
 }

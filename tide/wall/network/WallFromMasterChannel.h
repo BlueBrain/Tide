@@ -88,11 +88,11 @@ signals:
      */
     void received(OptionsPtr options);
 
-    /** Emitted when new Timer is received
+    /** Emitted when a new InactivityTimer was received
      * @see receiveMessage()
-     * @param timer The Timer that were received
+     * @param timer The timer that was received
      */
-    void received(PowerTimerPtr timer);
+    void received(InactivityTimerPtr timer);
 
     /**
      * Emitted when new Markers were recieved

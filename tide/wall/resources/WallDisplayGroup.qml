@@ -4,9 +4,9 @@ import "qrc:/qml/core/."
 import "qrc:/qml/core/style.js" as Style
 
 DisplayGroup {
-    PowerTimer {
-    anchors.fill: parent
-    z : Style.countdownZorder
+    PowerOffCountdown {
+        anchors.fill: parent
+        z: Style.countdownZorder
     }
 
     Clock {
