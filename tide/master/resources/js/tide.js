@@ -1017,17 +1017,11 @@ function showBezels()
 function updateTile(tile) {
   var windowDiv = $('#' + tile.uuid);
   // don't use minHeight, minWitdh and zIndex from REST interface for focused window
-  if (!tile.focus) {
-    windowDiv.css("min-height", tile.minHeight);
-    windowDiv.css("min-width", tile.minWidth);
-    windowDiv.css("zIndex", tile.z);
-  }
-  else
-  {
-    windowDiv.css("min-height", 0);
-    windowDiv.css("min-width", 0);
-    windowDiv.css("zIndex", 100);
-  }
+  // or zIndex for fullscreen window
+
+  windowDiv.css("min-height", tile.focus ? 0 : tile.minHeight);
+  windowDiv.css("min-width", tile.focus ? 0 : tile.minWidth);
+  windowDiv.css("zIndex", tile.fullscreen ?  zIndexFullscreen : tile.focus? zIndexFocus : tile.z);
   windowDiv.css("top", tile.y);
   windowDiv.css("left", tile.x);
   windowDiv.css("height", tile.height);
