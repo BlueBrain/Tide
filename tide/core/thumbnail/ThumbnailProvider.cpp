@@ -176,7 +176,7 @@ QQuickImageResponse* AsyncThumbnailProvider::requestImageResponse(
                 return *_cache->object(filename);
         }
 
-        const auto image = thumbnail::create(filename, size);
+        auto image = thumbnail::create(filename, size);
         if (image.isNull()) // should never happen
             return _getPlaceholderImage(filename);
 
