@@ -48,6 +48,7 @@
 namespace
 {
 const int DEFAULT_WEBSERVICE_PORT = 8888;
+const int DEFAULT_PLANAR_TIMEOUT = 60;
 const QString DEFAULT_URL("http://www.google.com");
 const QString DEFAULT_WHITEBOARD_SAVE_FOLDER("/tmp/");
 }
@@ -56,6 +57,7 @@ MasterConfiguration::MasterConfiguration(const QString& filename)
     : Configuration(filename)
     , _webServicePort(DEFAULT_WEBSERVICE_PORT)
     , _backgroundColor(Qt::black)
+    , _planarTimeout(DEFAULT_PLANAR_TIMEOUT)
 {
     loadMasterSettings();
 }
@@ -126,6 +128,9 @@ void MasterConfiguration::loadPlanarSettings(QXmlQuery& query)
 {
     query.setQuery("string(/configuration/planar/@serialport)");
     getString(query, _planarSerialPort);
+
+    query.setQuery("string(/configuration/planar/@timeout)");
+    getInt(query, _planarTimeout);
 }
 
 void MasterConfiguration::loadWebService(QXmlQuery& query)
@@ -184,6 +189,11 @@ const QString& MasterConfiguration::getContentDir() const
 QString MasterConfiguration::getPlanarSerialPort() const
 {
     return _planarSerialPort;
+}
+
+int MasterConfiguration::getPlanarTimeout() const
+{
+    return _planarTimeout;
 }
 
 const QString& MasterConfiguration::getSessionsDir() const

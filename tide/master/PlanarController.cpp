@@ -39,8 +39,6 @@
 
 #include "PlanarController.h"
 
-#include "log.h"
-
 namespace
 {
 const int serialTimeout = 1000;    // in ms

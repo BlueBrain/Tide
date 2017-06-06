@@ -40,6 +40,7 @@
 #include "RenderController.h"
 
 #include "DisplayGroupRenderer.h"
+#include "InactivityTimer.h"
 #include "TextureUploader.h"
 #include "WallWindow.h"
 #include "network/WallToWallChannel.h"
@@ -49,6 +50,7 @@
 RenderController::RenderController(WallWindow& window)
     : _window(window)
     , _syncDisplayGroup(boost::make_shared<DisplayGroup>(QSize()))
+    , _syncInactivityTimer(boost::make_shared<InactivityTimer>())
     , _syncOptions(boost::make_shared<Options>())
 {
     _syncDisplayGroup.setCallback(std::bind(&WallWindow::setDisplayGroup,
@@ -57,6 +59,10 @@ RenderController::RenderController(WallWindow& window)
         std::bind(&WallWindow::setMarkers, &_window, std::placeholders::_1));
     _syncOptions.setCallback(std::bind(&WallWindow::setRenderOptions, &_window,
                                        std::placeholders::_1));
+
+    _syncInactivityTimer.setCallback(std::bind(&WallWindow::setInactivityTimer,
+                                               &_window,
+                                               std::placeholders::_1));
 
     connect(&window.getUploader(), &TextureUploader::uploaded, this,
             [this] { _needRedraw = true; }, Qt::QueuedConnection);
@@ -161,10 +167,17 @@ void RenderController::updateMarkers(MarkersPtr markers)
     requestRender();
 }
 
+void RenderController::updateInactivityTimer(InactivityTimerPtr timer)
+{
+    _syncInactivityTimer.update(timer);
+    requestRender();
+}
+
 void RenderController::_synchronizeObjects(const SyncFunction& versionCheckFunc)
 {
     _syncScreenshot.sync(versionCheckFunc);
     _syncDisplayGroup.sync(versionCheckFunc);
     _syncMarkers.sync(versionCheckFunc);
     _syncOptions.sync(versionCheckFunc);
+    _syncInactivityTimer.sync(versionCheckFunc);
 }

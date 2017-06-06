@@ -72,6 +72,7 @@ struct MetaTypeRegistration
         qRegisterMetaType<TileWeakPtr>("TileWeakPtr");
         qRegisterMetaTypeStreamOperators<QUuid>("QUuid");
         qRegisterMetaType<promisePtr>("promisePtr");
+        qRegisterMetaType<InactivityTimerPtr>("InactivityTimerPtr");
     }
 };
 

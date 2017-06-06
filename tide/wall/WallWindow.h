@@ -85,6 +85,9 @@ public:
     /** Set new touchpoint's markers. */
     void setMarkers(MarkersPtr markers);
 
+    /** Set new inactivity timer. */
+    void setInactivityTimer(InactivityTimerPtr timer);
+
     /** @return the data provider. */
     DataProvider& getDataProvider();
 

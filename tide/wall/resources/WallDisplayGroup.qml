@@ -4,6 +4,11 @@ import "qrc:/qml/core/."
 import "qrc:/qml/core/style.js" as Style
 
 DisplayGroup {
+    PowerOffCountdown {
+        anchors.fill: parent
+        z: Style.countdownZorder
+    }
+
     Clock {
         anchors.top: parent.top
         anchors.right: parent.right

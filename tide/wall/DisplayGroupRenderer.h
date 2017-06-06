@@ -75,6 +75,9 @@ public:
     /** Set different touchpoint's markers. */
     void setMarkers(MarkersPtr markers);
 
+    /** Set timer used to notify about inactivity timeout. */
+    void setTimer(InactivityTimerPtr timer);
+
     /** Update the contents, using the channel to synchronize processes. */
     void synchronize(WallToWallChannel& channel);
 
@@ -100,6 +103,7 @@ private:
 
     OptionsPtr _options;
     MarkersPtr _markers;
+    InactivityTimerPtr _timer;
 
     const QRect _screenRect;
 

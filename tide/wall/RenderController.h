@@ -64,6 +64,7 @@ public slots:
     void updateQuit();
     void updateRequestScreenshot();
     void updateDisplayGroup(DisplayGroupPtr displayGroup);
+    void updateInactivityTimer(InactivityTimerPtr timer);
     void updateOptions(OptionsPtr options);
     void updateMarkers(MarkersPtr markers);
     void requestRender();
@@ -80,6 +81,7 @@ private:
     SwapSyncObject<bool> _syncQuit{false};
     SwapSyncObject<bool> _syncScreenshot{false};
     SwapSyncObject<DisplayGroupPtr> _syncDisplayGroup;
+    SwapSyncObject<InactivityTimerPtr> _syncInactivityTimer;
     SwapSyncObject<OptionsPtr> _syncOptions;
     SwapSyncObject<MarkersPtr> _syncMarkers;
 

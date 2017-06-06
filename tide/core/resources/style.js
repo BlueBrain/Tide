@@ -16,6 +16,7 @@ var focusZorder = 100;
 var fullscreenBackgroundZorder = 198;
 var fullscreenZorder = 199;
 var sideControlZorder = 200;
+var countdownZorder = 201;
 var overlayZorder = 1000;
 
 var focusContextColor = "black"
@@ -24,6 +25,7 @@ var focusContextPanelsOpacity = 0.5;
 var focusContextFullscreenOpacity = 0.99;
 var focusTransitionTime = 500;
 var panelsAnimationTime = 300
+var countdownTransitionTime = 1500;
 
 var sideButtonColor = activeColor
 var sideButtonRelHeight = 0.3
@@ -33,7 +35,9 @@ var fpsY = 10;
 var fpsFontSize = 32;
 var fpsFontColor = "blue";
 
-var clockScale = 0.2  // times the height of the displaygroup
+var clockScale = 0.2;  // times the height of the displaygroup
+
+var countdownTextScale = 0.045;
 
 // Content windows
 var buttonsSize = 130;

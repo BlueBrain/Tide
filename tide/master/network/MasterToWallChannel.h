@@ -85,6 +85,11 @@ public slots:
     void sendAsync(OptionsPtr options);
 
     /**
+     * Send the given InactivityTimer to the wall processes.
+     * @param timer The InactivityTimer to send
+     */
+    void sendAsync(InactivityTimerPtr timer);
+    /**
      * Send the given Markers to the wall processes.
      * @param markers The markers to send
      */

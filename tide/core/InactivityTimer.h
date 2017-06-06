@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,84 +37,70 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "MasterToWallChannel.h"
+#ifndef INACTIVITYTIMER_H
+#define INACTIVITYTIMER_H
 
-#include "InactivityTimer.h"
-#include "network/MPIChannel.h"
-#include "scene/ContentWindow.h"
-#include "scene/DisplayGroup.h"
-#include "scene/Markers.h"
-#include "scene/Options.h"
-#include "serialization/utils.h"
+#include "serialization/includes.h"
+#include "types.h"
 
-#include <deflect/Frame.h>
+#include <boost/enable_shared_from_this.hpp>
 
-MasterToWallChannel::MasterToWallChannel(MPIChannelPtr mpiChannel)
-    : _mpiChannel(mpiChannel)
+#include <QObject>
+#include <QTimer>
+
+/**
+ * Inform user about inactivity timeout.
+ */
+class InactivityTimer : public QObject,
+                        public boost::enable_shared_from_this<InactivityTimer>
 {
-}
+    Q_OBJECT
+    Q_DISABLE_COPY(InactivityTimer)
 
-template <typename T>
-void MasterToWallChannel::broadcast(const T& object, const MPIMessageType type)
-{
-    _mpiChannel->broadcast(type, serialization::toBinary(object));
-}
+public:
+    /**
+     * Construct a timer which can be used to turn off the displays.
+     * @param timeout value of the timer in minutes.
+     */
+    InactivityTimer(int timeout);
 
-template <typename T>
-void MasterToWallChannel::broadcastAsync(const T& object,
-                                         const MPIMessageType type)
-{
-    const auto data = serialization::toBinary(object);
+    /** Default constructor, creates a read-only timer used on Wall processes */
+    InactivityTimer();
 
-    QMetaObject::invokeMethod(this, "_broadcast", Qt::QueuedConnection,
-                              Q_ARG(MPIMessageType, type),
-                              Q_ARG(std::string, data));
-}
+    /** Get the duration of countdown needed for transition in qml */
+    Q_INVOKABLE int getCountdownTimeout();
 
-void MasterToWallChannel::sendAsync(DisplayGroupPtr displayGroup)
-{
-    broadcastAsync(displayGroup, MPIMessageType::DISPLAYGROUP);
-}
+    /** Check if countdown timer is active */
+    Q_INVOKABLE bool isCountdownActive();
 
-void MasterToWallChannel::sendAsync(OptionsPtr options)
-{
-    broadcastAsync(options, MPIMessageType::OPTIONS);
-}
+    /** Stop the timer */
+    void stop();
 
-void MasterToWallChannel::sendAsync(InactivityTimerPtr timer)
-{
-    broadcastAsync(timer, MPIMessageType::TIMER);
-}
+    /** Restart the inactivity timer and interrupt the countdown if active */
+    void restart();
 
-void MasterToWallChannel::sendAsync(MarkersPtr markers)
-{
-    broadcastAsync(markers, MPIMessageType::MARKERS);
-}
+signals:
+    /** Emitted when the countdown timer times-out */
+    void poweroff();
 
-void MasterToWallChannel::send(deflect::FramePtr frame)
-{
-    assert(!frame->segments.empty() && "received an empty frame");
-#if BOOST_VERSION >= 106000
-    broadcast(frame, MPIMessageType::PIXELSTREAM);
-#else
-    // WAR missing support for std::shared_ptr
-    broadcast(*frame, MPIMessageType::PIXELSTREAM);
+    /** Emitted when the state of timer is modified */
+    void updated(InactivityTimerPtr);
+
+private:
+    friend class boost::serialization::access;
+
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int)
+    {
+        // clang-format off
+        ar & _countdownActive;
+        // clang-format on
+    }
+
+    bool _countdownActive = false;
+    int _timeout;
+
+    std::unique_ptr<QTimer> _countDownTimer;
+    std::unique_ptr<QTimer> _inactivityTimer;
+};
 #endif
-}
-
-void MasterToWallChannel::sendRequestScreenshot()
-{
-    _mpiChannel->sendAll(MPIMessageType::IMAGE);
-}
-
-void MasterToWallChannel::sendQuit()
-{
-    _mpiChannel->sendAll(MPIMessageType::QUIT);
-}
-
-// cppcheck-suppress passedByValue
-void MasterToWallChannel::_broadcast(const MPIMessageType type,
-                                     const std::string data)
-{
-    _mpiChannel->broadcast(type, data);
-}

@@ -113,6 +113,12 @@ public:
     QString getPlanarSerialPort() const;
 
     /**
+     * Get the timeout after which the Planar screns should be turned off.
+     * @return default value if unspecified.
+     */
+    int getPlanarTimeout() const;
+
+    /**
      * Get the port where the WebService server will be listening for incoming
      * requests.
      * @return port for WebService server
@@ -202,6 +208,7 @@ private:
     QColor _backgroundColor;
 
     QString _planarSerialPort;
+    int _planarTimeout;
 };
 
 #endif

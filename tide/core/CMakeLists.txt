@@ -123,6 +123,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   data/SVGQtGpuBackend.h
   data/YUVImage.h
   geometry.h
+  InactivityTimer.h
   log.h
   network/MPIChannel.h
   network/MPIContext.h
@@ -177,6 +178,7 @@ list(APPEND TIDECORE_SOURCES
   data/SVGQtGpuBackend.cpp
   data/YUVImage.cpp
   geometry.cpp
+  InactivityTimer.cpp
   log.cpp
   MetaTypeRegistration.cpp
   network/MPIChannel.cpp
