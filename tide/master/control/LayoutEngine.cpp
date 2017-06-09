@@ -45,13 +45,7 @@
 
 #include <QTransform>
 
-namespace
-{
-const qreal INSIDE_MARGIN_RELATIVE = 0.02;
-const qreal SIDEBAR_WITH_REL_TO_DISPLAYGROUP_HEIGHT = 0.3 * 0.3;
-const qreal WINDOW_CONTROLS_MARGIN_PX = 200.0;
-const qreal WINDOW_SPACING_PX = 80.0;
-}
+using namespace controlSpecifications;
 
 struct WindowCoordinates
 {
@@ -61,7 +55,7 @@ struct WindowCoordinates
 using WindowList = std::vector<WindowCoordinates>;
 
 LayoutEngine::LayoutEngine(const DisplayGroup& group)
-    : _group(group)
+    : LayoutPolicy(group)
 {
 }
 
@@ -187,5 +181,5 @@ void LayoutEngine::_constrainFullyInside(QRectF& window) const
 qreal LayoutEngine::_getInsideMargin() const
 {
     return _group.width() * INSIDE_MARGIN_RELATIVE +
-           _group.height() * SIDEBAR_WITH_REL_TO_DISPLAYGROUP_HEIGHT;
+           _group.height() * SIDEBAR_WIDTH_REL_TO_DISPLAYGROUP_HEIGHT;
 }

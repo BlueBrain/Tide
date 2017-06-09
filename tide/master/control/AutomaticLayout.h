@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Nataniel Hofer <nataniel.hofer@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,21 +37,22 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef LAYOUTENGINE_H
-#define LAYOUTENGINE_H
+#ifndef AUTOMATICLAYOUT_H
+#define AUTOMATICLAYOUT_H
 
 #include "LayoutPolicy.h"
 #include "types.h"
 
-struct WindowCoordinates;
-
 /**
- * Layout engine for positionning windows on the wall.
+ * This class takes care of laying out of the windows in focused mode,
+ * using binary trees and heuristics.
+ * It tries to insert the windows one by one while keeping a rectangle whose
+ * aspect ratio is close to the available space of the display group.
  */
-class LayoutEngine : public LayoutPolicy
+class AutomaticLayout : public LayoutPolicy
 {
 public:
-    LayoutEngine(const DisplayGroup& group);
+    AutomaticLayout(const DisplayGroup& group);
 
     /** @return the focused coordinates for the window. */
     QRectF getFocusedCoord(const ContentWindow& window) const;
@@ -60,11 +61,13 @@ public:
     void updateFocusedCoord(const ContentWindowSet& windows) const;
 
 private:
+    std::vector<ContentWindowSet> _separateContent(
+        const ContentWindowSet& windows) const;
+    qreal _getTotalArea(const ContentWindowSet& windows) const;
+    qreal _computeMaxRatio(ContentWindowPtr) const;
     QRectF _getFocusedCoord(const ContentWindow& window,
-                            const ContentWindowSet& focusedWindows) const;
-    WindowCoordinates _getNominalCoord(const ContentWindow& window) const;
-    void _constrainFullyInside(QRectF& window) const;
-    qreal _getInsideMargin() const;
+                            const ContentWindowSet& windows) const;
+    ContentWindowPtrs _sortByMaxRatio(const ContentWindowSet& windows) const;
 };
 
 #endif

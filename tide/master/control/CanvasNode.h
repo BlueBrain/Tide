@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Nataniel Hofer <nataniel.hofer@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,34 +37,73 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef LAYOUTENGINE_H
-#define LAYOUTENGINE_H
+#ifndef CANVASNODE_H
+#define CANVASNODE_H
 
-#include "LayoutPolicy.h"
+#include "scene/ContentType.h"
+#include "scene/ContentWindow.h"
 #include "types.h"
 
-struct WindowCoordinates;
+#include <boost/enable_shared_from_this.hpp>
 
 /**
- * Layout engine for positionning windows on the wall.
+ * Represent a node or a leaf in the binary tree structure used by
+ * AutomaticLayout
  */
-class LayoutEngine : public LayoutPolicy
+class CanvasNode : public QRectF,
+                   public boost::enable_shared_from_this<CanvasNode>
 {
 public:
-    LayoutEngine(const DisplayGroup& group);
+    using NodePtr = boost::shared_ptr<CanvasNode>;
 
-    /** @return the focused coordinates for the window. */
-    QRectF getFocusedCoord(const ContentWindow& window) const;
-
-    /** Update the focused coordinates for the set of windows. */
-    void updateFocusedCoord(const ContentWindowSet& windows) const;
+    CanvasNode(NodePtr rootPtr, NodePtr parent, NodePtr firstChild,
+               NodePtr secondChild, QRectF rect);
+    CanvasNode(QRectF available_space);
+    CanvasNode(NodePtr rootPtr, NodePtr parent, ContentWindowPtr window,
+               QRectF rect);
+    bool insert(ContentWindowPtr window);
+    /**
+     * return true if there is an empty leaf
+     */
+    bool isFree() const;
+    bool isRoot() const;
+    bool isTerminal() const;
+    void updateFocusCoordinates();
+    /**
+     * resize the tree, insertion should not be used after call to preview
+     */
+    void preview();
+    qreal getOccupiedSpace();
+    const QRectF availableSpace;
+    NodePtr rootPtr;
+    NodePtr parent;
+    NodePtr firstChild;
+    NodePtr secondChild;
 
 private:
-    QRectF _getFocusedCoord(const ContentWindow& window,
-                            const ContentWindowSet& focusedWindows) const;
-    WindowCoordinates _getNominalCoord(const ContentWindow& window) const;
-    void _constrainFullyInside(QRectF& window) const;
-    qreal _getInsideMargin() const;
+    void _update();
+    qreal _getOccupiedSpace() const;
+    bool previewed = false;
+    void _constrainTerminalIntoRect(const QRectF& rect);
+    void _constrainNodeIntoRect(const QRectF& rect);
+
+    QRectF _rectWithoutMargins(const QRectF& rect) const;
+    QRectF _rectWithoutMargins(const QRectF& rect,
+                               CONTENT_TYPE content_type) const;
+    bool _insertRoot(ContentWindowPtr window);
+    bool _insertTerminal(ContentWindowPtr window);
+    void _computeBoundaries(const QRectF& realSize,
+                            QRectF& internalNodeBoundaries,
+                            QRectF& internalFreeLeafBoundaries,
+                            QRectF& externalFreeLeafBoundaries) const;
+    bool _insertSecondChild(ContentWindowPtr window);
+    bool _chooseVerticalCut(const QRectF& realSize) const;
+    void _setRect(QRectF newRect);
+    void _constrainIntoRect(const QRectF& rect);
+    ContentWindowPtr content = NULL;
+    QRectF _addMargins(ContentWindowPtr window) const;
+    QRectF _addMargins(const QRectF& rect) const;
+    QRectF _addMargins(const QRectF& rect, CONTENT_TYPE type) const;
 };
 
 #endif
