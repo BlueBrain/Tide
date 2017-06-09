@@ -14,10 +14,14 @@ set(TIDEMASTER_LINK_LIBRARIES
 
 list(APPEND TIDEMASTER_PUBLIC_HEADERS
   ContentLoader.h
+  control/AutomaticLayout.h
+  control/CanvasNode.h
+  control/CanvasTree.h
   control/ContentController.h
   control/ContentWindowController.h
   control/DisplayGroupController.h
   control/LayoutEngine.h
+  control/LayoutPolicy.h
   control/PixelStreamController.h
   control/ZoomController.h
   FileInfoHelper.h
@@ -57,10 +61,14 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
 
 list(APPEND TIDEMASTER_SOURCES
   ContentLoader.cpp
+  control/AutomaticLayout.cpp
+  control/CanvasNode.cpp
+  control/CanvasTree.cpp
   control/ContentController.cpp
   control/ContentWindowController.cpp
   control/DisplayGroupController.cpp
   control/LayoutEngine.cpp
+  control/LayoutPolicy.cpp
   control/PixelStreamController.cpp
   control/ZoomController.cpp
   localstreamer/HtmlSelectReplacer.cpp

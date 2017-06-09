@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Nataniel Hofer <nataniel.hofer@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,34 +37,45 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef LAYOUTENGINE_H
-#define LAYOUTENGINE_H
+#ifndef LAYOUTPOLICY_H
+#define LAYOUTPOLICY_H
 
-#include "LayoutPolicy.h"
 #include "types.h"
 
-struct WindowCoordinates;
+// Hardcoded variables which are also defined in style.js
+namespace controlSpecifications
+{
+const qreal INSIDE_MARGIN_RELATIVE = 0.02;
+const qreal SIDEBAR_WIDTH_REL_TO_DISPLAYGROUP_HEIGHT = 0.3 * 0.3;
+const qreal WINDOW_CONTROLS_MARGIN_PX = 200.0;
+const qreal WINDOW_SPACING_PX = 80.0;
+const qreal WINDOW_TITLE_HEIGHT = 100.0;
+const qreal MOVIE_BAR_HEIGHT = 100.0;
+}
 
 /**
- * Layout engine for positionning windows on the wall.
+ * Abstract class whose derived classes must deal with the layout in focus
+ * coordinates.
  */
-class LayoutEngine : public LayoutPolicy
+class LayoutPolicy
 {
 public:
-    LayoutEngine(const DisplayGroup& group);
+    LayoutPolicy(const DisplayGroup& group);
 
     /** @return the focused coordinates for the window. */
-    QRectF getFocusedCoord(const ContentWindow& window) const;
+    virtual QRectF getFocusedCoord(const ContentWindow& window) const = 0;
 
     /** Update the focused coordinates for the set of windows. */
-    void updateFocusedCoord(const ContentWindowSet& windows) const;
+    virtual void updateFocusedCoord(const ContentWindowSet& windows) const = 0;
+    virtual ~LayoutPolicy(){};
 
-private:
-    QRectF _getFocusedCoord(const ContentWindow& window,
-                            const ContentWindowSet& focusedWindows) const;
-    WindowCoordinates _getNominalCoord(const ContentWindow& window) const;
-    void _constrainFullyInside(QRectF& window) const;
-    qreal _getInsideMargin() const;
+protected:
+    const DisplayGroup& _group;
+
+    /**
+     * returns the rect of available space on the display group
+     */
+    QRectF _getAvailableSpace() const;
 };
 
 #endif

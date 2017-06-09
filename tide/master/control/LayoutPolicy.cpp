@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Nataniel Hofer <nataniel.hofer@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,34 +37,25 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef LAYOUTENGINE_H
-#define LAYOUTENGINE_H
-
 #include "LayoutPolicy.h"
-#include "types.h"
 
-struct WindowCoordinates;
+#include "scene/DisplayGroup.h"
 
-/**
- * Layout engine for positionning windows on the wall.
- */
-class LayoutEngine : public LayoutPolicy
+using namespace controlSpecifications;
+LayoutPolicy::LayoutPolicy(const DisplayGroup& group)
+    : _group(group)
 {
-public:
-    LayoutEngine(const DisplayGroup& group);
+}
 
-    /** @return the focused coordinates for the window. */
-    QRectF getFocusedCoord(const ContentWindow& window) const;
-
-    /** Update the focused coordinates for the set of windows. */
-    void updateFocusedCoord(const ContentWindowSet& windows) const;
-
-private:
-    QRectF _getFocusedCoord(const ContentWindow& window,
-                            const ContentWindowSet& focusedWindows) const;
-    WindowCoordinates _getNominalCoord(const ContentWindow& window) const;
-    void _constrainFullyInside(QRectF& window) const;
-    qreal _getInsideMargin() const;
-};
-
-#endif
+QRectF LayoutPolicy::_getAvailableSpace() const
+{
+    auto left_width_margin =
+        _group.width() * INSIDE_MARGIN_RELATIVE +
+        _group.height() * SIDEBAR_WIDTH_REL_TO_DISPLAYGROUP_HEIGHT;
+    auto right_width_margin = _group.width() * INSIDE_MARGIN_RELATIVE;
+    auto top_margin = _group.height() * INSIDE_MARGIN_RELATIVE;
+    auto bottom_margin = top_margin;
+    return QRectF(left_width_margin, top_margin,
+                  _group.width() - left_width_margin - right_width_margin,
+                  _group.height() - top_margin - bottom_margin);
+}
