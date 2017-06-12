@@ -71,8 +71,12 @@ void TiledSynchronizer::updateTiles(const DataSource& source,
     const Indices removedTiles = set_difference(_visibleSet, visibleSet);
 
     for (auto i : addedTiles)
+    {
+        const auto type = source.isDynamic() ? Tile::TextureType::Dynamic
+                                             : Tile::TextureType::Static;
         emit addTile(std::make_shared<Tile>(i, source.getTileRect(i),
-                                            source.getTileFormat(i)));
+                                            source.getTileFormat(i), type));
+    }
 
     if (updateExistingTiles)
     {

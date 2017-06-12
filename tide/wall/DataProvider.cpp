@@ -266,7 +266,11 @@ void DataProvider::_load(ContentSynchronizerSharedPtr source, TileWeakPtr tile_)
         put_flog(LOG_DEBUG, "Empty image for tile: %d", tile->getId());
         return;
     }
-    source->imageLoaded(image, tile_);
+
+    QMetaObject::invokeMethod(tile.get(), "updateBackTexture",
+                              Qt::QueuedConnection, Q_ARG(ImagePtr, image));
+
+    emit imageLoaded();
 }
 
 void DataProvider::_handleFinished()

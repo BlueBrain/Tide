@@ -44,8 +44,7 @@
 #include "types.h"
 
 /**
- * An interface to provide necessary image information for the texture upload
- * and swap in TextureUploader.
+ * An interface to provide necessary image information for the texture upload.
  *
  * Valid image formats are:
  * - RGBA: 1 texture plane, 32 bits per pixel (in any GL-compatible arrangement)
@@ -72,6 +71,14 @@ public:
 
     /** @return the pointer to the pixels of the given texture plane. */
     virtual const uint8_t* getData(uint texture = 0) const = 0;
+
+    /** @return the size of the pixel data buffer of the given texture plane. */
+    virtual size_t getDataSize(const uint texture = 0) const
+    {
+        const auto tex = getTextureSize(texture);
+        const auto bpp = getFormat() == TextureFormat::rgba ? 4 : 1;
+        return tex.width() * tex.height() * bpp;
+    }
 
     /** @return the format of the image. */
     virtual TextureFormat getFormat() const = 0;

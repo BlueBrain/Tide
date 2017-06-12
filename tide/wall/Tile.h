@@ -42,14 +42,10 @@
 
 #include "types.h"
 
-#include "YUVTexture.h"
-
 #include <QQuickItem>
 #include <memory> // std::enable_shared_from_this
 
 class QuadLineNode;
-class TextureNode;
-class TextureNodeYUV;
 
 /**
  * Qml item to render an image tile with texture double-buffering.
@@ -70,14 +66,21 @@ public:
         FillParent
     };
 
+    enum class TextureType
+    {
+        Static,
+        Dynamic
+    };
+
     /**
      * Constructor
      * @param id the unique identifier for this tile
      * @param rect the nominal size of the tile's texture
      * @param format the texture format to use for rendering
+     * @param type the type of texture
      */
-    Tile(uint id, const QRect& rect,
-         TextureFormat format = TextureFormat::rgba);
+    Tile(uint id, const QRect& rect, TextureFormat format = TextureFormat::rgba,
+         TextureType type = TextureType::Static);
 
     /** @return the unique identifier for this tile. */
     uint getId() const;
@@ -96,47 +99,35 @@ public:
      */
     void update(const QRect& rect, TextureFormat format);
 
-    /** @return the back texture's identifier. */
-    uint getBackGlTexture() const;
-
-    /** @return the back YUV texture's identifiers. */
-    const YUVTexture& getBackGlTextureYUV() const;
-
-    /** @return the dimensions of the back texture. */
-    QSize getBackGlTextureSize() const;
-
     /**
      * Set the size policy.
      * @param policy defines how the tile should resize and position itself
      */
     void setSizePolicy(SizePolicy policy);
 
-signals:
-    /** Notifier for the showBorder property. */
-    void showBorderChanged();
-
-    /**
-     * Notifies that the back texture is ready to be updated.
-     * It is emitted after the texture has been created on the render thread,
-     * or after a call to update().
-     */
-    void textureReady(TilePtr tile);
-
-    /**
-     * Notify that the back texture has been updated and it can be swapped.
-     *
-     * IMPORTANT:
-     * This signal is designed to be emitted from the TextureUploader thread.
-     * Only connect to it using a Qt::QueuedConnection.
-     */
-    void textureUpdated(TilePtr tile);
-
 public slots:
+    /** Upload the given image to the back texture. */
+    void updateBackTexture(ImagePtr image);
+
     /** Show a border around the tile (for debugging purposes). */
     void setShowBorder(bool set);
 
     /** Swap the front and back texture. */
     void swapImage();
+
+signals:
+    /** Notifier for the showBorder property. */
+    void showBorderChanged();
+
+    /**
+     * Notifies that the texture is ready to be updated.
+     * It is emitted after the texture has been created or after a call to
+     * update() for dynamic textures.
+     */
+    void requestNextFrame(TilePtr tile);
+
+    /** Notify that the back texture has been updated and it can be swapped. */
+    void readyToSwap(TilePtr tile);
 
 protected:
     /** Called on the render thread to update the scene graph. */
@@ -145,23 +136,19 @@ protected:
 private:
     const uint _tileId;
     TextureFormat _format;
+    TextureType _type;
     SizePolicy _policy;
 
-    bool _swapRequested;
-    bool _updateTextureRequested;
+    bool _swapRequested = false;
     QRect _nextCoord;
+    ImagePtr _image;
+    bool _firstImageUploaded = false;
 
-    uint _backGlTexture;
-    YUVTexture _backGlTextureYUV;
-
-    bool _showBorder;
-    QuadLineNode* _border;
+    bool _showBorder = false;
+    QuadLineNode* _border = nullptr; // Child QObject
 
     template <class NodeT>
     QSGNode* _updateTextureNode(QSGNode* oldNode);
-
-    void _storeBackTextureIndex(const TextureNode& node);
-    void _storeBackTextureIndex(const TextureNodeYUV& node);
 
     template <class NodeT>
     void _updateBorderNode(NodeT* parentNode);

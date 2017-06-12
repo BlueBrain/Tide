@@ -70,7 +70,7 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   TestPattern.h
   TextureNode.h
   TextureNodeYUV.h
-  TextureUploader.h
+  textureUtils.h
   TiledSynchronizer.h
   Tile.h
   VisibilityHelper.h
@@ -78,13 +78,11 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   WallConfiguration.h
   WallSynchronizer.h
   WallWindow.h
-  YUVTexture.h
 )
 
 list(APPEND TIDEWALL_SOURCES
   BasicSynchronizer.cpp
   CachedDataSource.cpp
-  ContentSynchronizer.cpp
   DataProvider.cpp
   DisplayGroupRenderer.cpp
   ElapsedTimer.cpp
@@ -108,7 +106,7 @@ list(APPEND TIDEWALL_SOURCES
   TestPattern.cpp
   TextureNode.cpp
   TextureNodeYUV.cpp
-  TextureUploader.cpp
+  textureUtils.cpp
   Tile.cpp
   TiledSynchronizer.cpp
   VisibilityHelper.cpp

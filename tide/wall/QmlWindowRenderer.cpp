@@ -111,11 +111,11 @@ QQuickItem* QmlWindowRenderer::getQuickItem()
 
 void QmlWindowRenderer::_addTile(TilePtr tile)
 {
-    connect(tile.get(), &Tile::textureUpdated, _synchronizer.get(),
-            &ContentSynchronizer::onSwapReady, Qt::QueuedConnection);
+    connect(tile.get(), &Tile::readyToSwap, _synchronizer.get(),
+            &ContentSynchronizer::onSwapReady);
 
-    connect(tile.get(), &Tile::textureReady, _synchronizer.get(),
-            &ContentSynchronizer::onTextureReady, Qt::QueuedConnection);
+    connect(tile.get(), &Tile::requestNextFrame, _synchronizer.get(),
+            &ContentSynchronizer::onRequestNextFrame);
 
     _tiles[tile->getId()] = tile;
 
@@ -142,11 +142,10 @@ void QmlWindowRenderer::_createZoomContextTile()
     tile->setSizePolicy(Tile::FillParent);
 
     // Swap immediately, without going through the synchronizer
-    connect(tile.get(), &Tile::textureUpdated, tile.get(), &Tile::swapImage,
-            Qt::QueuedConnection);
+    connect(tile.get(), &Tile::readyToSwap, tile.get(), &Tile::swapImage);
 
-    connect(tile.get(), &Tile::textureReady, _synchronizer.get(),
-            &ContentSynchronizer::onTextureReady, Qt::QueuedConnection);
+    connect(tile.get(), &Tile::requestNextFrame, _synchronizer.get(),
+            &ContentSynchronizer::onRequestNextFrame);
 
     _zoomContextTile = tile;
 

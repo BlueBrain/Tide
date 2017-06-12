@@ -39,16 +39,17 @@
 
 #include "TextureNode.h"
 
-#include <QOpenGLContext>
-#include <QOpenGLFunctions>
+#include "data/Image.h"
+#include "textureUtils.h"
+
 #include <QQuickWindow>
 
-TextureNode::TextureNode(const QSize& size, QQuickWindow* window, TextureFormat)
+TextureNode::TextureNode(QQuickWindow* window, const bool dynamic)
     : _window(window)
-    , _frontTexture(window->createTextureFromId(0, QSize(1, 1)))
-    , _backTexture(_createTexture(size))
+    , _dynamicTexture(dynamic)
+    , _texture(window->createTextureFromId(0, QSize(1, 1)))
 {
-    setTexture(_frontTexture.get());
+    setTexture(_texture.get());
     setFiltering(QSGTexture::Linear);
     setMipmapFiltering(QSGTexture::Linear);
 }
@@ -62,47 +63,33 @@ void TextureNode::setMipmapFiltering(const QSGTexture::Filtering filtering_)
     opaqueMat->setMipmapFiltering(filtering_);
 }
 
-uint TextureNode::getBackGlTexture() const
+void TextureNode::updateBackTexture(const Image& image)
 {
-    return _backTexture->textureId();
+    if (!image.getTextureSize().isValid())
+        throw std::runtime_error("image texture has invalid size");
+
+    if (!_backPbo)
+        _backPbo = textureUtils::createPbo(_dynamicTexture);
+
+    textureUtils::upload(image, 0, *_backPbo);
+
+    _nextTextureSize = image.getTextureSize();
+    _glImageFormat = image.getGLPixelFormat();
 }
 
 void TextureNode::swap()
 {
-    std::swap(_frontTexture, _backTexture);
+    if (_texture->textureSize() != _nextTextureSize)
+        _texture = textureUtils::createTextureRgba(_nextTextureSize, *_window);
 
-    setTexture(_frontTexture.get());
+    std::swap(_frontPbo, _backPbo);
+    textureUtils::copy(*_frontPbo, *_texture, _glImageFormat);
+    setTexture(_texture.get());
     markDirty(DirtyMaterial);
-}
 
-void TextureNode::prepareBackTexture(const QSize& size, TextureFormat)
-{
-    if (_backTexture->textureSize() == size)
-        return;
-
-    _backTexture = _createTexture(size);
-}
-
-TextureNode::QSGTexturePtr TextureNode::_createTexture(const QSize& size) const
-{
-    uint textureID;
-    auto gl = QOpenGLContext::currentContext()->functions();
-    gl->glActiveTexture(GL_TEXTURE0);
-    gl->glGenTextures(1, &textureID);
-    gl->glBindTexture(GL_TEXTURE_2D, textureID);
-    gl->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size.width(), size.height(), 0,
-                     GL_RGBA, GL_UNSIGNED_BYTE, 0);
-    gl->glBindTexture(GL_TEXTURE_2D, 0);
-
-    return _createWrapper(textureID, size);
-}
-
-TextureNode::QSGTexturePtr TextureNode::_createWrapper(const uint textureID,
-                                                       const QSize& size) const
-{
-    const auto textureFlags = QQuickWindow::CreateTextureOptions(
-        QQuickWindow::TextureHasAlphaChannel | QQuickWindow::TextureHasMipmaps |
-        QQuickWindow::TextureOwnsGLTexture);
-    return QSGTexturePtr(
-        _window->createTextureFromId(textureID, size, textureFlags));
+    if (!_dynamicTexture)
+    {
+        _frontPbo.reset();
+        _backPbo.reset();
+    }
 }
