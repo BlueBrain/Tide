@@ -37,25 +37,63 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef YUVTEXTURE_H
-#define YUVTEXTURE_H
+#ifndef TEXTUREUTILS_H
+#define TEXTUREUTILS_H
+
+#include "types.h"
+
+class QOpenGLBuffer;
+class QSGTexture;
+class QQuickWindow;
 
 /**
- * A YUV texture composed of three OpenGL texture indices.
+ * Texture utility functions.
  */
-struct YUVTexture
+namespace textureUtils
 {
-    int y = 0;
-    int u = 0;
-    int v = 0;
+/**
+ * Create a 8-bit texture.
+ *
+ * @param size in pixels.
+ * @param window the QQuickWindow needed to create a QSGTexture wrapper.
+ * @return a QSGTexture owning its GL texture.
+ */
+std::unique_ptr<QSGTexture> createTexture(const QSize& size,
+                                          QQuickWindow& window);
+/**
+ * Create a 32-bit RGBA texture.
+ *
+ * @param size in pixels.
+ * @param window the QQuickWindow needed to create a QSGTexture wrapper.
+ * @return a QSGTexture owning its GL texture.
+ */
+std::unique_ptr<QSGTexture> createTextureRgba(const QSize& size,
+                                              QQuickWindow& window);
 
-    YUVTexture() = default;
-    YUVTexture(int y_, int u_, int v_)
-        : y{y_}
-        , u{u_}
-        , v{v_}
-    {
-    }
-};
+/**
+ * Create a Pixel Buffer Object.
+ *
+ * @param dynamic true if the buffer is going to be updated frequently.
+ * @return empty, ready-to-use pbo.
+ */
+std::unique_ptr<QOpenGLBuffer> createPbo(bool dynamic);
+
+/**
+ * Upload an image to a PBO.
+ *
+ * @param image the source image
+ * @param srcTextureIdx the texture plane of the source image.
+ * @param pbo the target PBO, will be resized to the image size.
+ */
+void upload(const Image& image, const uint srcTextureIdx, QOpenGLBuffer& pbo);
+
+/**
+ * Copy a PBO to a GPU texture.
+ *
+ * @param pbo the source PBO.
+ * @param texture the target texture, must be of the same size as the PBO.
+ */
+void copy(QOpenGLBuffer& pbo, QSGTexture& texture, uint glTextFormat);
+}
 
 #endif

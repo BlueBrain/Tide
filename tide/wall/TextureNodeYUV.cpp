@@ -39,10 +39,16 @@
 
 #include "TextureNodeYUV.h"
 
+#include "data/Image.h"
+#include "textureUtils.h"
+#include "yuv.h"
+
+#include <QOpenGLBuffer>
 #include <QOpenGLContext>
 #include <QOpenGLFunctions>
 #include <QQuickWindow>
 #include <QSGSimpleMaterialShader>
+#include <QSGTexture>
 
 namespace
 {
@@ -90,15 +96,18 @@ void main() {
  */
 struct YUVState
 {
-    std::unique_ptr<QSGTexture> frontY;
-    std::unique_ptr<QSGTexture> frontU;
-    std::unique_ptr<QSGTexture> frontV;
-    TextureFormat frontFormat;
+    std::unique_ptr<QSGTexture> textureY;
+    std::unique_ptr<QSGTexture> textureU;
+    std::unique_ptr<QSGTexture> textureV;
+    TextureFormat textureFormat;
 
-    std::unique_ptr<QSGTexture> backY;
-    std::unique_ptr<QSGTexture> backU;
-    std::unique_ptr<QSGTexture> backV;
-    TextureFormat backFormat;
+    std::unique_ptr<QOpenGLBuffer> frontPboY;
+    std::unique_ptr<QOpenGLBuffer> frontPboU;
+    std::unique_ptr<QOpenGLBuffer> frontPboV;
+
+    std::unique_ptr<QOpenGLBuffer> backPboY;
+    std::unique_ptr<QOpenGLBuffer> backPboU;
+    std::unique_ptr<QOpenGLBuffer> backPboV;
 };
 
 /**
@@ -128,19 +137,19 @@ public:
         gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
                             GL_LINEAR_MIPMAP_LINEAR);
         gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        newState->frontV->bind();
+        newState->textureV->bind();
 
         gl->glActiveTexture(GL_TEXTURE1);
         gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
                             GL_LINEAR_MIPMAP_LINEAR);
         gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        newState->frontU->bind();
+        newState->textureU->bind();
 
         gl->glActiveTexture(GL_TEXTURE0);
         gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
                             GL_LINEAR_MIPMAP_LINEAR);
         gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        newState->frontY->bind();
+        newState->textureY->bind();
     }
 
     void resolveUniforms() final
@@ -163,9 +172,9 @@ const YUVState* _getMaterialState(const QSGGeometryNode& node)
     return static_cast<const YUVShaderMaterial*>(node.material())->state();
 }
 
-TextureNodeYUV::TextureNodeYUV(const QSize& size, QQuickWindow* window,
-                               const TextureFormat format)
+TextureNodeYUV::TextureNodeYUV(QQuickWindow* window, bool dynamic)
     : _window(window)
+    , _dynamicTexture(dynamic)
 {
     // Set up geometry, actual vertices will be initialized in updatePaintNode
     const auto& attr = QSGGeometry::defaultAttributes_TexturedPoint2D();
@@ -176,11 +185,10 @@ TextureNodeYUV::TextureNodeYUV(const QSize& size, QQuickWindow* window,
     _node.setFlag(QSGNode::OwnsMaterial);
 
     auto state = _getMaterialState(_node);
-    state->frontY.reset(_window->createTextureFromId(0, QSize(1, 1)));
-    state->frontU.reset(_window->createTextureFromId(0, QSize(1, 1)));
-    state->frontV.reset(_window->createTextureFromId(0, QSize(1, 1)));
+    state->textureY.reset(_window->createTextureFromId(0, QSize(1, 1)));
+    state->textureU.reset(_window->createTextureFromId(0, QSize(1, 1)));
+    state->textureV.reset(_window->createTextureFromId(0, QSize(1, 1)));
 
-    _createBackTextures(size, format);
     appendChildNode(&_node);
 }
 
@@ -200,63 +208,93 @@ void TextureNodeYUV::setRect(const QRectF& rect_)
     _node.markDirty(QSGNode::DirtyGeometry);
 }
 
-YUVTexture TextureNodeYUV::getBackGlTexture() const
+void TextureNodeYUV::updateBackTexture(const Image& image)
 {
-    const auto state = _getMaterialState(_node);
+    if (!image.getTextureSize().isValid())
+        throw std::runtime_error("image texture has invalid size");
+    if (image.getGLPixelFormat() != GL_RED)
+        throw std::runtime_error("TextureNodeYUV image format must be GL_RED");
 
-    return YUVTexture{state->backY->textureId(), state->backU->textureId(),
-                      state->backV->textureId()};
+    auto state = _getMaterialState(_node);
+    if (!state->backPboY)
+        _createBackPbos();
+
+    _uploadToBackPbos(image);
+
+    _nextTextureSize = image.getTextureSize();
+    _nextFormat = image.getFormat();
 }
 
 void TextureNodeYUV::swap()
 {
-    auto state = _getMaterialState(_node);
+    if (_needTextureChange())
+        _createTextures(_nextTextureSize, _nextFormat);
 
-    std::swap(state->frontY, state->backY);
-    std::swap(state->frontU, state->backU);
-    std::swap(state->frontV, state->backV);
-    std::swap(state->frontFormat, state->backFormat);
-
+    _swapPbos();
+    _copyFrontPbosToTextures();
     markDirty(DirtyMaterial);
+
+    if (!_dynamicTexture)
+        _deletePbos();
 }
 
-void TextureNodeYUV::prepareBackTexture(const QSize& size,
-                                        const TextureFormat format)
+bool TextureNodeYUV::_needTextureChange() const
 {
     auto state = _getMaterialState(_node);
-    if (state->backY->textureSize() != size || state->backFormat != format)
-        _createBackTextures(size, format);
+    return state->textureY->textureSize() != _nextTextureSize ||
+           state->textureFormat != _nextFormat;
 }
 
-void TextureNodeYUV::_createBackTextures(const QSize& size,
-                                         const TextureFormat format)
+void TextureNodeYUV::_createTextures(const QSize& size,
+                                     const TextureFormat format)
 {
+    auto state = _getMaterialState(_node);
     const auto uvSize = yuv::getUVSize(size, format);
+    state->textureY = textureUtils::createTexture(size, *_window);
+    state->textureU = textureUtils::createTexture(uvSize, *_window);
+    state->textureV = textureUtils::createTexture(uvSize, *_window);
+    state->textureFormat = format;
+}
+
+void TextureNodeYUV::_createBackPbos()
+{
     auto state = _getMaterialState(_node);
-
-    state->backY = _createTexture(size);
-    state->backU = _createTexture(uvSize);
-    state->backV = _createTexture(uvSize);
-    state->backFormat = format;
+    state->backPboY = textureUtils::createPbo(_dynamicTexture);
+    state->backPboU = textureUtils::createPbo(_dynamicTexture);
+    state->backPboV = textureUtils::createPbo(_dynamicTexture);
 }
 
-TextureNodeYUV::QSGTexturePtr TextureNodeYUV::_createTexture(
-    const QSize& size) const
+void TextureNodeYUV::_deletePbos()
 {
-    uint textureID = 0;
-    auto gl = QOpenGLContext::currentContext()->functions();
-    gl->glGenTextures(1, &textureID);
-    gl->glBindTexture(GL_TEXTURE_2D, textureID);
-    gl->glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, size.width(), size.height(), 0,
-                     GL_RED, GL_UNSIGNED_BYTE, nullptr);
-    return _createWrapper(textureID, size);
+    auto state = _getMaterialState(_node);
+    state->frontPboY.reset();
+    state->frontPboU.reset();
+    state->frontPboV.reset();
+    state->backPboY.reset();
+    state->backPboU.reset();
+    state->backPboV.reset();
 }
 
-TextureNodeYUV::QSGTexturePtr TextureNodeYUV::_createWrapper(
-    const uint textureID, const QSize& size) const
+void TextureNodeYUV::_uploadToBackPbos(const Image& image)
 {
-    const auto textureFlags =
-        QQuickWindow::CreateTextureOptions(QQuickWindow::TextureOwnsGLTexture);
-    return QSGTexturePtr(
-        _window->createTextureFromId(textureID, size, textureFlags));
+    auto state = _getMaterialState(_node);
+    textureUtils::upload(image, 0, *state->backPboY);
+    textureUtils::upload(image, 1, *state->backPboU);
+    textureUtils::upload(image, 2, *state->backPboV);
+}
+
+void TextureNodeYUV::_copyFrontPbosToTextures()
+{
+    auto state = _getMaterialState(_node);
+    textureUtils::copy(*state->frontPboY, *state->textureY, GL_RED);
+    textureUtils::copy(*state->frontPboU, *state->textureU, GL_RED);
+    textureUtils::copy(*state->frontPboV, *state->textureV, GL_RED);
+}
+
+void TextureNodeYUV::_swapPbos()
+{
+    auto state = _getMaterialState(_node);
+    std::swap(state->frontPboY, state->backPboY);
+    std::swap(state->frontPboU, state->backPboU);
+    std::swap(state->frontPboV, state->backPboV);
 }

@@ -92,8 +92,11 @@ public slots:
      */
     virtual void onSwapReady(TilePtr tile) = 0;
 
-    /** Called when a tile has finished initializing; re-emits requestUpdate */
-    void onTextureReady(TilePtr tile);
+    /** Called when a tile has to be updated, re-emits requestTileUpdate. */
+    void onRequestNextFrame(TilePtr tile)
+    {
+        emit requestTileUpdate(shared_from_this(), TileWeakPtr(tile));
+    }
 
 signals:
     /** Notifier for the tiles area property. */
@@ -117,9 +120,6 @@ signals:
 
     /** Notify that the zoom context tile has changed and must be recreated. */
     void zoomContextTileChanged();
-
-    /** Called by DataProvider when an image has completed loading. */
-    void imageLoaded(ImagePtr image, TileWeakPtr tile);
 };
 
 #endif

@@ -163,6 +163,12 @@ ImagePtr PixelStreamUpdater::getTileImage(const uint tileIndex,
 
     // multiple WallWindows may try to access (->decode!) the same segments
     const auto offset = rightFrame ? _frameLeftOrMono->segments.size() : 0;
+
+    if (tileIndex + offset >= _segmentMutexes.size())
+    {
+        put_flog(LOG_ERROR, "Invalid segment requested!");
+        return ImagePtr();
+    }
     const std::lock_guard<std::mutex> lock(_segmentMutexes[tileIndex + offset]);
 
     const auto& frame = rightFrame ? _frameRight : _frameLeftOrMono;

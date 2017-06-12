@@ -63,6 +63,8 @@ public:
     explicit MovieUpdater(const QString& uri);
     ~MovieUpdater();
 
+    /** @copydoc DataSource::isDynamic */
+    bool isDynamic() const final { return true; }
     /**
      * @copydoc DataSource::getTileImage
      * threadsafe

@@ -52,16 +52,13 @@ const QColor borderColor("lightgreen");
 
 // false-positive on qt signals for Q_PROPERTY notifiers
 // cppcheck-suppress uninitMemberVar
-Tile::Tile(const uint id, const QRect& rect, TextureFormat format)
+Tile::Tile(const uint id, const QRect& rect, const TextureFormat format,
+           const TextureType type)
     : _tileId(id)
     , _format(format)
+    , _type(type)
     , _policy(AdjustToTexture)
-    , _swapRequested(false)
-    , _updateTextureRequested(true)
     , _nextCoord(rect)
-    , _backGlTexture(0)
-    , _showBorder(false)
-    , _border(nullptr)
 {
     setFlag(ItemHasContents, true);
     setVisible(false);
@@ -96,26 +93,38 @@ void Tile::setShowBorder(const bool set)
 
 void Tile::update(const QRect& rect, const TextureFormat format)
 {
-    _updateTextureRequested = true;
     _nextCoord = rect;
     if (_format != TextureFormat::rgba && format != TextureFormat::rgba)
         _format = format;
+
+    if (_type == TextureType::Dynamic)
+        emit requestNextFrame(shared_from_this());
+
     QQuickItem::update();
 }
 
-uint Tile::getBackGlTexture() const
+void Tile::updateBackTexture(ImagePtr image)
 {
-    return _backGlTexture;
-}
+    if (!image)
+    {
+        put_flog(LOG_WARN, "Invalid image");
+        return;
+    }
+    if (_type == TextureType::Static && _firstImageUploaded)
+    {
+        put_flog(LOG_WARN, "Static tiles can't be updated");
+        return;
+    }
+    _image = image;
 
-const YUVTexture& Tile::getBackGlTextureYUV() const
-{
-    return _backGlTextureYUV;
-}
+    // Note: readToSwap() must happen immediately and not in _updateTextureNode,
+    // otherwise tiles don't update faster than 30 fps. The reason for this
+    // could not be established. However, it was verified (using glFenceSync)
+    // that textures always upload faster than they are generated in practice.
+    // There is no need to check for upload completion in _updateTextureNode.
+    emit readyToSwap(shared_from_this());
 
-QSize Tile::getBackGlTextureSize() const
-{
-    return _nextCoord.size();
+    QQuickItem::update();
 }
 
 void Tile::setSizePolicy(const Tile::SizePolicy policy)
@@ -160,21 +169,22 @@ QSGNode* Tile::_updateTextureNode(QSGNode* oldNode)
 {
     auto node = static_cast<NodeT*>(oldNode);
     if (!node)
-        node = new NodeT(_nextCoord.size(), window(), _format);
+    {
+        node = new NodeT(window(), _type == TextureType::Dynamic);
+        emit requestNextFrame(shared_from_this());
+    }
+
+    if (_image)
+    {
+        node->updateBackTexture(*_image);
+        _image.reset();
+        _firstImageUploaded = true;
+    }
 
     if (_swapRequested)
     {
         node->swap();
-        _storeBackTextureIndex(*node);
         _swapRequested = false;
-    }
-
-    if (_updateTextureRequested)
-    {
-        node->prepareBackTexture(_nextCoord.size(), _format);
-        _storeBackTextureIndex(*node);
-        _updateTextureRequested = false;
-        emit textureReady(shared_from_this());
     }
 
     node->setRect(boundingRect());
@@ -182,16 +192,6 @@ QSGNode* Tile::_updateTextureNode(QSGNode* oldNode)
     _updateBorderNode(node);
 
     return node;
-}
-
-void Tile::_storeBackTextureIndex(const TextureNode& node)
-{
-    _backGlTexture = node.getBackGlTexture();
-}
-
-void Tile::_storeBackTextureIndex(const TextureNodeYUV& node)
-{
-    _backGlTextureYUV = node.getBackGlTexture();
 }
 
 template <class NodeT>
