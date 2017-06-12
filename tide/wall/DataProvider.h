@@ -101,6 +101,9 @@ signals:
     /** Emitted to request a new frame after a successful swap. */
     void requestFrame(QString uri);
 
+    /** Emitted to request a new rendering after a tile image was loaded. */
+    void imageLoaded();
+
 private:
     using Watcher = QFutureWatcher<void>;
     QList<Watcher*> _watchers;

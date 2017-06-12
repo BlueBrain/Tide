@@ -102,7 +102,6 @@ class PDFContent;
 class PixelStreamUpdater;
 class PixelStreamWindowManager;
 class TestPattern;
-class TextureUploader;
 class Tile;
 class WallConfiguration;
 class WallToWallChannel;

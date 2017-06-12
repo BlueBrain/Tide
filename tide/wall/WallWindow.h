@@ -99,9 +99,6 @@ public:
     /** @return the root object of the QML scene. */
     QQuickItem* rootObject() const;
 
-    /** @return the texture uploader. */
-    TextureUploader& getUploader();
-
 signals:
     /** Emitted after syncAndRender() has been called with grab set to true. */
     void imageGrabbed(QImage image, QPoint index);
@@ -119,9 +116,6 @@ private:
 
     std::unique_ptr<deflect::qt::QuickRenderer> _quickRenderer;
     std::unique_ptr<QThread> _quickRendererThread;
-
-    std::unique_ptr<TextureUploader> _uploader;
-    std::unique_ptr<QThread> _uploadThread;
 
     std::unique_ptr<QQmlEngine> _qmlEngine;
     QQuickItem* _rootItem = nullptr; // child qobject of contentItem()

@@ -50,6 +50,8 @@ class DataSource
 public:
     virtual ~DataSource() = default;
 
+    /** @return true if the data source produces dynamic contents. */
+    virtual bool isDynamic() const { return false; }
     /** Get a tile image by its id. threadsafe */
     virtual ImagePtr getTileImage(uint tileId, deflect::View view) const = 0;
 

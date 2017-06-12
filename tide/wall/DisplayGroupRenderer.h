@@ -89,10 +89,6 @@ public slots:
     /** Increment number of rendered/swapped frames for FPS display. */
     void updateRenderedFrames();
 
-signals:
-    /** Notify that an image has completed loading for the given tile. */
-    void imageLoaded(ImagePtr image, TileWeakPtr tile);
-
 private:
     QQmlEngine& _engine;
     DataProvider& _provider;
