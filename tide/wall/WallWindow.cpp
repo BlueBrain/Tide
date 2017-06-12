@@ -43,7 +43,6 @@
 #include "DisplayGroupRenderer.h"
 #include "InactivityTimer.h"
 #include "TestPattern.h"
-#include "TextureUploader.h"
 #include "WallConfiguration.h"
 #include "log.h"
 #include "qmlUtils.h"
@@ -73,13 +72,10 @@ WallWindow::WallWindow(const WallConfiguration& config, const uint windowIndex,
     , _synchronizer(synchronizer)
     , _quickRenderer(new deflect::qt::QuickRenderer(*this, *_renderControl))
     , _quickRendererThread(new QThread)
-    , _uploader(new TextureUploader)
-    , _uploadThread(new QThread)
     , _qmlEngine(new QQmlEngine)
 {
     const auto windowNumber = QString::number(windowIndex);
     _quickRendererThread->setObjectName("Render #" + windowNumber);
-    _uploadThread->setObjectName("Upload #" + windowNumber);
 
     const auto& screen = config.getScreens().at(windowIndex);
     const auto screenSize = config.getScreenRect(screen.globalIndex).size();
@@ -107,10 +103,6 @@ WallWindow::WallWindow(const WallConfiguration& config, const uint windowIndex,
 
 WallWindow::~WallWindow()
 {
-    _uploader->stop();
-    _uploadThread->quit();
-    _uploadThread->wait();
-
     _quickRenderer->stop();
     _quickRendererThread->quit();
     _quickRendererThread->wait();
@@ -147,10 +139,6 @@ void WallWindow::exposeEvent(QExposeEvent*)
         _quickRendererThread->start();
         _quickRenderer->init();
 
-        _uploader->moveToThread(_uploadThread.get());
-        _uploadThread->start();
-        _uploader->init(_quickRenderer->context(), screen());
-
         _rendererInitialized = true;
     }
 }
@@ -172,9 +160,6 @@ void WallWindow::_startQuick(const WallConfiguration& config,
     // DisplayGroupRenderer needs _engine and _rootItem from *this*
     _displayGroupRenderer.reset(
         new DisplayGroupRenderer(*this, _provider, screenRect, view));
-
-    connect(_displayGroupRenderer.get(), &DisplayGroupRenderer::imageLoaded,
-            _uploader.get(), &TextureUploader::uploadTexture);
 
     const auto globalIndex = screen.globalIndex;
     connect(_quickRenderer.get(), &deflect::qt::QuickRenderer::afterRender,
@@ -236,9 +221,4 @@ QQmlEngine* WallWindow::engine() const
 QQuickItem* WallWindow::rootObject() const
 {
     return _rootItem;
-}
-
-TextureUploader& WallWindow::getUploader()
-{
-    return *_uploader;
 }

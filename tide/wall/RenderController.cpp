@@ -42,7 +42,6 @@
 #include "DataProvider.h"
 #include "DisplayGroupRenderer.h"
 #include "InactivityTimer.h"
-#include "TextureUploader.h"
 #include "WallWindow.h"
 #include "network/WallToWallChannel.h"
 #include "scene/DisplayGroup.h"
@@ -76,11 +75,11 @@ RenderController::RenderController(std::vector<WallWindow*> windows,
             window->setRenderOptions(options);
     });
 
+    connect(&_provider, &DataProvider::imageLoaded, this,
+            [this] { _needRedraw = true; }, Qt::QueuedConnection);
+
     for (auto window : _windows)
     {
-        connect(&window->getUploader(), &TextureUploader::uploaded, this,
-                [this] { _needRedraw = true; }, Qt::QueuedConnection);
-
         connect(window, &WallWindow::imageGrabbed, this,
                 &RenderController::screenshotRendered);
     }

@@ -42,6 +42,7 @@
 
 #include "types.h"
 
+#include <QOpenGLBuffer>
 #include <QSGSimpleTextureNode>
 #include <memory>
 
@@ -51,53 +52,43 @@ class QQuickWindow;
  * A node with a double buffered texture.
  *
  * Initially it displays an empty black texture (id 0). Users can upload data
- * to the back texture, querried with getBackGlTexture(), before calling swap()
- * to display the results.
+ * asynchronously to the texture and call swap() on the next frame rendering to
+ * display the results.
  *
- * The second texture is created only after a call to prepareBackTexture(), so
- * that no memory is wasted for a second texture if the node is not going to
- * be updated more than once.
+ * The texture can be either static or dynamic:
+ * * In the dynamic case, two PBOs are used for real-time texture updates.
+ * * In the static case, a single PBO is used for the initial texture upload and
+ *   then released in the first call to swap() so that no memory is wasted.
  */
 class TextureNode : public QSGSimpleTextureNode
 {
 public:
     /**
-     * Create a textured rectangle for rendering YUV images on the GPU.
-     * @param size the initial back texture size.
+     * Create a textured rectangle for rendering RGBA images on the GPU.
      * @param window a reference to the quick window for generating textures.
-     * @param format ignored, needed for symmetry with TextureNodeYUV API.
+     * @param dynamic true if the texture is going to be updated more than once.
      */
-    TextureNode(const QSize& size, QQuickWindow* window,
-                TextureFormat format = TextureFormat::rgba);
-
-    /** @return the back texture identifier, which can safely be updated. */
-    uint getBackGlTexture() const;
-
-    /** Swap the front and back textures. */
-    void swap();
-
-    /**
-     * Create or resize the back texture as needed.
-     * Note that the back texture identifier may change as a result of calling
-     * this function.
-     * @param size the new texture size
-     * @param format ignored, needed for symmetry with TextureNodeYUV API.
-     */
-    void prepareBackTexture(const QSize& size,
-                            TextureFormat format = TextureFormat::rgba);
+    TextureNode(QQuickWindow* window, bool dynamic);
 
     /** @sa QSGOpaqueTextureMaterial::setMipmapFiltering */
-    void setMipmapFiltering(const QSGTexture::Filtering filtering);
+    void setMipmapFiltering(QSGTexture::Filtering filtering);
+
+    /** Upload the given image to the back PBO. */
+    void updateBackTexture(const Image& image);
+
+    /** Swap the PBOs and update the texture with the back PBO's contents. */
+    void swap();
 
 private:
-    QQuickWindow* _window;
+    QQuickWindow* _window = nullptr;
+    bool _dynamicTexture = false;
 
-    typedef std::unique_ptr<QSGTexture> QSGTexturePtr;
-    QSGTexturePtr _frontTexture;
-    QSGTexturePtr _backTexture;
+    std::unique_ptr<QSGTexture> _texture;
+    std::unique_ptr<QOpenGLBuffer> _frontPbo;
+    std::unique_ptr<QOpenGLBuffer> _backPbo;
 
-    QSGTexturePtr _createTexture(const QSize& size) const;
-    QSGTexturePtr _createWrapper(uint textureID, const QSize& size) const;
+    QSize _nextTextureSize;
+    uint _glImageFormat = 0;
 };
 
 #endif

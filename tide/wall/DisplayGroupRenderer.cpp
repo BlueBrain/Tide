@@ -182,8 +182,6 @@ void DisplayGroupRenderer::_createWindowQmlItem(ContentWindowPtr window)
 {
     const auto& id = window->getID();
     auto sync = _provider.createSynchronizer(*window, _view);
-    connect(sync.get(), &ContentSynchronizer::imageLoaded, this,
-            &DisplayGroupRenderer::imageLoaded);
     _windowItems[id].reset(new QmlWindowRenderer(std::move(sync), window,
                                                  *_displayGroupItem,
                                                  _engine.rootContext()));
@@ -210,8 +208,6 @@ void DisplayGroupRenderer::_setBackground(ContentPtr content)
     auto window = boost::make_shared<ContentWindow>(content);
     window->setCoordinates(geometry::adjustAndCenter(*window, *_displayGroup));
     auto sync = _provider.createSynchronizer(*window, _view);
-    connect(sync.get(), &ContentSynchronizer::imageLoaded, this,
-            &DisplayGroupRenderer::imageLoaded);
     _backgroundWindowItem.reset(
         new QmlWindowRenderer(std::move(sync), window, *_displayGroupItem,
                               _engine.rootContext(), true));

@@ -40,37 +40,34 @@
 #ifndef TEXTURENODEYUV_H
 #define TEXTURENODEYUV_H
 
-#include "YUVTexture.h"
 #include "types.h"
-#include "yuv.h"
 
 #include <QSGNode>
-#include <QSGTexture>
 
 class QQuickWindow;
+class QSGTexture;
 
 /**
  * A node with a double buffered YUV texture.
  *
  * Initially it displays an empty black texture (id 0). Users can upload data
- * to the back texture, querried with getBackGlTextureYUV(), before calling
- * swap() to display the results.
+ * asynchronously to the texture and call swap() on the next frame rendering to
+ * display the results.
  *
- * The second texture is created only after a call to prepareBackTexture(), so
- * that no memory is wasted for a second texture if the node is not going to
- * be updated more than once.
+ * The texture can be either static or dynamic:
+ * * In the dynamic case, two PBOs are used for real-time texture updates.
+ * * In the static case, a single PBO is used for the initial texture upload and
+ *   then released in the first call to swap() so that no memory is wasted.
  */
 class TextureNodeYUV : public QSGNode
 {
 public:
     /**
      * Create a textured rectangle for rendering YUV images on the GPU.
-     * @param size the initial back texture size.
      * @param window a reference to the quick window for generating textures.
-     * @param format the YUV format to determine the U and V texture size.
+     * @param dynamic true if the texture is going to be updated more than once.
      */
-    TextureNodeYUV(const QSize& size, QQuickWindow* window,
-                   TextureFormat format);
+    TextureNodeYUV(QQuickWindow* window, bool dynamic);
 
     /** @return the surface of the node. */
     const QRectF& rect() const;
@@ -78,31 +75,30 @@ public:
     /** Set the surface of the node. */
     void setRect(const QRectF& rect);
 
-    /** @return the back texture identifiers, which can safely be updated. */
-    YUVTexture getBackGlTexture() const;
+    /** Upload the given image to the back PBO. */
+    void updateBackTexture(const Image& image);
 
-    /** Swap the front and back textures. */
+    /** Swap the PBOs and update the texture with the back PBO's contents. */
     void swap();
-
-    /**
-     * Create or resize the back texture as needed.
-     * Note that the back texture identifier may change as a result of calling
-     * this function.
-     * @param size the new texture size
-     * @param format the YUV format to determine the U and V texture size.
-     */
-    void prepareBackTexture(const QSize& size, TextureFormat format);
 
 private:
     QQuickWindow* _window = nullptr;
+    bool _dynamicTexture = false;
 
     QRectF _rect;
     QSGGeometryNode _node;
 
-    void _createBackTextures(const QSize& size, TextureFormat format);
-    using QSGTexturePtr = std::unique_ptr<QSGTexture>;
-    QSGTexturePtr _createTexture(const QSize& size) const;
-    QSGTexturePtr _createWrapper(uint textureID, const QSize& size) const;
+    QSize _nextTextureSize;
+    TextureFormat _nextFormat;
+
+    bool _needTextureChange() const;
+    void _createTextures(const QSize& size, TextureFormat format);
+    std::unique_ptr<QSGTexture> _createTexture(const QSize& size) const;
+    void _createBackPbos();
+    void _deletePbos();
+    void _uploadToBackPbos(const Image& image);
+    void _copyFrontPbosToTextures();
+    void _swapPbos();
 };
 
 #endif
