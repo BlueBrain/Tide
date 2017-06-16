@@ -57,10 +57,11 @@ float FpsCounter::getFps() const
 
     const auto delta = _history.back() - _history.front();
     const auto deltaS = std::chrono::duration<float>{delta}.count();
-    return (float)_history.size() / deltaS;
+    return (float)(_history.size() - 1) / deltaS;
 }
 
 QString FpsCounter::toString() const
 {
-    return QString::number(getFps(), 'g', 3);
+    const auto fps = getFps();
+    return fps < 1.f ? QString::number(fps, 'g', 3) : QString::number(int(fps));
 }
