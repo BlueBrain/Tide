@@ -62,9 +62,9 @@ PlanarController::PlanarController(const QString& serialport)
             QString output(_serial.readLine());
             output = output.trimmed();
             ScreenState previousState = _state;
-            if (output.endsWith("OFF"))
+            if (output.endsWith("OFF") || output.endsWith("0"))
                 _state = ScreenState::OFF;
-            else if (output.endsWith("ON"))
+            else if (output.endsWith("ON") || output.endsWith("1"))
                 _state = ScreenState::ON;
             else
                 _state = ScreenState::UNDEF;
