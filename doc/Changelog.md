@@ -1,6 +1,11 @@
 Changelog {#changelog}
 ============
 
+# Release 1.3.1 (git master)
+
+* [163](https://github.com/BlueBrain/Tide/pull/163):
+  Adaptation for Planar controller responding with numerals.
+
 # Release 1.3 (06-06-2017)
 
 * [157](https://github.com/BlueBrain/Tide/pull/153):
