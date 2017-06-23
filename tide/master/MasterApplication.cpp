@@ -389,12 +389,15 @@ void MasterApplication::_setupMPIConnections()
             },
             Qt::DirectConnection);
 
-    connect(_masterFromWallChannel.get(),
-            &MasterFromWallChannel::receivedRequestFrame, _deflectServer.get(),
-            &deflect::Server::requestFrame);
+    if (_deflectServer)
+    {
+        connect(_masterFromWallChannel.get(),
+                &MasterFromWallChannel::receivedRequestFrame,
+                _deflectServer.get(), &deflect::Server::requestFrame);
 
-    connect(_deflectServer.get(), &deflect::Server::receivedFrame,
-            _masterToWallChannel.get(), &MasterToWallChannel::send);
+        connect(_deflectServer.get(), &deflect::Server::receivedFrame,
+                _masterToWallChannel.get(), &MasterToWallChannel::send);
+    }
 
     connect(_masterFromWallChannel.get(),
             &MasterFromWallChannel::receivedScreenshot,

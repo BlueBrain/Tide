@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.3.1 (git master)
 
+* [164](https://github.com/BlueBrain/Tide/pull/164):
+  Fix problem with Deflect server using system proxy and Qt 5.8.
 * [163](https://github.com/BlueBrain/Tide/pull/163):
   Adaptation for Planar controller responding with numerals.
 
