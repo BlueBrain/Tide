@@ -50,12 +50,23 @@ LodSynchronizer::LodSynchronizer(std::shared_ptr<DataSource> source)
     : TiledSynchronizer(TileSwapPolicy::SwapTilesIndependently)
     , _source(std::move(source))
 {
+    _source->synchronizers.push_back(this);
 }
 
 void LodSynchronizer::update(const ContentWindow& window,
                              const QRectF& visibleArea)
 {
     update(window, visibleArea, false, 0);
+}
+
+void LodSynchronizer::updateTiles()
+{
+    if (_tilesDirty)
+    {
+        _setBackgroundTile(_backgroundTileId);
+        TiledSynchronizer::updateTiles(false);
+        _tilesDirty = false;
+    }
 }
 
 QSize LodSynchronizer::getTilesArea() const
@@ -100,9 +111,8 @@ void LodSynchronizer::update(const ContentWindow& window,
         emit tilesAreaChanged();
     }
 
-    _setBackgroundTile(backgroundTileId);
-
-    TiledSynchronizer::updateTiles(getDataSource(), false);
+    _backgroundTileId = backgroundTileId;
+    _tilesDirty = true;
 }
 
 const DataSource& LodSynchronizer::getDataSource() const

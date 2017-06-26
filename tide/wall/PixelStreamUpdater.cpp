@@ -161,16 +161,6 @@ ImagePtr PixelStreamUpdater::getTileImage(const uint tileIndex,
     const bool rightEye = view == deflect::View::right_eye;
     const bool rightFrame = rightEye && !_frameRight->segments.empty();
 
-    // multiple WallWindows may try to access (->decode!) the same segments
-    const auto offset = rightFrame ? _frameLeftOrMono->segments.size() : 0;
-
-    if (tileIndex + offset >= _segmentMutexes.size())
-    {
-        put_flog(LOG_ERROR, "Invalid segment requested!");
-        return ImagePtr();
-    }
-    const std::lock_guard<std::mutex> lock(_segmentMutexes[tileIndex + offset]);
-
     const auto& frame = rightFrame ? _frameRight : _frameLeftOrMono;
     auto& segment = frame->segments.at(tileIndex);
 
@@ -247,12 +237,6 @@ void PixelStreamUpdater::_onFrameSwapped(deflect::FramePtr frame)
         const QWriteLocker frameLock(&_frameMutex);
         _frameLeftOrMono = std::move(leftOrMono);
         _frameRight = std::move(right);
-        if (_segmentMutexes.size() != frame->segments.size())
-        {
-            // std::vector<std::mutex> can't be resized, create a new one
-            auto mutexes = std::vector<std::mutex>{frame->segments.size()};
-            _segmentMutexes.swap(mutexes);
-        }
     }
 
     emit pictureUpdated();

@@ -88,14 +88,11 @@ public:
     /** @copydoc DataSource::getMaxLod */
     uint getMaxLod() const final;
 
-    /** Synchronize the update of the PixelStreams. */
+    /** Synchronize the advance to the next frame of the stream. */
     void synchronizeFrameAdvance(WallToWallChannel& channel);
 
-    /** Allow the updater to request next frame (flow control). */
+    /** Allow advancing to the next frame of the stream (flow control). */
     void getNextFrame();
-
-    /** The synchronizers linked to this shared data source. */
-    std::vector<PixelStreamSynchronizer*> synchronizers;
 
 public slots:
     /** Update the appropriate PixelStream with the given frame. */
@@ -114,7 +111,6 @@ private:
     deflect::FramePtr _frameRight;
     std::unique_ptr<deflect::SegmentDecoder> _headerDecoder;
     mutable QReadWriteLock _frameMutex;
-    mutable std::vector<std::mutex> _segmentMutexes;
     bool _readyToSwap = true;
 
     void _onFrameSwapped(deflect::FramePtr frame);

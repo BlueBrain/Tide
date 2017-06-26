@@ -123,7 +123,12 @@ ImagePtr MovieUpdater::getTileImage(const uint tileIndex,
 {
     Q_UNUSED(tileIndex);
 
-    const QMutexLocker multiWindowLock(&_multiWindowMutex);
+    // WAR bug: concurrent calls to this function may occur when the movie was
+    // obstruced by another window and becomes visible again, resulting in a
+    // segfault in: FFMPEGMovie::getFrame() ->
+    // FFMPEGVideoStream::decodePictureForLastPacket() -> sws_scale().
+    const QMutexLocker lockGetImage(&_getImageMutex);
+
     if (_ffmpegMovie->isStereo() && _pictureLeftOrMono && _pictureRight)
     {
         return view == deflect::View::right_eye ? _pictureRight
@@ -215,7 +220,10 @@ void MovieUpdater::synchronizeFrameAdvance(WallToWallChannel& channel)
 {
     bool visible = false;
     for (auto synchronizer : synchronizers)
-        visible = visible || synchronizer->hasVisibleTiles();
+    {
+        auto movieSynchronizer = static_cast<MovieSynchronizer*>(synchronizer);
+        visible = visible || movieSynchronizer->hasVisibleTiles();
+    }
 
     const double frameDuration = _ffmpegMovie->getFrameDuration();
 
@@ -279,11 +287,8 @@ void MovieUpdater::synchronizeFrameAdvance(WallToWallChannel& channel)
 void MovieUpdater::_triggerFrameUpdate()
 {
     _readyForNextFrame = false;
-    {
-        const QMutexLocker multiWindowLock(&_multiWindowMutex);
-        _pictureLeftOrMono.reset();
-        _pictureRight.reset();
-    }
+    _pictureLeftOrMono.reset();
+    _pictureRight.reset();
     emit pictureUpdated();
 }
 

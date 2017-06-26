@@ -70,6 +70,9 @@ public:
 
     /** @return the max LOD level (top of pyramid, lowest resolution). */
     virtual uint getMaxLod() const = 0;
+
+    /** The synchronizers linked to this shared data source. */
+    std::vector<ContentSynchronizer*> synchronizers;
 };
 
 #endif

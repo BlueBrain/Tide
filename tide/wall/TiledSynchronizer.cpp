@@ -61,9 +61,9 @@ void TiledSynchronizer::onSwapReady(TilePtr tile)
         tile->swapImage();
 }
 
-void TiledSynchronizer::updateTiles(const DataSource& source,
-                                    const bool updateExistingTiles)
+void TiledSynchronizer::updateTiles(const bool updateExistingTiles)
 {
+    const auto& source = getDataSource();
     Indices visibleSet = source.computeVisibleSet(_visibleTilesArea, _lod);
     visibleSet = set_difference(visibleSet, _ignoreSet);
 

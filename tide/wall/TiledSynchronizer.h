@@ -69,7 +69,14 @@ public:
      * @return true if TileSwapPolicy is SwapTilesSynchronously and tiles are
      *         ready to be swapped.
      */
-    bool canSwapTiles() const;
+    bool canSwapTiles() const override;
+
+    /**
+     * Call to swap tiles when TileSwapPolicy is SwapTilesSynchronously.
+     *
+     * Should only be called when canSwapTiles returns true on all processes.
+     */
+    void swapTiles() override;
 
 protected:
     uint _lod;
@@ -79,20 +86,12 @@ protected:
     /**
      * Update the tiles, adding or removing them from the view.
      *
-     * @param source the DataSource use to retrieve the tile coordinates.
      * @param updateExistingTiles also update the texture and coordinates of the
      *        tiles which are already visible. If TileSwapPolicy is
      *        SwapTilesSynchronously, the updated textures will only be shown
      *        after a successful call to swapTiles().
      */
-    void updateTiles(const DataSource& source, bool updateExistingTiles);
-
-    /**
-     * Call to swap tiles when TileSwapPolicy is SwapTilesSynchronously.
-     *
-     * Should only be called when canSwapTiles returns true on all processes.
-     */
-    virtual void swapTiles();
+    void updateTiles(bool updateExistingTiles);
 
 private:
     TileSwapPolicy _policy;

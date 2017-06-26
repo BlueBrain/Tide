@@ -58,6 +58,13 @@ public:
     void update(const ContentWindow& window,
                 const QRectF& visibleArea) override;
 
+    /** @copydoc ContentSynchronizer::updateTiles */
+    void updateTiles() override;
+
+    /** @copydoc ContentSynchronizer::canSwapTiles */
+    bool canSwapTiles() const override { return false; }
+    /** @copydoc ContentSynchronizer::swapTiles */
+    void swapTiles() override {}
     /** @copydoc ContentSynchronizer::getTilesArea */
     QSize getTilesArea() const override;
 
@@ -73,6 +80,7 @@ public:
 private:
     std::shared_ptr<DataSource> _dataSource;
     bool _tileAdded = false;
+    bool _addTile = false;
 
     /** @copydoc ContentSynchronizer::getDataSource */
     const DataSource& getDataSource() const final;

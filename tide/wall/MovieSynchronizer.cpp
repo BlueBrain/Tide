@@ -75,6 +75,28 @@ void MovieSynchronizer::update(const ContentWindow& window,
     _tilesDirty = true;
 }
 
+void MovieSynchronizer::updateTiles()
+{
+    if (_tilesDirty)
+    {
+        TiledSynchronizer::updateTiles(_updateExistingTiles);
+        _tilesDirty = false;
+        _updateExistingTiles = false;
+    }
+}
+
+void MovieSynchronizer::swapTiles()
+{
+    TiledSynchronizer::swapTiles();
+
+    if (!_updater->isPaused() || _updater->isSkipping())
+    {
+        _fpsCounter.tick();
+        emit statisticsChanged();
+        emit sliderPositionChanged();
+    }
+}
+
 QSize MovieSynchronizer::getTilesArea() const
 {
     return getDataSource().getTilesArea(0);
@@ -94,28 +116,6 @@ deflect::View MovieSynchronizer::getView() const
 const DataSource& MovieSynchronizer::getDataSource() const
 {
     return *_updater;
-}
-
-void MovieSynchronizer::swapTiles()
-{
-    TiledSynchronizer::swapTiles();
-
-    if (!_updater->isPaused() || _updater->isSkipping())
-    {
-        _fpsCounter.tick();
-        emit statisticsChanged();
-        emit sliderPositionChanged();
-    }
-}
-
-void MovieSynchronizer::updateTiles()
-{
-    if (_tilesDirty)
-    {
-        TiledSynchronizer::updateTiles(*_updater, _updateExistingTiles);
-        _tilesDirty = false;
-        _updateExistingTiles = false;
-    }
 }
 
 bool MovieSynchronizer::hasVisibleTiles() const

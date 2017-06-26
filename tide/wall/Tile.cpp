@@ -116,6 +116,7 @@ void Tile::updateBackTexture(ImagePtr image)
         return;
     }
     _image = image;
+    _firstImageUploaded = true;
 
     // Note: readToSwap() must happen immediately and not in _updateTextureNode,
     // otherwise tiles don't update faster than 30 fps. The reason for this
@@ -169,16 +170,12 @@ QSGNode* Tile::_updateTextureNode(QSGNode* oldNode)
 {
     auto node = static_cast<NodeT*>(oldNode);
     if (!node)
-    {
         node = new NodeT(window(), _type == TextureType::Dynamic);
-        emit requestNextFrame(shared_from_this());
-    }
 
     if (_image)
     {
         node->updateBackTexture(*_image);
         _image.reset();
-        _firstImageUploaded = true;
     }
 
     if (_swapRequested)
