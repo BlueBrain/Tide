@@ -66,7 +66,7 @@ public:
     /** @copydoc ContentSynchronizer::update */
     void update(const ContentWindow& window, const QRectF& visibleArea) final;
 
-    /** Update the tiles. */
+    /** @copydoc ContentSynchronizer::updateTiles */
     void updateTiles() final;
 
     /** @copydoc ContentSynchronizer::swapTiles */

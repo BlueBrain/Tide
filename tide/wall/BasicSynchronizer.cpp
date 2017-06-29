@@ -61,6 +61,16 @@ void BasicSynchronizer::updateTiles()
         _createTile();
 }
 
+bool BasicSynchronizer::canSwapTiles() const
+{
+    return false;
+}
+
+void BasicSynchronizer::swapTiles()
+{
+    // Swap not synchronized, done directly in onSwapReady()
+}
+
 QSize BasicSynchronizer::getTilesArea() const
 {
     return getDataSource().getTilesArea(0);

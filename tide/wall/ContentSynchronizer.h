@@ -72,9 +72,9 @@ public:
     virtual void updateTiles() = 0;
 
     /**
-     * Swap the image before rendering.
+     * Swap the image before rendering (useful only for synchronized contents).
      *
-     * Should only be called when canSwapTiles returns true on all processes.
+     * Called only when canSwapTiles returns true on all processes.
      */
     virtual void swapTiles() = 0;
 

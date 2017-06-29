@@ -121,16 +121,16 @@ private:
     std::map<QString, std::weak_ptr<PixelStreamUpdater>> _streamSources;
     std::map<QUuid, std::weak_ptr<SVGTiler>> _svgSources;
 
-    using TileLoadData = std::pair<TileWeakPtr, deflect::View>;
-    using TilesList = std::vector<TileLoadData>;
-    std::map<uint, TilesList> _tileImageRequests;
+    using TileUpdateInfo = std::pair<TileWeakPtr, deflect::View>;
+    using TileUpdateList = std::vector<TileUpdateInfo>;
+    std::map<uint, TileUpdateList> _tileImageRequests;
 
     using DataSourcePtr = std::shared_ptr<DataSource>;
     void _processTileImageRequests(DataSourcePtr source);
 
     std::shared_ptr<PixelStreamUpdater> _getStreamSource(
         const ContentWindow& window);
-    void _load(DataSourcePtr source, TilesList tileList);
+    void _load(DataSourcePtr source, const TileUpdateList& tileList);
     void _handleFinished();
     std::unique_ptr<ContentSynchronizer> _makeSynchronizer(
         const ContentWindow& window, deflect::View view);

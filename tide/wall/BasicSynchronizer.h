@@ -62,9 +62,11 @@ public:
     void updateTiles() override;
 
     /** @copydoc ContentSynchronizer::canSwapTiles */
-    bool canSwapTiles() const override { return false; }
+    bool canSwapTiles() const override;
+
     /** @copydoc ContentSynchronizer::swapTiles */
-    void swapTiles() override {}
+    void swapTiles() override;
+
     /** @copydoc ContentSynchronizer::getTilesArea */
     QSize getTilesArea() const override;
 
