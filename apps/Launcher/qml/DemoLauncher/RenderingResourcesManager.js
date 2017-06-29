@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2016, EPFL/Blue Brain Project
+// Copyright (c) 2014-2017, EPFL/Blue Brain Project
 //                          Pawel Podhajski <pawel.podhajski@epfl.ch>
 //                          Raphael Dumusc <raphael.dumusc@epfl.ch>
 
@@ -13,8 +13,6 @@ var SESSION_STATUS_STARTING = 4;
 var SESSION_STATUS_RUNNING = 5;
 var SESSION_STATUS_STOPPING = 6;
 
-var SESSION_COOKIE_NAME = 'HBP';
-
 var SESSION_COMMAND_NONE = '';
 var SESSION_COMMAND_LOG = 'log';
 var SESSION_COMMAND_ERROR = 'err';
@@ -23,6 +21,17 @@ var SESSION_COMMAND_SCHEDULE = 'schedule';
 var SESSION_COMMAND_STATUS = 'status';
 
 var NO_BODY;
+
+/**
+ * Parse the JSON response of an XMLHttpRequest into an object.
+ */
+function toJSON(request) {
+    try {
+        return JSON.parse(request.responseText);
+    } catch (e) {
+        return {};
+    }
+}
 
 /**
  * Class to manage communication with the BlueBrain RenderingResourceManager
@@ -40,6 +49,7 @@ function Communicator(baseUrl, deflectStreamHost) {
     // Status of the session, returned by the RRM
     this.currentStatus = SESSION_STATUS_STOPPED;
     this.status = '';
+    this.sessionId = null;
 }
 
 /**
@@ -49,8 +59,12 @@ Communicator.prototype.isRunning = function() {
     return this.currentStatus === SESSION_STATUS_RUNNING;
 }
 
-Communicator.prototype.sendRequest = function(method, module, command, body, callback) {
+Communicator.prototype.sendRequest = function(method, module, command, body, callback, omitSessionId) {
     var fullUrl = this.serviceUrl + '/' + module + '/' + command;
+
+    if (!omitSessionId) {
+        fullUrl += ('?session_id=' + this.sessionId);
+    }
 
     var request = new XMLHttpRequest();
     request.withCredentials = true;
@@ -101,7 +115,7 @@ Communicator.prototype.queryStatus = function(callback) {
     this.sendRequest('GET', MODULE_SESSION, SESSION_COMMAND_STATUS, NO_BODY,
                      function(request) {
                          if (request.status === 200) {
-                             var obj = JSON.parse(request.responseText);
+                             var obj = toJSON(request);
                              self.currentStatus = obj.code;
                              self.status = obj.description;
                              callback(self.currentStatus);
@@ -124,12 +138,15 @@ Communicator.prototype.launch = function(demo_id) {
     var self = this;
     this.sendRequest('POST', MODULE_SESSION, SESSION_COMMAND_NONE, openSessionParams,
                      function(request) {
-                         if (request.status === 201)
+                         if (request.status === 201) {
+                             var obj = toJSON(request);
+                             self.sessionId = obj.session_id;
                              self.startRenderer();
-                         else
+                         } else {
                              console.warn("Session could not be opened",
                                           request.status, request.responseText);
-                     });
+                        }
+                    }, true);
 };
 
 Communicator.prototype.closeCurrentSession = function() {
@@ -167,7 +184,7 @@ Communicator.prototype.querySessionInfo = function(infoType) {
     this.sendRequest('GET', MODULE_SESSION, infoType, NO_BODY,
                      function(request) {
                          if (request.status === 200) {
-                             var obj = JSON.parse(request.responseText);
+                             var obj = toJSON(request);
                              if (infoType === SESSION_COMMAND_JOB)
                                  console.log("job info:", request.status,
                                              obj.contents);
@@ -187,7 +204,7 @@ Communicator.prototype.queryConfigurations = function(callback, filter) {
     var request = new XMLHttpRequest();
     request.onreadystatechange = function() {
         if (request.readyState === XMLHttpRequest.DONE && request.status == 200) {
-            var configurations = JSON.parse(request.responseText);
+            var configurations = toJSON(request);
             callback(filter(configurations));
         }
     }
