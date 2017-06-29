@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.3.1 (git master)
 
+* [165](https://github.com/BlueBrain/Tide/pull/165):
+  Ported the demo Launcher to version 0.5.6 of the RenderingResourceManager.
 * [164](https://github.com/BlueBrain/Tide/pull/164):
   Fix problem with Deflect server using system proxy and Qt 5.8.
 * [163](https://github.com/BlueBrain/Tide/pull/163):
