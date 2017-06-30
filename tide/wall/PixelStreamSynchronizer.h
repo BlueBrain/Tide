@@ -91,7 +91,6 @@ private:
     FpsCounter _fpsCounter;
 
     bool _tilesDirty = true;
-    bool _updateExistingTiles = false;
     QSize _tilesArea;
 
     void _onPictureUpdated();

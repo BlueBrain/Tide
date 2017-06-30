@@ -99,7 +99,6 @@ private:
     FpsCounter _fpsCounter;
 
     bool _tilesDirty = true;
-    bool _updateExistingTiles = false;
 
     const DataSource& getDataSource() const final;
     void _onPictureUpdated();

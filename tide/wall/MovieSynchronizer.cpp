@@ -79,7 +79,7 @@ void MovieSynchronizer::updateTiles()
 {
     if (_tilesDirty)
     {
-        TiledSynchronizer::updateTiles(_updateExistingTiles);
+        TiledSynchronizer::updateTiles();
         _tilesDirty = false;
         _updateExistingTiles = false;
     }

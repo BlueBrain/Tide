@@ -64,7 +64,7 @@ void LodSynchronizer::updateTiles()
     if (_tilesDirty)
     {
         _setBackgroundTile(_backgroundTileId);
-        TiledSynchronizer::updateTiles(false);
+        TiledSynchronizer::updateTiles();
         _tilesDirty = false;
     }
 }

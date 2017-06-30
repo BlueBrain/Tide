@@ -62,6 +62,9 @@ public:
     /** Constructor */
     explicit TiledSynchronizer(TileSwapPolicy policy);
 
+    /** @copydoc ContentSynchronizer::updateTiles */
+    void updateTiles() override;
+
     /** @copydoc ContentSynchronizer::onSwapReady */
     void onSwapReady(TilePtr tile) override;
 
@@ -79,26 +82,23 @@ public:
     void swapTiles() override;
 
 protected:
-    uint _lod;
-    QRectF _visibleTilesArea;
-    Indices _ignoreSet;
-
-    /**
-     * Update the tiles, adding or removing them from the view.
-     *
-     * @param updateExistingTiles also update the texture and coordinates of the
-     *        tiles which are already visible. If TileSwapPolicy is
-     *        SwapTilesSynchronously, the updated textures will only be shown
-     *        after a successful call to swapTiles().
-     */
-    void updateTiles(bool updateExistingTiles);
+    /** @name Parameters for updateTile. */
+    //@{
+    uint _lod = 0; /**< LOD used to obtain the list of visible tiles from the
+                        data source. */
+    QRectF _visibleTilesArea; /**< Area used to obtain the list of visible tiles
+                                   from the data source. */
+    Indices _ignoreSet; /**< Tiles to be ignored; must be managed manually. */
+    bool _updateExistingTiles = false; /**< Update texture and coordinates of
+                                            tiles which are already visible. */
+    //@}
 
 private:
     TileSwapPolicy _policy;
 
     Indices _visibleSet;
 
-    bool _syncSwapPending;
+    bool _syncSwapPending = false;
     std::set<TilePtr> _tilesReadyToSwap;
     Indices _tilesReadySet;
     Indices _syncSet;
