@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.4 (git 1.4-dev)
 
+* [169](https://github.com/BlueBrain/Tide/issues/169):
+  Performance improvement for PixelStreams with small tile size (64x64).
 * [162](https://github.com/BlueBrain/Tide/issues/162):
   Movies and pixel streams can be rendered at 60 fps (up from 30 fps).
 * [161](https://github.com/BlueBrain/Tide/issues/161):

@@ -1,7 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
-/*                          Daniel.Nachbaur@epfl.ch                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -38,46 +37,53 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef STREAMIMAGE_H
-#define STREAMIMAGE_H
+#include "PixelStreamPassthrough.h"
 
-#include "data/YUVImage.h"
+#include "StreamImage.h"
 
-#include <deflect/types.h>
+#include <deflect/Frame.h>
+#include <deflect/SegmentDecoder.h>
 
-/**
- * Image wrapper for a pixel stream image.
- */
-class StreamImage : public YUVImage
+PixelStreamPassthrough::PixelStreamPassthrough(deflect::FramePtr frame)
+    : _frame(frame)
 {
-public:
-    /** Constructor, stores the given deflect frame. */
-    StreamImage(deflect::FramePtr frame, uint tileIndex);
+}
 
-    /** @copydoc Image::getWidth */
-    int getWidth() const final;
-
-    /** @copydoc Image::getHeight */
-    int getHeight() const final;
-
-    /** @copydoc Image::getData */
-    const uint8_t* getData(uint texture) const final;
-
-    /** @copydoc Image::getFormat */
-    TextureFormat getFormat() const final;
-
-    /** @return the position of the image in the stream. */
-    QPoint getPosition() const;
-
-    /** Copy another image of the same format at the given position. */
-    void copy(const StreamImage& source, const QPoint& position);
-
-private:
-    const deflect::FramePtr _frame;
-    const uint _tileIndex;
-
-    void _copy(const StreamImage& image, uint texture, const QPoint& position);
-    uint8_t* _getData(const uint texture);
-};
-
+ImagePtr PixelStreamPassthrough::getTileImage(const uint tileIndex,
+                                              deflect::SegmentDecoder& decoder)
+{
+    auto& segment = _frame->segments.at(tileIndex);
+    if (segment.parameters.dataType == deflect::DataType::jpeg)
+    {
+#ifndef DEFLECT_USE_LEGACY_LIBJPEGTURBO
+        decoder.decodeToYUV(segment);
+#else
+        decoder.decode(segment);
 #endif
+    }
+    return std::make_shared<StreamImage>(_frame, tileIndex);
+}
+
+QRect PixelStreamPassthrough::getTileRect(const uint tileIndex) const
+{
+    return toRect(_frame->segments.at(tileIndex).parameters);
+}
+
+TextureFormat PixelStreamPassthrough::getTileFormat(
+    const uint tileIndex, deflect::SegmentDecoder& decoder) const
+{
+    return getFormat(_frame->segments.at(tileIndex), decoder);
+}
+
+Indices PixelStreamPassthrough::computeVisibleSet(
+    const QRectF& visibleTilesArea) const
+{
+    Indices visibleSet;
+    for (size_t i = 0; i < _frame->segments.size(); ++i)
+    {
+        const auto segmentRect = toRect(_frame->segments[i].parameters);
+        if (visibleTilesArea.intersects(segmentRect))
+            visibleSet.insert(i);
+    }
+    return visibleSet;
+}
