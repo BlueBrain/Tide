@@ -43,11 +43,12 @@
 #include "types.h"
 
 #include "DataSource.h"
-#include "PixelStreamSynchronizer.h"
 #include "SwapSyncObject.h"
 
 #include <QObject>
 #include <QReadWriteLock>
+
+class PixelStreamProcessor;
 
 /**
  * Synchronize the update of PixelStreams and send new frame requests.
@@ -110,10 +111,13 @@ private:
     deflect::FramePtr _frameLeftOrMono;
     deflect::FramePtr _frameRight;
     std::unique_ptr<deflect::SegmentDecoder> _headerDecoder;
+    std::unique_ptr<PixelStreamProcessor> _processorLeft;
+    std::unique_ptr<PixelStreamProcessor> _processRight;
     mutable QReadWriteLock _frameMutex;
     bool _readyToSwap = true;
 
     void _onFrameSwapped(deflect::FramePtr frame);
+    void _createFrameProcessors();
 };
 
 #endif

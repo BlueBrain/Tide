@@ -39,6 +39,8 @@
 
 #include "PixelStreamUpdater.h"
 
+#include "PixelStreamAssembler.h"
+#include "PixelStreamPassthrough.h"
 #include "StreamImage.h"
 #include "log.h"
 #include "network/WallToWallChannel.h"
@@ -95,47 +97,14 @@ void PixelStreamUpdater::synchronizeFrameAdvance(WallToWallChannel& channel)
     _swapSyncFrame.sync(versionCheckFunc);
 }
 
-QRect toRect(const deflect::SegmentParameters& params)
-{
-    return QRect(params.x, params.y, params.width, params.height);
-}
-
 QRect PixelStreamUpdater::getTileRect(const uint tileIndex) const
 {
-    return toRect(_frameLeftOrMono->segments.at(tileIndex).parameters);
+    return _processorLeft->getTileRect(tileIndex);
 }
 
 TextureFormat PixelStreamUpdater::getTileFormat(const uint tileIndex) const
 {
-#ifndef DEFLECT_USE_LEGACY_LIBJPEGTURBO
-    const auto& segment = _frameLeftOrMono->segments.at(tileIndex);
-    switch (segment.parameters.dataType)
-    {
-    case deflect::DataType::rgba:
-        return TextureFormat::rgba;
-    case deflect::DataType::yuv444:
-        return TextureFormat::yuv444;
-    case deflect::DataType::yuv422:
-        return TextureFormat::yuv422;
-    case deflect::DataType::yuv420:
-        return TextureFormat::yuv420;
-    case deflect::DataType::jpeg:
-        switch (_headerDecoder->decodeType(segment))
-        {
-        case deflect::ChromaSubsampling::YUV444:
-            return TextureFormat::yuv444;
-        case deflect::ChromaSubsampling::YUV422:
-            return TextureFormat::yuv422;
-        case deflect::ChromaSubsampling::YUV420:
-            return TextureFormat::yuv420;
-        }
-    default:
-        throw std::runtime_error("Invalid data type for Tile");
-    }
-#else
-    Q_UNUSED(tileIndex);
-    return TextureFormat::rgba;
-#endif
+    return _processorLeft->getTileFormat(tileIndex, *_headerDecoder);
 }
 
 QSize PixelStreamUpdater::getTilesArea(const uint lod) const
@@ -160,31 +129,20 @@ ImagePtr PixelStreamUpdater::getTileImage(const uint tileIndex,
 
     const bool rightEye = view == deflect::View::right_eye;
     const bool rightFrame = rightEye && !_frameRight->segments.empty();
+    const auto& processor = rightFrame ? _processRight : _processorLeft;
 
-    const auto& frame = rightFrame ? _frameRight : _frameLeftOrMono;
-    auto& segment = frame->segments.at(tileIndex);
-
-    if (segment.parameters.dataType == deflect::DataType::jpeg)
+    // turbojpeg handles need to be per thread, and this function may be
+    // called from multiple threads
+    static QThreadStorage<deflect::SegmentDecoder> segmentDecoders;
+    try
     {
-        // turbojpeg handles need to be per thread, and this function may be
-        // called from multiple threads
-        static QThreadStorage<deflect::SegmentDecoder> decoder;
-        try
-        {
-#ifndef DEFLECT_USE_LEGACY_LIBJPEGTURBO
-            decoder.localData().decodeToYUV(segment);
-#else
-            decoder.localData().decode(segment);
-#endif
-        }
-        catch (const std::runtime_error& e)
-        {
-            put_flog(LOG_ERROR, "Error decoding stream tile: '%s'", e.what());
-            return ImagePtr();
-        }
+        return processor->getTileImage(tileIndex, segmentDecoders.localData());
     }
-
-    return std::make_shared<StreamImage>(frame, tileIndex);
+    catch (const std::runtime_error& e)
+    {
+        put_flog(LOG_ERROR, "Error decoding stream tile: '%s'", e.what());
+        return ImagePtr();
+    }
 }
 
 Indices PixelStreamUpdater::computeVisibleSet(const QRectF& visibleTilesArea,
@@ -192,19 +150,10 @@ Indices PixelStreamUpdater::computeVisibleSet(const QRectF& visibleTilesArea,
 {
     Q_UNUSED(lod);
 
-    Indices visibleSet;
     if (!_frameLeftOrMono || visibleTilesArea.isEmpty())
-        return visibleSet;
+        return {};
 
-    for (size_t i = 0; i < _frameLeftOrMono->segments.size(); ++i)
-    {
-        const auto& segment = _frameLeftOrMono->segments[i];
-        const auto segmentRect = toRect(segment.parameters);
-
-        if (visibleTilesArea.intersects(segmentRect))
-            visibleSet.insert(i);
-    }
-    return visibleSet;
+    return _processorLeft->computeVisibleSet(visibleTilesArea);
 }
 
 uint PixelStreamUpdater::getMaxLod() const
@@ -237,8 +186,30 @@ void PixelStreamUpdater::_onFrameSwapped(deflect::FramePtr frame)
         const QWriteLocker frameLock(&_frameMutex);
         _frameLeftOrMono = std::move(leftOrMono);
         _frameRight = std::move(right);
+        _createFrameProcessors();
     }
 
     emit pictureUpdated();
     emit requestFrame(frame->uri);
+}
+
+void PixelStreamUpdater::_createFrameProcessors()
+{
+    try
+    {
+        if (!_frameLeftOrMono->segments.empty())
+            _processorLeft.reset(new PixelStreamAssembler(_frameLeftOrMono));
+        else
+            _processorLeft.reset();
+
+        if (!_frameRight->segments.empty())
+            _processRight.reset(new PixelStreamAssembler(_frameRight));
+        else
+            _processRight.reset();
+    }
+    catch (const std::runtime_error&)
+    {
+        _processorLeft.reset(new PixelStreamPassthrough(_frameLeftOrMono));
+        _processRight.reset(new PixelStreamPassthrough(_frameRight));
+    }
 }

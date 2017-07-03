@@ -1,7 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
-/*                          Daniel.Nachbaur@epfl.ch                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -38,46 +37,39 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef STREAMIMAGE_H
-#define STREAMIMAGE_H
+#ifndef PIXELSTREAMPASSTHROUGH_H
+#define PIXELSTREAMPASSTHROUGH_H
 
-#include "data/YUVImage.h"
-
-#include <deflect/types.h>
+#include "PixelStreamProcessor.h"
 
 /**
- * Image wrapper for a pixel stream image.
+ * Pass tiles without modification for rendering.
  */
-class StreamImage : public YUVImage
+class PixelStreamPassthrough : public PixelStreamProcessor
 {
 public:
-    /** Constructor, stores the given deflect frame. */
-    StreamImage(deflect::FramePtr frame, uint tileIndex);
+    /**
+     * Construct a processor that does not modify the pixel stream.
+     * @param frame to decode and expose.
+     */
+    PixelStreamPassthrough(deflect::FramePtr frame);
 
-    /** @copydoc Image::getWidth */
-    int getWidth() const final;
+    /** @copydoc PixelStreamProcessor::getTileImage */
+    ImagePtr getTileImage(uint tileIndex,
+                          deflect::SegmentDecoder& decoder) final;
 
-    /** @copydoc Image::getHeight */
-    int getHeight() const final;
+    /** @copydoc PixelStreamProcessor::getTileRect */
+    QRect getTileRect(uint tileIndex) const final;
 
-    /** @copydoc Image::getData */
-    const uint8_t* getData(uint texture) const final;
+    /** @copydoc PixelStreamProcessor::getTileFormat */
+    TextureFormat getTileFormat(uint tileIndex,
+                                deflect::SegmentDecoder& decoder) const final;
 
-    /** @copydoc Image::getFormat */
-    TextureFormat getFormat() const final;
-
-    /** @return the position of the image in the stream. */
-    QPoint getPosition() const;
-
-    /** Copy another image of the same format at the given position. */
-    void copy(const StreamImage& source, const QPoint& position);
+    /** @copydoc PixelStreamProcessor::computeVisibleSet */
+    Indices computeVisibleSet(const QRectF& visibleTilesArea) const final;
 
 private:
-    const deflect::FramePtr _frame;
-    const uint _tileIndex;
-
-    void _copy(const StreamImage& image, uint texture, const QPoint& position);
-    uint8_t* _getData(const uint texture);
+    deflect::FramePtr _frame;
 };
 
 #endif

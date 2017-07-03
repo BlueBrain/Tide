@@ -1,7 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
-/*                          Daniel.Nachbaur@epfl.ch                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -38,46 +37,55 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef STREAMIMAGE_H
-#define STREAMIMAGE_H
+#ifndef PIXELSTREAMPROCESSOR_H
+#define PIXELSTREAMPROCESSOR_H
 
-#include "data/YUVImage.h"
-
-#include <deflect/types.h>
+#include "types.h"
 
 /**
- * Image wrapper for a pixel stream image.
+ * Abstract class for processing pixel stream frames before rendering.
  */
-class StreamImage : public YUVImage
+class PixelStreamProcessor
 {
 public:
-    /** Constructor, stores the given deflect frame. */
-    StreamImage(deflect::FramePtr frame, uint tileIndex);
+    /** Virtual destructor. */
+    virtual ~PixelStreamProcessor();
 
-    /** @copydoc Image::getWidth */
-    int getWidth() const final;
+    /**
+     * Get the assembled image for a tile.
+     *
+     * @param tileIndex for the target image.
+     * @param decoder for jpeg decompression.
+     * @return the assembled image.
+     * @throw std::runtime_error on segment decoding error.
+     */
+    virtual ImagePtr getTileImage(uint tileIndex,
+                                  deflect::SegmentDecoder& decoder) = 0;
 
-    /** @copydoc Image::getHeight */
-    int getHeight() const final;
+    /** @return the rectangle of the tile. */
+    virtual QRect getTileRect(uint tileIndex) const = 0;
 
-    /** @copydoc Image::getData */
-    const uint8_t* getData(uint texture) const final;
+    /**
+     * Get the texture format of tile.
+     *
+     * @param tileIndex for the tile.
+     * @param decoder to use for decoding the frame format (if needed).
+     * @return the texture format of the tile.
+     * @throw std::runtime_error if the image is in an invalid format.
+     */
+    virtual TextureFormat getTileFormat(
+        uint tileIndex, deflect::SegmentDecoder& decoder) const = 0;
 
-    /** @copydoc Image::getFormat */
-    TextureFormat getFormat() const final;
+    /** @return the list of visible tile for the given area. */
+    virtual Indices computeVisibleSet(const QRectF& visibleTilesArea) const = 0;
 
-    /** @return the position of the image in the stream. */
-    QPoint getPosition() const;
+protected:
+    /** @return the coordinates of the segment as a QRect. */
+    QRect toRect(const deflect::SegmentParameters& params) const;
 
-    /** Copy another image of the same format at the given position. */
-    void copy(const StreamImage& source, const QPoint& position);
-
-private:
-    const deflect::FramePtr _frame;
-    const uint _tileIndex;
-
-    void _copy(const StreamImage& image, uint texture, const QPoint& position);
-    uint8_t* _getData(const uint texture);
+    /** @return the texture format of the segment. */
+    TextureFormat getFormat(const deflect::Segment& segment,
+                            deflect::SegmentDecoder& decoder) const;
 };
 
 #endif

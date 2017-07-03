@@ -1,7 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
-/*                          Daniel.Nachbaur@epfl.ch                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -38,46 +37,51 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef STREAMIMAGE_H
-#define STREAMIMAGE_H
+#include "PixelStreamProcessor.h"
 
-#include "data/YUVImage.h"
+#include <deflect/Segment.h>
+#include <deflect/SegmentDecoder.h>
 
-#include <deflect/types.h>
-
-/**
- * Image wrapper for a pixel stream image.
- */
-class StreamImage : public YUVImage
+PixelStreamProcessor::~PixelStreamProcessor()
 {
-public:
-    /** Constructor, stores the given deflect frame. */
-    StreamImage(deflect::FramePtr frame, uint tileIndex);
+}
 
-    /** @copydoc Image::getWidth */
-    int getWidth() const final;
+QRect PixelStreamProcessor::toRect(
+    const deflect::SegmentParameters& params) const
+{
+    return QRect(params.x, params.y, params.width, params.height);
+}
 
-    /** @copydoc Image::getHeight */
-    int getHeight() const final;
-
-    /** @copydoc Image::getData */
-    const uint8_t* getData(uint texture) const final;
-
-    /** @copydoc Image::getFormat */
-    TextureFormat getFormat() const final;
-
-    /** @return the position of the image in the stream. */
-    QPoint getPosition() const;
-
-    /** Copy another image of the same format at the given position. */
-    void copy(const StreamImage& source, const QPoint& position);
-
-private:
-    const deflect::FramePtr _frame;
-    const uint _tileIndex;
-
-    void _copy(const StreamImage& image, uint texture, const QPoint& position);
-    uint8_t* _getData(const uint texture);
-};
-
+TextureFormat PixelStreamProcessor::getFormat(
+    const deflect::Segment& segment, deflect::SegmentDecoder& decoder) const
+{
+#ifndef DEFLECT_USE_LEGACY_LIBJPEGTURBO
+    switch (segment.parameters.dataType)
+    {
+    case deflect::DataType::rgba:
+        return TextureFormat::rgba;
+    case deflect::DataType::yuv444:
+        return TextureFormat::yuv444;
+    case deflect::DataType::yuv422:
+        return TextureFormat::yuv422;
+    case deflect::DataType::yuv420:
+        return TextureFormat::yuv420;
+    case deflect::DataType::jpeg:
+        switch (decoder.decodeType(segment))
+        {
+        case deflect::ChromaSubsampling::YUV444:
+            return TextureFormat::yuv444;
+        case deflect::ChromaSubsampling::YUV422:
+            return TextureFormat::yuv422;
+        case deflect::ChromaSubsampling::YUV420:
+            return TextureFormat::yuv420;
+        }
+    default:
+        throw std::runtime_error("Invalid data type for Tile");
+    }
+#else
+    Q_UNUSED(segment);
+    Q_UNUSED(decoder);
+    return TextureFormat::rgba;
 #endif
+}
