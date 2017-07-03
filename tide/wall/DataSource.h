@@ -52,7 +52,10 @@ public:
 
     /** @return true if the data source produces dynamic contents. */
     virtual bool isDynamic() const { return false; }
-    /** Get a tile image by its id. threadsafe */
+    /**
+     * Get a tile image by its id for a given view.
+     * Called asynchronously but not concurrently. threadsafe.
+     */
     virtual ImagePtr getTileImage(uint tileId, deflect::View view) const = 0;
 
     /** Get the coordinates of a tile. */
@@ -70,6 +73,9 @@ public:
 
     /** @return the max LOD level (top of pyramid, lowest resolution). */
     virtual uint getMaxLod() const = 0;
+
+    /** The synchronizers linked to this shared data source. */
+    std::vector<ContentSynchronizer*> synchronizers;
 };
 
 #endif

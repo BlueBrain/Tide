@@ -58,6 +58,9 @@ public:
     void update(const ContentWindow& window,
                 const QRectF& visibleArea) override;
 
+    /** @copydoc ContentSynchronizer::updateTiles */
+    void updateTiles() override;
+
     /** @copydoc ContentSynchronizer::getTilesArea */
     QSize getTilesArea() const override;
 
@@ -84,6 +87,8 @@ protected:
 
 private:
     std::shared_ptr<DataSource> _source;
+    bool _tilesDirty = true;
+    int _backgroundTileId = 0;
 
     uint _getLod(const QSize& targetDisplaySize) const;
     void _setBackgroundTile(uint backgroundTileId);

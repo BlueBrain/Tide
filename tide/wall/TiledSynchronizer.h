@@ -62,6 +62,9 @@ public:
     /** Constructor */
     explicit TiledSynchronizer(TileSwapPolicy policy);
 
+    /** @copydoc ContentSynchronizer::updateTiles */
+    void updateTiles() override;
+
     /** @copydoc ContentSynchronizer::onSwapReady */
     void onSwapReady(TilePtr tile) override;
 
@@ -69,37 +72,33 @@ public:
      * @return true if TileSwapPolicy is SwapTilesSynchronously and tiles are
      *         ready to be swapped.
      */
-    bool canSwapTiles() const;
-
-protected:
-    uint _lod;
-    QRectF _visibleTilesArea;
-    Indices _ignoreSet;
-
-    /**
-     * Update the tiles, adding or removing them from the view.
-     *
-     * @param source the DataSource use to retrieve the tile coordinates.
-     * @param updateExistingTiles also update the texture and coordinates of the
-     *        tiles which are already visible. If TileSwapPolicy is
-     *        SwapTilesSynchronously, the updated textures will only be shown
-     *        after a successful call to swapTiles().
-     */
-    void updateTiles(const DataSource& source, bool updateExistingTiles);
+    bool canSwapTiles() const override;
 
     /**
      * Call to swap tiles when TileSwapPolicy is SwapTilesSynchronously.
      *
      * Should only be called when canSwapTiles returns true on all processes.
      */
-    virtual void swapTiles();
+    void swapTiles() override;
+
+protected:
+    /** @name Parameters for updateTile. */
+    //@{
+    uint _lod = 0; /**< LOD used to obtain the list of visible tiles from the
+                        data source. */
+    QRectF _visibleTilesArea; /**< Area used to obtain the list of visible tiles
+                                   from the data source. */
+    Indices _ignoreSet; /**< Tiles to be ignored; must be managed manually. */
+    bool _updateExistingTiles = false; /**< Update texture and coordinates of
+                                            tiles which are already visible. */
+    //@}
 
 private:
     TileSwapPolicy _policy;
 
     Indices _visibleSet;
 
-    bool _syncSwapPending;
+    bool _syncSwapPending = false;
     std::set<TilePtr> _tilesReadyToSwap;
     Indices _tilesReadySet;
     Indices _syncSet;

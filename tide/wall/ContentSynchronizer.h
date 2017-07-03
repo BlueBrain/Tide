@@ -43,7 +43,6 @@
 #include "types.h"
 
 #include <QObject>
-#include <memory> // std::enable_shared_from_this
 
 /**
  * Interface for synchronizing QML content rendering.
@@ -51,9 +50,7 @@
  * ContentSynchronizer informs the QML engine when new frames are ready and
  * swaps them synchronously.
  */
-class ContentSynchronizer
-    : public QObject,
-      public std::enable_shared_from_this<ContentSynchronizer>
+class ContentSynchronizer : public QObject
 {
     Q_OBJECT
     Q_DISABLE_COPY(ContentSynchronizer)
@@ -70,6 +67,19 @@ public:
     /** Update the Content. */
     virtual void update(const ContentWindow& window,
                         const QRectF& visibleArea) = 0;
+
+    /** Update the tiles; call addTile and updateTile only in this method. */
+    virtual void updateTiles() = 0;
+
+    /**
+     * Swap the image before rendering (useful only for synchronized contents).
+     *
+     * Called only when canSwapTiles returns true on all processes.
+     */
+    virtual void swapTiles() = 0;
+
+    /** @return true if tiles are ready to be swapped. */
+    virtual bool canSwapTiles() const = 0;
 
     /** The total area covered by the tiles (may depend on current LOD). */
     virtual QSize getTilesArea() const = 0;
@@ -95,7 +105,7 @@ public slots:
     /** Called when a tile has to be updated, re-emits requestTileUpdate. */
     void onRequestNextFrame(TilePtr tile)
     {
-        emit requestTileUpdate(shared_from_this(), TileWeakPtr(tile));
+        emit requestTileUpdate(tile, getView());
     }
 
 signals:
@@ -115,8 +125,7 @@ signals:
     void updateTile(uint tileId, QRect coordinates, TextureFormat format);
 
     /** Request an update of a specific tile. */
-    void requestTileUpdate(ContentSynchronizerSharedPtr synchronizer,
-                           TileWeakPtr tile);
+    void requestTileUpdate(TilePtr tile, deflect::View view);
 
     /** Notify that the zoom context tile has changed and must be recreated. */
     void zoomContextTileChanged();

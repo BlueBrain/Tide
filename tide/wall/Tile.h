@@ -120,9 +120,10 @@ signals:
     void showBorderChanged();
 
     /**
-     * Notifies that the texture is ready to be updated.
-     * It is emitted after the texture has been created or after a call to
-     * update() for dynamic textures.
+     * Request a texture update from the DataProvider.
+     *
+     * Emitted when the Tile is first added and after each call to update() for
+     * dynamic textures.
      */
     void requestNextFrame(TilePtr tile);
 

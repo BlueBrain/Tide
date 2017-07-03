@@ -111,9 +111,6 @@ void _synchronize(WallToWallChannel& channel, Updater& updater)
     }
 
     updater.synchronizeFrameAdvance(channel);
-
-    for (auto synchronizer : updater.synchronizers)
-        synchronizer->updateTiles();
 }
 }
 
@@ -190,21 +187,33 @@ void DataProvider::synchronizeTilesSwap(WallToWallChannel& channel)
 {
     for (auto stream : _streamSources)
         _synchronize(channel, *stream.second.lock());
+    _updateTiles(_streamSources);
 
 #if TIDE_ENABLE_MOVIE_SUPPORT
     for (auto movie : _movieSources)
         _synchronize(channel, *movie.second.lock());
+    _updateTiles(_movieSources);
 #endif
+
+    _updateTiles(_imageSources);
+
+#if TIDE_USE_TIFF
+    _updateTiles(_imagePyrSources);
+#endif
+
+#if TIDE_ENABLE_PDF_SUPPORT
+    _updateTiles(_pdfSources);
+#endif
+
+    _updateTiles(_svgSources);
 }
 
-void DataProvider::loadAsync(ContentSynchronizerSharedPtr source,
-                             TileWeakPtr tile)
+void DataProvider::loadAsync(TilePtr tile, deflect::View view)
 {
-    auto watcher = new Watcher;
-    _watchers.append(watcher);
-    connect(watcher, &Watcher::finished, this, &DataProvider::_handleFinished);
-    watcher->setFuture(
-        QtConcurrent::run([source, tile, this] { _load(source, tile); }));
+    // Group the requests for a single tile from multiple WallWindows for the
+    // data source currently being processed.
+    // This ensures that getTileImage is never called more than once per Tile.
+    _tileImageRequests[tile->getId()].emplace_back(tile, view);
 }
 
 void DataProvider::setNewFrame(deflect::FramePtr frame)
@@ -216,6 +225,48 @@ void DataProvider::setNewFrame(deflect::FramePtr frame)
         updater->updatePixelStream(frame);
     else
         _streamSources.erase(frame->uri);
+}
+
+template <typename DataSources>
+void DataProvider::_updateTiles(DataSources& dataSources)
+{
+    auto it = dataSources.begin();
+    while (it != dataSources.end())
+    {
+        if (auto source = it->second.lock())
+        {
+            // The following results in loadAsync() being called one or multiple
+            // times, filling _tileImageRequests with the tiles from the
+            // different WallWindows for this data source.
+            for (auto synchronizer : source->synchronizers)
+                synchronizer->updateTiles();
+
+            // Start the asynchronous loading of images for this data source
+            // and clear the list of requests for the next data source.
+            _processTileImageRequests(source);
+            ++it;
+        }
+        else
+        {
+            put_flog(LOG_DEBUG, "Removing invalid source");
+            it = dataSources.erase(it);
+        }
+    }
+}
+
+void DataProvider::_processTileImageRequests(DataSourcePtr source)
+{
+    for (const auto& tileRequest : _tileImageRequests)
+    {
+        auto watcher = new Watcher;
+        _watchers.append(watcher);
+        connect(watcher, &Watcher::finished, this,
+                &DataProvider::_handleFinished);
+        const auto& tilesToUpdate = tileRequest.second;
+        watcher->setFuture(QtConcurrent::run(
+            [this, source, tilesToUpdate] { _load(source, tilesToUpdate); }));
+    }
+    _tileImageRequests.clear();
 }
 
 std::shared_ptr<PixelStreamUpdater> DataProvider::_getStreamSource(
@@ -242,35 +293,42 @@ std::shared_ptr<PixelStreamUpdater> DataProvider::_getStreamSource(
     return updater;
 }
 
-void DataProvider::_load(ContentSynchronizerSharedPtr source, TileWeakPtr tile_)
+void DataProvider::_load(DataSourcePtr source, const TileUpdateList& tiles)
 {
-    TilePtr tile = tile_.lock();
-    if (!tile)
-    {
-        put_flog(LOG_DEBUG, "Tile expired");
-        return;
-    }
-    ImagePtr image;
-    try
-    {
-        image = source->getDataSource().getTileImage(tile->getId(),
-                                                     source->getView());
-    }
-    catch (...)
-    {
-        put_flog(LOG_ERROR, "An error occured with tile: %d", tile->getId());
-        return;
-    }
-    if (!image)
-    {
-        put_flog(LOG_DEBUG, "Empty image for tile: %d", tile->getId());
-        return;
-    }
+    // Request image only once for each view
+    std::map<deflect::View, ImagePtr> image;
 
-    QMetaObject::invokeMethod(tile.get(), "updateBackTexture",
-                              Qt::QueuedConnection, Q_ARG(ImagePtr, image));
-
-    emit imageLoaded();
+    for (const auto& it : tiles)
+    {
+        if (auto tile = it.first.lock())
+        {
+            const auto view = it.second;
+            const auto id = tile->getId();
+            if (!image[view])
+            {
+                try
+                {
+                    image[view] = source->getTileImage(id, view);
+                }
+                catch (...)
+                {
+                    put_flog(LOG_ERROR, "An error occured with tile: %d", id);
+                    return;
+                }
+                if (!image[view])
+                {
+                    put_flog(LOG_DEBUG, "Empty image for tile: %d", id);
+                    return;
+                }
+                emit imageLoaded(); // Keep RenderController active
+            }
+            QMetaObject::invokeMethod(tile.get(), "updateBackTexture",
+                                      Qt::QueuedConnection,
+                                      Q_ARG(ImagePtr, image[view]));
+        }
+        else
+            put_flog(LOG_DEBUG, "Tile expired");
+    }
 }
 
 void DataProvider::_handleFinished()
