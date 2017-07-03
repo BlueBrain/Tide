@@ -72,6 +72,27 @@ void PixelStreamSynchronizer::update(const ContentWindow& window,
     _tilesDirty = true;
 }
 
+void PixelStreamSynchronizer::updateTiles()
+{
+    if (_tilesDirty)
+    {
+        TiledSynchronizer::updateTiles();
+        _tilesDirty = false;
+        _updateExistingTiles = false;
+    }
+}
+
+void PixelStreamSynchronizer::swapTiles()
+{
+    TiledSynchronizer::swapTiles();
+
+    _fpsCounter.tick();
+    emit statisticsChanged();
+
+    _tilesArea = _updater->getTilesArea(0);
+    emit tilesAreaChanged();
+}
+
 QSize PixelStreamSynchronizer::getTilesArea() const
 {
     return _tilesArea;
@@ -90,27 +111,6 @@ deflect::View PixelStreamSynchronizer::getView() const
 const DataSource& PixelStreamSynchronizer::getDataSource() const
 {
     return *_updater;
-}
-
-void PixelStreamSynchronizer::swapTiles()
-{
-    TiledSynchronizer::swapTiles();
-
-    _fpsCounter.tick();
-    emit statisticsChanged();
-
-    _tilesArea = _updater->getTilesArea(0);
-    emit tilesAreaChanged();
-}
-
-void PixelStreamSynchronizer::updateTiles()
-{
-    if (_tilesDirty)
-    {
-        TiledSynchronizer::updateTiles(*_updater, _updateExistingTiles);
-        _tilesDirty = false;
-        _updateExistingTiles = false;
-    }
 }
 
 void PixelStreamSynchronizer::_onPictureUpdated()

@@ -114,9 +114,6 @@ public:
     /** @return skip position of the movie, normalized between [0.0, 1.0]. */
     qreal getSkipPosition() const;
 
-    /** The synchronizers linked to this shared data source. */
-    std::vector<MovieSynchronizer*> synchronizers;
-
 signals:
     /** Emitted when a new picture has become available. */
     void pictureUpdated();
@@ -139,9 +136,10 @@ private:
     mutable double _currentPosition = -1.0;
     mutable bool _loopedBack = false;
 
-    mutable QMutex _multiWindowMutex;
     mutable PicturePtr _pictureLeftOrMono;
     mutable PicturePtr _pictureRight;
+
+    mutable QMutex _getImageMutex;
 
     void _triggerFrameUpdate();
     void _exchangeSharedTimestamp(WallToWallChannel& channel, bool isCandidate);

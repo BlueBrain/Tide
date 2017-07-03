@@ -92,7 +92,7 @@ public:
 
 public slots:
     /** Load an image asynchronously. */
-    void loadAsync(ContentSynchronizerSharedPtr source, TileWeakPtr tile);
+    void loadAsync(TilePtr tile, deflect::View view);
 
     /** Add a new frame. */
     void setNewFrame(deflect::FramePtr frame);
@@ -121,12 +121,22 @@ private:
     std::map<QString, std::weak_ptr<PixelStreamUpdater>> _streamSources;
     std::map<QUuid, std::weak_ptr<SVGTiler>> _svgSources;
 
+    using TileUpdateInfo = std::pair<TileWeakPtr, deflect::View>;
+    using TileUpdateList = std::vector<TileUpdateInfo>;
+    std::map<uint, TileUpdateList> _tileImageRequests;
+
+    using DataSourcePtr = std::shared_ptr<DataSource>;
+    void _processTileImageRequests(DataSourcePtr source);
+
     std::shared_ptr<PixelStreamUpdater> _getStreamSource(
         const ContentWindow& window);
-    void _load(ContentSynchronizerSharedPtr source, TileWeakPtr tile);
+    void _load(DataSourcePtr source, const TileUpdateList& tileList);
     void _handleFinished();
     std::unique_ptr<ContentSynchronizer> _makeSynchronizer(
         const ContentWindow& window, deflect::View view);
+
+    template <typename DataSources>
+    void _updateTiles(DataSources& dataSources);
 };
 
 #endif

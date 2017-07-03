@@ -125,6 +125,8 @@ void QmlWindowRenderer::_addTile(TilePtr tile)
     connect(item, SIGNAL(showTilesBordersValueChanged(bool)), tile.get(),
             SLOT(setShowBorder(bool)));
     tile->setShowBorder(item->property("showTilesBorder").toBool());
+
+    tile->requestNextFrame(tile);
 }
 
 void QmlWindowRenderer::_createZoomContextTile()

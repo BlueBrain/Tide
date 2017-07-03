@@ -43,9 +43,7 @@
 #include "Tile.h"
 
 TiledSynchronizer::TiledSynchronizer(const TileSwapPolicy policy)
-    : _lod(0)
-    , _policy(policy)
-    , _syncSwapPending(false)
+    : _policy(policy)
 {
 }
 
@@ -61,9 +59,9 @@ void TiledSynchronizer::onSwapReady(TilePtr tile)
         tile->swapImage();
 }
 
-void TiledSynchronizer::updateTiles(const DataSource& source,
-                                    const bool updateExistingTiles)
+void TiledSynchronizer::updateTiles()
 {
+    const auto& source = getDataSource();
     Indices visibleSet = source.computeVisibleSet(_visibleTilesArea, _lod);
     visibleSet = set_difference(visibleSet, _ignoreSet);
 
@@ -78,7 +76,7 @@ void TiledSynchronizer::updateTiles(const DataSource& source,
                                             source.getTileFormat(i), type));
     }
 
-    if (updateExistingTiles)
+    if (_updateExistingTiles)
     {
         const Indices currentTiles = set_difference(_visibleSet, removedTiles);
         for (auto i : currentTiles)
@@ -87,7 +85,7 @@ void TiledSynchronizer::updateTiles(const DataSource& source,
 
     if (_policy == SwapTilesSynchronously)
     {
-        if (updateExistingTiles)
+        if (_updateExistingTiles)
         {
             _syncSet = visibleSet;
             _syncSwapPending = true;
