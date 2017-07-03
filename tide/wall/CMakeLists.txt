@@ -58,6 +58,9 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   network/WallFromMasterChannel.h
   network/WallToMasterChannel.h
   network/WallToWallChannel.h
+  PixelStreamAssembler.h
+  PixelStreamProcessor.h
+  PixelStreamPassthrough.h
   PixelStreamSynchronizer.h
   PixelStreamUpdater.h
   QmlWindowRenderer.h
@@ -94,6 +97,9 @@ list(APPEND TIDEWALL_SOURCES
   network/WallFromMasterChannel.cpp
   network/WallToMasterChannel.cpp
   network/WallToWallChannel.cpp
+  PixelStreamAssembler.cpp
+  PixelStreamProcessor.cpp
+  PixelStreamPassthrough.cpp
   PixelStreamSynchronizer.cpp
   PixelStreamUpdater.cpp
   QmlWindowRenderer.cpp

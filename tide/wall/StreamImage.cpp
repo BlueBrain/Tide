@@ -95,3 +95,69 @@ TextureFormat StreamImage::getFormat() const
         throw std::runtime_error("StreamImage texture is not decompressed");
     }
 }
+
+QPoint StreamImage::getPosition() const
+{
+    return QPoint(_frame->segments.at(_tileIndex).parameters.x,
+                  _frame->segments.at(_tileIndex).parameters.y);
+}
+
+void StreamImage::copy(const StreamImage& image, const QPoint& position)
+{
+    const auto format = getFormat();
+    if (image.getFormat() != format)
+        throw std::runtime_error("Can't copy image with different format.");
+
+    _copy(image, 0, position);
+    if (format != TextureFormat::rgba)
+    {
+        const auto xShift = format == TextureFormat::yuv444 ? 0 : 1;
+        const auto yShift = format == TextureFormat::yuv420 ? 1 : 0;
+        const QPoint yuvPos{position.x() >> xShift, position.y() >> yShift};
+        _copy(image, 1, yuvPos);
+        _copy(image, 2, yuvPos);
+    }
+}
+
+void StreamImage::_copy(const StreamImage& image, const uint texture,
+                        const QPoint& position)
+{
+    const auto bpp = getFormat() == TextureFormat::rgba ? 4 : 1;
+
+    auto src = image.getData(texture);
+    const auto srcTexSize = image.getTextureSize(texture);
+    const auto srcStride = srcTexSize.width() * bpp;
+
+    auto dst = _getData(texture);
+    const auto dstStride = getTextureSize(texture).width() * bpp;
+    dst += position.x() * bpp + position.y() * dstStride;
+
+    for (int line = 0; line < srcTexSize.height(); ++line)
+    {
+        assert(dst + srcStride <= _getData(texture) + getDataSize(texture));
+        std::copy(src, src + srcStride, dst);
+        src += srcStride;
+        dst += dstStride;
+        assert(src <= image.getData(texture) + image.getDataSize(texture));
+    }
+}
+
+uint8_t* StreamImage::_getData(const uint texture)
+{
+    auto data = _frame->segments.at(_tileIndex).imageData.data();
+    if (getFormat() == TextureFormat::rgba || texture == 0)
+        return reinterpret_cast<uint8_t*>(data);
+
+    size_t offset = getWidth() * getHeight();
+
+    if (texture == 1)
+        return reinterpret_cast<uint8_t*>(data) + offset;
+
+    if (texture == 2)
+    {
+        const auto uvSize = getTextureSize(1);
+        offset += uvSize.width() * uvSize.height();
+        return reinterpret_cast<uint8_t*>(data) + offset;
+    }
+    return nullptr;
+}
