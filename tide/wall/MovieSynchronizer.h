@@ -66,6 +66,12 @@ public:
     /** @copydoc ContentSynchronizer::update */
     void update(const ContentWindow& window, const QRectF& visibleArea) final;
 
+    /** @copydoc ContentSynchronizer::updateTiles */
+    void updateTiles() final;
+
+    /** @copydoc ContentSynchronizer::swapTiles */
+    void swapTiles() final;
+
     /** @copydoc ContentSynchronizer::getTilesArea */
     QSize getTilesArea() const final;
 
@@ -74,16 +80,6 @@ public:
 
     /** @copydoc ContentSynchronizer::getView */
     deflect::View getView() const final;
-
-    /**
-     * Swap the image before rendering.
-     *
-     * Should only be called when canSwapTiles returns true on all processes.
-     */
-    void swapTiles() final;
-
-    /** Update the tiles. */
-    void updateTiles();
 
     /** @return true if the movie is visible on this window. */
     bool hasVisibleTiles() const;
@@ -103,7 +99,6 @@ private:
     FpsCounter _fpsCounter;
 
     bool _tilesDirty = true;
-    bool _updateExistingTiles = false;
 
     const DataSource& getDataSource() const final;
     void _onPictureUpdated();

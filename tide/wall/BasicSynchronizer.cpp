@@ -45,13 +45,30 @@
 BasicSynchronizer::BasicSynchronizer(std::shared_ptr<DataSource> source)
     : _dataSource(std::move(source))
 {
+    _dataSource->synchronizers.push_back(this);
 }
 
 void BasicSynchronizer::update(const ContentWindow& /*window*/,
                                const QRectF& visibleArea)
 {
     if (!_tileAdded && !visibleArea.isEmpty())
+        _addTile = true;
+}
+
+void BasicSynchronizer::updateTiles()
+{
+    if (_addTile)
         _createTile();
+}
+
+bool BasicSynchronizer::canSwapTiles() const
+{
+    return false;
+}
+
+void BasicSynchronizer::swapTiles()
+{
+    // Swap not synchronized, done directly in onSwapReady()
 }
 
 QSize BasicSynchronizer::getTilesArea() const
@@ -84,6 +101,7 @@ void BasicSynchronizer::_createTile()
         return;
 
     _tileAdded = true;
+    _addTile = false;
     emit addTile(std::make_shared<Tile>(0, QRect(QPoint(), getTilesArea()),
                                         getDataSource().getTileFormat(0)));
     emit tilesAreaChanged();
