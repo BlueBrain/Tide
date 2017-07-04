@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.3.1 (git master)
 
+* [168](https://github.com/BlueBrain/Tide/pull/168):
+  Tide will log now a timestamp of an event along with the logger id. 
 * [165](https://github.com/BlueBrain/Tide/pull/165):
   Ported the demo Launcher to version 0.5.6 of the RenderingResourceManager.
 * [164](https://github.com/BlueBrain/Tide/pull/164):
