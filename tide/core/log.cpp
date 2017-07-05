@@ -44,6 +44,7 @@
 #include "config.h"
 
 #include <QByteArray>
+#include <QDateTime>
 #include <QString>
 
 #include <iostream>
@@ -78,7 +79,12 @@ void put_log(const int level, const char* format, ...)
 
     std::stringstream message;
     if (!logger_id.empty())
-        message << "{" << logger_id << "} ";
+    {
+        const std::string time = QDateTime::currentDateTime()
+                                     .toString("hh:mm:ss dd/MM/yy")
+                                     .toStdString();
+        message << "{" << logger_id << ": " << time << "} ";
+    }
     message << log_string;
 
     if (level < LOG_ERROR)
