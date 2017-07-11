@@ -49,6 +49,7 @@
 #include <boost/make_shared.hpp>
 #include <boost/shared_ptr.hpp>
 
+#include <functional>
 #include <future>
 #include <iostream>
 #include <set>
@@ -92,6 +93,7 @@ class Image;
 class ImageSource;
 class ImagePyramidDataSource;
 class InactivityTimer;
+class LoggingUtility;
 class Markers;
 class MasterConfiguration;
 class MovieContent;
@@ -127,6 +129,8 @@ typedef std::set<ContentWindowPtr> ContentWindowSet;
 typedef std::vector<ContentWindowPtr> ContentWindowPtrs;
 typedef std::set<size_t> Indices;
 typedef std::vector<QPointF> Positions;
+
+using BoolCallback = std::function<void(bool)>;
 
 static const QRectF UNIT_RECTF(0.0, 0.0, 1.0, 1.0);
 static const QSize UNDEFINED_SIZE(-1, -1);

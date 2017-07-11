@@ -72,10 +72,10 @@ QImage _getPlaceholderImage(const QString& filename)
     return im;
 }
 
-class ThumbnailCache : public QCache<QString, QImage>
+class ImageCache : public QCache<QString, QImage>
 {
 public:
-    ThumbnailCache() { setMaxCost(cacheMaxSize); }
+    ImageCache() { setMaxCost(cacheMaxSize); }
     bool hasValidImage(const QString& filename) const
     {
         if (!contains(filename))
@@ -99,7 +99,7 @@ ThumbnailProvider::ThumbnailProvider(const QSize defaultSize)
     : QQuickImageProvider(QQuickImageProvider::Image,
                           QQuickImageProvider::ForceAsynchronousImageLoading)
     , _defaultSize(defaultSize)
-    , _cache(new ThumbnailCache)
+    , _cache(new ImageCache)
 {
 }
 
@@ -157,7 +157,7 @@ private:
 
 AsyncThumbnailProvider::AsyncThumbnailProvider(const QSize defaultSize)
     : _defaultSize(defaultSize)
-    , _cache(new ThumbnailCache)
+    , _cache(new ImageCache)
 {
 }
 

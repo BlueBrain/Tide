@@ -1,5 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,33 +38,34 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "JsonSize.h"
+#ifndef SCENECONTROLLER_H
+#define SCENECONTROLLER_H
 
-#include "json.h"
-#include "jsonschema.h"
+#include "JsonRpc.h"
+#include "control/DisplayGroupController.h"
+#include "scene/DisplayGroup.h"
+#include "types.h"
 
-QJsonArray _toJsonArray(const QSize& size)
+/**
+ * Remote controller for the scene windows using JSON-RPC.
+ */
+class SceneController
 {
-    return QJsonArray{{size.width(), size.height()}};
-}
+public:
+    /**
+     * Construct a JSON-RPC scene controller.
+     *
+     * @param group target for control commands.
+     */
+    SceneController(DisplayGroup& group);
 
-JsonSize::JsonSize(const QSize& size)
-    : _size(size)
-{
-}
+    /** @copydoc JsonRpc::processAsync */
+    std::future<std::string> processJsonRpc(const std::string& request);
 
-std::string JsonSize::getTypeName() const
-{
-    return "tide/size";
-}
+private:
+    DisplayGroup& _group;
+    DisplayGroupController _controller;
+    JsonRpc _rpc;
+};
 
-std::string JsonSize::getSchema() const
-{
-    return jsonschema::create("Size", _toJsonArray(_size),
-                              "Dimensions in pixels of the display wall", true);
-}
-
-std::string JsonSize::_toJSON() const
-{
-    return json::toString(_toJsonArray(_size));
-}
+#endif

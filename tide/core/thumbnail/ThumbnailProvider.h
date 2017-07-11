@@ -44,7 +44,7 @@
 #include <QtQuick/QQuickImageProvider>
 #include <memory>
 
-class ThumbnailCache;
+class ImageCache;
 
 /**
  * Provide thumbnails for files and folders to the Qml FileBrowser.
@@ -70,7 +70,7 @@ public:
 
 private:
     const QSize _defaultSize;
-    std::unique_ptr<ThumbnailCache> _cache;
+    std::unique_ptr<ImageCache> _cache;
 };
 
 // Need at least Qt 5.6.3 or 5.7.1 because of the following segfault bug:
@@ -95,7 +95,7 @@ public:
 
 private:
     const QSize _defaultSize;
-    std::unique_ptr<ThumbnailCache> _cache;
+    std::unique_ptr<ImageCache> _cache;
     std::mutex _mutex;
 };
 

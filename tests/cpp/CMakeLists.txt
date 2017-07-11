@@ -22,6 +22,7 @@ else()
   set(EXCLUDE_FROM_TESTS
     core/FileReceiverTests.cpp
     core/JsonOptionsTests.cpp
+    core/JsonRpcTests.cpp
     core/LoggingUtilityTest.cpp
     core/RestCommandTests.cpp
     core/RestServerTests.cpp

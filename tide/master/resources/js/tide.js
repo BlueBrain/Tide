@@ -126,7 +126,7 @@ function boostrapUpload() {
 
 function browse() {
   var url = $('#browseUrlInput').val();
-  requestPUT("browse", JSON.stringify({"uri": (url)}), updateWall);
+  sendAppJsonRpc("browse", {"uri": (url)}, updateWall);
   $('#browseUrlInput').val("");
   $("#appsButton").click();
 }
@@ -184,11 +184,11 @@ function createCloseButton(tile) {
       return element.uuid === tile.uuid;
     }), 1);
     if (tile.focus)
-      requestPUT("unfocus-window", jsonUuidHelper(tile), function () {
-        return requestDELETE("windows/"+tile.uuid, updateWall);
+      sendSceneJsonRpc("unfocus-window", getIdAsObject(tile), function () {
+        sendSceneJsonRpc("close-window", getIdAsObject(tile), updateWall);
       });
     else
-      requestDELETE("windows/"+tile.uuid, updateWall);
+      sendSceneJsonRpc("close-window", getIdAsObject(tile), updateWall);
     $('#' + tile.uuid).remove();
   };
   var icon = document.createElement("img");
@@ -203,10 +203,10 @@ function createFocusButton(tile) {
   focusButton.onclick = function (event) {
     event.stopImmediatePropagation();
     if (!focus)
-      requestPUT("focus-windows", null, updateWall);
+      sendSceneJsonRpc("focus-windows", {}, updateWall);
     else {
       tile.selected = false;
-      requestPUT("unfocus-window", jsonUuidHelper(tile), updateWall);
+      sendSceneJsonRpc("unfocus-window", getIdAsObject(tile), updateWall);
     }
   };
   var icon = document.createElement("img");
@@ -219,7 +219,7 @@ function createFullscreenButton(tile) {
   var fullscreenButton = createButton("fsButton", tile);
   fullscreenButton.style.visibility = tile.mode === modeFullscreen ? "hidden" : "visible";
   fullscreenButton.onclick = function (event) {
-    requestPUT("move-window-to-fullscreen", jsonUuidHelper(tile), updateWall);
+    sendSceneJsonRpc("move-window-to-fullscreen", getIdAsObject(tile), updateWall);
     event.stopImmediatePropagation();
   };
   var icon = document.createElement("img");
@@ -275,9 +275,9 @@ function createWindow(tile) {
   );
   windowDiv.onclick = function (event) {
     if (!fullscreen && !focus) {
-      requestPUT("toggle-select-window", jsonUuidHelper(tile),
+      sendSceneJsonRpc("toggle-select-window", getIdAsObject(tile),
         function () {
-          return requestPUT("move-window-to-front", jsonUuidHelper(tile), updateWall)
+          return sendSceneJsonRpc("move-window-to-front", getIdAsObject(tile), updateWall)
         }
       );
     }
@@ -387,13 +387,13 @@ function getFileSystemContent(path) {
             },
             function (isConfirm) {
               if (isConfirm) {
-                requestPUT("open", JSON.stringify({"uri": data.path}), updateWall);
+                sendAppJsonRpc("open", {"uri": data.path}, updateWall);
                 $('#fsMenu').hide()
               }
             });
         }
         else {
-          requestPUT("open", JSON.stringify({"uri": data.path}), updateWall);
+          sendAppJsonRpc("open", {"uri": data.path}, updateWall);
           $('#fsMenu').treeview('toggleNodeSelected', [data.nodeId, {silent: true}]);
         }
       }
@@ -403,7 +403,7 @@ function getFileSystemContent(path) {
       }
       // REGULAR FILE
       else {
-        requestPUT("open", JSON.stringify({"uri": data.path}), updateWall);
+        sendAppJsonRpc("open", {"uri": data.path}, updateWall);
         $('#fsMenu').treeview('toggleNodeSelected', [data.nodeId, {silent: true}]);
       }
     })
@@ -468,7 +468,7 @@ function getSessionFolderContent() {
     $('#sessionTree').on('nodeSelected', function (event, data) {
       if (!data.dir) {
         $("#wall").css("opacity", 0.2);
-        requestPUT("load", JSON.stringify({"uri": data.text}), function () {
+        sendAppJsonRpc("load", {"uri": data.text}, function () {
           $("#sessionMenu").toggle("puff", showEffectSpeed);
           $("#sessionButton").toggleClass("buttonPressed");
           $('#sessionTree').treeview('toggleNodeSelected', [data.nodeId, {silent: true}]);
@@ -608,10 +608,9 @@ function init() {
     });
 
     wall.click(function () {
-        if (windowList.length > 0) {
-        requestPUT("deselect-windows", null, updateWall);
+      if (windowList.length > 0) {
+        sendSceneJsonRpc("deselect-windows", {}, updateWall);
       }
-
     });
 
     $("#buttonContainer").append("Tide ", config["version"], " rev ",
@@ -627,16 +626,16 @@ function init() {
   };
   xhr.send(null);
   $("#exitFullscreenButton").on("click", function () {
-    requestPUT("exit-fullscreen", null, updateWall);
+    sendSceneJsonRpc("exit-fullscreen", {}, updateWall);
     removeCurtain(fullscreenCurtain);
   });
   $("#closeAllButton").on("click", function () {
-    requestPUT("clear", null, updateWall);
+    sendSceneJsonRpc("clear", {}, updateWall);
   });
 }
 
-function jsonUuidHelper(tile) {
-  return JSON.stringify({"id": tile.uuid})
+function getIdAsObject(tile) {
+  return {"id": tile.uuid}
 }
 
 function markAsFocused(tile) {
@@ -661,7 +660,7 @@ function markAsUnselected(tile) {
 }
 
 function openWhiteboard() {
-  requestPUT("whiteboard", JSON.stringify({}), updateWall);
+  sendAppJsonRpc("whiteboard", {}, updateWall);
   $("#appsButton").click();
 }
 
@@ -731,12 +730,21 @@ function removeCurtain(type) {
   $('#' + type).remove()
 }
 
-function requestDELETE(command, callback) {
-  request("DELETE", command, null, callback)
+function requestPUT(command, parameters, callback) {
+  request("PUT", command, JSON.stringify(parameters), callback)
 }
 
-function requestPUT(command, parameters, callback) {
-  request("PUT", command, parameters, callback)
+function sendAppJsonRpc(method, parameters, callback) {
+  sendJsonRpc("application", method, parameters, callback);
+}
+
+function sendSceneJsonRpc(method, parameters, callback) {
+  sendJsonRpc("controller", method, parameters, callback);
+}
+
+function sendJsonRpc(endpoint, method, parameters, callback) {
+  var jsonrpc = {"jsonrpc": "2.0", "method": method, "params": parameters};
+  request("POST", endpoint, JSON.stringify(jsonrpc), callback);
 }
 
 function request(method, command, parameters, callback)
@@ -793,8 +801,8 @@ function resizeOnWheelEvent(event, tile) {
     newHeight = oldHeight + incrementSize;
   }
 
-  var params = JSON.stringify({"id": tile.uuid, "w": newWidth, "h": newHeight, "centered": true});
-  requestPUT("resize-window", params, updateWall);
+  var params = {"id": tile.uuid, "w": newWidth, "h": newHeight, "centered": true};
+  sendSceneJsonRpc("resize-window", params, updateWall);
 }
 
 function saveSession() {
@@ -804,7 +812,7 @@ function saveSession() {
     return;
   if (!uri.endsWith(".dcx"))
     uri = uri + ".dcx";
-  var params = JSON.stringify({"uri": uri});
+  var params = {"uri": uri};
   var exist = false;
   for (var i = 0; i < sessionFiles.length; i++) {
     if (sessionFiles[i].text == uri)
@@ -822,7 +830,7 @@ function saveSession() {
       showCancelButton: true
     },
     function () {
-      requestPUT("save", params, function(){
+      sendAppJsonRpc("save", params, function(){
           getSessionFolderContent();
           updateWall(); // contents may have been relocated changing some window UUIDs
       });
@@ -883,14 +891,14 @@ function setCurtain(type) {
   curtain.click(function (event) {
     event.stopImmediatePropagation();
     if (fullscreen && focus) {
-      requestPUT("exit-fullscreen", null, updateWall);
+      sendSceneJsonRpc("exit-fullscreen", {}, updateWall);
     }
     if (focus && !fullscreen) {
-      requestPUT("unfocus-windows", null, updateWall);
+      sendSceneJsonRpc("unfocus-windows", {}, updateWall);
 
     }
     if (fullscreen && !focus) {
-      requestPUT("exit-fullscreen", null, updateWall);
+      sendSceneJsonRpc("exit-fullscreen", {}, updateWall);
       removeCurtain(fullscreenCurtain);
     }
   });
@@ -916,8 +924,8 @@ function setHandles(tile) {
       ui.position.top = newTop;
     },
     stop: function () {
-      var params = JSON.stringify({"id": tile.uuid, "x": newLeft, "y": newTop});
-      requestPUT("move-window", params, updateWall);
+      var params = {"id": tile.uuid, "x": newLeft, "y": newTop};
+      sendSceneJsonRpc("move-window", params, updateWall);
     },
     disabled: false,
     cancel : '.windowControls'
@@ -947,9 +955,9 @@ function setHandles(tile) {
         tile.height = ui.size.height;
         tile.width = ui.size.width
       }
-      var params = JSON.stringify({"id": tile.uuid, "w": tile.width, "h": tile.height, "centered": false});
-      requestPUT("resize-window", params, function () {
-        return requestPUT("move-window-to-front", jsonUuidHelper(tile), updateWall);
+      var params = {"id": tile.uuid, "w": tile.width, "h": tile.height, "centered": false};
+      sendSceneJsonRpc("resize-window", params, function () {
+        return sendSceneJsonRpc("move-window-to-front", getIdAsObject(tile), updateWall);
       });
     }
   }).on('resize', function (e) {
@@ -960,7 +968,7 @@ function setHandles(tile) {
 function setOption(property) {
   var action = {};
   action[property] = $('#checkbox_' + property).prop('checked');
-  requestPUT("options", JSON.stringify(action), updateOptions);
+  requestPUT("options", action, updateOptions);
 }
 
 function setScale() {
@@ -1187,9 +1195,8 @@ function uploadFiles(files, coords) {
         else
           console.log('ENDPOINT REGISTRATION: An error occurred!');
       };
-      requests[i].send(JSON.stringify({"filename": (file.name),
-      "x": coords["x"], "y": coords["y"]
-      }));
+      var body = {"filename": (file.name), "x": coords["x"], "y": coords["y"]};
+      requests[i].send(JSON.stringify(body));
     })(i)
   }
 }

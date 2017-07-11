@@ -93,8 +93,8 @@ MasterApplication::MasterApplication(int& argc_, char** argv_,
     , _masterToForkerChannel(new MasterToForkerChannel(forkChannel))
     , _masterToWallChannel(new MasterToWallChannel(worldChannel))
     , _masterFromWallChannel(new MasterFromWallChannel(worldChannel))
-    , _markers(new Markers)
-    , _options(new Options)
+    , _markers(Markers::create())
+    , _options(Options::create())
 {
     master::registerQmlTypes();
 
@@ -131,21 +131,21 @@ MasterApplication::~MasterApplication()
     _mpiReceiveThread.wait();
 }
 
-void MasterApplication::load(const QString sessionFile, promisePtr promise)
+void MasterApplication::load(const QString sessionFile, BoolCallback callback)
 {
     _loadSessionOp.waitForFinished();
-    _loadSessionPromise = promise;
+    _loadSessionCallback = callback;
     _loadSessionOp.setFuture(
         StateSerializationHelper(_displayGroup).load(sessionFile));
 }
 
 void MasterApplication::_open(const QString uri, const QPointF coords,
-                              promisePtr promise)
+                              BoolCallback callback)
 {
     if (uri.isEmpty())
     {
-        if (promise)
-            promise->set_value(false);
+        if (callback)
+            callback(false);
         return;
     }
 
@@ -161,14 +161,14 @@ void MasterApplication::_open(const QString uri, const QPointF coords,
     else
         success = loader.load(uri, coords);
 
-    if (promise)
-        promise->set_value(success);
+    if (callback)
+        callback(success);
 }
 
-void MasterApplication::_save(const QString sessionFile, promisePtr promise)
+void MasterApplication::_save(const QString sessionFile, BoolCallback callback)
 {
     _saveSessionOp.waitForFinished();
-    _saveSessionPromise = promise;
+    _saveSessionCallback = callback;
 
     StateSerializationHelper helper(_displayGroup);
     _saveSessionOp.setFuture(helper.save(sessionFile, _config->getUploadDir()));
@@ -210,20 +210,16 @@ void MasterApplication::_init()
                 if (group)
                     _apply(group);
 
-                if (_loadSessionPromise)
-                {
-                    _loadSessionPromise->set_value(group != nullptr);
-                    _loadSessionPromise.reset();
-                }
+                if (_loadSessionCallback)
+                    _loadSessionCallback(group != nullptr);
+                _loadSessionCallback = nullptr;
             });
 
     connect(&_saveSessionOp, &QFutureWatcher<DisplayGroupConstPtr>::finished,
             [this]() {
-                if (_saveSessionPromise)
-                {
-                    _saveSessionPromise->set_value(_saveSessionOp.result());
-                    _saveSessionPromise.reset();
-                }
+                if (_saveSessionCallback)
+                    _saveSessionCallback(_saveSessionOp.result());
+                _saveSessionCallback = nullptr;
             });
 
 #if TIDE_ENABLE_PLANAR_CONTROLLER
@@ -468,11 +464,35 @@ void MasterApplication::_initTouchListener()
 #if TIDE_ENABLE_REST_INTERFACE
 void MasterApplication::_initRestInterface()
 {
-    _restInterface = make_unique<RestInterface>(_config->getWebServicePort(),
-                                                _options, *_config);
+    _restInterface =
+        make_unique<RestInterface>(_config->getWebServicePort(), _options,
+                                   *_displayGroup, *_config);
+
     _logger = make_unique<LoggingUtility>();
 
-    connect(_restInterface.get(), &RestInterface::browse, [this](QString uri) {
+    connect(_displayGroup.get(), &DisplayGroup::contentWindowAdded,
+            _logger.get(), &LoggingUtility::contentWindowAdded);
+
+    connect(_displayGroup.get(), &DisplayGroup::contentWindowRemoved,
+            _logger.get(), &LoggingUtility::contentWindowRemoved);
+
+    connect(_displayGroup.get(), &DisplayGroup::contentWindowMovedToFront,
+            _logger.get(), &LoggingUtility::contentWindowMovedToFront);
+
+    _restInterface->exposeStatistics(*_logger);
+
+    const auto& appController = _restInterface->getAppController();
+
+    connect(&appController, &AppController::open, this,
+            &MasterApplication::_open);
+
+    connect(&appController, &AppController::load, this,
+            &MasterApplication::load);
+
+    connect(&appController, &AppController::save, this,
+            &MasterApplication::_save);
+
+    connect(&appController, &AppController::browse, [this](QString uri) {
 #if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
         if (uri.isEmpty())
             uri = _config->getWebBrowserDefaultURL();
@@ -484,41 +504,17 @@ void MasterApplication::_initRestInterface()
 #endif
     });
 
-    connect(_restInterface.get(), &RestInterface::whiteboard,
-            [this]() { _pixelStreamerLauncher->openWhiteboard(); });
+    connect(&appController, &AppController::openWhiteboard,
+            _pixelStreamerLauncher.get(),
+            &PixelStreamerLauncher::openWhiteboard);
 
-    connect(_restInterface.get(), &RestInterface::open, this,
-            &MasterApplication::_open);
-
-    connect(_restInterface.get(), &RestInterface::load, this,
-            &MasterApplication::load);
-
-    connect(_restInterface.get(), &RestInterface::save, this,
-            &MasterApplication::_save);
-
-    connect(_restInterface.get(), &RestInterface::clear,
-            [this]() { _displayGroup->clear(); });
-
-    connect(_restInterface.get(), &RestInterface::screenshot,
+    connect(&appController, &AppController::takeScreenshot,
             [this](const QString filename) {
                 _screenshotFilename = filename;
                 _masterToWallChannel->sendRequestScreenshot();
             });
 
-    connect(_restInterface.get(), &RestInterface::exit, [this]() { exit(); });
-
-    connect(_displayGroup.get(), &DisplayGroup::contentWindowAdded,
-            _logger.get(), &LoggingUtility::contentWindowAdded);
-
-    connect(_displayGroup.get(), &DisplayGroup::contentWindowRemoved,
-            _logger.get(), &LoggingUtility::contentWindowRemoved);
-
-    connect(_displayGroup.get(), &DisplayGroup::contentWindowMovedToFront,
-            _logger.get(), &LoggingUtility::contentWindowMovedToFront);
-
-    _restInterface.get()->exposeStatistics(*_logger);
-
-    _restInterface.get()->setupHtmlInterface(*_displayGroup, *_config);
+    connect(&appController, &AppController::exit, [this]() { exit(); });
 
 #if TIDE_ENABLE_PLANAR_CONTROLLER
     if (_planarController)
@@ -534,7 +530,7 @@ void MasterApplication::_initRestInterface()
                         _inactivityTimer->stop();
                 });
 
-        connect(_restInterface.get(), &RestInterface::powerOff, [this]() {
+        connect(&appController, &AppController::powerOff, [this]() {
             if (_planarController->powerOff())
                 DisplayGroupController(*_displayGroup).hidePanels();
             else

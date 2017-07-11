@@ -40,6 +40,8 @@
 #ifndef RESTSERVER_H
 #define RESTSERVER_H
 
+#include <zeroeq/http/helpers.h>
+#include <zeroeq/http/response.h>
 #include <zeroeq/http/server.h>
 
 #include <QSocketNotifier>
@@ -47,7 +49,7 @@
 /**
  * A non-blocking REST Server based on ZeroEQ for use in a Qt application.
  */
-class RestServer
+class RestServer : public zeroeq::http::Server
 {
 public:
     /**
@@ -70,12 +72,40 @@ public:
     /** @return the port of the server. */
     int getPort() const;
 
-    /** @return the underlying ZeroEQ server for registering contents. */
-    zeroeq::http::Server& get();
+    /**
+     * Expose a JSON-serializable object on an HTTP GET endpoint.
+     *
+     * @param endpoint for accessing the object.
+     * @param object to expose.
+     */
+    template <typename Obj>
+    bool handleGET(const std::string& endpoint, const Obj& object)
+    {
+        using namespace zeroeq::http;
+        return handle(Method::GET, endpoint, [&object](const Request&) {
+            return make_ready_response(Code::OK, to_json(object),
+                                       "application/json");
+        });
+    }
+
+    /**
+     * Subscribe a JSON-deserializable object on an HTTP PUT endpoint.
+     *
+     * @param endpoint for modifying the object.
+     * @param object to subscribe.
+     */
+    template <typename Obj>
+    bool handlePUT(const std::string& endpoint, Obj& object)
+    {
+        using namespace zeroeq::http;
+        return handle(Method::PUT, endpoint, [&object](const Request& req) {
+            const auto success = from_json(object, req.body);
+            return make_ready_response(success ? Code::OK : Code::BAD_REQUEST);
+        });
+    }
 
 private:
-    zeroeq::http::Server _httpServer;
-    QSocketNotifier _socketNotifier{_httpServer.getSocketDescriptor(),
+    QSocketNotifier _socketNotifier{getSocketDescriptor(),
                                     QSocketNotifier::Read};
     void _init();
 };

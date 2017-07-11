@@ -1,7 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
-/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -38,67 +37,58 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef RESTWINDOWS_H
-#define RESTWINDOWS_H
+#ifndef SERIALIZATION_H
+#define SERIALIZATION_H
 
-#include "RestServer.h"
-#include "scene/DisplayGroup.h"
+#include "types.h"
 
-#include <zeroeq/http/request.h>
-#include <zeroeq/http/response.h>
+#include "json.h"
 
-#include <QFuture>
-
-#include <future>
+#include <QUuid>
 
 /**
- * Exposes the windows in a display group in JSON format.
+ * Serialize an object as a JSON string.
  *
- * This class also maintains a cache of thumbnails for all windows. The
- * thumbnails are generated asynchronously when window are added.
- *
- * Example client usage:
- * GET /api/windows
- * => 200 { "windows": [ {"title": "Title", "uuid": "abcd", ... } ] }
- *
- * GET /api/windows/abcd/thumbnail
- * => 200 data:image/png;base64----IMAGE DATA----
+ * @param object to serialize.
+ * @return json string, empty on error.
  */
-class RestWindows
+template <typename Obj>
+std::string to_json(const Obj& object)
 {
-public:
-    /**
-     * Construct a JSON list of windows exposed by REST interface.
-     *
-     * @param displayGroup DisplayGroup to expose.
-     */
-    RestWindows(const DisplayGroup& displayGroup);
+    return json::toString(to_json_object(object));
+}
 
-    /**
-     * Get the detailed list of all windows.
-     *
-     * @return JSON response containing the list of all winodws.
-     */
-    std::future<zeroeq::http::Response> getWindowList(
-        const zeroeq::http::Request&) const;
+/**
+ * Deserialize an object from a JSON string.
+ *
+ * @param object to serialize.
+ * @return json string, empty on error.
+ */
+template <typename Obj>
+bool from_json(Obj& object, const std::string& json)
+{
+    return from_json_object(object, json::toObject(json));
+}
 
-    /**
-     * Get information about a specific window (currently thumbnail only).
-     *
-     * @param request GET request to the url "endpoint/${uuid}/thumbnail".
-     * @return base64 encoded image on success, 204 if the thumbnail is not
-     *         ready yet.
-     */
-    std::future<zeroeq::http::Response> getWindowInfo(
-        const zeroeq::http::Request& request) const;
+/** @name JSON serialization of objects. */
+//@{
+QJsonObject to_json_object(ContentWindowPtr window, const DisplayGroup& group);
+QJsonObject to_json_object(const DisplayGroup& group);
+QJsonObject to_json_object(const LoggingUtility& logger);
+QJsonObject to_json_object(const MasterConfiguration& config);
+QJsonObject to_json_object(const Options& options);
+QJsonObject to_json_object(const QSize& size);
+//@}
 
-private:
-    const DisplayGroup& _displayGroup;
-    QMap<QString, QFuture<std::string>> _thumbnailCache;
+/** @name JSON deserialization of objects. */
+//@{
+bool from_json_object(Options& options, const QJsonObject& object);
+//@}
 
-    void _cacheThumbnail(ContentWindowPtr contentWindow);
-    std::future<zeroeq::http::Response> _getThumbnail(
-        const QString& uuid) const;
-};
+/** @name Helpers for QUuid (strip '{}' in JSON form). */
+//@{
+QString url_encode(const QUuid& uuid);
+QUuid url_decode(const QString& uuid);
+//@}
 
 #endif

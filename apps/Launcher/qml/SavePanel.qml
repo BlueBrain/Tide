@@ -14,7 +14,7 @@ Item {
     property alias nameFilters: browser.nameFilters
     property alias listViewMode: browser.listViewMode
 
-    signal saveSession(string filename)
+    signal saveSession(string file)
 
     function save()
     {

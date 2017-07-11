@@ -1,7 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -38,50 +38,58 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef FILESYSTEMQUERY_H
-#define FILESYSTEMQUERY_H
+#include "ThumbnailCache.h"
 
-#include <zeroeq/http/request.h>
-#include <zeroeq/http/server.h>
+#include "thumbnail/thumbnail.h"
 
-#include <QFileInfoList>
-#include <QStringList>
+#include <QBuffer>
+#include <QtConcurrent>
 
-/**
- * Expose file system directory contents in JSON format through HTTP.
- *
- * Example client usage:
- * GET /api/files/some/folder
- * => 200 [ {"name": "subfolder", "dir": true},
- *          {"name": "image.png", "dir": false} ]
- */
-class FileSystemQuery
+using namespace zeroeq;
+
+namespace
 {
-public:
-    /**
-     * Create a file system listing.
-     *
-     * @param contentDirectory the root directory path.
-     * @param filters used to filter the contents by their extension.
-     */
-    FileSystemQuery(const QString& contentDirectory,
-                    const QStringList& filters);
+const QSize thumbnailSize{512, 512};
+}
 
-    /**
-     * List the content of a directory.
-     *
-     * @param request GET request to a relative path of the root directory.
-     * @return JSON response with the contents of the directory, or an
-     *         appropriate error code on error.
-     */
-    std::future<zeroeq::http::Response> list(
-        const zeroeq::http::Request& request);
+ThumbnailCache::ThumbnailCache(const DisplayGroup& displayGroup)
+{
+    QObject::connect(&displayGroup, &DisplayGroup::contentWindowAdded,
+                     [this](ContentWindowPtr window) {
+                         _cacheThumbnail(window);
+                     });
 
-private:
-    const QString _contentDirectory;
-    const QStringList _filters;
+    QObject::connect(&displayGroup, &DisplayGroup::contentWindowRemoved,
+                     [this](ContentWindowPtr window) {
+                         _thumbnailCache.remove(window->getID());
+                     });
+}
 
-    QFileInfoList _contents(const QDir& directory) const;
-};
+std::future<http::Response> ThumbnailCache::getThumbnail(
+    const QUuid& uuid) const
+{
+    if (!_thumbnailCache.contains(uuid))
+        return make_ready_response(http::Code::NOT_FOUND);
 
-#endif
+    const auto& image = _thumbnailCache[uuid];
+    if (!image.isFinished())
+        return make_ready_response(http::Code::NO_CONTENT);
+
+    return make_ready_response(http::Code::OK, image.result(), "image/png");
+}
+
+void ThumbnailCache::_cacheThumbnail(ContentWindowPtr window)
+{
+    const auto content = window->getContent();
+
+    _thumbnailCache[window->getID()] = QtConcurrent::run([content]() {
+        const auto image = thumbnail::create(*content, thumbnailSize);
+        QByteArray imageArray;
+        QBuffer buffer(&imageArray);
+        buffer.open(QIODevice::WriteOnly);
+        if (!image.save(&buffer, "PNG"))
+            return std::string();
+        buffer.close();
+        return "data:image/png;base64," + imageArray.toBase64().toStdString();
+    });
+}

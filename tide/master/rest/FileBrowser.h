@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,34 +38,49 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef RESTLOGGER_H
-#define RESTLOGGER_H
+#ifndef FILEBROWSER_H
+#define FILEBROWSER_H
 
-#include <servus/serializable.h> // base class
+#include <zeroeq/http/helpers.h>
+#include <zeroeq/http/request.h>
 
-#include "LoggingUtility.h"
+#include <QFileInfoList>
+#include <QStringList>
 
 /**
- * Exposes usage statistics to the ZeroEQ REST interface.
+ * Expose file system contents in JSON format through HTTP.
+ *
+ * Example client usage:
+ * GET /api/files/some/folder
+ * => 200 [ {"name": "subfolder", "dir": true},
+ *          {"name": "image.png", "dir": false} ]
  */
-class RestLogger : public servus::Serializable
+class FileBrowser
 {
 public:
     /**
-     * Constructor.
+     * Create a file system browser.
      *
-     * @param logger which contains the statistics to expose.
+     * @param baseDir the root directory path.
+     * @param filters used to filter the contents by their extension.
      */
-    RestLogger(const LoggingUtility& logger);
+    FileBrowser(const QString& baseDir, const QStringList& filters);
 
-    /** @return the string used as an endpoint by REST interface. */
-    std::string getTypeName() const final;
-    std::string getSchema() const final;
+    /**
+     * List the contents of a directory.
+     *
+     * @param request GET request to a relative path of the root directory.
+     * @return JSON response with the contents of the directory, or an
+     *         appropriate error code on error.
+     */
+    std::future<zeroeq::http::Response> list(
+        const zeroeq::http::Request& request);
 
 private:
-    const LoggingUtility& _logger;
+    const QString _baseDir;
+    const QStringList _filters;
 
-    std::string _toJSON() const final;
+    QFileInfoList _contents(const QDir& directory) const;
 };
 
 #endif
