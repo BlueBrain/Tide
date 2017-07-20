@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.3.1 (git master)
 
+* [170](https://github.com/BlueBrain/Tide/pull/170):
+  Bugfix: in multi-node configurations some windows opened on incorrect hosts.
 * [168](https://github.com/BlueBrain/Tide/pull/168):
   Tide will log now a timestamp of an event along with the logger id. 
 * [165](https://github.com/BlueBrain/Tide/pull/165):
