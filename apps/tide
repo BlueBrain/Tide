@@ -165,8 +165,8 @@ try:
         node_host = '%s %s' % (MPI_PER_NODE_HOST, host)
     else:
         node_host = ''
+        forker_host = host    # forker must go at the end of the hostlist
         hostlist.append(host) # master
-        hostlist.append(host) # forker
 
     export_display = EXPORT_ENV_VAR.format('DISPLAY', display)
     environment = '%s %s %s' % (MPI_SPECIAL_FLAGS, export_display, node_host)
@@ -204,6 +204,8 @@ try:
         runcommands.append(wallcmd)
 
     # the 'forker' process is the last one
+    if not MPI_PER_NODE_HOST:
+        hostlist.append(forker_host)
     runcommands.append(forkercmd)
 
 except Exception as e:
