@@ -47,6 +47,11 @@
 
 namespace
 {
+const QString reservedMethodPrefix = "rpc.";
+const char* reservedMethodError =
+    "Method names starting with 'rpc.' are "
+    "reserved by the standard / forbidden.";
+
 const QJsonObject parseError{{"code", -32700}, {"message", "Parse error"}};
 const QJsonObject invalidRequest{{"code", -32600},
                                  {"message", "Invalid Request"}};
@@ -70,17 +75,14 @@ QJsonObject _makeResponse(const QString& result, const QJsonValue& id)
     return QJsonObject{{"jsonrpc", "2.0"}, {"result", result}, {"id", id}};
 }
 
-bool _isValidJsonRpc(const QJsonObject& object)
-{
-    return object["jsonrpc"].toString() == "2.0";
-}
-
 bool _isValidJsonRpcRequest(const QJsonObject& object)
 {
     const auto params = object["params"];
-    return object["method"].isString() &&
+    return object["jsonrpc"].toString() == "2.0" &&
+           object["method"].isString() &&
            (params.isUndefined() || params.isObject() || params.isArray()) &&
-           (object["id"].isUndefined() || object["id"].isDouble());
+           (object["id"].isUndefined() || object["id"].isDouble() ||
+            object["id"].isString());
 }
 
 std::string _getAsString(const QJsonValue& params)
@@ -145,12 +147,6 @@ public:
     void processCommand(const QJsonObject& request,
                         std::function<void(QJsonObject)> callback)
     {
-        if (!_isValidJsonRpc(request))
-        {
-            callback(_makeErrorResponse(parseError));
-            return;
-        }
-
         if (!_isValidJsonRpcRequest(request))
         {
             callback(_makeErrorResponse(invalidRequest));
@@ -161,14 +157,14 @@ public:
         const auto methodName = request["method"].toString().toStdString();
         const auto params = _getAsString(request["params"]);
 
-        const auto action = methods.find(methodName);
-        if (action == methods.end())
+        const auto method = methods.find(methodName);
+        if (method == methods.end())
         {
             callback(_makeErrorResponse(methodNotFound, id));
             return;
         }
 
-        const auto& func = action->second;
+        const auto& func = method->second;
         func(params, [callback, id](const JsonRpc::Response rep) {
             // No reply for valid "notifications" (requests without an "id")
             if (id.isUndefined())
@@ -198,14 +194,17 @@ JsonRpc::~JsonRpc()
 
 void JsonRpc::bind(const std::string& method, ResponseCallback action)
 {
-    _impl->methods[method] = [this, action](const std::string& req,
-                                            AsyncResponse callback) {
-        callback(action(req));
-    };
+    bindAsync(method,
+              [this, action](const std::string& req, AsyncResponse callback) {
+                  callback(action(req));
+              });
 }
 
 void JsonRpc::bindAsync(const std::string& method, ResponseCallbackAsync action)
 {
+    if (QString::fromStdString(method).startsWith(reservedMethodPrefix))
+        throw std::invalid_argument(reservedMethodError);
+
     _impl->methods[method] = action;
 }
 
@@ -244,17 +243,17 @@ std::future<std::string> JsonRpc::processAsync(const std::string& request)
 void JsonRpc::process(const std::string& request, ProcessAsyncCallback callback)
 {
     const auto input = QByteArray::fromRawData(request.c_str(), request.size());
-    const auto doc = QJsonDocument::fromJson(input);
+    const auto document = QJsonDocument::fromJson(input);
 
-    if (doc.isObject())
+    if (document.isObject())
     {
         auto stringifyCallback = [callback](const QJsonObject obj) {
             callback(_toString(obj));
         };
-        _impl->processCommand(doc.object(), stringifyCallback);
+        _impl->processCommand(document.object(), stringifyCallback);
     }
-    else if (doc.isArray())
-        callback(_impl->processBatchBlocking(doc.array()));
+    else if (document.isArray())
+        callback(_impl->processBatchBlocking(document.array()));
     else
         callback(json::toString(_makeErrorResponse(parseError)));
 }

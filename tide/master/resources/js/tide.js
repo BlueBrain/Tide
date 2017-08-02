@@ -743,8 +743,20 @@ function sendSceneJsonRpc(method, parameters, callback) {
 }
 
 function sendJsonRpc(endpoint, method, parameters, callback) {
-  var jsonrpc = {"jsonrpc": "2.0", "method": method, "params": parameters};
-  request("POST", endpoint, JSON.stringify(jsonrpc), callback);
+  if (typeof sendJsonRpc.counter == 'undefined') {
+      sendJsonRpc.counter = 0;
+  }
+  var jsonrpc = {"jsonrpc": "2.0", "method": method, "params": parameters, "id": sendJsonRpc.counter++};
+  request("POST", endpoint, JSON.stringify(jsonrpc), function (response) {
+      if (response.hasOwnProperty('error')) {
+        var err = response.error;
+        var msg = "Reason: " + err.message + " (" + err.code + ")";
+        alertPopup("Error executing '" + method + "'", msg);
+      }
+      else {
+        callback();
+      }
+  });
 }
 
 function request(method, command, parameters, callback)
@@ -761,8 +773,9 @@ function request(method, command, parameters, callback)
     if (xhr.status === 400)
       alertPopup("Something went wrong", "Issue at: " + restUrl + command);
     if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-      if (callback !== null)
-        callback();
+      if (callback !== null) {
+        callback(xhr.response);
+      }
     }
   };
   xhr.onerror = function () {
@@ -895,7 +908,6 @@ function setCurtain(type) {
     }
     if (focus && !fullscreen) {
       sendSceneJsonRpc("unfocus-windows", {}, updateWall);
-
     }
     if (fullscreen && !focus) {
       sendSceneJsonRpc("exit-fullscreen", {}, updateWall);

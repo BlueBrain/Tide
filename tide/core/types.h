@@ -123,7 +123,6 @@ typedef boost::shared_ptr<MPIChannel> MPIChannelPtr;
 typedef boost::shared_ptr<Options> OptionsPtr;
 typedef std::shared_ptr<Tile> TilePtr;
 typedef std::weak_ptr<Tile> TileWeakPtr;
-typedef std::shared_ptr<std::promise<bool>> promisePtr;
 
 typedef std::set<ContentWindowPtr> ContentWindowSet;
 typedef std::vector<ContentWindowPtr> ContentWindowPtrs;

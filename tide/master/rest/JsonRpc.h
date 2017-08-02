@@ -54,7 +54,7 @@ class JsonRpc
 {
 public:
     /**
-     * Response to a well-formed RPP request.
+     * Response to a well-formed RPC request.
      */
     struct Response
     {
@@ -101,6 +101,7 @@ public:
      *
      * @param method to register.
      * @param action to perform.
+     * @throw std::invalid_argument if the method name starts with "rpc."
      */
     void bind(const std::string& method, ResponseCallback action);
 
@@ -112,6 +113,7 @@ public:
      *
      * @param method to register.
      * @param action to perform.
+     * @throw std::invalid_argument if the method name starts with "rpc."
      */
     template <typename Params>
     void bind(const std::string& method, std::function<Response(Params)> action)
@@ -129,6 +131,7 @@ public:
      *
      * @param method to register.
      * @param action to perform that will notify the caller upon completion.
+     * @throw std::invalid_argument if the method name starts with "rpc."
      */
     void bindAsync(const std::string& method, ResponseCallbackAsync action);
 
@@ -140,6 +143,7 @@ public:
      *
      * @param method to register.
      * @param action to perform that will notify the caller upon completion.
+     * @throw std::invalid_argument if the method name starts with "rpc."
      */
     template <typename Params>
     void bindAsync(const std::string& method,
@@ -163,6 +167,7 @@ public:
      *
      * @param method to register.
      * @param action to perform.
+     * @throw std::invalid_argument if the method name starts with "rpc."
      */
     template <typename Params>
     void notify(const std::string& method, std::function<void(Params)> action)
@@ -184,6 +189,7 @@ public:
      *
      * @param method to register.
      * @param action to perform.
+     * @throw std::invalid_argument if the method name starts with "rpc."
      */
     void notify(const std::string& method, NotifyCallback action);
 
@@ -195,6 +201,7 @@ public:
      *
      * @param method to register.
      * @param action to perform.
+     * @throw std::invalid_argument if the method name starts with "rpc."
      */
     void notify(const std::string& method, VoidCallback action);
 

@@ -1,5 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,45 +38,61 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "config.h"
-#include "types.h"
+#define BOOST_TEST_MODULE ThumbnailCacheTests
 
-#include "network/MPIHeader.h"
-#include "scene/ContentWindow.h"
+#include <boost/test/unit_test.hpp>
 
-#include <QMetaType>
+#include "rest/ThumbnailCache.h"
+#include "scene/ContentFactory.h"
+#include "scene/DisplayGroup.h"
+#include "thumbnail/thumbnail.h"
 
-/**
- * Register types for use in Qt signals/slots
- */
-struct MetaTypeRegistration
+#include <zeroeq/http/response.h>
+
+#include <QBuffer>
+#include <QByteArray>
+
+namespace
 {
-    MetaTypeRegistration()
-    {
-        qRegisterMetaType<ContentWindowPtr>("ContentWindowPtr");
-        qRegisterMetaType<ContentWindowPtrs>("ContentWindowPtrs");
-        qRegisterMetaType<ContentWindow::ResizeHandle>(
-            "ContentWindow::ResizeHandle");
-        qRegisterMetaType<ContentWindow::WindowState>(
-            "ContentWindow::WindowState");
-        qRegisterMetaType<ContentSynchronizerSharedPtr>(
-            "ContentSynchronizerSharedPtr");
-        qRegisterMetaType<DisplayGroupPtr>("DisplayGroupPtr");
-        qRegisterMetaType<DisplayGroupConstPtr>("DisplayGroupConstPtr");
-        qRegisterMetaType<ImagePtr>("ImagePtr");
-        qRegisterMetaType<MarkersPtr>("MarkersPtr");
-        qRegisterMetaType<MPIMessageType>("MPIMessageType");
-        qRegisterMetaType<OptionsPtr>("OptionsPtr");
-        qRegisterMetaType<QUuid>("QUuid");
-        qRegisterMetaType<std::string>("std::string");
-        qRegisterMetaType<TilePtr>("TilePtr");
-        qRegisterMetaType<TileWeakPtr>("TileWeakPtr");
-        qRegisterMetaTypeStreamOperators<QUuid>("QUuid");
-        qRegisterMetaType<InactivityTimerPtr>("InactivityTimerPtr");
-    }
-};
+const QString imageUri{"wall.png"};
+const QSize thumbnailSize{512, 512};
+const QSize wallSize{1000, 1000};
 
-// Static instance to register types during library static initialisation phase
-static MetaTypeRegistration staticInstance;
+std::string _getTestThumbnail()
+{
+    const auto image = thumbnail::create(imageUri, thumbnailSize);
+    QByteArray imageArray;
+    QBuffer buffer(&imageArray);
+    buffer.open(QIODevice::WriteOnly);
+    image.save(&buffer, "PNG");
+    buffer.close();
+    return "data:image/png;base64," + imageArray.toBase64().toStdString();
+}
+}
 
-Q_DECLARE_METATYPE(QUuid)
+BOOST_AUTO_TEST_CASE(testWindowInfo)
+{
+    DisplayGroupPtr group(new DisplayGroup(wallSize));
+
+    ThumbnailCache cache{*group};
+
+    ContentPtr content = ContentFactory::getContent(imageUri);
+    ContentWindowPtr window(new ContentWindow(content));
+    group->addContentWindow(window);
+
+    // Thumbnail not ready yet
+    auto response = cache.getThumbnail(window->getID()).get();
+    BOOST_CHECK_EQUAL(response.code, 204);
+
+    // Wait for async thumnbnail generation to finish
+    sleep(2);
+    response = cache.getThumbnail(window->getID()).get();
+    BOOST_CHECK_EQUAL(response.code, 200);
+    BOOST_CHECK_EQUAL(response.body, _getTestThumbnail());
+    BOOST_CHECK_EQUAL(response.headers[zeroeq::http::Header::CONTENT_TYPE],
+                      "image/png");
+
+    group->removeContentWindow(window);
+    response = cache.getThumbnail(window->getID()).get();
+    BOOST_CHECK_EQUAL(response.code, 404);
+}

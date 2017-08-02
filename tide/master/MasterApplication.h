@@ -41,7 +41,6 @@
 #define MASTERAPPLICATION_H
 
 #include "config.h"
-#include "rest/JsonRpc.h"
 #include "types.h"
 
 #include <deflect/qt/OffscreenQuickView.h>

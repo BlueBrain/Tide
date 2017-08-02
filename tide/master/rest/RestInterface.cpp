@@ -103,7 +103,7 @@ public:
         , contentBrowser{config.getContentDir(),
                          ContentFactory::getSupportedFilesFilter()}
         , sessionBrowser{config.getSessionsDir(), QStringList{"*.dcx"}}
-        , htmlContent{new HtmlContent(server)}
+        , htmlContent{server}
     {
     }
 
@@ -129,7 +129,7 @@ public:
     FileBrowser contentBrowser;
     FileBrowser sessionBrowser;
     FileReceiver fileReceiver;
-    std::unique_ptr<HtmlContent> htmlContent; // HTML interface (optional)
+    HtmlContent htmlContent;
 };
 
 RestInterface::RestInterface(const int port, OptionsPtr options,

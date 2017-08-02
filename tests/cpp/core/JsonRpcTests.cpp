@@ -44,12 +44,17 @@
 #include "rest/JsonRpc.h"
 #include "rest/json.h"
 
+#include <thread>
+
 // Validation examples based on: http://www.jsonrpc.org/specification
 
 namespace
 {
 const std::string substractArray{
     R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": 3})"};
+
+const std::string substractArrayStringId{
+    R"({"jsonrpc": "2.0", "method": "subtract", "params": [42, 23], "id": "myId123"})"};
 
 const std::string substractObject{
     R"({"jsonrpc": "2.0", "method": "subtract", "params": {"subtrahend": 23, "minuend": 42}, "id": 3})"};
@@ -74,11 +79,30 @@ const std::string substractBatchMixed{
 const std::string invalidRequest{
     R"({"jsonrpc": "2.0", "method": 1, "params": "bar"})"};
 
+const std::string invalidJsonRpcVersionRequest{
+    R"({"jsonrpc": "3.5", "method": "subtract", "params": [42, 23], "id": 3})"};
+
 const std::string substractResult{
     R"({
     "id": 3,
     "jsonrpc": "2.0",
     "result": "19"
+}
+)"};
+
+const std::string substractResultStringId{
+    R"({
+    "id": "myId123",
+    "jsonrpc": "2.0",
+    "result": "19"
+}
+)"};
+
+const std::string notifyStandardReply{
+    R"({
+    "id": 3,
+    "jsonrpc": "2.0",
+    "result": "OK"
 }
 )"};
 
@@ -126,6 +150,17 @@ const std::string invalidRequestResult{
         "message": "Invalid Request"
     },
     "id": null,
+    "jsonrpc": "2.0"
+}
+)"};
+
+const std::string invalidParamsResult{
+    R"({
+    "error": {
+        "code": -32602,
+        "message": "Invalid params"
+    },
+    "id": 3,
     "jsonrpc": "2.0"
 }
 )"};
@@ -195,21 +230,59 @@ JsonRpc::Response substractArr(const std::string& params)
     return {std::to_string(value)};
 }
 
+void substractArrAsync(const std::string& params,
+                       JsonRpc::AsyncResponse callback)
+{
+    std::thread([params, callback]() {
+        usleep(500);
+        callback(substractArr(params));
+    }).detach();
+}
+
+struct Operands
+{
+    int left = 0;
+    int right = 0;
+};
+bool from_json(Operands& op, const std::string& json)
+{
+    const auto object = json::toObject(json);
+    if (!object["minuend"].isDouble() || !object["subtrahend"].isDouble())
+        return false;
+    op.left = object["minuend"].toInt();
+    op.right = object["subtrahend"].toInt();
+    return true;
+}
+
 struct Fixture
 {
     JsonRpc jsonRpc;
 };
 
-BOOST_FIXTURE_TEST_CASE(parse_obj, Fixture)
+BOOST_FIXTURE_TEST_CASE(process_obj, Fixture)
 {
     jsonRpc.bind("subtract", std::bind(&substractObj, std::placeholders::_1));
     BOOST_CHECK_EQUAL(jsonRpc.process(substractObject), substractResult);
 }
 
-BOOST_FIXTURE_TEST_CASE(parse_arr, Fixture)
+BOOST_FIXTURE_TEST_CASE(process_arr, Fixture)
 {
     jsonRpc.bind("subtract", std::bind(&substractArr, std::placeholders::_1));
     BOOST_CHECK_EQUAL(jsonRpc.process(substractArray), substractResult);
+}
+
+BOOST_FIXTURE_TEST_CASE(process_arr_async, Fixture)
+{
+    using namespace std::placeholders;
+    jsonRpc.bindAsync("subtract", std::bind(&substractArrAsync, _1, _2));
+    BOOST_CHECK_EQUAL(jsonRpc.process(substractArray), substractResult);
+}
+
+BOOST_FIXTURE_TEST_CASE(process_arr_with_string_id, Fixture)
+{
+    jsonRpc.bind("subtract", std::bind(&substractArr, std::placeholders::_1));
+    BOOST_CHECK_EQUAL(jsonRpc.process(substractArrayStringId),
+                      substractResultStringId);
 }
 
 BOOST_FIXTURE_TEST_CASE(process_notification, Fixture)
@@ -230,6 +303,52 @@ BOOST_FIXTURE_TEST_CASE(process_notification, Fixture)
     BOOST_CHECK_EQUAL(response.result, "19");
 }
 
+BOOST_FIXTURE_TEST_CASE(bind_with_params, Fixture)
+{
+    jsonRpc.bind<Operands>("subtract", [](const Operands op) {
+        return JsonRpc::Response{std::to_string(op.left - op.right)};
+    });
+    BOOST_CHECK_EQUAL(jsonRpc.process(substractObject), substractResult);
+    BOOST_CHECK_EQUAL(jsonRpc.process(substractArray), invalidParamsResult);
+}
+
+BOOST_FIXTURE_TEST_CASE(bind_async_with_params, Fixture)
+{
+    jsonRpc.bindAsync<Operands>(
+        "subtract", [](const Operands op, JsonRpc::AsyncResponse callback) {
+            callback(JsonRpc::Response{std::to_string(op.left - op.right)});
+        });
+    BOOST_CHECK_EQUAL(jsonRpc.process(substractObject), substractResult);
+    BOOST_CHECK_EQUAL(jsonRpc.process(substractArray), invalidParamsResult);
+}
+
+BOOST_FIXTURE_TEST_CASE(notify_with_params, Fixture)
+{
+    jsonRpc.notify<Operands>("subtract", [](const Operands op) {
+        return op.left == 42 && op.right == 23;
+    });
+    BOOST_CHECK_EQUAL(jsonRpc.process(substractObject), notifyStandardReply);
+    BOOST_CHECK_EQUAL(jsonRpc.process(substractArray), invalidParamsResult);
+}
+
+BOOST_FIXTURE_TEST_CASE(reserved_method_names, Fixture)
+{
+    using namespace std::placeholders;
+    const auto bindFunc = std::bind(&substractObj, _1);
+    const auto bindAsyncFunc = std::bind(&substractArrAsync, _1, _2);
+
+    BOOST_CHECK_THROW(jsonRpc.bind("rpc.xyz", bindFunc), std::invalid_argument);
+    BOOST_CHECK_THROW(jsonRpc.bindAsync("rpc.abc", bindAsyncFunc),
+                      std::invalid_argument);
+    BOOST_CHECK_THROW(jsonRpc.notify("rpc.", [](const std::string&) {}),
+                      std::invalid_argument);
+    BOOST_CHECK_THROW(jsonRpc.notify("rpc.void", [] {}), std::invalid_argument);
+
+    BOOST_CHECK_NO_THROW(jsonRpc.bind("RPC.xyz", bindFunc));
+    BOOST_CHECK_NO_THROW(jsonRpc.bind("rpc", bindFunc));
+    BOOST_CHECK_NO_THROW(jsonRpc.bind("_rpc.", bindFunc));
+}
+
 BOOST_FIXTURE_TEST_CASE(non_existant_method, Fixture)
 {
     BOOST_CHECK_EQUAL(jsonRpc.process(substractArray), nonExistantMethodResult);
@@ -242,6 +361,13 @@ BOOST_FIXTURE_TEST_CASE(invalid_json, Fixture)
 }
 
 BOOST_FIXTURE_TEST_CASE(invalid_json_rpc_request, Fixture)
+{
+    jsonRpc.bind("subtract", std::bind(&substractObj, std::placeholders::_1));
+    BOOST_CHECK_EQUAL(jsonRpc.process(invalidJsonRpcVersionRequest),
+                      invalidRequestResult);
+}
+
+BOOST_FIXTURE_TEST_CASE(wrong_json_rpc_version, Fixture)
 {
     jsonRpc.bind("subtract", std::bind(&substractObj, std::placeholders::_1));
     BOOST_CHECK_EQUAL(jsonRpc.process(invalidRequest), invalidRequestResult);

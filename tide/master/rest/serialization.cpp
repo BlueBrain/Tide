@@ -210,16 +210,9 @@ bool from_json_object(Options& options, const QJsonObject& object)
     if (value.isBool())
         options.setShowStatistics(value.toBool());
 
-    try
-    {
-        value = object["testPattern"];
-        if (value.isBool())
-            options.setShowTestPattern(value.toBool());
-    }
-    catch (const std::exception& e)
-    {
-        std::cout << e.what() << '\n';
-    };
+    value = object["testPattern"];
+    if (value.isBool())
+        options.setShowTestPattern(value.toBool());
 
     value = object["touchPoints"];
     if (value.isBool())

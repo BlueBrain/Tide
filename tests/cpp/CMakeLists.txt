@@ -17,16 +17,17 @@ set(TEST_LIBRARIES
 )
 
 if(TIDE_ENABLE_REST_INTERFACE AND TARGET ZeroEQHTTP)
-  list(APPEND TEST_LIBRARIES ZeroEQHTTP)
+  list(APPEND TEST_LIBRARIES ZeroEQHTTP Threads::Threads)
 else()
   set(EXCLUDE_FROM_TESTS
     core/FileReceiverTests.cpp
     core/JsonOptionsTests.cpp
     core/JsonRpcTests.cpp
+    core/JsonSerializationTests.cpp
     core/LoggingUtilityTest.cpp
     core/RestCommandTests.cpp
     core/RestServerTests.cpp
-    core/RestWindowsTests.cpp
+    core/ThumbnailCacheTests.cpp
   )
 endif()
 
