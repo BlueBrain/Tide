@@ -45,9 +45,10 @@
 #include "scene/WebbrowserContent.h"
 #include "scene/WebbrowserHistory.h"
 
-#ifdef TIDE_USE_ZEROEQ
-#include "rest/RestCommand.h"
+#if TIDE_ENABLE_REST_INTERFACE
 #include "rest/RestServer.h"
+#include "rest/json.h"
+using namespace zeroeq::http;
 #endif
 
 #include <QKeyEvent>
@@ -60,19 +61,6 @@
 #define WEBPAGE_MIN_HEIGHT 512
 
 #define WEBPAGE_DEFAULT_ZOOM 2.0
-
-#ifdef TIDE_USE_ZEROEQ
-class RestInterface
-{
-public:
-    RestInterface() { _httpServer.get().handlePUT(loadCmd); }
-    int getPort() const { return _httpServer.getPort(); }
-    RestCommand loadCmd{"load"};
-
-private:
-    RestServer _httpServer;
-};
-#endif
 
 WebkitPixelStreamer::WebkitPixelStreamer(const QSize& webpageSize,
                                          const QString& url)
@@ -91,15 +79,21 @@ WebkitPixelStreamer::WebkitPixelStreamer(const QSize& webpageSize,
     settings->setAttribute(QWebSettings::LocalStorageEnabled, true);
     settings->setAttribute(QWebSettings::WebGLEnabled, true);
 
-#ifdef TIDE_USE_ZEROEQ
-    _restInterface.reset(new RestInterface);
-    connect(&_restInterface->loadCmd, &RestCommand::received,
-            [this](const QString uri) { setUrl(uri); });
+#if TIDE_ENABLE_REST_INTERFACE
+    _restServer.reset(new RestServer);
+    _restServer->handle(Method::PUT, "load", [this](const Request& req) {
+        setUrl(json::toObject(req.body)["uri"].toString());
+        return make_ready_response(Code::OK);
+    });
 #endif
     connect(&_webView, &QWebView::urlChanged, [this]() {
         const auto history = WebbrowserHistory{*_webView.history()};
         const auto title = _webView.title();
-        const auto port = _restInterface ? _restInterface->getPort() : 0;
+#if TIDE_ENABLE_REST_INTERFACE
+        const auto port = _restServer ? _restServer->getPort() : 0;
+#else
+        const auto port = 0;
+#endif
         emit stateChanged(
             WebbrowserContent::serializeData(history, title, port));
     });

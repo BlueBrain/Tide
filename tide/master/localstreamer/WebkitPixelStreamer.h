@@ -41,6 +41,7 @@
 #define WEBKITPIXELSTREAMER_H
 
 #include "PixelStreamer.h" // base class
+#include "config.h"
 
 #include <QImage>
 #include <QMutex>
@@ -50,7 +51,7 @@
 
 #include <memory>
 
-class RestInterface;
+class RestServer;
 class WebkitAuthenticationHelper;
 class WebkitHtmlSelectReplacer;
 
@@ -102,7 +103,9 @@ private:
     QWebView _webView;
     std::unique_ptr<WebkitAuthenticationHelper> _authenticationHelper;
     std::unique_ptr<WebkitHtmlSelectReplacer> _selectReplacer;
-    std::unique_ptr<RestInterface> _restInterface;
+#if TIDE_ENABLE_REST_INTERFACE
+    std::unique_ptr<RestServer> _restServer;
+#endif
 
     QTimer _timer;
     QMutex _mutex;

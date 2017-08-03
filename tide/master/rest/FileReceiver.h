@@ -89,7 +89,7 @@ public:
 
 signals:
     /** Open the uploaded file at the given position. */
-    void open(QString uri, QPointF position, promisePtr promise);
+    void open(QString uri, QPointF position, BoolCallback callback);
 
 private:
     QMap<QString, QPointF> _preparedPaths;

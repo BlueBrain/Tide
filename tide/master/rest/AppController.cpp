@@ -38,55 +38,88 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "RestConfiguration.h"
+#include "AppController.h"
 
-#include "json.h"
-#include "scene/ContentFactory.h"
+#include "MasterConfiguration.h"
+#include "serialization.h"
 
-#include <tide/master/version.h>
-
-#include <QDateTime>
-#include <QHostInfo>
+#include <QDir>
 
 namespace
 {
-const QString _startTime = QDateTime::currentDateTime().toString();
-
-QJsonObject _toJsonObject(const QSize& size)
+QString _makeAbsPath(const QString& baseDir, const QString& uri)
 {
-    return QJsonObject{{"width", size.width()}, {"height", size.height()}};
+    return QDir::isRelativePath(uri) ? baseDir + "/" + uri : uri;
 }
-}
+} // anonymous namespace
 
-RestConfiguration::RestConfiguration(const MasterConfiguration& config)
-    : _config(config)
+/** Wrapper function to call fromJson for all parameters. */
+template <typename T>
+bool from_json_object(T& params, const QJsonObject& object)
 {
-}
-
-std::string RestConfiguration::getTypeName() const
-{
-    return "tide/config";
+    return params.fromJson(object);
 }
 
-std::string RestConfiguration::_toJSON() const
+JsonRpc::Response makeJsonRpcResponse(const bool success)
 {
-    QJsonObject config{
-        {"hostname", QHostInfo::localHostName()},
-        {"version", QString::fromStdString(tide::Version::getString())},
-        {"revision", QString::number(tide::Version::getRevision(), 16)},
-        {"startTime", _startTime},
-        {"wallSize", _toJsonObject(_config.getTotalSize())},
-        {"dimensions",
-         QJsonObject{{"screenCountX", _config.getTotalScreenCountX()},
-                     {"screenCountY", _config.getTotalScreenCountY()},
-                     {"bezelHeight", _config.getMullionHeight()},
-                     {"bezelWidth", _config.getMullionWidth()},
-                     {"bezelsPerScreenX", _config.getBezelsPerScreenX()},
-                     {"bezelsPerScreenY", _config.getBezelsPerScreenY()}}},
-        {"backgroundColor", _config.getBackgroundColor().name()},
-        {"contentDir", _config.getContentDir()},
-        {"sessionDir", _config.getSessionsDir()},
-        {"filters", QJsonArray::fromStringList(
-                        ContentFactory::getSupportedFilesFilter())}};
-    return json::toString(QJsonObject{{"config", config}});
+    return success ? JsonRpc::Response{"OK"}
+                   : JsonRpc::Response{"operation failed", -1};
+}
+
+struct Uri
+{
+    QString uri;
+
+    bool fromJson(const QJsonObject& object)
+    {
+        uri = object["uri"].toString();
+        return !uri.isNull();
+    }
+};
+
+AppController::AppController(const MasterConfiguration& config)
+{
+    const auto contentDir = config.getContentDir();
+    const auto sessionDir = config.getSessionsDir();
+
+    _rpc.bindAsync<Uri>("open", [this,
+                                 contentDir](Uri uri,
+                                             JsonRpc::AsyncResponse callback) {
+        auto boolCallback = [callback](const bool result) {
+            callback(makeJsonRpcResponse(result));
+        };
+        emit open(_makeAbsPath(contentDir, uri.uri), QPointF(), boolCallback);
+    });
+    _rpc.bindAsync<Uri>("load", [this,
+                                 sessionDir](Uri uri,
+                                             JsonRpc::AsyncResponse callback) {
+        auto boolCallback = [callback](const bool result) {
+            callback(makeJsonRpcResponse(result));
+        };
+        emit load(_makeAbsPath(sessionDir, uri.uri), boolCallback);
+    });
+    _rpc.bindAsync<Uri>("save", [this,
+                                 sessionDir](Uri uri,
+                                             JsonRpc::AsyncResponse callback) {
+        auto boolCallback = [callback](const bool result) {
+            callback(makeJsonRpcResponse(result));
+        };
+        emit save(_makeAbsPath(sessionDir, uri.uri), boolCallback);
+    });
+
+    _rpc.notify<Uri>("browse", [this](Uri uri) { emit browse(uri.uri); });
+    _rpc.notify<Uri>("screenshot",
+                     [this](Uri uri) { emit takeScreenshot(uri.uri); });
+    _rpc.notify("whiteboard", [this] { emit openWhiteboard(); });
+    _rpc.notify("exit", [this] { emit exit(); });
+
+#if TIDE_ENABLE_PLANAR_CONTROLLER
+    _rpc.notify("poweroff", [this] { emit powerOff(); });
+#endif
+}
+
+std::future<std::string> AppController::processJsonRpc(
+    const std::string& request)
+{
+    return _rpc.processAsync(request);
 }

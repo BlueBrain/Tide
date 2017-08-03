@@ -45,6 +45,7 @@ common_find_package(Qt5Widgets REQUIRED)
 common_find_package(Qt5XmlPatterns REQUIRED)
 common_find_package(Qt5Xml REQUIRED)
 common_find_package(RSVG MODULE librsvg-2.0 2.36.2)
+common_find_package(Threads REQUIRED)
 common_find_package(TIFF)
 common_find_package(VirtualKeyboard)
 

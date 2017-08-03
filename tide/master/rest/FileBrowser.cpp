@@ -1,5 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,30 +38,59 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef JSONOPTIONS_H
-#define JSONOPTIONS_H
+#include "FileBrowser.h"
 
-#include "types.h"
+#include "json.h"
 
-#include <servus/serializable.h>
+#include <QDir>
+#include <QUrl>
 
-/**
- * Exposes the application's Options in JSON format through the REST interface.
- */
-class JsonOptions : public servus::Serializable
+namespace
 {
-public:
-    /** Constructor. */
-    explicit JsonOptions(OptionsPtr options);
+QJsonObject _toJsonObject(const QFileInfo& entry)
+{
+    return QJsonObject{{"name", entry.fileName()}, {"dir", entry.isDir()}};
+}
 
-    std::string getTypeName() const final;
-    std::string getSchema() const final;
+QJsonArray _toJsonArray(const QFileInfoList& list)
+{
+    QJsonArray array;
+    for (const auto& entry : list)
+        array.append(_toJsonObject(entry));
+    return array;
+}
+}
 
-private:
-    std::string _toJSON() const final;
-    bool _fromJSON(const std::string& json) final;
+FileBrowser::FileBrowser(const QString& baseDir, const QStringList& filters)
+    : _baseDir{baseDir}
+    , _filters{filters}
+{
+}
 
-    OptionsPtr _options;
-};
+std::future<zeroeq::http::Response> FileBrowser::list(
+    const zeroeq::http::Request& request)
+{
+    using namespace zeroeq::http;
+    auto path = QString::fromStdString(request.path);
+    QUrl url;
+    url.setPath(path, QUrl::StrictMode);
+    path = url.path();
 
-#endif
+    const QString fullpath = _baseDir + "/" + path;
+    const QDir absolutePath(fullpath);
+    if (!absolutePath.canonicalPath().startsWith(_baseDir))
+        return make_ready_response(Code::BAD_REQUEST);
+
+    if (!absolutePath.exists())
+        return make_ready_response(Code::NO_CONTENT);
+
+    const auto body = json::toString(_toJsonArray(_contents(fullpath)));
+    return make_ready_response(Code::OK, body, "application/json");
+}
+
+QFileInfoList FileBrowser::_contents(const QDir& directory) const
+{
+    const auto filters = QDir::Files | QDir::AllDirs | QDir::NoDotAndDotDot;
+    const auto sortFlags = QDir::DirsFirst | QDir::IgnoreCase;
+    return directory.entryInfoList(_filters, filters, sortFlags);
+}

@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,34 +38,58 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef RESTLOGGER_H
-#define RESTLOGGER_H
+#include "ThumbnailCache.h"
 
-#include <servus/serializable.h> // base class
+#include "thumbnail/thumbnail.h"
 
-#include "LoggingUtility.h"
+#include <QBuffer>
+#include <QtConcurrent>
 
-/**
- * Exposes usage statistics to the ZeroEQ REST interface.
- */
-class RestLogger : public servus::Serializable
+using namespace zeroeq;
+
+namespace
 {
-public:
-    /**
-     * Constructor.
-     *
-     * @param logger which contains the statistics to expose.
-     */
-    RestLogger(const LoggingUtility& logger);
+const QSize thumbnailSize{512, 512};
+}
 
-    /** @return the string used as an endpoint by REST interface. */
-    std::string getTypeName() const final;
-    std::string getSchema() const final;
+ThumbnailCache::ThumbnailCache(const DisplayGroup& displayGroup)
+{
+    QObject::connect(&displayGroup, &DisplayGroup::contentWindowAdded,
+                     [this](ContentWindowPtr window) {
+                         _cacheThumbnail(window);
+                     });
 
-private:
-    const LoggingUtility& _logger;
+    QObject::connect(&displayGroup, &DisplayGroup::contentWindowRemoved,
+                     [this](ContentWindowPtr window) {
+                         _thumbnailCache.remove(window->getID());
+                     });
+}
 
-    std::string _toJSON() const final;
-};
+std::future<http::Response> ThumbnailCache::getThumbnail(
+    const QUuid& uuid) const
+{
+    if (!_thumbnailCache.contains(uuid))
+        return make_ready_response(http::Code::NOT_FOUND);
 
-#endif
+    const auto& image = _thumbnailCache[uuid];
+    if (!image.isFinished())
+        return make_ready_response(http::Code::NO_CONTENT);
+
+    return make_ready_response(http::Code::OK, image.result(), "image/png");
+}
+
+void ThumbnailCache::_cacheThumbnail(ContentWindowPtr window)
+{
+    const auto content = window->getContent();
+
+    _thumbnailCache[window->getID()] = QtConcurrent::run([content]() {
+        const auto image = thumbnail::create(*content, thumbnailSize);
+        QByteArray imageArray;
+        QBuffer buffer(&imageArray);
+        buffer.open(QIODevice::WriteOnly);
+        if (!image.save(&buffer, "PNG"))
+            return std::string();
+        buffer.close();
+        return "data:image/png;base64," + imageArray.toBase64().toStdString();
+    });
+}

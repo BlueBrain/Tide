@@ -42,7 +42,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "LoggingUtility.h"
-#include "rest/RestLogger.h"
+#include "rest/serialization.h"
 #include "scene/DisplayGroup.h"
 
 #include "DummyContent.h"
@@ -217,14 +217,13 @@ BOOST_AUTO_TEST_CASE(testJsonOutput)
     QObject::connect(displayGroup.get(), &DisplayGroup::contentWindowAdded,
                      logger.get(), &LoggingUtility::contentWindowAdded);
 
-    const RestLogger restLogger(*logger);
-    BOOST_CHECK_EQUAL(restLogger.toJSON(), defaultJson);
+    BOOST_CHECK_EQUAL(to_json(*logger), defaultJson);
 
     displayGroup->addContentWindow(window1);
     displayGroup->addContentWindow(window2);
 
     const QRegularExpression regex(regexJson);
-    const QString json = QString::fromStdString(restLogger.toJSON());
+    const QString json = QString::fromStdString(to_json(*logger));
     const QString matchedJson = regex.match(json).captured();
-    BOOST_CHECK_EQUAL(restLogger.toJSON(), matchedJson.toStdString());
+    BOOST_CHECK_EQUAL(to_json(*logger), matchedJson.toStdString());
 }

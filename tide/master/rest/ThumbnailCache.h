@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,33 +38,52 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef JSONSIZE_H
-#define JSONSIZE_H
+#ifndef THUMBNAILCACHE_H
+#define THUMBNAILCACHE_H
 
-#include <servus/serializable.h> // base class
+#include "scene/DisplayGroup.h"
 
-#include <QSize>
+#include <zeroeq/http/helpers.h>
+
+#include <QFuture>
+#include <QMap>
+#include <QUuid>
 
 /**
- * Expose the size of the display wall to the ZeroEQ REST interface.
+ * This class maintains a cache of {512x512} thumbnails for a DisplayGroup.
+ *
+ * The thumbnails are generated asynchronously when windows are added.
+ *
+ * Example client usage:
+ * GET /api/windows
+ * => 200 { "windows": [ {"title": "Title", "uuid": "abcd", ... } ] }
+ *
+ * GET /api/windows/abcd/thumbnail
+ * => 200 data:image/png;base64----IMAGE DATA----
  */
-class JsonSize : public servus::Serializable
+class ThumbnailCache
 {
 public:
     /**
-     * Constructor.
+     * Construct a thumbnail cache to expose to the REST interface.
      *
-     * @param size in pixels.
+     * @param displayGroup to monitor.
      */
-    explicit JsonSize(const QSize& size);
+    ThumbnailCache(const DisplayGroup& displayGroup);
 
-    std::string getTypeName() const final;
-    std::string getSchema() const final;
+    /**
+     * Get the thumbnail of a window.
+     *
+     * @param uuid of the window.
+     * @return base64 encoded image on success, 204 if the thumbnail is not
+     *         ready yet, 404 if the thumbnail does not exist (anymore).
+     */
+    std::future<zeroeq::http::Response> getThumbnail(const QUuid& uuid) const;
 
 private:
-    const QSize _size;
+    QMap<QUuid, QFuture<std::string>> _thumbnailCache;
 
-    std::string _toJSON() const final;
+    void _cacheThumbnail(ContentWindowPtr contentWindow);
 };
 
 #endif

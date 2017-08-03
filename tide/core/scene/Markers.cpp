@@ -39,11 +39,6 @@
 
 #include "Markers.h"
 
-Markers::Markers(QObject* parent_)
-    : QAbstractListModel(parent_)
-{
-}
-
 QVariant Markers::data(const QModelIndex& index_, const int role) const
 {
     if (index_.row() < 0 || index_.row() >= rowCount() || !index_.isValid())

@@ -68,8 +68,8 @@ DisplayGroupRenderer::DisplayGroupRenderer(WallWindow& parentWindow,
     : _engine{*parentWindow.engine()}
     , _provider{provider}
     , _displayGroup{new DisplayGroup(QSize())}
-    , _markers{new Markers}
-    , _options{new Options}
+    , _markers(Markers::create())
+    , _options{Options::create()}
     , _timer{new InactivityTimer}
     , _screenRect{screenRect}
     , _view{view}
