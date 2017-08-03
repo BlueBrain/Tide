@@ -38,71 +38,32 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#define BOOST_TEST_MODULE RestWindowsTest
+#define BOOST_TEST_MODULE JsonSerializationTests
 
 #include <boost/test/unit_test.hpp>
 
-#include "rest/RestWindows.h"
 #include "rest/json.h"
+#include "rest/serialization.h"
 #include "scene/ContentFactory.h"
 #include "scene/DisplayGroup.h"
-#include "thumbnail/thumbnail.h"
-
-#include "DummyContent.h"
-
-#include <zeroeq/http/request.h>
-#include <zeroeq/http/response.h>
-
-#include <QBuffer>
-#include <QByteArray>
-#include <QRegExp>
-#include <QString>
 
 namespace
 {
 const QString imageUri{"wall.png"};
-const QSize thumbnailSize{512, 512};
 const QSize wallSize{1000, 1000};
-const QRegExp _regex{"\\{|\\}"};
-
-std::string _getThumbnail()
-{
-    const auto image = thumbnail::create(imageUri, thumbnailSize);
-    QByteArray imageArray;
-    QBuffer buffer(&imageArray);
-    buffer.open(QIODevice::WriteOnly);
-    image.save(&buffer, "PNG");
-    buffer.close();
-    return "data:image/png;base64," + imageArray.toBase64().toStdString();
 }
 
-zeroeq::http::Request _makeThumbnailRequest(const ContentWindow& window)
+BOOST_AUTO_TEST_CASE(testSerializeDisplayGroup)
 {
-    const auto uuid = window.getID().toString().replace(_regex, "");
-
-    zeroeq::http::Request request;
-    request.path = uuid.toStdString() + "/thumbnail";
-    return request;
-}
-}
-
-BOOST_AUTO_TEST_CASE(testWindowList)
-{
-    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
-
-    RestWindows restWindows{*displayGroup};
-
+    DisplayGroupPtr group(new DisplayGroup(wallSize));
     ContentPtr content = ContentFactory::getContent(imageUri);
     ContentWindowPtr contentWindow(new ContentWindow(content));
     contentWindow->setCoordinates({QPointF{64, 79}, content->getDimensions()});
-    displayGroup->addContentWindow(contentWindow);
+    group->addContentWindow(contentWindow);
 
-    auto response = restWindows.getWindowList(zeroeq::http::Request()).get();
-    BOOST_CHECK_EQUAL(response.code, 200);
-    const auto& type = response.headers[zeroeq::http::Header::CONTENT_TYPE];
-    BOOST_CHECK_EQUAL(type, "application/json");
+    const auto serializedWindows = to_json(*group);
 
-    const auto object = json::toObject(response.body);
+    const auto object = json::toObject(serializedWindows);
     BOOST_REQUIRE(object.contains("windows"));
 
     const auto windows = object.value("windows").toArray();
@@ -110,7 +71,6 @@ BOOST_AUTO_TEST_CASE(testWindowList)
     BOOST_REQUIRE(windows[0].isObject());
 
     const auto window = windows[0].toObject();
-
     BOOST_CHECK_EQUAL(window.value("aspectRatio").toDouble(), 2.0);
     BOOST_CHECK_EQUAL(window.value("height").toInt(), 128);
     BOOST_CHECK_EQUAL(window.value("width").toInt(), 256);
@@ -127,37 +87,4 @@ BOOST_AUTO_TEST_CASE(testWindowList)
     BOOST_CHECK_EQUAL(window.value("x").toInt(), 64);
     BOOST_CHECK_EQUAL(window.value("y").toInt(), 79);
     BOOST_CHECK_EQUAL(window.value("z").toInt(99), 0);
-}
-
-BOOST_AUTO_TEST_CASE(testWindowInfo)
-{
-    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
-
-    RestWindows windows{*displayGroup};
-
-    ContentPtr content = ContentFactory::getContent(imageUri);
-    ContentWindowPtr window(new ContentWindow(content));
-    displayGroup->addContentWindow(window);
-
-    auto thumbnailRequest = _makeThumbnailRequest(*window);
-
-    // Thumbnail not ready yet
-    auto response = windows.getWindowInfo(thumbnailRequest).get();
-    BOOST_CHECK_EQUAL(response.code, 204);
-
-    // Wait for async thumnbnail generation to finish
-    sleep(2);
-    response = windows.getWindowInfo(thumbnailRequest).get();
-    BOOST_CHECK_EQUAL(response.code, 200);
-    BOOST_CHECK_EQUAL(response.body, _getThumbnail());
-    BOOST_CHECK_EQUAL(response.headers[zeroeq::http::Header::CONTENT_TYPE],
-                      "image/png");
-
-    displayGroup->removeContentWindow(window);
-    response = windows.getWindowInfo(thumbnailRequest).get();
-    BOOST_CHECK_EQUAL(response.code, 404);
-
-    thumbnailRequest.path = "uuid/notDefinedAction";
-    response = windows.getWindowInfo(thumbnailRequest).get();
-    BOOST_CHECK_EQUAL(response.code, 400);
 }

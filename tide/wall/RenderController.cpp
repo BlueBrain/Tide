@@ -55,7 +55,7 @@ RenderController::RenderController(std::vector<WallWindow*> windows,
     , _wallChannel{wallChannel}
     , _syncDisplayGroup{boost::make_shared<DisplayGroup>(QSize())}
     , _syncInactivityTimer{boost::make_shared<InactivityTimer>()}
-    , _syncOptions{boost::make_shared<Options>()}
+    , _syncOptions{Options::create()}
 {
     _syncDisplayGroup.setCallback([this](DisplayGroupPtr group) {
         _provider.updateDataSources(*group);

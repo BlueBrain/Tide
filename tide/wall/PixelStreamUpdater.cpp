@@ -151,7 +151,7 @@ Indices PixelStreamUpdater::computeVisibleSet(const QRectF& visibleTilesArea,
     Q_UNUSED(lod);
 
     if (!_frameLeftOrMono || visibleTilesArea.isEmpty())
-        return {};
+        return Indices{};
 
     return _processorLeft->computeVisibleSet(visibleTilesArea);
 }

@@ -108,14 +108,14 @@ struct OpenListener
 
     OpenListener(FileReceiver& fileReceiver)
     {
-        QObject::connect(&fileReceiver, &FileReceiver::open,
-                         [this](const QString uri, const QPointF pos,
-                                promisePtr promise) {
-                             open = true;
-                             openUri = uri;
-                             openPosition = pos;
-                             promise->set_value(true);
-                         });
+        auto openCallback = [this](const QString uri, const QPointF pos,
+                                   BoolCallback callback) {
+            open = true;
+            openUri = uri;
+            openPosition = pos;
+            callback(true);
+        };
+        QObject::connect(&fileReceiver, &FileReceiver::open, openCallback);
     }
 
     void reset()
@@ -131,8 +131,8 @@ BOOST_AUTO_TEST_CASE(testUnsupportedFileType)
 {
     FileReceiver fileReceiver;
 
-    const auto request = _makeFileRequest("wall.xyz");
-    const auto response = fileReceiver.prepareUpload(request).get();
+    const auto urlRequest = _makeFileRequest("wall.xyz");
+    const auto response = fileReceiver.prepareUpload(urlRequest).get();
     BOOST_CHECK_EQUAL(response.code, 405);
 }
 
@@ -140,8 +140,8 @@ BOOST_AUTO_TEST_CASE(testOnlyFileExtensionWithNoName)
 {
     FileReceiver fileReceiver;
 
-    const auto request = _makeFileRequest(".png");
-    const auto response = fileReceiver.prepareUpload(request).get();
+    const auto urlRequest = _makeFileRequest(".png");
+    const auto response = fileReceiver.prepareUpload(urlRequest).get();
     BOOST_CHECK_EQUAL(response.code, 405);
 }
 
@@ -196,9 +196,13 @@ BOOST_AUTO_TEST_CASE(testUnhandledOpenSignal)
 
     // Upload image
     const auto dataRequest = _makeDataRequest(receivedUri);
-    const auto dataResponse = fileReceiver.handleUpload(dataRequest).get();
-    BOOST_CHECK_EQUAL(dataResponse.code, 405);
-    BOOST_CHECK(!QFile(_tempFile(imageName)).exists());
+    // Unhandled -> broken promise
+    auto dataResponse = fileReceiver.handleUpload(dataRequest);
+    BOOST_CHECK_THROW(dataResponse.get(), std::future_error);
+    // Cleanup since the FileReceiver could not do it
+    QFile uploadedFile(_tempFile(imageName));
+    BOOST_CHECK(uploadedFile.exists());
+    uploadedFile.remove();
 }
 
 BOOST_AUTO_TEST_CASE(testUploadFileWithoutPosition)

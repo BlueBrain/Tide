@@ -52,6 +52,14 @@ namespace json
  * Parse a json document.
  *
  * @param data json document to parse.
+ * @return json array, empty on error.
+ */
+QJsonArray toArray(const std::string& data);
+
+/**
+ * Parse a json document.
+ *
+ * @param data json document to parse.
  * @return json object, empty on error.
  */
 QJsonObject toObject(const std::string& data);

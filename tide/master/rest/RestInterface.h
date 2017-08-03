@@ -40,11 +40,8 @@
 #ifndef RESTINTERFACE_H
 #define RESTINTERFACE_H
 
-#include "JsonSize.h"
-#include "RestLogger.h"
+#include "AppController.h"
 #include "types.h"
-
-#include <QObject>
 
 /**
  * Enables remote control of Tide through a REST API.
@@ -57,20 +54,20 @@
  *
  * It also exposes a control html interface on 'http://hostname:port'.
  */
-class RestInterface : public QObject
+class RestInterface
 {
-    Q_OBJECT
-
 public:
     /**
      * Construct a REST interface.
+     *
      * @param port the port for listening to REST requests
      * @param options the application's options to expose in the interface
+     * @param group DisplayGroup exposed via the interface
      * @param config the application's configuration
      * @throw std::runtime_error if the port is already in use or a connection
      *        issue occured.
      */
-    RestInterface(int port, OptionsPtr options,
+    RestInterface(int port, OptionsPtr options, DisplayGroup& group,
                   const MasterConfiguration& config);
 
     /** Out-of-line destructor. */
@@ -79,41 +76,7 @@ public:
     /** Expose the statistics gathered by the given logging utility. */
     void exposeStatistics(const LoggingUtility& logger) const;
 
-    /**
-     * Set-up the HTML interface.
-     * @param group DisplayGroup exposed via the interface
-     * @param config MasterConfiguration used to set-up the interface
-     */
-    void setupHtmlInterface(DisplayGroup& group,
-                            const MasterConfiguration& config);
-
-signals:
-    /** Open a content. */
-    void open(QString uri, const QPointF coords, promisePtr promise);
-
-    /** Load a session. */
-    void load(QString uri, promisePtr promise);
-
-    /** Save a session to the given file. */
-    void save(QString uri, promisePtr promise);
-
-    /** Clear all contents. */
-    void clear();
-
-    /** Open a whiteboard. */
-    void whiteboard();
-
-    /** Power off the screens. */
-    void powerOff();
-
-    /** Browse a website. */
-    void browse(QString uri);
-
-    /** Take a screenshot. */
-    void screenshot(QString filename);
-
-    /** Exit the application. */
-    void exit();
+    const AppController& getAppController() const;
 
 private:
     class Impl;

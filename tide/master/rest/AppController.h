@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,64 +38,59 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "RestLogger.h"
+#ifndef APPCONTROLLER_H
+#define APPCONTROLLER_H
 
-#include "json.h"
-#include "jsonschema.h"
+#include "JsonRpc.h"
+#include "types.h"
 
-#include <QJsonObject>
+#include <QObject>
 
-namespace
+/**
+ * Remote controller for the application using JSON-RPC.
+ */
+class AppController : public QObject
 {
-QString stateToString(ScreenState state)
-{
-    switch (state)
-    {
-    case ScreenState::ON:
-        return "ON";
-    case ScreenState::OFF:
-        return "OFF";
-    default:
-        return "UNDEF";
-    }
-}
-}
+    Q_OBJECT
 
-QJsonObject _makeJsonObject(const LoggingUtility& logger)
-{
-    const QJsonObject event{{"last_event", logger.getLastInteraction()},
-                            {"last_event_date",
-                             logger.getLastInteractionTime()},
-                            {"count", logger.getInteractionCount()}};
-    const QJsonObject window{{"count", int(logger.getWindowCount())},
-                             {"date_set", logger.getCounterModificationTime()},
-                             {"accumulated_count",
-                              int(logger.getAccumulatedWindowCount())}};
-    const QJsonObject screens{{"state", stateToString(logger.getScreenState())},
-                              {"last_change",
-                               logger.getLastScreenStateChanged()}};
-    return QJsonObject{{"event", event},
-                       {"window", window},
-                       {"screens", screens}};
-}
+public:
+    /**
+     * Construct an application controller.
+     *
+     * @param config the application configuration.
+     */
+    AppController(const MasterConfiguration& config);
 
-RestLogger::RestLogger(const LoggingUtility& logger)
-    : _logger(logger)
-{
-}
+    /** @copydoc JsonRpc::processAsync */
+    std::future<std::string> processJsonRpc(const std::string& request);
 
-std::string RestLogger::getTypeName() const
-{
-    return "tide/stats";
-}
+signals:
+    /** Open a content. */
+    void open(QString uri, QPointF coords, BoolCallback callback);
 
-std::string RestLogger::getSchema() const
-{
-    return jsonschema::create("Stats", _makeJsonObject(_logger),
-                              "Usage statistics of the Tide application");
-}
+    /** Load a session. */
+    void load(QString uri, BoolCallback callback);
 
-std::string RestLogger::_toJSON() const
-{
-    return json::toString(_makeJsonObject(_logger));
-}
+    /** Save a session to the given file. */
+    void save(QString uri, BoolCallback callback);
+
+    /** Browse a website. */
+    void browse(QString uri);
+
+    /** Open a whiteboard. */
+    void openWhiteboard();
+
+    /** Take a screenshot. */
+    void takeScreenshot(QString filename);
+
+    /** Power off the screens. */
+    void powerOff();
+
+    /** Exit the application. */
+    void exit();
+
+private:
+    JsonRpc _rpc;
+};
+
+#endif

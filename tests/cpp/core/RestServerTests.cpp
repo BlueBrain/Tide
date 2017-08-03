@@ -62,7 +62,7 @@ BOOST_AUTO_TEST_CASE(testUnavailablePort)
     BOOST_CHECK_THROW(RestServer server{80}, std::runtime_error);
 }
 
-QString sendHttpRequest(const QUrl& url)
+QString performHttpRequest(const QUrl& url)
 {
     // create custom temporary event loop on stack
     QEventLoop eventLoop;
@@ -78,15 +78,25 @@ QString sendHttpRequest(const QUrl& url)
                                                       : reply->errorString();
 }
 
+struct TestObject
+{
+    std::string json = "Hello World!";
+};
+std::string to_json(const TestObject& obj)
+{
+    return obj.json;
+}
+
 BOOST_AUTO_TEST_CASE(testServerReturnsSimpleContent)
 {
     RestServer server;
     BOOST_REQUIRE_GT(server.getPort(), 0);
 
-    server.get().handleGET("test", [] { return "Hello World!"; });
+    TestObject test;
+    server.handleGET("test", test);
 
     const auto url = QString("http://localhost:%1/test").arg(server.getPort());
-    const auto response = sendHttpRequest(url);
+    const auto response = performHttpRequest(url);
 
     BOOST_CHECK_EQUAL(response.toStdString(), "Hello World!");
 }

@@ -38,50 +38,61 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef FILESYSTEMQUERY_H
-#define FILESYSTEMQUERY_H
+#define BOOST_TEST_MODULE ThumbnailCacheTests
 
-#include <zeroeq/http/request.h>
-#include <zeroeq/http/server.h>
+#include <boost/test/unit_test.hpp>
 
-#include <QFileInfoList>
-#include <QStringList>
+#include "rest/ThumbnailCache.h"
+#include "scene/ContentFactory.h"
+#include "scene/DisplayGroup.h"
+#include "thumbnail/thumbnail.h"
 
-/**
- * Expose file system directory contents in JSON format through HTTP.
- *
- * Example client usage:
- * GET /api/files/some/folder
- * => 200 [ {"name": "subfolder", "dir": true},
- *          {"name": "image.png", "dir": false} ]
- */
-class FileSystemQuery
+#include <zeroeq/http/response.h>
+
+#include <QBuffer>
+#include <QByteArray>
+
+namespace
 {
-public:
-    /**
-     * Create a file system listing.
-     *
-     * @param contentDirectory the root directory path.
-     * @param filters used to filter the contents by their extension.
-     */
-    FileSystemQuery(const QString& contentDirectory,
-                    const QStringList& filters);
+const QString imageUri{"wall.png"};
+const QSize thumbnailSize{512, 512};
+const QSize wallSize{1000, 1000};
 
-    /**
-     * List the content of a directory.
-     *
-     * @param request GET request to a relative path of the root directory.
-     * @return JSON response with the contents of the directory, or an
-     *         appropriate error code on error.
-     */
-    std::future<zeroeq::http::Response> list(
-        const zeroeq::http::Request& request);
+std::string _getTestThumbnail()
+{
+    const auto image = thumbnail::create(imageUri, thumbnailSize);
+    QByteArray imageArray;
+    QBuffer buffer(&imageArray);
+    buffer.open(QIODevice::WriteOnly);
+    image.save(&buffer, "PNG");
+    buffer.close();
+    return "data:image/png;base64," + imageArray.toBase64().toStdString();
+}
+}
 
-private:
-    const QString _contentDirectory;
-    const QStringList _filters;
+BOOST_AUTO_TEST_CASE(testWindowInfo)
+{
+    DisplayGroupPtr group(new DisplayGroup(wallSize));
 
-    QFileInfoList _contents(const QDir& directory) const;
-};
+    ThumbnailCache cache{*group};
 
-#endif
+    ContentPtr content = ContentFactory::getContent(imageUri);
+    ContentWindowPtr window(new ContentWindow(content));
+    group->addContentWindow(window);
+
+    // Thumbnail not ready yet
+    auto response = cache.getThumbnail(window->getID()).get();
+    BOOST_CHECK_EQUAL(response.code, 204);
+
+    // Wait for async thumnbnail generation to finish
+    sleep(2);
+    response = cache.getThumbnail(window->getID()).get();
+    BOOST_CHECK_EQUAL(response.code, 200);
+    BOOST_CHECK_EQUAL(response.body, _getTestThumbnail());
+    BOOST_CHECK_EQUAL(response.headers[zeroeq::http::Header::CONTENT_TYPE],
+                      "image/png");
+
+    group->removeContentWindow(window);
+    response = cache.getThumbnail(window->getID()).get();
+    BOOST_CHECK_EQUAL(response.code, 404);
+}

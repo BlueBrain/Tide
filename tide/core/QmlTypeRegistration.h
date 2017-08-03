@@ -56,7 +56,6 @@ namespace core
  */
 void registerQmlTypes()
 {
-    qmlRegisterType<Markers>(QML_MODULE, 1, 0, "Markers");
     qmlRegisterType<ContentActionsModel>(QML_MODULE, 1, 0,
                                          "ContentActionsModel");
     qmlRegisterType<KeyboardState>(QML_MODULE, 1, 0, "KeyboardState");
@@ -66,6 +65,8 @@ void registerQmlTypes()
         "Content is linked to a ContentWindow and read-only in QML");
     qmlRegisterUncreatableType<ContentWindow>(QML_MODULE, 1, 0, "ContentWindow",
                                               "This exports enums to QML");
+    qmlRegisterUncreatableType<Markers>(QML_MODULE, 1, 0, "Markers",
+                                        "Markers are exposed from C++");
 }
 }
 
