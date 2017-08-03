@@ -81,9 +81,8 @@ class Options : public QObject, public boost::enable_shared_from_this<Options>
                    showZoomContextChanged)
 
 public:
-    /** Default constructor */
-    Options();
-
+    /** Create a shared Options object. */
+    static OptionsPtr create() { return OptionsPtr{new Options()}; }
     /** @name QProperty getters */
     //@{
     bool isAlphaBlendingEnabled() const;
@@ -173,6 +172,9 @@ signals:
 
 private:
     friend class boost::serialization::access;
+
+    /** Default constructor */
+    Options();
 
     template <class Archive>
     void serialize(Archive& ar, const unsigned int)

@@ -157,36 +157,32 @@ set(TIDEMASTER_INCLUDE_NAME tide/master)
 
 if(TIDE_ENABLE_REST_INTERFACE)
   list(APPEND TIDEMASTER_PUBLIC_HEADERS
+    rest/AppController.h
+    rest/FileBrowser.h
     rest/FileReceiver.h
-    rest/FileSystemQuery.h
     rest/HtmlContent.h
-    rest/JsonOptions.h
     rest/json.h
+    rest/JsonRpc.h
     rest/jsonschema.h
-    rest/JsonSize.h
-    rest/RestCommand.h
-    rest/RestConfiguration.h
-    rest/RestController.h
     rest/RestInterface.h
-    rest/RestLogger.h
     rest/RestServer.h
-    rest/RestWindows.h
+    rest/ThumbnailCache.h
+    rest/SceneController.h
+    rest/serialization.h
   )
   list(APPEND TIDEMASTER_SOURCES
+    rest/AppController.cpp
+    rest/FileBrowser.cpp
     rest/FileReceiver.cpp
-    rest/FileSystemQuery.cpp
     rest/HtmlContent.cpp
-    rest/JsonOptions.cpp
     rest/json.cpp
+    rest/JsonRpc.cpp
     rest/jsonschema.cpp
-    rest/JsonSize.cpp
-    rest/RestCommand.cpp
-    rest/RestConfiguration.cpp
-    rest/RestController.cpp
     rest/RestInterface.cpp
-    rest/RestLogger.cpp
     rest/RestServer.cpp
-    rest/RestWindows.cpp
+    rest/ThumbnailCache.cpp
+    rest/SceneController.cpp
+    rest/serialization.cpp
   )
   # Servus PUBLIC because servus::Serializable is a base class of public headers
   list(APPEND TIDEMASTER_LINK_LIBRARIES PUBLIC Servus PRIVATE ZeroEQHTTP)

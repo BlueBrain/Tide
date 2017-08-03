@@ -38,62 +38,49 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "FileSystemQuery.h"
-
-#include "json.h"
+#ifndef FILEBROWSER_H
+#define FILEBROWSER_H
 
 #include <zeroeq/http/helpers.h>
+#include <zeroeq/http/request.h>
 
-#include <QDir>
-#include <QUrl>
+#include <QFileInfoList>
+#include <QStringList>
 
-namespace
+/**
+ * Expose file system contents in JSON format through HTTP.
+ *
+ * Example client usage:
+ * GET /api/files/some/folder
+ * => 200 [ {"name": "subfolder", "dir": true},
+ *          {"name": "image.png", "dir": false} ]
+ */
+class FileBrowser
 {
-QJsonObject _toJsonObject(const QFileInfo& entry)
-{
-    return QJsonObject{{"name", entry.fileName()}, {"dir", entry.isDir()}};
-}
+public:
+    /**
+     * Create a file system browser.
+     *
+     * @param baseDir the root directory path.
+     * @param filters used to filter the contents by their extension.
+     */
+    FileBrowser(const QString& baseDir, const QStringList& filters);
 
-QJsonArray _toJsonArray(const QFileInfoList& list)
-{
-    QJsonArray array;
-    for (const auto& entry : list)
-        array.append(_toJsonObject(entry));
-    return array;
-}
-}
+    /**
+     * List the contents of a directory.
+     *
+     * @param request GET request to a relative path of the root directory.
+     * @return JSON response with the contents of the directory, or an
+     *         appropriate error code on error.
+     */
+    std::future<zeroeq::http::Response> list(
+        const zeroeq::http::Request& request);
 
-FileSystemQuery::FileSystemQuery(const QString& contentDirectory,
-                                 const QStringList& filters)
-    : _contentDirectory{contentDirectory}
-    , _filters{filters}
-{
-}
+private:
+    const QString _baseDir;
+    const QStringList _filters;
 
-std::future<zeroeq::http::Response> FileSystemQuery::list(
-    const zeroeq::http::Request& request)
-{
-    using namespace zeroeq::http;
-    auto path = QString::fromStdString(request.path);
-    QUrl url;
-    url.setPath(path, QUrl::StrictMode);
-    path = url.path();
+    QFileInfoList _contents(const QDir& directory) const;
+};
 
-    const QString fullpath = _contentDirectory + "/" + path;
-    const QDir absolutePath(fullpath);
-    if (!absolutePath.canonicalPath().startsWith(_contentDirectory))
-        return make_ready_response(Code::BAD_REQUEST);
-
-    if (!absolutePath.exists())
-        return make_ready_response(Code::NO_CONTENT);
-
-    const auto body = json::toString(_toJsonArray(_contents(fullpath)));
-    return make_ready_response(Code::OK, body, "application/json");
-}
-
-QFileInfoList FileSystemQuery::_contents(const QDir& directory) const
-{
-    const auto filters = QDir::Files | QDir::AllDirs | QDir::NoDotAndDotDot;
-    const auto sortFlags = QDir::DirsFirst | QDir::IgnoreCase;
-    return directory.entryInfoList(_filters, filters, sortFlags);
-}
+#endif

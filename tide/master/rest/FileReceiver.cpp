@@ -142,25 +142,22 @@ std::future<http::Response> FileReceiver::handleUpload(
     put_flog(LOG_INFO, "file created as %s",
              filePath.toLocal8Bit().constData());
 
-    auto openPromise = std::make_shared<std::promise<bool>>();
-    auto openSuccess = openPromise->get_future();
-    emit open(filePath, position, std::move(openPromise));
-    try
-    {
-        if (openSuccess.get())
+    auto promise = std::make_shared<std::promise<Response>>();
+    emit open(filePath, position, [promise, filePath](const bool success) {
+        if (success)
         {
             put_flog(LOG_INFO, "file uploaded and saved as: %s",
                      filePath.toLocal8Bit().constData());
-            return _makeResponse(http::Code::CREATED, "info", "OK");
+            promise->set_value(Response{http::Code::CREATED, "info", "OK"});
+            return;
         }
-    }
-    catch (...)
-    {
-    }
 
-    file.remove();
-    put_flog(LOG_INFO, "file uploaded but could not be opened: %s",
-             filePath.toLocal8Bit().constData());
-    return _makeResponse(http::Code::NOT_SUPPORTED, "info",
-                         "file could not be opened");
+        QFile(filePath).remove();
+
+        put_flog(LOG_INFO, "file uploaded but could not be opened: %s",
+                 filePath.toLocal8Bit().constData());
+        promise->set_value(Response{http::Code::NOT_SUPPORTED, "info",
+                                    "file could not be opened"});
+    });
+    return promise->get_future();
 }

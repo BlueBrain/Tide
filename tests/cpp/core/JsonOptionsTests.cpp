@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -41,7 +41,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "rest/JsonOptions.h"
+#include "rest/serialization.h"
 #include "scene/Options.h"
 
 namespace
@@ -98,37 +98,23 @@ const std::string allValuesChangedJson{
 
 struct Fixture
 {
-    OptionsPtr options = boost::make_shared<Options>();
-    JsonOptions jsonOptions{options};
+    OptionsPtr options = Options::create();
 };
-
-BOOST_FIXTURE_TEST_CASE(testTypeName, Fixture)
-{
-    BOOST_CHECK_EQUAL(jsonOptions.getTypeName(), "tide/options");
-}
 
 BOOST_FIXTURE_TEST_CASE(testDefaultSerialization, Fixture)
 {
-    BOOST_CHECK_EQUAL(jsonOptions.toJSON(), defaultJson);
-}
-
-BOOST_AUTO_TEST_CASE(testNullptrConstrucorResultsInSaneBehaviour)
-{
-    BOOST_REQUIRE_NO_THROW(JsonOptions{OptionsPtr{}});
-    JsonOptions jsonOptions{OptionsPtr{}};
-    BOOST_CHECK_EQUAL(jsonOptions.toJSON(), "");
-    BOOST_CHECK(!jsonOptions.fromJSON(defaultJson));
+    BOOST_CHECK_EQUAL(to_json(*options), defaultJson);
 }
 
 BOOST_FIXTURE_TEST_CASE(testInvalidJsonHasNoEffect, Fixture)
 {
-    BOOST_CHECK(!jsonOptions.fromJSON(notJson));
-    BOOST_CHECK_EQUAL(jsonOptions.toJSON(), defaultJson);
+    BOOST_CHECK(!from_json(*options, notJson));
+    BOOST_CHECK_EQUAL(to_json(*options), defaultJson);
 }
 
 BOOST_FIXTURE_TEST_CASE(testInvalidBackgroundParametersHaveNoEffect, Fixture)
 {
-    BOOST_CHECK(jsonOptions.fromJSON(invalidBackgroundParametersJson));
+    BOOST_CHECK(from_json(*options, invalidBackgroundParametersJson));
     BOOST_CHECK_EQUAL(options->getBackgroundColor().name(), "#000000");
     BOOST_CHECK_EQUAL(options->getBackgroundUri(), "");
 }
@@ -136,12 +122,12 @@ BOOST_FIXTURE_TEST_CASE(testInvalidBackgroundParametersHaveNoEffect, Fixture)
 BOOST_FIXTURE_TEST_CASE(testChangeSingleValueFromJson, Fixture)
 {
     BOOST_REQUIRE_EQUAL(options->getShowTestPattern(), false);
-    BOOST_CHECK(jsonOptions.fromJSON(singleValueChangedJson));
+    BOOST_CHECK(from_json(*options, singleValueChangedJson));
     BOOST_CHECK_EQUAL(options->getShowTestPattern(), true);
 }
 
 BOOST_FIXTURE_TEST_CASE(testChangeAllValuesFromJson, Fixture)
 {
-    BOOST_CHECK(jsonOptions.fromJSON(allValuesChangedJson));
-    BOOST_CHECK_EQUAL(jsonOptions.toJSON(), allValuesChangedJson);
+    BOOST_CHECK(from_json(*options, allValuesChangedJson));
+    BOOST_CHECK_EQUAL(to_json(*options), allValuesChangedJson);
 }

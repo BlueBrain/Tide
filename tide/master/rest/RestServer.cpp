@@ -47,27 +47,21 @@ RestServer::RestServer()
 }
 
 RestServer::RestServer(const int port)
-    : _httpServer{zeroeq::URI{QString(":%1").arg(port).toStdString()}}
+    : zeroeq::http::Server{zeroeq::URI{QString(":%1").arg(port).toStdString()}}
 {
     _init();
 }
 
 int RestServer::getPort() const
 {
-    return _httpServer.getURI().getPort();
-}
-
-zeroeq::http::Server& RestServer::get()
-{
-    return _httpServer;
+    return getURI().getPort();
 }
 
 void RestServer::_init()
 {
     _socketNotifier.connect(&_socketNotifier, &QSocketNotifier::activated,
                             [this]() {
-                                while (_httpServer.receive(
-                                    0 /* non-blocking receive*/))
+                                while (receive(0 /* non-blocking receive*/))
                                     ;
                             });
 }

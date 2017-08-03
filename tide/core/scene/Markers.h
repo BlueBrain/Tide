@@ -61,14 +61,13 @@ class Markers : public QAbstractListModel,
     Q_DISABLE_COPY(Markers)
 
 public:
+    /** Create a shared Markers object. */
+    static MarkersPtr create() { return MarkersPtr(new Markers); }
     enum MarkerRoles
     {
         XPOSITION_ROLE = Qt::UserRole,
         YPOSITION_ROLE
     };
-
-    /** Constructor */
-    Markers(QObject* parentObject = 0);
 
     QVariant data(const QModelIndex& index, int role) const override;
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
@@ -83,6 +82,8 @@ signals:
     void updated(MarkersPtr markers);
 
 private:
+    Markers() = default;
+
     typedef std::pair<int, QPointF> Marker;
     typedef std::vector<Marker> MarkersVector;
 

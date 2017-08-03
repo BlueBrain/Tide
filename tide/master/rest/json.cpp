@@ -45,14 +45,31 @@
 
 namespace json
 {
+QJsonArray toArray(const std::string& data)
+{
+    const auto input = QByteArray::fromRawData(data.c_str(), data.size());
+    QJsonParseError error;
+    const auto doc = QJsonDocument::fromJson(input, &error);
+
+    if (doc.isNull() || !doc.isArray())
+    {
+        put_flog(LOG_INFO, "Error parsing JSON string '%s' '%s'", data.c_str(),
+                 error.errorString().toLocal8Bit().constData());
+        return QJsonArray{};
+    }
+    return doc.array();
+}
+
 QJsonObject toObject(const std::string& data)
 {
     const auto input = QByteArray::fromRawData(data.c_str(), data.size());
-    const auto doc = QJsonDocument::fromJson(input);
+    QJsonParseError error;
+    const auto doc = QJsonDocument::fromJson(input, &error);
 
     if (doc.isNull() || !doc.isObject())
     {
-        put_flog(LOG_INFO, "Error parsing JSON string: '%s'", data.c_str());
+        put_flog(LOG_INFO, "Error parsing JSON string '%s' '%s'", data.c_str(),
+                 error.errorString().toLocal8Bit().constData());
         return QJsonObject{};
     }
     return doc.object();
