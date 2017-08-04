@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,28 +37,35 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef GLOBALQTAPP_H
-#define GLOBALQTAPP_H
+#ifndef HARDWARESWAPGROUP_H
+#define HARDWARESWAPGROUP_H
 
-#include <QApplication>
-#include <boost/test/unit_test.hpp>
+#include <QWindow>
 
-#include "glxDisplay.h"
-
-// We need a global fixture because a bug in QApplication prevents
-// deleting then recreating a QApplication in the same process.
-// https://bugreports.qt-project.org/browse/QTBUG-7104
-struct GlobalQtApp
+/**
+ * Hardware swap group using OpenGL extensions.
+ *
+ * Its methods can only be used while a QOpenGLContext is active.
+ *
+ * A std::runtime_error() is thrown if no context is active, if an extension
+ * is missing or the operation fails.
+ */
+class HardwareSwapGroup
 {
-    GlobalQtApp()
-    {
-        if (!hasGLXDisplay())
-            return;
+public:
+    explicit HardwareSwapGroup(int id);
 
-        auto& testSuite = boost::unit_test::framework::master_test_suite();
-        app.reset(new QApplication(testSuite.argc, testSuite.argv));
-    }
-    std::unique_ptr<QApplication> app;
+    void add(const QWindow& window);
+    void remove(const QWindow& window);
+
+    uint size() const;
+
+    void join(int barrier);
+    void leaveBarrier();
+
+private:
+    int _id = 0;
+    uint _size = 0;
 };
 
 #endif

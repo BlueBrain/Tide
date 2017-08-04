@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,28 +37,34 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef GLOBALQTAPP_H
-#define GLOBALQTAPP_H
+#define BOOST_TEST_MODULE HardwareSwapGroupTests
 
-#include <QApplication>
 #include <boost/test/unit_test.hpp>
 
-#include "glxDisplay.h"
+#include "QGuiAppFixture.h"
 
-// We need a global fixture because a bug in QApplication prevents
-// deleting then recreating a QApplication in the same process.
-// https://bugreports.qt-project.org/browse/QTBUG-7104
-struct GlobalQtApp
+#include "HardwareSwapGroup.h"
+
+namespace
 {
-    GlobalQtApp()
-    {
-        if (!hasGLXDisplay())
-            return;
+const int group = 1;
+const int barrier = 1;
+}
 
-        auto& testSuite = boost::unit_test::framework::master_test_suite();
-        app.reset(new QApplication(testSuite.argc, testSuite.argv));
-    }
-    std::unique_ptr<QApplication> app;
+struct Fixture : QGuiAppFixture
+{
+    QWindow window;
+    HardwareSwapGroup swapGroup{group};
 };
 
-#endif
+BOOST_FIXTURE_TEST_CASE(testSwapGroupOperationsWithoutGLContextFail, Fixture)
+{
+    BOOST_CHECK_EQUAL(swapGroup.size(), 0);
+    BOOST_CHECK_THROW(swapGroup.add(window), std::runtime_error);
+    BOOST_CHECK_EQUAL(swapGroup.size(), 0);
+    BOOST_CHECK_THROW(swapGroup.remove(window), std::runtime_error);
+    BOOST_CHECK_EQUAL(swapGroup.size(), 0);
+
+    BOOST_CHECK_THROW(swapGroup.join(barrier), std::runtime_error);
+    BOOST_CHECK_THROW(swapGroup.leaveBarrier(), std::runtime_error);
+}

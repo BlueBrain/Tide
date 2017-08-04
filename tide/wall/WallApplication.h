@@ -40,7 +40,6 @@
 #ifndef WALLAPPLICATION_H
 #define WALLAPPLICATION_H
 
-#include "WallSynchronizer.h"
 #include "types.h"
 
 #include <QGuiApplication>
@@ -88,8 +87,6 @@ private:
 
     QThread _mpiSendThread;
     QThread _mpiReceiveThread;
-
-    WallSynchronizer _synchronizer;
 
     void _initWallWindows();
     WallWindow* _makeWindow(uint screen);

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,28 +37,23 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef GLOBALQTAPP_H
-#define GLOBALQTAPP_H
+#ifndef SWAPSYNCHRONIZERSOFTWARE_H
+#define SWAPSYNCHRONIZERSOFTWARE_H
 
-#include <QApplication>
-#include <boost/test/unit_test.hpp>
+#include "SwapSynchronizer.h"
 
-#include "glxDisplay.h"
+#include "network/SharedNetworkBarrier.h"
 
-// We need a global fixture because a bug in QApplication prevents
-// deleting then recreating a QApplication in the same process.
-// https://bugreports.qt-project.org/browse/QTBUG-7104
-struct GlobalQtApp
+/**
+ * Software swap synchonizer (network barrier).
+ */
+class SwapSynchronizerSoftware : public SwapSynchronizer, SharedNetworkBarrier
 {
-    GlobalQtApp()
-    {
-        if (!hasGLXDisplay())
-            return;
+public:
+    using SharedNetworkBarrier::SharedNetworkBarrier;
 
-        auto& testSuite = boost::unit_test::framework::master_test_suite();
-        app.reset(new QApplication(testSuite.argc, testSuite.argv));
-    }
-    std::unique_ptr<QApplication> app;
+    void globalBarrier(const QWindow& window) final;
+    void exitBarrier(const QWindow& window) final;
 };
 
 #endif

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,28 +37,23 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef GLOBALQTAPP_H
-#define GLOBALQTAPP_H
+#include "LocalBarrier.h"
 
-#include <QApplication>
-#include <boost/test/unit_test.hpp>
-
-#include "glxDisplay.h"
-
-// We need a global fixture because a bug in QApplication prevents
-// deleting then recreating a QApplication in the same process.
-// https://bugreports.qt-project.org/browse/QTBUG-7104
-struct GlobalQtApp
+LocalBarrier::LocalBarrier(const uint numThreads)
+    : _numThreads(numThreads)
 {
-    GlobalQtApp()
+}
+
+void LocalBarrier::waitForAllThreadsThen(std::function<void()> action)
+{
+    std::unique_lock<std::mutex> lock(_mutex);
+
+    if (++_participants < _numThreads)
+        _condition.wait(lock);
+    else
     {
-        if (!hasGLXDisplay())
-            return;
-
-        auto& testSuite = boost::unit_test::framework::master_test_suite();
-        app.reset(new QApplication(testSuite.argc, testSuite.argv));
+        action();
+        _participants = 0;
+        _condition.notify_all();
     }
-    std::unique_ptr<QApplication> app;
-};
-
-#endif
+}

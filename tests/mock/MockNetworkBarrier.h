@@ -37,25 +37,22 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "WallSynchronizer.h"
+#ifndef MOCKNETWORKBARRIER_H
+#define MOCKNETWORKBARRIER_H
 
-WallSynchronizer::WallSynchronizer(WallToWallChannel& wallChannel,
-                                   const uint windowCount)
-    : _wallChannel(wallChannel)
-    , _windowCount(windowCount)
-{
-}
+#include "network/NetworkBarrier.h"
 
-void WallSynchronizer::globalBarrier()
+#include <atomic>
+
+class MockNetworkBarrier : public NetworkBarrier
 {
-    std::unique_lock<std::mutex> lock(_mutex);
-    ++_barrierCount;
-    if (_barrierCount < _windowCount)
-        _condition.wait(lock);
-    else
+public:
+    void globalBarrier() const final
     {
-        _wallChannel.globalBarrier();
-        _condition.notify_all();
-        _barrierCount = 0;
+        usleep(100);
+        ++called;
     }
-}
+    mutable std::atomic<int> called = {0};
+};
+
+#endif

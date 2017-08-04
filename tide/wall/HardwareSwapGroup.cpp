@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,28 +37,84 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef GLOBALQTAPP_H
-#define GLOBALQTAPP_H
+#include "HardwareSwapGroup.h"
 
-#include <QApplication>
-#include <boost/test/unit_test.hpp>
+#include <QOpenGLContext>
+#include <QtX11Extras/QX11Info>
 
-#include "glxDisplay.h"
-
-// We need a global fixture because a bug in QApplication prevents
-// deleting then recreating a QApplication in the same process.
-// https://bugreports.qt-project.org/browse/QTBUG-7104
-struct GlobalQtApp
+namespace
 {
-    GlobalQtApp()
-    {
-        if (!hasGLXDisplay())
-            return;
+using JoinSwapGroupFunc = bool(QOPENGLF_APIENTRYP)(Display*, uint, GLuint);
+using BindSwapBarrierFunc = bool(QOPENGLF_APIENTRYP)(Display*, GLuint, GLuint);
 
-        auto& testSuite = boost::unit_test::framework::master_test_suite();
-        app.reset(new QApplication(testSuite.argc, testSuite.argv));
-    }
-    std::unique_ptr<QApplication> app;
-};
+QOpenGLContext* _getCurrentGlContext()
+{
+    if (auto context = QOpenGLContext::currentContext())
+        return context;
+    throw std::runtime_error("no current gl context");
+}
 
-#endif
+JoinSwapGroupFunc _getJoinSwapGroupFunc()
+{
+    auto context = _getCurrentGlContext();
+    if (auto func = context->getProcAddress("glXJoinSwapGroupNV"))
+        return reinterpret_cast<JoinSwapGroupFunc>(func);
+    throw std::runtime_error("missing glXJoinSwapGroupNV extension");
+}
+
+BindSwapBarrierFunc _getBindSwapBarrierFunc()
+{
+    auto context = _getCurrentGlContext();
+    if (auto func = context->getProcAddress("glXBindSwapBarrierNV"))
+        return reinterpret_cast<BindSwapBarrierFunc>(func);
+    throw std::runtime_error("missing glXBindSwapBarrierNV extension");
+}
+
+bool _joinSwapGroup(const uint winID, const GLuint group)
+{
+    auto joinSwapGroup = _getJoinSwapGroupFunc();
+    return joinSwapGroup(QX11Info::display(), winID, group);
+}
+
+bool _bindSwapBarrier(const GLuint group, const GLuint barrier)
+{
+    auto bindSwapBarrier = _getBindSwapBarrierFunc();
+    return bindSwapBarrier(QX11Info::display(), group, barrier);
+}
+}
+
+HardwareSwapGroup::HardwareSwapGroup(const int id)
+    : _id{id}
+{
+}
+
+void HardwareSwapGroup::add(const QWindow& window)
+{
+    if (!_joinSwapGroup(window.winId(), _id))
+        throw std::runtime_error("Failed to join swap group");
+    ++_size;
+}
+
+void HardwareSwapGroup::remove(const QWindow& window)
+{
+    if (!_joinSwapGroup(window.winId(), 0))
+        throw std::runtime_error("Failed to leave swap group");
+    --_size;
+}
+
+uint HardwareSwapGroup::size() const
+{
+    return _size;
+}
+
+void HardwareSwapGroup::join(const int barrier)
+{
+    if (!_bindSwapBarrier(_id, barrier))
+        throw std::runtime_error("Failed to join swap barrier");
+}
+
+void HardwareSwapGroup::leaveBarrier()
+{
+    if (!_bindSwapBarrier(_id, 0))
+        throw std::runtime_error("Failed to leave swap barrier");
+}

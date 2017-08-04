@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,28 +37,83 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef GLOBALQTAPP_H
-#define GLOBALQTAPP_H
+#define BOOST_TEST_MODULE SwapSynchronizerTests
 
-#include <QApplication>
 #include <boost/test/unit_test.hpp>
 
-#include "glxDisplay.h"
+#include "SwapSynchronizer.h"
+#include "SwapSynchronizerHardware.h"
+#include "SwapSynchronizerSoftware.h"
 
-// We need a global fixture because a bug in QApplication prevents
-// deleting then recreating a QApplication in the same process.
-// https://bugreports.qt-project.org/browse/QTBUG-7104
-struct GlobalQtApp
+#include "MockNetworkBarrier.h"
+#include "QGuiAppFixture.h"
+
+BOOST_AUTO_TEST_CASE(testSoftwareSwapSynchronizerFactory)
 {
-    GlobalQtApp()
-    {
-        if (!hasGLXDisplay())
-            return;
+    MockNetworkBarrier barrier;
+    auto factory = SwapSynchronizerFactory::get(SwapSync::software);
+    BOOST_REQUIRE(factory);
+    auto synchronizer = factory->create(barrier, 1);
+    BOOST_REQUIRE(synchronizer);
+    BOOST_CHECK(dynamic_cast<SwapSynchronizerSoftware*>(synchronizer.get()));
+}
 
-        auto& testSuite = boost::unit_test::framework::master_test_suite();
-        app.reset(new QApplication(testSuite.argc, testSuite.argv));
-    }
-    std::unique_ptr<QApplication> app;
+BOOST_AUTO_TEST_CASE(testHardwareSwapSynchronizerFactory)
+{
+    MockNetworkBarrier barrier;
+    auto factory = SwapSynchronizerFactory::get(SwapSync::hardware);
+    BOOST_REQUIRE(factory);
+    auto synchronizer = factory->create(barrier, 1);
+    BOOST_REQUIRE(synchronizer);
+    BOOST_CHECK(dynamic_cast<SwapSynchronizerHardware*>(synchronizer.get()));
+}
+
+struct Hardware : QGuiAppFixture
+{
+    MockNetworkBarrier barrier;
+    std::unique_ptr<SwapSynchronizer> synchronizer =
+        SwapSynchronizerFactory::get(SwapSync::hardware)->create(barrier, 1);
+    QWindow window;
 };
 
-#endif
+BOOST_FIXTURE_TEST_CASE(testHardwareBarrierWithoutGLContextThrows, Hardware)
+{
+    BOOST_CHECK_THROW(synchronizer->globalBarrier(window), std::runtime_error);
+}
+
+BOOST_FIXTURE_TEST_CASE(testExitHardwareBarrierWithoutInitDoesNotThrow,
+                        Hardware)
+{
+    BOOST_CHECK_NO_THROW(synchronizer->exitBarrier(window));
+}
+
+struct Software : QGuiAppFixture
+{
+    MockNetworkBarrier barrier;
+    std::unique_ptr<SwapSynchronizer> synchronizer =
+        SwapSynchronizerFactory::get(SwapSync::software)->create(barrier, 3);
+    QWindow window;
+};
+
+BOOST_FIXTURE_TEST_CASE(testSoftwareBarrierWithThreeRenderThreads, Software)
+{
+    const int nFrames = 10;
+    auto renderLoop = [&] {
+        for (int i = 0; i < nFrames; ++i)
+        {
+            BOOST_CHECK_EQUAL(barrier.called, i);
+            synchronizer->globalBarrier(window);
+            BOOST_CHECK_EQUAL(barrier.called, i + 1);
+        }
+        BOOST_CHECK_NO_THROW(synchronizer->exitBarrier(window));
+    };
+    std::thread t1{renderLoop};
+    BOOST_CHECK_EQUAL(barrier.called, 0);
+    std::thread t2{renderLoop};
+    BOOST_CHECK_EQUAL(barrier.called, 0);
+    std::thread t3{renderLoop};
+    t1.join();
+    t2.join();
+    t3.join();
+    BOOST_CHECK_EQUAL(barrier.called, nFrames);
+}

@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.4 (git 1.4-dev)
 
+* [177](https://github.com/BlueBrain/Tide/issues/177):
+  Hardware swap synchronization for NVidia Quadro sync cards.
 * [174](https://github.com/BlueBrain/Tide/pull/174):
   Fix crash with malformed encoded pixel streams, e.g. JPEG quality > 100
 * [169](https://github.com/BlueBrain/Tide/issues/169):

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,28 +37,36 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef GLOBALQTAPP_H
-#define GLOBALQTAPP_H
+#ifndef SWAPSYNCHRONIZER_H
+#define SWAPSYNCHRONIZER_H
 
-#include <QApplication>
-#include <boost/test/unit_test.hpp>
+#include "types.h"
 
-#include "glxDisplay.h"
+#include <QWindow>
 
-// We need a global fixture because a bug in QApplication prevents
-// deleting then recreating a QApplication in the same process.
-// https://bugreports.qt-project.org/browse/QTBUG-7104
-struct GlobalQtApp
+/**
+ * Synchonizer for OpenGL buffer swap operation.
+ */
+class SwapSynchronizer
 {
-    GlobalQtApp()
-    {
-        if (!hasGLXDisplay())
-            return;
+public:
+    virtual ~SwapSynchronizer() = default;
 
-        auto& testSuite = boost::unit_test::framework::master_test_suite();
-        app.reset(new QApplication(testSuite.argc, testSuite.argv));
-    }
-    std::unique_ptr<QApplication> app;
+    /** Wait for all windows to be ready to swap. threadsafe. */
+    virtual void globalBarrier(const QWindow& window) = 0;
+
+    /** Remove a window from the barrier, sequentially for each window. */
+    virtual void exitBarrier(const QWindow& window) = 0;
+};
+
+class SwapSynchronizerFactory
+{
+public:
+    virtual ~SwapSynchronizerFactory() = default;
+    static std::unique_ptr<SwapSynchronizerFactory> get(SwapSync type);
+
+    virtual std::unique_ptr<SwapSynchronizer> create(NetworkBarrier& barrier,
+                                                     uint windowCount) = 0;
 };
 
 #endif

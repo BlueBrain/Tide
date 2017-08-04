@@ -49,7 +49,8 @@
 
 RenderController::RenderController(std::vector<WallWindow*> windows,
                                    DataProvider& provider,
-                                   WallToWallChannel& wallChannel)
+                                   WallToWallChannel& wallChannel,
+                                   const SwapSync type)
     : _windows{std::move(windows)}
     , _provider{provider}
     , _wallChannel{wallChannel}
@@ -83,6 +84,17 @@ RenderController::RenderController(std::vector<WallWindow*> windows,
         connect(window, &WallWindow::imageGrabbed, this,
                 &RenderController::screenshotRendered);
     }
+
+    _setupSwapSynchronization(type);
+}
+
+void RenderController::_setupSwapSynchronization(const SwapSync type)
+{
+    _swapSynchronizer =
+        SwapSynchronizerFactory::get(type)->create(_wallChannel,
+                                                   _windows.size());
+    for (auto window : _windows)
+        window->setSwapSynchronizer(_swapSynchronizer.get());
 }
 
 void RenderController::timerEvent(QTimerEvent* qtEvent)
@@ -163,27 +175,15 @@ bool RenderController::_syncAndRenderWindows(const bool grab)
     return _wallChannel.allReady(!_needRedraw);
 }
 
-void RenderController::updateQuit()
-{
-    _syncQuit.update(true);
-    requestRender();
-}
-
-void RenderController::updateRequestScreenshot()
-{
-    _syncScreenshot.update(true);
-    requestRender();
-}
-
 void RenderController::updateDisplayGroup(DisplayGroupPtr displayGroup)
 {
     _syncDisplayGroup.update(displayGroup);
     requestRender();
 }
 
-void RenderController::updateOptions(OptionsPtr options)
+void RenderController::updateInactivityTimer(InactivityTimerPtr timer)
 {
-    _syncOptions.update(options);
+    _syncInactivityTimer.update(timer);
     requestRender();
 }
 
@@ -193,9 +193,21 @@ void RenderController::updateMarkers(MarkersPtr markers)
     requestRender();
 }
 
-void RenderController::updateInactivityTimer(InactivityTimerPtr timer)
+void RenderController::updateOptions(OptionsPtr options)
 {
-    _syncInactivityTimer.update(timer);
+    _syncOptions.update(options);
+    requestRender();
+}
+
+void RenderController::updateRequestScreenshot()
+{
+    _syncScreenshot.update(true);
+    requestRender();
+}
+
+void RenderController::updateQuit()
+{
+    _syncQuit.update(true);
     requestRender();
 }
 

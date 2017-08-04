@@ -42,6 +42,7 @@
 #include "DataProvider.h"
 #include "DisplayGroupRenderer.h"
 #include "InactivityTimer.h"
+#include "SwapSynchronizer.h"
 #include "TestPattern.h"
 #include "WallConfiguration.h"
 #include "log.h"
@@ -64,12 +65,10 @@ const QUrl QML_ROOT_COMPONENT("qrc:/qml/wall/Background.qml");
 
 WallWindow::WallWindow(const WallConfiguration& config, const uint windowIndex,
                        DataProvider& provider,
-                       std::unique_ptr<QQuickRenderControl> renderControl,
-                       WallSynchronizer& synchronizer)
+                       std::unique_ptr<QQuickRenderControl> renderControl)
     : QQuickWindow(renderControl.get())
     , _provider(provider)
     , _renderControl(std::move(renderControl))
-    , _synchronizer(synchronizer)
     , _quickRenderer(new deflect::qt::QuickRenderer(*this, *_renderControl))
     , _quickRendererThread(new QThread)
     , _qmlEngine(new QQmlEngine)
@@ -106,6 +105,11 @@ WallWindow::~WallWindow()
     _quickRenderer->stop();
     _quickRendererThread->quit();
     _quickRendererThread->wait();
+}
+
+void WallWindow::setSwapSynchronizer(SwapSynchronizer* synchronizer)
+{
+    _synchronizer = synchronizer;
 }
 
 bool WallWindow::isInitialized() const
@@ -164,7 +168,9 @@ void WallWindow::_startQuick(const WallConfiguration& config,
     const auto globalIndex = screen.globalIndex;
     connect(_quickRenderer.get(), &deflect::qt::QuickRenderer::afterRender,
             [this, globalIndex] {
-                _synchronizer.globalBarrier();
+                if (_synchronizer)
+                    _synchronizer->globalBarrier(*this);
+
                 _quickRenderer->context()->swapBuffers(this);
                 _quickRenderer->context()->functions()->glFlush();
                 QMetaObject::invokeMethod(_displayGroupRenderer.get(),
@@ -175,6 +181,12 @@ void WallWindow::_startQuick(const WallConfiguration& config,
                     emit imageGrabbed(_renderControl->grab(), globalIndex);
                     _grabImage = false;
                 }
+            });
+
+    connect(_quickRenderer.get(), &deflect::qt::QuickRenderer::stopping,
+            [this] {
+                if (_synchronizer)
+                    _synchronizer->exitBarrier(*this);
             });
 
     _testPattern.reset(new TestPattern(config, _rootItem));

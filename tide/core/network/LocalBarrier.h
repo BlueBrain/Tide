@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,28 +37,30 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef GLOBALQTAPP_H
-#define GLOBALQTAPP_H
+#ifndef LOCALBARRIER_H
+#define LOCALBARRIER_H
 
-#include <QApplication>
-#include <boost/test/unit_test.hpp>
+#include <condition_variable>
+#include <functional>
+#include <mutex>
 
-#include "glxDisplay.h"
-
-// We need a global fixture because a bug in QApplication prevents
-// deleting then recreating a QApplication in the same process.
-// https://bugreports.qt-project.org/browse/QTBUG-7104
-struct GlobalQtApp
+/**
+ * Barrier for multiple local threads.
+ */
+class LocalBarrier
 {
-    GlobalQtApp()
-    {
-        if (!hasGLXDisplay())
-            return;
+public:
+    LocalBarrier(uint numThreads);
 
-        auto& testSuite = boost::unit_test::framework::master_test_suite();
-        app.reset(new QApplication(testSuite.argc, testSuite.argv));
-    }
-    std::unique_ptr<QApplication> app;
+    /** Wait for all threads to join then execute the action. */
+    void waitForAllThreadsThen(std::function<void()> action);
+
+private:
+    uint _numThreads = 0;
+
+    std::mutex _mutex;
+    std::condition_variable _condition;
+    uint _participants = 0;
 };
 
 #endif

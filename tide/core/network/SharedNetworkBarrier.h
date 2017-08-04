@@ -37,30 +37,26 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef WALLSYNCHRONIZER_H
-#define WALLSYNCHRONIZER_H
+#ifndef SHAREDNETWORKBARRIER_H
+#define SHAREDNETWORKBARRIER_H
 
-#include "network/WallToWallChannel.h"
-
-#include <mutex>
+#include "network/LocalBarrier.h"
+#include "network/NetworkBarrier.h"
 
 /**
- * Synchonize execution accross multiple wall windows and process.
+ * Adapter to join a global network barrier from multiple local threads.
  */
-class WallSynchronizer
+class SharedNetworkBarrier
 {
 public:
-    WallSynchronizer(WallToWallChannel& wallChannel, uint windowCount);
+    SharedNetworkBarrier(NetworkBarrier& barrier, uint numThreads);
 
-    void globalBarrier();
+    /** Wait for all processes. */
+    void waitForAll();
 
 private:
-    WallToWallChannel& _wallChannel;
-    uint _windowCount = 0;
-
-    std::mutex _mutex;
-    std::condition_variable _condition;
-    uint _barrierCount = 0;
+    NetworkBarrier& _networkBarrier;
+    LocalBarrier _localBarrier;
 };
 
 #endif

@@ -146,6 +146,9 @@ public:
     /** Display the windows in fullscreen mode. */
     bool getFullscreen() const;
 
+    /** @return the swap synchronization method for the displays. */
+    SwapSync getSwapSync() const;
+
 protected:
     /** The path to the xml configuration file. */
     QString _filename;
@@ -166,6 +169,7 @@ private:
     int _mullionWidth;
     int _mullionHeight;
     bool _fullscreen;
+    SwapSync _swapSync;
 
     void _load();
 };

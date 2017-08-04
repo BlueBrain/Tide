@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,28 +37,56 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef GLOBALQTAPP_H
-#define GLOBALQTAPP_H
+#include "SwapSynchronizerHardware.h"
 
-#include <QApplication>
-#include <boost/test/unit_test.hpp>
+#include "network/WallToWallChannel.h"
 
-#include "glxDisplay.h"
-
-// We need a global fixture because a bug in QApplication prevents
-// deleting then recreating a QApplication in the same process.
-// https://bugreports.qt-project.org/browse/QTBUG-7104
-struct GlobalQtApp
+namespace
 {
-    GlobalQtApp()
+const int group = 1;
+const int barrier = 1;
+}
+
+SwapSynchronizerHardware::SwapSynchronizerHardware(NetworkBarrier& barrier,
+                                                   const uint windowCount)
+    : _networkBarrier{barrier}
+    , _globalBarrier{barrier, windowCount}
+    , _localBarrier{windowCount}
+    , _windowCount{windowCount}
+    , _hardwareSwapGroup{group}
+{
+}
+
+void SwapSynchronizerHardware::globalBarrier(const QWindow& window)
+{
+    /* All render threads call this function concurrently */
+
+    if (_initialized)
+        return;
+
+    _globalBarrier.waitForAll();
+
+    _hardwareSwapGroup.add(window);
+
+    _localBarrier.waitForAllThreadsThen([this]() {
+        _hardwareSwapGroup.join(barrier);
+        _initialized = true;
+    });
+
+    _globalBarrier.waitForAll();
+}
+
+void SwapSynchronizerHardware::exitBarrier(const QWindow& window)
+{
+    if (!_initialized)
+        return;
+
+    /* Render threads call this function sequentially */
+
+    if (_hardwareSwapGroup.size() == _windowCount)
     {
-        if (!hasGLXDisplay())
-            return;
-
-        auto& testSuite = boost::unit_test::framework::master_test_suite();
-        app.reset(new QApplication(testSuite.argc, testSuite.argv));
+        _networkBarrier.globalBarrier();
+        _hardwareSwapGroup.leaveBarrier();
     }
-    std::unique_ptr<QApplication> app;
-};
-
-#endif
+    _hardwareSwapGroup.remove(window);
+}
