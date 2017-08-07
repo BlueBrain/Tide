@@ -79,6 +79,13 @@ signals:
      */
     void receivedScreenshot(QImage image, QPoint index);
 
+    /**
+     * Emitted when the given pixel stream was requested to be closed, e.g.
+     * because of decoding errors.
+     * @param uri The URI of the pixel stream
+     */
+    void pixelStreamClose(QString uri);
+
 private:
     MPIChannelPtr _mpiChannel;
     ReceiveBuffer _buffer;
