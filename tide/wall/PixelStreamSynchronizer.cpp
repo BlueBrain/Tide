@@ -42,6 +42,7 @@
 #include "PixelStreamUpdater.h"
 #include "Tile.h"
 #include "ZoomHelper.h"
+#include "log.h"
 #include "network/WallToWallChannel.h"
 #include "scene/ContentWindow.h"
 
@@ -100,7 +101,15 @@ void PixelStreamSynchronizer::synchronize(WallToWallChannel& channel)
 
     if (_tilesDirty)
     {
-        TiledSynchronizer::updateTiles(*_updater, _updateExistingTiles);
+        try
+        {
+            TiledSynchronizer::updateTiles(*_updater, _updateExistingTiles);
+        }
+        catch (const std::exception& exc)
+        {
+            put_flog(LOG_ERROR, "%s", exc.what());
+        }
+
         _tilesDirty = false;
         _updateExistingTiles = false;
     }
