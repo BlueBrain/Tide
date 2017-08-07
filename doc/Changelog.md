@@ -3,10 +3,12 @@ Changelog {#changelog}
 
 # Release 1.3.1 (git master)
 
+* [173](https://github.com/BlueBrain/Tide/pull/173):
+  Fix crash with malformed encoded pixel streams, e.g. JPEG quality > 100
 * [171](https://github.com/BlueBrain/Tide/pull/171):
   Bugfix: in multi-node configurations some windows opened on incorrect hosts.
 * [168](https://github.com/BlueBrain/Tide/pull/168):
-  Tide will log now a timestamp of an event along with the logger id. 
+  Tide will log now a timestamp of an event along with the logger id.
 * [165](https://github.com/BlueBrain/Tide/pull/165):
   Ported the demo Launcher to version 0.5.6 of the RenderingResourceManager.
 * [164](https://github.com/BlueBrain/Tide/pull/164):
