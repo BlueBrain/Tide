@@ -60,6 +60,12 @@ void WallToMasterChannel::sendRequestFrame(const QString uri)
     _mpiChannel->send(MPIMessageType::REQUEST_FRAME, data, 0);
 }
 
+void WallToMasterChannel::sendPixelStreamClose(const QString uri)
+{
+    const auto data = serialization::toBinary(uri);
+    _mpiChannel->send(MPIMessageType::PIXELSTREAM_CLOSE, data, 0);
+}
+
 void WallToMasterChannel::sendQuit()
 {
     _mpiChannel->send(MPIMessageType::QUIT, "", 0);

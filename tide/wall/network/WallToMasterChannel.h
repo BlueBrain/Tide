@@ -65,6 +65,12 @@ public slots:
     void sendRequestFrame(QString uri);
 
     /**
+     * Send a request to the master application to close the given pixel stream.
+     * @param uri The URI of the pixel stream
+     */
+    void sendPixelStreamClose(QString uri);
+
+    /**
      * Send a screenshot to the master application
      * @param image the rendered image
      * @param index the global index of the window sending the image

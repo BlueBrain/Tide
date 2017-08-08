@@ -162,6 +162,9 @@ void WallApplication::_initMPIConnection(MPIChannelPtr worldChannel)
     {
         connect(_provider.get(), &DataProvider::requestFrame,
                 _toMasterChannel.get(), &WallToMasterChannel::sendRequestFrame);
+        connect(_provider.get(), &DataProvider::closePixelStream,
+                _toMasterChannel.get(),
+                &WallToMasterChannel::sendPixelStreamClose);
     }
 
     connect(&_mpiReceiveThread, &QThread::started, _fromMasterChannel.get(),

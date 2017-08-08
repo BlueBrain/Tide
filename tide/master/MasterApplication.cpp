@@ -389,6 +389,11 @@ void MasterApplication::_setupMPIConnections()
             &MasterFromWallChannel::receivedRequestFrame, _deflectServer.get(),
             &deflect::Server::requestFrame);
 
+    connect(_masterFromWallChannel.get(),
+            &MasterFromWallChannel::pixelStreamClose,
+            _pixelStreamWindowManager.get(),
+            &PixelStreamWindowManager::handleStreamEnd);
+
     connect(_deflectServer.get(), &deflect::Server::receivedFrame,
             _masterToWallChannel.get(), &MasterToWallChannel::send);
 
