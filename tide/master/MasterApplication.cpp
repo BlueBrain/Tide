@@ -396,6 +396,11 @@ void MasterApplication::_setupMPIConnections()
     }
 
     connect(_masterFromWallChannel.get(),
+            &MasterFromWallChannel::pixelStreamClose,
+            _pixelStreamWindowManager.get(),
+            &PixelStreamWindowManager::handleStreamEnd);
+
+    connect(_masterFromWallChannel.get(),
             &MasterFromWallChannel::receivedScreenshot,
             _screenshotAssembler.get(), &ScreenshotAssembler::addImage);
 
