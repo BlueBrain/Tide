@@ -41,11 +41,6 @@
 
 #include <zeroeq/uri.h>
 
-namespace
-{
-const uint32_t TIMEOUT = 0; // non-blocking receive
-}
-
 RestServer::RestServer()
 {
     _init();
@@ -70,5 +65,9 @@ zeroeq::http::Server& RestServer::get()
 void RestServer::_init()
 {
     _socketNotifier.connect(&_socketNotifier, &QSocketNotifier::activated,
-                            [this]() { _httpServer.receive(TIMEOUT); });
+                            [this]() {
+                                while (_httpServer.receive(
+                                    0 /* non-blocking receive*/))
+                                    ;
+                            });
 }
