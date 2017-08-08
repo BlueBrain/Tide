@@ -238,8 +238,17 @@ void DataProvider::_updateTiles(DataSources& dataSources)
             // The following results in loadAsync() being called one or multiple
             // times, filling _tileImageRequests with the tiles from the
             // different WallWindows for this data source.
-            for (auto synchronizer : source->synchronizers)
-                synchronizer->updateTiles();
+            try
+            {
+                for (auto synchronizer : source->synchronizers)
+                    synchronizer->updateTiles();
+            }
+            catch (const std::exception& exc)
+            {
+                _handleError<decltype(source)>(it->first, exc);
+                it = dataSources.erase(it);
+                continue;
+            }
 
             // Start the asynchronous loading of images for this data source
             // and clear the list of requests for the next data source.
@@ -252,6 +261,15 @@ void DataProvider::_updateTiles(DataSources& dataSources)
             it = dataSources.erase(it);
         }
     }
+}
+
+template <>
+void DataProvider::_handleError<std::shared_ptr<PixelStreamUpdater>, QString>(
+    QString uri, const std::exception& exc)
+{
+    put_flog(LOG_ERROR, "%s, closing pixel stream %s", exc.what(),
+             uri.toLocal8Bit().constData());
+    emit closePixelStream(uri);
 }
 
 void DataProvider::_processTileImageRequests(DataSourcePtr source)

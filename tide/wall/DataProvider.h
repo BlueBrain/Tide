@@ -101,6 +101,9 @@ signals:
     /** Emitted to request a new frame after a successful swap. */
     void requestFrame(QString uri);
 
+    /** Emitted to request the pixel stream to close. */
+    void closePixelStream(QString uri);
+
     /** Emitted to request a new rendering after a tile image was loaded. */
     void imageLoaded();
 
@@ -137,6 +140,11 @@ private:
 
     template <typename DataSources>
     void _updateTiles(DataSources& dataSources);
+
+    template <typename DataSource, typename URIType>
+    void _handleError(URIType, const std::exception&)
+    {
+    }
 };
 
 #endif

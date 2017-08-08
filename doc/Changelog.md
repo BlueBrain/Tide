@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.4 (git master)
 
+* [174](https://github.com/BlueBrain/Tide/pull/174):
+  Fix crash with malformed encoded pixel streams, e.g. JPEG quality > 100
 * [169](https://github.com/BlueBrain/Tide/issues/169):
   Performance improvement for PixelStreams with small tile size (64x64).
 * [162](https://github.com/BlueBrain/Tide/issues/162):

@@ -85,6 +85,9 @@ void MasterFromWallChannel::processMessages()
             emit receivedScreenshot(image, index);
             break;
         }
+        case MPIMessageType::PIXELSTREAM_CLOSE:
+            emit pixelStreamClose(serialization::get<QString>(_buffer));
+            break;
         case MPIMessageType::QUIT:
             _processMessages = false;
             break;
