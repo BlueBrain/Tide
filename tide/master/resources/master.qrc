@@ -1,7 +1,6 @@
 <RCC>
     <qresource prefix="/"/>
     <qresource prefix="/qml/master">
-        <file>ContentWindowButton.qml</file>
         <file>MasterContentWindow.qml</file>
         <file>MasterDisplayGroup.qml</file>
         <file>OffscreenRoot.qml</file>

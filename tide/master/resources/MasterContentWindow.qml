@@ -288,37 +288,6 @@ BaseContentWindow {
         }
     }
 
-    ContentWindowButton {
-        source: "qrc:///img/master/close.svg"
-        anchors.top: parent.top
-        anchors.right: parent.right
-        mousearea.onClicked: closeWindow()
-    }
-
-    ContentWindowButton {
-        source: "qrc:///img/master/resize.svg"
-        anchors.bottom: parent.bottom
-        anchors.right: parent.right
-        visible: !contentwindow.isPanel &&
-                 contentwindow.mode === ContentWindow.STANDARD
-
-        property variant startMousePos
-        property variant startSize
-        mousearea.onPressed: {
-            startMousePos = Qt.point(mouse.x, mouse.y)
-            startSize = Qt.size(contentwindow.width, contentwindow.height)
-            contentwindow.state = ContentWindow.RESIZING
-        }
-        mousearea.onPositionChanged: {
-            if(!mousearea.pressed)
-                return
-            var newSize = Qt.size(mouse.x - startMousePos.x + startSize.width,
-                                  mouse.y - startMousePos.y + startSize.height)
-            controller.resize(newSize)
-        }
-        mousearea.onReleased: contentwindow.state = ContentWindow.NONE
-    }
-
     Text {
         visible: !parent.titleBar.visible
         text: contentwindow.content.title
