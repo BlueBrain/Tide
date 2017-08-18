@@ -3,6 +3,9 @@ Changelog {#changelog}
 
 # Release 1.3.1 (git master)
 
+* [175](https://github.com/BlueBrain/Tide/pull/175):
+  Removed window close and resize controls from master window
+  because of interference between touch and mouse events.
 * [173](https://github.com/BlueBrain/Tide/pull/173):
   Fix crash with malformed encoded pixel streams, e.g. JPEG quality > 100
 * [171](https://github.com/BlueBrain/Tide/pull/171):
