@@ -7,11 +7,6 @@
         <file>Root.qml</file>
         <file>Wall.qml</file>
     </qresource>
-    <qresource prefix="/img/master">
-        <file>close.svg</file>
-        <file>maximize.svg</file>
-        <file>resize.svg</file>
-    </qresource>
     <qresource prefix="/html">
         <file>css/bootstrap.min.css</file>
         <file>css/jquery-ui.css</file>
