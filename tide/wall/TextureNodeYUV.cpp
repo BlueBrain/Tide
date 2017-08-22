@@ -125,21 +125,12 @@ public:
         // This is maintain the "contract" that updateState should not mess up
         // the GL state beyond what is needed for this material.
         gl->glActiveTexture(GL_TEXTURE2);
-        gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                            GL_LINEAR_MIPMAP_LINEAR);
-        gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         newState->frontV->bind();
 
         gl->glActiveTexture(GL_TEXTURE1);
-        gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                            GL_LINEAR_MIPMAP_LINEAR);
-        gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         newState->frontU->bind();
 
         gl->glActiveTexture(GL_TEXTURE0);
-        gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                            GL_LINEAR_MIPMAP_LINEAR);
-        gl->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         newState->frontY->bind();
     }
 
@@ -249,7 +240,10 @@ TextureNodeYUV::QSGTexturePtr TextureNodeYUV::_createTexture(
     gl->glBindTexture(GL_TEXTURE_2D, textureID);
     gl->glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, size.width(), size.height(), 0,
                      GL_RED, GL_UNSIGNED_BYTE, nullptr);
-    return _createWrapper(textureID, size);
+    auto texture = _createWrapper(textureID, size);
+    texture->setFiltering(QSGTexture::Linear);
+    texture->setMipmapFiltering(QSGTexture::Linear);
+    return texture;
 }
 
 TextureNodeYUV::QSGTexturePtr TextureNodeYUV::_createWrapper(
