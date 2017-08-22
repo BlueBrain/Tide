@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.3.1 (git master)
 
+* [177](https://github.com/BlueBrain/Tide/pull/177):
+  Fix mipmap filtering for YUV textures
 * [175](https://github.com/BlueBrain/Tide/pull/175):
   Removed window close and resize controls from master window
   because of interference between touch and mouse events.
