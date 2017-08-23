@@ -41,9 +41,9 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "QGuiAppFixture.h"
-
 #include "HardwareSwapGroup.h"
+
+#include "QGuiAppFixture.h"
 
 namespace
 {
@@ -51,19 +51,22 @@ const int group = 1;
 const int barrier = 1;
 }
 
-struct Fixture : QGuiAppFixture
+struct Fixture : public QWindowFixture
 {
-    QWindow window;
     HardwareSwapGroup swapGroup{group};
 };
 
 BOOST_FIXTURE_TEST_CASE(testSwapGroupOperationsWithoutGLContextFail, Fixture)
 {
     BOOST_CHECK_EQUAL(swapGroup.size(), 0);
-    BOOST_CHECK_THROW(swapGroup.add(window), std::runtime_error);
-    BOOST_CHECK_EQUAL(swapGroup.size(), 0);
-    BOOST_CHECK_THROW(swapGroup.remove(window), std::runtime_error);
-    BOOST_CHECK_EQUAL(swapGroup.size(), 0);
+
+    if (window)
+    {
+        BOOST_CHECK_THROW(swapGroup.add(*window), std::runtime_error);
+        BOOST_CHECK_EQUAL(swapGroup.size(), 0);
+        BOOST_CHECK_THROW(swapGroup.remove(*window), std::runtime_error);
+        BOOST_CHECK_EQUAL(swapGroup.size(), 0);
+    }
 
     BOOST_CHECK_THROW(swapGroup.join(barrier), std::runtime_error);
     BOOST_CHECK_THROW(swapGroup.leaveBarrier(), std::runtime_error);

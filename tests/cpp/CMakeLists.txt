@@ -13,11 +13,12 @@ set(TEST_LIBRARIES
   TideMaster
   TideWall
   ${Boost_LIBRARIES}
+  Threads::Threads
   Qt5::Gui
 )
 
 if(TIDE_ENABLE_REST_INTERFACE AND TARGET ZeroEQHTTP)
-  list(APPEND TEST_LIBRARIES ZeroEQHTTP Threads::Threads)
+  list(APPEND TEST_LIBRARIES ZeroEQHTTP)
 else()
   set(EXCLUDE_FROM_TESTS
     core/FileReceiverTests.cpp
@@ -31,14 +32,24 @@ else()
   )
 endif()
 
+if(X11_FOUND)
+  list(APPEND TEST_LIBRARIES ${X11_LIBRARIES})
+else()
+  list(APPEND EXCLUDE_FROM_TESTS
+    core/HardwareSwapGroupTests.cpp
+    core/SwapSynchronizerTests.cpp
+  )
+endif()
+
 if(X11_FOUND AND TARGET Qt5::WebKitWidgets)
-  list(APPEND TEST_LIBRARIES ${X11_LIBRARIES} Qt5::WebKitWidgets)
+  list(APPEND TEST_LIBRARIES Qt5::WebKitWidgets)
 else()
   list(APPEND EXCLUDE_FROM_TESTS
     core/LocalPixelStreamerTests.cpp
     core/WebkitTests.cpp
     core/WebkitHtmlSelectReplacementTests.cpp)
 endif()
+
 if(NOT TARGET Qt5::WebEngine AND NOT TARGET Qt5::WebKitWidgets)
   list(APPEND EXCLUDE_FROM_TESTS core/WebbrowserContentTests.cpp)
 endif()

@@ -68,44 +68,65 @@ BOOST_AUTO_TEST_CASE(testHardwareSwapSynchronizerFactory)
     BOOST_CHECK(dynamic_cast<SwapSynchronizerHardware*>(synchronizer.get()));
 }
 
-struct Hardware : QGuiAppFixture
+struct Fixture : public QWindowFixture
 {
     MockNetworkBarrier barrier;
-    std::unique_ptr<SwapSynchronizer> synchronizer =
-        SwapSynchronizerFactory::get(SwapSync::hardware)->create(barrier, 1);
-    QWindow window;
+    std::unique_ptr<SwapSynchronizer> synchronizer;
+
+    Fixture(const SwapSync type, const uint threads)
+        : synchronizer{
+              SwapSynchronizerFactory::get(type)->create(barrier, threads)}
+    {
+    }
+};
+
+struct Hardware : public Fixture
+{
+    Hardware()
+        : Fixture{SwapSync::hardware, 1}
+    {
+    }
+};
+
+struct Software : public Fixture
+{
+    Software()
+        : Fixture{SwapSync::software, 3}
+    {
+    }
 };
 
 BOOST_FIXTURE_TEST_CASE(testHardwareBarrierWithoutGLContextThrows, Hardware)
 {
-    BOOST_CHECK_THROW(synchronizer->globalBarrier(window), std::runtime_error);
+    if (!window)
+        return;
+
+    BOOST_CHECK_THROW(synchronizer->globalBarrier(*window), std::runtime_error);
 }
 
 BOOST_FIXTURE_TEST_CASE(testExitHardwareBarrierWithoutInitDoesNotThrow,
                         Hardware)
 {
-    BOOST_CHECK_NO_THROW(synchronizer->exitBarrier(window));
-}
+    if (!window)
+        return;
 
-struct Software : QGuiAppFixture
-{
-    MockNetworkBarrier barrier;
-    std::unique_ptr<SwapSynchronizer> synchronizer =
-        SwapSynchronizerFactory::get(SwapSync::software)->create(barrier, 3);
-    QWindow window;
-};
+    BOOST_CHECK_NO_THROW(synchronizer->exitBarrier(*window));
+}
 
 BOOST_FIXTURE_TEST_CASE(testSoftwareBarrierWithThreeRenderThreads, Software)
 {
+    if (!window)
+        return;
+
     const int nFrames = 10;
     auto renderLoop = [&] {
         for (int i = 0; i < nFrames; ++i)
         {
             BOOST_CHECK_EQUAL(barrier.called, i);
-            synchronizer->globalBarrier(window);
+            synchronizer->globalBarrier(*window);
             BOOST_CHECK_EQUAL(barrier.called, i + 1);
         }
-        BOOST_CHECK_NO_THROW(synchronizer->exitBarrier(window));
+        BOOST_CHECK_NO_THROW(synchronizer->exitBarrier(*window));
     };
     std::thread t1{renderLoop};
     BOOST_CHECK_EQUAL(barrier.called, 0);

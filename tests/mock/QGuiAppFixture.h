@@ -43,14 +43,29 @@
 #include <QGuiApplication>
 #include <boost/test/unit_test.hpp>
 
+#include "glxDisplay.h"
+
 struct QGuiAppFixture
 {
     QGuiAppFixture()
     {
+        if (!hasGLXDisplay())
+            return;
+
         auto& testSuite = boost::unit_test::framework::master_test_suite();
         app.reset(new QGuiApplication(testSuite.argc, testSuite.argv));
     }
     std::unique_ptr<QGuiApplication> app;
+};
+
+struct QWindowFixture : QGuiAppFixture
+{
+    std::unique_ptr<QWindow> window;
+
+    QWindowFixture()
+        : window{app ? new QWindow : nullptr}
+    {
+    }
 };
 
 #endif

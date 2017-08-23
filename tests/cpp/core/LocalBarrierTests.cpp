@@ -94,7 +94,6 @@ BOOST_FIXTURE_TEST_CASE(testThreeThreads, Fixture)
     std::thread t1{[&] { barrier.waitForAllThreadsThen([&] { action(1); }); }};
     BOOST_CHECK_EQUAL(caller, 0);
     std::thread t2{[&] { barrier.waitForAllThreadsThen([&] { action(2); }); }};
-    BOOST_CHECK_EQUAL(caller, 0);
     t1.join();
     t2.join();
     t3.join();
