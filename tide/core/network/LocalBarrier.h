@@ -50,17 +50,17 @@
 class LocalBarrier
 {
 public:
-    LocalBarrier(uint numThreads);
+    LocalBarrier(unsigned int numThreads);
 
     /** Wait for all threads to join then execute the action. */
     void waitForAllThreadsThen(std::function<void()> action);
 
 private:
-    uint _numThreads = 0;
+    unsigned int _numThreads = 0;
 
     std::mutex _mutex;
     std::condition_variable _condition;
-    uint _participants = 0;
+    unsigned int _participants = 0;
 };
 
 #endif

@@ -39,7 +39,7 @@
 
 #include "LocalBarrier.h"
 
-LocalBarrier::LocalBarrier(const uint numThreads)
+LocalBarrier::LocalBarrier(const unsigned int numThreads)
     : _numThreads(numThreads)
 {
 }
