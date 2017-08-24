@@ -111,7 +111,7 @@ void WallApplication::_initWallWindows()
 
     const auto swapSync = _config->getSwapSync();
     if (swapSync == SwapSync::hardware)
-        put_log(LOG_DEBUG, "Launching with hardware swap synchronization...");
+        put_log(LOG_INFO, "Launching with hardware swap synchronization...");
 
     _renderController.reset(new RenderController(std::move(windows), *_provider,
                                                  *_wallChannel, swapSync));

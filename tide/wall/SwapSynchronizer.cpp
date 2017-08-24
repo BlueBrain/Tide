@@ -42,7 +42,7 @@
 #include "SwapSynchronizerHardware.h"
 #include "SwapSynchronizerSoftware.h"
 
-class HardawareSwapSynchronizerFactory : public SwapSynchronizerFactory
+class HardwareSwapSynchronizerFactory : public SwapSynchronizerFactory
 {
 public:
     std::unique_ptr<SwapSynchronizer> create(NetworkBarrier& barrier,
@@ -68,7 +68,7 @@ std::unique_ptr<SwapSynchronizerFactory> SwapSynchronizerFactory::get(
     switch (type)
     {
     case SwapSync::hardware:
-        return make_unique<HardawareSwapSynchronizerFactory>();
+        return make_unique<HardwareSwapSynchronizerFactory>();
     case SwapSync::software:
         return make_unique<SoftwareSwapSynchronizerFactory>();
     default:

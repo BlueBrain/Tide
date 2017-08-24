@@ -40,7 +40,9 @@
 #include "HardwareSwapGroup.h"
 
 #include <QOpenGLContext>
+#if TIDE_USE_QT5X11EXTRAS
 #include <QtX11Extras/QX11Info>
+#endif
 
 namespace
 {
@@ -72,14 +74,22 @@ BindSwapBarrierFunc _getBindSwapBarrierFunc()
 
 bool _joinSwapGroup(const uint winID, const GLuint group)
 {
+#if TIDE_USE_QT5X11EXTRAS
     auto joinSwapGroup = _getJoinSwapGroupFunc();
     return joinSwapGroup(QX11Info::display(), winID, group);
+#else
+    throw std::runtime_error("Unsupported platform, need QX11Info");
+#endif
 }
 
 bool _bindSwapBarrier(const GLuint group, const GLuint barrier)
 {
+#if TIDE_USE_QT5X11EXTRAS
     auto bindSwapBarrier = _getBindSwapBarrierFunc();
     return bindSwapBarrier(QX11Info::display(), group, barrier);
+#else
+    throw std::runtime_error("Unsupported platform, need QX11Info");
+#endif
 }
 }
 

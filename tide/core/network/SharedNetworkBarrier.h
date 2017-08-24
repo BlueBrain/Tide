@@ -51,7 +51,7 @@ class SharedNetworkBarrier
 public:
     SharedNetworkBarrier(NetworkBarrier& barrier, uint numThreads);
 
-    /** Wait for all processes. */
+    /** Wait for all threads and all processes. */
     void waitForAll();
 
 private:

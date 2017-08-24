@@ -42,6 +42,8 @@
 
 #include <QWindow>
 
+#include <atomic>
+
 /**
  * Hardware swap group using OpenGL extensions.
  *
@@ -49,6 +51,8 @@
  *
  * A std::runtime_error() is thrown if no context is active, if an extension
  * is missing or the operation fails.
+ *
+ * All functions are thread-safe.
  */
 class HardwareSwapGroup
 {
@@ -65,7 +69,7 @@ public:
 
 private:
     int _id = 0;
-    uint _size = 0;
+    std::atomic_uint _size = {0};
 };
 
 #endif

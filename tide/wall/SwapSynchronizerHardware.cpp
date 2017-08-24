@@ -89,4 +89,7 @@ void SwapSynchronizerHardware::exitBarrier(const QWindow& window)
         _hardwareSwapGroup.leaveBarrier();
     }
     _hardwareSwapGroup.remove(window);
+
+    if (_hardwareSwapGroup.size() == 0)
+        _initialized = false;
 }
