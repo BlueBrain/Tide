@@ -40,6 +40,7 @@
 #ifndef WALLTOWALLCHANNEL_H
 #define WALLTOWALLCHANNEL_H
 
+#include "network/NetworkBarrier.h"
 #include "network/ReceiveBuffer.h"
 #include "types.h"
 
@@ -50,7 +51,7 @@
 /**
  * Communication channel between the Wall processes.
  */
-class WallToWallChannel : public QObject
+class WallToWallChannel : public QObject, public NetworkBarrier
 {
     Q_OBJECT
     Q_DISABLE_COPY(WallToWallChannel)
@@ -81,7 +82,7 @@ public:
     void synchronizeClock();
 
     /** Block execution until all programs have reached the barrier. */
-    void globalBarrier() const;
+    void globalBarrier() const final;
 
     /** Check that all processes have the same version of an object. */
     bool checkVersion(uint64_t version) const;

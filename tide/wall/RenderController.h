@@ -43,6 +43,7 @@
 #include "types.h"
 
 #include "SwapSyncObject.h"
+#include "SwapSynchronizer.h"
 
 #include <QObject>
 
@@ -57,16 +58,17 @@ class RenderController : public QObject
 public:
     /** Constructor */
     RenderController(std::vector<WallWindow*> windows, DataProvider& provider,
-                     WallToWallChannel& wallChannel);
+                     WallToWallChannel& wallChannel, SwapSync type);
 
 public slots:
-    void updateQuit();
-    void updateRequestScreenshot();
+    void requestRender();
+
     void updateDisplayGroup(DisplayGroupPtr displayGroup);
     void updateInactivityTimer(InactivityTimerPtr timer);
-    void updateOptions(OptionsPtr options);
     void updateMarkers(MarkersPtr markers);
-    void requestRender();
+    void updateOptions(OptionsPtr options);
+    void updateRequestScreenshot();
+    void updateQuit();
 
 signals:
     void screenshotRendered(QImage image, QPoint index);
@@ -75,18 +77,21 @@ private:
     std::vector<WallWindow*> _windows; // deleteLater from syncQuit
     DataProvider& _provider;
     WallToWallChannel& _wallChannel;
+    std::unique_ptr<SwapSynchronizer> _swapSynchronizer;
 
-    SwapSyncObject<bool> _syncQuit{false};
-    SwapSyncObject<bool> _syncScreenshot{false};
     SwapSyncObject<DisplayGroupPtr> _syncDisplayGroup;
     SwapSyncObject<InactivityTimerPtr> _syncInactivityTimer;
-    SwapSyncObject<OptionsPtr> _syncOptions;
     SwapSyncObject<MarkersPtr> _syncMarkers;
+    SwapSyncObject<OptionsPtr> _syncOptions;
+    SwapSyncObject<bool> _syncScreenshot{false};
+    SwapSyncObject<bool> _syncQuit{false};
 
     int _renderTimer = 0;
     int _stopRenderingDelayTimer = 0;
     int _idleRedrawTimer = 0;
     bool _needRedraw = false;
+
+    void _setupSwapSynchronization(SwapSync type);
 
     void timerEvent(QTimerEvent* qtEvent) final;
 

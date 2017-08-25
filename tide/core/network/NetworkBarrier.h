@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,28 +37,19 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef GLOBALQTAPP_H
-#define GLOBALQTAPP_H
+#ifndef NETWORKBARRIER_H
+#define NETWORKBARRIER_H
 
-#include <QApplication>
-#include <boost/test/unit_test.hpp>
-
-#include "glxDisplay.h"
-
-// We need a global fixture because a bug in QApplication prevents
-// deleting then recreating a QApplication in the same process.
-// https://bugreports.qt-project.org/browse/QTBUG-7104
-struct GlobalQtApp
+/**
+ * Network barrier to synchronize the execution of multiple processes.
+ */
+class NetworkBarrier
 {
-    GlobalQtApp()
-    {
-        if (!hasGLXDisplay())
-            return;
+public:
+    virtual ~NetworkBarrier() = default;
 
-        auto& testSuite = boost::unit_test::framework::master_test_suite();
-        app.reset(new QApplication(testSuite.argc, testSuite.argv));
-    }
-    std::unique_ptr<QApplication> app;
+    /** Block execution until all participants have reached the barrier. */
+    virtual void globalBarrier() const = 0;
 };
 
 #endif

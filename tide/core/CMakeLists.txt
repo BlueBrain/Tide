@@ -125,11 +125,14 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   geometry.h
   InactivityTimer.h
   log.h
+  network/LocalBarrier.h
   network/MPIChannel.h
   network/MPIContext.h
   network/MPIHeader.h
   network/MPINospin.h
+  network/NetworkBarrier.h
   network/ReceiveBuffer.h
+  network/SharedNetworkBarrier.h
   QmlTypeRegistration.h
   qmlUtils.h
   StatePreview.h
@@ -181,9 +184,11 @@ list(APPEND TIDECORE_SOURCES
   InactivityTimer.cpp
   log.cpp
   MetaTypeRegistration.cpp
+  network/LocalBarrier.cpp
   network/MPIChannel.cpp
   network/MPIContext.cpp
   network/MPINospin.cpp
+  network/SharedNetworkBarrier.cpp
   scene/ContentAction.cpp
   scene/ContentActionsModel.cpp
   scene/Content.cpp
