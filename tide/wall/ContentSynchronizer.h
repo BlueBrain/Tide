@@ -121,8 +121,8 @@ signals:
     /** Notify the window to remove a tile. */
     void removeTile(uint tileId);
 
-    /** Notify to update a tile's coordinates and format. */
-    void updateTile(uint tileId, QRect coordinates, TextureFormat format);
+    /** Notify to update a tile's coordinates. */
+    void updateTile(uint tileId, QRect coordinates);
 
     /** Request an update of a specific tile. */
     void requestTileUpdate(TilePtr tile, deflect::View view);

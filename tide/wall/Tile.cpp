@@ -39,25 +39,21 @@
 
 #include "Tile.h"
 
-#include "QuadLineNode.h"
-#include "TextureNode.h"
-#include "TextureNodeYUV.h"
+#include "TextureNodeFactory.h"
 #include "log.h"
 
-namespace
+#include <QSGNode>
+
+TilePtr Tile::create(const uint id, const QRect& rect, const TextureType type)
 {
-const qreal borderWidth = 10.0;
-const QColor borderColor("lightgreen");
+    return TilePtr{new Tile{id, rect, type}};
 }
 
 // false-positive on qt signals for Q_PROPERTY notifiers
 // cppcheck-suppress uninitMemberVar
-Tile::Tile(const uint id, const QRect& rect, const TextureFormat format,
-           const TextureType type)
+Tile::Tile(const uint id, const QRect& rect, const TextureType type)
     : _tileId(id)
-    , _format(format)
     , _type(type)
-    , _policy(AdjustToTexture)
     , _nextCoord(rect)
 {
     setFlag(ItemHasContents, true);
@@ -71,31 +67,24 @@ uint Tile::getId() const
     return _tileId;
 }
 
-TextureFormat Tile::getFormat() const
-{
-    return _format;
-}
-
 bool Tile::getShowBorder() const
 {
-    return _showBorder;
+    return _textureSwitcher.showBorder;
 }
 
 void Tile::setShowBorder(const bool set)
 {
-    if (_showBorder == set)
+    if (_textureSwitcher.showBorder == set)
         return;
 
-    _showBorder = set;
+    _textureSwitcher.showBorder = set;
     emit showBorderChanged();
     QQuickItem::update();
 }
 
-void Tile::update(const QRect& rect, const TextureFormat format)
+void Tile::update(const QRect& rect)
 {
     _nextCoord = rect;
-    if (_format != TextureFormat::rgba && format != TextureFormat::rgba)
-        _format = format;
 
     if (_type == TextureType::Dynamic)
         emit requestNextFrame(shared_from_this());
@@ -110,12 +99,11 @@ void Tile::updateBackTexture(ImagePtr image)
         put_flog(LOG_WARN, "Invalid image");
         return;
     }
+
     if (_type == TextureType::Static && _firstImageUploaded)
-    {
-        put_flog(LOG_WARN, "Static tiles can't be updated");
-        return;
-    }
-    _image = image;
+        throw std::logic_error("Static tiles can't be updated");
+
+    _textureSwitcher.setNextImage(image);
     _firstImageUploaded = true;
 
     // Note: readToSwap() must happen immediately and not in _updateTextureNode,
@@ -128,19 +116,19 @@ void Tile::updateBackTexture(ImagePtr image)
     QQuickItem::update();
 }
 
-void Tile::setSizePolicy(const Tile::SizePolicy policy)
+void Tile::setSizePolicy(const SizePolicy policy)
 {
     _policy = policy;
 }
 
 void Tile::swapImage()
 {
-    _swapRequested = true;
+    _textureSwitcher.requestSwap();
 
     if (!isVisible())
         setVisible(true);
 
-    if (_policy == AdjustToTexture)
+    if (_policy == SizePolicy::AdjustToTexture)
     {
         setPosition(_nextCoord.topLeft());
         setSize(_nextCoord.size());
@@ -149,68 +137,21 @@ void Tile::swapImage()
     QQuickItem::update();
 }
 
-QSGNode* Tile::updatePaintNode(QSGNode* oldNode,
-                               QQuickItem::UpdatePaintNodeData*)
+QSGNode* Tile::updatePaintNode(QSGNode* node, QQuickItem::UpdatePaintNodeData*)
 {
-    switch (_format)
-    {
-    case TextureFormat::rgba:
-        return _updateTextureNode<TextureNode>(oldNode);
-    case TextureFormat::yuv444:
-    case TextureFormat::yuv422:
-    case TextureFormat::yuv420:
-        return _updateTextureNode<TextureNodeYUV>(oldNode);
-    default:
-        throw std::runtime_error("unsupported texture format");
-    }
-}
+    auto textureNode =
+        std::unique_ptr<TextureNode>(dynamic_cast<TextureNode*>(node));
 
-template <class NodeT>
-QSGNode* Tile::_updateTextureNode(QSGNode* oldNode)
-{
-    auto node = static_cast<NodeT*>(oldNode);
-    if (!node)
-        node = new NodeT(window(), _type == TextureType::Dynamic);
+    TextureNodeFactoryImpl factory{*window(), _type};
+    _textureSwitcher.update(textureNode, factory);
+    if (!textureNode)
+        return nullptr;
 
-    if (_image)
-    {
-        node->updateBackTexture(*_image);
-        _image.reset();
-    }
+    textureNode->setCoord(boundingRect());
 
-    if (_swapRequested)
-    {
-        node->swap();
-        _swapRequested = false;
-    }
+    _textureSwitcher.updateBorderNode(*textureNode);
 
-    node->setRect(boundingRect());
-
-    _updateBorderNode(node);
-
-    return node;
-}
-
-template <class NodeT>
-void Tile::_updateBorderNode(NodeT* parentNode)
-{
-    if (_showBorder)
-    {
-        if (!_border)
-        {
-            _border = new QuadLineNode(parentNode->rect(), borderWidth);
-            _border->setColor(borderColor);
-            parentNode->appendChildNode(_border);
-        }
-        else
-            _border->setRect(parentNode->rect());
-    }
-    else if (_border)
-    {
-        parentNode->removeChildNode(_border);
-        delete _border;
-        _border = nullptr;
-    }
+    return dynamic_cast<QSGNode*>(textureNode.release());
 }
 
 void Tile::_onParentChanged(QQuickItem* newParent)

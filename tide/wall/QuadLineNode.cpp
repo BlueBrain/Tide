@@ -41,7 +41,8 @@
 
 #include <QSGFlatColorMaterial>
 
-QuadLineNode::QuadLineNode(const QRectF& rect, const qreal lineWidth)
+QuadLineNode::QuadLineNode(const QRectF& rect, const qreal lineWidth,
+                           const QColor& color)
 {
     setGeometry(new QSGGeometry(QSGGeometry::defaultAttributes_Point2D(), 4));
     geometry()->setDrawingMode(GL_LINE_LOOP);
@@ -52,6 +53,7 @@ QuadLineNode::QuadLineNode(const QRectF& rect, const qreal lineWidth)
     setFlag(QSGNode::OwnsMaterial);
 
     setRect(rect);
+    setColor(color);
 }
 
 void QuadLineNode::setRect(const QRectF& rect)

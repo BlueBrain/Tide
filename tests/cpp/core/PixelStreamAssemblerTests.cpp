@@ -214,14 +214,6 @@ BOOST_AUTO_TEST_CASE(testAssembleStreamImageYUVandRGBA)
         indices = assembler.computeVisibleSet(QRectF{0, 0, 640, 900});
         BOOST_CHECK_EQUAL(indices.size(), 4);
 
-        // Check format
-        deflect::SegmentDecoder decoder;
-        for (auto tileIndex : indices)
-        {
-            BOOST_CHECK_EQUAL((int)assembler.getTileFormat(tileIndex, decoder),
-                              (int)textureFormat);
-        }
-
         // Check rectangles
         BOOST_CHECK_EQUAL(assembler.getTileRect(0), QRect(0, 0, 512, 512));
         BOOST_CHECK_EQUAL(assembler.getTileRect(1),
@@ -232,6 +224,7 @@ BOOST_AUTO_TEST_CASE(testAssembleStreamImageYUVandRGBA)
                           QRect(512, 512, 640 - 512, 900 - 512));
 
         // Check images
+        deflect::SegmentDecoder decoder;
         const auto image0 = assembler.getTileImage(0, decoder);
         BOOST_CHECK_EQUAL(image0->getWidth(), 512);
         BOOST_CHECK_EQUAL(image0->getHeight(), 512);

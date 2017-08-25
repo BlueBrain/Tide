@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,28 +37,57 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef QUADLINENODE_H
-#define QUADLINENODE_H
+#ifndef TEXTURENODERGBA_H
+#define TEXTURENODERGBA_H
 
-#include <QSGGeometryNode>
+#include "TextureNode.h"
+
+#include <QOpenGLBuffer>
+#include <QSGSimpleTextureNode>
+#include <memory>
+
+class QQuickWindow;
 
 /**
- * A line quad to draw rectangle borders.
+ * A node with a double buffered texture.
+ *
+ * Initially it displays an empty black texture (id 0). Users can upload data
+ * asynchronously to the texture and call swap() on the next frame rendering to
+ * display the results.
+ *
+ * The texture can be either static or dynamic:
+ * * In the dynamic case, two PBOs are used for real-time texture updates.
+ * * In the static case, a single PBO is used for the initial texture upload and
+ *   then released in the first call to swap() so that no memory is wasted.
  */
-class QuadLineNode : public QSGGeometryNode
+class TextureNodeRGBA : public QSGSimpleTextureNode, public TextureNode
 {
 public:
-    /** Constructor. */
-    QuadLineNode(const QRectF& rect, qreal lineWidth, const QColor& color);
+    /**
+     * Create a textured rectangle for rendering RGBA images on the GPU.
+     * @param window a reference to the quick window for generating textures.
+     * @param dynamic true if the texture is going to be updated more than once.
+     */
+    TextureNodeRGBA(QQuickWindow& window, bool dynamic);
 
-    /** Set the geometry. */
-    void setRect(const QRectF& rect);
+    /** @sa QSGOpaqueTextureMaterial::setMipmapFiltering */
+    void setMipmapFiltering(QSGTexture::Filtering filtering);
 
-    /** Set the line width. */
-    void setLineWidth(qreal width);
+    QRectF getCoord() const final { return rect(); }
+    void setCoord(const QRectF& coord) final { setRect(coord); }
+    void updateBackTexture(const Image& image) final;
+    void swap() final;
 
-    /** Set the color of the lines. */
-    void setColor(const QColor& color);
+private:
+    QQuickWindow& _window;
+    bool _dynamicTexture = false;
+
+    std::unique_ptr<QSGTexture> _texture;
+    std::unique_ptr<QOpenGLBuffer> _frontPbo;
+    std::unique_ptr<QOpenGLBuffer> _backPbo;
+
+    QSize _nextTextureSize;
+    uint _glImageFormat = 0;
 };
 
 #endif

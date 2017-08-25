@@ -102,11 +102,6 @@ QRect PixelStreamUpdater::getTileRect(const uint tileIndex) const
     return _processorLeft->getTileRect(tileIndex);
 }
 
-TextureFormat PixelStreamUpdater::getTileFormat(const uint tileIndex) const
-{
-    return _processorLeft->getTileFormat(tileIndex, *_headerDecoder);
-}
-
 QSize PixelStreamUpdater::getTilesArea(const uint lod) const
 {
     Q_UNUSED(lod);

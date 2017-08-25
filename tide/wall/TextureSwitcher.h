@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,28 +37,48 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef QUADLINENODE_H
-#define QUADLINENODE_H
+#ifndef TEXTURESWITCHER_H
+#define TEXTURESWITCHER_H
 
-#include <QSGGeometryNode>
+#include "TextureNodeFactory.h"
 
 /**
- * A line quad to draw rectangle borders.
+ * Swap double-buffered textures of various types during rendering.
  */
-class QuadLineNode : public QSGGeometryNode
+class TextureSwitcher
 {
 public:
-    /** Constructor. */
-    QuadLineNode(const QRectF& rect, qreal lineWidth, const QColor& color);
+    /** Set the image used to update the back texture in the next update(). */
+    void setNextImage(ImagePtr image);
 
-    /** Set the geometry. */
-    void setRect(const QRectF& rect);
+    /** Request a swap of the front/back textures in the next update(). */
+    void requestSwap();
 
-    /** Set the line width. */
-    void setLineWidth(qreal width);
+    /**
+     * Update and/or swap a texture node, (re-)creating it if needed.
+     * @param node to update with the given image, swapping its front/back
+     *        textures if requested with requestSwap(). The node is reset if the
+     *        image format has changed.
+     * @param factory to create appropriate nodes for the image type.
+     */
+    void update(std::unique_ptr<TextureNode>& node,
+                TextureNodeFactory& factory);
 
-    /** Set the color of the lines. */
-    void setColor(const QColor& color);
+    virtual ~TextureSwitcher() = default;
+
+private:
+    bool _swapRequested = false;
+    bool _swapPossible = false;
+    ImagePtr _image;
+    TextureFormat _format = TextureFormat::rgba;
+    std::unique_ptr<TextureNode> _nextNode;
+
+    virtual void aboutToSwitch(TextureNode&, TextureNode&) {}
+    bool _canSwap() const;
+    void _swap(std::unique_ptr<TextureNode>& node);
+    bool _needToChangeNextNode(const TextureNodeFactory& factory);
+    void _createNextNode(TextureNodeFactory& factory);
+    void _uploadImage(TextureNode& node);
 };
 
 #endif

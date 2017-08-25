@@ -37,47 +37,70 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "PixelStreamPassthrough.h"
+#define BOOST_TEST_MODULE TextureNodeFactoryTests
 
-#include "StreamImage.h"
+#include <boost/test/unit_test.hpp>
 
-#include <deflect/Frame.h>
-#include <deflect/SegmentDecoder.h>
+#include "TextureNodeFactory.h"
+#include "TextureNodeRGBA.h"
+#include "TextureNodeYUV.h"
 
-PixelStreamPassthrough::PixelStreamPassthrough(deflect::FramePtr frame)
-    : _frame(frame)
+#include "QGuiAppFixture.h"
+
+BOOST_FIXTURE_TEST_CASE(need_to_change_texture_node_type_between_rgba_and_yuv,
+                        QQuickWindowFixture)
 {
+    if (!window)
+        return;
+
+    TextureNodeFactoryImpl f{*window, TextureType::Static};
+    using TF = TextureFormat;
+
+    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::rgba, TF::rgba), false);
+    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::rgba, TF::yuv420), true);
+    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::rgba, TF::yuv422), true);
+    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::rgba, TF::yuv444), true);
+
+    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv420, TF::rgba), true);
+    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv420, TF::yuv420), false);
+    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv420, TF::yuv422), false);
+    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv420, TF::yuv444), false);
+
+    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv422, TF::rgba), true);
+    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv422, TF::yuv420), false);
+    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv422, TF::yuv422), false);
+    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv422, TF::yuv444), false);
+
+    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv444, TF::rgba), true);
+    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv444, TF::yuv420), false);
+    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv444, TF::yuv422), false);
+    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv444, TF::yuv444), false);
 }
 
-ImagePtr PixelStreamPassthrough::getTileImage(const uint tileIndex,
-                                              deflect::SegmentDecoder& decoder)
+BOOST_FIXTURE_TEST_CASE(create_static_texture_nodes, QQuickWindowFixture)
 {
-    auto& segment = _frame->segments.at(tileIndex);
-    if (segment.parameters.dataType == deflect::DataType::jpeg)
-    {
-#ifndef DEFLECT_USE_LEGACY_LIBJPEGTURBO
-        decoder.decodeToYUV(segment);
-#else
-        decoder.decode(segment);
-#endif
-    }
-    return std::make_shared<StreamImage>(_frame, tileIndex);
+    if (!window)
+        return;
+
+    TextureNodeFactoryImpl f{*window, TextureType::Static};
+    using TF = TextureFormat;
+
+    BOOST_CHECK(dynamic_cast<TextureNodeRGBA*>(f.create(TF::rgba).get()));
+    BOOST_CHECK(dynamic_cast<TextureNodeYUV*>(f.create(TF::yuv420).get()));
+    BOOST_CHECK(dynamic_cast<TextureNodeYUV*>(f.create(TF::yuv422).get()));
+    BOOST_CHECK(dynamic_cast<TextureNodeYUV*>(f.create(TF::yuv444).get()));
 }
 
-QRect PixelStreamPassthrough::getTileRect(const uint tileIndex) const
+BOOST_FIXTURE_TEST_CASE(create_dynamic_texture_nodes, QQuickWindowFixture)
 {
-    return toRect(_frame->segments.at(tileIndex).parameters);
-}
+    if (!window)
+        return;
 
-Indices PixelStreamPassthrough::computeVisibleSet(
-    const QRectF& visibleTilesArea) const
-{
-    Indices visibleSet;
-    for (size_t i = 0; i < _frame->segments.size(); ++i)
-    {
-        const auto segmentRect = toRect(_frame->segments[i].parameters);
-        if (visibleTilesArea.intersects(segmentRect))
-            visibleSet.insert(i);
-    }
-    return visibleSet;
+    TextureNodeFactoryImpl f{*window, TextureType::Dynamic};
+    using TF = TextureFormat;
+
+    BOOST_CHECK(dynamic_cast<TextureNodeRGBA*>(f.create(TF::rgba).get()));
+    BOOST_CHECK(dynamic_cast<TextureNodeYUV*>(f.create(TF::yuv420).get()));
+    BOOST_CHECK(dynamic_cast<TextureNodeYUV*>(f.create(TF::yuv422).get()));
+    BOOST_CHECK(dynamic_cast<TextureNodeYUV*>(f.create(TF::yuv444).get()));
 }

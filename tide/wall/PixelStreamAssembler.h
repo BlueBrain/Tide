@@ -66,10 +66,6 @@ public:
     /** @copydoc PixelStreamProcessor::getTileRect */
     QRect getTileRect(uint tileIndex) const final;
 
-    /** @copydoc PixelStreamProcessor::getTileFormat */
-    TextureFormat getTileFormat(uint tileIndex,
-                                deflect::SegmentDecoder& decoder) const final;
-
     /** @copydoc PixelStreamProcessor::computeVisibleSet */
     Indices computeVisibleSet(const QRectF& visibleTilesArea) const final;
 

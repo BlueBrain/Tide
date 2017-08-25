@@ -42,53 +42,25 @@
 
 #include "types.h"
 
-#include <QOpenGLBuffer>
-#include <QSGSimpleTextureNode>
-#include <memory>
-
-class QQuickWindow;
-
 /**
- * A node with a double buffered texture.
- *
- * Initially it displays an empty black texture (id 0). Users can upload data
- * asynchronously to the texture and call swap() on the next frame rendering to
- * display the results.
- *
- * The texture can be either static or dynamic:
- * * In the dynamic case, two PBOs are used for real-time texture updates.
- * * In the static case, a single PBO is used for the initial texture upload and
- *   then released in the first call to swap() so that no memory is wasted.
+ * An abstract node with a double buffered texture.
  */
-class TextureNode : public QSGSimpleTextureNode
+class TextureNode
 {
 public:
-    /**
-     * Create a textured rectangle for rendering RGBA images on the GPU.
-     * @param window a reference to the quick window for generating textures.
-     * @param dynamic true if the texture is going to be updated more than once.
-     */
-    TextureNode(QQuickWindow* window, bool dynamic);
+    virtual ~TextureNode() = default;
 
-    /** @sa QSGOpaqueTextureMaterial::setMipmapFiltering */
-    void setMipmapFiltering(QSGTexture::Filtering filtering);
+    /** @return the surface of the node. */
+    virtual QRectF getCoord() const = 0;
+
+    /** Set the surface of the node. */
+    virtual void setCoord(const QRectF& coord) = 0;
 
     /** Upload the given image to the back PBO. */
-    void updateBackTexture(const Image& image);
+    virtual void updateBackTexture(const Image& image) = 0;
 
     /** Swap the PBOs and update the texture with the back PBO's contents. */
-    void swap();
-
-private:
-    QQuickWindow* _window = nullptr;
-    bool _dynamicTexture = false;
-
-    std::unique_ptr<QSGTexture> _texture;
-    std::unique_ptr<QOpenGLBuffer> _frontPbo;
-    std::unique_ptr<QOpenGLBuffer> _backPbo;
-
-    QSize _nextTextureSize;
-    uint _glImageFormat = 0;
+    virtual void swap() = 0;
 };
 
 #endif

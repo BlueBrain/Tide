@@ -55,9 +55,6 @@ public:
     /** @copydoc DataSource::getTileImage threadsafe */
     ImagePtr getTileImage(uint tileId, deflect::View view) const override;
 
-    /** @copydoc DataSource::getTileFormat threadsafe */
-    TextureFormat getTileFormat(uint tileId) const final;
-
     /** Check if the cache contains an image for a tile. */
     bool contains(uint tileId) const;
 

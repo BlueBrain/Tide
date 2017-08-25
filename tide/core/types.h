@@ -85,6 +85,15 @@ enum class SwapSync
     hardware
 };
 
+/**
+ * The different texture update policies.
+ */
+enum class TextureType
+{
+    Static,
+    Dynamic
+};
+
 class Configuration;
 class Content;
 class ContentSynchronizer;

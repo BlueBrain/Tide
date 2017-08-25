@@ -106,12 +106,6 @@ QRect MovieUpdater::getTileRect(const uint tileIndex) const
     return QRect(0, 0, _ffmpegMovie->getWidth(), _ffmpegMovie->getHeight());
 }
 
-TextureFormat MovieUpdater::getTileFormat(const uint tileIndex) const
-{
-    Q_UNUSED(tileIndex);
-    return _ffmpegMovie->getFormat();
-}
-
 QSize MovieUpdater::getTilesArea(const uint lod) const
 {
     Q_UNUSED(lod);

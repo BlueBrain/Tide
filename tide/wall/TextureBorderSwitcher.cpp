@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,28 +37,60 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef QUADLINENODE_H
-#define QUADLINENODE_H
+#include "TextureBorderSwitcher.h"
 
-#include <QSGGeometryNode>
+#include "QuadLineNode.h"
 
-/**
- * A line quad to draw rectangle borders.
- */
-class QuadLineNode : public QSGGeometryNode
+#include <QColor>
+#include <QSGNode>
+
+namespace
 {
-public:
-    /** Constructor. */
-    QuadLineNode(const QRectF& rect, qreal lineWidth, const QColor& color);
+const qreal borderWidth = 10.0;
+const QColor borderColor("lightgreen");
 
-    /** Set the geometry. */
-    void setRect(const QRectF& rect);
+QuadLineNode* _makeBorder(const QRectF& coordinates)
+{
+    return new QuadLineNode(coordinates, borderWidth, borderColor);
+}
+}
 
-    /** Set the line width. */
-    void setLineWidth(qreal width);
+void TextureBorderSwitcher::updateBorderNode(TextureNode& textureNode)
+{
+    if (showBorder)
+    {
+        if (_border)
+            _border->setRect(textureNode.getCoord());
+        else
+        {
+            _border = _makeBorder(textureNode.getCoord());
+            _addBorder(textureNode);
+        }
+    }
+    else if (_border)
+    {
+        _removeBorder(textureNode);
+        delete _border;
+        _border = nullptr;
+    }
+}
 
-    /** Set the color of the lines. */
-    void setColor(const QColor& color);
-};
+void TextureBorderSwitcher::aboutToSwitch(TextureNode& oldNode,
+                                          TextureNode& newNode)
+{
+    if (!_border)
+        return;
 
-#endif
+    _removeBorder(oldNode);
+    _addBorder(newNode);
+}
+
+void TextureBorderSwitcher::_addBorder(TextureNode& node)
+{
+    dynamic_cast<QSGNode&>(node).appendChildNode(_border);
+}
+
+void TextureBorderSwitcher::_removeBorder(TextureNode& node)
+{
+    dynamic_cast<QSGNode&>(node).removeChildNode(_border);
+}

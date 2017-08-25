@@ -70,17 +70,16 @@ void TiledSynchronizer::updateTiles()
 
     for (auto i : addedTiles)
     {
-        const auto type = source.isDynamic() ? Tile::TextureType::Dynamic
-                                             : Tile::TextureType::Static;
-        emit addTile(std::make_shared<Tile>(i, source.getTileRect(i),
-                                            source.getTileFormat(i), type));
+        const auto type =
+            source.isDynamic() ? TextureType::Dynamic : TextureType::Static;
+        emit addTile(Tile::create(i, source.getTileRect(i), type));
     }
 
     if (_updateExistingTiles)
     {
         const Indices currentTiles = set_difference(_visibleSet, removedTiles);
         for (auto i : currentTiles)
-            emit updateTile(i, source.getTileRect(i), source.getTileFormat(i));
+            emit updateTile(i, source.getTileRect(i));
     }
 
     if (_policy == SwapTilesSynchronously)
