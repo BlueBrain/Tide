@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,28 +37,37 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef QUADLINENODE_H
-#define QUADLINENODE_H
+#include "TextureNodeFactory.h"
 
-#include <QSGGeometryNode>
+#include "TextureNodeRGBA.h"
+#include "TextureNodeYUV.h"
 
-/**
- * A line quad to draw rectangle borders.
- */
-class QuadLineNode : public QSGGeometryNode
+std::unique_ptr<TextureNode> TextureNodeFactoryImpl::create(
+    const TextureFormat format)
 {
-public:
-    /** Constructor. */
-    QuadLineNode(const QRectF& rect, qreal lineWidth, const QColor& color);
+    const auto dynamic = _type == TextureType::Dynamic;
+    switch (format)
+    {
+    case TextureFormat::rgba:
+        return make_unique<TextureNodeRGBA>(_window, dynamic);
+    case TextureFormat::yuv444:
+    case TextureFormat::yuv422:
+    case TextureFormat::yuv420:
+        return make_unique<TextureNodeYUV>(_window, dynamic);
+    default:
+        throw std::runtime_error("unsupported texture format");
+    }
+}
 
-    /** Set the geometry. */
-    void setRect(const QRectF& rect);
+TextureNodeFactoryImpl::TextureNodeFactoryImpl(QQuickWindow& window,
+                                               const TextureType type)
+    : _window{window}
+    , _type{type}
+{
+}
 
-    /** Set the line width. */
-    void setLineWidth(qreal width);
-
-    /** Set the color of the lines. */
-    void setColor(const QColor& color);
-};
-
-#endif
+bool TextureNodeFactoryImpl::needToChangeNodeType(TextureFormat a,
+                                                  TextureFormat b) const
+{
+    return a != b && (a == TextureFormat::rgba || b == TextureFormat::rgba);
+}

@@ -40,8 +40,10 @@
 #ifndef QGUIAPPFIXTURE_H
 #define QGUIAPPFIXTURE_H
 
-#include <QGuiApplication>
 #include <boost/test/unit_test.hpp>
+
+#include <QGuiApplication>
+#include <QQuickWindow>
 
 #include "glxDisplay.h"
 
@@ -64,6 +66,16 @@ struct QWindowFixture : QGuiAppFixture
 
     QWindowFixture()
         : window{app ? new QWindow : nullptr}
+    {
+    }
+};
+
+struct QQuickWindowFixture : QGuiAppFixture
+{
+    std::unique_ptr<QQuickWindow> window;
+
+    QQuickWindowFixture()
+        : window{app ? new QQuickWindow : nullptr}
     {
     }
 };

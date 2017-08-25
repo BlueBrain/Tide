@@ -73,5 +73,5 @@ TilePtr PDFSynchronizer::getZoomContextTile() const
 {
     const auto tileId = _source->getPreviewTileId();
     const auto rect = getDataSource().getTileRect(tileId);
-    return std::make_shared<Tile>(tileId, rect);
+    return Tile::create(tileId, rect);
 }

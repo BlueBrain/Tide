@@ -92,7 +92,7 @@ void BasicSynchronizer::onSwapReady(TilePtr tile)
 
 TilePtr BasicSynchronizer::getZoomContextTile() const
 {
-    return std::make_shared<Tile>(0, getDataSource().getTileRect(0));
+    return Tile::create(0, getDataSource().getTileRect(0));
 }
 
 void BasicSynchronizer::_createTile()
@@ -102,8 +102,7 @@ void BasicSynchronizer::_createTile()
 
     _tileAdded = true;
     _addTile = false;
-    emit addTile(std::make_shared<Tile>(0, QRect(QPoint(), getTilesArea()),
-                                        getDataSource().getTileFormat(0)));
+    emit addTile(Tile::create(0, QRect(QPoint(), getTilesArea())));
     emit tilesAreaChanged();
 }
 

@@ -58,12 +58,6 @@ ImagePtr CachedDataSource::getTileImage(const uint tileId, deflect::View) const
     return std::make_shared<QtImage>(image);
 }
 
-TextureFormat CachedDataSource::getTileFormat(const uint tileId) const
-{
-    Q_UNUSED(tileId);
-    return TextureFormat::rgba;
-}
-
 bool CachedDataSource::contains(const uint tileId) const
 {
     const QMutexLocker lock(&_mutex);

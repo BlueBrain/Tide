@@ -37,24 +37,25 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "TextureNode.h"
+#include "TextureNodeRGBA.h"
 
 #include "data/Image.h"
 #include "textureUtils.h"
 
 #include <QQuickWindow>
 
-TextureNode::TextureNode(QQuickWindow* window, const bool dynamic)
+TextureNodeRGBA::TextureNodeRGBA(QQuickWindow& window, const bool dynamic)
     : _window(window)
     , _dynamicTexture(dynamic)
-    , _texture(window->createTextureFromId(0, QSize(1, 1)))
+    , _texture(window.createTextureFromId(0, QSize(1, 1)))
 {
-    setTexture(_texture.get());
+    if (_texture) // needed for null texture in unit tests without a scene graph
+        setTexture(_texture.get());
     setFiltering(QSGTexture::Linear);
     setMipmapFiltering(QSGTexture::Linear);
 }
 
-void TextureNode::setMipmapFiltering(const QSGTexture::Filtering filtering_)
+void TextureNodeRGBA::setMipmapFiltering(const QSGTexture::Filtering filtering_)
 {
     auto mat = static_cast<QSGOpaqueTextureMaterial*>(material());
     auto opaqueMat = static_cast<QSGOpaqueTextureMaterial*>(opaqueMaterial());
@@ -63,7 +64,7 @@ void TextureNode::setMipmapFiltering(const QSGTexture::Filtering filtering_)
     opaqueMat->setMipmapFiltering(filtering_);
 }
 
-void TextureNode::updateBackTexture(const Image& image)
+void TextureNodeRGBA::updateBackTexture(const Image& image)
 {
     if (!image.getTextureSize().isValid())
         throw std::runtime_error("image texture has invalid size");
@@ -77,10 +78,10 @@ void TextureNode::updateBackTexture(const Image& image)
     _glImageFormat = image.getGLPixelFormat();
 }
 
-void TextureNode::swap()
+void TextureNodeRGBA::swap()
 {
     if (_texture->textureSize() != _nextTextureSize)
-        _texture = textureUtils::createTextureRgba(_nextTextureSize, *_window);
+        _texture = textureUtils::createTextureRgba(_nextTextureSize, _window);
 
     std::swap(_frontPbo, _backPbo);
     textureUtils::copy(*_frontPbo, *_texture, _glImageFormat);

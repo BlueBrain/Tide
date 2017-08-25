@@ -39,8 +39,7 @@
 
 #include "PixelStreamProcessor.h"
 
-#include <deflect/Segment.h>
-#include <deflect/SegmentDecoder.h>
+#include <deflect/SegmentParameters.h>
 
 PixelStreamProcessor::~PixelStreamProcessor()
 {
@@ -50,38 +49,4 @@ QRect PixelStreamProcessor::toRect(
     const deflect::SegmentParameters& params) const
 {
     return QRect(params.x, params.y, params.width, params.height);
-}
-
-TextureFormat PixelStreamProcessor::getFormat(
-    const deflect::Segment& segment, deflect::SegmentDecoder& decoder) const
-{
-#ifndef DEFLECT_USE_LEGACY_LIBJPEGTURBO
-    switch (segment.parameters.dataType)
-    {
-    case deflect::DataType::rgba:
-        return TextureFormat::rgba;
-    case deflect::DataType::yuv444:
-        return TextureFormat::yuv444;
-    case deflect::DataType::yuv422:
-        return TextureFormat::yuv422;
-    case deflect::DataType::yuv420:
-        return TextureFormat::yuv420;
-    case deflect::DataType::jpeg:
-        switch (decoder.decodeType(segment))
-        {
-        case deflect::ChromaSubsampling::YUV444:
-            return TextureFormat::yuv444;
-        case deflect::ChromaSubsampling::YUV422:
-            return TextureFormat::yuv422;
-        case deflect::ChromaSubsampling::YUV420:
-            return TextureFormat::yuv420;
-        }
-    default:
-        throw std::runtime_error("Invalid data type for Tile");
-    }
-#else
-    Q_UNUSED(segment);
-    Q_UNUSED(decoder);
-    return TextureFormat::rgba;
-#endif
 }

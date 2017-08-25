@@ -42,10 +42,10 @@
 
 #include "types.h"
 
-#include <QQuickItem>
-#include <memory> // std::enable_shared_from_this
+#include "TextureBorderSwitcher.h"
 
-class QuadLineNode;
+#include <QQuickItem> // parent
+#include <memory>     // std::enable_shared_from_this
 
 /**
  * Qml item to render an image tile with texture double-buffering.
@@ -66,27 +66,17 @@ public:
         FillParent
     };
 
-    enum class TextureType
-    {
-        Static,
-        Dynamic
-    };
-
     /**
-     * Constructor
-     * @param id the unique identifier for this tile
-     * @param rect the nominal size of the tile's texture
-     * @param format the texture format to use for rendering
-     * @param type the type of texture
+     * Create a shared Tile.
+     * @param id the unique identifier for the tile
+     * @param rect the nominal coordinates of the tile
+     * @param type the type of texture (static/dynamic)
      */
-    Tile(uint id, const QRect& rect, TextureFormat format = TextureFormat::rgba,
-         TextureType type = TextureType::Static);
+    static TilePtr create(uint id, const QRect& rect,
+                          TextureType type = TextureType::Static);
 
     /** @return the unique identifier for this tile. */
     uint getId() const;
-
-    /** @return the texture format for this tile. */
-    TextureFormat getFormat() const;
 
     /** @return true if this tile displays its borders. */
     bool getShowBorder() const;
@@ -94,10 +84,8 @@ public:
     /**
      * Request an update of the back texture, resing it if necessary.
      * @param rect the new size for the back texture.
-     * @param format the new format for the back texture. Changing between RGBA
-     *        and YUV texture formats is not allowed.
      */
-    void update(const QRect& rect, TextureFormat format);
+    void update(const QRect& rect);
 
     /**
      * Set the size policy.
@@ -130,30 +118,19 @@ signals:
     /** Notify that the back texture has been updated and it can be swapped. */
     void readyToSwap(TilePtr tile);
 
-protected:
-    /** Called on the render thread to update the scene graph. */
-    QSGNode* updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData*) override;
-
 private:
-    const uint _tileId;
-    TextureFormat _format;
-    TextureType _type;
-    SizePolicy _policy;
+    const uint _tileId = 0;
+    TextureType _type = TextureType::Static;
+    SizePolicy _policy = AdjustToTexture;
 
-    bool _swapRequested = false;
-    QRect _nextCoord;
-    ImagePtr _image;
     bool _firstImageUploaded = false;
+    QRect _nextCoord;
+    TextureBorderSwitcher _textureSwitcher;
 
-    bool _showBorder = false;
-    QuadLineNode* _border = nullptr; // Child QObject
+    Tile(uint id, const QRect& rect, TextureType type);
 
-    template <class NodeT>
-    QSGNode* _updateTextureNode(QSGNode* oldNode);
-
-    template <class NodeT>
-    void _updateBorderNode(NodeT* parentNode);
-
+    /** Called on the render thread to update the scene graph. */
+    QSGNode* updatePaintNode(QSGNode* oldNode, UpdatePaintNodeData*) final;
     void _onParentChanged(QQuickItem* newParent);
 
     QMetaObject::Connection _widthConn;

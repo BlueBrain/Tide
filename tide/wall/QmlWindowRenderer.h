@@ -72,8 +72,7 @@ private slots:
     void _addTile(TilePtr tile);
     void _createZoomContextTile();
     void _removeTile(uint tileIndex);
-    void _updateTile(uint tileIndex, const QRect& coordinates,
-                     TextureFormat format);
+    void _updateTile(uint tileIndex, const QRect& coordinates);
 
 private:
     ContentSynchronizerSharedPtr _synchronizer;
