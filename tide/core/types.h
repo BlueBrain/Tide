@@ -67,13 +67,22 @@ enum class TextureFormat
 };
 
 /**
- * The power state of Planar displays.
+ * The power state of the wall's displays.
  */
 enum class ScreenState
 {
     ON,
     OFF,
     UNDEF
+};
+
+/**
+ * The methods for synchronizing the GL buffer swap.
+ */
+enum class SwapSync
+{
+    software,
+    hardware
 };
 
 class Configuration;
@@ -99,10 +108,13 @@ class MasterConfiguration;
 class MovieContent;
 class MovieUpdater;
 class MPIChannel;
+class NetworkBarrier;
 class Options;
 class PDFContent;
 class PixelStreamUpdater;
 class PixelStreamWindowManager;
+class SharedNetworkBarrier;
+class SwapSynchronizer;
 class TestPattern;
 class Tile;
 class WallConfiguration;

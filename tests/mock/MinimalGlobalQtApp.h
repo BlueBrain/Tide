@@ -41,24 +41,19 @@
 #define MINIMALGLOBALQTAPP_H
 
 #include <QCoreApplication>
-#include <boost/noncopyable.hpp>
 #include <boost/test/unit_test.hpp>
 
 // We need a global fixture because a bug in QApplication prevents
 // deleting then recreating a QApplication in the same process.
 // https://bugreports.qt-project.org/browse/QTBUG-7104
-struct MinimalGlobalQtApp : public boost::noncopyable
+struct MinimalGlobalQtApp
 {
     MinimalGlobalQtApp()
-        : app(0)
     {
-        // need QApplication to instantiate WebkitPixelStreamer
-        namespace ut = boost::unit_test;
-        ut::master_test_suite_t& testSuite = ut::framework::master_test_suite();
-        app = new QCoreApplication(testSuite.argc, testSuite.argv);
+        auto& testSuite = boost::unit_test::framework::master_test_suite();
+        app.reset(new QCoreApplication(testSuite.argc, testSuite.argv));
     }
-    virtual ~MinimalGlobalQtApp() { delete app; }
-    QCoreApplication* app;
+    std::unique_ptr<QCoreApplication> app;
 };
 
 #endif

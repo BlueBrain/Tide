@@ -11,6 +11,10 @@ set(TIDEWALL_LINK_LIBRARIES
     DeflectQt
 )
 
+if(TARGET Qt5::X11Extras)
+  list(APPEND TIDEWALL_LINK_LIBRARIES PRIVATE Qt5::X11Extras)
+endif()
+
 if(TIDE_ENABLE_MOVIE_SUPPORT)
   list(APPEND TIDEWALL_PUBLIC_HEADERS
     MovieSynchronizer.h
@@ -51,6 +55,7 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   DisplayGroupRenderer.h
   ElapsedTimer.h
   FpsCounter.h
+  HardwareSwapGroup.h
   ImageSource.h
   LodSynchronizer.h
   LodTiler.h
@@ -70,6 +75,9 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   StreamImage.h
   SVGGpuImage.h
   SVGTiler.h
+  SwapSynchronizer.h
+  SwapSynchronizerHardware.h
+  SwapSynchronizerSoftware.h
   TestPattern.h
   TextureNode.h
   TextureNodeYUV.h
@@ -79,7 +87,6 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   VisibilityHelper.h
   WallApplication.h
   WallConfiguration.h
-  WallSynchronizer.h
   WallWindow.h
 )
 
@@ -90,6 +97,7 @@ list(APPEND TIDEWALL_SOURCES
   DisplayGroupRenderer.cpp
   ElapsedTimer.cpp
   FpsCounter.cpp
+  HardwareSwapGroup.cpp
   ImageSource.cpp
   LodSynchronizer.cpp
   LodTiler.cpp
@@ -109,6 +117,9 @@ list(APPEND TIDEWALL_SOURCES
   StreamImage.cpp
   SVGGpuImage.cpp
   SVGTiler.cpp
+  SwapSynchronizer.cpp
+  SwapSynchronizerHardware.cpp
+  SwapSynchronizerSoftware.cpp
   TestPattern.cpp
   TextureNode.cpp
   TextureNodeYUV.cpp
@@ -118,7 +129,6 @@ list(APPEND TIDEWALL_SOURCES
   VisibilityHelper.cpp
   WallApplication.cpp
   WallConfiguration.cpp
-  WallSynchronizer.cpp
   WallWindow.cpp
   resources/wall.qrc
 )

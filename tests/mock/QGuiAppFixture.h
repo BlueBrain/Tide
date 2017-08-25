@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,28 +37,35 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef GLOBALQTAPP_H
-#define GLOBALQTAPP_H
+#ifndef QGUIAPPFIXTURE_H
+#define QGUIAPPFIXTURE_H
 
-#include <QApplication>
+#include <QGuiApplication>
 #include <boost/test/unit_test.hpp>
 
 #include "glxDisplay.h"
 
-// We need a global fixture because a bug in QApplication prevents
-// deleting then recreating a QApplication in the same process.
-// https://bugreports.qt-project.org/browse/QTBUG-7104
-struct GlobalQtApp
+struct QGuiAppFixture
 {
-    GlobalQtApp()
+    QGuiAppFixture()
     {
         if (!hasGLXDisplay())
             return;
 
         auto& testSuite = boost::unit_test::framework::master_test_suite();
-        app.reset(new QApplication(testSuite.argc, testSuite.argv));
+        app.reset(new QGuiApplication(testSuite.argc, testSuite.argv));
     }
-    std::unique_ptr<QApplication> app;
+    std::unique_ptr<QGuiApplication> app;
+};
+
+struct QWindowFixture : QGuiAppFixture
+{
+    std::unique_ptr<QWindow> window;
+
+    QWindowFixture()
+        : window{app ? new QWindow : nullptr}
+    {
+    }
 };
 
 #endif

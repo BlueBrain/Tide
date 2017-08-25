@@ -49,6 +49,7 @@
 #include <QDir>
 
 // clang-format off
+#define CONFIG_TEST_FILENAME_EMPTY "./configuration_empty.xml"
 #define CONFIG_TEST_FILENAME "./configuration.xml"
 #define CONFIG_TEST_FILENAME_II "./configuration_default.xml"
 #define CONFIG_TEST_FILENAME_STEREO "./configuration_stereo.xml"
@@ -77,8 +78,46 @@
 
 BOOST_GLOBAL_FIXTURE(MinimalGlobalQtApp);
 
-void testBaseParameters(const Configuration& config)
+BOOST_AUTO_TEST_CASE(test_configuration_default_values)
 {
+    Configuration config(CONFIG_TEST_FILENAME_EMPTY);
+
+    BOOST_CHECK_EQUAL(config.getBezelsPerScreenX(), 0);
+    BOOST_CHECK_EQUAL(config.getBezelsPerScreenY(), 0);
+
+    BOOST_CHECK_EQUAL(config.getMullionHeight(), 0);
+    BOOST_CHECK_EQUAL(config.getMullionWidth(), 0);
+
+    BOOST_CHECK_EQUAL(config.getScreenHeight(), 0);
+    BOOST_CHECK_EQUAL(config.getScreenWidth(), 0);
+
+    BOOST_CHECK_EQUAL(config.getTotalHeight(), 0);
+    BOOST_CHECK_EQUAL(config.getTotalWidth(), 0);
+
+    BOOST_CHECK_EQUAL(config.getTotalSize(), QSize(0, 0));
+    BOOST_CHECK_EQUAL(config.getAspectRatio(), 0);
+
+    BOOST_CHECK_EQUAL(config.getTotalScreenCountX(), 0);
+    BOOST_CHECK_EQUAL(config.getTotalScreenCountY(), 0);
+
+    BOOST_CHECK_THROW(config.getScreenRect({0, 0}), std::invalid_argument);
+
+    BOOST_CHECK_EQUAL(config.getFullscreen(), false);
+    BOOST_CHECK_EQUAL((int)config.getSwapSync(), (int)SwapSync::software);
+}
+
+BOOST_AUTO_TEST_CASE(test_configuration_all_values)
+{
+    // Make sure the default values are strictly positive
+    BOOST_REQUIRE_GT(Content::getMaxScale(), 0.0);
+    BOOST_REQUIRE_GT(VectorialContent::getMaxScale(), 0.0);
+
+    // Make sure the values will be modified by loading the configuation file
+    BOOST_REQUIRE_NE(Content::getMaxScale(), 4.0);
+    BOOST_REQUIRE_NE(VectorialContent::getMaxScale(), 8.0);
+
+    Configuration config(CONFIG_TEST_FILENAME);
+
     BOOST_CHECK_EQUAL(config.getFullscreen(), true);
 
     BOOST_CHECK_EQUAL(config.getBezelsPerScreenX(), 0);
@@ -93,26 +132,16 @@ void testBaseParameters(const Configuration& config)
     BOOST_CHECK_EQUAL(config.getTotalHeight(), 3264);
     BOOST_CHECK_EQUAL(config.getTotalWidth(), 7694);
 
+    BOOST_CHECK_EQUAL(config.getTotalSize(), QSize(7694, 3264));
+    BOOST_CHECK_EQUAL(config.getAspectRatio(), 7694.0 / 3264.0);
+
     BOOST_CHECK_EQUAL(config.getTotalScreenCountX(), 2);
     BOOST_CHECK_EQUAL(config.getTotalScreenCountY(), 3);
 
     BOOST_CHECK_EQUAL(Content::getMaxScale(), 4.0);
     BOOST_CHECK_EQUAL(VectorialContent::getMaxScale(), 8.0);
-}
 
-BOOST_AUTO_TEST_CASE(test_configuration)
-{
-    // Make sure the values are modified by loading the configuation file
-    BOOST_REQUIRE_NE(Content::getMaxScale(), 4.0);
-    BOOST_REQUIRE_NE(VectorialContent::getMaxScale(), 8.0);
-
-    // Make sure the values are strictly positive
-    BOOST_REQUIRE_GT(Content::getMaxScale(), 0.0);
-    BOOST_REQUIRE_GT(VectorialContent::getMaxScale(), 0.0);
-
-    Configuration config(CONFIG_TEST_FILENAME);
-
-    testBaseParameters(config);
+    BOOST_CHECK_EQUAL((int)config.getSwapSync(), (int)SwapSync::hardware);
 }
 
 BOOST_AUTO_TEST_CASE(test_wall_configuration)

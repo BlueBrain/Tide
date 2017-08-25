@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,28 +37,54 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef GLOBALQTAPP_H
-#define GLOBALQTAPP_H
+#ifndef SWAPSYNCHRONIZERHARDWARE_H
+#define SWAPSYNCHRONIZERHARDWARE_H
 
-#include <QApplication>
-#include <boost/test/unit_test.hpp>
+#include "SwapSynchronizer.h"
 
-#include "glxDisplay.h"
+#include "HardwareSwapGroup.h"
+#include "network/SharedNetworkBarrier.h"
 
-// We need a global fixture because a bug in QApplication prevents
-// deleting then recreating a QApplication in the same process.
-// https://bugreports.qt-project.org/browse/QTBUG-7104
-struct GlobalQtApp
+// clang-format off
+/**
+ * Hardware swap synchonizer using GL extensions (for NVidia Quadro GSync card).
+ *
+ * Given the following setup:
+ *
+ * Node #1: process A {Left window, Right window}
+ * Node #2: process B {Left window, Right window}
+ *
+ * Where each window has its own (non-sharing) GLContext and render thread.
+ * The startup procedure is:
+ *                                      — global barrier —
+ * A-L joinSwapGroup(1) | A-R joinSwapGroup(1) || B-L joinSwapGroup(1) | B-R joinSwapGroup(1)
+ *            — A local barrier —              ||             — B local barrier —
+ *           A joinSwapBarrier(1,1)            ||            B joinSwapBarrier(1,1)
+ *                                      — global barrier —
+ *
+ * And the shutdown procedure is:
+ *                                      — global barrier —
+ *             A leaveSwapBarrier()            ||             B leaveSwapBarrier()
+ * A-L leaveSwapGroup() | A-R leaveSwapGroup() || B-L leaveSwapGroup() | B-R leaveSwapGroup()
+ *
+ * The {join|leave}SwapBarrier must be executed by a single GL context per
+ * machine.
+ */ // clang-format on
+class SwapSynchronizerHardware : public SwapSynchronizer
 {
-    GlobalQtApp()
-    {
-        if (!hasGLXDisplay())
-            return;
+public:
+    SwapSynchronizerHardware(NetworkBarrier& barrier, uint windowCount);
 
-        auto& testSuite = boost::unit_test::framework::master_test_suite();
-        app.reset(new QApplication(testSuite.argc, testSuite.argv));
-    }
-    std::unique_ptr<QApplication> app;
+    void globalBarrier(const QWindow& window) final;
+    void exitBarrier(const QWindow& window) final;
+
+private:
+    NetworkBarrier& _networkBarrier;
+    SharedNetworkBarrier _globalBarrier;
+    LocalBarrier _localBarrier;
+    uint _windowCount = 0;
+    HardwareSwapGroup _hardwareSwapGroup;
+    bool _initialized = false;
 };
 
 #endif
