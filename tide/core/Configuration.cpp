@@ -63,6 +63,7 @@ Configuration::Configuration(const QString& filename)
     , _mullionWidth(0)
     , _mullionHeight(0)
     , _fullscreen(false)
+    , _swapSync(SwapSync::software)
 {
     _load();
 }
@@ -116,6 +117,11 @@ void Configuration::_load()
     query.setQuery("string(/configuration/content/@maxScaleVectorial)");
     if (getDouble(query, value))
         VectorialContent::setMaxScale(value);
+
+    QString swapsync;
+    query.setQuery("string(/configuration/setup/@swapsync)");
+    if (getString(query, swapsync) && swapsync == "hardware")
+        _swapSync = SwapSync::hardware;
 }
 
 int Configuration::getTotalScreenCountX() const
@@ -167,6 +173,8 @@ QSize Configuration::getTotalSize() const
 
 double Configuration::getAspectRatio() const
 {
+    if (getTotalHeight() == 0)
+        return 0;
     return double(getTotalWidth()) / getTotalHeight();
 }
 
@@ -182,8 +190,11 @@ int Configuration::getBezelsPerScreenY() const
 
 QRect Configuration::getScreenRect(const QPoint& tileIndex) const
 {
-    assert(tileIndex.x() < _totalScreenCountX);
-    assert(tileIndex.y() < _totalScreenCountY);
+    if (tileIndex.x() < 0 || tileIndex.x() >= _totalScreenCountX ||
+        tileIndex.y() < 0 || tileIndex.y() >= _totalScreenCountY)
+    {
+        throw std::invalid_argument("tile index does not exist");
+    }
 
     const int xPos = tileIndex.x() * (_screenWidth + _mullionWidth);
     const int yPos = tileIndex.y() * (_screenHeight + _mullionHeight);
@@ -194,6 +205,11 @@ QRect Configuration::getScreenRect(const QPoint& tileIndex) const
 bool Configuration::getFullscreen() const
 {
     return _fullscreen;
+}
+
+SwapSync Configuration::getSwapSync() const
+{
+    return _swapSync;
 }
 
 bool Configuration::getDouble(const QXmlQuery& query, double& value) const

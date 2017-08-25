@@ -20,6 +20,7 @@ before_install:
   - brew install cppcheck doxygen ninja
   - brew install ffmpeg jpeg-turbo mpich qt5
   - brew install poppler --with-qt5
+  - brew install zeromq
 script:
   - mkdir $BUILD_TYPE
   - cd $BUILD_TYPE

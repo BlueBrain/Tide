@@ -37,30 +37,23 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef WALLSYNCHRONIZER_H
-#define WALLSYNCHRONIZER_H
+#include "LocalBarrier.h"
 
-#include "network/WallToWallChannel.h"
-
-#include <mutex>
-
-/**
- * Synchonize execution accross multiple wall windows and process.
- */
-class WallSynchronizer
+LocalBarrier::LocalBarrier(const unsigned int numThreads)
+    : _numThreads(numThreads)
 {
-public:
-    WallSynchronizer(WallToWallChannel& wallChannel, uint windowCount);
+}
 
-    void globalBarrier();
+void LocalBarrier::waitForAllThreadsThen(std::function<void()> action)
+{
+    std::unique_lock<std::mutex> lock(_mutex);
 
-private:
-    WallToWallChannel& _wallChannel;
-    uint _windowCount = 0;
-
-    std::mutex _mutex;
-    std::condition_variable _condition;
-    uint _barrierCount = 0;
-};
-
-#endif
+    if (++_participants < _numThreads)
+        _condition.wait(lock);
+    else
+    {
+        action();
+        _participants = 0;
+        _condition.notify_all();
+    }
+}

@@ -63,7 +63,6 @@ WallApplication::WallApplication(int& argc_, char** argv_,
     , _config{new WallConfiguration{config, worldChannel->getRank()}}
     , _provider{new DataProvider}
     , _wallChannel{new WallToWallChannel{wallChannel}}
-    , _synchronizer{*_wallChannel, (uint)_config->getScreens().size()}
 {
     core::registerQmlTypes();
 
@@ -109,15 +108,19 @@ void WallApplication::_initWallWindows()
         put_flog(LOG_FATAL, "Error creating WallWindow: '%s'", e.what());
         throw std::runtime_error("WallApplication: initialization failed.");
     }
-    _renderController.reset(
-        new RenderController(std::move(windows), *_provider, *_wallChannel));
+
+    const auto swapSync = _config->getSwapSync();
+    if (swapSync == SwapSync::hardware)
+        put_log(LOG_INFO, "Launching with hardware swap synchronization...");
+
+    _renderController.reset(new RenderController(std::move(windows), *_provider,
+                                                 *_wallChannel, swapSync));
 }
 
 WallWindow* WallApplication::_makeWindow(const uint screen)
 {
     return new WallWindow(*_config, screen, *_provider,
-                          make_unique<QQuickRenderControl>(this),
-                          _synchronizer);
+                          make_unique<QQuickRenderControl>(this));
 }
 
 void WallApplication::_initMPIConnection(MPIChannelPtr worldChannel)

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,28 +37,67 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef GLOBALQTAPP_H
-#define GLOBALQTAPP_H
+#define BOOST_TEST_MODULE LocalBarrierTests
 
-#include <QApplication>
 #include <boost/test/unit_test.hpp>
 
-#include "glxDisplay.h"
+#include "network/LocalBarrier.h"
 
-// We need a global fixture because a bug in QApplication prevents
-// deleting then recreating a QApplication in the same process.
-// https://bugreports.qt-project.org/browse/QTBUG-7104
-struct GlobalQtApp
+#include <atomic>
+#include <thread>
+
+struct Fixture
 {
-    GlobalQtApp()
+    std::atomic<int> caller = {0};
+    std::atomic<int> called = {0};
+    void action(const int value)
     {
-        if (!hasGLXDisplay())
-            return;
-
-        auto& testSuite = boost::unit_test::framework::master_test_suite();
-        app.reset(new QApplication(testSuite.argc, testSuite.argv));
+        caller = value;
+        ++called;
     }
-    std::unique_ptr<QApplication> app;
 };
 
-#endif
+BOOST_FIXTURE_TEST_CASE(testSingleThread, Fixture)
+{
+    LocalBarrier barrier{1};
+    barrier.waitForAllThreadsThen([&] { action(1); });
+    BOOST_CHECK_EQUAL(called, 1);
+    BOOST_CHECK_EQUAL(caller, 1);
+}
+
+BOOST_FIXTURE_TEST_CASE(testNoThreadIsSameAsSingleThread, Fixture)
+{
+    LocalBarrier barrier{0};
+    barrier.waitForAllThreadsThen([&] { action(1); });
+    BOOST_CHECK_EQUAL(called, 1);
+    BOOST_CHECK_EQUAL(caller, 1);
+}
+
+BOOST_FIXTURE_TEST_CASE(testTwoThreads, Fixture)
+{
+    LocalBarrier barrier{2};
+    std::thread t1{[&] { barrier.waitForAllThreadsThen([&] { action(1); }); }};
+    BOOST_CHECK_EQUAL(caller, 0);
+    std::thread t2{[&] { barrier.waitForAllThreadsThen([&] { action(2); }); }};
+    t1.join();
+    t2.join();
+    BOOST_CHECK_EQUAL(called, 1);
+    // The order in which the std::threads join the barrier is not guaranteed
+    BOOST_CHECK(caller == 1 || caller == 2);
+}
+
+BOOST_FIXTURE_TEST_CASE(testThreeThreads, Fixture)
+{
+    LocalBarrier barrier{3};
+    std::thread t3{[&] { barrier.waitForAllThreadsThen([&] { action(3); }); }};
+    BOOST_CHECK_EQUAL(caller, 0);
+    std::thread t1{[&] { barrier.waitForAllThreadsThen([&] { action(1); }); }};
+    BOOST_CHECK_EQUAL(caller, 0);
+    std::thread t2{[&] { barrier.waitForAllThreadsThen([&] { action(2); }); }};
+    t1.join();
+    t2.join();
+    t3.join();
+    BOOST_CHECK_EQUAL(called, 1);
+    // The order in which the std::threads join the barrier is not guaranteed
+    BOOST_CHECK(caller >= 1 && caller <= 3);
+}

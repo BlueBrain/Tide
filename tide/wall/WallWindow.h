@@ -40,7 +40,6 @@
 #ifndef WALLWINDOW_H
 #define WALLWINDOW_H
 
-#include "WallSynchronizer.h"
 #include "types.h"
 
 #include <QQuickWindow>
@@ -62,14 +61,19 @@ public:
      * @param windowIndex the index of the window for this process
      * @param provider the provider of data for the windows
      * @param renderControl the Qt render control for QML scene rendering
-     * @param synchronizer to synchronize swapBuffers()
      */
     WallWindow(const WallConfiguration& config, uint windowIndex,
                DataProvider& provider,
-               std::unique_ptr<QQuickRenderControl> renderControl,
-               WallSynchronizer& synchronizer);
+               std::unique_ptr<QQuickRenderControl> renderControl);
 
     ~WallWindow();
+
+    /**
+     * Set a swap synchronizer.
+     *
+     * @param optional synchronizer to synchronize swapBuffers()
+     */
+    void setSwapSynchronizer(SwapSynchronizer* synchronizer);
 
     bool isInitialized() const;
     bool needRedraw() const;
@@ -110,7 +114,7 @@ private:
 
     DataProvider& _provider;
     std::unique_ptr<QQuickRenderControl> _renderControl;
-    WallSynchronizer& _synchronizer;
+    SwapSynchronizer* _synchronizer = nullptr;
     bool _rendererInitialized = false;
     bool _grabImage = false;
 

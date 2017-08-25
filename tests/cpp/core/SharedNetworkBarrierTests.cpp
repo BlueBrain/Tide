@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>     */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,24 +37,64 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef MINIMALGLOBALQTAPPMPI_H
-#define MINIMALGLOBALQTAPPMPI_H
+#define BOOST_TEST_MODULE SharedNetworkBarrierTests
 
-#include "MinimalGlobalQtApp.h"
-#include <mpi.h>
+#include <boost/test/unit_test.hpp>
 
-// We need a global fixture because a bug in QApplication prevents
-// deleting then recreating a QApplication in the same process.
-// https://bugreports.qt-project.org/browse/QTBUG-7104
-struct MinimalGlobalQtAppMPI : public MinimalGlobalQtApp
+#include "network/SharedNetworkBarrier.h"
+
+#include "MockNetworkBarrier.h"
+
+#include <thread>
+
+struct Fixture
 {
-    MinimalGlobalQtAppMPI()
-        : MinimalGlobalQtApp()
-    {
-        ut::master_test_suite_t& testSuite = ut::framework::master_test_suite();
-        MPI_Init(&testSuite.argc, &testSuite.argv);
-    }
-    ~MinimalGlobalQtAppMPI() { MPI_Finalize(); }
+    MockNetworkBarrier networkBarrier;
 };
 
-#endif
+BOOST_FIXTURE_TEST_CASE(testSingleThread, Fixture)
+{
+    SharedNetworkBarrier barrier{networkBarrier, 1};
+    barrier.waitForAll();
+    BOOST_CHECK_EQUAL(networkBarrier.called, 1);
+}
+
+BOOST_FIXTURE_TEST_CASE(testNoThreadIsSameAsSingleThread, Fixture)
+{
+    SharedNetworkBarrier barrier{networkBarrier, 0};
+    barrier.waitForAll();
+    BOOST_CHECK_EQUAL(networkBarrier.called, 1);
+}
+
+BOOST_FIXTURE_TEST_CASE(testTwoThreads, Fixture)
+{
+    SharedNetworkBarrier barrier{networkBarrier, 2};
+    auto action = [&] {
+        barrier.waitForAll();
+        BOOST_CHECK_EQUAL(networkBarrier.called, 1);
+    };
+    std::thread t1{action};
+    BOOST_CHECK_EQUAL(networkBarrier.called, 0);
+    std::thread t2{action};
+    t1.join();
+    t2.join();
+    BOOST_CHECK_EQUAL(networkBarrier.called, 1);
+}
+
+BOOST_FIXTURE_TEST_CASE(testThreeThreads, Fixture)
+{
+    SharedNetworkBarrier barrier{networkBarrier, 3};
+    auto action = [&] {
+        barrier.waitForAll();
+        BOOST_CHECK_EQUAL(networkBarrier.called, 1);
+    };
+    std::thread t1{action};
+    BOOST_CHECK_EQUAL(networkBarrier.called, 0);
+    std::thread t2{action};
+    BOOST_CHECK_EQUAL(networkBarrier.called, 0);
+    std::thread t3{action};
+    t1.join();
+    t2.join();
+    t3.join();
+    BOOST_CHECK_EQUAL(networkBarrier.called, 1);
+}
