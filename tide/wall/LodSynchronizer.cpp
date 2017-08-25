@@ -87,7 +87,7 @@ QString LodSynchronizer::getStatistics() const
 TilePtr LodSynchronizer::getZoomContextTile() const
 {
     const auto rect = getDataSource().getTileRect(0);
-    return std::make_shared<Tile>(0, rect);
+    return Tile::create(0, rect);
 }
 
 void LodSynchronizer::update(const ContentWindow& window,
@@ -149,8 +149,7 @@ void LodSynchronizer::_setBackgroundTile(const uint tileId)
     if (_ignoreSet.empty())
     {
         _ignoreSet.insert(tileId);
-        auto tile =
-            std::make_shared<Tile>(tileId, getDataSource().getTileRect(tileId));
+        auto tile = Tile::create(tileId, getDataSource().getTileRect(tileId));
         tile->setSizePolicy(Tile::FillParent);
         emit addTile(tile);
     }

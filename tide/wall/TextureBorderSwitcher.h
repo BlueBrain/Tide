@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,28 +37,28 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef QUADLINENODE_H
-#define QUADLINENODE_H
+#ifndef TEXTUREBORDERSWITCHER_H
+#define TEXTUREBORDERSWITCHER_H
 
-#include <QSGGeometryNode>
+#include "TextureSwitcher.h"
+
+class QuadLineNode;
 
 /**
- * A line quad to draw rectangle borders.
+ * Texture switcher used to decorate a TextureNode with a border rectangle.
  */
-class QuadLineNode : public QSGGeometryNode
+class TextureBorderSwitcher : public TextureSwitcher
 {
 public:
-    /** Constructor. */
-    QuadLineNode(const QRectF& rect, qreal lineWidth, const QColor& color);
+    bool showBorder = false;
+    void updateBorderNode(TextureNode& parentNode);
 
-    /** Set the geometry. */
-    void setRect(const QRectF& rect);
+private:
+    QuadLineNode* _border = nullptr; // QObject ref
+    void aboutToSwitch(TextureNode& oldNode, TextureNode& newNode) final;
 
-    /** Set the line width. */
-    void setLineWidth(qreal width);
-
-    /** Set the color of the lines. */
-    void setColor(const QColor& color);
+    void _addBorder(TextureNode& node);
+    void _removeBorder(TextureNode& node);
 };
 
 #endif

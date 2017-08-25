@@ -40,7 +40,7 @@
 #ifndef TEXTURENODEYUV_H
 #define TEXTURENODEYUV_H
 
-#include "types.h"
+#include "TextureNode.h"
 
 #include <QSGNode>
 
@@ -58,7 +58,7 @@ class QQuickWindow;
  * * In the static case, a single PBO is used for the initial texture upload and
  *   then released in the first call to swap() so that no memory is wasted.
  */
-class TextureNodeYUV : public QSGNode
+class TextureNodeYUV : public QSGNode, public TextureNode
 {
 public:
     /**
@@ -66,22 +66,15 @@ public:
      * @param window a reference to the quick window for generating textures.
      * @param dynamic true if the texture is going to be updated more than once.
      */
-    TextureNodeYUV(QQuickWindow* window, bool dynamic);
+    TextureNodeYUV(QQuickWindow& window, bool dynamic);
 
-    /** @return the surface of the node. */
-    const QRectF& rect() const;
-
-    /** Set the surface of the node. */
-    void setRect(const QRectF& rect);
-
-    /** Upload the given image to the back PBO. */
-    void updateBackTexture(const Image& image);
-
-    /** Swap the PBOs and update the texture with the back PBO's contents. */
-    void swap();
+    QRectF getCoord() const final;
+    void setCoord(const QRectF& rect) final;
+    void updateBackTexture(const Image& image) final;
+    void swap() final;
 
 private:
-    QQuickWindow* _window = nullptr;
+    QQuickWindow& _window;
     bool _dynamicTexture = false;
 
     QRectF _rect;

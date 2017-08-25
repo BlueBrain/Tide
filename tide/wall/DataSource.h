@@ -61,9 +61,6 @@ public:
     /** Get the coordinates of a tile. */
     virtual QRect getTileRect(uint tileId) const = 0;
 
-    /** @return the texture format of a given tile. */
-    virtual TextureFormat getTileFormat(uint tileId) const = 0;
-
     /** @return the image size for the requested lod. */
     virtual QSize getTilesArea(uint lod) const = 0;
 

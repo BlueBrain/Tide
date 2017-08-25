@@ -172,7 +172,7 @@ const YUVState* _getMaterialState(const QSGGeometryNode& node)
     return static_cast<const YUVShaderMaterial*>(node.material())->state();
 }
 
-TextureNodeYUV::TextureNodeYUV(QQuickWindow* window, bool dynamic)
+TextureNodeYUV::TextureNodeYUV(QQuickWindow& window, const bool dynamic)
     : _window(window)
     , _dynamicTexture(dynamic)
 {
@@ -185,24 +185,24 @@ TextureNodeYUV::TextureNodeYUV(QQuickWindow* window, bool dynamic)
     _node.setFlag(QSGNode::OwnsMaterial);
 
     auto state = _getMaterialState(_node);
-    state->textureY.reset(_window->createTextureFromId(0, QSize(1, 1)));
-    state->textureU.reset(_window->createTextureFromId(0, QSize(1, 1)));
-    state->textureV.reset(_window->createTextureFromId(0, QSize(1, 1)));
+    state->textureY.reset(_window.createTextureFromId(0, QSize(1, 1)));
+    state->textureU.reset(_window.createTextureFromId(0, QSize(1, 1)));
+    state->textureV.reset(_window.createTextureFromId(0, QSize(1, 1)));
 
     appendChildNode(&_node);
 }
 
-const QRectF& TextureNodeYUV::rect() const
+QRectF TextureNodeYUV::getCoord() const
 {
     return _rect;
 }
 
-void TextureNodeYUV::setRect(const QRectF& rect_)
+void TextureNodeYUV::setCoord(const QRectF& rect)
 {
-    if (_rect == rect_)
+    if (_rect == rect)
         return;
 
-    _rect = rect_;
+    _rect = rect;
     QSGGeometry::updateTexturedRectGeometry(_node.geometry(), _rect,
                                             UNIT_RECTF);
     _node.markDirty(QSGNode::DirtyGeometry);
@@ -250,9 +250,9 @@ void TextureNodeYUV::_createTextures(const QSize& size,
 {
     auto state = _getMaterialState(_node);
     const auto uvSize = yuv::getUVSize(size, format);
-    state->textureY = textureUtils::createTexture(size, *_window);
-    state->textureU = textureUtils::createTexture(uvSize, *_window);
-    state->textureV = textureUtils::createTexture(uvSize, *_window);
+    state->textureY = textureUtils::createTexture(size, _window);
+    state->textureU = textureUtils::createTexture(uvSize, _window);
+    state->textureV = textureUtils::createTexture(uvSize, _window);
     state->textureFormat = format;
 }
 

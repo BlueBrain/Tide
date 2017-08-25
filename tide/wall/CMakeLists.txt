@@ -79,8 +79,12 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   SwapSynchronizerHardware.h
   SwapSynchronizerSoftware.h
   TestPattern.h
+  TextureBorderSwitcher.h
   TextureNode.h
+  TextureNodeFactory.h
+  TextureNodeRGBA.h
   TextureNodeYUV.h
+  TextureSwitcher.h
   textureUtils.h
   TiledSynchronizer.h
   Tile.h
@@ -121,8 +125,11 @@ list(APPEND TIDEWALL_SOURCES
   SwapSynchronizerHardware.cpp
   SwapSynchronizerSoftware.cpp
   TestPattern.cpp
-  TextureNode.cpp
+  TextureBorderSwitcher.cpp
+  TextureNodeFactory.cpp
+  TextureNodeRGBA.cpp
   TextureNodeYUV.cpp
+  TextureSwitcher.cpp
   textureUtils.cpp
   Tile.cpp
   TiledSynchronizer.cpp

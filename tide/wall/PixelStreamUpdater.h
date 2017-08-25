@@ -76,9 +76,6 @@ public:
     /** @copydoc DataSource::getTileRect */
     QRect getTileRect(uint tileIndex) const final;
 
-    /** @copydoc DataSource::getTileFormat */
-    TextureFormat getTileFormat(uint tileIndex) const final;
-
     /** @copydoc DataSource::getTilesArea */
     QSize getTilesArea(uint lod) const final;
 
