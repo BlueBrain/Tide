@@ -43,8 +43,8 @@
 
 namespace
 {
-const int group = 1;
-const int barrier = 1;
+const int groupId = 1;
+const int barrierId = 1;
 }
 
 SwapSynchronizerHardware::SwapSynchronizerHardware(NetworkBarrier& barrier,
@@ -53,7 +53,7 @@ SwapSynchronizerHardware::SwapSynchronizerHardware(NetworkBarrier& barrier,
     , _globalBarrier{barrier, windowCount}
     , _localBarrier{windowCount}
     , _windowCount{windowCount}
-    , _hardwareSwapGroup{group}
+    , _hardwareSwapGroup{groupId}
 {
 }
 
@@ -69,7 +69,7 @@ void SwapSynchronizerHardware::globalBarrier(const QWindow& window)
     _hardwareSwapGroup.add(window);
 
     _localBarrier.waitForAllThreadsThen([this]() {
-        _hardwareSwapGroup.join(barrier);
+        _hardwareSwapGroup.join(barrierId);
         _initialized = true;
     });
 

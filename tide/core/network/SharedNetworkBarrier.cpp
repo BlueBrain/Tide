@@ -40,7 +40,7 @@
 #include "SharedNetworkBarrier.h"
 
 SharedNetworkBarrier::SharedNetworkBarrier(NetworkBarrier& barrier,
-                                           const uint numThreads)
+                                           const unsigned int numThreads)
     : _networkBarrier{barrier}
     , _localBarrier{numThreads}
 {
