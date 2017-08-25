@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,28 +37,45 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef QUADLINENODE_H
-#define QUADLINENODE_H
+#ifndef TEXTURENODEFACTORY_H
+#define TEXTURENODEFACTORY_H
 
-#include <QSGGeometryNode>
+#include "TextureNode.h"
+
+class QQuickWindow;
 
 /**
- * A line quad to draw rectangle borders.
+ * Abstract TextureNode factory for all supported texture formats.
  */
-class QuadLineNode : public QSGGeometryNode
+class TextureNodeFactory
 {
 public:
-    /** Constructor. */
-    QuadLineNode(const QRectF& rect, qreal lineWidth, const QColor& color);
+    virtual ~TextureNodeFactory() = default;
 
-    /** Set the geometry. */
-    void setRect(const QRectF& rect);
+    /** @return new TextureNode for the given format. */
+    virtual std::unique_ptr<TextureNode> create(TextureFormat format) = 0;
 
-    /** Set the line width. */
-    void setLineWidth(qreal width);
+    /**
+     * @return true if the TextureNode must be recreated when switching from
+     *         format a -> b.
+     */
+    virtual bool needToChangeNodeType(TextureFormat a,
+                                      TextureFormat b) const = 0;
+};
 
-    /** Set the color of the lines. */
-    void setColor(const QColor& color);
+/**
+ * Concrete factory for [RGBA|YUV] QSG texture nodes.
+ */
+class TextureNodeFactoryImpl : public TextureNodeFactory
+{
+public:
+    TextureNodeFactoryImpl(QQuickWindow& _window, TextureType _type);
+    std::unique_ptr<TextureNode> create(TextureFormat format) final;
+    bool needToChangeNodeType(TextureFormat a, TextureFormat b) const final;
+
+private:
+    QQuickWindow& _window;
+    TextureType _type = TextureType::Static;
 };
 
 #endif

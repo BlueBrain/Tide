@@ -3,7 +3,9 @@ Changelog {#changelog}
 
 # Release 1.4 (git 1.4-dev)
 
-* [177](https://github.com/BlueBrain/Tide/issues/177):
+* [179](https://github.com/BlueBrain/Tide/issues/179):
+  Allow turning pixel stream compression on/off while streaming (bugfix).
+* [178](https://github.com/BlueBrain/Tide/issues/178):
   Hardware swap synchronization for NVidia Quadro sync cards.
 * [174](https://github.com/BlueBrain/Tide/pull/174):
   Fix crash with malformed encoded pixel streams, e.g. JPEG quality > 100

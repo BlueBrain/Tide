@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,28 +37,80 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef QUADLINENODE_H
-#define QUADLINENODE_H
+#include "TextureSwitcher.h"
 
-#include <QSGGeometryNode>
+#include "data/Image.h"
 
-/**
- * A line quad to draw rectangle borders.
- */
-class QuadLineNode : public QSGGeometryNode
+void TextureSwitcher::setNextImage(ImagePtr image)
 {
-public:
-    /** Constructor. */
-    QuadLineNode(const QRectF& rect, qreal lineWidth, const QColor& color);
+    if (!image)
+        throw std::invalid_argument("empty image");
 
-    /** Set the geometry. */
-    void setRect(const QRectF& rect);
+    _image = image;
+}
 
-    /** Set the line width. */
-    void setLineWidth(qreal width);
+void TextureSwitcher::requestSwap()
+{
+    _swapRequested = true;
+}
 
-    /** Set the color of the lines. */
-    void setColor(const QColor& color);
-};
+void TextureSwitcher::update(std::unique_ptr<TextureNode>& node,
+                             TextureNodeFactory& factory)
+{
+    if (!node) // initial call
+    {
+        if (_image)
+        {
+            node = factory.create(_image->getFormat());
+            _uploadImage(*node);
+        }
+        return;
+    }
 
-#endif
+    if (_canSwap())
+        _swap(node);
+
+    if (_image)
+    {
+        if (_needToChangeNextNode(factory))
+            _createNextNode(factory);
+
+        _uploadImage(_nextNode ? *_nextNode : *node);
+    }
+}
+
+bool TextureSwitcher::_canSwap() const
+{
+    return _swapRequested && _swapPossible;
+}
+
+void TextureSwitcher::_swap(std::unique_ptr<TextureNode>& node)
+{
+    if (_nextNode)
+    {
+        aboutToSwitch(*node, *_nextNode);
+        node = std::move(_nextNode);
+    }
+
+    node->swap();
+    _swapRequested = false;
+    _swapPossible = false;
+}
+
+bool TextureSwitcher::_needToChangeNextNode(const TextureNodeFactory& factory)
+{
+    return factory.needToChangeNodeType(_format, _image->getFormat());
+}
+
+void TextureSwitcher::_createNextNode(TextureNodeFactory& factory)
+{
+    _nextNode = factory.create(_image->getFormat());
+}
+
+void TextureSwitcher::_uploadImage(TextureNode& node)
+{
+    node.updateBackTexture(*_image);
+    _format = _image->getFormat();
+    _image.reset();
+    _swapPossible = true;
+}

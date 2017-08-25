@@ -71,14 +71,6 @@ PixelStreamAssembler::PixelStreamAssembler(deflect::FramePtr frame)
     _initTargetFrame();
 }
 
-TextureFormat PixelStreamAssembler::getTileFormat(
-    const uint tileIndex, deflect::SegmentDecoder& decoder) const
-{
-    const auto tiles = _findSourceTiles(tileIndex);
-    const auto& segment = _frame->segments.at(*tiles.begin());
-    return getFormat(segment, decoder);
-}
-
 ImagePtr PixelStreamAssembler::getTileImage(const uint tileIndex,
                                             deflect::SegmentDecoder& decoder)
 {

@@ -65,27 +65,12 @@ public:
     /** @return the rectangle of the tile. */
     virtual QRect getTileRect(uint tileIndex) const = 0;
 
-    /**
-     * Get the texture format of tile.
-     *
-     * @param tileIndex for the tile.
-     * @param decoder to use for decoding the frame format (if needed).
-     * @return the texture format of the tile.
-     * @throw std::runtime_error if the image is in an invalid format.
-     */
-    virtual TextureFormat getTileFormat(
-        uint tileIndex, deflect::SegmentDecoder& decoder) const = 0;
-
     /** @return the list of visible tile for the given area. */
     virtual Indices computeVisibleSet(const QRectF& visibleTilesArea) const = 0;
 
 protected:
     /** @return the coordinates of the segment as a QRect. */
     QRect toRect(const deflect::SegmentParameters& params) const;
-
-    /** @return the texture format of the segment. */
-    TextureFormat getFormat(const deflect::Segment& segment,
-                            deflect::SegmentDecoder& decoder) const;
 };
 
 #endif

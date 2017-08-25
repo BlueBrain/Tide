@@ -167,9 +167,8 @@ void QmlWindowRenderer::_removeTile(const uint tileIndex)
 }
 
 void QmlWindowRenderer::_updateTile(const uint tileIndex,
-                                    const QRect& coordinates,
-                                    const TextureFormat format)
+                                    const QRect& coordinates)
 {
     if (_tiles.count(tileIndex))
-        _tiles[tileIndex]->update(coordinates, format);
+        _tiles[tileIndex]->update(coordinates);
 }
