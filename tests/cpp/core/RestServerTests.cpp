@@ -49,6 +49,19 @@
 
 using namespace zeroeq;
 
+namespace
+{
+bool isMethodForbidden(int error)
+{
+    // QNetworkReply ContentAccessDenied and ContentOperationNotPermittedError
+    //  correspond to HTTP error code 403
+    if (error == QNetworkReply::ContentAccessDenied ||
+        error == QNetworkReply::ContentOperationNotPermittedError)
+        return true;
+    return false;
+}
+}
+
 BOOST_GLOBAL_FIXTURE(MinimalGlobalQtApp);
 
 BOOST_AUTO_TEST_CASE(testDefaultPort)
@@ -103,9 +116,7 @@ std::pair<std::string, int> sendHttpRequest(const QUrl& url,
     const auto response = (reply->error() == QNetworkReply::NoError)
                               ? reply->readAll()
                               : reply->errorString();
-
-    return std::pair<std::string, int>(response.toStdString(),
-                                       int(reply->error()));
+    return std::pair<std::string, int>(response.toStdString(), reply->error());
 }
 
 struct TestObject
@@ -164,7 +175,7 @@ BOOST_AUTO_TEST_CASE(block_all_methods)
                       });
     };
 
-    const auto url = QString("http://localhost:%1/test").arg(server.getPort());
+    const auto url = QString("http://127.0.0.1:%1/test").arg(server.getPort());
 
     for (int method = 0; method < int(zeroeq::http::Method::ALL); ++method)
     {
@@ -181,9 +192,7 @@ BOOST_AUTO_TEST_CASE(block_all_methods)
         const auto response =
             sendHttpRequest(url, zeroeq::http::Method(method));
         // localhost is no longer whitelisted because of bypassWhitelist flag.
-        BOOST_CHECK_EQUAL(
-            response.second,
-            int(QNetworkReply::ContentOperationNotPermittedError));
+        BOOST_CHECK_EQUAL(true, isMethodForbidden(response.second));
     }
 }
 
