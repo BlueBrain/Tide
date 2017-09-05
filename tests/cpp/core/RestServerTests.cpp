@@ -76,8 +76,8 @@ BOOST_AUTO_TEST_CASE(testUnavailablePort)
     BOOST_CHECK_THROW(RestServer server{80}, std::runtime_error);
 }
 
-std::pair<std::string, QNetworkReply::NetworkError> sendHttpRequest(const QUrl& url,
-                                            const http::Method method)
+std::pair<std::string, QNetworkReply::NetworkError> sendHttpRequest(
+    const QUrl& url, const http::Method method)
 {
     // create custom temporary event loop on stack
     QEventLoop eventLoop;
