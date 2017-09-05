@@ -1,21 +1,21 @@
 Changelog {#changelog}
 ============
 
-# Release 1.3.1 (git master)
+# Release 1.3.1 (05-09-2017)
 
 * [177](https://github.com/BlueBrain/Tide/pull/177):
-  Fix mipmap filtering for YUV textures
+  Fix mipmap filtering for YUV textures.
 * [175](https://github.com/BlueBrain/Tide/pull/175):
-  Removed window close and resize controls from master window
-  because of interference between touch and mouse events.
+  Removed window close and resize mouse buttons from master window because they
+  interfered with touch events starting from Qt 5.8.
 * [173](https://github.com/BlueBrain/Tide/pull/173):
-  Fix crash with malformed encoded pixel streams, e.g. JPEG quality > 100
+  Fix crash with malformed encoded pixel streams, e.g. JPEG quality > 100.
 * [171](https://github.com/BlueBrain/Tide/pull/171):
   Bugfix: in multi-node configurations some windows opened on incorrect hosts.
 * [168](https://github.com/BlueBrain/Tide/pull/168):
-  Tide will log now a timestamp of an event along with the logger id.
+  Log output includes a timestamp for the event along with the logger id.
 * [165](https://github.com/BlueBrain/Tide/pull/165):
-  Ported the demo Launcher to version 0.5.6 of the RenderingResourceManager.
+  Demo Launcher ported to version 0.5.6 of the RenderingResourceManager.
 * [164](https://github.com/BlueBrain/Tide/pull/164):
   Fix problem with Deflect server using system proxy and Qt 5.8.
 * [163](https://github.com/BlueBrain/Tide/pull/163):
