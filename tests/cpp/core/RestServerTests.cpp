@@ -51,7 +51,7 @@ using namespace zeroeq;
 
 namespace
 {
-bool isMethodForbidden(int error)
+bool _isMethodForbidden(const QNetworkReply::NetworkError error)
 {
     // QNetworkReply ContentAccessDenied and ContentOperationNotPermittedError
     //  correspond to HTTP error code 403
@@ -76,7 +76,7 @@ BOOST_AUTO_TEST_CASE(testUnavailablePort)
     BOOST_CHECK_THROW(RestServer server{80}, std::runtime_error);
 }
 
-std::pair<std::string, int> sendHttpRequest(const QUrl& url,
+std::pair<std::string, QNetworkReply::NetworkError> sendHttpRequest(const QUrl& url,
                                             const http::Method method)
 {
     // create custom temporary event loop on stack
@@ -116,7 +116,7 @@ std::pair<std::string, int> sendHttpRequest(const QUrl& url,
     const auto response = (reply->error() == QNetworkReply::NoError)
                               ? reply->readAll()
                               : reply->errorString();
-    return std::pair<std::string, int>(response.toStdString(), reply->error());
+    return std::make_pair(response.toStdString(), reply->error());
 }
 
 struct TestObject
@@ -175,7 +175,7 @@ BOOST_AUTO_TEST_CASE(block_all_methods)
                       });
     };
 
-    const auto url = QString("http://127.0.0.1:%1/test").arg(server.getPort());
+    const auto url = QString("http://localhost:%1/test").arg(server.getPort());
 
     for (int method = 0; method < int(zeroeq::http::Method::ALL); ++method)
     {
@@ -192,7 +192,7 @@ BOOST_AUTO_TEST_CASE(block_all_methods)
         const auto response =
             sendHttpRequest(url, zeroeq::http::Method(method));
         // localhost is no longer whitelisted because of bypassWhitelist flag.
-        BOOST_CHECK_EQUAL(true, isMethodForbidden(response.second));
+        BOOST_CHECK(_isMethodForbidden(response.second));
     }
 }
 
