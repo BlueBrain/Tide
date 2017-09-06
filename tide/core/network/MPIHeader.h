@@ -58,6 +58,7 @@ enum class MPIMessageType
     IMAGE,
     TIMER,
     PIXELSTREAM_CLOSE,
+    LOCK
 };
 
 /** Fixed-size message header. */

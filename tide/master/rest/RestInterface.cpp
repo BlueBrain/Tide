@@ -46,8 +46,8 @@
 #include "MasterConfiguration.h"
 #include "RestServer.h"
 #include "SceneController.h"
+#include "ScreenLock.h"
 #include "ThumbnailCache.h"
-#include "json.h"
 #include "scene/ContentFactory.h"
 #include "serialization.h"
 
@@ -75,6 +75,15 @@ std::future<http::Response> processJsonRpc(T* controller,
 }
 }
 
+struct LockState
+{
+    bool locked;
+};
+QJsonObject to_json_object(const LockState& lockState)
+{
+    return QJsonObject{{"locked", lockState.locked}};
+}
+
 /** Overload to serialize QSize as an array instead of an object. */
 std::string to_json(const QSize& size)
 {
@@ -93,7 +102,7 @@ class RestInterface::Impl
 {
 public:
     Impl(const int port, OptionsPtr options_, DisplayGroup& group,
-         const MasterConfiguration& config)
+         const MasterConfiguration& config, const bool locked)
         : server{port}
         , options{options_}
         , size{config.getTotalSize()}
@@ -104,6 +113,7 @@ public:
                          ContentFactory::getSupportedFilesFilter()}
         , sessionBrowser{config.getSessionsDir(), QStringList{"*.dcx"}}
         , htmlContent{server}
+        , lockState{locked}
     {
     }
 
@@ -130,12 +140,13 @@ public:
     FileBrowser sessionBrowser;
     FileReceiver fileReceiver;
     HtmlContent htmlContent;
+    LockState lockState;
 };
 
 RestInterface::RestInterface(const int port, OptionsPtr options,
                              DisplayGroup& group,
                              const MasterConfiguration& config)
-    : _impl(new Impl(port, options, group, config))
+    : _impl(new Impl(port, options, group, config, false))
 {
     // Note: using same formatting as TUIO instead of put_flog() here
     std::cout << "listening to REST messages on TCP port "
@@ -149,6 +160,7 @@ RestInterface::RestInterface(const int port, OptionsPtr options,
     static tide::Version version;
     server.handleGET("tide/version", version);
     server.handleGET("tide/config", config);
+    server.handleGET("tide/lock", _impl->lockState);
     server.handleGET("tide/size", _impl->size);
     server.handleGET("tide/options", *_impl->options);
     server.handlePUT("tide/options", *_impl->options);
@@ -192,4 +204,19 @@ void RestInterface::exposeStatistics(const LoggingUtility& logger) const
 const AppController& RestInterface::getAppController() const
 {
     return _impl->appController;
+}
+
+void RestInterface::lock(const bool lock)
+{
+    _impl->lockState.locked = lock;
+    if (lock)
+    {
+        _impl->server.block(http::Method::PUT);
+        _impl->server.block(http::Method::POST);
+    }
+    else
+    {
+        _impl->server.unblock(http::Method::POST);
+        _impl->server.unblock(http::Method::PUT);
+    }
 }

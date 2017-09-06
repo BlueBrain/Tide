@@ -17,6 +17,7 @@
         <file>keyboard.svg</file>
         <file>launch.svg</file>
         <file>load.svg</file>
+        <file>lock.svg</file>
         <file>maximize.svg</file>
         <file>oneToOne.svg</file>
         <file>pause.svg</file>
@@ -24,6 +25,7 @@
         <file>right_arrow.svg</file>
         <file>tick.svg</file>
         <file>unknownfile.png</file>
+        <file>unlock.svg</file>
     </qresource>
     <qresource prefix="/img/clock">
         <file>background.svg</file>
@@ -56,6 +58,7 @@
         <file>ResizeCircles.qml</file>
         <file>SideButton.qml</file>
         <file>SideControl.qml</file>
+        <file>StreamNotificationArea.qml</file>
         <file>Triangle.qml</file>
         <file>WebbrowserControls.qml</file>
         <file>WindowControlsDelegate.qml</file>

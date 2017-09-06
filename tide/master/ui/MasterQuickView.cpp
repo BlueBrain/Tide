@@ -40,6 +40,7 @@
 #include "MasterQuickView.h"
 
 #include "MasterConfiguration.h"
+#include "ScreenLock.h"
 #include "scene/Options.h"
 
 #include <QQmlContext>
@@ -52,13 +53,14 @@ const QUrl QML_ROOT_COMPONENT("qrc:/qml/master/Root.qml");
 const QString WALL_OBJECT_NAME("Wall");
 }
 
-MasterQuickView::MasterQuickView(OptionsPtr options,
+MasterQuickView::MasterQuickView(OptionsPtr options, ScreenLockPtr lock,
                                  const MasterConfiguration& config)
 {
     setResizeMode(QQuickView::SizeRootObjectToView);
 
     rootContext()->setContextProperty("options", options.get());
     rootContext()->setContextProperty("view", this);
+    rootContext()->setContextProperty("lock", lock.get());
 
     setSource(QML_ROOT_COMPONENT);
 

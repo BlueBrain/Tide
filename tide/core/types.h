@@ -122,6 +122,7 @@ class Options;
 class PDFContent;
 class PixelStreamUpdater;
 class PixelStreamWindowManager;
+class ScreenLock;
 class SharedNetworkBarrier;
 class SwapSynchronizer;
 class TestPattern;
@@ -142,6 +143,7 @@ typedef std::shared_ptr<FFMPEGPicture> PicturePtr;
 typedef boost::shared_ptr<Markers> MarkersPtr;
 typedef boost::shared_ptr<MPIChannel> MPIChannelPtr;
 typedef boost::shared_ptr<Options> OptionsPtr;
+typedef boost::shared_ptr<ScreenLock> ScreenLockPtr;
 typedef std::shared_ptr<Tile> TilePtr;
 typedef std::weak_ptr<Tile> TileWeakPtr;
 

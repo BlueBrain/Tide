@@ -5,6 +5,7 @@ var bezelsPerScreenX;
 var bezelsPerScreenY;
 var focus;
 var fullscreen;
+var locked;
 var screenCountX;
 var screenCountY;
 var sessionFiles = [];
@@ -101,7 +102,7 @@ function bootstrapMenus() {
 
     $("#appsMenu").css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed);
     $(".menuButton:not(#appsButton)").removeClass("buttonPressed");
-    $("#appsButton").toggleClass("buttonPressed")
+    $("#appsButton").toggleClass("buttonPressed");
     e.stopPropagation()
   });
 
@@ -139,8 +140,9 @@ function checkIfEqual(tile1, tile2) {
     tile1.height === tile2.height &&
     tile1.mode === tile2.mode &&
     tile1.selected === tile2.selected &&
-    tile1.z === tile2.z
-  );
+    tile1.z === tile2.z &&
+    tile1.visible === tile2.visible
+);
 }
 
 function clearUploadList() {
@@ -164,6 +166,7 @@ function copy(jsonWindow, tile) {
   tile.selected = jsonWindow.selected;
   tile.fullscreen = jsonWindow.fullscreen;
   tile.mode = jsonWindow.mode;
+  tile.visible = jsonWindow.visible;
   tile.focus = jsonWindow.focus;
   tile.minHeight = jsonWindow.minHeight;
   tile.minWidth = jsonWindow.minWidth;
@@ -179,6 +182,8 @@ function createButton(type, tile) {
 function createCloseButton(tile) {
   var closeButton = createButton("closeButton", tile);
   closeButton.onclick = function (event) {
+    if (locked)
+      return;
     event.stopImmediatePropagation();
     windowList.splice(windowList.findIndex(function (element) {
       return element.uuid === tile.uuid;
@@ -217,7 +222,7 @@ function createFocusButton(tile) {
 
 function createFullscreenButton(tile) {
   var fullscreenButton = createButton("fsButton", tile);
-  fullscreenButton.style.visibility = tile.mode === modeFullscreen ? "hidden" : "visible";
+  fullscreenButton.style.visibility = tile.mode === modeFullscreen ? "hidden" : "";
   fullscreenButton.onclick = function (event) {
     sendSceneJsonRpc("move-window-to-fullscreen", getIdAsObject(tile), updateWall);
     event.stopImmediatePropagation();
@@ -640,6 +645,7 @@ function getIdAsObject(tile) {
 
 function markAsFocused(tile) {
   $('#' + tile.uuid).css("z-index", zIndexFocus).css("border", "0px").addClass("windowSelected");
+  $('#focusButton' + tile.uuid).css("visibility", "visible")
 }
 
 function markAsFullscreen(tile) {
@@ -767,7 +773,7 @@ function request(method, command, parameters, callback)
   if(parameters == null)
     xhr.send(null)
   else
-    xhr.send(parameters)
+    xhr.send(parameters);
 
   xhr.onload = function () {
     if (xhr.status === 400)
@@ -775,7 +781,18 @@ function request(method, command, parameters, callback)
     if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
       if (callback !== null) {
         callback(xhr.response);
+      }}
+    else if (xhr.status === 403) {
+      if (!locked) {
+        $("#wallLock").fadeTo("fast", 1).css("background-color", "grey").fadeTo("slow", 0.0)
+        location.reload();
       }
+      if($("#wallLock").css('opacity') == 0)
+        $("#wallLock").fadeTo(100, 1).css("background-color", "grey").fadeTo(1000, 0.0)
+    }
+    if (xhr.readyState === XMLHttpRequest.DONE && (xhr.status === 200 || xhr.status === 403)) {
+      if (callback !== null)
+        callback();
     }
   };
   xhr.onerror = function () {
@@ -940,7 +957,7 @@ function setHandles(tile) {
       sendSceneJsonRpc("move-window", params, updateWall);
     },
     disabled: false,
-    cancel : '.windowControls'
+    cancel: '.windowControls'
   });
 
   windowDiv.resizable({
@@ -984,6 +1001,7 @@ function setOption(property) {
 }
 
 function setScale() {
+  $("#infoBox").css("left", window.innerWidth -  parseInt($("#infoBox").css("width"),10));
   var viewportWidth = window.innerWidth;
   var viewportHeight = window.innerHeight;
 
@@ -1046,6 +1064,7 @@ function updateTile(tile) {
   windowDiv.css("left", tile.x);
   windowDiv.css("height", tile.height);
   windowDiv.css("width", tile.width);
+  windowDiv.css("visibility", tile.visible ? "visible" : "hidden");
 }
 
 function updateWall() {
@@ -1136,11 +1155,57 @@ function updateWall() {
     else
       removeCurtain(focusCurtain);
 
+    if (locked) {
+      disableHandles();
+    }
   };
   xhr.send(null);
   xhr.onerror = function () {
     alertPopup("Something went wrong.", "Tide REST interface not accessible at: " + restUrl);
-  }
+  };
+
+  var lockCheck = new XMLHttpRequest();
+  lockCheck.open("GET", restUrl + "lock", true);
+  lockCheck.onload = function () {
+    var lock = JSON.parse(lockCheck.responseText);
+    locked = lock["locked"];
+    var draggableObj = $('.ui-draggable');
+
+    if (lock["locked"]) {
+      $('.windowDiv').on('mousedown', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+      draggableObj.draggable('disable');
+      draggableObj.resizable('disable');
+      $(".menuButton").prop("disabled", true)
+      $("#lockIcon").attr("src", lockImageUrl);
+    }
+    else {
+      $("#lockIcon").attr("src",unlockImageUrl);
+      draggableObj.draggable('enable');
+      draggableObj.resizable('enable');
+      $(".menuButton").prop("disabled", false)
+    }
+  };
+
+  lockCheck.send(null);
+
+  var screenCheck = new XMLHttpRequest();
+  screenCheck.open("GET", restUrl + "stats", true);
+  screenCheck.onload = function () {
+    var config = JSON.parse(screenCheck.responseText)["screens"];
+    var monitorState = config["state"];
+    if (monitorState === "ON") {
+      $("#screenIcon").attr("src", screenOnImageUrl);
+    }
+    else if (monitorState === "OFF") {
+      $("#screenIcon").attr("src", screenOffImageUrl);
+    }
+    else
+      $("#screenIcon").removeAttr("src");
+  };
+  screenCheck.send(null);
 }
 
 function uploadFiles(files, coords) {

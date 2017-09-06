@@ -135,6 +135,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   network/SharedNetworkBarrier.h
   QmlTypeRegistration.h
   qmlUtils.h
+  ScreenLock.h
   StatePreview.h
   scene/ContentAction.h
   scene/ContentActionsModel.h
@@ -205,6 +206,7 @@ list(APPEND TIDECORE_SOURCES
   scene/SVGContent.cpp
   scene/TextureContent.cpp
   scene/VectorialContent.cpp
+  ScreenLock.cpp
   StatePreview.cpp
   thumbnail/DefaultThumbnailGenerator.cpp
   thumbnail/FolderThumbnailGenerator.cpp

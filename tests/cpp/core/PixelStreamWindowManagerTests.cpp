@@ -271,14 +271,14 @@ BOOST_AUTO_TEST_CASE(hideAndShowWindow)
     windowManager.handleStreamStart(uri);
     ContentWindowPtr window = windowManager.getWindow(uri);
 
-    BOOST_REQUIRE(!window->isHidden());
+    BOOST_REQUIRE(window->isHidden());
     BOOST_REQUIRE(!window->isPanel());
-
-    windowManager.hideWindow(uri);
-    BOOST_CHECK(window->isHidden());
 
     windowManager.showWindow(uri);
     BOOST_CHECK(!window->isHidden());
+
+    windowManager.hideWindow(uri);
+    BOOST_CHECK(window->isHidden());
 }
 
 BOOST_AUTO_TEST_CASE(hideAndShowPanel)
@@ -307,4 +307,47 @@ BOOST_AUTO_TEST_CASE(hideAndShowPanel)
 
     windowManager.showWindow(uri);
     BOOST_CHECK(!panel->isHidden());
+}
+
+BOOST_AUTO_TEST_CASE(check_external_stream_opening)
+{
+    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
+    PixelStreamWindowManager windowManager(*displayGroup);
+
+    bool externalStreamOpened = false;
+
+    QObject::connect(&windowManager,
+                     &PixelStreamWindowManager::externalStreamOpening,
+                     [&externalStreamOpened]() {
+                         externalStreamOpened = true;
+                     });
+
+    const QString uri = CONTENT_URI;
+    windowManager.handleStreamStart(uri);
+    ContentWindowPtr window = windowManager.getWindow(uri);
+
+    BOOST_CHECK_EQUAL(externalStreamOpened, true);
+    BOOST_CHECK(window->isHidden());
+}
+
+BOOST_AUTO_TEST_CASE(check_local_stream_opening)
+{
+    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
+    PixelStreamWindowManager windowManager(*displayGroup);
+
+    bool externalStreamOpened = false;
+
+    QObject::connect(&windowManager,
+                     &PixelStreamWindowManager::externalStreamOpening,
+                     [&externalStreamOpened]() {
+                         externalStreamOpened = true;
+                     });
+
+    const QString uri = PANEL_URI;
+    windowManager.handleStreamStart(uri);
+
+    ContentWindowPtr window = windowManager.getWindow(uri);
+
+    BOOST_CHECK_EQUAL(externalStreamOpened, false);
+    BOOST_CHECK(!window->isHidden());
 }

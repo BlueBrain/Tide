@@ -88,6 +88,9 @@ public:
     /** Set new display group. */
     void setDisplayGroup(DisplayGroupPtr displayGroup);
 
+    /** Set new screen lock. */
+    void setScreenLock(ScreenLockPtr lock);
+
     /** Set new inactivity timer. */
     void setInactivityTimer(InactivityTimerPtr timer);
 

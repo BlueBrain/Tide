@@ -66,7 +66,7 @@ const QSize DEFAULT_WINDOW_SIZE(810, 600);
 }
 
 MasterWindow::MasterWindow(DisplayGroupPtr displayGroup, OptionsPtr options,
-                           MasterConfiguration& config)
+                           ScreenLockPtr lock, MasterConfiguration& config)
     : QMainWindow()
     , _displayGroup(displayGroup)
     , _options(options)
@@ -109,7 +109,7 @@ MasterWindow::MasterWindow(DisplayGroupPtr displayGroup, OptionsPtr options,
     resize(DEFAULT_WINDOW_SIZE);
     setAcceptDrops(true);
 
-    _setupMasterWindowUI(make_unique<MasterQuickView>(_options, config));
+    _setupMasterWindowUI(make_unique<MasterQuickView>(_options, lock, config));
 
     show();
 }

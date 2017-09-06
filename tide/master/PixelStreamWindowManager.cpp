@@ -50,7 +50,6 @@
 #include "scene/ContentWindow.h"
 #include "scene/DisplayGroup.h"
 #include "scene/PixelStreamContent.h"
-
 #include <deflect/EventReceiver.h>
 #include <deflect/Frame.h>
 
@@ -89,10 +88,11 @@ void PixelStreamWindowManager::showWindow(const QString& uri)
         return;
 
     window->setState(ContentWindow::NONE);
-    _displayGroup.moveToFront(window);
+    if (_autoFocusNewWindows)
+        DisplayGroupController{_displayGroup}.focus(window->getID());
 }
 
-bool _isPanel(const QString& uri)
+bool _isLauncher(const QString& uri)
 {
     return uri == PixelStreamerLauncher::launcherUri;
 }
@@ -105,8 +105,8 @@ ContentWindowPtr _makeStreamWindow(const QString& uri, const QSize& size,
     if (size.isValid())
         content->setDimensions(size);
 
-    const auto type =
-        _isPanel(uri) ? ContentWindow::PANEL : ContentWindow::DEFAULT;
+    const auto type = (stream == StreamType::LAUNCHER) ? ContentWindow::PANEL
+                                                       : ContentWindow::DEFAULT;
     return boost::make_shared<ContentWindow>(content, type);
 }
 
@@ -126,10 +126,13 @@ void PixelStreamWindowManager::openWindow(const QString& uri,
     controller.resize(size.isValid() ? size : EMPTY_STREAM_SIZE);
     controller.moveCenterTo(!pos.isNull() ? pos : _displayGroup.center());
 
+    window->setState(ContentWindow::HIDDEN);
     _displayGroup.addContentWindow(window);
 
-    if (_autoFocusNewWindows && stream == StreamType::EXTERNAL)
-        DisplayGroupController{_displayGroup}.focus(window->getID());
+    if (stream == StreamType::EXTERNAL)
+        emit externalStreamOpening(uri);
+    else
+        showWindow(uri);
 }
 
 void PixelStreamWindowManager::handleStreamStart(const QString uri)
@@ -143,8 +146,10 @@ void PixelStreamWindowManager::handleStreamStart(const QString uri)
         return;
     }
 
-    // external streams don't have a window yet, create one now
-    openWindow(uri, QPointF(), QSize());
+    // external streams and launcher don't have a window yet, create one now
+    const auto streamType =
+        (_isLauncher(uri)) ? StreamType::LAUNCHER : StreamType::EXTERNAL;
+    openWindow(uri, QPointF(), QSize(), streamType);
 }
 
 void PixelStreamWindowManager::handleStreamEnd(const QString uri)
