@@ -89,6 +89,13 @@ public slots:
      * @param timer The InactivityTimer to send
      */
     void sendAsync(InactivityTimerPtr timer);
+
+    /**
+     * Send the Lock to the wall processes.
+     * @param lock The lock to send
+     */
+    void sendAsync(ScreenLockPtr lock);
+
     /**
      * Send the given Markers to the wall processes.
      * @param markers The markers to send

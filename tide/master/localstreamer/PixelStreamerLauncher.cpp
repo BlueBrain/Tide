@@ -151,7 +151,8 @@ void PixelStreamerLauncher::openLauncher()
     const qreal y = 0.35 * _config.getTotalHeight();
     const QPointF centerPos(x, y);
 
-    _windowManager.openWindow(uri, centerPos, launcherSize);
+    _windowManager.openWindow(uri, centerPos, launcherSize,
+                              StreamType::LAUNCHER);
 
     CommandLineOptions options;
     options.setStreamId(launcherUri);

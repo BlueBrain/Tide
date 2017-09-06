@@ -46,6 +46,7 @@
 #include "MasterDisplayGroupRenderer.h"
 #include "PixelStreamWindowManager.h"
 #include "QmlTypeRegistration.h"
+#include "ScreenLock.h"
 #include "ScreenshotAssembler.h"
 #include "StateSerializationHelper.h"
 #include "control/DisplayGroupController.h"
@@ -93,6 +94,7 @@ MasterApplication::MasterApplication(int& argc_, char** argv_,
     , _masterToForkerChannel(new MasterToForkerChannel(forkChannel))
     , _masterToWallChannel(new MasterToWallChannel(worldChannel))
     , _masterFromWallChannel(new MasterFromWallChannel(worldChannel))
+    , _lock(ScreenLock::create())
     , _markers(Markers::create())
     , _options(Options::create())
 {
@@ -246,7 +248,8 @@ void MasterApplication::_init()
 
 void MasterApplication::_initMasterWindow()
 {
-    _masterWindow.reset(new MasterWindow(_displayGroup, _options, *_config));
+    _masterWindow.reset(
+        new MasterWindow(_displayGroup, _options, _lock, *_config));
 
     connect(_masterWindow.get(), &MasterWindow::openWebBrowser,
             _pixelStreamerLauncher.get(),
@@ -289,6 +292,8 @@ void MasterApplication::_initOffscreenView()
                                             deflect::qt::RenderMode::DISABLED});
     _offscreenQuickView->getRootContext()->setContextProperty("options",
                                                               _options.get());
+    _offscreenQuickView->getRootContext()->setContextProperty("lock",
+                                                              _lock.get());
     _offscreenQuickView->load(QML_OFFSCREEN_ROOT_COMPONENT).wait();
     _offscreenQuickView->resize(_config->getTotalSize());
 
@@ -378,6 +383,26 @@ void MasterApplication::_setupMPIConnections()
                 _masterToWallChannel->sendAsync(timer);
             },
             Qt::DirectConnection);
+
+    connect(_lock.get(), &ScreenLock::modified, [this](ScreenLockPtr lock) {
+        _masterToWallChannel->sendAsync(lock);
+    });
+
+    connect(_pixelStreamWindowManager.get(),
+            &PixelStreamWindowManager::streamWindowClosed, _lock.get(),
+            &ScreenLock::cancelStreamAcceptance);
+
+    connect(_pixelStreamWindowManager.get(),
+            &PixelStreamWindowManager::externalStreamOpening, _lock.get(),
+            &ScreenLock::requestStreamAcceptance);
+
+    connect(_lock.get(), &ScreenLock::streamAccepted,
+            _pixelStreamWindowManager.get(),
+            &PixelStreamWindowManager::showWindow);
+
+    connect(_lock.get(), &ScreenLock::streamRejected,
+            _pixelStreamWindowManager.get(),
+            &PixelStreamWindowManager::handleStreamEnd);
 
     connect(_markers.get(), &Markers::updated, _masterToWallChannel.get(),
             [this](MarkersPtr markers) {
@@ -499,6 +524,9 @@ void MasterApplication::_initRestInterface()
 
     connect(&appController, &AppController::save, this,
             &MasterApplication::_save);
+
+    connect(_lock.get(), &ScreenLock::lockChanged,
+            [this](bool locked) { _restInterface->lock(locked); });
 
     connect(&appController, &AppController::browse, [this](QString uri) {
 #if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE

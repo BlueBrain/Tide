@@ -95,6 +95,13 @@ signals:
     void received(InactivityTimerPtr timer);
 
     /**
+     * Emitted when new ScreenLock was recieved
+     * @see receiveMessage()
+     * @param lock The ScreenLock that was received
+     */
+    void received(ScreenLockPtr lock);
+
+    /**
      * Emitted when new Markers were recieved
      * @see receiveMessage()
      * @param markers The markers that were received
