@@ -68,12 +68,6 @@ public:
     /** Get the QML item. */
     QQuickItem* getQuickItem();
 
-private slots:
-    void _addTile(TilePtr tile);
-    void _createZoomContextTile();
-    void _removeTile(uint tileIndex);
-    void _updateTile(uint tileIndex, const QRect& coordinates);
-
 private:
     ContentSynchronizerSharedPtr _synchronizer;
     ContentWindowPtr _contentWindow;
@@ -84,6 +78,14 @@ private:
     TilesMap _tiles;
 
     TilePtr _zoomContextTile;
+
+    void _addTile(TilePtr tile);
+    QQuickItem* _getZoomContextParentItem() const;
+    void _showZoomContextTile(bool visible);
+    void _createZoomContextTile();
+    void _removeZoomContextTile();
+    void _removeTile(uint tileIndex);
+    void _updateTile(uint tileIndex, const QRect& coordinates);
 };
 
 #endif

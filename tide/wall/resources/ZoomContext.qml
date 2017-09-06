@@ -26,8 +26,7 @@ Rectangle {
     anchors.bottomMargin: vertical ? width * Style.zoomContextRelMargin :
                                      height * Style.zoomContextRelMargin
     anchors.leftMargin: anchors.bottomMargin
-    visible: options.showZoomContext && zoomContextParent.children.length > 0 &&
-             hasZoom(contentwindow.content.zoomRect)
+    visible: options.showZoomContext && hasZoom(contentwindow.content.zoomRect)
 
     Item {
         id: zoomContextParent
