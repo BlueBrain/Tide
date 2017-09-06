@@ -46,6 +46,8 @@
 #include "network/WallToWallChannel.h"
 #include "scene/MovieContent.h"
 
+#include <cmath>
+
 namespace
 {
 void _splitSideBySide(const FFMPEGPicture& image, PicturePtr& left,

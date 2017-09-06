@@ -62,6 +62,7 @@ enum CONTENT_TYPE
 enum class StreamType
 {
     EXTERNAL,
+    LAUNCHER,
     WEBBROWSER,
     WHITEBOARD
 };

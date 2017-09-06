@@ -88,6 +88,7 @@ QJsonObject to_json_object(ContentWindowPtr window, const DisplayGroup& group)
         {"fullscreen", window->isFullscreen()},
         {"focus", window->isFocused()},
         {"uri", window->getContent()->getURI()},
+        {"visible", window->getState() == ContentWindow::HIDDEN ? false : true},
         {"uuid", url_encode(window->getID())}};
 }
 

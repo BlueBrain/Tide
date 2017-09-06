@@ -40,6 +40,7 @@
 #include "WallFromMasterChannel.h"
 
 #include "InactivityTimer.h"
+#include "ScreenLock.h"
 #include "network/MPIChannel.h"
 #include "scene/ContentWindow.h"
 #include "scene/DisplayGroup.h"
@@ -78,6 +79,9 @@ void WallFromMasterChannel::receiveMessage()
         break;
     case MPIMessageType::OPTIONS:
         emit received(receiveQObjectBroadcast<OptionsPtr>(mh.size));
+        break;
+    case MPIMessageType::LOCK:
+        emit received(receiveQObjectBroadcast<ScreenLockPtr>(mh.size));
         break;
     case MPIMessageType::MARKERS:
         emit received(receiveQObjectBroadcast<MarkersPtr>(mh.size));

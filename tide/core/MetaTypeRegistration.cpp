@@ -67,6 +67,7 @@ struct MetaTypeRegistration
         qRegisterMetaType<MPIMessageType>("MPIMessageType");
         qRegisterMetaType<OptionsPtr>("OptionsPtr");
         qRegisterMetaType<QUuid>("QUuid");
+        qRegisterMetaType<ScreenLockPtr>("ScreenLockPtr");
         qRegisterMetaType<std::string>("std::string");
         qRegisterMetaType<TilePtr>("TilePtr");
         qRegisterMetaType<TileWeakPtr>("TileWeakPtr");

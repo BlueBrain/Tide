@@ -79,6 +79,9 @@ public:
     /** Set different options used for rendering. */
     void setRenderingOptions(OptionsPtr options);
 
+    /** Set the ScreenLock replacing the previous one. */
+    void setScreenLock(ScreenLockPtr lock);
+
     /** Set timer used to notify about inactivity timeout. */
     void setTimer(InactivityTimerPtr timer);
 
@@ -95,6 +98,7 @@ private:
     DisplayGroupPtr _displayGroup;
     MarkersPtr _markers;
     OptionsPtr _options;
+    ScreenLockPtr _lock;
     InactivityTimerPtr _timer;
     const QRect _screenRect;
     const deflect::View _view;

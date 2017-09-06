@@ -41,6 +41,7 @@
 
 #include "DataProvider.h"
 #include "InactivityTimer.h"
+#include "ScreenLock.h"
 #include "VisibilityHelper.h"
 #include "WallWindow.h"
 #include "geometry.h"
@@ -70,6 +71,7 @@ DisplayGroupRenderer::DisplayGroupRenderer(WallWindow& parentWindow,
     , _displayGroup{new DisplayGroup(QSize())}
     , _markers(Markers::create())
     , _options{Options::create()}
+    , _lock(ScreenLock::create())
     , _timer{new InactivityTimer}
     , _screenRect{screenRect}
     , _view{view}
@@ -77,6 +79,7 @@ DisplayGroupRenderer::DisplayGroupRenderer(WallWindow& parentWindow,
     _engine.rootContext()->setContextProperty("markers", _markers.get());
     _engine.rootContext()->setContextProperty("options", _options.get());
     _engine.rootContext()->setContextProperty("timer", _timer.get());
+    _engine.rootContext()->setContextProperty("lock", _lock.get());
     _createDisplayGroupQmlItem(*parentWindow.rootObject());
     _displayGroupItem->setPosition(-screenRect.topLeft());
     _setBackground(_options->getBackgroundContent());
@@ -155,6 +158,12 @@ void DisplayGroupRenderer::setRenderingOptions(OptionsPtr options)
     _setBackground(options->getBackgroundContent());
     _displayGroupItem->setVisible(!options->getShowTestPattern());
     _options = options; // Retain the new Options
+}
+
+void DisplayGroupRenderer::setScreenLock(ScreenLockPtr lock)
+{
+    _engine.rootContext()->setContextProperty("lock", lock.get());
+    _lock = lock;
 }
 
 void DisplayGroupRenderer::setTimer(InactivityTimerPtr timer)

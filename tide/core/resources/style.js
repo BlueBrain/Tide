@@ -15,8 +15,10 @@ var unfocusZorder = 99;
 var focusZorder = 100;
 var fullscreenBackgroundZorder = 198;
 var fullscreenZorder = 199;
-var sideControlZorder = 200;
-var countdownZorder = 201;
+var streamNotificationZorder = 200;
+var sideControlZorder = 201;
+var countdownZorder = 202;
+
 var overlayZorder = 1000;
 
 var focusContextColor = "black"
@@ -29,6 +31,7 @@ var countdownTransitionTime = 1500;
 
 var sideButtonColor = activeColor
 var sideButtonRelHeight = 0.3
+var streamNotificationAreaBannerRelHeight = 0.04
 
 var fpsX = 10;
 var fpsY = 10;

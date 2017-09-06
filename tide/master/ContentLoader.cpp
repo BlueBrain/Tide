@@ -48,6 +48,8 @@
 #include <QDir>
 #include <cmath>
 
+#include <cmath>
+
 ContentLoader::ContentLoader(DisplayGroupPtr displayGroup)
     : _displayGroup(displayGroup)
 {

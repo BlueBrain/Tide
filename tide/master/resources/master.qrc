@@ -24,7 +24,11 @@
         <file>img/exit.svg</file>
         <file>img/focus.svg</file>
         <file>img/loading.gif</file>
+        <file>img/lock.svg</file>
         <file>img/maximize.svg</file>
         <file>index.html</file>
+        <file>img/unlock.svg</file>
+        <file>img/screenOn.png</file>
+        <file>img/screenOff.png</file>
     </qresource>
 </RCC>

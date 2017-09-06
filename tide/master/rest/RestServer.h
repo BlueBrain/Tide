@@ -45,6 +45,7 @@
 #include <zeroeq/http/server.h>
 
 #include <QSocketNotifier>
+#include <set>
 
 /**
  * A non-blocking REST Server based on ZeroEQ for use in a Qt application.
@@ -104,10 +105,33 @@ public:
         });
     }
 
+    /**
+     * Block requests for specified method (other than from localhost).
+     * Server will return code 403 (FORBIDDEN).
+     *
+     * @param method the method which is to be blocked
+     */
+    void block(zeroeq::http::Method method);
+
+    /**
+     * Unblock requests for specified method.
+     *
+     * @param method the method which is to be unblocked
+     */
+    void unblock(zeroeq::http::Method method);
+
+protected:
+    std::future<zeroeq::http::Response> respondTo(
+        zeroeq::http::Request& request) const final;
+
 private:
     QSocketNotifier _socketNotifier{getSocketDescriptor(),
                                     QSocketNotifier::Read};
+
+    std::set<zeroeq::http::Method> _blockedMethods;
+
     void _init();
+    virtual bool _isWhitelisted(const std::string& source) const;
 };
 
 #endif

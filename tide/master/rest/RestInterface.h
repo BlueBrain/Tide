@@ -78,6 +78,9 @@ public:
 
     const AppController& getAppController() const;
 
+    /** Prevent modifying the wall via the interface. */
+    void lock(bool lock);
+
 private:
     class Impl;
     std::unique_ptr<Impl> _impl;

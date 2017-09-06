@@ -162,7 +162,16 @@ public:
 
 signals:
     /**
-     * Is emitted when the associated content window of the streamer is closed.
+     * Emitted when the associated content window of the EXTERNAL streamer is
+     * created. The stream window is hidden and the user has to call
+     * showWindow() or handleStreamEnd().
+     *
+     * @param uri the URI of the streamer
+     */
+    void externalStreamOpening(QString uri);
+
+    /**
+     * Emitted when the associated content window of the streamer is closed.
      *
      * @param uri the URI of the streamer
      */
