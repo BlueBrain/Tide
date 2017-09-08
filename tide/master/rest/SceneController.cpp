@@ -130,6 +130,7 @@ SceneController::SceneController(DisplayGroup& group)
         {
             ContentWindowController(*window, _group)
                 .moveTo(params.pos, WindowPoint::TOP_LEFT);
+            _controller.moveWindowToFront(params.id);
             return ok;
         }
         return noWindow;

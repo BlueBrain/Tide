@@ -136,6 +136,8 @@ QJsonObject to_json_object(const MasterConfiguration& config)
                      {"screenCountY", config.getTotalScreenCountY()},
                      {"bezelHeight", config.getMullionHeight()},
                      {"bezelWidth", config.getMullionWidth()},
+                     {"screenWidth", config.getScreenWidth()},
+                     {"screenHeight", config.getScreenHeight()},
                      {"bezelsPerScreenX", config.getBezelsPerScreenX()},
                      {"bezelsPerScreenY", config.getBezelsPerScreenY()}}},
         {"backgroundColor", config.getBackgroundColor().name()},

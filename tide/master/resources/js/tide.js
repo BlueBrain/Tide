@@ -8,6 +8,8 @@ var fullscreen;
 var locked;
 var screenCountX;
 var screenCountY;
+var screenHeight;
+var screenWidth;
 var sessionFiles = [];
 var timer;
 var wallWidth;
@@ -50,7 +52,7 @@ function bootstrapMenus() {
   $("#addButton").click(function (e) {
     $("#uploadMenu,#sessionMenu,#optionsMenu,#appsMenu").each(function () {
       $(this).hide("puff", showEffectSpeed);
-        e.stopPropagation()
+      e.stopPropagation()
     });
 
     $("#fsMenu").css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed);
@@ -142,7 +144,7 @@ function checkIfEqual(tile1, tile2) {
     tile1.selected === tile2.selected &&
     tile1.z === tile2.z &&
     tile1.visible === tile2.visible
-);
+  );
 }
 
 function clearUploadList() {
@@ -589,12 +591,14 @@ function init() {
     var config = JSON.parse(xhr.responseText)["config"];
     wallWidth = config["wallSize"]["width"];
     wallHeight = config["wallSize"]["height"];
-    screenCountX=config["dimensions"]["screenCountX"];
-    screenCountY=config["dimensions"]["screenCountY"];
-    bezelWidth=config["dimensions"]["bezelWidth"];
-    bezelHeight=config["dimensions"]["bezelHeight"];
-    bezelsPerScreenX=config["dimensions"]["bezelsPerScreenX"];
-    bezelsPerScreenY=config["dimensions"]["bezelsPerScreenY"];
+    screenCountX = config["dimensions"]["screenCountX"];
+    screenCountY = config["dimensions"]["screenCountY"];
+    bezelWidth = config["dimensions"]["bezelWidth"];
+    bezelHeight = config["dimensions"]["bezelHeight"];
+    bezelsPerScreenX = config["dimensions"]["bezelsPerScreenX"];
+    bezelsPerScreenY = config["dimensions"]["bezelsPerScreenY"];
+    screenWidth = config["dimensions"]["screenWidth"];
+    screenHeight = config["dimensions"]["screenHeight"];
 
     setBezels();
     setScale();
@@ -616,6 +620,11 @@ function init() {
       if (windowList.length > 0) {
         sendSceneJsonRpc("deselect-windows", {}, updateWall);
       }
+    })
+
+    $('.screenbezel').hover(stickToBezel, function (event) {
+      if (isAnyWindowDragged())
+        $("#stickToOverlay").remove()
     });
 
     $("#buttonContainer").append("Tide ", config["version"], " rev ",
@@ -637,6 +646,16 @@ function init() {
   $("#closeAllButton").on("click", function () {
     sendSceneJsonRpc("clear", {}, updateWall);
   });
+}
+
+function isBezelVisible(){
+  return ($('.screen').is(':visible'));
+}
+
+function isAnyWindowDragged()
+{
+  return ($(".ui-draggable-dragging").length == 1 );
+    
 }
 
 function getIdAsObject(tile) {
@@ -754,14 +773,14 @@ function sendJsonRpc(endpoint, method, parameters, callback) {
   }
   var jsonrpc = {"jsonrpc": "2.0", "method": method, "params": parameters, "id": sendJsonRpc.counter++};
   request("POST", endpoint, JSON.stringify(jsonrpc), function (response) {
-      if (response.hasOwnProperty('error')) {
-        var err = response.error;
-        var msg = "Reason: " + err.message + " (" + err.code + ")";
-        alertPopup("Error executing '" + method + "'", msg);
-      }
-      else {
-        callback();
-      }
+    if (response.hasOwnProperty('error')) {
+      var err = response.error;
+      var msg = "Reason: " + err.message + " (" + err.code + ")";
+      alertPopup("Error executing '" + method + "'", msg);
+    }
+    else {
+      callback();
+    }
   });
 }
 
@@ -778,21 +797,16 @@ function request(method, command, parameters, callback)
   xhr.onload = function () {
     if (xhr.status === 400)
       alertPopup("Something went wrong", "Issue at: " + restUrl + command);
-    if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
-      if (callback !== null) {
-        callback(xhr.response);
-      }}
     else if (xhr.status === 403) {
       if (!locked) {
-        $("#wallLock").fadeTo("fast", 1).css("background-color", "grey").fadeTo("slow", 0.0)
         location.reload();
       }
-      if($("#wallLock").css('opacity') == 0)
-        $("#wallLock").fadeTo(100, 1).css("background-color", "grey").fadeTo(1000, 0.0)
+      else
+        $("#wallLock").show().fadeTo(100, 1).css("background-color", "grey").fadeTo(1000, 0.0)
     }
     if (xhr.readyState === XMLHttpRequest.DONE && (xhr.status === 200 || xhr.status === 403)) {
       if (callback !== null)
-        callback();
+        callback(xhr.response);
     }
   };
   xhr.onerror = function () {
@@ -861,8 +875,8 @@ function saveSession() {
     },
     function () {
       sendAppJsonRpc("save", params, function(){
-          getSessionFolderContent();
-          updateWall(); // contents may have been relocated changing some window UUIDs
+        getSessionFolderContent();
+        updateWall(); // contents may have been relocated changing some window UUIDs
       });
       swal({
         title: "Saved!",
@@ -879,7 +893,7 @@ function saveSession() {
 }
 
 function setBezels() {
-  $('#wallOutline').css("grid-template-columns", "repeat("+screenCountX +", 1fr)").
+  $('#wall').css("grid-template-columns", "repeat("+screenCountX +", 1fr)").
   css("grid-template-rows", "repeat("+screenCountY+", 1fr)").
   css("grid-column-gap", bezelWidth).css("grid-row-gap", bezelHeight);
 
@@ -887,18 +901,36 @@ function setBezels() {
   var monitorsPerScreenX = bezelsPerScreenX + 1;
   var monitorsPerScreenY = bezelsPerScreenY + 1;
 
-  for (var i = 0; i< totalScreens; i++)
-  {
-    var div = $("<div class=bezel > </div>");
-    $("#wallOutline").append(div);
-    div.css("grid-template-rows", "repeat("+monitorsPerScreenX+ ", 1fr)");
-    div.css("grid-template-columns", "repeat("+monitorsPerScreenY+", 1fr)");
+  for (var i = 0; i < totalScreens; i++) {
+    var div = $("<div class=screen id=b" + i + "></div>");
+    $("#wall").append(div);
+    div.css("grid-template-rows", "repeat(" + monitorsPerScreenX +", 1fr)");
+    div.css("grid-template-columns", "repeat(" + monitorsPerScreenY +", 1fr)");
     var totalDisplaysPerScreen = monitorsPerScreenX * monitorsPerScreenY;
-
-    for (var j = 0; j < totalDisplaysPerScreen; j++)
-      div.append("<div class='bezel'></div>");
+    
+    for (var j = 0; j < totalDisplaysPerScreen; j++) {
+      var bezels = [{name: 'N', type: 'horizontal'},{name: 'S', type: 'horizontal'},
+      {name: 'E', type: 'vertical'},{name: 'W', type: 'vertical'},];
+      for (var k = 0; k < bezels.length; k++) {
+        let edge = $("<div class='screenbezel' id='" + bezels[k].name + "' > </div>");
+        if (bezels[k].type === 'horizontal') 
+        {
+          edge.css("width", "100%");
+          edge.css("height", stickyBezelSize);
+          if (bezels[k].name == 'S')
+            edge.css("top", screenHeight - stickyBezelSize);
+        }
+        else {
+          edge.css("width", stickyBezelSize);
+          edge.css("height", "100%");
+          if (bezels[k].name == 'E')
+            edge.css("left", screenWidth - stickyBezelSize);
+        }
+        div.append(edge);
+      }
+     }
   }
-  $(".bezel").css("grid-column-gap", bezelWidth).css("grid-row-gap", bezelHeight).hide();
+  $(".screen").css("outline-width", bezelWidth).css("outline-height", bezelHeight)//.hide();
 }
 
 function setCurtain(type) {
@@ -938,11 +970,16 @@ function setHandles(tile) {
   var newTop;
   var windowDiv = $('#' + tile.uuid);
   windowDiv.draggable({
+    cursor: 'all-scroll',
+    snap: '.screen',
+    snapTolerance: 10,
     containment: $("#wallWrapper"),
     start: function (event, ui) {
       $('#' + tile.uuid).css("zIndex", 100);
       ui.position.left = 0;
       ui.position.top = 0;
+      if (isBezelVisible())
+        $('.screenbezel').fadeTo('fast', 0.1).css("pointer-events", "all").css("zIndex", 150);
     },
     drag: function (event, ui) {
       var changeLeft = ui.position.left - ui.originalPosition.left;
@@ -952,9 +989,23 @@ function setHandles(tile) {
       ui.position.left = newLeft;
       ui.position.top = newTop;
     },
-    stop: function () {
-      var params = {"id": tile.uuid, "x": newLeft, "y": newTop};
-      sendSceneJsonRpc("move-window", params, updateWall);
+    stop: function (event) {
+      var stickToOverlay = $("#stickToOverlay");
+      if (stickToOverlay.length>0) {
+        $('.screenbezel').fadeTo('fast', 0).css("pointer-events", "none").css("zIndex", 50);
+        var paramsMove = {"id": tile.uuid, "x": parseFloat(stickToOverlay.css("left")) ,
+          "y": parseFloat(stickToOverlay.css("top"))};
+        var paramsResize = {"id": tile.uuid, "w": parseFloat(stickToOverlay.css("width"))  / zoomScale ,
+          "h": parseFloat(stickToOverlay.css("height"))  / zoomScale, "centered": false};
+        $("#stickToOverlay").remove()
+        sendSceneJsonRpc("resize-window", paramsResize, function () {
+          return sendSceneJsonRpc("move-window", paramsMove, updateWall);
+          });
+      }
+      else {
+        var params = {"id": tile.uuid, "x": newLeft, "y": newTop};
+        sendSceneJsonRpc("move-window", params, updateWall);
+      }
     },
     disabled: false,
     cancel: '.windowControls'
@@ -984,7 +1035,7 @@ function setHandles(tile) {
         tile.height = ui.size.height;
         tile.width = ui.size.width
       }
-      var params = {"id": tile.uuid, "w": tile.width, "h": tile.height, "centered": false};
+      var params = { "id": tile.uuid, "w": tile.width, "h": tile.height, "centered": false };
       sendSceneJsonRpc("resize-window", params, function () {
         return sendSceneJsonRpc("move-window-to-front", getIdAsObject(tile), updateWall);
       });
@@ -1008,8 +1059,8 @@ function setScale() {
   var minimalVerticalMargin = 100;
   var minimalHorizontalMargin = 100;
 
-  var scaleV = (viewportWidth - minimalHorizontalMargin ) / wallWidth;
-  var scaleH = (viewportHeight - minimalVerticalMargin ) / wallHeight;
+  var scaleV = (viewportWidth - minimalHorizontalMargin) / wallWidth;
+  var scaleH = (viewportHeight - minimalVerticalMargin) / wallHeight;
 
   if (scaleV <= scaleH)
     zoomScale = Math.round(scaleV * 100) / 100;
@@ -1018,12 +1069,107 @@ function setScale() {
 
   var wallMargin = (window.innerWidth - (wallWidth * zoomScale)) / 2;
   var wall = $("#wall");
-  wall.css({transform: 'scale(' + zoomScale + ')'});
+  wall.css({ transform: 'scale(' + zoomScale + ')' });
   wall.css("margin-left", wallMargin);
   wall.css("margin-right", wallMargin);
   wall.css("margin-top", 25);
   wall.css("margin-bottom", minimalVerticalMargin);
-  $(".windowControl").css({transform: 'scale(1)'});
+  $(".windowControl").css({ transform: 'scale(1)' });
+}
+
+function showBezels() {
+  $(".screen").toggle();
+  if (isBezelVisible)
+    $("#showBezelsButton").addClass("buttonPressed");
+  else
+    $("#showBezelsButton").removeClass("buttonPressed");
+}
+
+function stickToBezel(event) {
+  if (isAnyWindowDragged()) {
+    var screen = $(".ui-draggable-dragging")[0]
+    var tile = $("#" + screen.id)
+    var aspectRatio = parseFloat(tile.width()) / parseFloat(tile.height())
+
+    var $div = $("<div id='stickToOverlay'></div>");
+    var parent = $(this).parent()
+    parent.append($div)
+
+    // Size
+    if (aspectRatio === 1) {
+      var newWidth = screenHeight;
+      var newHeight = screenHeight;
+    }
+    else {
+      var newWidth = screenHeight * aspectRatio;
+      var newHeight = screenHeight;
+    }
+
+    // Size - special handling for "overflowing" windows
+    if (newWidth > screenWidth) {
+      newWidth = screenWidth;
+      newHeight = newWidth / aspectRatio;
+    }
+    if (newHeight > screenHeight) {
+      newHeight = screenHeight;
+      newWidth = newHeight / aspectRatio;
+    }
+    // Size - special handling for minHeight, minWidth exceeding the screen size
+    if (newHeight < parseFloat(tile.css("minHeight"))) {
+      newHeight = parseFloat(tile.css("minHeight"));
+      newWidth = newHeight * aspectRatio;
+    }
+    else if (newWidth < parseFloat(tile.css("minWidth"))) {
+      newWidth = parseFloat(tile.css("minWidth"));
+      newHeight = newWidth * aspectRatio;
+    }
+
+    // Anchors
+    var left = parent.position().left / zoomScale;
+    var right = (parent.position().left / zoomScale + screenWidth) - newWidth;
+    var centerV = (parent.position().top / zoomScale + 0.5 * screenHeight) - 0.5 * newHeight;
+    var centerH = (parent.position().left / zoomScale + 0.5 * screenWidth) - newWidth * 0.5;
+    var bottom = (parent.position().top / zoomScale + screenHeight) - newHeight;
+    var top = parent.position().top / zoomScale;
+
+    $div.css("width", newWidth);
+    $div.css("height", newHeight);
+    $div.fadeIn('10')
+
+    // Placement based on the move direction and aspect ratio
+    var vertical = aspectRatio < 1;
+    var dir = this.id;
+
+    if (vertical) {
+      if (dir == 'E')
+        $div.css("left", right);
+      else if (dir == 'W')
+        $div.css("left", left);
+      else if (dir == 'N' || dir == 'S')
+        $div.css("left", centerH);
+    }
+    else {
+      if (dir == 'N') {
+        $div.css("left", centerH);
+        $div.css("top", top);
+      }
+      else if (dir == 'S') {
+        $div.css("top", bottom);
+        $div.css("left", centerH);
+      }
+      else if (dir == 'E') {
+        $div.css("top", centerV);
+        $div.css("left", right);
+      }
+      else if (dir == 'W') {
+        $div.css("top", centerV);
+        $div.css("left", left);
+      }
+      // Allign a window exceeding a screen to the left
+      if ((dir == 'N' || dir == 'S') && newWidth > screenWidth)
+        $div.css("left", left);
+    }
+  }
 }
 
 function updateOptions() {
@@ -1034,7 +1180,7 @@ function updateOptions() {
     options = JSON.parse(xhr.responseText);
     for (var property in options) {
       if (options.hasOwnProperty(property)) {
-        if (typeof(options[property]) !== "boolean")
+        if (typeof (options[property]) !== "boolean")
           continue;
         $('#checkbox_' + property).prop('checked', options[property]);
       }
@@ -1043,23 +1189,13 @@ function updateOptions() {
   xhr.send(null);
 }
 
-function showBezels()
-{
-  $(".bezel").toggle();
-  if ($('.bezel').is(':visible'))
-    $("#showBezelsButton").addClass("buttonPressed");
-  else
-    $("#showBezelsButton").removeClass("buttonPressed");
-}
-
 function updateTile(tile) {
   var windowDiv = $('#' + tile.uuid);
   // don't use minHeight, minWitdh and zIndex from REST interface for focused window
   // or zIndex for fullscreen window
-
   windowDiv.css("min-height", tile.focus ? 0 : tile.minHeight);
   windowDiv.css("min-width", tile.focus ? 0 : tile.minWidth);
-  windowDiv.css("zIndex", tile.fullscreen ?  zIndexFullscreen : tile.focus ? zIndexFocus : tile.z);
+  windowDiv.css("zIndex", tile.fullscreen ? zIndexFullscreen : tile.focus ? zIndexFocus : tile.z);
   windowDiv.css("top", tile.y);
   windowDiv.css("left", tile.x);
   windowDiv.css("height", tile.height);
@@ -1172,6 +1308,7 @@ function updateWall() {
     var draggableObj = $('.ui-draggable');
 
     if (lock["locked"]) {
+      $('#wallLock').show()
       $('.windowDiv').on('mousedown', function (e) {
         e.preventDefault();
         e.stopPropagation();
@@ -1182,9 +1319,12 @@ function updateWall() {
       $("#lockIcon").attr("src", lockImageUrl);
     }
     else {
-      $("#lockIcon").attr("src",unlockImageUrl);
-      draggableObj.draggable('enable');
-      draggableObj.resizable('enable');
+      $('#wallLock').hide()
+      if (!fullscreen) {
+        draggableObj.draggable('enable');
+        draggableObj.resizable('enable');
+      }
+      $("#lockIcon").attr("src", unlockImageUrl);
       $(".menuButton").prop("disabled", false)
     }
   };
@@ -1272,7 +1412,7 @@ function uploadFiles(files, coords) {
         else
           console.log('ENDPOINT REGISTRATION: An error occurred!');
       };
-      var body = {"filename": (file.name), "x": coords["x"], "y": coords["y"]};
+      var body = { "filename": (file.name), "x": coords["x"], "y": coords["y"] };
       requests[i].send(JSON.stringify(body));
     })(i)
   }
