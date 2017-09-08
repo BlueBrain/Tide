@@ -41,6 +41,7 @@
 #include "AppController.h"
 
 #include "MasterConfiguration.h"
+#include "config.h"
 #include "serialization.h"
 
 #include <QDir>
