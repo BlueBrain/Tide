@@ -46,6 +46,7 @@
 #include "scene/DisplayGroup.h"
 
 #include <QDir>
+#include <cmath>
 
 ContentLoader::ContentLoader(DisplayGroupPtr displayGroup)
     : _displayGroup(displayGroup)

@@ -45,6 +45,8 @@
 #include "scene/ContentWindow.h"
 #include "scene/DisplayGroup.h"
 
+#include <cmath>
+
 namespace
 {
 const qreal MIN_SIZE = 0.05;
