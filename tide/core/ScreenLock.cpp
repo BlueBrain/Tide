@@ -89,7 +89,7 @@ void ScreenLock::requestStreamAcceptance(const QString uri)
     if (_locked)
         _add(uri);
     else
-        acceptStream(uri);
+        emit streamAccepted(uri);
 }
 
 void ScreenLock::cancelStreamAcceptance(const QString uri)

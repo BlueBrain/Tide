@@ -154,7 +154,7 @@ BOOST_FIXTURE_TEST_CASE(test_unlocking, Fixture)
     lockModified = false;
     screenLock->requestStreamAcceptance(STREAM1);
 
-    BOOST_CHECK(acceptedStreams.length() == 0);
+    BOOST_CHECK(acceptedStreams.length() == 1);
     BOOST_CHECK_EQUAL(listChanged, false);
     BOOST_CHECK_EQUAL(lockModified, false);
 }
