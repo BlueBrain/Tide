@@ -64,15 +64,15 @@ void TextureNodeRGBA::setMipmapFiltering(const QSGTexture::Filtering filtering_)
     opaqueMat->setMipmapFiltering(filtering_);
 }
 
-void TextureNodeRGBA::updateBackTexture(const Image& image)
+void TextureNodeRGBA::uploadTexture(const Image& image)
 {
     if (!image.getTextureSize().isValid())
         throw std::runtime_error("image texture has invalid size");
 
-    if (!_backPbo)
-        _backPbo = textureUtils::createPbo(_dynamicTexture);
+    if (!_pbo)
+        _pbo = textureUtils::createPbo(_dynamicTexture);
 
-    textureUtils::upload(image, 0, *_backPbo);
+    textureUtils::upload(image, 0, *_pbo);
 
     _nextTextureSize = image.getTextureSize();
     _glImageFormat = image.getGLPixelFormat();
@@ -83,14 +83,10 @@ void TextureNodeRGBA::swap()
     if (_texture->textureSize() != _nextTextureSize)
         _texture = textureUtils::createTextureRgba(_nextTextureSize, _window);
 
-    std::swap(_frontPbo, _backPbo);
-    textureUtils::copy(*_frontPbo, *_texture, _glImageFormat);
+    textureUtils::copy(*_pbo, *_texture, _glImageFormat);
     setTexture(_texture.get());
     markDirty(DirtyMaterial);
 
     if (!_dynamicTexture)
-    {
-        _frontPbo.reset();
-        _backPbo.reset();
-    }
+        _pbo.reset();
 }

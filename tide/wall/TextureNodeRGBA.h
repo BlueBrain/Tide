@@ -75,7 +75,7 @@ public:
 
     QRectF getCoord() const final { return rect(); }
     void setCoord(const QRectF& coord) final { setRect(coord); }
-    void updateBackTexture(const Image& image) final;
+    void uploadTexture(const Image& image) final;
     void swap() final;
 
 private:
@@ -83,8 +83,7 @@ private:
     bool _dynamicTexture = false;
 
     std::unique_ptr<QSGTexture> _texture;
-    std::unique_ptr<QOpenGLBuffer> _frontPbo;
-    std::unique_ptr<QOpenGLBuffer> _backPbo;
+    std::unique_ptr<QOpenGLBuffer> _pbo;
 
     QSize _nextTextureSize;
     uint _glImageFormat = 0;
