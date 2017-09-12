@@ -112,6 +112,8 @@ QRectF VisibilityHelper::getVisibleArea(const ContentWindow& window) const
             isAbove = true;
             continue;
         }
+        if (win->isHidden())
+            continue;
         if (isAbove || win->isFocused())
             area = _cutOverlap(area, win->getDisplayCoordinates());
 
