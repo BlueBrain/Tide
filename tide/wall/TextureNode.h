@@ -57,7 +57,7 @@ public:
     virtual void setCoord(const QRectF& coord) = 0;
 
     /** Upload the given image to the back PBO. */
-    virtual void updateBackTexture(const Image& image) = 0;
+    virtual void uploadTexture(const Image& image) = 0;
 
     /** Swap the PBOs and update the texture with the back PBO's contents. */
     virtual void swap() = 0;

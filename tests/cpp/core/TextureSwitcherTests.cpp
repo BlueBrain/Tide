@@ -53,7 +53,7 @@ public:
     }
     virtual QRectF getCoord() const { return coord; }
     virtual void setCoord(const QRectF& rect) { coord = rect; }
-    virtual void updateBackTexture(const Image& im) { image = &im; }
+    virtual void uploadTexture(const Image& im) { image = &im; }
     virtual void swap() { swapped = true; }
     TextureFormat format;
     QRectF coord;
@@ -248,13 +248,12 @@ BOOST_FIXTURE_TEST_CASE(switch_texture_type_once, ImagesFixture)
         // When switching texture type, the image is uploaded to an internal
         // texture node and the previous texture node is swapped + returned.
         // The new image is "seen" here after the next swap (one frame delay).
-        const auto index = (i == 5) ? (i - 1) : i;
-        BOOST_CHECK_EQUAL(node.image, images[index].get());
-        BOOST_CHECK_EQUAL(node.format, images[index]->getFormat());
+        BOOST_CHECK_EQUAL(node.image, images[i].get());
+        BOOST_CHECK_EQUAL(node.format, images[i]->getFormat());
         BOOST_CHECK(node.swapped || i == 0);
         node.swapped = false;
 
-        BOOST_CHECK(!switcher.switchedTextureNodes || (i == 6));
+        BOOST_CHECK(!switcher.switchedTextureNodes || i == 0 || i == 5);
         switcher.switchedTextureNodes = false;
     }
 }
@@ -270,13 +269,13 @@ BOOST_FIXTURE_TEST_CASE(switch_texture_type_twice, ImagesFixture)
         updateSwitcher(images[i]);
         auto& node = dynamic_cast<MockTextureNode&>(*textureNode);
 
-        const auto index = (i == 5 || i == 6) ? (i - 1) : i;
-        BOOST_CHECK_EQUAL(node.image, images[index].get());
-        BOOST_CHECK_EQUAL(node.format, images[index]->getFormat());
+        BOOST_CHECK_EQUAL(node.image, images[i].get());
+        BOOST_CHECK_EQUAL(node.format, images[i]->getFormat());
         BOOST_CHECK(node.swapped || i == 0);
         node.swapped = false;
 
-        BOOST_CHECK(!switcher.switchedTextureNodes || (i == 6 || i == 7));
+        BOOST_CHECK(!switcher.switchedTextureNodes || i == 0 || i == 5 ||
+                    i == 6);
         switcher.switchedTextureNodes = false;
     }
 }
@@ -291,13 +290,12 @@ BOOST_FIXTURE_TEST_CASE(switch_texture_type_repeatedly, ImagesFixture)
         updateSwitcher(images[i]);
         auto& node = dynamic_cast<MockTextureNode&>(*textureNode);
 
-        const auto index = std::max(0, i - 1);
-        BOOST_CHECK_EQUAL(node.image, images[index].get());
-        BOOST_CHECK_EQUAL(node.format, images[index]->getFormat());
+        BOOST_CHECK_EQUAL(node.image, images[i].get());
+        BOOST_CHECK_EQUAL(node.format, images[i]->getFormat());
         BOOST_CHECK(node.swapped || i == 0);
         node.swapped = false;
 
-        BOOST_CHECK(switcher.switchedTextureNodes || (i == 0 || i == 1));
+        BOOST_CHECK(switcher.switchedTextureNodes || i == 0);
         switcher.switchedTextureNodes = false;
     }
 }

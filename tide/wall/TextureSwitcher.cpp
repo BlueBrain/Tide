@@ -107,7 +107,7 @@ void TextureSwitcher::_createNextNode(TextureNodeFactory& factory)
 
 void TextureSwitcher::_uploadImage(TextureNode& node)
 {
-    node.updateBackTexture(*_image);
+    node.uploadTexture(*_image);
     _format = _image->getFormat();
     _image.reset();
     _swapPossible = true;

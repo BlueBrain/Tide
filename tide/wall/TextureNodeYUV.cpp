@@ -101,13 +101,9 @@ struct YUVState
     std::unique_ptr<QSGTexture> textureV;
     TextureFormat textureFormat;
 
-    std::unique_ptr<QOpenGLBuffer> frontPboY;
-    std::unique_ptr<QOpenGLBuffer> frontPboU;
-    std::unique_ptr<QOpenGLBuffer> frontPboV;
-
-    std::unique_ptr<QOpenGLBuffer> backPboY;
-    std::unique_ptr<QOpenGLBuffer> backPboU;
-    std::unique_ptr<QOpenGLBuffer> backPboV;
+    std::unique_ptr<QOpenGLBuffer> pboY;
+    std::unique_ptr<QOpenGLBuffer> pboU;
+    std::unique_ptr<QOpenGLBuffer> pboV;
 };
 
 /**
@@ -199,7 +195,7 @@ void TextureNodeYUV::setCoord(const QRectF& rect)
     _node.markDirty(QSGNode::DirtyGeometry);
 }
 
-void TextureNodeYUV::updateBackTexture(const Image& image)
+void TextureNodeYUV::uploadTexture(const Image& image)
 {
     if (!image.getTextureSize().isValid())
         throw std::runtime_error("image texture has invalid size");
@@ -207,10 +203,10 @@ void TextureNodeYUV::updateBackTexture(const Image& image)
         throw std::runtime_error("TextureNodeYUV image format must be GL_RED");
 
     auto state = _getMaterialState(_node);
-    if (!state->backPboY)
-        _createBackPbos();
+    if (!state->pboY)
+        _createPbos();
 
-    _uploadToBackPbos(image);
+    _uploadToPbos(image);
 
     _nextTextureSize = image.getTextureSize();
     _nextFormat = image.getFormat();
@@ -221,8 +217,7 @@ void TextureNodeYUV::swap()
     if (_needTextureChange())
         _createTextures(_nextTextureSize, _nextFormat);
 
-    _swapPbos();
-    _copyFrontPbosToTextures();
+    _copyPbosToTextures();
     markDirty(DirtyMaterial);
 
     if (!_dynamicTexture)
@@ -256,45 +251,34 @@ std::unique_ptr<QSGTexture> TextureNodeYUV::_createTexture(
     return texture;
 }
 
-void TextureNodeYUV::_createBackPbos()
+void TextureNodeYUV::_createPbos()
 {
     auto state = _getMaterialState(_node);
-    state->backPboY = textureUtils::createPbo(_dynamicTexture);
-    state->backPboU = textureUtils::createPbo(_dynamicTexture);
-    state->backPboV = textureUtils::createPbo(_dynamicTexture);
+    state->pboY = textureUtils::createPbo(_dynamicTexture);
+    state->pboU = textureUtils::createPbo(_dynamicTexture);
+    state->pboV = textureUtils::createPbo(_dynamicTexture);
 }
 
 void TextureNodeYUV::_deletePbos()
 {
     auto state = _getMaterialState(_node);
-    state->frontPboY.reset();
-    state->frontPboU.reset();
-    state->frontPboV.reset();
-    state->backPboY.reset();
-    state->backPboU.reset();
-    state->backPboV.reset();
+    state->pboY.reset();
+    state->pboU.reset();
+    state->pboV.reset();
 }
 
-void TextureNodeYUV::_uploadToBackPbos(const Image& image)
+void TextureNodeYUV::_uploadToPbos(const Image& image)
 {
     auto state = _getMaterialState(_node);
-    textureUtils::upload(image, 0, *state->backPboY);
-    textureUtils::upload(image, 1, *state->backPboU);
-    textureUtils::upload(image, 2, *state->backPboV);
+    textureUtils::upload(image, 0, *state->pboY);
+    textureUtils::upload(image, 1, *state->pboU);
+    textureUtils::upload(image, 2, *state->pboV);
 }
 
-void TextureNodeYUV::_copyFrontPbosToTextures()
+void TextureNodeYUV::_copyPbosToTextures()
 {
     auto state = _getMaterialState(_node);
-    textureUtils::copy(*state->frontPboY, *state->textureY, GL_RED);
-    textureUtils::copy(*state->frontPboU, *state->textureU, GL_RED);
-    textureUtils::copy(*state->frontPboV, *state->textureV, GL_RED);
-}
-
-void TextureNodeYUV::_swapPbos()
-{
-    auto state = _getMaterialState(_node);
-    std::swap(state->frontPboY, state->backPboY);
-    std::swap(state->frontPboU, state->backPboU);
-    std::swap(state->frontPboV, state->backPboV);
+    textureUtils::copy(*state->pboY, *state->textureY, GL_RED);
+    textureUtils::copy(*state->pboU, *state->textureU, GL_RED);
+    textureUtils::copy(*state->pboV, *state->textureV, GL_RED);
 }

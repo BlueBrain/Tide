@@ -71,7 +71,7 @@ public:
 
     QRectF getCoord() const final;
     void setCoord(const QRectF& rect) final;
-    void updateBackTexture(const Image& image) final;
+    void uploadTexture(const Image& image) final;
     void swap() final;
 
 private:
@@ -87,10 +87,10 @@ private:
     bool _needTextureChange() const;
     void _createTextures(const QSize& size, TextureFormat format);
     std::unique_ptr<QSGTexture> _createTexture(const QSize& size) const;
-    void _createBackPbos();
+    void _createPbos();
     void _deletePbos();
-    void _uploadToBackPbos(const Image& image);
-    void _copyFrontPbosToTextures();
+    void _uploadToPbos(const Image& image);
+    void _copyPbosToTextures();
     void _swapPbos();
 };
 
