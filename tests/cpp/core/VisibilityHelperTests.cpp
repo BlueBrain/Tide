@@ -211,3 +211,17 @@ BOOST_FIXTURE_TEST_CASE(testFullscreenWindowOverlapEverything, Fixture)
     BOOST_CHECK_EQUAL(helper.getVisibleArea(*focusWindow), QRectF());
     BOOST_CHECK_EQUAL(helper.getVisibleArea(*window), fullscreen);
 }
+
+BOOST_FIXTURE_TEST_CASE(testHiddenWindowNotObstructingOthers, Fixture)
+{
+    const QRectF& coord = window->getCoordinates();
+
+    ContentWindowPtr otherWindow = boost::make_shared<ContentWindow>(content);
+    group->addContentWindow(otherWindow);
+    otherWindow->setState(ContentWindow::WindowState::HIDDEN);
+    BOOST_CHECK_EQUAL(helper.getVisibleArea(*window), coord);
+
+    otherWindow->setState(ContentWindow::WindowState::NONE);
+    BOOST_CHECK_EQUAL(helper.getVisibleArea(*window), QRectF());
+    BOOST_CHECK_EQUAL(helper.getVisibleArea(*otherWindow), coord);
+}
