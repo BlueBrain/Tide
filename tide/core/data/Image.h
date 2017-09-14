@@ -80,6 +80,12 @@ public:
         return tex.width() * tex.height() * bpp;
     }
 
+    /** @return the row order of the image data. */
+    virtual deflect::RowOrder getRowOrder() const
+    {
+        return deflect::RowOrder::top_down;
+    }
+
     /** @return the format of the image. */
     virtual TextureFormat getFormat() const = 0;
 

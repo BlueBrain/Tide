@@ -69,6 +69,11 @@ void TextureNodeRGBA::uploadTexture(const Image& image)
     if (!image.getTextureSize().isValid())
         throw std::runtime_error("image texture has invalid size");
 
+    if (image.getRowOrder() == deflect::RowOrder::bottom_up)
+        setTextureCoordinatesTransform(QSGSimpleTextureNode::MirrorVertically);
+    else
+        setTextureCoordinatesTransform(QSGSimpleTextureNode::NoTransform);
+
     if (!_pbo)
         _pbo = textureUtils::createPbo(_dynamicTexture);
 

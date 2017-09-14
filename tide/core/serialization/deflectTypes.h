@@ -67,6 +67,7 @@ void save(Archive& ar, const deflect::Segment& segment, const unsigned int)
     // clang-format off
     ar & segment.parameters;
     ar & segment.view;
+    ar & segment.rowOrder;
 
     int size = segment.imageData.size();
     ar & size;
@@ -82,6 +83,7 @@ void load(Archive& ar, deflect::Segment& segment, const unsigned int)
     // clang-format off
     ar & segment.parameters;
     ar & segment.view;
+    ar & segment.rowOrder;
 
     int size = 0;
     ar & size;
