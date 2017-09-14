@@ -51,29 +51,8 @@
 namespace
 {
 const int SEGMENT_SIZE = 64;
-
-QByteArray createBuffer(const int size, const int seed)
-{
-    QByteArray buffer;
-    assert(size % 8 == 0);
-    for (int i = 0; i < size; i += 8)
-    {
-        buffer.append(seed + 0);
-        buffer.append(seed + 1);
-        buffer.append(seed + 2);
-        buffer.append(seed + 3);
-        buffer.append(seed + 4);
-        buffer.append(seed + 5);
-        buffer.append(seed + 6);
-        buffer.append(seed + 7);
-    }
-    return buffer;
-}
-
-const QByteArray expectedY = createBuffer(512 * 512, 92);
-const QByteArray expectedU = createBuffer(512 * 512, 28);
-const QByteArray expectedV = createBuffer(512 * 512, 79);
-const QByteArray expectedRGBA = createBuffer(512 * 512 * 4, 112);
+const int IMAGE_WIDTH = 642;
+const int IMAGE_HEIGHT = 914;
 
 deflect::DataType getDataType(const int subsamp)
 {
@@ -109,33 +88,162 @@ TextureFormat getTextureFormat(const int subsamp)
     }
 }
 
-deflect::Segment createSegment(const QPoint& pos, const QSize& size,
-                               const int subsamp)
+QSize getUVImageSize(const QSize& ySize, const int subsamp)
+{
+    switch (subsamp)
+    {
+    case 0:
+        return ySize;
+    case 1:
+        return {ySize.width() >> 1, ySize.height()};
+    case 2:
+        return ySize / 2;
+    default:
+        throw std::runtime_error("Invalid subsampling");
+    }
+}
+
+QPoint getUVImagePos(const QPoint& yPos, const int subsamp)
+{
+    switch (subsamp)
+    {
+    case 0:
+        return yPos;
+    case 1:
+        return {yPos.x() >> 1, yPos.y()};
+    case 2:
+        return yPos / 2;
+    default:
+        throw std::runtime_error("Invalid subsampling");
+    }
+}
+
+deflect::RowOrder getRowOrder(const int orientation)
+{
+    switch (orientation)
+    {
+    case 0:
+        return deflect::RowOrder::top_down;
+    case 1:
+        return deflect::RowOrder::bottom_up;
+    default:
+        throw std::runtime_error("Invalid orientation");
+    }
+}
+
+QByteArray createBuffer(const QSize& size, const int bpp, const int seed)
+{
+    QByteArray buffer;
+    for (int y = 0; y < size.height(); ++y)
+    {
+        for (int x = 0; x < size.width(); ++x)
+        {
+            for (int p = 0; p < bpp; ++p)
+                buffer.append(char((seed + y + x) % 256));
+        }
+    }
+    assert(buffer.size() == size.width() * size.height() * bpp);
+    return buffer;
+}
+
+struct TestImage
+{
+    TestImage(const int subsamp_)
+        : subsamp(subsamp_)
+    {
+        if (subsamp == -1)
+            rgba = createBuffer({IMAGE_WIDTH, IMAGE_HEIGHT}, 4, 'r');
+        else
+        {
+            const auto ySize = QSize{IMAGE_WIDTH, IMAGE_HEIGHT};
+            uvSize = getUVImageSize(ySize, subsamp);
+            y = createBuffer(ySize, 1, 'y');
+            u = createBuffer(uvSize, 1, 'u');
+            v = createBuffer(uvSize, 1, 'v');
+        }
+    }
+
+    const int subsamp;
+    QByteArray rgba;
+    QByteArray y;
+    QByteArray u;
+    QByteArray v;
+    QSize uvSize;
+};
+
+QByteArray copyRegion(const QByteArray& src, const int srcWidth,
+                      const QRect& region, const int bpp)
+{
+    QByteArray copy;
+    const auto in = src.data();
+    const auto srcStride = srcWidth * bpp;
+    const auto dstStride = region.width() * bpp;
+
+    for (int y = region.y(); y < region.y() + region.height(); ++y)
+    {
+        const auto index = y * srcStride + region.x() * bpp;
+        copy.append(&in[index], dstStride);
+        assert(&in[index] < in + src.size());
+    }
+
+    assert(copy.size() == region.height() * region.width() * bpp);
+    return copy;
+}
+
+void flipRowOrder(QByteArray& buffer, const QSize& size, const int bpp)
+{
+    QByteArray copy;
+    const auto in = buffer.data();
+    const auto stride = size.width() * bpp;
+    for (int y = size.height() - 1; y >= 0; --y)
+        copy.append(&in[y * stride], stride);
+    buffer = copy;
+}
+
+deflect::Segment createSegment(const QRect& region, const TestImage& testImage,
+                               const deflect::RowOrder rowOrder)
 {
     deflect::Segment segment;
-    segment.parameters.dataType = getDataType(subsamp);
-    segment.parameters.x = pos.x();
-    segment.parameters.y = pos.y();
-    segment.parameters.width = size.width();
-    segment.parameters.height = size.height();
+    segment.parameters.dataType = getDataType(testImage.subsamp);
+    segment.parameters.x = region.x();
+    segment.parameters.y = region.y();
+    segment.parameters.width = region.width();
+    segment.parameters.height = region.height();
+    segment.rowOrder = rowOrder;
 
-    if (subsamp == -1)
+    if (testImage.subsamp == -1)
     {
-        const auto rgbaSize = size.width() * size.height() * 4;
-        segment.imageData.append(createBuffer(rgbaSize, 112)); // RGBA
+        segment.imageData = copyRegion(testImage.rgba, IMAGE_WIDTH, region, 4);
+        if (rowOrder == deflect::RowOrder::bottom_up)
+            flipRowOrder(segment.imageData, region.size(), 4);
     }
     else
     {
-        const auto ySize = size.width() * size.height();
-        const auto uvSize = ySize >> subsamp;
-        segment.imageData.append(createBuffer(ySize, 92));  // Y
-        segment.imageData.append(createBuffer(uvSize, 28)); // U
-        segment.imageData.append(createBuffer(uvSize, 79)); // V
+        const auto uvSize = getUVImageSize(region.size(), testImage.subsamp);
+        const auto uvPos = getUVImagePos(region.topLeft(), testImage.subsamp);
+        const auto uvRegion = QRect{uvPos, uvSize};
+        auto yBuffer = copyRegion(testImage.y, IMAGE_WIDTH, region, 1);
+        auto uBuffer =
+            copyRegion(testImage.u, testImage.uvSize.width(), uvRegion, 1);
+        auto vBuffer =
+            copyRegion(testImage.v, testImage.uvSize.width(), uvRegion, 1);
+
+        if (rowOrder == deflect::RowOrder::bottom_up)
+        {
+            flipRowOrder(yBuffer, region.size(), 1);
+            flipRowOrder(uBuffer, uvSize, 1);
+            flipRowOrder(vBuffer, uvSize, 1);
+        }
+        segment.imageData.append(yBuffer);
+        segment.imageData.append(uBuffer);
+        segment.imageData.append(vBuffer);
     }
+
     return segment;
 }
 
-deflect::FramePtr createTestFrame(const QSize& size, const int subsamp)
+deflect::FramePtr createTestFrame(const QSize& size, const TestImage& testImage,
+                                  const deflect::RowOrder rowOrder)
 {
     deflect::FramePtr frame(new deflect::Frame);
 
@@ -157,36 +265,68 @@ deflect::FramePtr createTestFrame(const QSize& size, const int subsamp)
             const QPoint pos{x * SEGMENT_SIZE, y * SEGMENT_SIZE};
             const QSize segSize{x < segmentsX - 1 ? SEGMENT_SIZE : borderX,
                                 y < segmentsY - 1 ? SEGMENT_SIZE : borderY};
-            frame->segments.push_back(createSegment(pos, segSize, subsamp));
+            const QRect region{pos, segSize};
+            frame->segments.push_back(
+                createSegment(region, testImage, rowOrder));
         }
     }
     return frame;
 }
 
-inline void checkData(const Image& image, const int subsamp)
+void checkRGBAData(const Image& image, const QRect& region,
+                   const TestImage& testImage)
 {
-    if (subsamp == -1) // RGBA
-    {
-        const auto size = image.getWidth() * image.getHeight() * 4;
-        const auto data = image.getData(0);
-        BOOST_CHECK_EQUAL_COLLECTIONS(data, data + size, expectedRGBA.data(),
-                                      expectedRGBA.data() + size);
-    }
-    else // YUV
-    {
-        const auto sizeY = image.getWidth() * image.getHeight();
-        const auto sizeUV = sizeY / (1 << subsamp);
-        const auto dataY = image.getData(0);
-        const auto dataU = image.getData(1);
-        const auto dataV = image.getData(2);
+    const auto size = image.getWidth() * image.getHeight() * 4;
+    const auto data = image.getData(0);
+    const auto expectedData =
+        copyRegion(testImage.rgba, IMAGE_WIDTH, region, 4);
 
-        BOOST_CHECK_EQUAL_COLLECTIONS(dataY, dataY + sizeY, expectedY.data(),
-                                      expectedY.data() + sizeY);
-        BOOST_CHECK_EQUAL_COLLECTIONS(dataU, dataU + sizeUV, expectedU.data(),
-                                      expectedU.data() + sizeUV);
-        BOOST_CHECK_EQUAL_COLLECTIONS(dataV, dataV + sizeUV, expectedV.data(),
-                                      expectedV.data() + sizeUV);
-    }
+    BOOST_CHECK_EQUAL(size, expectedData.size());
+    // ptr type need to be identical otherwise boost shows false errors
+    const auto ptr = reinterpret_cast<const uint8_t*>(expectedData.data());
+    BOOST_CHECK_EQUAL_COLLECTIONS(data, data + size, ptr, ptr + size);
+}
+
+void checkYUVData(const Image& image, const QRect& region,
+                  const TestImage& testImage)
+{
+    const auto sizeY = image.getWidth() * image.getHeight();
+    const auto sizeUV = sizeY / (1 << testImage.subsamp);
+    const auto dataY = image.getData(0);
+    const auto dataU = image.getData(1);
+    const auto dataV = image.getData(2);
+
+    const auto uvSize = getUVImageSize(region.size(), testImage.subsamp);
+    const auto uvPos = getUVImagePos(region.topLeft(), testImage.subsamp);
+    const auto uvRegion = QRect{uvPos, uvSize};
+
+    const auto expectedDataY = copyRegion(testImage.y, IMAGE_WIDTH, region, 1);
+    const auto expectedDataU =
+        copyRegion(testImage.u, testImage.uvSize.width(), uvRegion, 1);
+    const auto expectedDataV =
+        copyRegion(testImage.v, testImage.uvSize.width(), uvRegion, 1);
+
+    BOOST_CHECK_EQUAL(sizeY, expectedDataY.size());
+    BOOST_CHECK_EQUAL(sizeUV, expectedDataU.size());
+    BOOST_CHECK_EQUAL(sizeUV, expectedDataV.size());
+
+    // ptr type need to be identical otherwise boost shows false errors
+    const auto pY = reinterpret_cast<const uint8_t*>(expectedDataY.data());
+    const auto pU = reinterpret_cast<const uint8_t*>(expectedDataU.data());
+    const auto pV = reinterpret_cast<const uint8_t*>(expectedDataV.data());
+
+    BOOST_CHECK_EQUAL_COLLECTIONS(dataY, dataY + sizeY, pY, pY + sizeY);
+    BOOST_CHECK_EQUAL_COLLECTIONS(dataU, dataU + sizeUV, pU, pU + sizeUV);
+    BOOST_CHECK_EQUAL_COLLECTIONS(dataV, dataV + sizeUV, pV, pV + sizeUV);
+}
+
+void checkData(const Image& image, const QRect& region,
+               const TestImage& testImage)
+{
+    if (testImage.subsamp == -1)
+        checkRGBAData(image, region, testImage);
+    else
+        checkYUVData(image, region, testImage);
 }
 }
 
@@ -198,55 +338,67 @@ BOOST_AUTO_TEST_CASE(testAssembleStreamImageYUVandRGBA)
     const int subsamp = -1; // Only RGBA can be tested
 #endif
     {
-        const auto frame = createTestFrame({640, 900}, subsamp);
-        const auto textureFormat = getTextureFormat(subsamp);
+        const TestImage image(subsamp);
 
-        BOOST_REQUIRE_EQUAL(frame->segments.size(), 10 * 15);
-        BOOST_REQUIRE_EQUAL(frame->computeDimensions(), QSize(640, 900));
-        BOOST_REQUIRE_NO_THROW(PixelStreamAssembler{frame});
+        for (auto orientation = 0; orientation <= 1; ++orientation)
+        {
+            const auto rowOrder = getRowOrder(orientation);
+            const auto frame =
+                createTestFrame({IMAGE_WIDTH, IMAGE_HEIGHT}, image, rowOrder);
+            const auto textureFormat = getTextureFormat(subsamp);
 
-        // Check indices
-        PixelStreamAssembler assembler{frame};
-        auto indices = assembler.computeVisibleSet(QRectF{0, 0, 0, 0});
-        BOOST_CHECK_EQUAL(indices.size(), 0);
-        indices = assembler.computeVisibleSet(QRectF{64, 64, 576, 512 - 64});
-        BOOST_CHECK_EQUAL(indices.size(), 2);
-        indices = assembler.computeVisibleSet(QRectF{0, 0, 640, 900});
-        BOOST_CHECK_EQUAL(indices.size(), 4);
+            BOOST_REQUIRE_EQUAL(frame->segments.size(), 11 * 15);
+            BOOST_REQUIRE_EQUAL(frame->computeDimensions(),
+                                QSize(IMAGE_WIDTH, IMAGE_HEIGHT));
+            BOOST_REQUIRE_NO_THROW(PixelStreamAssembler{frame});
 
-        // Check rectangles
-        BOOST_CHECK_EQUAL(assembler.getTileRect(0), QRect(0, 0, 512, 512));
-        BOOST_CHECK_EQUAL(assembler.getTileRect(1),
-                          QRect(512, 0, 640 - 512, 512));
-        BOOST_CHECK_EQUAL(assembler.getTileRect(2),
-                          QRect(0, 512, 512, 900 - 512));
-        BOOST_CHECK_EQUAL(assembler.getTileRect(3),
-                          QRect(512, 512, 640 - 512, 900 - 512));
+            // Check indices
+            PixelStreamAssembler assembler{frame};
+            auto indices = assembler.computeVisibleSet(QRectF{0, 0, 0, 0});
+            BOOST_CHECK_EQUAL(indices.size(), 0);
+            indices =
+                assembler.computeVisibleSet(QRectF{64, 64, 576, 512 - 64});
+            BOOST_CHECK_EQUAL(indices.size(), 2);
+            indices = assembler.computeVisibleSet(
+                QRectF{0, 0, IMAGE_WIDTH, IMAGE_HEIGHT});
+            BOOST_CHECK_EQUAL(indices.size(), 4);
 
-        // Check images
-        deflect::SegmentDecoder decoder;
-        const auto image0 = assembler.getTileImage(0, decoder);
-        BOOST_CHECK_EQUAL(image0->getWidth(), 512);
-        BOOST_CHECK_EQUAL(image0->getHeight(), 512);
-        BOOST_CHECK_EQUAL((int)image0->getFormat(), (int)textureFormat);
-        checkData(*image0, subsamp);
+            // Check rectangles
+            const auto rect0 = assembler.getTileRect(0);
+            const auto rect1 = assembler.getTileRect(1);
+            const auto rect2 = assembler.getTileRect(2);
+            const auto rect3 = assembler.getTileRect(3);
+            BOOST_CHECK_EQUAL(rect0, QRect(0, 0, 512, 512));
+            BOOST_CHECK_EQUAL(rect1, QRect(512, 0, IMAGE_WIDTH - 512, 512));
+            BOOST_CHECK_EQUAL(rect2, QRect(0, 512, 512, IMAGE_HEIGHT - 512));
+            BOOST_CHECK_EQUAL(rect3, QRect(512, 512, IMAGE_WIDTH - 512,
+                                           IMAGE_HEIGHT - 512));
 
-        const auto image1 = assembler.getTileImage(1, decoder);
-        BOOST_CHECK_EQUAL(image1->getWidth(), 640 - 512);
-        BOOST_CHECK_EQUAL(image1->getHeight(), 512);
-        BOOST_CHECK_EQUAL((int)image1->getFormat(), (int)textureFormat);
-        checkData(*image1, subsamp);
+            // Check images
+            deflect::SegmentDecoder decoder;
+            const auto image0 = assembler.getTileImage(0, decoder);
+            BOOST_CHECK_EQUAL(image0->getWidth(), 512);
+            BOOST_CHECK_EQUAL(image0->getHeight(), 512);
+            BOOST_CHECK_EQUAL((int)image0->getFormat(), (int)textureFormat);
+            checkData(*image0, rect0, image);
 
-        const auto image2 = assembler.getTileImage(2, decoder);
-        BOOST_CHECK_EQUAL(image2->getWidth(), 512);
-        BOOST_CHECK_EQUAL(image2->getHeight(), 900 - 512);
-        BOOST_CHECK_EQUAL((int)image2->getFormat(), (int)textureFormat);
-        checkData(*image2, subsamp);
+            const auto image1 = assembler.getTileImage(1, decoder);
+            BOOST_CHECK_EQUAL(image1->getWidth(), IMAGE_WIDTH - 512);
+            BOOST_CHECK_EQUAL(image1->getHeight(), 512);
+            BOOST_CHECK_EQUAL((int)image1->getFormat(), (int)textureFormat);
+            checkData(*image1, rect1, image);
 
-        const auto image3 = assembler.getTileImage(3, decoder);
-        BOOST_CHECK_EQUAL(image3->getWidth(), 640 - 512);
-        BOOST_CHECK_EQUAL(image3->getHeight(), 900 - 512);
-        BOOST_CHECK_EQUAL((int)image3->getFormat(), (int)textureFormat);
-        checkData(*image3, subsamp);
+            const auto image2 = assembler.getTileImage(2, decoder);
+            BOOST_CHECK_EQUAL(image2->getWidth(), 512);
+            BOOST_CHECK_EQUAL(image2->getHeight(), IMAGE_HEIGHT - 512);
+            BOOST_CHECK_EQUAL((int)image2->getFormat(), (int)textureFormat);
+            checkData(*image2, rect2, image);
+
+            const auto image3 = assembler.getTileImage(3, decoder);
+            BOOST_CHECK_EQUAL(image3->getWidth(), IMAGE_WIDTH - 512);
+            BOOST_CHECK_EQUAL(image3->getHeight(), IMAGE_HEIGHT - 512);
+            BOOST_CHECK_EQUAL((int)image3->getFormat(), (int)textureFormat);
+            checkData(*image3, rect3, image);
+        }
     }
 }
