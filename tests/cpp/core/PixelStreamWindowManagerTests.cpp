@@ -309,7 +309,7 @@ BOOST_AUTO_TEST_CASE(hideAndShowPanel)
     BOOST_CHECK(!panel->isHidden());
 }
 
-BOOST_AUTO_TEST_CASE(check_external_stream_opening)
+BOOST_AUTO_TEST_CASE(check_external_stream_opening_after_sizehints)
 {
     DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
     PixelStreamWindowManager windowManager(*displayGroup);
@@ -326,8 +326,110 @@ BOOST_AUTO_TEST_CASE(check_external_stream_opening)
     windowManager.handleStreamStart(uri);
     ContentWindowPtr window = windowManager.getWindow(uri);
 
+    // external streamer will be opened when provided with proper size
+    BOOST_CHECK_EQUAL(externalStreamOpened, false);
+    BOOST_CHECK(window->isHidden());
+
+    const QSize expectedDimension{400, 300};
+
+    deflect::SizeHints hints;
+    hints.preferredWidth = expectedDimension.width();
+    hints.preferredHeight = expectedDimension.height();
+    windowManager.updateSizeHints(uri, hints);
+    BOOST_CHECK_EQUAL(externalStreamOpened, true);
+
+    BOOST_CHECK_EQUAL(
+        windowManager.getWindow(uri)->getContent()->getDimensions(),
+        expectedDimension);
+}
+
+BOOST_AUTO_TEST_CASE(check_external_stream_opening_after_firstframe)
+{
+    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
+    PixelStreamWindowManager windowManager(*displayGroup);
+
+    bool externalStreamOpened = false;
+
+    QObject::connect(&windowManager,
+                     &PixelStreamWindowManager::externalStreamOpening,
+                     [&externalStreamOpened]() {
+                         externalStreamOpened = true;
+                     });
+
+    const QString uri = CONTENT_URI;
+    windowManager.handleStreamStart(uri);
+    ContentWindowPtr window = windowManager.getWindow(uri);
+
+    // external streamer will be opened when provided with proper size
+    BOOST_CHECK_EQUAL(externalStreamOpened, false);
+    BOOST_CHECK(window->isHidden());
+
+    const QSize expectedDimension{400, 300};
+
+    deflect::Segment segment;
+    segment.parameters.width = expectedDimension.width();
+    segment.parameters.height = expectedDimension.height();
+
+    deflect::FramePtr frame(new deflect::Frame);
+    frame->uri = uri;
+    frame->segments.push_back(segment);
+    windowManager.updateStreamDimensions(frame);
     BOOST_CHECK_EQUAL(externalStreamOpened, true);
     BOOST_CHECK(window->isHidden());
+
+    BOOST_CHECK_EQUAL(
+        windowManager.getWindow(uri)->getContent()->getDimensions(),
+        expectedDimension);
+}
+
+BOOST_AUTO_TEST_CASE(resize_external_stream)
+{
+    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
+    PixelStreamWindowManager windowManager(*displayGroup);
+
+    bool externalStreamOpened = false;
+
+    const QString uri = CONTENT_URI;
+    QObject::connect(&windowManager,
+                     &PixelStreamWindowManager::externalStreamOpening,
+                     [&externalStreamOpened, &windowManager, uri]() {
+                         externalStreamOpened = true;
+                         windowManager.showWindow(uri);
+                     });
+
+    windowManager.handleStreamStart(uri);
+    ContentWindowPtr window = windowManager.getWindow(uri);
+
+    // external streamer will be opened when provided with proper size
+    BOOST_CHECK_EQUAL(externalStreamOpened, false);
+    BOOST_CHECK(window->isHidden());
+
+    const QSize expectedDimension{400, 300};
+
+    deflect::SizeHints hints;
+    hints.preferredWidth = expectedDimension.width();
+    hints.preferredHeight = expectedDimension.height();
+    windowManager.updateSizeHints(uri, hints);
+    BOOST_CHECK_EQUAL(externalStreamOpened, true);
+    BOOST_CHECK(!window->isHidden());
+
+    BOOST_CHECK_EQUAL(
+        windowManager.getWindow(uri)->getContent()->getDimensions(),
+        expectedDimension);
+
+    const QSize newDimension{200, 200};
+    deflect::Segment segment;
+    segment.parameters.width = newDimension.width();
+    segment.parameters.height = newDimension.height();
+
+    deflect::FramePtr frame(new deflect::Frame);
+    frame->uri = uri;
+    frame->segments.push_back(segment);
+    windowManager.updateStreamDimensions(frame);
+
+    BOOST_CHECK_EQUAL(
+        windowManager.getWindow(uri)->getContent()->getDimensions(),
+        newDimension);
 }
 
 BOOST_AUTO_TEST_CASE(check_local_stream_opening)
