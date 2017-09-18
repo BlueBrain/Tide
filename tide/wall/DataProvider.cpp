@@ -45,18 +45,20 @@
 #include "network/WallToWallChannel.h"
 #include "scene/Content.h"
 #include "scene/DisplayGroup.h"
-#include "scene/MovieContent.h"
-#include "scene/PDFContent.h"
 
 #include "BasicSynchronizer.h"
+#include "LodSynchronizer.h"
+#include "PixelStreamSynchronizer.h"
+#include "PixelStreamUpdater.h"
+
 #if TIDE_ENABLE_MOVIE_SUPPORT
 #include "MovieSynchronizer.h"
 #include "MovieUpdater.h"
+#include "scene/MovieContent.h"
 #endif
-#include "PixelStreamSynchronizer.h"
-#include "PixelStreamUpdater.h"
 #if TIDE_ENABLE_PDF_SUPPORT
 #include "PDFSynchronizer.h"
+#include "scene/PDFContent.h"
 #endif
 
 #include <deflect/Frame.h>
