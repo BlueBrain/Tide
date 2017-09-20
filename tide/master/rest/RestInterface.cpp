@@ -206,10 +206,10 @@ const AppController& RestInterface::getAppController() const
     return _impl->appController;
 }
 
-void RestInterface::lock(const bool lock)
+void RestInterface::lock(const bool toLock)
 {
-    _impl->lockState.locked = lock;
-    if (lock)
+    _impl->lockState.locked = toLock;
+    if (toLock)
     {
         _impl->server.block(http::Method::PUT);
         _impl->server.block(http::Method::POST);
