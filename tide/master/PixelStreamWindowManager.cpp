@@ -129,9 +129,8 @@ void PixelStreamWindowManager::openWindow(const QString& uri,
     window->setState(ContentWindow::HIDDEN);
     _displayGroup.addContentWindow(window);
 
-    if (stream == StreamType::EXTERNAL)
-        emit externalStreamOpening(uri);
-    else
+    // external streams are shown once we receive proper sizes
+    if (stream != StreamType::EXTERNAL)
         showWindow(uri);
 }
 
@@ -168,10 +167,11 @@ void PixelStreamWindowManager::registerEventReceiver(
     auto window = getWindow(uri);
     if (!window)
     {
-        put_flog(LOG_DEBUG, "No window found for stream: '%s', creating one.",
-                 uri.toStdString().c_str());
-        openWindow(uri, QPointF(), QSize());
-        window = getWindow(uri);
+        put_flog(LOG_ERROR,
+                 "No window found for %s during registerEventReceiver",
+                 uri.toLocal8Bit().constData());
+        success->set_value(false);
+        return;
     }
 
     // If a receiver is already registered, don't register this one if
@@ -191,24 +191,40 @@ void PixelStreamWindowManager::registerEventReceiver(
     success->set_value(false);
 }
 
-void PixelStreamWindowManager::updateStreamDimensions(deflect::FramePtr frame)
+void PixelStreamWindowManager::_updateWindowSize(ContentWindowPtr window,
+                                                 const QSize size)
 {
-    const auto size = frame->computeDimensions();
-
-    auto window = getWindow(frame->uri);
-    if (!window)
-        return;
+    bool emitOpen = false;
 
     // External streamers might not have reported an initial size yet
     if (window->getContent()->getDimensions().isEmpty())
     {
+        emitOpen = true;
+
         const auto target = ContentWindowController::Coordinates::STANDARD;
         ContentWindowController controller{*window, _displayGroup, target};
         controller.resize(size, CENTER);
     }
+
+    if (size == window->getContent()->getDimensions())
+        return;
+
     window->getContent()->setDimensions(size);
     if (window->isFocused())
         DisplayGroupController{_displayGroup}.updateFocusedWindowsCoordinates();
+
+    if (emitOpen)
+        emit externalStreamOpening(window->getContent()->getURI());
+}
+
+void PixelStreamWindowManager::updateStreamDimensions(deflect::FramePtr frame)
+{
+    auto window = getWindow(frame->uri);
+    if (!window)
+        return;
+
+    const auto size = frame->computeDimensions();
+    _updateWindowSize(window, size);
 }
 
 void PixelStreamWindowManager::sendDataToWindow(const QString uri,
@@ -242,14 +258,10 @@ void PixelStreamWindowManager::updateSizeHints(const QString uri,
     window->getContent()->setSizeHints(hints);
 
     const QSize size(hints.preferredWidth, hints.preferredHeight);
-    if (size.isEmpty())
+    if (size.isEmpty() || !window->getContent()->getDimensions().isEmpty())
         return;
 
-    // External streamers might not have reported an initial size yet
-    if (window->getContent()->getDimensions().isEmpty())
-        window->getContent()->setDimensions(size);
-
-    ContentWindowController{*window, _displayGroup}.adjustSize(SIZE_1TO1);
+    _updateWindowSize(window, size);
 }
 
 bool PixelStreamWindowManager::_isWindowOpen(const QString& uri) const
