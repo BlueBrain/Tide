@@ -47,7 +47,6 @@ extern "C" {
 #include <libavformat/avformat.h>
 #include <libavutil/error.h>
 #include <libavutil/mathematics.h>
-#include <libavutil/stereo3d.h>
 }
 
 #include "types.h"

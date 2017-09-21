@@ -49,6 +49,15 @@
 // FFMPEG 3.1
 #define USE_NEW_FFMPEG_API (LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(57, 48, 0))
 
+// FFMPEG 2.3.x
+#define HAS_STEREO_API (LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(55, 35, 100))
+
+#if HAS_STEREO_API
+extern "C" {
+#include <libavutil/stereo3d.h>
+}
+#endif
+
 FFMPEGVideoStream::FFMPEGVideoStream(AVFormatContext& avFormatContext)
     : _avFormatContext(avFormatContext)
     , _videoCodecContext(nullptr)
@@ -177,7 +186,7 @@ unsigned int FFMPEGVideoStream::getHeight() const
 
 bool FFMPEGVideoStream::isStereo() const
 {
-#if (LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(55, 35, 100)) // ffmpeg-2.3.x
+#if HAS_STEREO_API
     for (int i = 0; i < _videoStream->nb_side_data; ++i)
     {
         const auto& sideData = _videoStream->side_data[i];
