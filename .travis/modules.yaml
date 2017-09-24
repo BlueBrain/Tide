@@ -1,0 +1,30 @@
+modules:
+  enable::
+      - tcl
+  tcl:
+    all:
+      suffixes:
+          '+knl': 'knl'
+          '^mpich': 'mpich'
+          '^openmpi': 'openmpi'
+          '+movie': 'movie'
+          '+rest': 'rest'
+          '+touch': 'touch'
+          '+keyboard': 'keyboard'
+      autoload: 'direct'
+      conflict:
+          - '${PACKAGE}'
+    hash_length: 0
+    naming_scheme: '${PACKAGE}/${VERSION}-${COMPILERNAME}'
+    blacklist: ['cmake', 'boost', 'zeromq', 'libjpeg-turbo', 'qt', 'nasm', 'yasm', 'ffmpeg', 'tuio', 'virtualkeyboard', 'servus']
+    prefix_inspections:
+      bin:
+        - PATH
+      lib:
+        - LD_LIBRARY_PATH
+      lib64:
+        - LD_LIBRARY_PATH
+      include:
+        - CPATH
+      '':
+        - CMAKE_PREFIX_PATH
