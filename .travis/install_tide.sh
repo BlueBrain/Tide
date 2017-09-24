@@ -21,7 +21,7 @@ if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then
         )
     fi
 # for pull request do minumum builds (i.e. single compiler per platform)
-# this almost similar but one could change as needed
+# this similar to above builds but one could change as needed
 else
 
     if [ "$TRAVIS_OS_NAME" == "linux" ]; then
@@ -31,7 +31,7 @@ else
         )
     else
         packages=(
-                "tide@develop -keyboard -touch -movie -rest -knl %gcc ^deflect@develop"
+                "tide@develop -keyboard -touch -movie -rest -knl %clang ^deflect@develop"
                 "tide@develop +keyboard +touch +movie +rest -knl %clang ^deflect@develop ^zeroeq@develop ^servus@develop"
         )
     fi
