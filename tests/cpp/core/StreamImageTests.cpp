@@ -47,24 +47,44 @@
 
 namespace
 {
+const std::vector<uint8_t> expectedRGBA(8 * 8 * 4, 17);
 const std::vector<uint8_t> expectedY(8 * 8, 92);
 const std::vector<uint8_t> expectedU(8 * 8, 28);
 const std::vector<uint8_t> expectedV(8 * 8, 79);
 }
 
-deflect::FramePtr createTestFrame(const QSize& size, const int subsamp)
+deflect::FramePtr createRgbaTestFrame(const QSize& size)
 {
     deflect::FramePtr frame(new deflect::Frame);
     deflect::Segment segment;
+
+    segment.parameters.x = 10;
+    segment.parameters.y = -20;
+    segment.parameters.width = size.width();
+    segment.parameters.height = size.height();
+
+    segment.parameters.dataType = deflect::DataType::rgba;
+    segment.imageData.append(QByteArray(size.width() * size.height() * 4, 17));
+
+    frame->segments.push_back(segment);
+    return frame;
+}
+
+deflect::FramePtr createYuvTestFrame(const QSize& size, const int subsamp)
+{
+    deflect::FramePtr frame(new deflect::Frame);
+    deflect::Segment segment;
+
+    segment.parameters.x = 10;
+    segment.parameters.y = -20;
+    segment.parameters.width = size.width();
+    segment.parameters.height = size.height();
 
     segment.parameters.dataType = deflect::DataType::yuv444;
     if (subsamp == 1)
         segment.parameters.dataType = deflect::DataType::yuv422;
     else if (subsamp == 2)
         segment.parameters.dataType = deflect::DataType::yuv420;
-
-    segment.parameters.width = size.width();
-    segment.parameters.height = size.height();
 
     const auto ySize = size.width() * size.height();
     const auto uvSize = ySize >> subsamp;
@@ -76,11 +96,31 @@ deflect::FramePtr createTestFrame(const QSize& size, const int subsamp)
     return frame;
 }
 
+BOOST_AUTO_TEST_CASE(testStreamImageRGBA)
+{
+    StreamImage image(createRgbaTestFrame({8, 8}), 0);
+
+    BOOST_CHECK_EQUAL(image.getPosition(), QPoint(10, -20));
+    BOOST_CHECK_EQUAL(image.getWidth(), 8);
+    BOOST_CHECK_EQUAL(image.getHeight(), 8);
+
+    const auto data = image.getData(0);
+    const auto size = image.getDataSize(0);
+
+    BOOST_CHECK(image.getColorSpace() == ColorSpace::undefined);
+    BOOST_CHECK(image.getRowOrder() == deflect::RowOrder::top_down);
+
+    BOOST_CHECK_EQUAL(size, 8 * 8 * 4);
+    BOOST_CHECK_EQUAL_COLLECTIONS(data, data + size, expectedRGBA.data(),
+                                  expectedRGBA.data() + size);
+    BOOST_CHECK_EQUAL(image.getTextureSize(0), QSize(8, 8));
+}
+
 BOOST_AUTO_TEST_CASE(testStreamImageYUV)
 {
     for (int subsamp = 0; subsamp <= 2; ++subsamp)
     {
-        StreamImage image(createTestFrame({8, 8}, subsamp), 0);
+        StreamImage image(createYuvTestFrame({8, 8}, subsamp), 0);
 
         const auto y = image.getData(0);
         const auto u = image.getData(1);
@@ -91,6 +131,17 @@ BOOST_AUTO_TEST_CASE(testStreamImageYUV)
         const auto ySize = imageSizeY.width() * imageSizeY.height();
         const auto uSize = imageSizeU.width() * imageSizeU.height();
         const auto vSize = imageSizeV.width() * imageSizeV.height();
+
+        BOOST_CHECK_EQUAL(image.getPosition(), QPoint(10, -20));
+        BOOST_CHECK_EQUAL(image.getWidth(), 8);
+        BOOST_CHECK_EQUAL(image.getHeight(), 8);
+
+        BOOST_CHECK(image.getColorSpace() == ColorSpace::yCbCrJpeg);
+        BOOST_CHECK(image.getRowOrder() == deflect::RowOrder::top_down);
+
+        BOOST_CHECK_EQUAL(image.getDataSize(0), 8 * 8);
+        BOOST_CHECK_EQUAL(image.getDataSize(1), 8 * 8 >> subsamp);
+        BOOST_CHECK_EQUAL(image.getDataSize(2), 8 * 8 >> subsamp);
 
         BOOST_CHECK_EQUAL(ySize, 8 * 8);
         BOOST_CHECK_EQUAL(uSize, 8 * 8 >> subsamp);

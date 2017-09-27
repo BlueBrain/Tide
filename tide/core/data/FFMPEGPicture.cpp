@@ -92,6 +92,11 @@ TextureFormat FFMPEGPicture::getFormat() const
     return _format;
 }
 
+ColorSpace FFMPEGPicture::getColorSpace() const
+{
+    return ColorSpace::yCbCrVideo;
+}
+
 uint8_t* FFMPEGPicture::getData(const uint texture)
 {
     if (texture >= _data.size())

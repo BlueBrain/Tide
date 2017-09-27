@@ -89,6 +89,8 @@ public:
     /** @return the format of the image. */
     virtual TextureFormat getFormat() const = 0;
 
+    /** @return the color space of the image. */
+    virtual ColorSpace getColorSpace() const { return ColorSpace::undefined; }
     /** @return the OpenGL pixel format of the image data. */
     virtual uint getGLPixelFormat() const = 0;
 
