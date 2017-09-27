@@ -101,6 +101,22 @@ TextureFormat StreamImage::getFormat() const
     }
 }
 
+ColorSpace StreamImage::getColorSpace() const
+{
+    switch (_frame->segments.at(_tileIndex).parameters.dataType)
+    {
+    case deflect::DataType::rgba:
+        return ColorSpace::undefined;
+    case deflect::DataType::yuv444:
+    case deflect::DataType::yuv422:
+    case deflect::DataType::yuv420:
+    case deflect::DataType::jpeg:
+        return ColorSpace::yCbCrJpeg;
+    default:
+        throw std::runtime_error("Invalid deflect::DataType");
+    }
+}
+
 QPoint StreamImage::getPosition() const
 {
     return QPoint(_frame->segments.at(_tileIndex).parameters.x,

@@ -68,6 +68,9 @@ public:
     /** @copydoc Image::getFormat */
     TextureFormat getFormat() const final;
 
+    /** @copydoc Image::getColorSpace */
+    ColorSpace getColorSpace() const final;
+
     /** @return write access to fill a given image texture plane. */
     uint8_t* getData(uint texture);
 
