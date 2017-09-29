@@ -59,8 +59,11 @@ public:
      */
     SceneController(DisplayGroup& group);
 
-    /** @copydoc JsonRpc::processAsync */
-    std::future<std::string> processJsonRpc(const std::string& request);
+    // clang-format off
+    //! @copydoc JsonRpc::process(const std::string&,JsonRpc::ProcessAsyncCallback)
+    // clang-format on
+    void processJsonRpc(const std::string& request,
+                        JsonRpc::ProcessAsyncCallback callback);
 
 private:
     DisplayGroup& _group;

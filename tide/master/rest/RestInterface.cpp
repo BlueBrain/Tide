@@ -64,14 +64,17 @@ template <typename T>
 std::future<http::Response> processJsonRpc(T* controller,
                                            const http::Request& request)
 {
-    auto future = controller->processJsonRpc(request.body).share();
     // Package json-rpc response in http::Response when ready
-    return std::async(std::launch::deferred, [future]() {
-        const auto body = future.get();
+    auto promise = std::make_shared<std::promise<http::Response>>();
+    auto callback = [promise](const std::string& body) {
         if (body.empty())
-            return http::Response{http::Code::OK};
-        return http::Response{http::Code::OK, body, "application/json"};
-    });
+            promise->set_value(http::Response{http::Code::OK});
+        else
+            promise->set_value(
+                http::Response{http::Code::OK, body, "application/json"});
+    };
+    controller->processJsonRpc(request.body, callback);
+    return promise->get_future();
 }
 }
 

@@ -166,8 +166,8 @@ SceneController::SceneController(DisplayGroup& group)
     });
 }
 
-std::future<std::string> SceneController::processJsonRpc(
-    const std::string& request)
+void SceneController::processJsonRpc(const std::string& request,
+                                     JsonRpc::ProcessAsyncCallback callback)
 {
-    return _rpc.processAsync(request);
+    return _rpc.process(request, callback);
 }
