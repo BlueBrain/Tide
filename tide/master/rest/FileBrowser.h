@@ -41,8 +41,8 @@
 #ifndef FILEBROWSER_H
 #define FILEBROWSER_H
 
-#include <zeroeq/http/helpers.h>
-#include <zeroeq/http/request.h>
+#include <rockets/http/helpers.h>
+#include <rockets/http/request.h>
 
 #include <QFileInfoList>
 #include <QStringList>
@@ -73,8 +73,8 @@ public:
      * @return JSON response with the contents of the directory, or an
      *         appropriate error code on error.
      */
-    std::future<zeroeq::http::Response> list(
-        const zeroeq::http::Request& request);
+    std::future<rockets::http::Response> list(
+        const rockets::http::Request& request);
 
 private:
     const QString _baseDir;

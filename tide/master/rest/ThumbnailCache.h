@@ -43,7 +43,7 @@
 
 #include "scene/DisplayGroup.h"
 
-#include <zeroeq/http/helpers.h>
+#include <rockets/http/helpers.h>
 
 #include <QFuture>
 #include <QMap>
@@ -78,7 +78,7 @@ public:
      * @return base64 encoded image on success, 204 if the thumbnail is not
      *         ready yet, 404 if the thumbnail does not exist (anymore).
      */
-    std::future<zeroeq::http::Response> getThumbnail(const QUuid& uuid) const;
+    std::future<rockets::http::Response> getThumbnail(const QUuid& uuid) const;
 
 private:
     QMap<QUuid, QFuture<std::string>> _thumbnailCache;

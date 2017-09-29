@@ -57,7 +57,7 @@
 #include <QDir>
 
 using namespace std::placeholders;
-using namespace zeroeq;
+using namespace rockets;
 
 namespace
 {

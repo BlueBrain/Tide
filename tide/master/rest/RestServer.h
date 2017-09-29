@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -40,17 +40,16 @@
 #ifndef RESTSERVER_H
 #define RESTSERVER_H
 
-#include <zeroeq/http/helpers.h>
-#include <zeroeq/http/response.h>
-#include <zeroeq/http/server.h>
+#include <rockets/http/response.h>
+#include <rockets/qt/socketProcessor.h>
+#include <rockets/server.h>
 
-#include <QSocketNotifier>
 #include <set>
 
 /**
- * A non-blocking REST Server based on ZeroEQ for use in a Qt application.
+ * A non-blocking REST Server for use in a Qt application.
  */
-class RestServer : public zeroeq::http::Server
+class RestServer : public rockets::Server, public rockets::http::Filter
 {
 public:
     /**
@@ -68,42 +67,7 @@ public:
     explicit RestServer(uint16_t port);
 
     /** Stop the server. */
-    ~RestServer() = default;
-
-    /** @return the port of the server. */
-    uint16_t getPort() const;
-
-    /**
-     * Expose a JSON-serializable object on an HTTP GET endpoint.
-     *
-     * @param endpoint for accessing the object.
-     * @param object to expose.
-     */
-    template <typename Obj>
-    bool handleGET(const std::string& endpoint, const Obj& object)
-    {
-        using namespace zeroeq::http;
-        return handle(Method::GET, endpoint, [&object](const Request&) {
-            return make_ready_response(Code::OK, to_json(object),
-                                       "application/json");
-        });
-    }
-
-    /**
-     * Subscribe a JSON-deserializable object on an HTTP PUT endpoint.
-     *
-     * @param endpoint for modifying the object.
-     * @param object to subscribe.
-     */
-    template <typename Obj>
-    bool handlePUT(const std::string& endpoint, Obj& object)
-    {
-        using namespace zeroeq::http;
-        return handle(Method::PUT, endpoint, [&object](const Request& req) {
-            const auto success = from_json(object, req.body);
-            return make_ready_response(success ? Code::OK : Code::BAD_REQUEST);
-        });
-    }
+    ~RestServer();
 
     /**
      * Block requests for specified method (other than from localhost).
@@ -111,27 +75,26 @@ public:
      *
      * @param method the method which is to be blocked
      */
-    void block(zeroeq::http::Method method);
+    void block(rockets::http::Method method);
 
     /**
      * Unblock requests for specified method.
      *
      * @param method the method which is to be unblocked
      */
-    void unblock(zeroeq::http::Method method);
-
-protected:
-    std::future<zeroeq::http::Response> respondTo(
-        zeroeq::http::Request& request) const final;
+    void unblock(rockets::http::Method method);
 
 private:
-    QSocketNotifier _socketNotifier{getSocketDescriptor(),
-                                    QSocketNotifier::Read};
+    std::set<rockets::http::Method> _blockedMethods;
+    rockets::qt::SocketProcessor _socketProcessor{*this};
 
-    std::set<zeroeq::http::Method> _blockedMethods;
-
+    bool _isBlocked(const rockets::http::Method method) const;
     void _init();
     virtual bool _isWhitelisted(const std::string& source) const;
+
+    bool filter(const rockets::http::Request& request) const final;
+    rockets::http::Response getResponse(
+        const rockets::http::Request& request) const final;
 };
 
 #endif

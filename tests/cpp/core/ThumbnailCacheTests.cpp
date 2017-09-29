@@ -47,7 +47,7 @@
 #include "scene/DisplayGroup.h"
 #include "thumbnail/thumbnail.h"
 
-#include <zeroeq/http/response.h>
+#include <rockets/http/response.h>
 
 #include <QBuffer>
 #include <QByteArray>
@@ -89,7 +89,7 @@ BOOST_AUTO_TEST_CASE(testWindowInfo)
     response = cache.getThumbnail(window->getID()).get();
     BOOST_CHECK_EQUAL(response.code, 200);
     BOOST_CHECK_EQUAL(response.body, _getTestThumbnail());
-    BOOST_CHECK_EQUAL(response.headers[zeroeq::http::Header::CONTENT_TYPE],
+    BOOST_CHECK_EQUAL(response.headers[rockets::http::Header::CONTENT_TYPE],
                       "image/png");
 
     group->removeContentWindow(window);

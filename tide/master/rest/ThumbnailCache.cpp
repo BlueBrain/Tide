@@ -45,7 +45,7 @@
 #include <QBuffer>
 #include <QtConcurrent>
 
-using namespace zeroeq;
+using namespace rockets;
 
 namespace
 {

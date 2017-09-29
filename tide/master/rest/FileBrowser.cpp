@@ -67,10 +67,10 @@ FileBrowser::FileBrowser(const QString& baseDir, const QStringList& filters)
 {
 }
 
-std::future<zeroeq::http::Response> FileBrowser::list(
-    const zeroeq::http::Request& request)
+std::future<rockets::http::Response> FileBrowser::list(
+    const rockets::http::Request& request)
 {
-    using namespace zeroeq::http;
+    using namespace rockets::http;
     auto path = QString::fromStdString(request.path);
     QUrl url;
     url.setPath(path, QUrl::StrictMode);
