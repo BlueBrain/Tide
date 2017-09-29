@@ -119,8 +119,8 @@ AppController::AppController(const MasterConfiguration& config)
 #endif
 }
 
-std::future<std::string> AppController::processJsonRpc(
-    const std::string& request)
+void AppController::processJsonRpc(const std::string& request,
+                                   JsonRpc::ProcessAsyncCallback callback)
 {
-    return _rpc.processAsync(request);
+    return _rpc.process(request, callback);
 }
