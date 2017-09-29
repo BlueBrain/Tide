@@ -45,13 +45,15 @@
 #include "rest/FileReceiver.h"
 #include "rest/json.h"
 
-#include <zeroeq/http/request.h>
-#include <zeroeq/http/response.h>
+#include <rockets/http/request.h>
+#include <rockets/http/response.h>
 
 #include <QBuffer>
 #include <QDir>
 #include <QFile>
 #include <QObject>
+
+using namespace rockets;
 
 namespace
 {
@@ -65,24 +67,24 @@ std::string _readImageFile(const QString& filename)
     return file.readAll().toStdString();
 }
 
-zeroeq::http::Request _makeFileRequest(const QString& filename)
+http::Request _makeFileRequest(const QString& filename)
 {
-    zeroeq::http::Request request;
+    http::Request request;
     request.body = json::toString(
         QJsonObject{{"filename", filename}, {"x", 25.0}, {"y", 17.4}});
     return request;
 }
 
-zeroeq::http::Request _makeFileRequestWithoutPosition(const QString& filename)
+http::Request _makeFileRequestWithoutPosition(const QString& filename)
 {
-    zeroeq::http::Request request;
+    http::Request request;
     request.body = json::toString(QJsonObject{{"filename", filename}});
     return request;
 }
 
-zeroeq::http::Request _makeDataRequest(const QString& filename)
+http::Request _makeDataRequest(const QString& filename)
 {
-    zeroeq::http::Request request;
+    http::Request request;
     request.path = filename.toStdString();
     request.body = _readImageFile(imageUri);
     return request;
@@ -154,7 +156,7 @@ BOOST_AUTO_TEST_CASE(testUploadFileWithSpecialCharacters)
     const auto imageName = QString("ué I.n_$t.png");
     const auto imageNameEncoded = QString("u%C3%A9%20I.n_$t.png");
 
-    const auto type = zeroeq::http::Header::CONTENT_TYPE;
+    const auto type = http::Header::CONTENT_TYPE;
 
     // Prepare upload of image
     const auto uploadResponse =
@@ -184,7 +186,7 @@ BOOST_AUTO_TEST_CASE(testUnhandledOpenSignal)
     FileReceiver fileReceiver;
 
     const auto imageName = "other.png";
-    const auto type = zeroeq::http::Header::CONTENT_TYPE;
+    const auto type = http::Header::CONTENT_TYPE;
 
     // Prepare upload of image
     const auto uploadRequest = _makeFileRequestWithoutPosition(imageName);
@@ -212,7 +214,7 @@ BOOST_AUTO_TEST_CASE(testUploadFileWithoutPosition)
     OpenListener listener{fileReceiver};
 
     const auto imageName = "abc.png";
-    const auto type = zeroeq::http::Header::CONTENT_TYPE;
+    const auto type = http::Header::CONTENT_TYPE;
 
     // Prepare upload of image
     const auto uploadRequest = _makeFileRequestWithoutPosition(imageName);
@@ -243,7 +245,7 @@ BOOST_AUTO_TEST_CASE(testUploadFileTwice)
     OpenListener listener{fileReceiver};
 
     const auto imageName = "wall.png";
-    const auto type = zeroeq::http::Header::CONTENT_TYPE;
+    const auto type = http::Header::CONTENT_TYPE;
 
     // Prepare upload of image 1
     const auto uploadResponse1 =

@@ -41,7 +41,7 @@
 #ifndef HTMLCONTENT_H
 #define HTMLCONTENT_H
 
-#include <zeroeq/http/server.h>
+#include <rockets/server.h>
 
 /**
  * Expose html content through a REST API.
@@ -53,7 +53,7 @@ public:
      * Construct and expose the html content.
      * @param httpServer used to expose the content
      */
-    HtmlContent(zeroeq::http::Server& httpServer);
+    HtmlContent(rockets::Server& httpServer);
 };
 
 #endif

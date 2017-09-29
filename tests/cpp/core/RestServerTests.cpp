@@ -47,7 +47,7 @@
 
 #include "MinimalGlobalQtApp.h"
 
-using namespace zeroeq;
+using namespace rockets;
 
 namespace
 {
@@ -148,13 +148,6 @@ class MockRestServer : public RestServer
 public:
     bool skipWhitelistCheck = true;
 
-    // Exposing private respondTo
-    std::future<http::Response> mockRespondTo(
-        zeroeq::http::Request& request) const
-    {
-        return RestServer::respondTo(request);
-    }
-
 private:
     // Bypass hardcoded localhost exception for block()
     bool _isWhitelisted(const std::string&) const final
@@ -167,30 +160,27 @@ BOOST_AUTO_TEST_CASE(block_all_methods)
 {
     MockRestServer server;
 
-    for (int method = 0; method < int(zeroeq::http::Method::ALL); ++method)
+    for (int method = 0; method < int(http::Method::ALL); ++method)
     {
-        server.handle(zeroeq::http::Method(method), "test",
-                      [](const http::Request&) {
-                          return http::make_ready_response(http::Code::OK);
-                      });
+        server.handle(http::Method(method), "test", [](const http::Request&) {
+            return http::make_ready_response(http::Code::OK);
+        });
     };
 
     const auto url = QString("http://localhost:%1/test").arg(server.getPort());
 
-    for (int method = 0; method < int(zeroeq::http::Method::ALL); ++method)
+    for (int method = 0; method < int(http::Method::ALL); ++method)
     {
-        const auto response =
-            sendHttpRequest(url, zeroeq::http::Method(method));
+        const auto response = sendHttpRequest(url, http::Method(method));
         BOOST_CHECK_EQUAL(response.second, int(QNetworkReply::NoError));
     }
 
     server.skipWhitelistCheck = false;
 
-    for (int method = 0; method < int(zeroeq::http::Method::ALL); ++method)
+    for (int method = 0; method < int(http::Method::ALL); ++method)
     {
-        server.block(zeroeq::http::Method(method));
-        const auto response =
-            sendHttpRequest(url, zeroeq::http::Method(method));
+        server.block(http::Method(method));
+        const auto response = sendHttpRequest(url, http::Method(method));
         // localhost is no longer whitelisted because of bypassWhitelist flag.
         BOOST_CHECK(_isMethodForbidden(response.second));
     }
@@ -199,33 +189,20 @@ BOOST_AUTO_TEST_CASE(block_all_methods)
 BOOST_AUTO_TEST_CASE(test_whitelist)
 {
     MockRestServer server;
-    http::Request localhostRequest;
-    localhostRequest.method = http::Method::PUT;
-    localhostRequest.path = "/test";
-    localhostRequest.source = "127.0.0.1";
-    localhostRequest.body = "das";
-
-    http::Request foreingRequest;
-    foreingRequest.method = http::Method::PUT;
-    foreingRequest.path = "/test";
-    foreingRequest.source = "172.16.0.1";
-    foreingRequest.body = "das";
-
-    server.block(http::Method::PUT);
-
-    server.handle(zeroeq::http::Method::PUT, "test", [](const http::Request&) {
+    server.handle(http::Method::PUT, "test", [](const http::Request&) {
         return http::make_ready_response(http::Code::OK);
     });
-
-    server.skipWhitelistCheck = true;
+    server.block(http::Method::PUT);
 
     const auto url = QString("http://localhost:%1/test").arg(server.getPort());
 
-    auto response = server.mockRespondTo(localhostRequest);
-    BOOST_CHECK_EQUAL(response.get().code, http::Code::OK);
+    server.skipWhitelistCheck = true;
+
+    auto response = sendHttpRequest(url, http::Method::PUT);
+    BOOST_CHECK_EQUAL(response.second, int(QNetworkReply::NoError));
 
     server.skipWhitelistCheck = false;
 
-    response = server.mockRespondTo(foreingRequest);
-    BOOST_CHECK_EQUAL(response.get().code, http::Code::FORBIDDEN);
+    response = sendHttpRequest(url, http::Method::PUT);
+    BOOST_CHECK(_isMethodForbidden(response.second));
 }

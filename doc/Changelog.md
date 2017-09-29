@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [214](https://github.com/BlueBrain/Tide/pull/214):
+  Rockets replaces ZeroEQ dependency for the REST interface.
 * [212](https://github.com/BlueBrain/Tide/pull/212):
   Removed legacy Webkit webbrowser (Qt < 5.6), require boost 1.56 or later.
 * [211](https://github.com/BlueBrain/Tide/pull/211):

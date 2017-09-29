@@ -799,7 +799,7 @@ function sendJsonRpc(endpoint, method, parameters, callback) {
   }
   var jsonrpc = {"jsonrpc": "2.0", "method": method, "params": parameters, "id": sendJsonRpc.counter++};
   request("POST", endpoint, JSON.stringify(jsonrpc), function (response) {
-    if (response.hasOwnProperty('error')) {
+    if (response && response.hasOwnProperty('error')) {
       var err = response.error;
       var msg = "Reason: " + err.message + " (" + err.code + ")";
       alertPopup("Error executing '" + method + "'", msg);
@@ -948,7 +948,7 @@ function setBezels() {
         {name: 'E', type: 'vertical'},{name: 'W', type: 'vertical'}];
       for (var k = 0; k < bezels.length; k++) {
         let edge = $("<div class='screenbezel' id='" + bezels[k].name + "' > </div>");
-        if (bezels[k].type === 'horizontal') 
+        if (bezels[k].type === 'horizontal')
         {
           edge.css("width", "100%");
           edge.css("height", stickyBezelSize);

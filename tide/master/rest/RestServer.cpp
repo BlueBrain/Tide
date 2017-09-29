@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,9 +39,7 @@
 
 #include "RestServer.h"
 
-#include <zeroeq/uri.h>
-
-using namespace zeroeq;
+using namespace rockets;
 
 namespace
 {
@@ -60,47 +58,48 @@ RestServer::RestServer()
 }
 
 RestServer::RestServer(const uint16_t port)
-    : zeroeq::http::Server{zeroeq::URI{QString(":%1").arg(port).toStdString()}}
+    : rockets::Server{QString(":%1").arg(port).toStdString(), "", 0}
 {
     _init();
 }
 
-uint16_t RestServer::getPort() const
+RestServer::~RestServer()
 {
-    return getURI().getPort();
+    setSocketListener(nullptr);
 }
 
-void RestServer::block(const zeroeq::http::Method method)
+void RestServer::block(const http::Method method)
 {
     _blockedMethods.insert(method);
 }
 
-void RestServer::unblock(const zeroeq::http::Method method)
+void RestServer::unblock(const http::Method method)
 {
     _blockedMethods.erase(method);
 }
 
-void RestServer::_init()
+bool RestServer::_isBlocked(const http::Method method) const
 {
-    _socketNotifier.connect(&_socketNotifier, &QSocketNotifier::activated,
-                            [this]() {
-                                while (receive(0 /* non-blocking receive*/))
-                                    ;
-                            });
+    return _blockedMethods.count(method);
 }
 
-std::future<http::Response> RestServer::respondTo(
-    zeroeq::http::Request& request) const
+void RestServer::_init()
 {
-    if (_blockedMethods.count(request.method) &&
-        !_isWhitelisted(_getHostname(request.source)))
-    {
-        return zeroeq::http::make_ready_response(http::Code::FORBIDDEN);
-    }
-    return Server::respondTo(request);
+    setHttpFilter(this);
+    setSocketListener(&_socketProcessor);
 }
 
 bool RestServer::_isWhitelisted(const std::string& source) const
 {
     return _getHostname(source) == "127.0.0.1";
+}
+
+bool RestServer::filter(const http::Request& request) const
+{
+    return _isBlocked(request.method) && !_isWhitelisted(request.origin);
+}
+
+http::Response RestServer::getResponse(const http::Request&) const
+{
+    return http::Response(http::Code::FORBIDDEN);
 }

@@ -44,15 +44,13 @@
 #include "log.h"
 #include "scene/ContentFactory.h"
 
-#include <zeroeq/http/helpers.h>
-
 #include <QByteArray>
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
 #include <QUrl>
 
-using namespace zeroeq;
+using namespace rockets;
 
 namespace
 {
@@ -117,7 +115,7 @@ std::future<http::Response> FileReceiver::prepareUpload(
 }
 
 std::future<http::Response> FileReceiver::handleUpload(
-    const zeroeq::http::Request& request)
+    const http::Request& request)
 {
     const auto name = _urlDecode(QString::fromStdString(request.path));
     if (!_preparedPaths.contains(name))
