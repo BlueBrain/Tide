@@ -67,6 +67,16 @@ enum class TextureFormat
 };
 
 /**
+ * The supported color spaces for rendering image textures.
+ */
+enum class ColorSpace
+{
+    undefined,
+    yCbCrJpeg,
+    yCbCrVideo
+};
+
+/**
  * The power state of the wall's displays.
  */
 enum class ScreenState

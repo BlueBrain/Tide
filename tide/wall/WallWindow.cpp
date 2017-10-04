@@ -76,17 +76,17 @@ WallWindow::WallWindow(const WallConfiguration& config, const uint windowIndex,
     const auto windowNumber = QString::number(windowIndex);
     _quickRendererThread->setObjectName("Render #" + windowNumber);
 
-    const auto& screen = config.getScreens().at(windowIndex);
-    const auto screenSize = config.getScreenRect(screen.globalIndex).size();
+    const auto& currentScreen = config.getScreens().at(windowIndex);
+    const auto screenSize = config.getScreenRect(currentScreen.globalIndex).size();
 
-    if (auto qscreen = screens::find(screen.display))
+    if (auto qscreen = screens::find(currentScreen.display))
         setScreen(qscreen);
-    else if (!screen.display.isEmpty())
+    else if (!currentScreen.display.isEmpty())
         put_flog(LOG_FATAL, "Could not find display: '%s'",
-                 screen.display.toLocal8Bit().constData());
+                 currentScreen.display.toLocal8Bit().constData());
 
     setFlags(Qt::FramelessWindowHint);
-    setPosition(screen.position);
+    setPosition(currentScreen.position);
     resize(screenSize);
 
     if (config.getFullscreen())
@@ -157,15 +157,15 @@ void WallWindow::_startQuick(const WallConfiguration& config,
     _rootItem->setWidth(width());
     _rootItem->setHeight(height());
 
-    const auto& screen = config.getScreens().at(windowIndex);
-    const auto screenRect = config.getScreenRect(screen.globalIndex);
+    const auto& currentScreen = config.getScreens().at(windowIndex);
+    const auto screenRect = config.getScreenRect(currentScreen.globalIndex);
     const auto view = config.getScreens().at(windowIndex).stereoMode;
 
     // DisplayGroupRenderer needs _engine and _rootItem from *this*
     _displayGroupRenderer.reset(
         new DisplayGroupRenderer(*this, _provider, screenRect, view));
 
-    const auto globalIndex = screen.globalIndex;
+    const auto globalIndex = currentScreen.globalIndex;
     connect(_quickRenderer.get(), &deflect::qt::QuickRenderer::afterRender,
             [this, globalIndex] {
                 if (_synchronizer)

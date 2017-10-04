@@ -3,6 +3,10 @@ Changelog {#changelog}
 
 # Release 1.4 (git master)
 
+* [193](https://github.com/BlueBrain/Tide/issues/193):
+  Use correct color space for rendering JPEG-compressed pixel streams.
+* [189](https://github.com/BlueBrain/Tide/issues/189):
+  Support for textures / PixelStreams in OpenGL (bottom-up) row order.
 * [179](https://github.com/BlueBrain/Tide/issues/179):
   Allow turning pixel stream compression on/off while streaming (bugfix).
 * [178](https://github.com/BlueBrain/Tide/issues/178):

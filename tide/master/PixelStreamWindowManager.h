@@ -199,6 +199,7 @@ private:
     bool _isWindowOpen(const QString& uri) const;
     void _onWindowAdded(ContentWindowPtr window);
     void _onWindowRemoved(ContentWindowPtr window);
+    void _updateWindowSize(ContentWindowPtr window, const QSize size);
 };
 
 #endif

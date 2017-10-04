@@ -72,21 +72,42 @@ uniform lowp float qt_Opacity;
 uniform lowp sampler2D y_tex;
 uniform lowp sampler2D u_tex;
 uniform lowp sampler2D v_tex;
+uniform lowp int color_space;
+uniform lowp bool reverse_orientation;
 varying vec2 vTexCoord;
-const vec3 offset = vec3(-0.0625, -0.5, -0.5);
-const vec3 R_cf = vec3(1.164383,  0.000000,  1.596027);
-const vec3 G_cf = vec3(1.164383, -0.391762, -0.812968);
-const vec3 B_cf = vec3(1.164383,  2.017232,  0.000000);
+// https://en.wikipedia.org/wiki/YCbCr JPEG conversion
+const vec3 R_cf_jpeg = vec3(1.0,  0.0,  1.402);
+const vec3 offset_jpeg = vec3(0.0, -0.5, -0.5);
+const vec3 G_cf_jpeg = vec3(1.0, -0.344136, -0.714136);
+const vec3 B_cf_jpeg = vec3(1.0,  1.772,  0.0);
+// https://en.wikipedia.org/wiki/YCbCr ITU-R BT.601 conversion
+const vec3 offset_video = vec3(-0.0625, -0.5, -0.5);
+const vec3 R_cf_video = vec3(1.164383,  0.000000,  1.596027);
+const vec3 G_cf_video = vec3(1.164383, -0.391762, -0.812968);
+const vec3 B_cf_video = vec3(1.164383,  2.017232,  0.000000);
 void main() {
-  float y = texture2D(y_tex, vTexCoord).r;
-  float u = texture2D(u_tex, vTexCoord).r;
-  float v = texture2D(v_tex, vTexCoord).r;
+  vec2 texCoord = vTexCoord;
+  if(reverse_orientation)
+     texCoord.y = 1.0 - texCoord.y;
+  float y = texture2D(y_tex, texCoord).r;
+  float u = texture2D(u_tex, texCoord).r;
+  float v = texture2D(v_tex, texCoord).r;
   vec3 yuv = vec3(y, u, v);
-  yuv += offset;
-  float r = dot(yuv, R_cf);
-  float g = dot(yuv, G_cf);
-  float b = dot(yuv, B_cf);
-  gl_FragColor = vec4(r, g, b, qt_Opacity);
+  if (color_space == 1) {
+    yuv += offset_jpeg;
+    float r = dot(yuv, R_cf_jpeg);
+    float g = dot(yuv, G_cf_jpeg);
+    float b = dot(yuv, B_cf_jpeg);
+    gl_FragColor = vec4(r, g, b, qt_Opacity);
+  } else if (color_space == 2) {
+    yuv += offset_video;
+    float r = dot(yuv, R_cf_video);
+    float g = dot(yuv, G_cf_video);
+    float b = dot(yuv, B_cf_video);
+    gl_FragColor = vec4(r, g, b, qt_Opacity);
+  } else {
+    gl_FragColor = vec4(0, 0.0, 1.0, qt_Opacity);
+  }
 }
 )";
 }
@@ -100,6 +121,8 @@ struct YUVState
     std::unique_ptr<QSGTexture> textureU;
     std::unique_ptr<QSGTexture> textureV;
     TextureFormat textureFormat;
+    bool reverseOrientation = false;
+    ColorSpace colorSpace = ColorSpace::undefined;
 
     std::unique_ptr<QOpenGLBuffer> pboY;
     std::unique_ptr<QOpenGLBuffer> pboU;
@@ -137,6 +160,10 @@ public:
 
         gl->glActiveTexture(GL_TEXTURE0);
         newState->textureY->bind();
+
+        program()->setUniformValue("color_space", (int)newState->colorSpace);
+        program()->setUniformValue("reverse_orientation",
+                                   (int)newState->reverseOrientation);
     }
 
     void resolveUniforms() final
@@ -210,6 +237,9 @@ void TextureNodeYUV::uploadTexture(const Image& image)
 
     _nextTextureSize = image.getTextureSize();
     _nextFormat = image.getFormat();
+    state->reverseOrientation =
+        image.getRowOrder() == deflect::RowOrder::bottom_up;
+    state->colorSpace = image.getColorSpace();
 }
 
 void TextureNodeYUV::swap()

@@ -58,6 +58,11 @@ int StreamImage::getHeight() const
     return _frame->segments.at(_tileIndex).parameters.height;
 }
 
+deflect::RowOrder StreamImage::getRowOrder() const
+{
+    return _frame->segments.at(0).rowOrder;
+}
+
 const uint8_t* StreamImage::getData(const uint texture) const
 {
     const auto data = _frame->segments.at(_tileIndex).imageData.constData();
@@ -96,6 +101,22 @@ TextureFormat StreamImage::getFormat() const
     }
 }
 
+ColorSpace StreamImage::getColorSpace() const
+{
+    switch (_frame->segments.at(_tileIndex).parameters.dataType)
+    {
+    case deflect::DataType::rgba:
+        return ColorSpace::undefined;
+    case deflect::DataType::yuv444:
+    case deflect::DataType::yuv422:
+    case deflect::DataType::yuv420:
+    case deflect::DataType::jpeg:
+        return ColorSpace::yCbCrJpeg;
+    default:
+        throw std::runtime_error("Invalid deflect::DataType");
+    }
+}
+
 QPoint StreamImage::getPosition() const
 {
     return QPoint(_frame->segments.at(_tileIndex).parameters.x,
@@ -128,6 +149,11 @@ void StreamImage::_copy(const StreamImage& image, const uint texture,
     const auto srcTexSize = image.getTextureSize(texture);
     const auto srcStride = srcTexSize.width() * bpp;
 
+    const auto readBottomUp =
+        image.getRowOrder() == deflect::RowOrder::bottom_up;
+    if (readBottomUp)
+        src += image.getDataSize(texture) - srcStride;
+
     auto dst = _getData(texture);
     const auto dstStride = getTextureSize(texture).width() * bpp;
     dst += position.x() * bpp + position.y() * dstStride;
@@ -136,7 +162,10 @@ void StreamImage::_copy(const StreamImage& image, const uint texture,
     {
         assert(dst + srcStride <= _getData(texture) + getDataSize(texture));
         std::copy(src, src + srcStride, dst);
-        src += srcStride;
+        if (readBottomUp)
+            src -= srcStride;
+        else
+            src += srcStride;
         dst += dstStride;
         assert(src <= image.getData(texture) + image.getDataSize(texture));
     }

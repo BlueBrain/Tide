@@ -326,6 +326,13 @@ void MasterApplication::_startDeflectServer()
             _pixelStreamWindowManager.get(),
             &PixelStreamWindowManager::handleStreamStart);
 
+    connect(_deflectServer.get(), &deflect::Server::pixelStreamException,
+            [this](const QString uri, const QString what) {
+                put_flog(LOG_WARN, "Stream '%s' encountered an exception: '%s'",
+                         uri.toLocal8Bit().constData(),
+                         what.toLocal8Bit().constData());
+            });
+
     connect(_deflectServer.get(), &deflect::Server::pixelStreamClosed,
             _pixelStreamWindowManager.get(),
             &PixelStreamWindowManager::handleStreamEnd);

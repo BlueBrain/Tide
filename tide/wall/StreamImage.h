@@ -63,8 +63,14 @@ public:
     /** @copydoc Image::getData */
     const uint8_t* getData(uint texture) const final;
 
+    /** @copydoc Image::getRowOrder */
+    deflect::RowOrder getRowOrder() const final;
+
     /** @copydoc Image::getFormat */
     TextureFormat getFormat() const final;
+
+    /** @copydoc Image::getColorSpace */
+    ColorSpace getColorSpace() const final;
 
     /** @return the position of the image in the stream. */
     QPoint getPosition() const;
