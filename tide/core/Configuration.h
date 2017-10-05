@@ -156,6 +156,7 @@ protected:
     /** Evaluate the querry and set the result to value on success. */
     bool getDouble(const QXmlQuery& query, double& value) const;
     bool getInt(const QXmlQuery& query, int& value) const;
+    bool getUShort(const QXmlQuery& query, ushort& value) const;
     bool getString(const QXmlQuery& query, QString& value) const;
     bool getBool(const QXmlQuery& query, bool& value) const;
 

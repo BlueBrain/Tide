@@ -92,8 +92,9 @@ void upload(const Image& image, const uint srcTextureIdx, QOpenGLBuffer& pbo);
  *
  * @param pbo the source PBO.
  * @param texture the target texture, must be of the same size as the PBO.
+ * @param glTexFormat the format of the OpenGL texture.
  */
-void copy(QOpenGLBuffer& pbo, QSGTexture& texture, uint glTextFormat);
+void copy(QOpenGLBuffer& pbo, QSGTexture& texture, uint glTexFormat);
 }
 
 #endif

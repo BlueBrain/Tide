@@ -59,13 +59,13 @@ RestServer::RestServer()
     _init();
 }
 
-RestServer::RestServer(const int port)
+RestServer::RestServer(const uint16_t port)
     : zeroeq::http::Server{zeroeq::URI{QString(":%1").arg(port).toStdString()}}
 {
     _init();
 }
 
-int RestServer::getPort() const
+uint16_t RestServer::getPort() const
 {
     return getURI().getPort();
 }

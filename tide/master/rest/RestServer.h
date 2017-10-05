@@ -65,13 +65,13 @@ public:
      * @throw std::runtime_error if the port is already in use or a connection
      *        issue occured.
      */
-    explicit RestServer(int port);
+    explicit RestServer(uint16_t port);
 
     /** Stop the server. */
     ~RestServer() = default;
 
     /** @return the port of the server. */
-    int getPort() const;
+    uint16_t getPort() const;
 
     /**
      * Expose a JSON-serializable object on an HTTP GET endpoint.

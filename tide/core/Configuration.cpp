@@ -236,6 +236,18 @@ bool Configuration::getInt(const QXmlQuery& query, int& value) const
     return ok;
 }
 
+bool Configuration::getUShort(const QXmlQuery& query, ushort& value) const
+{
+    bool ok = false;
+    QString queryResult;
+    ushort tmp = 0;
+    if (query.evaluateTo(&queryResult))
+        tmp = queryResult.toUShort(&ok);
+    if (ok)
+        value = tmp;
+    return ok;
+}
+
 bool Configuration::getString(const QXmlQuery& query, QString& value) const
 {
     QString queryResult;

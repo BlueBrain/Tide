@@ -71,7 +71,7 @@ public:
     /**
      * Set a swap synchronizer.
      *
-     * @param optional synchronizer to synchronize swapBuffers()
+     * @param synchronizer to synchronize swapBuffers() (optional)
      */
     void setSwapSynchronizer(SwapSynchronizer* synchronizer);
 

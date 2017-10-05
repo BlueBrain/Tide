@@ -96,7 +96,7 @@ public:
     /**
      * Load a session.
      * @param sessionFile a .dcx session file
-     * @param promise an optional promise to return the result of the action
+     * @param callback an optional callback to return the result of the action
      */
     void load(QString sessionFile, BoolCallback callback = BoolCallback());
 
