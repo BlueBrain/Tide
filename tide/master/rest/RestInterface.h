@@ -60,14 +60,14 @@ public:
     /**
      * Construct a REST interface.
      *
-     * @param port the port for listening to REST requests
+     * @param port for listening to REST requests
      * @param options the application's options to expose in the interface
      * @param group DisplayGroup exposed via the interface
      * @param config the application's configuration
      * @throw std::runtime_error if the port is already in use or a connection
      *        issue occured.
      */
-    RestInterface(int port, OptionsPtr options, DisplayGroup& group,
+    RestInterface(uint16_t port, OptionsPtr options, DisplayGroup& group,
                   const MasterConfiguration& config);
 
     /** Out-of-line destructor. */

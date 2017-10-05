@@ -121,9 +121,9 @@ public:
     /**
      * Get the port where the WebService server will be listening for incoming
      * requests.
-     * @return port for WebService server
+     * @return port for WebService server.
      */
-    int getWebServicePort() const;
+    uint16_t getWebServicePort() const;
 
     /**
      * Get the URL used as start page when opening a Web Browser.
@@ -201,7 +201,7 @@ private:
     QString _demoServiceImageFolder;
     QString _whiteboardSaveUrl;
 
-    int _webServicePort;
+    uint16_t _webServicePort;
     QString _webBrowserDefaultURL;
 
     QString _backgroundUri;

@@ -136,7 +136,7 @@ void MasterConfiguration::loadPlanarSettings(QXmlQuery& query)
 void MasterConfiguration::loadWebService(QXmlQuery& query)
 {
     query.setQuery("string(/configuration/webservice/@port)");
-    getInt(query, _webServicePort);
+    getUShort(query, _webServicePort);
 }
 
 void MasterConfiguration::loadWhiteboard(QXmlQuery& query)
@@ -226,7 +226,7 @@ const QString& MasterConfiguration::getAppLauncherFile() const
     return _appLauncherFile;
 }
 
-int MasterConfiguration::getWebServicePort() const
+uint16_t MasterConfiguration::getWebServicePort() const
 {
     return _webServicePort;
 }

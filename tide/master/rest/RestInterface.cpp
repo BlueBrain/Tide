@@ -101,7 +101,7 @@ std::string to_json(const Version& object)
 class RestInterface::Impl
 {
 public:
-    Impl(const int port, OptionsPtr options_, DisplayGroup& group,
+    Impl(const uint16_t port, OptionsPtr options_, DisplayGroup& group,
          const MasterConfiguration& config, const bool locked)
         : server{port}
         , options{options_}
@@ -143,7 +143,7 @@ public:
     LockState lockState;
 };
 
-RestInterface::RestInterface(const int port, OptionsPtr options,
+RestInterface::RestInterface(const uint16_t port, OptionsPtr options,
                              DisplayGroup& group,
                              const MasterConfiguration& config)
     : _impl(new Impl(port, options, group, config, false))
