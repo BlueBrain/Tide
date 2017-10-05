@@ -1,0 +1,50 @@
+packages:
+    mpich:
+        paths:
+            mpich@3.0.4: /usr/local
+        version: [3.0.4]
+        buildable: False
+    openmpi:
+        paths:
+            openmpi@2.1.1: /usr/local
+        buildable: False
+        version: [2.1.1]
+    cmake:
+        paths:
+            cmake@3.9.1: /usr/local
+        buildable: False
+        version: [3.9.1]
+    boost:
+        paths:
+            boost@1.61: /usr/local/opt/boost
+        buildable: False
+        version: [1.61]
+    zeromq:
+        paths:
+            zeromq@4.2.2: /usr/local/opt/zeromq
+        buildable: False
+        version: [4.2.2]
+    libjpeg-turbo:
+        paths:
+            libjpeg-turbo@1.5.2: /usr/local/opt/jpeg-turbo
+        buildable: False
+        version: [1.5.2]
+    qt:
+        paths:
+            qt@5.9.1: /usr/local/opt/qt
+        buildable: False
+        version: [5.9.1]
+    ffmpeg:
+        paths:
+            ffmpeg@3.3.4: /usr/local/opt/ffmpeg
+        buildable: False
+        version: [3.3.4]
+    python:
+        paths:
+            python@2.7.12: /System/Library/Frameworks/Python.framework/Versions/2.7
+        version: [2.7.12]
+        buildable: False
+    all:
+        compiler: [clang, gcc@4.9]
+        providers:
+            mpi: [openmpi]

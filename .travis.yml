@@ -1,28 +1,68 @@
-notifications:
-  email:
-    on_success: never
-language: cpp
-sudo: false
-os:
-  - osx
+#=============================================================================
+# Travis Tide settings
+#=============================================================================
+
+#=============================================================================
+# Environment
+#=============================================================================
 env:
   global:
-    - NINJA_STATUS="[%p %u/%t@%o %r]"
-    - PROJECT_NAME=${PWD##*/}
-    - CMAKE_PREFIX_PATH=/usr/local/opt/qt5:$CMAKE_PREFIX_PATH
-    - LIBJPEGTURBO_ROOT=/usr/local/opt/jpeg-turbo
-  matrix:
-  - BUILD_TYPE=Debug
-  - BUILD_TYPE=Release
-before_install:
-  - brew update
-  - brew outdated cmake || brew upgrade cmake
-  - brew install cppcheck doxygen ninja
-  - brew install ffmpeg jpeg-turbo mpich qt5
-  - brew install poppler --with-qt5
-  - brew install zeromq
+    - SPACK_ROOT=$TRAVIS_BUILD_DIR/spack
+    - PATH=$SPACK_ROOT/bin:$PATH
+
+#=============================================================================
+# Build matrix
+#   - Do not use osx_image otherwise brew fails
+#     (mpich depends on gcc and brew link fails)
+#=============================================================================
+matrix:
+  fast_finish: true
+  include:
+    - language: cpp
+      os: linux
+      dist: trusty
+      sudo: true
+      env: [ MPI=mpich]
+    - language: cpp
+      os: osx
+      sudo: false
+      env: [ MPI=openmpi]
+
+#=============================================================================
+# Common Packages
+#=============================================================================
+addons:
+  apt:
+    packages:
+      - environment-modules
+
+#=============================================================================
+# Install dependencies / setup Spack
+#=============================================================================
+install:
+  - .travis/install_dependencies.sh $MPI
+  - .travis/setup_spack.sh
+
+#=============================================================================
+# Build NEURON
+#=============================================================================
 script:
-  - mkdir $BUILD_TYPE
-  - cd $BUILD_TYPE
-  - cmake -GNinja -DCLONE_SUBPROJECTS=ON -DCMAKE_INSTALL_PREFIX=$PWD/install -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
-  - ninja all && ninja $PROJECT_NAME-tests && ninja install
+  - echo "------- SHOW SPACK CONFIGURATIONS -------"
+  - spack compilers
+  - spack config get packages
+
+  - echo "------- INSTALL ALL VERSIONS -------"
+  - .travis/install_tide.sh
+
+  - echo "------- INSTALLED VERSIONS (WITH DEPENDENCY DAG) -------"
+  - spack find -d -v tide
+
+  - echo "------- INSTALLED VERSIONS LIST  -------"
+  - spack find -v tide
+
+#=============================================================================
+# Notifications
+#=============================================================================
+notifications:
+  email:
+    on_success: change
