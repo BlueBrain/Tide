@@ -649,7 +649,7 @@ function init() {
 }
 
 function isBezelVisible(){
-  return ($('.screenbezel').is(':visible'));
+  return ($('.screen').is(':visible'));
 }
 
 function isAnyWindowDragged()
