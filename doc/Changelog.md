@@ -5,7 +5,7 @@ Changelog {#changelog}
 
 * [195](https://github.com/BlueBrain/Tide/pull/195):
   New features in html interface:
-  - Dragged window cant be snapped to a bezel.
+  - Dragged window can be snapped to a bezel.
   - Dragged window can be maximized to the screen size when hovering a bezel.
 * [193](https://github.com/BlueBrain/Tide/issues/193):
   Use correct color space for rendering JPEG-compressed pixel streams.
