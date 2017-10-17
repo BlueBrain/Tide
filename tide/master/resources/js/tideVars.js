@@ -9,6 +9,7 @@ var lockImageUrl = "img/lock.svg"
 var unlockImageUrl = "img/unlock.svg"
 var screenOffImageUrl = "img/screenOff.png"
 var screenOnImageUrl = "img/screenOn.png"
+var stickyBezelSize = 60;
 var modeFocus = 1;
 var modeFullscreen = 2;
 var refreshInterval = 1000;
