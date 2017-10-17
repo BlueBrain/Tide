@@ -649,13 +649,12 @@ function init() {
 }
 
 function isBezelVisible(){
-  return ($('.screen').is(':visible'));
+  return ($('.screenbezel').is(':visible'));
 }
 
 function isAnyWindowDragged()
 {
-  return ($(".ui-draggable-dragging").length == 1 );
-    
+  return $(".ui-draggable-dragging").length === 1;
 }
 
 function getIdAsObject(tile) {
@@ -910,7 +909,7 @@ function setBezels() {
     
     for (var j = 0; j < totalDisplaysPerScreen; j++) {
       var bezels = [{name: 'N', type: 'horizontal'},{name: 'S', type: 'horizontal'},
-      {name: 'E', type: 'vertical'},{name: 'W', type: 'vertical'},];
+        {name: 'E', type: 'vertical'},{name: 'W', type: 'vertical'}];
       for (var k = 0; k < bezels.length; k++) {
         let edge = $("<div class='screenbezel' id='" + bezels[k].name + "' > </div>");
         if (bezels[k].type === 'horizontal') 
@@ -930,7 +929,7 @@ function setBezels() {
       }
      }
   }
-  $(".screen").css("outline-width", bezelWidth).css("outline-height", bezelHeight)//.hide();
+  $(".screen").css("outline-width", bezelWidth).css("outline-height", bezelHeight).hide();
 }
 
 function setCurtain(type) {
@@ -1035,7 +1034,7 @@ function setHandles(tile) {
         tile.height = ui.size.height;
         tile.width = ui.size.width
       }
-      var params = { "id": tile.uuid, "w": tile.width, "h": tile.height, "centered": false };
+      var params = {"id": tile.uuid, "w": tile.width, "h": tile.height, "centered": false};
       sendSceneJsonRpc("resize-window", params, function () {
         return sendSceneJsonRpc("move-window-to-front", getIdAsObject(tile), updateWall);
       });
@@ -1069,7 +1068,7 @@ function setScale() {
 
   var wallMargin = (window.innerWidth - (wallWidth * zoomScale)) / 2;
   var wall = $("#wall");
-  wall.css({ transform: 'scale(' + zoomScale + ')' });
+  wall.css({transform: 'scale(' + zoomScale + ')'});
   wall.css("margin-left", wallMargin);
   wall.css("margin-right", wallMargin);
   wall.css("margin-top", 25);
@@ -1165,7 +1164,7 @@ function stickToBezel(event) {
         $div.css("top", centerV);
         $div.css("left", left);
       }
-      // Allign a window exceeding a screen to the left
+      // Align a window exceeding a screen to the left
       if ((dir == 'N' || dir == 'S') && newWidth > screenWidth)
         $div.css("left", left);
     }
