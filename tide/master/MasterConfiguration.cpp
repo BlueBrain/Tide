@@ -80,6 +80,7 @@ void MasterConfiguration::loadMasterSettings()
     loadWhiteboard(query);
     loadBackgroundProperties(query);
     loadPlanarSettings(query);
+    loadInfo(query);
 }
 
 void MasterConfiguration::loadMasterProcessInfo(QXmlQuery& query)
@@ -122,6 +123,12 @@ void MasterConfiguration::loadLauncherSettings(QXmlQuery& query)
 
     query.setQuery("string(/configuration/launcher/@demoServiceImageFolder)");
     getString(query, _demoServiceImageFolder);
+}
+
+void MasterConfiguration::loadInfo(QXmlQuery& query)
+{
+    query.setQuery("string(/configuration/info/@name)");
+    getString(query, _infoName);
 }
 
 void MasterConfiguration::loadPlanarSettings(QXmlQuery& query)
@@ -186,6 +193,10 @@ const QString& MasterConfiguration::getContentDir() const
     return _contentDir;
 }
 
+QString MasterConfiguration::getInfoName() const
+{
+    return _infoName;
+}
 QString MasterConfiguration::getPlanarSerialPort() const
 {
     return _planarSerialPort;
