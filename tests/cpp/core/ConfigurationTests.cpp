@@ -58,6 +58,7 @@
 #define CONFIG_EXPECTED_BACKGROUND_COLOR "#242424"
 #define CONFIG_EXPECTED_CONTENT_DIR "/nfs4/bbp.epfl.ch/visualization/DisplayWall/media"
 #define CONFIG_EXPECTED_SERIAL_PORT "/dev/ttyS0"
+#define CONFIG_EXPECTED_INFO_NAME "TestWall"
 #define CONFIG_EXPECTED_PLANAR_TIMEOUT 45
 #define CONFIG_EXPECTED_DEFAULT_PLANAR_TIMEOUT 60
 #define CONFIG_EXPECTED_SESSIONS_DIR "/nfs4/bbp.epfl.ch/visualization/DisplayWall/sessions"
@@ -241,6 +242,8 @@ BOOST_AUTO_TEST_CASE(test_master_configuration)
 
     BOOST_CHECK_EQUAL(config.getWhiteboardSaveFolder(),
                       CONFIG_EXPECTED_WHITEBOARD_SAVE_FOLDER);
+
+    BOOST_CHECK_EQUAL(config.getInfoName(), CONFIG_EXPECTED_INFO_NAME);
 }
 
 BOOST_AUTO_TEST_CASE(test_master_configuration_default_values)
@@ -260,6 +263,7 @@ BOOST_AUTO_TEST_CASE(test_master_configuration_default_values)
                       CONFIG_EXPECTED_DEFAULT_WHITEBOARD_SAVE_FOLDER);
     BOOST_CHECK_EQUAL(config.getPlanarTimeout(),
                       CONFIG_EXPECTED_DEFAULT_PLANAR_TIMEOUT);
+    BOOST_CHECK_EQUAL(config.getInfoName(), QString());
 }
 
 BOOST_AUTO_TEST_CASE(test_save_configuration)

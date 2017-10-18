@@ -143,6 +143,7 @@ QJsonObject to_json_object(const MasterConfiguration& config)
         {"backgroundColor", config.getBackgroundColor().name()},
         {"contentDir", config.getContentDir()},
         {"sessionDir", config.getSessionsDir()},
+        {"name", config.getInfoName()},
         {"filters", QJsonArray::fromStringList(
                         ContentFactory::getSupportedFilesFilter())}};
     return QJsonObject{{"config", configObject}};

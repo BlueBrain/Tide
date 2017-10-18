@@ -107,6 +107,12 @@ public:
     const QString& getAppLauncherFile() const;
 
     /**
+     * Get the name of the wall.
+     * @return empty string if unspecified.
+     */
+    QString getInfoName() const;
+
+    /**
      * Get the port name used to control Planar equipment
      * @return empty string if unspecified
      */
@@ -189,6 +195,7 @@ private:
     void loadAppLauncher(QXmlQuery& query);
     void loadWebBrowserStartURL(QXmlQuery& query);
     void loadBackgroundProperties(QXmlQuery& query);
+    void loadInfo(QXmlQuery& query);
 
     bool _headless = false;
     QString _contentDir;
@@ -209,6 +216,8 @@ private:
 
     QString _planarSerialPort;
     int _planarTimeout;
+
+    QString _infoName;
 };
 
 #endif
