@@ -197,6 +197,7 @@ QString MasterConfiguration::getInfoName() const
 {
     return _infoName;
 }
+
 QString MasterConfiguration::getPlanarSerialPort() const
 {
     return _planarSerialPort;
