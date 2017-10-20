@@ -72,7 +72,7 @@ public:
     virtual uint getMaxLod() const = 0;
 
     /** The synchronizers linked to this shared data source. */
-    std::vector<ContentSynchronizer*> synchronizers;
+    std::set<ContentSynchronizer*> synchronizers;
 };
 
 #endif

@@ -50,10 +50,15 @@ PixelStreamSynchronizer::PixelStreamSynchronizer(
     , _updater{std::move(updater)}
     , _view{view}
 {
-    _updater->synchronizers.push_back(this);
+    _updater->synchronizers.insert(this);
 
     connect(_updater.get(), &PixelStreamUpdater::pictureUpdated, this,
             &PixelStreamSynchronizer::_onPictureUpdated);
+}
+
+PixelStreamSynchronizer::~PixelStreamSynchronizer()
+{
+    _updater->synchronizers.erase(this);
 }
 
 void PixelStreamSynchronizer::update(const ContentWindow& window,

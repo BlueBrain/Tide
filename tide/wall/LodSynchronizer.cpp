@@ -50,7 +50,12 @@ LodSynchronizer::LodSynchronizer(std::shared_ptr<DataSource> source)
     : TiledSynchronizer(TileSwapPolicy::SwapTilesIndependently)
     , _source(std::move(source))
 {
-    _source->synchronizers.push_back(this);
+    _source->synchronizers.insert(this);
+}
+
+LodSynchronizer::~LodSynchronizer()
+{
+    _source->synchronizers.erase(this);
 }
 
 void LodSynchronizer::update(const ContentWindow& window,

@@ -53,6 +53,7 @@ class BasicSynchronizer : public ContentSynchronizer
 public:
     /** Constructor */
     BasicSynchronizer(std::shared_ptr<DataSource> source);
+    ~BasicSynchronizer();
 
     /** @copydoc ContentSynchronizer::update */
     void update(const ContentWindow& window,
