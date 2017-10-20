@@ -62,6 +62,7 @@ public:
      */
     MovieSynchronizer(std::shared_ptr<MovieUpdater> updater,
                       deflect::View view);
+    ~MovieSynchronizer();
 
     /** @copydoc ContentSynchronizer::update */
     void update(const ContentWindow& window, const QRectF& visibleArea) final;

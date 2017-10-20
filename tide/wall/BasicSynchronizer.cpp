@@ -45,7 +45,12 @@
 BasicSynchronizer::BasicSynchronizer(std::shared_ptr<DataSource> source)
     : _dataSource(std::move(source))
 {
-    _dataSource->synchronizers.push_back(this);
+    _dataSource->synchronizers.insert(this);
+}
+
+BasicSynchronizer::~BasicSynchronizer()
+{
+    _dataSource->synchronizers.erase(this);
 }
 
 void BasicSynchronizer::update(const ContentWindow& /*window*/,

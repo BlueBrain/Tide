@@ -53,6 +53,7 @@ class LodSynchronizer : public TiledSynchronizer
 public:
     /** Constructor. */
     LodSynchronizer(std::shared_ptr<DataSource> source);
+    ~LodSynchronizer();
 
     /** @copydoc ContentSynchronizer::update */
     void update(const ContentWindow& window,

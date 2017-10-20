@@ -62,6 +62,7 @@ public:
      */
     PixelStreamSynchronizer(std::shared_ptr<PixelStreamUpdater> updater,
                             deflect::View view);
+    ~PixelStreamSynchronizer();
 
     /** @copydoc ContentSynchronizer::update */
     void update(const ContentWindow& window,

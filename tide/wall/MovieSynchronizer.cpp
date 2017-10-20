@@ -50,10 +50,15 @@ MovieSynchronizer::MovieSynchronizer(std::shared_ptr<MovieUpdater> updater,
     , _updater{std::move(updater)}
     , _view{view}
 {
-    _updater->synchronizers.push_back(this);
+    _updater->synchronizers.insert(this);
 
     connect(_updater.get(), &MovieUpdater::pictureUpdated, this,
             &MovieSynchronizer::_onPictureUpdated);
+}
+
+MovieSynchronizer::~MovieSynchronizer()
+{
+    _updater->synchronizers.erase(this);
 }
 
 void MovieSynchronizer::update(const ContentWindow& window,
