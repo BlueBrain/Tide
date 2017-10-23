@@ -49,7 +49,7 @@ FFMPEGFrame::FFMPEGFrame()
 #endif
 {
     if (!_avFrame)
-        put_flog(LOG_ERROR, "Error allocating RGB frame");
+        put_facility_flog(LOG_ERROR, LOG_AV, "Error allocating RGB frame");
 }
 
 FFMPEGFrame::~FFMPEGFrame()

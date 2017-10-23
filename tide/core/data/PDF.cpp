@@ -78,8 +78,9 @@ PDF::PDF(const QString& uri)
     }
     catch (const std::runtime_error& e)
     {
-        put_flog(LOG_DEBUG, "Could not open document '%s': '%s'",
-                 uri.toLocal8Bit().constData(), e.what());
+        put_facility_flog(LOG_DEBUG, LOG_PDF,
+                          "Could not open document '%s': '%s'",
+                          uri.toLocal8Bit().constData(), e.what());
     }
 }
 
@@ -116,8 +117,10 @@ void PDF::setPage(const int pageNumber)
 
     if (!_impl->pdf->setPage(pageNumber))
     {
-        put_flog(LOG_WARN, "Could not open page: %d in PDF document: '%s'",
-                 pageNumber, _impl->filename.toLocal8Bit().constData());
+        put_facility_flog(LOG_WARN, LOG_PDF,
+                          "Could not open page: %d in PDF document: '%s'",
+                          pageNumber,
+                          _impl->filename.toLocal8Bit().constData());
         return;
     }
     _impl->currentPage = pageNumber;

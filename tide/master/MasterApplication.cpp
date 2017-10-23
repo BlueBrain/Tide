@@ -232,8 +232,8 @@ void MasterApplication::_init()
 
         connect(_inactivityTimer.get(), &InactivityTimer::poweroff, [this]() {
             _planarController->powerOff();
-            put_flog(LOG_INFO,
-                     "Powering off the screens on inactivity timeout");
+            put_facility_flog(LOG_INFO, LOG_POWER,
+                              "Powering off the screens on inactivity timeout");
         });
     }
 #endif
@@ -328,9 +328,10 @@ void MasterApplication::_startDeflectServer()
 
     connect(_deflectServer.get(), &deflect::Server::pixelStreamException,
             [this](const QString uri, const QString what) {
-                put_flog(LOG_WARN, "Stream '%s' encountered an exception: '%s'",
-                         uri.toLocal8Bit().constData(),
-                         what.toLocal8Bit().constData());
+                put_facility_flog(LOG_WARN, LOG_STREAM,
+                                  "Stream '%s' encountered an exception: '%s'",
+                                  uri.toLocal8Bit().constData(),
+                                  what.toLocal8Bit().constData());
             });
 
     connect(_deflectServer.get(), &deflect::Server::pixelStreamClosed,
@@ -480,14 +481,13 @@ void MasterApplication::_initTouchListener()
                     return;
                 }
                 if (_planarController->powerOn())
-                    put_flog(LOG_INFO,
-                             "Powered on the screens by touching the "
-                             "wall");
-
+                    put_facility_flog(LOG_INFO, LOG_POWER,
+                                      "Powered on the screens by touching the "
+                                      "wall");
                 else
-                    put_flog(LOG_INFO,
-                             "Could not power on the screens by "
-                             "touching the wall");
+                    put_facility_flog(LOG_ERROR, LOG_POWER,
+                                      "Could not power on the screens by "
+                                      "touching the wall");
 #endif
             });
     connect(_touchListener.get(), &MultitouchListener::touchPointUpdated,
@@ -577,7 +577,8 @@ void MasterApplication::_initRestInterface()
             if (_planarController->powerOff())
                 DisplayGroupController(*_displayGroup).hidePanels();
             else
-                put_flog(LOG_INFO, "Could not power off the screens");
+                put_facility_flog(LOG_ERROR, LOG_POWER,
+                                  "Could not power off the screens");
         });
     }
 #endif
@@ -616,7 +617,7 @@ void MasterApplication::_deleteTempContentFile(ContentWindowPtr window)
     if (isFile && QFileInfo(filename).absolutePath() == QDir::tempPath())
     {
         QDir().remove(filename);
-        put_flog(LOG_INFO, "Deleted temporary file: %s",
-                 filename.toLocal8Bit().constData());
+        put_facility_flog(LOG_INFO, LOG_REST, "Deleted temporary file: %s",
+                          filename.toLocal8Bit().constData());
     }
 }

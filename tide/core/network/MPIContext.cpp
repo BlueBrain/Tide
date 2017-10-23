@@ -53,7 +53,8 @@ MPIContext::MPIContext(int argc, char* argv[])
     if (provided < required)
     {
 #if TIDE_IGNORE_MPI_THREADSAFETY
-        put_flog(LOG_DEBUG, "MPI support: %d/%d", provided, required);
+        put_facility_flog(LOG_DEBUG, LOG_MPI, "MPI support: %d/%d", provided,
+                          required);
 #else
         throw std::runtime_error(
             "MPI implementation must support "

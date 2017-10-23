@@ -86,8 +86,8 @@ MovieUpdater::MovieUpdater(const QString& uri)
     // bool FFMPEGMovie::openVideoStreamDecoder(): could not open codec
     // error: -11 Resource temporarily unavailable
     if (!_ffmpegMovie->isValid())
-        put_flog(LOG_WARN, "Movie is invalid: %s",
-                 uri.toLocal8Bit().constData());
+        put_facility_flog(LOG_WARN, LOG_AV, , "Movie is invalid: %s",
+                          uri.toLocal8Bit().constData());
 }
 
 MovieUpdater::~MovieUpdater()

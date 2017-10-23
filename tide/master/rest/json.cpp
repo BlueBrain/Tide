@@ -53,8 +53,9 @@ QJsonArray toArray(const std::string& data)
 
     if (doc.isNull() || !doc.isArray())
     {
-        put_flog(LOG_INFO, "Error parsing JSON string '%s' '%s'", data.c_str(),
-                 error.errorString().toLocal8Bit().constData());
+        put_facility_flog(LOG_ERROR, LOG_REST,
+                          "Error parsing JSON string '%s' '%s'", data.c_str(),
+                          error.errorString().toLocal8Bit().constData());
         return QJsonArray{};
     }
     return doc.array();
@@ -68,8 +69,9 @@ QJsonObject toObject(const std::string& data)
 
     if (doc.isNull() || !doc.isObject())
     {
-        put_flog(LOG_INFO, "Error parsing JSON string '%s' '%s'", data.c_str(),
-                 error.errorString().toLocal8Bit().constData());
+        put_facility_flog(LOG_ERROR, LOG_REST,
+                          "Error parsing JSON string '%s' '%s'", data.c_str(),
+                          error.errorString().toLocal8Bit().constData());
         return QJsonObject{};
     }
     return doc.object();

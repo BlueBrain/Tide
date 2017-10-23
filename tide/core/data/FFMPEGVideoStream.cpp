@@ -128,22 +128,22 @@ bool FFMPEGVideoStream::_decodeToAvFrame(AVPacket& packet)
     int errCode = avcodec_send_packet(_videoCodecContext, &packet);
     if (errCode < 0)
     {
-        put_flog(LOG_ERROR,
-                 "avcodec_send_packet returned error code '%i' : "
-                 "'%s' in '%s'",
-                 errCode, _getAvError(errCode).c_str(),
-                 _avFormatContext.filename);
+        put_facility_flog(LOG_ERROR, LOG_AV,
+                          "avcodec_send_packet returned error code '%i' : "
+                          "'%s' in '%s'",
+                          errCode, _getAvError(errCode).c_str(),
+                          _avFormatContext.filename);
         return false;
     }
 
     errCode = avcodec_receive_frame(_videoCodecContext, &_frame->getAVFrame());
     if (errCode < 0)
     {
-        put_flog(LOG_ERROR,
-                 "avcodec_receive_frame returned error code '%i' : "
-                 "'%s' in '%s'",
-                 errCode, _getAvError(errCode).c_str(),
-                 _avFormatContext.filename);
+        put_facility_flog(LOG_ERROR, LOG_AV,
+                          "avcodec_receive_frame returned error code '%i' : "
+                          "'%s' in '%s'",
+                          errCode, _getAvError(errCode).c_str(),
+                          _avFormatContext.filename);
         return false;
     }
 #else
@@ -153,10 +153,10 @@ bool FFMPEGVideoStream::_decodeToAvFrame(AVPacket& packet)
                               &frameDecodingComplete, &packet);
     if (errCode < 0)
     {
-        put_flog(LOG_ERROR,
-                 "avcodec_decode_video2 returned error code '%i' "
-                 "in '%s'",
-                 errCode, _avFormatContext.filename);
+        put_facility_flog(LOG_ERROR, LOG_AV,
+                          "avcodec_decode_video2 returned error code '%i' "
+                          "in '%s'",
+                          errCode, _avFormatContext.filename);
         return false;
     }
 
@@ -164,10 +164,10 @@ bool FFMPEGVideoStream::_decodeToAvFrame(AVPacket& packet)
     // format to RGB
     if (!frameDecodingComplete)
     {
-        put_flog(LOG_VERBOSE,
-                 "Frame could not be decoded entirely"
-                 "(may be caused by seeking) in: '%s'",
-                 _avFormatContext.filename);
+        put_facility_flog(LOG_VERBOSE, LOG_AV,
+                          "Frame could not be decoded entirely"
+                          "(may be caused by seeking) in: '%s'",
+                          _avFormatContext.filename);
         return false;
     }
 #endif
@@ -227,8 +227,9 @@ int64_t FFMPEGVideoStream::getTimestamp(int64_t frameIndex) const
 {
     if (frameIndex < 0 || (_numFrames && frameIndex >= _numFrames))
     {
-        put_flog(LOG_WARN, "Invalid index: %i - valid range: [0, %i[ in: '%s'",
-                 frameIndex, _numFrames, _avFormatContext.filename);
+        put_facility_flog(LOG_WARN, LOG_AV,
+                          "Invalid index: %i - valid range: [0, %i[ in: '%s'",
+                          frameIndex, _numFrames, _avFormatContext.filename);
     }
     frameIndex = std::max(int64_t(0), std::min(frameIndex, _numFrames - 1));
 
@@ -259,8 +260,9 @@ bool FFMPEGVideoStream::seekToNearestFullframe(int64_t frameIndex)
 {
     if (frameIndex < 0 || (_numFrames && frameIndex >= _numFrames))
     {
-        put_flog(LOG_WARN, "Invalid index: %i, range [0,%d[: '%s'", frameIndex,
-                 _numFrames, _avFormatContext.filename);
+        put_facility_flog(LOG_WARN, LOG_AV,
+                          "Invalid index: %i, range [0,%d[: '%s'", frameIndex,
+                          _numFrames, _avFormatContext.filename);
     }
 
     frameIndex = std::max(int64_t(0), std::min(frameIndex, _numFrames - 1));
@@ -273,8 +275,9 @@ bool FFMPEGVideoStream::seekToNearestFullframe(int64_t frameIndex)
     if (avformat_seek_file(&_avFormatContext, _videoStream->index, seek_min,
                            seek_target, seek_max, seek_flags) != 0)
     {
-        put_flog(LOG_ERROR, "seeking error, seeking aborted in: '%s'",
-                 _avFormatContext.filename);
+        put_facility_flog(LOG_ERROR, LOG_AV,
+                          "seeking error, seeking aborted in: '%s'",
+                          _avFormatContext.filename);
         return false;
     }
 
@@ -375,12 +378,12 @@ void FFMPEGVideoStream::_generateSeekingParameters()
     const auto frameDurationUnits = double(timeBase.num) / double(timeBase.den);
     _frameDurationInSeconds = _frameDuration * frameDurationUnits;
 
-    put_flog(LOG_VERBOSE,
-             "seeking parameters: start_time = %i,"
-             "duration = %i, numFrames = %i",
-             _videoStream->start_time, duration, _numFrames);
-    put_flog(LOG_VERBOSE, "frame_rate = %f, time_base = %f",
-             1. / _frameDurationInSeconds, timeBase);
-    put_flog(LOG_VERBOSE, "frameDurationInSeconds = %f",
-             _frameDurationInSeconds);
+    put_facility_flog(LOG_VERBOSE, LOG_AV,
+                      "seeking parameters: start_time = %i,"
+                      "duration = %i, numFrames = %i",
+                      _videoStream->start_time, duration, _numFrames);
+    put_facility_flog(LOG_VERBOSE, LOG_AV, "frame_rate = %f, time_base = %f",
+                      1. / _frameDurationInSeconds, timeBase);
+    put_facility_flog(LOG_VERBOSE, LOG_AV, "frameDurationInSeconds = %f",
+                      _frameDurationInSeconds);
 }

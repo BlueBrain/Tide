@@ -102,8 +102,9 @@ void InactivityTimer::restart()
     _inactivityTimer->start();
     if (_countdownActive)
     {
-        put_flog(LOG_INFO,
-                 "Prevented powering off the screens during countdown");
+        put_facility_flog(
+            LOG_INFO, LOG_POWER,
+            "Prevented powering off the screens during countdown");
         _countDownTimer->stop();
         _countdownActive = false;
         emit updated(shared_from_this());

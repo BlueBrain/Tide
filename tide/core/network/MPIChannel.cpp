@@ -45,11 +45,12 @@
 #include "log.h"
 
 // #define instead of a function so that put_flog() prints the correct reference
-#define MPI_CHECK(func)                                       \
-    {                                                         \
-        const int err = (func);                               \
-        if (err != MPI_SUCCESS)                               \
-            put_flog(LOG_ERROR, "Error detected! (%d)", err); \
+#define MPI_CHECK(func)                                                   \
+    {                                                                     \
+        const int err = (func);                                           \
+        if (err != MPI_SUCCESS)                                           \
+            put_facility_flog(LOG_ERROR, LOG_MPI, "Error detected! (%d)", \
+                              err);                                       \
     }
 
 MPIChannel::MPIChannel(int argc, char* argv[])
@@ -178,8 +179,8 @@ void MPIChannel::receive(char* dataBuffer, const size_t messageSize,
     int count = 0;
     MPI_CHECK(MPI_Get_count(&status, MPI_BYTE, &count));
     if (count != (int)messageSize)
-        put_flog(LOG_ERROR, "incorrect bytes count: %d / %d", count,
-                 messageSize);
+        put_facility_flog(LOG_ERROR, LOG_MPI, "incorrect bytes count: %d / %d",
+                          count, messageSize);
 }
 
 void MPIChannel::receiveBroadcast(char* dataBuffer, const size_t messageSize,

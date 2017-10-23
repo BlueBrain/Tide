@@ -117,8 +117,8 @@ void PixelStreamWindowManager::openWindow(const QString& uri,
     if (_isWindowOpen(uri))
         return;
 
-    put_flog(LOG_INFO, "opening pixel stream window: '%s'",
-             uri.toLocal8Bit().constData());
+    put_facility_flog(LOG_INFO, LOG_STREAM, "opening pixel stream window: '%s'",
+                      uri.toLocal8Bit().constData());
 
     auto window = _makeStreamWindow(uri, size, stream);
 
@@ -140,8 +140,9 @@ void PixelStreamWindowManager::handleStreamStart(const QString uri)
     if (_isWindowOpen(uri))
     {
         emit requestFirstFrame(uri);
-        put_flog(LOG_INFO, "start sending frames for stream window: '%s'",
-                 uri.toLocal8Bit().constData());
+        put_facility_flog(LOG_INFO, LOG_STREAM,
+                          "start sending frames for stream window: '%s'",
+                          uri.toLocal8Bit().constData());
         return;
     }
 
@@ -153,8 +154,8 @@ void PixelStreamWindowManager::handleStreamStart(const QString uri)
 
 void PixelStreamWindowManager::handleStreamEnd(const QString uri)
 {
-    put_flog(LOG_INFO, "closing pixel stream window: '%s'",
-             uri.toLocal8Bit().constData());
+    put_facility_flog(LOG_INFO, LOG_STREAM, "closing pixel stream window: '%s'",
+                      uri.toLocal8Bit().constData());
 
     if (auto window = getWindow(uri))
         DisplayGroupController{_displayGroup}.remove(window->getID());
@@ -167,9 +168,9 @@ void PixelStreamWindowManager::registerEventReceiver(
     auto window = getWindow(uri);
     if (!window)
     {
-        put_flog(LOG_ERROR,
-                 "No window found for %s during registerEventReceiver",
-                 uri.toLocal8Bit().constData());
+        put_facility_flog(LOG_ERROR, LOG_STREAM,
+                          "No window found for %s during registerEventReceiver",
+                          uri.toLocal8Bit().constData());
         success->set_value(false);
         return;
     }
@@ -186,7 +187,7 @@ void PixelStreamWindowManager::registerEventReceiver(
             success->set_value(true);
             return;
         }
-        put_flog(LOG_ERROR, "QObject connection failed");
+        put_facility_flog(LOG_ERROR, LOG_STREAM, , "QObject connection failed");
     }
     success->set_value(false);
 }
