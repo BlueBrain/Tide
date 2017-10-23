@@ -86,7 +86,7 @@ Rectangle {
         SavePanel {
             rootfolder: rootSessionsFolder
             nameFilters: ["*.dcx"]
-            onSaveSession: sendJsonRpc("application", "save", file);
+            onSaveSession: sendJsonRpc("application", "save", filename);
             listViewMode: useListViewMode
             onListViewModeChanged: useListViewMode = listViewMode
         }
