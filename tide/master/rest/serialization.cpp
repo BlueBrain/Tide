@@ -133,6 +133,7 @@ QJsonObject to_json_object(const MasterConfiguration& config)
         {"startTime", _applicationStartTime},
         {"wallSize", to_json_object(config.getTotalSize())},
         {"dimensions",
+<<<<<<< 354f001cca1a59b17e6c5ea826e68514c2dba2df
          QJsonObject{
              {"screenCountX", (int)config.getTotalScreenCountX()},
              {"screenCountY", (int)config.getTotalScreenCountY()},
@@ -144,6 +145,16 @@ QJsonObject to_json_object(const MasterConfiguration& config)
              {"screenHeight", (int)config.getScreenHeight()},
              {"displaysPerScreenX", (int)config.getDisplaysPerScreenX()},
              {"displaysPerScreenY", (int)config.getDisplaysPerScreenY()}}},
+=======
+         QJsonObject{{"screenCountX", config.getTotalScreenCountX()},
+                     {"screenCountY", config.getTotalScreenCountY()},
+                     {"bezelHeight", config.getMullionHeight()},
+                     {"bezelWidth", config.getMullionWidth()},
+                     {"screenWidth", config.getScreenWidth()},
+                     {"screenHeight", config.getScreenHeight()},
+                     {"bezelsPerScreenX", config.getBezelsPerScreenX()},
+                     {"bezelsPerScreenY", config.getBezelsPerScreenY()}}},
+>>>>>>> Handler for libtiff
         {"backgroundColor", config.getBackgroundColor().name()},
         {"contentDir", config.getContentDir()},
         {"sessionDir", config.getSessionsDir()},

@@ -58,11 +58,6 @@ extern "C" {
 }
 #endif
 
-namespace
-{
-const size_t MAX_LOG_LENGTH = 1024;
-}
-
 std::string logger_id = "";
 
 void put_log(const int level, const std::string& facility, const char* format,

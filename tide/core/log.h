@@ -52,6 +52,8 @@
 #define LOG_ERROR 4
 #define LOG_FATAL 5
 
+#define MAX_LOG_LENGTH 1024
+
 #define LOG_POWER "Power"
 #define LOG_PDF "PDF"
 #define LOG_REST "Rest"
