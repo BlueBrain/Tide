@@ -8,8 +8,8 @@ var fullscreen;
 var locked;
 var screenCountX;
 var screenCountY;
-var screenHeight;
-var screenWidth;
+var displayHeight;
+var displayWidth;
 var sessionFiles = [];
 var timer;
 var wallWidth;
@@ -18,6 +18,7 @@ var windowList = [];
 var zoomScale;
 var output = [];
 var filters = [];
+var timer;
 window.onresize = setScale;
 
 $(init);
@@ -597,8 +598,8 @@ function init() {
     bezelHeight = config["dimensions"]["bezelHeight"];
     bezelsPerScreenX = config["dimensions"]["bezelsPerScreenX"];
     bezelsPerScreenY = config["dimensions"]["bezelsPerScreenY"];
-    screenWidth = config["dimensions"]["screenWidth"];
-    screenHeight = config["dimensions"]["screenHeight"];
+    displayWidth = config["dimensions"]["displayWidth"];
+    displayHeight = config["dimensions"]["displayHeight"];
 
     setBezels();
     setScale();
@@ -622,10 +623,21 @@ function init() {
       }
     })
 
-    $('.screenbezel').hover(stickToBezel, function (event) {
-      if (isAnyWindowDragged())
-        $("#stickToOverlay").remove()
-    });
+    $('.screenbezel').hover(
+      function(event){
+        if (!isAnyWindowDragged())
+          return;
+        let bezel = this;
+        timer = setTimeout(function(){
+         return (stickToBezel)(event, bezel);
+         }, 250)
+      },function (event) {
+        if (!isAnyWindowDragged())
+          return;
+        clearTimeout(timer);
+        $("#stickToOverlay").remove();
+      }
+    );
 
     $("#buttonContainer").append("Tide ", config["version"], " rev ",
       "<a href=\"https://github.com/BlueBrain/Tide/commit/" + config["revision"] + "\">" + config["revision"],
@@ -892,6 +904,8 @@ function saveSession() {
 }
 
 function setBezels() {
+  if ( displayHeight === 0 || displayWidth === 0)
+    return;
   $('#wall').css("grid-template-columns", "repeat("+screenCountX +", 1fr)").
   css("grid-template-rows", "repeat("+screenCountY+", 1fr)").
   css("grid-column-gap", bezelWidth).css("grid-row-gap", bezelHeight);
@@ -908,7 +922,11 @@ function setBezels() {
     var totalDisplaysPerScreen = monitorsPerScreenX * monitorsPerScreenY;
     
     for (var j = 0; j < totalDisplaysPerScreen; j++) {
-      var bezels = [{name: 'N', type: 'horizontal'},{name: 'S', type: 'horizontal'},
+      let display = $("<div class='display'> </div>");
+      display.css("outline-width", bezelHeight/2);
+      div.append(display)
+ 
+     var bezels = [{name: 'N', type: 'horizontal'},{name: 'S', type: 'horizontal'},
         {name: 'E', type: 'vertical'},{name: 'W', type: 'vertical'}];
       for (var k = 0; k < bezels.length; k++) {
         let edge = $("<div class='screenbezel' id='" + bezels[k].name + "' > </div>");
@@ -917,19 +935,18 @@ function setBezels() {
           edge.css("width", "100%");
           edge.css("height", stickyBezelSize);
           if (bezels[k].name == 'S')
-            edge.css("top", screenHeight - stickyBezelSize);
+            edge.css("top", displayHeight - stickyBezelSize);
         }
         else {
           edge.css("width", stickyBezelSize);
           edge.css("height", "100%");
           if (bezels[k].name == 'E')
-            edge.css("left", screenWidth - stickyBezelSize);
+            edge.css("left", displayWidth - stickyBezelSize);
         }
-        div.append(edge);
+        display.append(edge);
       }
      }
   }
-  $(".screen").css("outline-width", bezelWidth).css("outline-height", bezelHeight).hide();
 }
 
 function setCurtain(type) {
@@ -1084,90 +1101,90 @@ function showBezels() {
     $("#showBezelsButton").removeClass("buttonPressed");
 }
 
-function stickToBezel(event) {
-  if (isAnyWindowDragged()) {
-    var screen = $(".ui-draggable-dragging")[0]
-    var tile = $("#" + screen.id)
-    var aspectRatio = parseFloat(tile.width()) / parseFloat(tile.height())
+function stickToBezel(event, bezel) {
+  var screen = $(".ui-draggable-dragging")[0]
+  var tile = $("#" + screen.id)
+  var aspectRatio = parseFloat(tile.width()) / parseFloat(tile.height())
 
-    var $div = $("<div id='stickToOverlay'></div>");
-    var parent = $(this).parent()
-    parent.append($div)
+  var $div = $("<div id='stickToOverlay'></div>");
+  var parent = $(bezel).parent()
+  parent.append($div)
 
-    // Size
-    if (aspectRatio === 1) {
-      var newWidth = screenHeight;
-      var newHeight = screenHeight;
-    }
-    else {
-      var newWidth = screenHeight * aspectRatio;
-      var newHeight = screenHeight;
-    }
+  // Size
+  if (aspectRatio === 1) {
+    var newWidth = displayHeight;
+    var newHeight = displayHeight;
+  }
+  else {
+    var newWidth = displayHeight * aspectRatio;
+    var newHeight = displayHeight;
+  }
+  // Size - special handling for "overflowing" windows
+  if (newWidth > displayWidth) {
+    newWidth = displayWidth;
+    newHeight = newWidth / aspectRatio;
+  }
+  if (newHeight > displayHeight) {
+    newHeight = displayHeight;
+    newWidth = newHeight / aspectRatio;
+  }
+  // Size - special handling for minHeight, minWidth exceeding the screen size
+  if (newHeight < parseFloat(tile.css("minHeight"))) {
+    newHeight = parseFloat(tile.css("minHeight"));
+    newWidth = newHeight * aspectRatio;
+  }
+  else if (newWidth < parseFloat(tile.css("minWidth"))) {
+    newWidth = parseFloat(tile.css("minWidth"));
+    newHeight = newWidth * aspectRatio;
+  }
 
-    // Size - special handling for "overflowing" windows
-    if (newWidth > screenWidth) {
-      newWidth = screenWidth;
-      newHeight = newWidth / aspectRatio;
-    }
-    if (newHeight > screenHeight) {
-      newHeight = screenHeight;
-      newWidth = newHeight / aspectRatio;
-    }
-    // Size - special handling for minHeight, minWidth exceeding the screen size
-    if (newHeight < parseFloat(tile.css("minHeight"))) {
-      newHeight = parseFloat(tile.css("minHeight"));
-      newWidth = newHeight * aspectRatio;
-    }
-    else if (newWidth < parseFloat(tile.css("minWidth"))) {
-      newWidth = parseFloat(tile.css("minWidth"));
-      newHeight = newWidth * aspectRatio;
-    }
+  // Anchors
+  var parentLeft = parent.offset().left - $("#wall").offset().left
+  var parentTop = parent.offset().top - $("#wall").offset().top
+  var left = parentLeft / zoomScale
+  
+  var right = (parentLeft / zoomScale + displayWidth) - newWidth;
+  var centerV = (parentTop / zoomScale + 0.5 * displayHeight) - 0.5 * newHeight;
+  var centerH = (parentLeft / zoomScale + 0.5 * displayWidth) - newWidth * 0.5;
+  var bottom = (parentTop / zoomScale + displayHeight) - newHeight;
+  var top = parentTop / zoomScale;
 
-    // Anchors
-    var left = parent.position().left / zoomScale;
-    var right = (parent.position().left / zoomScale + screenWidth) - newWidth;
-    var centerV = (parent.position().top / zoomScale + 0.5 * screenHeight) - 0.5 * newHeight;
-    var centerH = (parent.position().left / zoomScale + 0.5 * screenWidth) - newWidth * 0.5;
-    var bottom = (parent.position().top / zoomScale + screenHeight) - newHeight;
-    var top = parent.position().top / zoomScale;
+  $div.css("width", newWidth);
+  $div.css("height", newHeight);
+  $div.fadeIn('10')
 
-    $div.css("width", newWidth);
-    $div.css("height", newHeight);
-    $div.fadeIn('10')
-
-    // Placement based on the move direction and aspect ratio
-    var vertical = aspectRatio < 1;
-    var dir = this.id;
+  // Placement based on the move direction and aspect ratio
+  var vertical = aspectRatio < 1;
+  var dir = bezel.id;
 
     if (vertical) {
-      if (dir == 'E')
-        $div.css("left", right);
-      else if (dir == 'W')
-        $div.css("left", left);
-      else if (dir == 'N' || dir == 'S')
-        $div.css("left", centerH);
+    if (dir == 'E')
+      $div.css("left", right);
+    else if (dir == 'W')
+      $div.css("left", left);
+    else if (dir == 'N' || dir == 'S')
+      $div.css("left", centerH);
+  }
+  else {
+    if (dir == 'N') {
+      $div.css("left", centerH);
+      $div.css("top", top);
     }
-    else {
-      if (dir == 'N') {
-        $div.css("left", centerH);
-        $div.css("top", top);
-      }
-      else if (dir == 'S') {
-        $div.css("top", bottom);
-        $div.css("left", centerH);
-      }
-      else if (dir == 'E') {
-        $div.css("top", centerV);
-        $div.css("left", right);
-      }
-      else if (dir == 'W') {
-        $div.css("top", centerV);
-        $div.css("left", left);
-      }
-      // Align a window exceeding a screen to the left
-      if ((dir == 'N' || dir == 'S') && newWidth > screenWidth)
-        $div.css("left", left);
+    else if (dir == 'S') {
+      $div.css("top", bottom);
+      $div.css("left", centerH);
     }
+    else if (dir == 'E') {
+      $div.css("top", centerV);
+      $div.css("left", right);
+    }
+    else if (dir == 'W') {
+      $div.css("top", centerV);
+      $div.css("left", left);
+    }
+    // Align a window exceeding a screen to the left
+    if ((dir == 'N' || dir == 'S') && newWidth > displayWidth)
+      $div.css("left", left);
   }
 }
 
