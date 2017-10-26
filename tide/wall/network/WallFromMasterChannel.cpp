@@ -39,7 +39,7 @@
 
 #include "WallFromMasterChannel.h"
 
-#include "InactivityTimer.h"
+#include "CountdownStatus.h"
 #include "ScreenLock.h"
 #include "network/MPIChannel.h"
 #include "scene/ContentWindow.h"
@@ -86,8 +86,8 @@ void WallFromMasterChannel::receiveMessage()
     case MPIMessageType::MARKERS:
         emit received(receiveQObjectBroadcast<MarkersPtr>(mh.size));
         break;
-    case MPIMessageType::TIMER:
-        emit received(receiveQObjectBroadcast<InactivityTimerPtr>(mh.size));
+    case MPIMessageType::COUNTDOWN_STATUS:
+        emit received(receiveQObjectBroadcast<CountdownStatusPtr>(mh.size));
         break;
     case MPIMessageType::PIXELSTREAM:
 #if BOOST_VERSION >= 106000

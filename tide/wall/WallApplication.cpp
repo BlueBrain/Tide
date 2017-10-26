@@ -147,9 +147,9 @@ void WallApplication::_initMPIConnection(MPIChannelPtr worldChannel)
     connect(_fromMasterChannel.get(), SIGNAL(received(OptionsPtr)),
             _renderController.get(), SLOT(updateOptions(OptionsPtr)));
 
-    connect(_fromMasterChannel.get(), SIGNAL(received(InactivityTimerPtr)),
+    connect(_fromMasterChannel.get(), SIGNAL(received(CountdownStatusPtr)),
             _renderController.get(),
-            SLOT(updateInactivityTimer(InactivityTimerPtr)));
+            SLOT(updateCountdownStatus(CountdownStatusPtr)));
 
     connect(_fromMasterChannel.get(), SIGNAL(received(ScreenLockPtr)),
             _renderController.get(), SLOT(updateLock(ScreenLockPtr)));

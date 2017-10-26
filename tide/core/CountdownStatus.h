@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,46 +37,51 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "config.h"
-#include "types.h"
+#ifndef COUNTDOWN_STATUS_H
+#define COUNTDOWN_STATUS_H
 
-#include "network/MPIHeader.h"
-#include "scene/ContentWindow.h"
+#include "serialization/includes.h"
 
-#include <QMetaType>
+#include <QObject>
 
 /**
- * Register types for use in Qt signals/slots
+ * The status of the inactivity countdown, to be displayed on the wall.
  */
-struct MetaTypeRegistration
+class CountdownStatus : public QObject
 {
-    MetaTypeRegistration()
+    Q_OBJECT
+    Q_DISABLE_COPY(CountdownStatus)
+
+    Q_PROPERTY(bool active READ isActive)
+    Q_PROPERTY(uint duration READ getDuration)
+
+public:
+    /** Default constructor for use on wall processes. */
+    CountdownStatus() = default;
+
+    /** Constructor. */
+    CountdownStatus(bool active, uint duration);
+
+    /** Check if countdown timer is active. */
+    bool isActive() const;
+
+    /** Get the duration of the countdown for transition in qml. */
+    uint getDuration() const;
+
+private:
+    friend class boost::serialization::access;
+
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int)
     {
-        qRegisterMetaType<ContentWindowPtr>("ContentWindowPtr");
-        qRegisterMetaType<ContentWindowPtrs>("ContentWindowPtrs");
-        qRegisterMetaType<ContentWindow::ResizeHandle>(
-            "ContentWindow::ResizeHandle");
-        qRegisterMetaType<ContentWindow::WindowState>(
-            "ContentWindow::WindowState");
-        qRegisterMetaType<ContentSynchronizerSharedPtr>(
-            "ContentSynchronizerSharedPtr");
-        qRegisterMetaType<CountdownStatusPtr>("CountdownStatusPtr");
-        qRegisterMetaType<DisplayGroupPtr>("DisplayGroupPtr");
-        qRegisterMetaType<DisplayGroupConstPtr>("DisplayGroupConstPtr");
-        qRegisterMetaType<ImagePtr>("ImagePtr");
-        qRegisterMetaType<MarkersPtr>("MarkersPtr");
-        qRegisterMetaType<MPIMessageType>("MPIMessageType");
-        qRegisterMetaType<OptionsPtr>("OptionsPtr");
-        qRegisterMetaType<QUuid>("QUuid");
-        qRegisterMetaType<ScreenLockPtr>("ScreenLockPtr");
-        qRegisterMetaType<std::string>("std::string");
-        qRegisterMetaType<TilePtr>("TilePtr");
-        qRegisterMetaType<TileWeakPtr>("TileWeakPtr");
-        qRegisterMetaTypeStreamOperators<QUuid>("QUuid");
+        // clang-format off
+        ar & _active;
+        ar & _duration;
+        // clang-format on
     }
+
+    bool _active = false;
+    uint _duration = 0u;
 };
 
-// Static instance to register types during library static initialisation phase
-static MetaTypeRegistration staticInstance;
-
-Q_DECLARE_METATYPE(QUuid)
+#endif

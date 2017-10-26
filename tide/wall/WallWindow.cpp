@@ -39,9 +39,9 @@
 
 #include "WallWindow.h"
 
+#include "CountdownStatus.h"
 #include "DataProvider.h"
 #include "DisplayGroupRenderer.h"
-#include "InactivityTimer.h"
 #include "SwapSynchronizer.h"
 #include "TestPattern.h"
 #include "WallConfiguration.h"
@@ -212,9 +212,9 @@ void WallWindow::setScreenLock(ScreenLockPtr lock)
     _displayGroupRenderer->setScreenLock(lock);
 }
 
-void WallWindow::setInactivityTimer(InactivityTimerPtr timer)
+void WallWindow::setCountdownStatus(CountdownStatusPtr status)
 {
-    _displayGroupRenderer->setTimer(timer);
+    _displayGroupRenderer->setCountdownStatus(status);
 }
 
 void WallWindow::setMarkers(MarkersPtr markers)

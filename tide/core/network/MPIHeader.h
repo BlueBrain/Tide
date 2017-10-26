@@ -56,7 +56,7 @@ enum class MPIMessageType
     TIMESTAMP,
     START_PROCESS,
     IMAGE,
-    TIMER,
+    COUNTDOWN_STATUS,
     PIXELSTREAM_CLOSE,
     LOCK
 };

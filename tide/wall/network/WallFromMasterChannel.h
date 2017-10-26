@@ -88,11 +88,11 @@ signals:
      */
     void received(OptionsPtr options);
 
-    /** Emitted when a new InactivityTimer was received
+    /** Emitted when a new CountdownStatus was received
      * @see receiveMessage()
-     * @param timer The timer that was received
+     * @param status The status that was received
      */
-    void received(InactivityTimerPtr timer);
+    void received(CountdownStatusPtr status);
 
     /**
      * Emitted when new ScreenLock was recieved

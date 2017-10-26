@@ -39,8 +39,8 @@
 
 #include "DisplayGroupRenderer.h"
 
+#include "CountdownStatus.h"
 #include "DataProvider.h"
-#include "InactivityTimer.h"
 #include "ScreenLock.h"
 #include "VisibilityHelper.h"
 #include "WallWindow.h"
@@ -72,14 +72,15 @@ DisplayGroupRenderer::DisplayGroupRenderer(WallWindow& parentWindow,
     , _markers(Markers::create())
     , _options{Options::create()}
     , _lock(ScreenLock::create())
-    , _timer{new InactivityTimer}
+    , _countdownStatus{new CountdownStatus}
     , _screenRect{screenRect}
     , _view{view}
 {
-    _engine.rootContext()->setContextProperty("markers", _markers.get());
-    _engine.rootContext()->setContextProperty("options", _options.get());
-    _engine.rootContext()->setContextProperty("timer", _timer.get());
-    _engine.rootContext()->setContextProperty("lock", _lock.get());
+    auto context = _engine.rootContext();
+    context->setContextProperty("markers", _markers.get());
+    context->setContextProperty("options", _options.get());
+    context->setContextProperty("countdownStatus", _countdownStatus.get());
+    context->setContextProperty("lock", _lock.get());
     _createDisplayGroupQmlItem(*parentWindow.rootObject());
     _displayGroupItem->setPosition(-screenRect.topLeft());
     _setBackground(_options->getBackgroundContent());
@@ -166,10 +167,10 @@ void DisplayGroupRenderer::setScreenLock(ScreenLockPtr lock)
     _lock = lock;
 }
 
-void DisplayGroupRenderer::setTimer(InactivityTimerPtr timer)
+void DisplayGroupRenderer::setCountdownStatus(CountdownStatusPtr status)
 {
-    _engine.rootContext()->setContextProperty("timer", timer.get());
-    _timer = timer; // Retain the new InactivityTimer
+    _engine.rootContext()->setContextProperty("countdownStatus", status.get());
+    _countdownStatus = std::move(status);
 }
 
 void DisplayGroupRenderer::updateRenderedFrames()

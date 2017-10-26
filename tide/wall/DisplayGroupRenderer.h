@@ -82,8 +82,8 @@ public:
     /** Set the ScreenLock replacing the previous one. */
     void setScreenLock(ScreenLockPtr lock);
 
-    /** Set timer used to notify about inactivity timeout. */
-    void setTimer(InactivityTimerPtr timer);
+    /** Set statis used to notify about inactivity timeout. */
+    void setCountdownStatus(CountdownStatusPtr status);
 
     /** @return true if the renderer requires a redraw. */
     bool needRedraw() const;
@@ -99,7 +99,7 @@ private:
     MarkersPtr _markers;
     OptionsPtr _options;
     ScreenLockPtr _lock;
-    InactivityTimerPtr _timer;
+    CountdownStatusPtr _countdownStatus;
     const QRect _screenRect;
     const deflect::View _view;
 

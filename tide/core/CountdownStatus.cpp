@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,46 +37,20 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "config.h"
-#include "types.h"
+#include "CountdownStatus.h"
 
-#include "network/MPIHeader.h"
-#include "scene/ContentWindow.h"
-
-#include <QMetaType>
-
-/**
- * Register types for use in Qt signals/slots
- */
-struct MetaTypeRegistration
+CountdownStatus::CountdownStatus(const bool active, const uint duration)
+    : _active{active}
+    , _duration{duration}
 {
-    MetaTypeRegistration()
-    {
-        qRegisterMetaType<ContentWindowPtr>("ContentWindowPtr");
-        qRegisterMetaType<ContentWindowPtrs>("ContentWindowPtrs");
-        qRegisterMetaType<ContentWindow::ResizeHandle>(
-            "ContentWindow::ResizeHandle");
-        qRegisterMetaType<ContentWindow::WindowState>(
-            "ContentWindow::WindowState");
-        qRegisterMetaType<ContentSynchronizerSharedPtr>(
-            "ContentSynchronizerSharedPtr");
-        qRegisterMetaType<CountdownStatusPtr>("CountdownStatusPtr");
-        qRegisterMetaType<DisplayGroupPtr>("DisplayGroupPtr");
-        qRegisterMetaType<DisplayGroupConstPtr>("DisplayGroupConstPtr");
-        qRegisterMetaType<ImagePtr>("ImagePtr");
-        qRegisterMetaType<MarkersPtr>("MarkersPtr");
-        qRegisterMetaType<MPIMessageType>("MPIMessageType");
-        qRegisterMetaType<OptionsPtr>("OptionsPtr");
-        qRegisterMetaType<QUuid>("QUuid");
-        qRegisterMetaType<ScreenLockPtr>("ScreenLockPtr");
-        qRegisterMetaType<std::string>("std::string");
-        qRegisterMetaType<TilePtr>("TilePtr");
-        qRegisterMetaType<TileWeakPtr>("TileWeakPtr");
-        qRegisterMetaTypeStreamOperators<QUuid>("QUuid");
-    }
-};
+}
 
-// Static instance to register types during library static initialisation phase
-static MetaTypeRegistration staticInstance;
+bool CountdownStatus::isActive() const
+{
+    return _active;
+}
 
-Q_DECLARE_METATYPE(QUuid)
+uint CountdownStatus::getDuration() const
+{
+    return _duration;
+}

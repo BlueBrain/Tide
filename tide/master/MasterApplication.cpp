@@ -386,10 +386,10 @@ void MasterApplication::_setupMPIConnections()
             },
             Qt::DirectConnection);
 
-    connect(_inactivityTimer.get(), &InactivityTimer::updated,
+    connect(_inactivityTimer.get(), &InactivityTimer::countdownUpdated,
             _masterToWallChannel.get(),
-            [this](InactivityTimerPtr timer) {
-                _masterToWallChannel->sendAsync(timer);
+            [this](CountdownStatusPtr status) {
+                _masterToWallChannel->sendAsync(status);
             },
             Qt::DirectConnection);
 
@@ -567,7 +567,7 @@ void MasterApplication::_initRestInterface()
                 _logger.get(), &LoggingUtility::logScreenStateChanged);
 
         connect(_planarController.get(), &PlanarController::powerStateChanged,
-                [this](ScreenState state) {
+                [this](const ScreenState state) {
                     if (state == ScreenState::ON)
                         _inactivityTimer->restart();
                     else

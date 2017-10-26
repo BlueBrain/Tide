@@ -113,7 +113,7 @@ private:
     ScreenLockPtr _lock;
     MarkersPtr _markers;
     OptionsPtr _options;
-    InactivityTimerPtr _inactivityTimer;
+    std::unique_ptr<InactivityTimer> _inactivityTimer;
 
     std::unique_ptr<MasterWindow> _masterWindow;
     std::unique_ptr<deflect::qt::OffscreenQuickView> _offscreenQuickView;

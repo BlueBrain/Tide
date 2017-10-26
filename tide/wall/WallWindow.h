@@ -91,8 +91,8 @@ public:
     /** Set new screen lock. */
     void setScreenLock(ScreenLockPtr lock);
 
-    /** Set new inactivity timer. */
-    void setInactivityTimer(InactivityTimerPtr timer);
+    /** Set new countdown status. */
+    void setCountdownStatus(CountdownStatusPtr status);
 
     /** Set new touchpoint's markers. */
     void setMarkers(MarkersPtr markers);

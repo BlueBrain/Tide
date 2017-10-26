@@ -1,6 +1,7 @@
 /*********************************************************************/
 /* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,75 +38,46 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "InactivityTimer.h"
+#ifndef INACTIVITYTIMER_H
+#define INACTIVITYTIMER_H
 
-#include "log.h"
+#include "types.h"
 
-namespace
+#include <QObject>
+#include <QTimer>
+
+/**
+ * Detect user inactivity to power off screens after a configurable timeout.
+ */
+class InactivityTimer : public QObject
 {
-const int COUNTDOWNTIMER = 15000; // ms
-}
+    Q_OBJECT
+    Q_DISABLE_COPY(InactivityTimer)
 
-InactivityTimer::InactivityTimer()
-{
-}
+public:
+    /**
+     * Create a timer which can be used to turn off the displays.
+     * @param timeoutInMinutes duration of the timeout in minutes.
+     */
+    explicit InactivityTimer(uint timeoutInMinutes);
 
-InactivityTimer::InactivityTimer(const int timeout)
-    : _timeout(timeout * 60000) // from ms to minute
-    , _countDownTimer(new QTimer())
-    , _inactivityTimer(new QTimer())
-{
-    _inactivityTimer->setInterval(_timeout);
-    _inactivityTimer->setSingleShot(true);
-    _inactivityTimer->start();
-    _countDownTimer->setSingleShot(true);
-    _countDownTimer->setInterval(COUNTDOWNTIMER);
+    /** Stop the timer. */
+    void stop();
 
-    connect(_inactivityTimer.get(), &QTimer::timeout, [this]() {
-        if (!_countDownTimer->isActive())
-        {
-            _countdownActive = true;
-            _countDownTimer->start();
-            emit updated(shared_from_this());
-        }
-    });
-    connect(_countDownTimer.get(), &QTimer::timeout, [this]() {
-        emit poweroff();
-        _countdownActive = false;
-        emit updated(shared_from_this());
-    });
-}
+    /** Restart the inactivity timer and interrupt the countdown if active. */
+    void restart();
 
-int InactivityTimer::getCountdownTimeout()
-{
-    return COUNTDOWNTIMER;
-}
+signals:
+    /** Emitted when the state of the countdown is modified. */
+    void countdownUpdated(CountdownStatusPtr);
 
-bool InactivityTimer::isCountdownActive()
-{
-    return _countdownActive;
-}
+    /** Emitted when the countdown timer times-out. */
+    void poweroff();
 
-void InactivityTimer::stop()
-{
-    _inactivityTimer->stop();
-    if (_countdownActive)
-    {
-        _countdownActive = false;
-        _countDownTimer->stop();
-        emit updated(shared_from_this());
-    }
-}
+private:
+    QTimer _countdownTimer;
+    QTimer _inactivityTimer;
 
-void InactivityTimer::restart()
-{
-    _inactivityTimer->start();
-    if (_countdownActive)
-    {
-        print_log(LOG_INFO, LOG_POWER,
-                  "Prevented powering off the screens during countdown");
-        _countDownTimer->stop();
-        _countdownActive = false;
-        emit updated(shared_from_this());
-    }
-}
+    void _sendCountdownStatus();
+};
+#endif

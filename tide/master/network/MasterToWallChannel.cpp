@@ -39,7 +39,7 @@
 
 #include "MasterToWallChannel.h"
 
-#include "InactivityTimer.h"
+#include "CountdownStatus.h"
 #include "ScreenLock.h"
 #include "network/MPIChannel.h"
 #include "scene/ContentWindow.h"
@@ -82,9 +82,9 @@ void MasterToWallChannel::sendAsync(OptionsPtr options)
     broadcastAsync(options, MPIMessageType::OPTIONS);
 }
 
-void MasterToWallChannel::sendAsync(InactivityTimerPtr timer)
+void MasterToWallChannel::sendAsync(CountdownStatusPtr status)
 {
-    broadcastAsync(timer, MPIMessageType::TIMER);
+    broadcastAsync(status, MPIMessageType::COUNTDOWN_STATUS);
 }
 
 void MasterToWallChannel::sendAsync(ScreenLockPtr lock)

@@ -12,7 +12,7 @@ Item {
         states: [
             State {
                 name: "hidden"
-                when: !timer.isCountdownActive()
+                when: !countdownStatus.active
                 PropertyChanges {
                     target: countdown
                     opacity: 0.0
@@ -20,7 +20,7 @@ Item {
             },
             State {
                 name: "visible"
-                when: timer.isCountdownActive()
+                when: countdownStatus.active
                 PropertyChanges {
                     target: countdown
                     opacity: 0.9
@@ -35,7 +35,7 @@ Item {
                 NumberAnimation {
                     properties: "opacity"
                     easing.type: Easing.OutBack
-                    duration: timer.getCountdownTimeout()
+                    duration: countdownStatus.duration
                 }
             },
             Transition {
@@ -51,7 +51,7 @@ Item {
 
         Text {
             text: "Touch to prevent sleep!"
-            visible: timer.isCountdownActive() ? 1 : 0
+            visible: countdownStatus.active
             font.pointSize: displaygroup.height * Style.countdownTextScale
             anchors.verticalCenter: parent.verticalCenter
             anchors.horizontalCenter: parent.horizontalCenter

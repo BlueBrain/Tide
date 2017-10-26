@@ -85,10 +85,10 @@ public slots:
     void sendAsync(OptionsPtr options);
 
     /**
-     * Send the given InactivityTimer to the wall processes.
-     * @param timer The InactivityTimer to send
+     * Send the given CountdownStatus to the wall processes.
+     * @param status The countdownStatus to send
      */
-    void sendAsync(InactivityTimerPtr timer);
+    void sendAsync(CountdownStatusPtr status);
 
     /**
      * Send the Lock to the wall processes.
