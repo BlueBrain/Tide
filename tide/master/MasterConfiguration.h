@@ -119,7 +119,7 @@ public:
     QString getPlanarSerialPort() const;
 
     /**
-     * Get the timeout after which the Planar screns should be turned off.
+     * Get the timeout in minutes after which the screns should be turned off.
      * @return default value if unspecified.
      */
     int getPlanarTimeout() const;

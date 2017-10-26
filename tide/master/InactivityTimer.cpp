@@ -1,6 +1,7 @@
 /*********************************************************************/
 /* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,70 +38,64 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef INACTIVITYTIMER_H
-#define INACTIVITYTIMER_H
+#include "InactivityTimer.h"
 
-#include "serialization/includes.h"
-#include "types.h"
+#include "CountdownStatus.h"
+#include "log.h"
 
-#include <boost/enable_shared_from_this.hpp>
-
-#include <QObject>
-#include <QTimer>
-
-/**
- * Inform user about inactivity timeout.
- */
-class InactivityTimer : public QObject,
-                        public boost::enable_shared_from_this<InactivityTimer>
+namespace
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(InactivityTimer)
+const auto COUNTDOWNTIMER_MS = 15000;
+const auto MS_PER_MIN = 60000;
+}
 
-public:
-    /**
-     * Construct a timer which can be used to turn off the displays.
-     * @param timeout value of the timer in minutes.
-     */
-    InactivityTimer(int timeout);
+InactivityTimer::InactivityTimer(const uint timeoutInMinutes)
+{
+    _inactivityTimer.setInterval(timeoutInMinutes * MS_PER_MIN);
+    _inactivityTimer.setSingleShot(true);
+    _inactivityTimer.start();
 
-    /** Default constructor, creates a read-only timer used on Wall processes */
-    InactivityTimer();
+    _countdownTimer.setInterval(COUNTDOWNTIMER_MS);
+    _countdownTimer.setSingleShot(true);
 
-    /** Get the duration of countdown needed for transition in qml */
-    Q_INVOKABLE int getCountdownTimeout();
+    connect(&_inactivityTimer, &QTimer::timeout, [this]() {
+        if (!_countdownTimer.isActive())
+        {
+            _countdownTimer.start();
+            _sendCountdownStatus();
+        }
+    });
+    connect(&_countdownTimer, &QTimer::timeout, [this]() {
+        emit poweroff();
+        _sendCountdownStatus();
+    });
+}
 
-    /** Check if countdown timer is active */
-    Q_INVOKABLE bool isCountdownActive();
-
-    /** Stop the timer */
-    void stop();
-
-    /** Restart the inactivity timer and interrupt the countdown if active */
-    void restart();
-
-signals:
-    /** Emitted when the countdown timer times-out */
-    void poweroff();
-
-    /** Emitted when the state of timer is modified */
-    void updated(InactivityTimerPtr);
-
-private:
-    friend class boost::serialization::access;
-
-    template <class Archive>
-    void serialize(Archive& ar, const unsigned int)
+void InactivityTimer::stop()
+{
+    _inactivityTimer.stop();
+    if (_countdownTimer.isActive())
     {
-        // clang-format off
-        ar & _countdownActive;
-        // clang-format on
+        _countdownTimer.stop();
+        _sendCountdownStatus();
     }
+}
 
-    bool _countdownActive = false;
-    int _timeout;
+void InactivityTimer::restart()
+{
+    _inactivityTimer.start();
+    if (_countdownTimer.isActive())
+    {
+        print_log(LOG_INFO, LOG_POWER,
+                  "Prevented powering off the screens during countdown");
+        _countdownTimer.stop();
+        _sendCountdownStatus();
+    }
+}
 
-    std::unique_ptr<QTimer> _countDownTimer;
-    std::unique_ptr<QTimer> _inactivityTimer;
-};
-#endif
+void InactivityTimer::_sendCountdownStatus()
+{
+    emit countdownUpdated(
+        boost::make_shared<CountdownStatus>(_countdownTimer.isActive(),
+                                            (uint)_countdownTimer.interval()));
+}

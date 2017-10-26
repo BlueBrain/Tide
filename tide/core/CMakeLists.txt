@@ -116,6 +116,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   CommandLineParameters.h
   CommandLineParser.h
   Configuration.h
+  CountdownStatus.h
   data/Image.h
   data/QtImage.h
   data/SVG.h
@@ -123,7 +124,6 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   data/SVGQtGpuBackend.h
   data/YUVImage.h
   geometry.h
-  InactivityTimer.h
   log.h
   network/LocalBarrier.h
   network/MPIChannel.h
@@ -177,12 +177,12 @@ list(APPEND TIDECORE_SOURCES
   CommandLineParameters.cpp
   CommandLineParser.cpp
   Configuration.cpp
+  CountdownStatus.cpp
   data/QtImage.cpp
   data/SVG.cpp
   data/SVGQtGpuBackend.cpp
   data/YUVImage.cpp
   geometry.cpp
-  InactivityTimer.cpp
   log.cpp
   MetaTypeRegistration.cpp
   network/LocalBarrier.cpp

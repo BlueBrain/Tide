@@ -39,9 +39,9 @@
 
 #include "RenderController.h"
 
+#include "CountdownStatus.h"
 #include "DataProvider.h"
 #include "DisplayGroupRenderer.h"
-#include "InactivityTimer.h"
 #include "ScreenLock.h"
 #include "WallWindow.h"
 #include "network/WallToWallChannel.h"
@@ -55,8 +55,8 @@ RenderController::RenderController(std::vector<WallWindow*> windows,
     : _windows{std::move(windows)}
     , _provider{provider}
     , _wallChannel{wallChannel}
+    , _syncCountdownStatus{boost::make_shared<CountdownStatus>()}
     , _syncDisplayGroup{boost::make_shared<DisplayGroup>(QSize())}
-    , _syncInactivityTimer{boost::make_shared<InactivityTimer>()}
     , _syncLock(ScreenLock::create())
     , _syncOptions{Options::create()}
 {
@@ -69,9 +69,9 @@ RenderController::RenderController(std::vector<WallWindow*> windows,
         for (auto window : _windows)
             window->setScreenLock(lock);
     });
-    _syncInactivityTimer.setCallback([this](InactivityTimerPtr timer) {
+    _syncCountdownStatus.setCallback([this](CountdownStatusPtr status) {
         for (auto window : _windows)
-            window->setInactivityTimer(timer);
+            window->setCountdownStatus(status);
     });
     _syncMarkers.setCallback([this](MarkersPtr markers) {
         for (auto window : _windows)
@@ -181,15 +181,15 @@ bool RenderController::_syncAndRenderWindows(const bool grab)
     return _wallChannel.allReady(!_needRedraw);
 }
 
-void RenderController::updateDisplayGroup(DisplayGroupPtr displayGroup)
+void RenderController::updateCountdownStatus(CountdownStatusPtr status)
 {
-    _syncDisplayGroup.update(displayGroup);
+    _syncCountdownStatus.update(status);
     requestRender();
 }
 
-void RenderController::updateInactivityTimer(InactivityTimerPtr timer)
+void RenderController::updateDisplayGroup(DisplayGroupPtr displayGroup)
 {
-    _syncInactivityTimer.update(timer);
+    _syncDisplayGroup.update(displayGroup);
     requestRender();
 }
 
@@ -225,10 +225,10 @@ void RenderController::updateQuit()
 
 void RenderController::_synchronizeObjects(const SyncFunction& versionCheckFunc)
 {
-    _syncScreenshot.sync(versionCheckFunc);
+    _syncCountdownStatus.sync(versionCheckFunc);
     _syncDisplayGroup.sync(versionCheckFunc);
+    _syncLock.sync(versionCheckFunc);
     _syncMarkers.sync(versionCheckFunc);
     _syncOptions.sync(versionCheckFunc);
-    _syncInactivityTimer.sync(versionCheckFunc);
-    _syncLock.sync(versionCheckFunc);
+    _syncScreenshot.sync(versionCheckFunc);
 }

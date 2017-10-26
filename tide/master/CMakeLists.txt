@@ -25,6 +25,7 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   control/PixelStreamController.h
   control/ZoomController.h
   FileInfoHelper.h
+  InactivityTimer.h
   localstreamer/HtmlSelectReplacer.h
   localstreamer/CommandLineOptions.h
   localstreamer/PixelStreamerLauncher.h
@@ -71,6 +72,7 @@ list(APPEND TIDEMASTER_SOURCES
   control/LayoutPolicy.cpp
   control/PixelStreamController.cpp
   control/ZoomController.cpp
+  InactivityTimer.cpp
   localstreamer/HtmlSelectReplacer.cpp
   localstreamer/CommandLineOptions.cpp
   localstreamer/PixelStreamerLauncher.cpp
