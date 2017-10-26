@@ -96,7 +96,7 @@ void Tile::updateBackTexture(ImagePtr image)
 {
     if (!image)
     {
-        put_flog(LOG_WARN, "Invalid image");
+        print_log(LOG_WARN, LOG_GENERAL, "Invalid image");
         return;
     }
 

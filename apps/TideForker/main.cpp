@@ -70,6 +70,6 @@ int main(int argc, char* argv[])
 
         ProcessForker(localChannel).run();
     }
-    put_flog(LOG_DEBUG, "done.");
+    print_log(LOG_DEBUG, LOG_GENERAL, "done.");
     return EXIT_SUCCESS;
 }

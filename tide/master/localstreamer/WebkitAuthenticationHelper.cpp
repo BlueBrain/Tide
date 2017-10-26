@@ -159,7 +159,7 @@ QString WebkitAuthenticationHelper::_readQrcFile(const QString& filename)
         QTextStream stream(&file);
         return stream.readAll();
     }
-    put_flog(LOG_ERROR, "Qt Resource not found: '%s'",
-             filename.toLocal8Bit().constData());
+    print_log(LOG_ERROR, LOG_GENERAL, "Qt Resource not found: '%s'",
+              filename.toLocal8Bit().constData());
     return QString();
 }

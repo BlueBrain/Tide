@@ -40,26 +40,27 @@
 #ifndef COMMANDLINEPARSER_H
 #define COMMANDLINEPARSER_H
 
+#include "log.h"
 #include <boost/program_options.hpp>
 
 /**
  * Standard macro to check for --help and syntax error of command line args.
  */
-#define COMMAND_LINE_PARSER_CHECK(ParserClass, AppName)       \
-    ParserClass commandLine;                                  \
-    try                                                       \
-    {                                                         \
-        commandLine.parse(argc, argv);                        \
-    }                                                         \
-    catch (const boost::program_options::error& e)            \
-    {                                                         \
-        put_flog(LOG_FATAL, "failed to start: %s", e.what()); \
-        return EXIT_FAILURE;                                  \
-    }                                                         \
-    if (commandLine.getHelp())                                \
-    {                                                         \
-        commandLine.showSyntax(AppName);                      \
-        return EXIT_SUCCESS;                                  \
+#define COMMAND_LINE_PARSER_CHECK(ParserClass, AppName)                     \
+    ParserClass commandLine;                                                \
+    try                                                                     \
+    {                                                                       \
+        commandLine.parse(argc, argv);                                      \
+    }                                                                       \
+    catch (const boost::program_options::error& e)                          \
+    {                                                                       \
+        print_log(LOG_FATAL, LOG_GENERAL, "failed to start: %s", e.what()); \
+        return EXIT_FAILURE;                                                \
+    }                                                                       \
+    if (commandLine.getHelp())                                              \
+    {                                                                       \
+        commandLine.showSyntax(AppName);                                    \
+        return EXIT_SUCCESS;                                                \
     }
 
 /**

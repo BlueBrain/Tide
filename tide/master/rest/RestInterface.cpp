@@ -151,7 +151,7 @@ RestInterface::RestInterface(const uint16_t port, OptionsPtr options,
                              const MasterConfiguration& config)
     : _impl(new Impl(port, options, group, config, false))
 {
-    // Note: using same formatting as TUIO instead of put_flog() here
+    // Note: using same formatting as TUIO instead of print_log() here
     std::cout << "listening to REST messages on TCP port "
               << _impl->server.getPort() << std::endl;
 

@@ -39,7 +39,7 @@
 
 #include "Webbrowser.h"
 
-#include "tide/core/log.h"
+#include "log.h"
 #include "tide/master/localstreamer/CommandLineOptions.h"
 
 int main(int argc, char** argv)
@@ -62,7 +62,8 @@ int main(int argc, char** argv)
     }
     catch (const std::runtime_error& exception)
     {
-        put_flog(LOG_ERROR, "failed to start: %s", exception.what());
+        print_log(LOG_ERROR, LOG_GENERAL, "failed to start: %s",
+                  exception.what());
         return EXIT_FAILURE;
     }
     return webbrowser->exec();

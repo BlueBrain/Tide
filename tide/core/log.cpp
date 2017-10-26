@@ -65,7 +65,8 @@ const size_t MAX_LOG_LENGTH = 1024;
 
 std::string logger_id = "";
 
-void put_facility_log(int level, std::string fac, const char* format, ...)
+void put_log(const int level, const std::string& facility, const char* format,
+             ...)
 {
     char log_string[MAX_LOG_LENGTH];
     va_list ap;
@@ -74,38 +75,14 @@ void put_facility_log(int level, std::string fac, const char* format, ...)
     va_end(ap);
 
     std::stringstream message;
-    message << "{facility: " << fac.c_str() << "} " << log_string << level;
-
-    print_log(level, message.str().c_str());
-}
-
-void put_log(const int level, const char* format, ...)
-{
-    if (level < LOG_THRESHOLD)
-        return;
-
-    char log_string[MAX_LOG_LENGTH];
-
-    va_list ap;
-    va_start(ap, format);
-    vsnprintf(log_string, MAX_LOG_LENGTH, format, ap);
-    va_end(ap);
-
-    print_log(level, log_string);
-}
-
-void print_log(int level, const char log_string[MAX_LOG_LENGTH])
-{
-    std::stringstream message;
-    message << "{level: " << level << "}";
     if (!logger_id.empty())
     {
         const std::string time = QDateTime::currentDateTime()
                                      .toString("hh:mm:ss dd/MM/yy")
                                      .toStdString();
-        message << "{" << logger_id << ": " << time << "} ";
+        message << "{" << logger_id << ": " << time << "}";
     }
-    message << log_string;
+    message << "{" << facility << ";" << level << "} " << log_string;
 
     if (level < LOG_ERROR)
         std::cerr << message.str() << std::endl;
@@ -129,33 +106,33 @@ void avMessageLoger(void*, const int level, const char* format, va_list varg)
     switch (level)
     {
     case AV_LOG_PANIC:
-        put_facility_log(LOG_FATAL, LOG_AV, "%s", string.c_str());
+        print_log(LOG_FATAL, LOG_AV, "%s", string.c_str());
         break;
     case AV_LOG_FATAL:
-        put_facility_log(LOG_FATAL, LOG_AV, "%s", string.c_str());
+        print_log(LOG_FATAL, LOG_AV, "%s", string.c_str());
         break;
     case AV_LOG_ERROR:
-        put_facility_log(LOG_ERROR, LOG_AV, "%s", string.c_str());
+        print_log(LOG_ERROR, LOG_AV, "%s", string.c_str());
         break;
     case AV_LOG_WARNING:
-        put_facility_log(LOG_WARN, LOG_AV, "%s", string.c_str());
+        print_log(LOG_WARN, LOG_AV, "%s", string.c_str());
         break;
     case AV_LOG_INFO:
-        put_facility_log(LOG_INFO, LOG_AV, "%s", string.c_str());
+        print_log(LOG_INFO, LOG_AV, "%s", string.c_str());
         break;
     case AV_LOG_VERBOSE:
-        put_facility_log(LOG_DEBUG, LOG_AV, "%s", string.c_str());
+        print_log(LOG_DEBUG, LOG_AV, "%s", string.c_str());
         break;
     case AV_LOG_DEBUG:
-        put_facility_log(LOG_VERBOSE, LOG_AV, "%s", string.c_str());
+        print_log(LOG_VERBOSE, LOG_AV, "%s", string.c_str());
         break;
 #ifdef AV_LOG_TRACE
     case AV_LOG_TRACE:
-        put_facility_log(LOG_VERBOSE, LOG_AV, "%s", string.c_str());
+        print_log(LOG_VERBOSE, LOG_AV, "%s", string.c_str());
         break;
 #endif
     default:
-        put_log(LOG_WARN, "avUnknown: %s", string.c_str());
+        print_log(LOG_WARN, LOG_AV, "avUnknown: %s", string.c_str());
         break;
     }
 }
@@ -176,30 +153,25 @@ void qtMessageLogger(const QtMsgType type, const QMessageLogContext& context,
     switch (type)
     {
     case QtDebugMsg:
-        put_facility_log(LOG_DEBUG, LOG_QT, "%s%s", msg.constData(),
-                         ctx.constData());
+        print_log(LOG_DEBUG, LOG_QT, "%s%s", msg.constData(), ctx.constData());
         break;
 #if QT_VERSION >= 0x050500
     case QtInfoMsg:
-        put_facility_log(LOG_INFO, LOG_QT, "%s%s", msg.constData(),
-                         ctx.constData());
+        print_log(LOG_INFO, LOG_QT, "%s%s", msg.constData(), ctx.constData());
         break;
 #endif
     case QtWarningMsg:
-        put_facility_log(LOG_WARN, LOG_QT, "%s%s", msg.constData(),
-                         ctx.constData());
+        print_log(LOG_WARN, LOG_QT, "%s%s", msg.constData(), ctx.constData());
         break;
     case QtCriticalMsg:
-        put_facility_log(LOG_ERROR, LOG_QT, "%s%s", msg.constData(),
-                         ctx.constData());
+        print_log(LOG_ERROR, LOG_QT, "%s%s", msg.constData(), ctx.constData());
         break;
     case QtFatalMsg:
-        put_facility_log(LOG_FATAL, LOG_QT, "%s%s", msg.constData(),
-                         ctx.constData());
+        print_log(LOG_FATAL, LOG_QT, "%s%s", msg.constData(), ctx.constData());
         abort();
     default:
-        put_facility_log(LOG_WARN, LOG_QT, "qMsgTypeUndef: %s%s",
-                         msg.constData(), ctx.constData());
+        print_log(LOG_WARN, LOG_QT, "qMsgTypeUndef: %s%s", msg.constData(),
+                  ctx.constData());
         break;
     }
 }

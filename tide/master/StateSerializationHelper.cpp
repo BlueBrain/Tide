@@ -86,9 +86,9 @@ void _relocateTempContent(ContentWindow& window, const QString& dstDir)
     }
     if (!QDir().rename(uri, newUri))
     {
-        put_flog(LOG_WARN, "Failed to move %s to : %s",
-                 uri.toLocal8Bit().constData(),
-                 newUri.toLocal8Bit().constData());
+        print_log(LOG_WARN, LOG_CONTENT, "Failed to move %s to : %s",
+                  uri.toLocal8Bit().constData(),
+                  newUri.toLocal8Bit().constData());
         return;
     }
     window.setContent(ContentFactory::getContent(newUri));
@@ -98,13 +98,15 @@ void _relocateTempContent(DisplayGroup& group, const QString& dstDir)
 {
     if (QDir{dstDir}.exists())
     {
-        put_flog(LOG_WARN, "Moving content to existing session folder: '%s'",
-                 dstDir.toLocal8Bit().constData());
+        print_log(LOG_WARN, LOG_CONTENT,
+                  "Moving content to existing session folder: '%s'",
+                  dstDir.toLocal8Bit().constData());
     }
     else if (!QDir().mkpath(dstDir))
     {
-        put_flog(LOG_WARN, "Cannot create a new session folder: '%s'",
-                 dstDir.toLocal8Bit().constData());
+        print_log(LOG_WARN, LOG_CONTENT,
+                  "Cannot create a new session folder: '%s'",
+                  dstDir.toLocal8Bit().constData());
         return;
     }
 
@@ -132,8 +134,8 @@ bool _validateContent(const ContentWindowPtr& window)
     ContentPtr content = window->getContent();
     if (!content)
     {
-        put_flog(LOG_WARN, "Window '%s' does not have a Content!",
-                 window->getID().toString().toLocal8Bit().constData());
+        print_log(LOG_WARN, LOG_CONTENT, "Window '%s' does not have a Content!",
+                  window->getID().toString().toLocal8Bit().constData());
         return false;
     }
 
@@ -148,21 +150,21 @@ bool _validateContent(const ContentWindowPtr& window)
         const auto type = ContentFactory::getContentTypeForFile(uri);
         if (type == CONTENT_TYPE_TEXTURE)
         {
-            put_flog(LOG_DEBUG,
-                     "Try restoring legacy DynamicTexture as "
-                     "a regular texture: '%s'",
-                     content->getURI().toLocal8Bit().constData());
+            print_log(LOG_DEBUG, LOG_CONTENT,
+                      "Try restoring legacy DynamicTexture as "
+                      "a regular texture: '%s'",
+                      content->getURI().toLocal8Bit().constData());
 
             content = ContentFactory::getContent(uri);
             window->setContent(content);
         }
         else
         {
-            put_flog(LOG_INFO,
-                     "DynamicTexture are no longer supported. Please"
-                     "convert the source image to a tiff pyramid: "
-                     "'%s'",
-                     content->getURI().toLocal8Bit().constData());
+            print_log(LOG_INFO, LOG_CONTENT,
+                      "DynamicTexture are no longer supported. Please"
+                      "convert the source image to a tiff pyramid: "
+                      "'%s'",
+                      content->getURI().toLocal8Bit().constData());
         }
     }
 
@@ -170,13 +172,13 @@ bool _validateContent(const ContentWindowPtr& window)
     // since the state was saved.
     if (content->readMetadata())
     {
-        put_flog(LOG_DEBUG, "Restoring content: '%s'",
-                 content->getURI().toLocal8Bit().constData());
+        print_log(LOG_DEBUG, LOG_CONTENT, "Restoring content: '%s'",
+                  content->getURI().toLocal8Bit().constData());
     }
     else
     {
-        put_flog(LOG_WARN, "'%s' could not be restored!",
-                 content->getURI().toLocal8Bit().constData());
+        print_log(LOG_WARN, LOG_CONTENT, "'%s' could not be restored!",
+                  content->getURI().toLocal8Bit().constData());
         const QSize& size = content->getDimensions();
         window->setContent(ContentFactory::getErrorContent(size));
     }
@@ -237,8 +239,8 @@ DisplayGroupConstPtr _load(const QString& filename,
 QFuture<DisplayGroupConstPtr> StateSerializationHelper::load(
     const QString& filename) const
 {
-    put_flog(LOG_INFO, "Restoring session: '%s'",
-             filename.toStdString().c_str());
+    print_log(LOG_INFO, LOG_CONTENT, "Restoring session: '%s'",
+              filename.toStdString().c_str());
 
     DisplayGroupConstPtr referenceGroup = _displayGroup;
     return QtConcurrent::run([referenceGroup, filename]() {
@@ -278,11 +280,12 @@ QFuture<bool> StateSerializationHelper::save(QString filename,
     if (!filename.endsWith(SESSION_FILE_EXTENSION))
     {
         filename.append(SESSION_FILE_EXTENSION);
-        put_flog(LOG_VERBOSE, "appended %s filename extension",
-                 SESSION_FILE_EXTENSION.toLocal8Bit().constData());
+        print_log(LOG_VERBOSE, LOG_CONTENT, "appended %s filename extension",
+                  SESSION_FILE_EXTENSION.toLocal8Bit().constData());
     }
 
-    put_flog(LOG_INFO, "Saving session: '%s'", filename.toStdString().c_str());
+    print_log(LOG_INFO, LOG_CONTENT, "Saving session: '%s'",
+              filename.toStdString().c_str());
 
     if (!uploadDir.isEmpty())
     {

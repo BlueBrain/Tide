@@ -115,7 +115,7 @@ ImagePtr PixelStreamUpdater::getTileImage(const uint tileIndex,
 {
     if (!_frameLeftOrMono)
     {
-        put_facility_flog(LOG_ERROR, LOG_STREAM, "No frames yet");
+        print_log(LOG_ERROR, LOG_STREAM, "No frames yet");
         return ImagePtr();
     }
 
@@ -135,8 +135,8 @@ ImagePtr PixelStreamUpdater::getTileImage(const uint tileIndex,
     }
     catch (const std::runtime_error& e)
     {
-        put_facility_flog(LOG_ERROR, LOG_STREAM,
-                          "Error decoding stream tile: '%s'", e.what());
+        print_log(LOG_ERROR, LOG_STREAM, "Error decoding stream tile: '%s'",
+                  e.what());
         return ImagePtr();
     }
 }

@@ -105,13 +105,15 @@ void WallApplication::_initWallWindows()
     }
     catch (const std::runtime_error& e)
     {
-        put_flog(LOG_FATAL, "Error creating WallWindow: '%s'", e.what());
+        print_log(LOG_FATAL, LOG_GENERAL, "Error creating WallWindow: '%s'",
+                  e.what());
         throw std::runtime_error("WallApplication: initialization failed.");
     }
 
     const auto swapSync = _config->getSwapSync();
     if (swapSync == SwapSync::hardware)
-        put_log(LOG_INFO, "Launching with hardware swap synchronization...");
+        print_log(LOG_INFO, LOG_GENERAL,
+                  "Launching with hardware swap synchronization...");
 
     _renderController.reset(new RenderController(std::move(windows), *_provider,
                                                  *_wallChannel, swapSync));

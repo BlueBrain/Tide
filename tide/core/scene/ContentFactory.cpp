@@ -113,10 +113,10 @@ CONTENT_TYPE ContentFactory::getContentTypeForFile(const QString& uri)
             size.height() <= maxTextureSize.height())
             return CONTENT_TYPE_TEXTURE;
 
-        put_flog(LOG_WARN,
-                 "Image too big to open. Try converting it to an "
-                 "image pyramid: '%s'",
-                 uri.toLocal8Bit().constData());
+        print_log(LOG_WARN, LOG_CONTENT,
+                  "Image too big to open. Try converting it to an "
+                  "image pyramid: '%s'",
+                  uri.toLocal8Bit().constData());
         return CONTENT_TYPE_ANY;
     }
 

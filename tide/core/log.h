@@ -61,6 +61,7 @@
 #define LOG_TIFF "TIFF"
 #define LOG_MPI "MPI"
 #define LOG_CONTENT "CONTENT"
+#define LOG_GENERAL "GENERAL"
 
 #ifdef NDEBUG
 #define LOG_THRESHOLD LOG_INFO
@@ -69,25 +70,19 @@
 #endif
 
 extern std::string logger_id;
-extern void put_log(int level, const char* format, ...);
-extern void put_facility_log(int level, std::string fac, const char* format,
-                             ...);
+extern void put_log(const int level, const std::string& facility,
+                    const char* format, ...);
 
 extern void avMessageLoger(void*, int level, const char* format, va_list varg);
 extern void qtMessageLogger(QtMsgType type, const QMessageLogContext& context,
                             const QString& msg);
 
-void print_log(int level, const char* log_string);
-
 #ifdef _WIN32
-#define put_flog(l, fmt, ...) \
-    put_log(l, "%s: " fmt, __FUNCTION__, ##__VA_ARGS__)
+#define print_log(l, facility, fmt, ...) \
+    put_log(l, facility, "%s: " fmt, __FUNCTION__, ##__VA_ARGS__)
 #else
-#define put_flog(l, fmt, ...) \
-    put_log(l, "%s: " fmt, __PRETTY_FUNCTION__, ##__VA_ARGS__)
+#define print_log(l, facility, fmt, ...) \
+    put_log(l, facility, "%s: " fmt, __PRETTY_FUNCTION__, ##__VA_ARGS__)
 #endif
-
-#define put_facility_flog(l, fac, fmt, ...) \
-    put_facility_log(l, fac, "%s: " fmt, __PRETTY_FUNCTION__, ##__VA_ARGS__)
 
 #endif

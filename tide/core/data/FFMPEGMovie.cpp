@@ -92,10 +92,10 @@ TextureFormat _determineOutputFormat(const AVPixelFormat fileFormat,
     case AV_PIX_FMT_YUVJ444P:
         return TextureFormat::yuv444;
     default:
-        put_facility_flog(LOG_DEBUG, LOG_AV,
-                          "Performance info: AV input format '%d' for file "
-                          "'%s' will be converted in software to 'rgba'",
-                          fileFormat, uri.toLocal8Bit().constData());
+        print_log(LOG_DEBUG, LOG_AV,
+                  "Performance info: AV input format '%d' for file "
+                  "'%s' will be converted in software to 'rgba'",
+                  fileFormat, uri.toLocal8Bit().constData());
         return TextureFormat::rgba;
     }
 }
@@ -136,8 +136,8 @@ bool FFMPEGMovie::_open(const QString& uri)
     }
     catch (const std::runtime_error& e)
     {
-        put_facility_flog(LOG_FATAL, LOG_AV, "Error opening file %s : '%s'",
-                          uri.toLocal8Bit().constData(), e.what());
+        print_log(LOG_FATAL, LOG_AV, "Error opening file %s : '%s'",
+                  uri.toLocal8Bit().constData(), e.what());
         _releaseAvFormatContext();
         return false;
     }
@@ -150,18 +150,16 @@ bool FFMPEGMovie::_createAvFormatContext(const QString& uri)
     // Read movie header information into _avFormatContext and allocate it
     if (avformat_open_input(&_avFormatContext, uri.toLatin1(), 0, 0) != 0)
     {
-        put_facility_flog(LOG_ERROR, LOG_AV,
-                          "error reading movie headers: '%s'",
-                          uri.toLocal8Bit().constData());
+        print_log(LOG_ERROR, LOG_AV, "error reading movie headers: '%s'",
+                  uri.toLocal8Bit().constData());
         return false;
     }
 
     // Read stream information into _avFormatContext->streams
     if (avformat_find_stream_info(_avFormatContext, NULL) < 0)
     {
-        put_facility_flog(LOG_ERROR, LOG_AV,
-                          "error reading stream information: '%s'",
-                          uri.toLocal8Bit().constData());
+        print_log(LOG_ERROR, LOG_AV, "error reading stream information: '%s'",
+                  uri.toLocal8Bit().constData());
         return false;
     }
 

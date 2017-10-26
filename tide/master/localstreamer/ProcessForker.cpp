@@ -61,7 +61,8 @@ void ProcessForker::run()
         const ProbeResult result = _mpiChannel->probe();
         if (!result.isValid())
         {
-            put_flog(LOG_ERROR, "Invalid probe result size: %d", result.size);
+            print_log(LOG_ERROR, LOG_MPI, "Invalid probe result size: %d",
+                      result.size);
             continue;
         }
 
@@ -77,8 +78,8 @@ void ProcessForker::run()
             const auto args = string.split('#');
             if (args.length() != 3)
             {
-                put_flog(LOG_WARN, "Invalid command: '%d'",
-                         string.toLocal8Bit().constData());
+                print_log(LOG_WARN, LOG_MPI, "Invalid command: '%d'",
+                          string.toLocal8Bit().constData());
                 break;
             }
             _launch(args[0], args[1], args[2].split(';'));
@@ -88,7 +89,8 @@ void ProcessForker::run()
             _processMessages = false;
             break;
         default:
-            put_flog(LOG_WARN, "Invalid message type: '%d'", result.message);
+            print_log(LOG_WARN, LOG_MPI, "Invalid message type: '%d'",
+                      result.message);
             break;
         }
     }
@@ -105,8 +107,8 @@ void ProcessForker::_launch(const QString& command, const QString& workingDir,
         if (kv.length() == 2 &&
             !qputenv(kv[0].toLocal8Bit().constData(), kv[1].toLocal8Bit()))
         {
-            put_flog(LOG_ERROR, "Setting %s ENV variable failed.",
-                     var.toLocal8Bit().constData());
+            print_log(LOG_ERROR, LOG_GENERAL, "Setting %s ENV variable failed.",
+                      var.toLocal8Bit().constData());
         }
     }
 

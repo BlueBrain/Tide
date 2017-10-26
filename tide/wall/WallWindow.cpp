@@ -77,13 +77,14 @@ WallWindow::WallWindow(const WallConfiguration& config, const uint windowIndex,
     _quickRendererThread->setObjectName("Render #" + windowNumber);
 
     const auto& currentScreen = config.getScreens().at(windowIndex);
-    const auto screenSize = config.getScreenRect(currentScreen.globalIndex).size();
+    const auto screenSize =
+        config.getScreenRect(currentScreen.globalIndex).size();
 
     if (auto qscreen = screens::find(currentScreen.display))
         setScreen(qscreen);
     else if (!currentScreen.display.isEmpty())
-        put_flog(LOG_FATAL, "Could not find display: '%s'",
-                 currentScreen.display.toLocal8Bit().constData());
+        print_log(LOG_FATAL, LOG_GENERAL, "Could not find display: '%s'",
+                  currentScreen.display.toLocal8Bit().constData());
 
     setFlags(Qt::FramelessWindowHint);
     setPosition(currentScreen.position);
@@ -133,10 +134,10 @@ void WallWindow::exposeEvent(QExposeEvent*)
         // Call required to make QtGraphicalEffects work in the initial scene.
         _renderControl->prepareThread(_quickRendererThread.get());
 #else
-        put_flog(LOG_DEBUG,
-                 "missing QQuickRenderControl::prepareThread() on "
-                 "Qt < 5.5. Expect some qWarnings and failing "
-                 "QtGraphicalEffects.");
+        print_log(LOG_DEBUG, LOG_GENERAL,
+                  "missing QQuickRenderControl::prepareThread() on "
+                  "Qt < 5.5. Expect some qWarnings and failing "
+                  "QtGraphicalEffects.");
 #endif
 
         _quickRenderer->moveToThread(_quickRendererThread.get());

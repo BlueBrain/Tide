@@ -65,8 +65,8 @@ QImage FolderThumbnailGenerator::generate(const QString& filename) const
     if (dir.exists())
         return _createFolderImage(dir, true);
 
-    put_flog(LOG_ERROR, "invalid directory: %s",
-             filename.toLocal8Bit().constData());
+    print_log(LOG_ERROR, LOG_CONTENT, "invalid directory: %s",
+              filename.toLocal8Bit().constData());
     return createErrorImage("folder");
 }
 

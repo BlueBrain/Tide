@@ -59,22 +59,21 @@ bool ContentLoader::load(const QString& filename,
                          const QPointF& windowCenterPosition,
                          const QSizeF& windowSize)
 {
-    put_facility_flog(LOG_INFO, LOG_CONTENT, "opening: '%s'",
-                      filename.toLocal8Bit().constData());
+    print_log(LOG_INFO, LOG_CONTENT, "opening: '%s'",
+              filename.toLocal8Bit().constData());
 
     if (isAlreadyOpen(filename))
     {
-        put_facility_flog(LOG_INFO, LOG_CONTENT, "file already opened: '%s'",
-                          filename.toLocal8Bit().constData());
+        print_log(LOG_INFO, LOG_CONTENT, "file already opened: '%s'",
+                  filename.toLocal8Bit().constData());
         return false;
     }
 
     ContentPtr content = ContentFactory::getContent(filename);
     if (!content)
     {
-        put_facility_flog(LOG_WARN, LOG_CONTENT,
-                          "ignoring unsupported file: '%s'",
-                          filename.toLocal8Bit().constData());
+        print_log(LOG_WARN, LOG_CONTENT, "ignoring unsupported file: '%s'",
+                  filename.toLocal8Bit().constData());
         return false;
     }
 
@@ -107,8 +106,8 @@ QSize _estimateGridSize(const int numElem)
 
 size_t ContentLoader::loadDir(const QString& dirName, QSize gridSize)
 {
-    put_facility_flog(LOG_INFO, LOG_CONTENT, "opening directory: '%s'",
-                      dirName.toLocal8Bit().constData());
+    print_log(LOG_INFO, LOG_CONTENT, "opening directory: '%s'",
+              dirName.toLocal8Bit().constData());
 
     QDir directory(dirName);
     directory.setFilter(QDir::Files);
@@ -140,9 +139,9 @@ size_t ContentLoader::loadDir(const QString& dirName, QSize gridSize)
             break; // should not happen if grid size is correct
     }
 
-    put_facility_flog(LOG_INFO, LOG_CONTENT,
-                      "done opening %d contents from directory: '%s'",
-                      contentIndex, dirName.toLocal8Bit().constData());
+    print_log(LOG_INFO, LOG_CONTENT,
+              "done opening %d contents from directory: '%s'", contentIndex,
+              dirName.toLocal8Bit().constData());
 
     return contentIndex;
 }

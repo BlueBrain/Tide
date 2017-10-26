@@ -63,8 +63,8 @@ QImage ImageThumbnailGenerator::generate(const QString& filename) const
         return reader.read().scaled(_size, _aspectRatioMode);
     }
 
-    put_flog(LOG_ERROR, "could not open image file: '%s'",
-             filename.toLatin1().constData());
+    print_log(LOG_ERROR, LOG_CONTENT, "could not open image file: '%s'",
+              filename.toLatin1().constData());
     return createErrorImage("image");
 }
 

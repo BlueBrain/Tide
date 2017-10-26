@@ -65,7 +65,8 @@ void DisplayGroup::addContentWindow(ContentWindowPtr window)
     {
         if (window->getID() == existingWindow->getID())
         {
-            put_flog(LOG_DEBUG, "A window with the same id already exists!");
+            print_log(LOG_WARN, LOG_GENERAL,
+                      "A window with the same id already exists!");
             return;
         }
     }
@@ -180,7 +181,7 @@ void DisplayGroup::clear()
             removeSet.push_back(window);
     }
 
-    put_flog(LOG_INFO, "removing %i windows", removeSet.size());
+    print_log(LOG_INFO, LOG_CONTENT, "removing %i windows", removeSet.size());
 
     // Do this before removeContentWindow because removeFocusedWindow() resets
     // the state of the focused windows which interfers with xml session loading

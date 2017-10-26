@@ -132,32 +132,31 @@ std::future<http::Response> FileReceiver::handleUpload(
     if (!file.open(QIODevice::WriteOnly) ||
         !file.write(request.body.c_str(), request.body.size()))
     {
-        put_facility_flog(LOG_ERROR, LOG_REST, "file not created as %s",
-                          filePath.toLocal8Bit().constData());
+        print_log(LOG_ERROR, LOG_REST, "file not created as %s",
+                  filePath.toLocal8Bit().constData());
         return _makeResponse(http::Code::INTERNAL_SERVER_ERROR, "info",
                              "could not upload");
     }
     file.close();
 
-    put_facility_flog(LOG_INFO, LOG_REST, "file created as %s",
-                      filePath.toLocal8Bit().constData());
+    print_log(LOG_INFO, LOG_REST, "file created as %s",
+              filePath.toLocal8Bit().constData());
 
     auto promise = std::make_shared<std::promise<Response>>();
     emit open(filePath, position, [promise, filePath](const bool success) {
         if (success)
         {
-            put_facility_flog(LOG_INFO, LOG_REST,
-                              "file uploaded and saved as: %s",
-                              filePath.toLocal8Bit().constData());
+            print_log(LOG_INFO, LOG_REST, "file uploaded and saved as: %s",
+                      filePath.toLocal8Bit().constData());
             promise->set_value(Response{http::Code::CREATED, "info", "OK"});
             return;
         }
 
         QFile(filePath).remove();
 
-        put_facility_flog(LOG_ERROR, LOG_REST,
-                          "file uploaded but could not be opened: %s",
-                          filePath.toLocal8Bit().constData());
+        print_log(LOG_ERROR, LOG_REST,
+                  "file uploaded but could not be opened: %s",
+                  filePath.toLocal8Bit().constData());
         promise->set_value(Response{http::Code::NOT_SUPPORTED, "info",
                                     "file could not be opened"});
     });

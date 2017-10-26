@@ -50,7 +50,7 @@ MasterFromWallChannel::MasterFromWallChannel(MPIChannelPtr mpiChannel)
 {
     if (_mpiChannel->getSize() < 2)
     {
-        put_flog(LOG_WARN, "Channel has no Wall receiver");
+        print_log(LOG_WARN, LOG_MPI, "Channel has no Wall receiver");
         _processMessages = false;
     }
 }
@@ -62,7 +62,8 @@ void MasterFromWallChannel::processMessages()
         const ProbeResult result = _mpiChannel->probe();
         if (!result.isValid())
         {
-            put_flog(LOG_ERROR, "Invalid probe result size: %d", result.size);
+            print_log(LOG_ERROR, LOG_MPI, "Invalid probe result size: %d",
+                      result.size);
             continue;
         }
 
@@ -92,7 +93,8 @@ void MasterFromWallChannel::processMessages()
             _processMessages = false;
             break;
         default:
-            put_flog(LOG_WARN, "Invalid message type: %d", result.message);
+            print_log(LOG_WARN, LOG_MPI, "Invalid message type: %d",
+                      result.message);
             break;
         }
     }
