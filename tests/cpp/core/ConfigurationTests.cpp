@@ -89,6 +89,9 @@ BOOST_AUTO_TEST_CASE(test_configuration_default_values)
     BOOST_CHECK_EQUAL(config.getMullionHeight(), 0);
     BOOST_CHECK_EQUAL(config.getMullionWidth(), 0);
 
+    BOOST_CHECK_EQUAL(config.getDisplayHeight(), 0);
+    BOOST_CHECK_EQUAL(config.getDisplayWidth(), 0);
+
     BOOST_CHECK_EQUAL(config.getScreenHeight(), 0);
     BOOST_CHECK_EQUAL(config.getScreenWidth(), 0);
 
@@ -126,6 +129,9 @@ BOOST_AUTO_TEST_CASE(test_configuration_all_values)
 
     BOOST_CHECK_EQUAL(config.getMullionHeight(), 12);
     BOOST_CHECK_EQUAL(config.getMullionWidth(), 14);
+
+    BOOST_CHECK_EQUAL(config.getDisplayHeight(), 1080);
+    BOOST_CHECK_EQUAL(config.getDisplayWidth(), 1920);
 
     BOOST_CHECK_EQUAL(config.getScreenHeight(), 1080);
     BOOST_CHECK_EQUAL(config.getScreenWidth(), 3840);

@@ -97,6 +97,18 @@ public:
     int getTotalScreenCountY() const;
 
     /**
+     * Get the width of a display.
+     * @return width in pixel units
+     */
+    int getDisplayWidth() const;
+
+    /**
+     * Get the height of a screen.
+     * @return height in pixel units
+     */
+    int getDisplayHeight() const;
+
+    /**
      * Get the width of a screen.
      * @return width in pixel units
      * @note All the screens have the same size.
@@ -165,6 +177,8 @@ private:
     int _bezelsPerScreenY;
     int _totalScreenCountX;
     int _totalScreenCountY;
+    int _displayWidth;
+    int _displayHeight;
     int _screenWidth;
     int _screenHeight;
     int _mullionWidth;

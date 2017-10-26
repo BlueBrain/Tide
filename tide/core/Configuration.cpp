@@ -58,6 +58,8 @@ Configuration::Configuration(const QString& filename)
     , _bezelsPerScreenY(0)
     , _totalScreenCountX(0)
     , _totalScreenCountY(0)
+    , _displayWidth(0)
+    , _displayHeight(0)
     , _screenWidth(0)
     , _screenHeight(0)
     , _mullionWidth(0)
@@ -85,6 +87,12 @@ void Configuration::_load()
 
     query.setQuery("string(/configuration/dimensions/@numTilesHeight)");
     getInt(query, _totalScreenCountY);
+
+    query.setQuery("string(/configuration/dimensions/@displayWidth)");
+    getInt(query, _displayWidth);
+
+    query.setQuery("string(/configuration/dimensions/@displayHeight)");
+    getInt(query, _displayHeight);
 
     query.setQuery("string(/configuration/dimensions/@screenWidth)");
     getInt(query, _screenWidth);
@@ -132,6 +140,16 @@ int Configuration::getTotalScreenCountX() const
 int Configuration::getTotalScreenCountY() const
 {
     return _totalScreenCountY;
+}
+
+int Configuration::getDisplayWidth() const
+{
+    return _displayWidth;
+}
+
+int Configuration::getDisplayHeight() const
+{
+    return _displayHeight;
 }
 
 int Configuration::getScreenWidth() const
