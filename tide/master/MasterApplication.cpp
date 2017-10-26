@@ -574,6 +574,12 @@ void MasterApplication::_initRestInterface()
                         _inactivityTimer->stop();
                 });
 
+        connect(_planarController.get(), &PlanarController::powerStateChanged,
+                [this](const ScreenState state) {
+                    if (state == ScreenState::OFF)
+                        _lock->unlock();
+                });
+
         connect(&appController, &AppController::powerOff, [this]() {
             if (_planarController->powerOff())
                 DisplayGroupController(*_displayGroup).hidePanels();

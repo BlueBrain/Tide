@@ -5,6 +5,8 @@ Changelog {#changelog}
 
 * [202](https://github.com/BlueBrain/Tide/pull/202):
   Fixed incorrect count of open windows reported at tide/stats HTTP endpoint.
+* [201](https://github.com/BlueBrain/Tide/pull/201):
+  The interface unlocks when the screens are turned off.
 * [200](https://github.com/BlueBrain/Tide/pull/200):
   Xml configuration simplification:
   - replaced screenWidth/Height with displayWidht/Height, which refers
