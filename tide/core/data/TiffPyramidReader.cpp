@@ -45,32 +45,14 @@
 #include <QPainter>
 #include <tiffio.h>
 
-namespace
-{
-void ErrorHandler(const char* module, const char* fmt, va_list ap)
-{
-    char log_string[MAX_LOG_LENGTH];
-    vsnprintf(log_string, MAX_LOG_LENGTH, fmt, ap);
-    print_log(LOG_ERROR, LOG_TIFF, "%s: '%s'", module, log_string);
-}
-
-void WarningHandler(const char* module, const char* fmt, va_list ap)
-{
-    char log_string[MAX_LOG_LENGTH];
-    vsnprintf(log_string, MAX_LOG_LENGTH, fmt, ap);
-    print_log(LOG_WARN, LOG_TIFF, "%s: '%s'", module, log_string);
-}
-}
-
 struct TiffStaticInit
 {
     TiffStaticInit()
     {
-        TIFFSetWarningHandler(WarningHandler);
-        TIFFSetErrorHandler(ErrorHandler);
+        TIFFSetWarningHandler(tiffMessageLoggerWarn);
+        TIFFSetErrorHandler(tiffMessageLoggerErr);
     }
 };
-
 static TiffStaticInit instance;
 
 struct TIFFDeleter

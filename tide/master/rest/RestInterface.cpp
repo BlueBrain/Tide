@@ -48,12 +48,12 @@
 #include "SceneController.h"
 #include "ScreenLock.h"
 #include "ThumbnailCache.h"
+#include "log.h"
 #include "scene/ContentFactory.h"
 #include "serialization.h"
 
-#include <tide/master/version.h>
-
 #include <QDir>
+#include <tide/master/version.h>
 
 using namespace std::placeholders;
 using namespace zeroeq;
@@ -152,8 +152,8 @@ RestInterface::RestInterface(const uint16_t port, OptionsPtr options,
     : _impl(new Impl(port, options, group, config, false))
 {
     // Note: using same formatting as TUIO instead of print_log() here
-    std::cout << "listening to REST messages on TCP port "
-              << _impl->server.getPort() << std::endl;
+    print_log(LOG_INFO, LOG_REST, "listening to REST messages on TCP port %hu",
+              _impl->server.getPort());
 
     QObject::connect(&_impl->fileReceiver, &FileReceiver::open,
                      &_impl->appController, &AppController::open);

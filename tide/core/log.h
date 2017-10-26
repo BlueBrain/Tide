@@ -52,12 +52,10 @@
 #define LOG_ERROR 4
 #define LOG_FATAL 5
 
-#define MAX_LOG_LENGTH 1024
-
-#define LOG_POWER "Power"
+#define LOG_POWER "POWER"
 #define LOG_PDF "PDF"
-#define LOG_REST "Rest"
-#define LOG_STREAM "Stream"
+#define LOG_REST "REST"
+#define LOG_STREAM "STREAM"
 #define LOG_QT "QT"
 #define LOG_AV "AV"
 #define LOG_TIFF "TIFF"
@@ -78,6 +76,11 @@ extern void put_log(const int level, const std::string& facility,
 extern void avMessageLoger(void*, int level, const char* format, va_list varg);
 extern void qtMessageLogger(QtMsgType type, const QMessageLogContext& context,
                             const QString& msg);
+
+extern void tiffMessageLoggerWarn(const char* module, const char* fmt,
+                                  va_list ap);
+extern void tiffMessageLoggerErr(const char* module, const char* fmt,
+                                 va_list ap);
 
 #ifdef _WIN32
 #define print_log(l, facility, fmt, ...) \
