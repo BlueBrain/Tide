@@ -904,7 +904,7 @@ function saveSession() {
 }
 
 function setBezels() {
-  if ( displayHeight === 0 || displayWidth === 0)
+  if (displayHeight === 0 || displayWidth === 0)
     return;
   $('#wall').css("grid-template-columns", "repeat("+screenCountX +", 1fr)").
   css("grid-template-rows", "repeat("+screenCountY+", 1fr)").
@@ -1157,7 +1157,7 @@ function stickToBezel(event, bezel) {
   var vertical = aspectRatio < 1;
   var dir = bezel.id;
 
-    if (vertical) {
+  if (vertical) {
     if (dir == 'E')
       $div.css("left", right);
     else if (dir == 'W')

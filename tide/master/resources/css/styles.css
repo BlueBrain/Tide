@@ -321,6 +321,13 @@ label {
   display: none;
 }
 
+#wallLockImg {
+  margin: 0 auto;
+  position:relative;
+  top: 25%;
+  display:block;
+}
+
 #wallOutline {
   outline: 30px solid black;
   z-index: 0;
