@@ -179,14 +179,13 @@ private:
     int _totalScreenCountY;
     int _displayWidth;
     int _displayHeight;
-    int _screenWidth;
-    int _screenHeight;
     int _bezelWidth;
     int _bezelHeight;
     bool _fullscreen;
     SwapSync _swapSync;
 
     void _load();
+    void _validateSettings();
 };
 
 #endif

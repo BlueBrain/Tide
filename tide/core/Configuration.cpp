@@ -54,14 +54,12 @@ const QRegExp TRIM_REGEX("[\\n\\t\\r]");
 
 Configuration::Configuration(const QString& filename)
     : _filename(filename)
-    , _displaysPerScreenX(0)
-    , _displaysPerScreenY(0)
-    , _totalScreenCountX(0)
-    , _totalScreenCountY(0)
+    , _displaysPerScreenX(1)
+    , _displaysPerScreenY(1)
+    , _totalScreenCountX(1)
+    , _totalScreenCountY(1)
     , _displayWidth(0)
     , _displayHeight(0)
-    , _screenWidth(0)
-    , _screenHeight(0)
     , _bezelWidth(0)
     , _bezelHeight(0)
     , _fullscreen(false)
@@ -125,11 +123,7 @@ void Configuration::_load()
     if (getString(query, swapsync) && swapsync == "hardware")
         _swapSync = SwapSync::hardware;
 
-    _screenWidth = _displayWidth * _displaysPerScreenX +
-                   ((_displaysPerScreenX - 1) * _bezelWidth);
-
-    _screenHeight = _displayHeight * _displaysPerScreenY +
-                    ((_displaysPerScreenY - 1) * _bezelHeight);
+    _validateSettings();
 }
 
 int Configuration::getTotalScreenCountX() const
@@ -154,12 +148,14 @@ int Configuration::getDisplayHeight() const
 
 int Configuration::getScreenWidth() const
 {
-    return _screenWidth;
+    return _displayWidth * _displaysPerScreenX +
+           ((_displaysPerScreenX - 1) * _bezelWidth);
 }
 
 int Configuration::getScreenHeight() const
 {
-    return _screenHeight;
+    return _displayHeight * _displaysPerScreenY +
+           ((_displaysPerScreenY - 1) * _bezelHeight);
 }
 
 int Configuration::getBezelWidth() const
@@ -174,13 +170,13 @@ int Configuration::getBezelHeight() const
 
 int Configuration::getTotalWidth() const
 {
-    return _totalScreenCountX * _screenWidth +
+    return _totalScreenCountX * getScreenWidth() +
            (_totalScreenCountX - 1) * getBezelWidth();
 }
 
 int Configuration::getTotalHeight() const
 {
-    return _totalScreenCountY * _screenHeight +
+    return _totalScreenCountY * getScreenHeight() +
            (_totalScreenCountY - 1) * getBezelHeight();
 }
 
@@ -214,10 +210,10 @@ QRect Configuration::getScreenRect(const QPoint& tileIndex) const
         throw std::invalid_argument("tile index does not exist");
     }
 
-    const int xPos = tileIndex.x() * (_screenWidth + _bezelWidth);
-    const int yPos = tileIndex.y() * (_screenHeight + _bezelHeight);
+    const int xPos = tileIndex.x() * (getScreenWidth() + _bezelWidth);
+    const int yPos = tileIndex.y() * (getScreenHeight() + _bezelHeight);
 
-    return QRect(xPos, yPos, _screenWidth, _screenHeight);
+    return QRect(xPos, yPos, getScreenWidth(), getScreenHeight());
 }
 
 bool Configuration::getFullscreen() const
@@ -293,4 +289,12 @@ bool Configuration::getBool(const QXmlQuery& query, bool& value) const
         return true;
     }
     return false;
+}
+
+void Configuration::_validateSettings()
+{
+    if (_displaysPerScreenY == 0 || _displaysPerScreenX == 0 ||
+        _totalScreenCountY == 0 || _totalScreenCountX == 0 ||
+        _displayWidth == 0 || _displayHeight == 0)
+        throw std::invalid_argument("tile index does not exist");
 }

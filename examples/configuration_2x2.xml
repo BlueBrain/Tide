@@ -1,5 +1,5 @@
 <configuration>
-    <dimensions numScreensX="2" numScreensY="2" displayHeight="400" fullscreen="0" bezelHeight="0" displayWidth="400" bezelWidth="0"/>
+    <dimensions fullscreen="0" numScreensX="2" numScreensY="2" displayWidth="400" displayHeight="400" bezelWidth="0" bezelHeight="0"/>
     <masterProcess display=":0" host="localhost" headless="false"/>
     <process display=":0" host="localhost">
         <screen x="0" y="80" i="0" j="0"/>
