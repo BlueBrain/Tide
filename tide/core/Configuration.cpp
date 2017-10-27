@@ -293,8 +293,10 @@ bool Configuration::getBool(const QXmlQuery& query, bool& value) const
 
 void Configuration::_validateSettings()
 {
-    if (_displaysPerScreenY == 0 || _displaysPerScreenX == 0 ||
-        _totalScreenCountY == 0 || _totalScreenCountX == 0 ||
-        _displayWidth == 0 || _displayHeight == 0)
-        throw std::invalid_argument("tile index does not exist");
+    if (_displaysPerScreenY == 0 || _displaysPerScreenX == 0)
+        throw std::invalid_argument("displayPerScreenX/Y cannot be set to 0");
+    if (_totalScreenCountY == 0 || _totalScreenCountX == 0)
+        throw std::invalid_argument("numScreenX/Y cannot be set to 0");
+    if (_displayWidth == 0 || _displayHeight == 0)
+        throw std::invalid_argument("displayWidth/Height cannot be set to 0");
 }
