@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.4 (git master)
 
+* [202](https://github.com/BlueBrain/Tide/pull/202):
+  Fixed incorrect count of open windows reported at tide/stats HTTP endpoint.
 * [195](https://github.com/BlueBrain/Tide/pull/195):
   New features in html interface:
   - Dragged window can be snapped to a bezel.

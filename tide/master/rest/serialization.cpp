@@ -107,17 +107,18 @@ QJsonObject to_json_object(const DisplayGroup& group)
 
 QJsonObject to_json_object(const LoggingUtility& logger)
 {
-    const QJsonObject event{{"last_event", logger.getLastInteraction()},
+    const QJsonObject event{{"last_event", logger.getLastInteractionName()},
                             {"last_event_date",
                              logger.getLastInteractionTime()},
                             {"count", logger.getInteractionCount()}};
     const QJsonObject window{{"count", int(logger.getWindowCount())},
-                             {"date_set", logger.getCounterModificationTime()},
+                             {"date_set",
+                              logger.getWindowCountModificationTime()},
                              {"accumulated_count",
                               int(logger.getAccumulatedWindowCount())}};
     const QJsonObject screens{{"state", to_qstring(logger.getScreenState())},
                               {"last_change",
-                               logger.getLastScreenStateChanged()}};
+                               logger.getScreenStateModificationTime()}};
     return QJsonObject{{"event", event},
                        {"window", window},
                        {"screens", screens}};

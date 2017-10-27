@@ -511,13 +511,13 @@ void MasterApplication::_initRestInterface()
     _logger = make_unique<LoggingUtility>();
 
     connect(_displayGroup.get(), &DisplayGroup::contentWindowAdded,
-            _logger.get(), &LoggingUtility::contentWindowAdded);
+            _logger.get(), &LoggingUtility::logContentWindowAdded);
 
     connect(_displayGroup.get(), &DisplayGroup::contentWindowRemoved,
-            _logger.get(), &LoggingUtility::contentWindowRemoved);
+            _logger.get(), &LoggingUtility::logContentWindowRemoved);
 
     connect(_displayGroup.get(), &DisplayGroup::contentWindowMovedToFront,
-            _logger.get(), &LoggingUtility::contentWindowMovedToFront);
+            _logger.get(), &LoggingUtility::logContentWindowMovedToFront);
 
     _restInterface->exposeStatistics(*_logger);
 
@@ -563,7 +563,7 @@ void MasterApplication::_initRestInterface()
     if (_planarController)
     {
         connect(_planarController.get(), &PlanarController::powerStateChanged,
-                _logger.get(), &LoggingUtility::powerStateChanged);
+                _logger.get(), &LoggingUtility::logScreenStateChanged);
 
         connect(_planarController.get(), &PlanarController::powerStateChanged,
                 [this](ScreenState state) {

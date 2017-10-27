@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -43,101 +44,15 @@
 
 #include <chrono>
 
-size_t LoggingUtility::getAccumulatedWindowCount() const
+namespace
 {
-    return _windowCounterTotal;
-}
-
-const QString& LoggingUtility::getCounterModificationTime() const
-{
-    return _counterModificationTime;
-}
-
-int LoggingUtility::getInteractionCount() const
-{
-    return _interactionCounter;
-}
-
-const QString& LoggingUtility::getLastInteraction() const
-{
-    return _lastInteraction;
-}
-
-const QString& LoggingUtility::getLastInteractionTime() const
-{
-    return _lastInteractionTime;
-}
-
-size_t LoggingUtility::getWindowCount() const
-{
-    return _windowCounter;
-}
-
-void LoggingUtility::contentWindowAdded(ContentWindowPtr contentWindow)
-{
-    connect(contentWindow.get(), &ContentWindow::stateChanged,
-            [this]() { _log("state changed"); });
-
-    connect(contentWindow.get(), &ContentWindow::hiddenChanged,
-            [this](bool hidden) {
-                hidden ? _decrementWindowCount() : _incrementWindowCount();
-            });
-
-    connect(contentWindow.get(), &ContentWindow::modeChanged,
-            [this]() { _log("mode changed"); });
-
-    _incrementWindowCount();
-    ++_windowCounterTotal;
-    _counterModificationTime = _getTimeStamp();
-    _log(__func__);
-}
-
-void LoggingUtility::contentWindowMovedToFront()
-{
-    _log(__func__);
-}
-
-void LoggingUtility::contentWindowRemoved()
-{
-    _decrementWindowCount();
-    _counterModificationTime = _getTimeStamp();
-    _log(__func__);
-}
-
-void LoggingUtility::_decrementWindowCount()
-{
-    if (_windowCounter > 0)
-        --_windowCounter;
-}
-
-void LoggingUtility::_incrementWindowCount()
-{
-    ++_windowCounter;
-}
-
-void LoggingUtility::powerStateChanged(const ScreenState state)
-{
-    _state = state;
-    _lastPowerStateChanged = _getTimeStamp();
-}
-
-QString LoggingUtility::getLastScreenStateChanged() const
-{
-    return _lastPowerStateChanged;
-}
-
-ScreenState LoggingUtility::getScreenState() const
-{
-    return _state;
-}
-
 uint _getMilliseconds(std::chrono::system_clock::duration timePoint)
 {
     timePoint -= std::chrono::duration_cast<std::chrono::seconds>(timePoint);
     return timePoint.count();
 }
 
-QString LoggingUtility::_getTimeStamp() const
+QString _getTimestamp()
 {
     // ISO extended format: "2016-09-23T10:31:36.776385"
     const auto now = std::chrono::system_clock::now();
@@ -149,9 +64,107 @@ QString LoggingUtility::_getTimeStamp() const
     return QString{buf.data()} + '.' + QString::number(ms).left(6);
 }
 
-void LoggingUtility::_log(const QString& s)
+const auto windowAdded = "contentWindowAdded";
+const auto windowModeChanged = "mode changed";
+const auto windowStateChanged = "state changed";
+const auto windowMovedToFront = "contentWindowMovedToFront";
+const auto windowRemoved = "contentWindowRemoved";
+}
+
+size_t LoggingUtility::getWindowCount() const
 {
-    _lastInteraction = s;
-    _lastInteractionTime = _getTimeStamp();
+    return _windowCount;
+}
+
+size_t LoggingUtility::getAccumulatedWindowCount() const
+{
+    return _accumulatedWindowCount;
+}
+
+const QString& LoggingUtility::getWindowCountModificationTime() const
+{
+    return _windowCountModificationTime;
+}
+
+int LoggingUtility::getInteractionCount() const
+{
+    return _interactionCounter;
+}
+
+const QString& LoggingUtility::getLastInteractionName() const
+{
+    return _lastInteractionName;
+}
+
+const QString& LoggingUtility::getLastInteractionTime() const
+{
+    return _lastInteractionTime;
+}
+
+ScreenState LoggingUtility::getScreenState() const
+{
+    return _screenState;
+}
+
+QString LoggingUtility::getScreenStateModificationTime() const
+{
+    return _screenStateModificationTime;
+}
+
+void LoggingUtility::logContentWindowAdded(ContentWindowPtr window)
+{
+    connect(window.get(), &ContentWindow::stateChanged,
+            [this]() { _logInteraction(windowStateChanged); });
+
+    connect(window.get(), &ContentWindow::hiddenChanged,
+            [this](const bool hidden) {
+                hidden ? _decrementWindowCount() : _incrementWindowCount();
+            });
+
+    connect(window.get(), &ContentWindow::modeChanged,
+            [this]() { _logInteraction(windowModeChanged); });
+
+    if (!window->isHidden())
+        _incrementWindowCount();
+
+    ++_accumulatedWindowCount;
+
+    _logInteraction(windowAdded);
+}
+
+void LoggingUtility::logContentWindowMovedToFront()
+{
+    _logInteraction(windowMovedToFront);
+}
+
+void LoggingUtility::logContentWindowRemoved()
+{
+    _decrementWindowCount();
+    _logInteraction(windowRemoved);
+}
+
+void LoggingUtility::logScreenStateChanged(const ScreenState state)
+{
+    _screenState = state;
+    _screenStateModificationTime = _getTimestamp();
+}
+
+void LoggingUtility::_incrementWindowCount()
+{
+    ++_windowCount;
+    _windowCountModificationTime = _getTimestamp();
+}
+
+void LoggingUtility::_decrementWindowCount()
+{
+    if (_windowCount > 0)
+        --_windowCount;
+    _windowCountModificationTime = _getTimestamp();
+}
+
+void LoggingUtility::_logInteraction(const QString& name)
+{
     ++_interactionCounter;
+    _lastInteractionName = name;
+    _lastInteractionTime = _getTimestamp();
 }

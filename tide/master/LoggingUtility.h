@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -45,68 +46,77 @@
 #include "types.h"
 
 /**
- * Provides information/statistics on application usage.
+ * Gathers information/statistics on application usage.
  */
 class LoggingUtility : public QObject
 {
     Q_OBJECT
 
 public:
+    /** @name Number of open windows. */
+    //@{
+    /** @return the number of currently open windows. */
+    size_t getWindowCount() const;
+
     /** @return the number of open windows from the start. */
     size_t getAccumulatedWindowCount() const;
 
-    /** @return the timestamp of opening/closing a window */
-    const QString& getCounterModificationTime() const;
+    /** @return the timestamp of the last opening/closing of a window. */
+    const QString& getWindowCountModificationTime() const;
+    //@}
 
+    /** @name Interactions with windows. */
+    //@{
     /** @return the value of interaction counter. */
     int getInteractionCount() const;
 
     /** @return the name of last interaction */
-    const QString& getLastInteraction() const;
+    const QString& getLastInteractionName() const;
 
     /** @return the timestamp of last interaction */
     const QString& getLastInteractionTime() const;
+    //@}
 
+    /** @name State of the screen (on/off). */
+    //@{
     /** @return state of displays. */
     ScreenState getScreenState() const;
 
-    /** @return the timestamp of last power action */
-    QString getLastScreenStateChanged() const;
-
-    /** @return the number of currently open windows. */
-    size_t getWindowCount() const;
+    /** @return the timestamp of last screen state change. */
+    QString getScreenStateModificationTime() const;
+    //@}
 
 public slots:
     /** Log the event, update the counters and update the timestamp of last
      * interaction */
-    void contentWindowAdded(ContentWindowPtr contentWindow);
+    void logContentWindowAdded(ContentWindowPtr contentWindow);
 
     /** Log the event, update the counters and update the timestamp of last
      * interaction */
-    void contentWindowMovedToFront();
+    void logContentWindowMovedToFront();
 
     /** Log the event, update the counters and update the timestamp of last
      * interaction */
-    void contentWindowRemoved();
+    void logContentWindowRemoved();
 
     /** Log the event and update the timestamp of last power action */
-    void powerStateChanged(const ScreenState state);
+    void logScreenStateChanged(ScreenState state);
 
 private:
-    size_t _windowCounter = 0;
-    size_t _windowCounterTotal = 0;
-    QString _counterModificationTime;
-    QString _lastInteraction;
-    QString _lastInteractionTime;
+    size_t _windowCount = 0;
+    size_t _accumulatedWindowCount = 0;
+    QString _windowCountModificationTime;
+
     size_t _interactionCounter = 0;
+    QString _lastInteractionName;
+    QString _lastInteractionTime;
 
-    QString _lastPowerStateChanged;
-    ScreenState _state = ScreenState::UNDEF;
+    ScreenState _screenState = ScreenState::UNDEF;
+    QString _screenStateModificationTime;
 
-    void _decrementWindowCount();
     void _incrementWindowCount();
-    QString _getTimeStamp() const;
-    void _log(const QString& s);
+    void _decrementWindowCount();
+    void _logInteraction(const QString& name);
 };
 
 #endif
