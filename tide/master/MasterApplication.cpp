@@ -546,7 +546,6 @@ void MasterApplication::_initRestInterface()
                   "Can't browse url '%s', Tide was compiled without"
                   "webbrowser support", uri.toLocal8Bit().constData());
 #endif
-
     });
 
     connect(&appController, &AppController::openWhiteboard,
