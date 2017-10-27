@@ -81,16 +81,16 @@ void Configuration::_load()
                                  _filename.toStdString() + "'");
 
     query.setQuery("string(/configuration/dimensions/@numScreensX)");
-    getInt(query, _totalScreenCountX);
+    getUInt(query, _totalScreenCountX);
 
     query.setQuery("string(/configuration/dimensions/@numScreensY)");
-    getInt(query, _totalScreenCountY);
+    getUInt(query, _totalScreenCountY);
 
     query.setQuery("string(/configuration/dimensions/@displayWidth)");
-    getInt(query, _displayWidth);
+    getUInt(query, _displayWidth);
 
     query.setQuery("string(/configuration/dimensions/@displayHeight)");
-    getInt(query, _displayHeight);
+    getUInt(query, _displayHeight);
 
     query.setQuery("string(/configuration/dimensions/@bezelWidth)");
     getInt(query, _bezelWidth);
@@ -99,10 +99,10 @@ void Configuration::_load()
     getInt(query, _bezelHeight);
 
     query.setQuery("string(/configuration/dimensions/@displaysPerScreenX)");
-    getInt(query, _displaysPerScreenX);
+    getUInt(query, _displaysPerScreenX);
 
     query.setQuery("string(/configuration/dimensions/@displaysPerScreenY)");
-    getInt(query, _displaysPerScreenY);
+    getUInt(query, _displaysPerScreenY);
 
     int fullscreen = 0;
     query.setQuery("string(/configuration/dimensions/@fullscreen)");
@@ -126,33 +126,33 @@ void Configuration::_load()
     _validateSettings();
 }
 
-int Configuration::getTotalScreenCountX() const
+uint Configuration::getTotalScreenCountX() const
 {
     return _totalScreenCountX;
 }
 
-int Configuration::getTotalScreenCountY() const
+uint Configuration::getTotalScreenCountY() const
 {
     return _totalScreenCountY;
 }
 
-int Configuration::getDisplayWidth() const
+uint Configuration::getDisplayWidth() const
 {
     return _displayWidth;
 }
 
-int Configuration::getDisplayHeight() const
+uint Configuration::getDisplayHeight() const
 {
     return _displayHeight;
 }
 
-int Configuration::getScreenWidth() const
+uint Configuration::getScreenWidth() const
 {
     return _displayWidth * _displaysPerScreenX +
            ((_displaysPerScreenX - 1) * _bezelWidth);
 }
 
-int Configuration::getScreenHeight() const
+uint Configuration::getScreenHeight() const
 {
     return _displayHeight * _displaysPerScreenY +
            ((_displaysPerScreenY - 1) * _bezelHeight);
@@ -168,13 +168,13 @@ int Configuration::getBezelHeight() const
     return _bezelHeight;
 }
 
-int Configuration::getTotalWidth() const
+uint Configuration::getTotalWidth() const
 {
     return _totalScreenCountX * getScreenWidth() +
            (_totalScreenCountX - 1) * getBezelWidth();
 }
 
-int Configuration::getTotalHeight() const
+uint Configuration::getTotalHeight() const
 {
     return _totalScreenCountY * getScreenHeight() +
            (_totalScreenCountY - 1) * getBezelHeight();
@@ -192,20 +192,20 @@ double Configuration::getAspectRatio() const
     return double(getTotalWidth()) / getTotalHeight();
 }
 
-int Configuration::getDisplaysPerScreenX() const
+uint Configuration::getDisplaysPerScreenX() const
 {
     return _displaysPerScreenX;
 }
 
-int Configuration::getDisplaysPerScreenY() const
+uint Configuration::getDisplaysPerScreenY() const
 {
     return _displaysPerScreenY;
 }
 
 QRect Configuration::getScreenRect(const QPoint& tileIndex) const
 {
-    if (tileIndex.x() < 0 || tileIndex.x() >= _totalScreenCountX ||
-        tileIndex.y() < 0 || tileIndex.y() >= _totalScreenCountY)
+    if (tileIndex.x() < 0 || tileIndex.x() >= (int)_totalScreenCountX ||
+        tileIndex.y() < 0 || tileIndex.y() >= (int)_totalScreenCountY)
     {
         throw std::invalid_argument("tile index does not exist");
     }
@@ -245,6 +245,18 @@ bool Configuration::getInt(const QXmlQuery& query, int& value) const
     int tmp = 0;
     if (query.evaluateTo(&queryResult))
         tmp = queryResult.toInt(&ok);
+    if (ok)
+        value = tmp;
+    return ok;
+}
+
+bool Configuration::getUInt(const QXmlQuery& query, uint& value) const
+{
+    bool ok = false;
+    QString queryResult;
+    uint tmp = 0;
+    if (query.evaluateTo(&queryResult))
+        tmp = queryResult.toUInt(&ok);
     if (ok)
         value = tmp;
     return ok;
