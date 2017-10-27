@@ -5,6 +5,16 @@ Changelog {#changelog}
 
 * [202](https://github.com/BlueBrain/Tide/pull/202):
   Fixed incorrect count of open windows reported at tide/stats HTTP endpoint.
+* [200](https://github.com/BlueBrain/Tide/pull/200):
+  Xml configuration simplification:
+  - replaced screenWidth/Height with displayWidht/Height, which refers
+    to physical screen size.
+  - introducing displaysPerScreenX/Y used to determine the total screen size.
+  - removing bezelsPerScreenX/Y, which became redundant.
+  - renaming keys:
+    -  numTilesWidth -> numScreensX, numTilesHeight -> numScreensY.
+    -  mullionWidth -> bezelWidth, mullionHeight -> bezelHeight.
+  Fix in web interface related to bezel and configuration.
 * [195](https://github.com/BlueBrain/Tide/pull/195):
   New features in html interface:
   - Dragged window can be snapped to a bezel.

@@ -86,5 +86,5 @@ BOOST_AUTO_TEST_CASE(test_assemble_screenshot)
 
     QImage reference;
     BOOST_REQUIRE(reference.load(REFERENCE_SCREENSHOT));
-    BOOST_CHECK_LT(compareImages(screenshot, reference), 0.00001);
+    BOOST_CHECK_LT(compareImages(screenshot, reference), 0.005);
 }
