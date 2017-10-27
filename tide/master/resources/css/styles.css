@@ -56,6 +56,11 @@ label {
   position: absolute;
 }
 
+.display {
+  position: relative; 
+  outline: solid black;
+}
+
 .file-input input {
   visibility: hidden;
   width: 80px;
@@ -292,31 +297,42 @@ label {
   display: none;
 }
 
-#wall, #wallLock {
+#wall, #wallLock, #wallOutline {
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
   -moz-transform-origin: 0 0;
   -webkit-transform-origin: 0 0;
    box-sizing: border-box;
+   position: absolute;
+   width: 100%;
+   height: 100%;
+   
 }
 
 #wall {
-  outline: 30px solid black;
   z-index: 0;
   display: grid;
-  position: absolute;
-  width: 100%;
-  height: 100%;
   opacity: 1;
 }
 
 #wallLock {
   z-index: 101;
-  position: absolute;
-  width: 100%;
-  height: 100%;
   opacity: 0;
   display: none;
+}
+
+#wallLockImg {
+  margin: 0 auto;
+  position:relative;
+  top: 25%;
+  display:block;
+}
+
+#wallOutline {
+  outline: 30px solid black;
+  z-index: 0;
+  display: grid;
+  opacity: 1;
 }
 
 #wallContainer {

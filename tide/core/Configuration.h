@@ -85,59 +85,71 @@ public:
     const QString& getFilename() const;
 
     /** Get the number of horizonal bezels per screen. */
-    int getBezelsPerScreenX() const;
+    uint getDisplaysPerScreenX() const;
 
     /** Get the number of vertical bezels per screen. */
-    int getBezelsPerScreenY() const;
+    uint getDisplaysPerScreenY() const;
 
     /** Get the total number of screens along the x axis. */
-    int getTotalScreenCountX() const;
+    uint getTotalScreenCountX() const;
 
     /** Get the total number of screens along the y axis. */
-    int getTotalScreenCountY() const;
+    uint getTotalScreenCountY() const;
+
+    /**
+     * Get the width of a display.
+     * @return width in pixel units
+     */
+    uint getDisplayWidth() const;
+
+    /**
+     * Get the height of a screen.
+     * @return height in pixel units
+     */
+    uint getDisplayHeight() const;
 
     /**
      * Get the width of a screen.
      * @return width in pixel units
      * @note All the screens have the same size.
      */
-    int getScreenWidth() const;
+    uint getScreenWidth() const;
 
     /**
      * Get the height of a screen.
      * @return height in pixel units
      * @note All the screens have the same size.
      */
-    int getScreenHeight() const;
+    uint getScreenHeight() const;
 
     /**
      * Get the padding nedded to compensate for the physical displays' bezel.
      * @return horizontal padding between two screens in pixel units
      */
-    int getMullionWidth() const;
+    int getBezelWidth() const;
 
     /**
      * Get the padding nedded to compensate for the physical displays' bezel.
      * @return vertical padding between two screens in pixel units
      */
-    int getMullionHeight() const;
+    int getBezelHeight() const;
 
     /**
-     * Get the total width of the DisplayWall, including the Mullion padding.
+     * Get the total width of the DisplayWall, including the Bezel padding.
      * @return width in pixel units
      */
-    int getTotalWidth() const;
+    uint getTotalWidth() const;
 
     /**
-     * Get the total height of the DisplayWall, including the Mullion padding.
+     * Get the total height of the DisplayWall, including the Bezel padding.
      * @return height in pixel units
      */
-    int getTotalHeight() const;
+    uint getTotalHeight() const;
 
-    /** Get the total size of the DisplayWall, including Mullion padding. */
+    /** Get the total size of the DisplayWall, including Bezel padding. */
     QSize getTotalSize() const;
 
-    /** Get the aspect ratio of the DisplayWall, including Mullion padding. */
+    /** Get the aspect ratio of the DisplayWall, including Bezel padding. */
     double getAspectRatio() const;
 
     /** Get the coordinates and dimensions of a screen in pixel units. */
@@ -156,23 +168,25 @@ protected:
     /** Evaluate the querry and set the result to value on success. */
     bool getDouble(const QXmlQuery& query, double& value) const;
     bool getInt(const QXmlQuery& query, int& value) const;
+    bool getUInt(const QXmlQuery& query, uint& value) const;
     bool getUShort(const QXmlQuery& query, ushort& value) const;
     bool getString(const QXmlQuery& query, QString& value) const;
     bool getBool(const QXmlQuery& query, bool& value) const;
 
 private:
-    int _bezelsPerScreenX;
-    int _bezelsPerScreenY;
-    int _totalScreenCountX;
-    int _totalScreenCountY;
-    int _screenWidth;
-    int _screenHeight;
-    int _mullionWidth;
-    int _mullionHeight;
+    uint _displaysPerScreenX;
+    uint _displaysPerScreenY;
+    uint _totalScreenCountX;
+    uint _totalScreenCountY;
+    uint _displayWidth;
+    uint _displayHeight;
+    int _bezelWidth;
+    int _bezelHeight;
     bool _fullscreen;
     SwapSync _swapSync;
 
     void _load();
+    void _validateSettings();
 };
 
 #endif

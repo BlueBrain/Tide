@@ -63,15 +63,16 @@ BOOST_AUTO_TEST_CASE(test_assemble_screenshot)
                           screenshot = image;
                       });
 
-    const QSize screenSize{config.getScreenWidth(), config.getScreenHeight()};
+    const QSize screenSize{(int)config.getScreenWidth(),
+                           (int)config.getScreenHeight()};
     const auto screenCount =
         config.getTotalScreenCountY() * config.getTotalScreenCountX();
 
     QImage screen{screenSize, QImage::Format_RGB32};
 
-    for (auto y = 0; y < config.getTotalScreenCountY(); ++y)
+    for (auto y = 0; y < (int)config.getTotalScreenCountY(); ++y)
     {
-        for (auto x = 0; x < config.getTotalScreenCountX(); ++x)
+        for (auto x = 0; x < (int)config.getTotalScreenCountX(); ++x)
         {
             screen.fill(QColor{x * 64, y * 64, 128});
             assembler.addImage(screen, {x, y});
@@ -86,5 +87,5 @@ BOOST_AUTO_TEST_CASE(test_assemble_screenshot)
 
     QImage reference;
     BOOST_REQUIRE(reference.load(REFERENCE_SCREENSHOT));
-    compareImages(screenshot, reference);
+    BOOST_CHECK_LT(compareImages(screenshot, reference), 0.005);
 }
