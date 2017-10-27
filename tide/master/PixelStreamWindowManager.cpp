@@ -66,6 +66,7 @@ PixelStreamWindowManager::PixelStreamWindowManager(DisplayGroup& displayGroup)
     connect(&displayGroup, &DisplayGroup::contentWindowAdded, this,
             &PixelStreamWindowManager::_onWindowAdded);
 }
+
 ContentWindowPtr PixelStreamWindowManager::getWindow(const QString& uri) const
 {
     const auto it = _streamWindows.find(uri);
