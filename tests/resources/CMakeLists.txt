@@ -12,6 +12,7 @@ set(TEST_RESOURCES
   configuration.xml
   configuration_default.xml
   configuration_empty.xml
+  configuration_minimal.xml
   configuration_stereo.xml
   legacy.dcx
   reference_screenshot.png

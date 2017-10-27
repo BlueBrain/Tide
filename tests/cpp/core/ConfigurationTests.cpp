@@ -50,6 +50,7 @@
 
 // clang-format off
 #define CONFIG_TEST_FILENAME_EMPTY "./configuration_empty.xml"
+#define CONFIG_TEST_FILENAME_MINIMAL "./configuration_minimal.xml"
 #define CONFIG_TEST_FILENAME "./configuration.xml"
 #define CONFIG_TEST_FILENAME_II "./configuration_default.xml"
 #define CONFIG_TEST_FILENAME_STEREO "./configuration_stereo.xml"
@@ -81,33 +82,39 @@ BOOST_GLOBAL_FIXTURE(MinimalGlobalQtApp);
 
 BOOST_AUTO_TEST_CASE(test_configuration_default_values)
 {
-    Configuration config(CONFIG_TEST_FILENAME_EMPTY);
+    Configuration config(CONFIG_TEST_FILENAME_MINIMAL);
 
-    BOOST_CHECK_EQUAL(config.getDisplaysPerScreenY(), 0);
-    BOOST_CHECK_EQUAL(config.getDisplaysPerScreenX(), 0);
+    BOOST_CHECK_EQUAL(config.getDisplaysPerScreenY(), 1);
+    BOOST_CHECK_EQUAL(config.getDisplaysPerScreenX(), 1);
 
     BOOST_CHECK_EQUAL(config.getBezelHeight(), 0);
     BOOST_CHECK_EQUAL(config.getBezelWidth(), 0);
 
-    BOOST_CHECK_EQUAL(config.getDisplayHeight(), 0);
-    BOOST_CHECK_EQUAL(config.getDisplayWidth(), 0);
+    BOOST_CHECK_EQUAL(config.getDisplayHeight(), 1080);
+    BOOST_CHECK_EQUAL(config.getDisplayWidth(), 1920);
 
-    BOOST_CHECK_EQUAL(config.getScreenHeight(), 0);
-    BOOST_CHECK_EQUAL(config.getScreenWidth(), 0);
+    BOOST_CHECK_EQUAL(config.getScreenHeight(), 1080);
+    BOOST_CHECK_EQUAL(config.getScreenWidth(), 1920);
 
-    BOOST_CHECK_EQUAL(config.getTotalHeight(), 0);
-    BOOST_CHECK_EQUAL(config.getTotalWidth(), 0);
+    BOOST_CHECK_EQUAL(config.getTotalHeight(), 1080);
+    BOOST_CHECK_EQUAL(config.getTotalWidth(), 1920);
 
-    BOOST_CHECK_EQUAL(config.getTotalSize(), QSize(0, 0));
-    BOOST_CHECK_EQUAL(config.getAspectRatio(), 0);
+    BOOST_CHECK_EQUAL(config.getTotalSize(), QSize(1920, 1080));
+    BOOST_CHECK_EQUAL(config.getAspectRatio(), 1920.00 / 1080.00);
 
-    BOOST_CHECK_EQUAL(config.getTotalScreenCountX(), 0);
-    BOOST_CHECK_EQUAL(config.getTotalScreenCountY(), 0);
+    BOOST_CHECK_EQUAL(config.getTotalScreenCountX(), 1);
+    BOOST_CHECK_EQUAL(config.getTotalScreenCountY(), 1);
 
-    BOOST_CHECK_THROW(config.getScreenRect({0, 0}), std::invalid_argument);
+    BOOST_CHECK_EQUAL(config.getScreenRect({0, 0}), QRect(0, 0, 1920, 1080));
 
     BOOST_CHECK_EQUAL(config.getFullscreen(), false);
     BOOST_CHECK_EQUAL((int)config.getSwapSync(), (int)SwapSync::software);
+}
+
+BOOST_AUTO_TEST_CASE(test_configuration_file_empty)
+{
+    BOOST_CHECK_THROW(Configuration config(CONFIG_TEST_FILENAME_EMPTY),
+                      std::invalid_argument);
 }
 
 BOOST_AUTO_TEST_CASE(test_configuration_all_values)
@@ -124,7 +131,7 @@ BOOST_AUTO_TEST_CASE(test_configuration_all_values)
 
     BOOST_CHECK_EQUAL(config.getFullscreen(), true);
 
-    BOOST_CHECK_EQUAL(config.getDisplaysPerScreenX(), 0);
+    BOOST_CHECK_EQUAL(config.getDisplaysPerScreenX(), 2);
     BOOST_CHECK_EQUAL(config.getDisplaysPerScreenY(), 1);
 
     BOOST_CHECK_EQUAL(config.getBezelHeight(), 12);
@@ -134,13 +141,13 @@ BOOST_AUTO_TEST_CASE(test_configuration_all_values)
     BOOST_CHECK_EQUAL(config.getDisplayWidth(), 1920);
 
     BOOST_CHECK_EQUAL(config.getScreenHeight(), 1080);
-    BOOST_CHECK_EQUAL(config.getScreenWidth(), 3840);
+    BOOST_CHECK_EQUAL(config.getScreenWidth(), 3854);
 
     BOOST_CHECK_EQUAL(config.getTotalHeight(), 3264);
-    BOOST_CHECK_EQUAL(config.getTotalWidth(), 7694);
+    BOOST_CHECK_EQUAL(config.getTotalWidth(), 7722);
 
-    BOOST_CHECK_EQUAL(config.getTotalSize(), QSize(7694, 3264));
-    BOOST_CHECK_EQUAL(config.getAspectRatio(), 7694.0 / 3264.0);
+    BOOST_CHECK_EQUAL(config.getTotalSize(), QSize(7722, 3264));
+    BOOST_CHECK_EQUAL(config.getAspectRatio(), 7722.0 / 3264.0);
 
     BOOST_CHECK_EQUAL(config.getTotalScreenCountX(), 2);
     BOOST_CHECK_EQUAL(config.getTotalScreenCountY(), 3);

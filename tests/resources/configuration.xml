@@ -1,5 +1,5 @@
 <configuration>
-    <dimensions fullscreen="1" numScreensX="2" numScreensY="3" displayWidth="1920" displayHeight="1080" displaysPerScreenX="1" displaysPerScreenY="1"  bezelHeight="12" bezelWidth="14"/>
+    <dimensions fullscreen="1" numScreensX="2" numScreensY="3" displayWidth="1920" displayHeight="1080" displaysPerScreenX="2" displaysPerScreenY="1"  bezelHeight="12" bezelWidth="14"/>
     <dock directory="/nfs4/bbp.epfl.ch/visualization/DisplayWall/media"/>
     <sessions directory="/nfs4/bbp.epfl.ch/visualization/DisplayWall/sessions"/>
     <launcher display=":0" demoServiceUrl="https://visualization-dev.humanbrainproject.eu/viz/rendering-resource-manager/v1" demoServiceImageFolder="/nfs4/bbp.epfl.ch/visualization/resources/software/displaywall/demo_previews" />
