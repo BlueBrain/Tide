@@ -1,5 +1,5 @@
 <configuration>
-    <dimensions numTilesWidth="2" numTilesHeight="2" screenHeight="400" fullscreen="0" mullionHeight="0" screenWidth="400" mullionWidth="0"/>
+    <dimensions numScreensX="2" numScreensY="2" displayHeight="400" fullscreen="0" bezelHeight="0" displayWidth="400" bezelWidth="0"/>
     <masterProcess display=":0" host="localhost" headless="false"/>
     <process host="localhost">
         <screen x="0" y="80" i="0" j="0" display=":0" stereo="left"/>

@@ -85,10 +85,10 @@ public:
     const QString& getFilename() const;
 
     /** Get the number of horizonal bezels per screen. */
-    int getBezelsPerScreenX() const;
+    int getDisplaysPerScreenX() const;
 
     /** Get the number of vertical bezels per screen. */
-    int getBezelsPerScreenY() const;
+    int getDisplaysPerScreenY() const;
 
     /** Get the total number of screens along the x axis. */
     int getTotalScreenCountX() const;
@@ -126,30 +126,30 @@ public:
      * Get the padding nedded to compensate for the physical displays' bezel.
      * @return horizontal padding between two screens in pixel units
      */
-    int getMullionWidth() const;
+    int getBezelWidth() const;
 
     /**
      * Get the padding nedded to compensate for the physical displays' bezel.
      * @return vertical padding between two screens in pixel units
      */
-    int getMullionHeight() const;
+    int getBezelHeight() const;
 
     /**
-     * Get the total width of the DisplayWall, including the Mullion padding.
+     * Get the total width of the DisplayWall, including the Bezel padding.
      * @return width in pixel units
      */
     int getTotalWidth() const;
 
     /**
-     * Get the total height of the DisplayWall, including the Mullion padding.
+     * Get the total height of the DisplayWall, including the Bezel padding.
      * @return height in pixel units
      */
     int getTotalHeight() const;
 
-    /** Get the total size of the DisplayWall, including Mullion padding. */
+    /** Get the total size of the DisplayWall, including Bezel padding. */
     QSize getTotalSize() const;
 
-    /** Get the aspect ratio of the DisplayWall, including Mullion padding. */
+    /** Get the aspect ratio of the DisplayWall, including Bezel padding. */
     double getAspectRatio() const;
 
     /** Get the coordinates and dimensions of a screen in pixel units. */
@@ -173,16 +173,16 @@ protected:
     bool getBool(const QXmlQuery& query, bool& value) const;
 
 private:
-    int _bezelsPerScreenX;
-    int _bezelsPerScreenY;
+    int _displaysPerScreenX;
+    int _displaysPerScreenY;
     int _totalScreenCountX;
     int _totalScreenCountY;
     int _displayWidth;
     int _displayHeight;
     int _screenWidth;
     int _screenHeight;
-    int _mullionWidth;
-    int _mullionHeight;
+    int _bezelWidth;
+    int _bezelHeight;
     bool _fullscreen;
     SwapSync _swapSync;
 

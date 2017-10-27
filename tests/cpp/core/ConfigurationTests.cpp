@@ -83,11 +83,11 @@ BOOST_AUTO_TEST_CASE(test_configuration_default_values)
 {
     Configuration config(CONFIG_TEST_FILENAME_EMPTY);
 
-    BOOST_CHECK_EQUAL(config.getBezelsPerScreenX(), 0);
-    BOOST_CHECK_EQUAL(config.getBezelsPerScreenY(), 0);
+    BOOST_CHECK_EQUAL(config.getDisplaysPerScreenY(), 0);
+    BOOST_CHECK_EQUAL(config.getDisplaysPerScreenX(), 0);
 
-    BOOST_CHECK_EQUAL(config.getMullionHeight(), 0);
-    BOOST_CHECK_EQUAL(config.getMullionWidth(), 0);
+    BOOST_CHECK_EQUAL(config.getBezelHeight(), 0);
+    BOOST_CHECK_EQUAL(config.getBezelWidth(), 0);
 
     BOOST_CHECK_EQUAL(config.getDisplayHeight(), 0);
     BOOST_CHECK_EQUAL(config.getDisplayWidth(), 0);
@@ -124,11 +124,11 @@ BOOST_AUTO_TEST_CASE(test_configuration_all_values)
 
     BOOST_CHECK_EQUAL(config.getFullscreen(), true);
 
-    BOOST_CHECK_EQUAL(config.getBezelsPerScreenX(), 0);
-    BOOST_CHECK_EQUAL(config.getBezelsPerScreenY(), 1);
+    BOOST_CHECK_EQUAL(config.getDisplaysPerScreenX(), 0);
+    BOOST_CHECK_EQUAL(config.getDisplaysPerScreenY(), 1);
 
-    BOOST_CHECK_EQUAL(config.getMullionHeight(), 12);
-    BOOST_CHECK_EQUAL(config.getMullionWidth(), 14);
+    BOOST_CHECK_EQUAL(config.getBezelHeight(), 12);
+    BOOST_CHECK_EQUAL(config.getBezelWidth(), 14);
 
     BOOST_CHECK_EQUAL(config.getDisplayHeight(), 1080);
     BOOST_CHECK_EQUAL(config.getDisplayWidth(), 1920);
@@ -173,8 +173,8 @@ BOOST_AUTO_TEST_CASE(test_stereo_configuration)
 {
     Configuration config(CONFIG_TEST_FILENAME_STEREO);
 
-    BOOST_CHECK_EQUAL(config.getMullionHeight(), 0);
-    BOOST_CHECK_EQUAL(config.getMullionWidth(), -60);
+    BOOST_CHECK_EQUAL(config.getBezelHeight(), 0);
+    BOOST_CHECK_EQUAL(config.getBezelWidth(), -60);
 
     BOOST_CHECK_EQUAL(config.getScreenWidth(), 1920);
     BOOST_CHECK_EQUAL(config.getScreenHeight(), 1200);

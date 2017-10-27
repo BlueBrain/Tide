@@ -1,5 +1,5 @@
 <configuration>
-    <dimensions mullionHeight="12" fullscreen="1" numTilesWidth="2" screenHeight="1080" mullionWidth="14" screenWidth="3840" numTilesHeight="3"/>
+    <dimensions bezelHeight="12" fullscreen="1" numTilesX="2" displayHeight="1080" bezelWidth="14" displayWidth="1920" numTilesY="3"/>
     <process display=":0.2" host="bbplxviz03i">
         <screen x="0" y="0" i="0" j="0"/>
     </process>

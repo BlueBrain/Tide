@@ -1,5 +1,5 @@
 <configuration>
-    <dimensions mullionHeight="0" fullscreen="0" numTilesWidth="1" screenHeight="216" mullionWidth="0" screenWidth="1536" numTilesHeight="3"/>
+    <dimensions bezelHeight="0" fullscreen="0" numScreensX="1" displayHeight="216" bezelWidth="0" displayWidth="1536" numScreensY="3"/>
     <dock directory=""/>
     <webservice port="8888"/>
     <webbrowser zoomFactor="2.0" defaultURL="http://www.google.com" pageWidth="1280" pageHeight="1024"/>

@@ -1,8 +1,8 @@
 "use strict";
 var bezelWidth;
 var bezelHeight;
-var bezelsPerScreenX;
-var bezelsPerScreenY;
+var displaysPerScreenX;
+var displaysPerScreenY;
 var focus;
 var fullscreen;
 var locked;
@@ -596,8 +596,8 @@ function init() {
     screenCountY = config["dimensions"]["screenCountY"];
     bezelWidth = config["dimensions"]["bezelWidth"];
     bezelHeight = config["dimensions"]["bezelHeight"];
-    bezelsPerScreenX = config["dimensions"]["bezelsPerScreenX"];
-    bezelsPerScreenY = config["dimensions"]["bezelsPerScreenY"];
+    displaysPerScreenX = config["dimensions"]["displaysPerScreenX"];
+    displaysPerScreenY = config["dimensions"]["displaysPerScreenY"];
     displayWidth = config["dimensions"]["displayWidth"];
     displayHeight = config["dimensions"]["displayHeight"];
 
@@ -911,20 +911,20 @@ function setBezels() {
   css("grid-column-gap", bezelWidth).css("grid-row-gap", bezelHeight);
 
   var totalScreens = screenCountX * screenCountY;
-  var monitorsPerScreenX = bezelsPerScreenX + 1;
-  var monitorsPerScreenY = bezelsPerScreenY + 1;
+  var monitorsPerScreenX = displaysPerScreenX;
+  var monitorsPerScreenY = displaysPerScreenY;
 
   for (var i = 0; i < totalScreens; i++) {
-    var div = $("<div class=screen id=b" + i + "></div>");
-    $("#wall").append(div);
-    div.css("grid-template-rows", "repeat(" + monitorsPerScreenX +", 1fr)");
-    div.css("grid-template-columns", "repeat(" + monitorsPerScreenY +", 1fr)");
+    let screen = $("<div class=screen id=b" + i + "></div>");
+    $("#wall").append(screen);
+    screen.css("grid-template-rows", "repeat(" + monitorsPerScreenX +", 1fr)");
+    screen.css("grid-template-columns", "repeat(" + monitorsPerScreenY +", 1fr)");
     var totalDisplaysPerScreen = monitorsPerScreenX * monitorsPerScreenY;
     
     for (var j = 0; j < totalDisplaysPerScreen; j++) {
       let display = $("<div class='display'> </div>");
       display.css("outline-width", bezelHeight/2);
-      div.append(display)
+      screen.append(display)
  
      var bezels = [{name: 'N', type: 'horizontal'},{name: 'S', type: 'horizontal'},
         {name: 'E', type: 'vertical'},{name: 'W', type: 'vertical'}];

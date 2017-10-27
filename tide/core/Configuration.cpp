@@ -54,16 +54,16 @@ const QRegExp TRIM_REGEX("[\\n\\t\\r]");
 
 Configuration::Configuration(const QString& filename)
     : _filename(filename)
-    , _bezelsPerScreenX(0)
-    , _bezelsPerScreenY(0)
+    , _displaysPerScreenX(0)
+    , _displaysPerScreenY(0)
     , _totalScreenCountX(0)
     , _totalScreenCountY(0)
     , _displayWidth(0)
     , _displayHeight(0)
     , _screenWidth(0)
     , _screenHeight(0)
-    , _mullionWidth(0)
-    , _mullionHeight(0)
+    , _bezelWidth(0)
+    , _bezelHeight(0)
     , _fullscreen(false)
     , _swapSync(SwapSync::software)
 {
@@ -82,10 +82,10 @@ void Configuration::_load()
         throw std::runtime_error("Invalid configuration file: '" +
                                  _filename.toStdString() + "'");
 
-    query.setQuery("string(/configuration/dimensions/@numTilesWidth)");
+    query.setQuery("string(/configuration/dimensions/@numScreensX)");
     getInt(query, _totalScreenCountX);
 
-    query.setQuery("string(/configuration/dimensions/@numTilesHeight)");
+    query.setQuery("string(/configuration/dimensions/@numScreensY)");
     getInt(query, _totalScreenCountY);
 
     query.setQuery("string(/configuration/dimensions/@displayWidth)");
@@ -94,23 +94,17 @@ void Configuration::_load()
     query.setQuery("string(/configuration/dimensions/@displayHeight)");
     getInt(query, _displayHeight);
 
-    query.setQuery("string(/configuration/dimensions/@screenWidth)");
-    getInt(query, _screenWidth);
+    query.setQuery("string(/configuration/dimensions/@bezelWidth)");
+    getInt(query, _bezelWidth);
 
-    query.setQuery("string(/configuration/dimensions/@screenHeight)");
-    getInt(query, _screenHeight);
+    query.setQuery("string(/configuration/dimensions/@bezelHeight)");
+    getInt(query, _bezelHeight);
 
-    query.setQuery("string(/configuration/dimensions/@mullionWidth)");
-    getInt(query, _mullionWidth);
+    query.setQuery("string(/configuration/dimensions/@displaysPerScreenX)");
+    getInt(query, _displaysPerScreenX);
 
-    query.setQuery("string(/configuration/dimensions/@mullionHeight)");
-    getInt(query, _mullionHeight);
-
-    query.setQuery("string(/configuration/dimensions/@bezelsPerScreenX)");
-    getInt(query, _bezelsPerScreenX);
-
-    query.setQuery("string(/configuration/dimensions/@bezelsPerScreenY)");
-    getInt(query, _bezelsPerScreenY);
+    query.setQuery("string(/configuration/dimensions/@displaysPerScreenY)");
+    getInt(query, _displaysPerScreenY);
 
     int fullscreen = 0;
     query.setQuery("string(/configuration/dimensions/@fullscreen)");
@@ -130,6 +124,12 @@ void Configuration::_load()
     query.setQuery("string(/configuration/setup/@swapsync)");
     if (getString(query, swapsync) && swapsync == "hardware")
         _swapSync = SwapSync::hardware;
+
+    _screenWidth = _displayWidth * _displaysPerScreenX +
+                   ((_displaysPerScreenX - 1) * _bezelWidth);
+
+    _screenHeight = _displayHeight * _displaysPerScreenY +
+                    ((_displaysPerScreenY - 1) * _bezelHeight);
 }
 
 int Configuration::getTotalScreenCountX() const
@@ -162,26 +162,26 @@ int Configuration::getScreenHeight() const
     return _screenHeight;
 }
 
-int Configuration::getMullionWidth() const
+int Configuration::getBezelWidth() const
 {
-    return _mullionWidth;
+    return _bezelWidth;
 }
 
-int Configuration::getMullionHeight() const
+int Configuration::getBezelHeight() const
 {
-    return _mullionHeight;
+    return _bezelHeight;
 }
 
 int Configuration::getTotalWidth() const
 {
     return _totalScreenCountX * _screenWidth +
-           (_totalScreenCountX - 1) * getMullionWidth();
+           (_totalScreenCountX - 1) * getBezelWidth();
 }
 
 int Configuration::getTotalHeight() const
 {
     return _totalScreenCountY * _screenHeight +
-           (_totalScreenCountY - 1) * getMullionHeight();
+           (_totalScreenCountY - 1) * getBezelHeight();
 }
 
 QSize Configuration::getTotalSize() const
@@ -196,14 +196,14 @@ double Configuration::getAspectRatio() const
     return double(getTotalWidth()) / getTotalHeight();
 }
 
-int Configuration::getBezelsPerScreenX() const
+int Configuration::getDisplaysPerScreenX() const
 {
-    return _bezelsPerScreenX;
+    return _displaysPerScreenX;
 }
 
-int Configuration::getBezelsPerScreenY() const
+int Configuration::getDisplaysPerScreenY() const
 {
-    return _bezelsPerScreenY;
+    return _displaysPerScreenY;
 }
 
 QRect Configuration::getScreenRect(const QPoint& tileIndex) const
@@ -214,8 +214,8 @@ QRect Configuration::getScreenRect(const QPoint& tileIndex) const
         throw std::invalid_argument("tile index does not exist");
     }
 
-    const int xPos = tileIndex.x() * (_screenWidth + _mullionWidth);
-    const int yPos = tileIndex.y() * (_screenHeight + _mullionHeight);
+    const int xPos = tileIndex.x() * (_screenWidth + _bezelWidth);
+    const int yPos = tileIndex.y() * (_screenHeight + _bezelHeight);
 
     return QRect(xPos, yPos, _screenWidth, _screenHeight);
 }

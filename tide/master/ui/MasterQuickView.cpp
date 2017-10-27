@@ -67,8 +67,8 @@ MasterQuickView::MasterQuickView(OptionsPtr options, ScreenLockPtr lock,
     _wallItem = rootObject()->findChild<QQuickItem*>(WALL_OBJECT_NAME);
     _wallItem->setProperty("numberOfTilesX", config.getTotalScreenCountX());
     _wallItem->setProperty("numberOfTilesY", config.getTotalScreenCountY());
-    _wallItem->setProperty("mullionWidth", config.getMullionWidth());
-    _wallItem->setProperty("mullionHeight", config.getMullionHeight());
+    _wallItem->setProperty("bezelWidth", config.getBezelWidth());
+    _wallItem->setProperty("bezelHeight", config.getBezelHeight());
     _wallItem->setProperty("screenWidth", config.getScreenWidth());
     _wallItem->setProperty("screenHeight", config.getScreenHeight());
     _wallItem->setProperty("wallWidth", config.getTotalWidth());

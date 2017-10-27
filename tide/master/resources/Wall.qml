@@ -10,8 +10,8 @@ Rectangle {
     // These properties are input from the c++ Configuration class
     property int numberOfTilesX: 1
     property int numberOfTilesY: 1
-    property int mullionWidth: 0
-    property int mullionHeight: 0
+    property int bezelWidth: 0
+    property int bezelHeight: 0
     property int screenWidth: 640
     property int screenHeight: 480
     property int wallWidth: 640
@@ -21,8 +21,8 @@ Rectangle {
     Grid {
         columns: numberOfTilesX
         rows: numberOfTilesY
-        columnSpacing: mullionWidth
-        rowSpacing: mullionHeight
+        columnSpacing: bezelWidth
+        rowSpacing: bezelHeight
         Repeater {
             model: numberOfTilesX * numberOfTilesY
             delegate: Rectangle {
