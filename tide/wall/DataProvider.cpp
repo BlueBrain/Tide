@@ -259,7 +259,7 @@ void DataProvider::_updateTiles(DataSources& dataSources)
         }
         else
         {
-            put_flog(LOG_DEBUG, "Removing invalid source");
+            print_log(LOG_DEBUG, LOG_GENERAL, "Removing invalid source");
             it = dataSources.erase(it);
         }
     }
@@ -269,8 +269,8 @@ template <>
 void DataProvider::_handleError<std::shared_ptr<PixelStreamUpdater>, QString>(
     QString uri, const std::exception& exc)
 {
-    put_flog(LOG_ERROR, "%s, closing pixel stream %s", exc.what(),
-             uri.toLocal8Bit().constData());
+    print_log(LOG_ERROR, LOG_STREAM, "%s, closing pixel stream %s", exc.what(),
+              uri.toLocal8Bit().constData());
     emit closePixelStream(uri);
 }
 
@@ -332,12 +332,14 @@ void DataProvider::_load(DataSourcePtr source, const TileUpdateList& tiles)
                 }
                 catch (...)
                 {
-                    put_flog(LOG_ERROR, "An error occured with tile: %d", id);
+                    print_log(LOG_ERROR, LOG_GENERAL,
+                              "An error occured with tile: %d", id);
                     return;
                 }
                 if (!image[view])
                 {
-                    put_flog(LOG_DEBUG, "Empty image for tile: %d", id);
+                    print_log(LOG_DEBUG, LOG_GENERAL,
+                              "Empty image for tile: %d", id);
                     return;
                 }
                 emit imageLoaded(); // Keep RenderController active
@@ -347,7 +349,7 @@ void DataProvider::_load(DataSourcePtr source, const TileUpdateList& tiles)
                                       Q_ARG(ImagePtr, image[view]));
         }
         else
-            put_flog(LOG_DEBUG, "Tile expired");
+            print_log(LOG_DEBUG, LOG_GENERAL, "Tile expired");
     }
 }
 

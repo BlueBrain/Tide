@@ -190,16 +190,17 @@ bool fromXmlFile(T& object, const std::string& filename)
     }
     catch (const boost::archive::archive_exception& e)
     {
-        put_flog(LOG_ERROR, "Could not restore from file: '%s': %s",
-                 filename.c_str(), e.what());
+        print_log(LOG_ERROR, LOG_CONTENT,
+                  "Could not restore from file: '%s': %s", filename.c_str(),
+                  e.what());
         return false;
     }
     catch (const std::exception& e)
     {
-        put_flog(LOG_ERROR,
-                 "Could not restore from file '%s'',"
-                 "wrong file format: %s",
-                 filename.c_str(), e.what());
+        print_log(LOG_ERROR, LOG_CONTENT,
+                  "Could not restore from file '%s'',"
+                  "wrong file format: %s",
+                  filename.c_str(), e.what());
         return false;
     }
     return true;

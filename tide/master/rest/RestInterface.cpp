@@ -48,6 +48,7 @@
 #include "SceneController.h"
 #include "ScreenLock.h"
 #include "ThumbnailCache.h"
+#include "log.h"
 #include "scene/ContentFactory.h"
 #include "serialization.h"
 
@@ -151,9 +152,8 @@ RestInterface::RestInterface(const uint16_t port, OptionsPtr options,
                              const MasterConfiguration& config)
     : _impl(new Impl(port, options, group, config, false))
 {
-    // Note: using same formatting as TUIO instead of put_flog() here
-    std::cout << "listening to REST messages on TCP port "
-              << _impl->server.getPort() << std::endl;
+    print_log(LOG_INFO, LOG_REST, "listening to REST messages on TCP port %hu",
+              _impl->server.getPort());
 
     QObject::connect(&_impl->fileReceiver, &FileReceiver::open,
                      &_impl->appController, &AppController::open);

@@ -52,6 +52,17 @@
 #define LOG_ERROR 4
 #define LOG_FATAL 5
 
+#define LOG_POWER "POWER"
+#define LOG_PDF "PDF"
+#define LOG_REST "REST"
+#define LOG_STREAM "STREAM"
+#define LOG_QT "QT"
+#define LOG_AV "AV"
+#define LOG_TIFF "TIFF"
+#define LOG_MPI "MPI"
+#define LOG_CONTENT "CONTENT"
+#define LOG_GENERAL "GENERAL"
+
 #ifdef NDEBUG
 #define LOG_THRESHOLD LOG_INFO
 #else
@@ -59,17 +70,24 @@
 #endif
 
 extern std::string logger_id;
-extern void put_log(int level, const char* format, ...);
+extern void put_log(const int level, const std::string& facility,
+                    const char* format, ...);
+
 extern void avMessageLoger(void*, int level, const char* format, va_list varg);
 extern void qtMessageLogger(QtMsgType type, const QMessageLogContext& context,
                             const QString& msg);
 
+extern void tiffMessageLoggerWarn(const char* module, const char* fmt,
+                                  va_list ap);
+extern void tiffMessageLoggerErr(const char* module, const char* fmt,
+                                 va_list ap);
+
 #ifdef _WIN32
-#define put_flog(l, fmt, ...) \
-    put_log(l, "%s: " fmt, __FUNCTION__, ##__VA_ARGS__)
+#define print_log(l, facility, fmt, ...) \
+    put_log(l, facility, "%s: " fmt, __FUNCTION__, ##__VA_ARGS__)
 #else
-#define put_flog(l, fmt, ...) \
-    put_log(l, "%s: " fmt, __PRETTY_FUNCTION__, ##__VA_ARGS__)
+#define print_log(l, facility, fmt, ...) \
+    put_log(l, facility, "%s: " fmt, __PRETTY_FUNCTION__, ##__VA_ARGS__)
 #endif
 
 #endif

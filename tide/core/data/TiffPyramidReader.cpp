@@ -45,6 +45,16 @@
 #include <QPainter>
 #include <tiffio.h>
 
+struct TiffStaticInit
+{
+    TiffStaticInit()
+    {
+        TIFFSetWarningHandler(tiffMessageLoggerWarn);
+        TIFFSetErrorHandler(tiffMessageLoggerErr);
+    }
+};
+static TiffStaticInit instance;
+
 struct TIFFDeleter
 {
     void operator()(TIFF* file) { TIFFClose(file); }
@@ -138,14 +148,15 @@ QImage TiffPyramidReader::readTile(const int i, const int j, const uint lod)
 
     if (!TIFFSetDirectory(_impl->tif.get(), lod))
     {
-        put_flog(LOG_WARN, "Invalid pyramid level: %d", lod);
+        print_log(LOG_WARN, LOG_TIFF, "Invalid pyramid level: %d", lod);
         return QImage();
     }
 
     const QPoint tile(i * tileSize.width(), j * tileSize.height());
     if (!TIFFCheckTile(_impl->tif.get(), tile.x(), tile.y(), 0, 0))
     {
-        put_flog(LOG_WARN, "Invalid tile (%d, %d) @ LOD %d", i, j, lod);
+        print_log(LOG_WARN, LOG_TIFF, "Invalid tile (%d, %d) @ LOD %d", i, j,
+                  lod);
         return QImage();
     }
 
@@ -167,7 +178,7 @@ QSize TiffPyramidReader::readSize(const uint lod)
 {
     if (!TIFFSetDirectory(_impl->tif.get(), lod))
     {
-        put_flog(LOG_WARN, "Invalid pyramid level: %d", lod);
+        print_log(LOG_WARN, LOG_TIFF, "Invalid pyramid level: %d", lod);
         return QSize();
     }
     return getImageSize();
@@ -177,7 +188,7 @@ QImage TiffPyramidReader::readImage(const uint lod)
 {
     if (!TIFFSetDirectory(_impl->tif.get(), lod))
     {
-        put_flog(LOG_WARN, "Invalid pyramid level: %d", lod);
+        print_log(LOG_WARN, LOG_TIFF, "Invalid pyramid level: %d", lod);
         return QImage();
     }
 

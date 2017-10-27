@@ -284,8 +284,9 @@ bool MasterConfiguration::save(const QString& filename) const
     QFile infile(_filename);
     if (!infile.open(QIODevice::ReadOnly))
     {
-        put_flog(LOG_ERROR, "could not open configuration file: '%s'",
-                 filename.toLocal8Bit().constData());
+        print_log(LOG_ERROR, LOG_GENERAL,
+                  "could not open configuration file: '%s'",
+                  filename.toLocal8Bit().constData());
         return false;
     }
     doc.setContent(&infile);
@@ -305,8 +306,9 @@ bool MasterConfiguration::save(const QString& filename) const
     QFile outfile(filename);
     if (!outfile.open(QIODevice::WriteOnly | QIODevice::Text))
     {
-        put_flog(LOG_ERROR, "could not save configuration file: '%s'",
-                 filename.toLocal8Bit().constData());
+        print_log(LOG_ERROR, LOG_GENERAL,
+                  "could not save configuration file: '%s'",
+                  filename.toLocal8Bit().constData());
         return false;
     }
     QTextStream out(&outfile);

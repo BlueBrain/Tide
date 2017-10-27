@@ -71,8 +71,9 @@ bool _isLegacyVersion(QXmlQuery& query)
     if (version == LEGACY_FILE_VERSION)
         return true;
 
-    put_flog(LOG_DEBUG, "not a legacy state file. version: %i, legacy: %i",
-             version, LEGACY_FILE_VERSION);
+    print_log(LOG_DEBUG, LOG_GENERAL,
+              "not a legacy state file. version: %i, legacy: %i", version,
+              LEGACY_FILE_VERSION);
     return false;
 }
 
@@ -179,8 +180,8 @@ bool State::legacyLoadXML(const QString& filename)
 
     if (!query.setFocus(QUrl(filename)))
     {
-        put_flog(LOG_DEBUG, "Not a valid legacy session: '%s'",
-                 filename.toLocal8Bit().constData());
+        print_log(LOG_DEBUG, LOG_GENERAL, "Not a valid legacy session: '%s'",
+                  filename.toLocal8Bit().constData());
         return false;
     }
 

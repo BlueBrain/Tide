@@ -83,8 +83,8 @@ int main(int argc, char* argv[])
         }
         catch (const std::runtime_error& e)
         {
-            put_flog(LOG_FATAL, "Could not initialize application. %s",
-                     e.what());
+            print_log(LOG_FATAL, LOG_GENERAL,
+                      "Could not initialize application. %s", e.what());
 
             // Always send QUIT to the master application that will wait on it
             // to exit (normally done by WallApplication destructor).
@@ -95,9 +95,9 @@ int main(int argc, char* argv[])
         }
         app->exec(); // enter Qt event loop
 
-        put_flog(LOG_DEBUG, "waiting for threads to finish...");
+        print_log(LOG_DEBUG, LOG_GENERAL, "waiting for threads to finish...");
         QThreadPool::globalInstance()->waitForDone();
     }
-    put_flog(LOG_DEBUG, "done.");
+    print_log(LOG_DEBUG, LOG_GENERAL, "done.");
     return EXIT_SUCCESS;
 }

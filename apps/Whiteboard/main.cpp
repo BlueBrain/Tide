@@ -60,7 +60,8 @@ int main(int argc, char** argv)
     }
     catch (const std::runtime_error& exception)
     {
-        put_flog(LOG_FATAL, "failed to start: %s", exception.what());
+        print_log(LOG_FATAL, LOG_GENERAL, "failed to start: %s",
+                  exception.what());
         return EXIT_FAILURE;
     }
     return whiteboard->exec();

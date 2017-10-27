@@ -78,8 +78,8 @@ SVG::SVG(const QString& uri)
     }
     catch (const std::runtime_error& e)
     {
-        put_flog(LOG_DEBUG, "Could not open document '%s': '%s'",
-                 uri.toLocal8Bit().constData(), e.what());
+        print_log(LOG_DEBUG, LOG_CONTENT, "Could not open document '%s': '%s'",
+                  uri.toLocal8Bit().constData(), e.what());
     }
 }
 
