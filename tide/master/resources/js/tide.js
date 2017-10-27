@@ -911,15 +911,12 @@ function setBezels() {
   css("grid-column-gap", bezelWidth).css("grid-row-gap", bezelHeight);
 
   var totalScreens = screenCountX * screenCountY;
-  var monitorsPerScreenX = displaysPerScreenX;
-  var monitorsPerScreenY = displaysPerScreenY;
-
   for (var i = 0; i < totalScreens; i++) {
     let screen = $("<div class=screen id=b" + i + "></div>");
     $("#wall").append(screen);
-    screen.css("grid-template-rows", "repeat(" + monitorsPerScreenX +", 1fr)");
-    screen.css("grid-template-columns", "repeat(" + monitorsPerScreenY +", 1fr)");
-    var totalDisplaysPerScreen = monitorsPerScreenX * monitorsPerScreenY;
+    screen.css("grid-template-rows", "repeat(" + displaysPerScreenY +", 1fr)");
+    screen.css("grid-template-columns", "repeat(" + displaysPerScreenX +", 1fr)");
+    var totalDisplaysPerScreen = displaysPerScreenX * displaysPerScreenY;
     
     for (var j = 0; j < totalDisplaysPerScreen; j++) {
       let display = $("<div class='display'> </div>");
