@@ -52,8 +52,9 @@
 #include "scene/ContentFactory.h"
 #include "serialization.h"
 
-#include <QDir>
 #include <tide/master/version.h>
+
+#include <QDir>
 
 using namespace std::placeholders;
 using namespace zeroeq;
@@ -151,7 +152,6 @@ RestInterface::RestInterface(const uint16_t port, OptionsPtr options,
                              const MasterConfiguration& config)
     : _impl(new Impl(port, options, group, config, false))
 {
-    // Note: using same formatting as TUIO instead of print_log() here
     print_log(LOG_INFO, LOG_REST, "listening to REST messages on TCP port %hu",
               _impl->server.getPort());
 

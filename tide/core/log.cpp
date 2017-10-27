@@ -58,10 +58,10 @@ extern "C" {
 }
 #endif
 
-#define MAX_LOG_LENGTH 1024
-
 namespace
 {
+const size_t MAX_LOG_LENGTH = 1024;
+
 std::string getTimestamp()
 {
     return QDateTime::currentDateTime()
