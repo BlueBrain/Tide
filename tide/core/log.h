@@ -55,6 +55,7 @@
 #define LOG_AV "AV"
 #define LOG_CONTENT "CONTENT"
 #define LOG_GENERAL "GENERAL"
+#define LOG_JS "JS"
 #define LOG_MPI "MPI"
 #define LOG_PDF "PDF"
 #define LOG_POWER "POWER"

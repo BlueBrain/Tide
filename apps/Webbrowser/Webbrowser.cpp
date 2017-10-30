@@ -55,6 +55,21 @@ const std::string deflectHost("localhost");
 const QString deflectQmlFile("qrc:/qml/qml/Webengine.qml");
 const QString webengineviewItemName("webengineview");
 const QString searchUrl("https://www.google.com/search?q=%1");
+
+int _getLogLevel(const int jsLevel)
+{
+    switch (jsLevel)
+    {
+    case 0:
+        return LOG_INFO;
+    case 1:
+        return LOG_WARN;
+    case 2:
+        return LOG_ERROR;
+    default:
+        throw std::invalid_argument("unknown log level");
+    }
+}
 }
 
 Webbrowser::Webbrowser(int& argc, char* argv[])
@@ -90,6 +105,9 @@ Webbrowser::Webbrowser(int& argc, char* argv[])
 
     connect(_webengine, SIGNAL(urlChanged()), this, SLOT(_sendData()));
     connect(_webengine, SIGNAL(titleChanged()), this, SLOT(_sendData()));
+
+    connect(_webengine, SIGNAL(jsMessage(int, QString, int, QString)), this,
+            SLOT(_logJsMessage(int, QString, int, QString)));
 }
 
 Webbrowser::~Webbrowser()
@@ -157,4 +175,12 @@ void Webbrowser::_sendData()
         WebbrowserContent::serializeData(history, title, restPort);
     if (!_qmlStreamer->sendData(data))
         QGuiApplication::quit();
+}
+
+void Webbrowser::_logJsMessage(const int level, const QString message,
+                               const int lineNumber, const QString sourceID)
+{
+    const auto line = QString::number(lineNumber);
+    const auto msg = QString("%1 @ l.%2 in %3").arg(message, line, sourceID);
+    put_log(_getLogLevel(level), LOG_JS, msg.toLocal8Bit().constData());
 }

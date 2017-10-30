@@ -79,6 +79,10 @@ Item {
         settings.localContentCanAccessRemoteUrls: true
         settings.pluginsEnabled: true
 
+        // Pass javascript messages by signal to Tide's custom C++ log handler
+        signal jsMessage(int level, string message, int line, string source)
+        onJavaScriptConsoleMessage: jsMessage(level, message, lineNumber, sourceID)
+
         Connections {
             target: deflectgestures
             onSwipeLeft: webengine.goBack()

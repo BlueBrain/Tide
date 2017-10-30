@@ -60,6 +60,8 @@ public:
 private slots:
     void _processAddressBarInput(QString url);
     void _sendData();
+    void _logJsMessage(int level, QString message, int lineNumber,
+                       QString sourceID);
 
 private:
     std::unique_ptr<deflect::qt::QmlStreamer> _qmlStreamer;
