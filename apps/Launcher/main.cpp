@@ -57,7 +57,7 @@ int main(int argc, char** argv)
     {
         launcher.reset(new Launcher(argc, argv));
     }
-    catch (const std::runtime_error& exception)
+    catch (const std::exception& exception)
     {
         print_log(LOG_ERROR, LOG_GENERAL, "failed to start: %s",
                   exception.what());

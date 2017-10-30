@@ -58,10 +58,9 @@ int main(int argc, char** argv)
     {
         whiteboard.reset(new Whiteboard(argc, argv));
     }
-    catch (const std::runtime_error& exception)
+    catch (const std::exception& e)
     {
-        print_log(LOG_FATAL, LOG_GENERAL, "failed to start: %s",
-                  exception.what());
+        print_log(LOG_FATAL, LOG_GENERAL, "failed to start: %s", e.what());
         return EXIT_FAILURE;
     }
     return whiteboard->exec();

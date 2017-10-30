@@ -58,6 +58,12 @@ extern "C" {
 }
 #endif
 
+#ifdef NDEBUG
+#define LOG_THRESHOLD LOG_INFO
+#else
+#define LOG_THRESHOLD LOG_DEBUG
+#endif
+
 namespace
 {
 const size_t MAX_LOG_LENGTH = 1024;
@@ -75,6 +81,9 @@ std::string logger_id = "";
 void put_log(const int level, const std::string& facility, const char* format,
              ...)
 {
+    if (level < LOG_THRESHOLD)
+        return;
+
     char log_string[MAX_LOG_LENGTH];
     va_list ap;
     va_start(ap, format);
@@ -194,4 +203,9 @@ void tiffMessageLoggerErr(const char* module, const char* fmt, va_list ap)
     char log_string[MAX_LOG_LENGTH];
     vsnprintf(log_string, MAX_LOG_LENGTH, fmt, ap);
     put_log(LOG_ERROR, LOG_TIFF, "%s: '%s'", module, log_string);
+}
+
+void tuioMessageLogger(const int level, const std::string& message)
+{
+    put_log(level, LOG_TUIO, message.c_str());
 }

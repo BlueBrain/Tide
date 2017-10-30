@@ -52,22 +52,17 @@
 #define LOG_ERROR 4
 #define LOG_FATAL 5
 
-#define LOG_POWER "POWER"
-#define LOG_PDF "PDF"
-#define LOG_REST "REST"
-#define LOG_STREAM "STREAM"
-#define LOG_QT "QT"
 #define LOG_AV "AV"
-#define LOG_TIFF "TIFF"
-#define LOG_MPI "MPI"
 #define LOG_CONTENT "CONTENT"
 #define LOG_GENERAL "GENERAL"
-
-#ifdef NDEBUG
-#define LOG_THRESHOLD LOG_INFO
-#else
-#define LOG_THRESHOLD LOG_DEBUG
-#endif
+#define LOG_MPI "MPI"
+#define LOG_PDF "PDF"
+#define LOG_POWER "POWER"
+#define LOG_QT "QT"
+#define LOG_REST "REST"
+#define LOG_STREAM "STREAM"
+#define LOG_TIFF "TIFF"
+#define LOG_TUIO "TUIO"
 
 extern std::string logger_id;
 extern void put_log(const int level, const std::string& facility,
@@ -81,6 +76,8 @@ extern void tiffMessageLoggerWarn(const char* module, const char* fmt,
                                   va_list ap);
 extern void tiffMessageLoggerErr(const char* module, const char* fmt,
                                  va_list ap);
+
+extern void tuioMessageLogger(int level, const std::string& message);
 
 #ifdef _WIN32
 #define print_log(l, facility, fmt, ...) \

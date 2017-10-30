@@ -81,7 +81,7 @@ int main(int argc, char* argv[])
             app.reset(new WallApplication(argc, argv, config, mainChannel,
                                           localChannel));
         }
-        catch (const std::runtime_error& e)
+        catch (const std::exception& e)
         {
             print_log(LOG_FATAL, LOG_GENERAL,
                       "Could not initialize application. %s", e.what());
