@@ -152,8 +152,8 @@ RestInterface::RestInterface(const uint16_t port, OptionsPtr options,
                              const MasterConfiguration& config)
     : _impl(new Impl(port, options, group, config, false))
 {
-    print_log(LOG_INFO, LOG_REST, "listening to REST messages on TCP port %hu",
-              _impl->server.getPort());
+    put_log(LOG_INFO, LOG_REST, "listening to REST messages on TCP port %hu",
+            _impl->server.getPort());
 
     QObject::connect(&_impl->fileReceiver, &FileReceiver::open,
                      &_impl->appController, &AppController::open);

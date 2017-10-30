@@ -40,7 +40,17 @@
 
 #include "MultitouchListener.h"
 
+#include "log.h"
+
+#include <TUIO/TuioLog.h>
+
 #include <stdexcept>
+
+struct TuioLogInit
+{
+    TuioLogInit() { TUIO::setLogHandler(tuioMessageLogger); }
+};
+static TuioLogInit instance;
 
 MultitouchListener::MultitouchListener()
     : TUIO::TuioListener()

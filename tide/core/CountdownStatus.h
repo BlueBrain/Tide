@@ -52,8 +52,8 @@ class CountdownStatus : public QObject
     Q_OBJECT
     Q_DISABLE_COPY(CountdownStatus)
 
-    Q_PROPERTY(bool active READ isActive)
-    Q_PROPERTY(uint duration READ getDuration)
+    Q_PROPERTY(bool active READ isActive CONSTANT)
+    Q_PROPERTY(uint duration READ getDuration CONSTANT)
 
 public:
     /** Default constructor for use on wall processes. */
