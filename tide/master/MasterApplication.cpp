@@ -540,7 +540,7 @@ void MasterApplication::_initRestInterface()
 #if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
         if (uri.isEmpty())
             uri = _config->getWebBrowserDefaultURL();
-        _pixelStreamerLauncher->openWebBrowser(QPointF(), QSize(), uri);
+        _pixelStreamerLauncher->openWebBrowser(QPointF(), QSize(), uri, 0);
 #else
         print_log(LOG_INFO, LOG_GENERAL,
                   "Can't browse url '%s', Tide was compiled without"

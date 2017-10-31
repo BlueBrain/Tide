@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.4 (git master)
 
+* [203](https://github.com/BlueBrain/Tide/pull/203):
+  Webbrowser: added option to enable remote debugging (from MasterWindow UI).
 * [202](https://github.com/BlueBrain/Tide/pull/202):
   Fixed incorrect count of open windows reported at tide/stats HTTP endpoint.
 * [201](https://github.com/BlueBrain/Tide/pull/201):

@@ -85,6 +85,28 @@ QString _getWebbrowserCommand(const QString& args)
     return QString("%1/%2 %3").arg(appDir, app, args);
 }
 
+QString _getWebbrowserCommand(const WebbrowserContent& webbrowser)
+{
+    CommandLineOptions options;
+    options.setStreamId(webbrowser.getURI());
+    options.setUrl(webbrowser.getUrl());
+    options.setWidth(webbrowser.width());
+    options.setHeight(webbrowser.height());
+#ifdef TIDE_USE_QT5WEBKITWIDGETS
+    options.setPixelStreamerType(PS_WEBKIT);
+#endif
+    return _getWebbrowserCommand(options.getCommandLine());
+}
+
+QStringList _getWebbrowserEnv(const ushort debugPort)
+{
+    // The env variable must always be present otherwise it is not reset.
+    auto env = QString{"QTWEBENGINE_REMOTE_DEBUGGING="};
+    if (debugPort)
+        env.append(QString::number((uint)debugPort));
+    return QStringList{env};
+}
+
 QString _getWhiteboardCommand(const QString& args)
 {
     const auto appDir = QCoreApplication::applicationDirPath();
@@ -104,7 +126,8 @@ PixelStreamerLauncher::PixelStreamerLauncher(PixelStreamWindowManager& manager,
 }
 
 void PixelStreamerLauncher::openWebBrowser(QPointF pos, QSize size,
-                                           const QString url)
+                                           const QString url,
+                                           const ushort debugPort)
 {
     if (pos.isNull())
         pos = _getDefaultWindowPosition();
@@ -117,23 +140,15 @@ void PixelStreamerLauncher::openWebBrowser(QPointF pos, QSize size,
     auto content = _windowManager.getWindow(uri)->getContent();
     auto& webbrowser = dynamic_cast<WebbrowserContent&>(*content);
     webbrowser.setUrl(url);
-    launch(webbrowser);
+    launch(webbrowser, debugPort);
 }
 
-void PixelStreamerLauncher::launch(const WebbrowserContent& webbrowser)
+void PixelStreamerLauncher::launch(const WebbrowserContent& webbrowser,
+                                   const ushort debugPort)
 {
-    CommandLineOptions options;
-    options.setStreamId(webbrowser.getURI());
-    options.setUrl(webbrowser.getUrl());
-    options.setWidth(webbrowser.width());
-    options.setHeight(webbrowser.height());
-#ifdef TIDE_USE_QT5WEBKITWIDGETS
-    options.setPixelStreamerType(PS_WEBKIT);
-#endif
-    const auto command = _getWebbrowserCommand(options.getCommandLine());
-
-    _processes.insert(webbrowser.getURI());
-    emit start(command, QDir::currentPath(), {});
+    const auto cmd = _getWebbrowserCommand(webbrowser);
+    const auto env = _getWebbrowserEnv(debugPort);
+    _startProcess(webbrowser.getURI(), cmd, env);
 }
 
 void PixelStreamerLauncher::openLauncher()
@@ -165,8 +180,7 @@ void PixelStreamerLauncher::openLauncher()
     if (!_config.getLauncherDisplay().isEmpty())
         env.append(QString("DISPLAY=%1").arg(_config.getLauncherDisplay()));
 
-    _processes.insert(uri);
-    emit start(command, QDir::currentPath(), env);
+    _startProcess(uri, command, env);
 }
 
 void PixelStreamerLauncher::openWhiteboard()
@@ -183,8 +197,7 @@ void PixelStreamerLauncher::openWhiteboard()
     options.setConfiguration(_config.getFilename());
     const auto command = _getWhiteboardCommand(options.getCommandLine());
 
-    _processes.insert(uri);
-    emit start(command, QDir::currentPath(), {});
+    _startProcess(uri, command, {});
 }
 
 void PixelStreamerLauncher::_dereferenceLocalStreamer(const QString uri)
@@ -195,4 +208,12 @@ void PixelStreamerLauncher::_dereferenceLocalStreamer(const QString uri)
 QPointF PixelStreamerLauncher::_getDefaultWindowPosition() const
 {
     return {0.5 * _config.getTotalWidth(), 0.35 * _config.getTotalHeight()};
+}
+
+void PixelStreamerLauncher::_startProcess(const QString& uri,
+                                          const QString& command,
+                                          const QStringList& env)
+{
+    _processes.insert(uri);
+    emit start(command, QDir::currentPath(), env);
 }

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -69,7 +69,7 @@ public:
 
 signals:
     /** Emitted when users want to open a webbrowser. */
-    void openWebBrowser(QPointF pos, QSize size, QString url);
+    void openWebBrowser(QPointF pos, QSize size, QString url, ushort debugPort);
 
     /** Emitted when users want to open a whiteboard. */
     void openWhiteboard();
