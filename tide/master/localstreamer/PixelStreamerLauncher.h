@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -80,11 +80,12 @@ public slots:
      *        If pos.isNull(), the window is centered on the DisplayWall.
      * @param size The initial size of the viewport of the webbrowser in pixels.
      * @param url The webpage to open.
+     * @param debugPort Optional port to enable Chromium's remote debugging.
      */
-    void openWebBrowser(QPointF pos, QSize size, QString url);
+    void openWebBrowser(QPointF pos, QSize size, QString url, ushort debugPort);
 
     /** Start a webbrowser for an existing window. */
-    void launch(const WebbrowserContent& webbrowser);
+    void launch(const WebbrowserContent& webbrowser, ushort debugPort = 0u);
 
     /** Open the Qml launcher. */
     void openLauncher();
@@ -103,6 +104,8 @@ private:
 
     void _dereferenceLocalStreamer(QString uri);
     QPointF _getDefaultWindowPosition() const;
+    void _startProcess(const QString& uri, const QString& command,
+                       const QStringList& env);
 };
 
 #endif

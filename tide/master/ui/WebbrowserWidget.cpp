@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -88,6 +88,14 @@ WebbrowserWidget::WebbrowserWidget(const MasterConfiguration& config,
     _heightSpinBox->setMaximum(SPIN_BOX_MAX_VALUE);
     _heightSpinBox->setValue(WEBBROWSER_DEFAULT_HEIGHT);
 
+    // Debug port
+
+    QLabel* debugPortLabel = new QLabel("Debug port: ", this);
+
+    _debugPortSpinBox = new QSpinBox(this);
+    _debugPortSpinBox->setMinimum(0);
+    _debugPortSpinBox->setMaximum(65535);
+
     // Layout
 
     QGridLayout* gridLayout = new QGridLayout;
@@ -104,14 +112,17 @@ WebbrowserWidget::WebbrowserWidget(const MasterConfiguration& config,
     gridLayout->addWidget(heightLabel, 2, 0);
     gridLayout->addWidget(_heightSpinBox, 2, 1);
 
-    gridLayout->addWidget(buttonBox, 3, 1);
+    gridLayout->addWidget(debugPortLabel, 3, 0);
+    gridLayout->addWidget(_debugPortSpinBox, 3, 1);
+
+    gridLayout->addWidget(buttonBox, 4, 1);
 }
 
 void WebbrowserWidget::accept()
 {
     const QSize dimensions(_widthSpinBox->value(), _heightSpinBox->value());
-
-    emit openWebBrowser(QPointF(), dimensions, _urlLineEdit->text());
+    const auto debugPort = (ushort)_debugPortSpinBox->value();
+    emit openWebBrowser(QPointF(), dimensions, _urlLineEdit->text(), debugPort);
 
     QDialog::accept();
 }

@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -59,7 +59,7 @@ public:
 
 signals:
     /** Emitted when users want to open a webbrowser. */
-    void openWebBrowser(QPointF pos, QSize size, QString url);
+    void openWebBrowser(QPointF pos, QSize size, QString url, ushort debugPort);
 
 public slots:
     /** Store the new settings and close the widget */
@@ -69,6 +69,7 @@ private:
     QLineEdit* _urlLineEdit;
     QSpinBox* _widthSpinBox;
     QSpinBox* _heightSpinBox;
+    QSpinBox* _debugPortSpinBox;
 };
 
 #endif
