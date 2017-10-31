@@ -9,14 +9,15 @@ Changelog {#changelog}
   The interface unlocks when the screens are turned off.
 * [200](https://github.com/BlueBrain/Tide/pull/200):
   Xml configuration simplification:
-  - replaced screenWidth/Height with displayWidht/Height, which refers
-    to physical screen size.
-  - introducing displaysPerScreenX/Y used to determine the total screen size.
-  - removing bezelsPerScreenX/Y, which became redundant.
-  - renaming keys:
-    -  numTilesWidth -> numScreensX, numTilesHeight -> numScreensY.
-    -  mullionWidth -> bezelWidth, mullionHeight -> bezelHeight.
-  Fix in web interface related to bezel and configuration.
+  - Replaced screenWidth/Height with displayWidth/Height, which refers
+    to the resolution of an invidual physical display.
+  - Introduced displaysPerScreenX/Y, used to determine the resolution of a
+    logical screen (n * displaySize + (n-1) * bezelSize).
+  - Renamed some keys:
+    -  numTilesWidth/Height -> numScreensX/Y.
+    -  mullionWidth/Height -> bezelWidth/Height.
+  - Removed bezelsPerScreenX/Y which became redundant.
+  Fixes in web interface related to bezel and configuration.
 * [195](https://github.com/BlueBrain/Tide/pull/195):
   New features in html interface:
   - Dragged window can be snapped to a bezel.
@@ -34,8 +35,8 @@ Changelog {#changelog}
 * [169](https://github.com/BlueBrain/Tide/issues/169):
   Performance improvement for PixelStreams with small tile size (64x64).
 * [167](https://github.com/BlueBrain/Tide/pull/167):
-  Tide can be locked now. It prevents unwanted streams from opening and
-  freezes HTML interface.
+  Tide can be locked to prevent unwanted streams from opening or actions from
+  the HTML interface, e.g. during a presentation.
 * [162](https://github.com/BlueBrain/Tide/issues/162):
   Movies and pixel streams can be rendered at 60 fps (up from 30 fps).
 * [161](https://github.com/BlueBrain/Tide/issues/161):
