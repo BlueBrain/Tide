@@ -179,7 +179,7 @@ BaseContentWindow {
         onPan: {
             if(contentActive)
                 contentcontroller.pan(pos, Qt.point(delta.x, delta.y), numPoints)
-            else if(windowActive && contentwindow.state === ContentWindow.MOVING)
+            else if(windowActive && contentwindow.state === ContentWindow.MOVING && numPoints === 1)
                 controller.moveBy(delta)
         }
         onPanEnded: {
