@@ -1,6 +1,13 @@
 Changelog {#changelog}
 ============
 
+# Release 1.5 (git master)
+
+* [211](https://github.com/BlueBrain/Tide/pull/211):
+  Qt's TuioTouch plugin replaces BlueBrain's TUIO subproject. Note: when not in
+  headless mode, the touch points can only be delivered when the main window's
+  Qml item has active focus.
+
 # Release 1.4 (09-11-2017)
 
 * [203](https://github.com/BlueBrain/Tide/pull/203):

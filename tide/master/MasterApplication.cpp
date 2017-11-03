@@ -62,10 +62,6 @@
 #include "ui/MasterQuickView.h"
 #include "ui/MasterWindow.h"
 
-#if TIDE_ENABLE_TUIO_TOUCH_LISTENER
-#include "MultitouchListener.h"
-#endif
-
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
 #include "scene/WebbrowserContent.h"
 #endif
@@ -227,24 +223,13 @@ void MasterApplication::_init()
                 _saveSessionCallback = nullptr;
             });
 
-#if TIDE_ENABLE_PLANAR_CONTROLLER
-    if (!_config->getPlanarSerialPort().isEmpty())
-    {
-        _planarController.reset(
-            new PlanarController(_config->getPlanarSerialPort()));
-
-        connect(_inactivityTimer.get(), &InactivityTimer::poweroff, [this]() {
-            _planarController->powerOff();
-            print_log(LOG_INFO, LOG_POWER,
-                      "Powering off the screens on inactivity timeout");
-        });
-    }
-#endif
-
 #if TIDE_ENABLE_REST_INTERFACE
     _initRestInterface();
 #endif
-
+#if TIDE_ENABLE_PLANAR_CONTROLLER
+    if (!_config->getPlanarSerialPort().isEmpty())
+        _initPlanarController();
+#endif
     _startDeflectServer();
     _setupMPIConnections();
 }
@@ -275,13 +260,6 @@ void MasterApplication::_initMasterWindow()
     connect(view, &MasterQuickView::mouseReleased,
             [this](const QPointF) { _markers->removeMarker(MOUSE_MARKER_ID); });
 
-#if TIDE_ENABLE_TUIO_TOUCH_LISTENER
-    auto mapFunc =
-        std::bind(&MasterQuickView::mapToWallPos, view, std::placeholders::_1);
-    _touchInjector.reset(new deflect::qt::TouchInjector{*view, mapFunc});
-    _initTouchListener();
-#endif
-
     auto engine = view->engine();
     auto item = view->wallItem();
     _masterGroupRenderer.reset(
@@ -299,11 +277,6 @@ void MasterApplication::_initOffscreenView()
                                                               _lock.get());
     _offscreenQuickView->load(QML_OFFSCREEN_ROOT_COMPONENT).wait();
     _offscreenQuickView->resize(_config->getTotalSize());
-
-#if TIDE_ENABLE_TUIO_TOUCH_LISTENER
-    _touchInjector = deflect::qt::TouchInjector::create(*_offscreenQuickView);
-    _initTouchListener();
-#endif
 
     auto engine = _offscreenQuickView->getEngine();
     auto item = _offscreenQuickView->getRootItem();
@@ -454,57 +427,6 @@ void MasterApplication::_setupMPIConnections()
     _mpiReceiveThread.start();
 }
 
-#if TIDE_ENABLE_TUIO_TOUCH_LISTENER
-void MasterApplication::_initTouchListener()
-{
-    _touchListener.reset(new MultitouchListener());
-
-    connect(_touchListener.get(), &MultitouchListener::touchPointAdded,
-            _touchInjector.get(), &deflect::qt::TouchInjector::addTouchPoint);
-    connect(_touchListener.get(), &MultitouchListener::touchPointUpdated,
-            _touchInjector.get(),
-            &deflect::qt::TouchInjector::updateTouchPoint);
-    connect(_touchListener.get(), &MultitouchListener::touchPointRemoved,
-            _touchInjector.get(),
-            &deflect::qt::TouchInjector::removeTouchPoint);
-    connect(_touchListener.get(), &MultitouchListener::touchPointAdded,
-            _inactivityTimer.get(), &InactivityTimer::restart);
-
-    const auto wallSize = _config->getTotalSize();
-    auto getWallPos = [wallSize](const QPointF& normalizedPos) {
-        return QPointF{normalizedPos.x() * wallSize.width(),
-                       normalizedPos.y() * wallSize.height()};
-    };
-    connect(_touchListener.get(), &MultitouchListener::touchPointAdded,
-            [this, getWallPos](const int id, const QPointF normalizedPos) {
-                _markers->addMarker(id, getWallPos(normalizedPos));
-#if TIDE_ENABLE_PLANAR_CONTROLLER
-                if (!_planarController ||
-                    _planarController->getState() != ScreenState::OFF)
-                {
-                    return;
-                }
-                if (_planarController->powerOn())
-                    print_log(LOG_INFO, LOG_POWER,
-                              "Powered on the screens by touching the "
-                              "wall");
-                else
-                    print_log(LOG_ERROR, LOG_POWER,
-                              "Could not power on the screens by "
-                              "touching the wall");
-#endif
-            });
-    connect(_touchListener.get(), &MultitouchListener::touchPointUpdated,
-            [this, getWallPos](const int id, const QPointF normalizedPos) {
-                _markers->updateMarker(id, getWallPos(normalizedPos));
-            });
-    connect(_touchListener.get(), &MultitouchListener::touchPointRemoved,
-            [this](const int id, const QPointF) {
-                _markers->removeMarker(id);
-            });
-}
-#endif
-
 #if TIDE_ENABLE_REST_INTERFACE
 void MasterApplication::_initRestInterface()
 {
@@ -561,36 +483,42 @@ void MasterApplication::_initRestInterface()
                 _masterToWallChannel->sendRequestScreenshot();
             });
 
+    connect(&appController, &AppController::powerOff, this,
+            &MasterApplication::_suspend);
+
     connect(&appController, &AppController::exit, [this]() { exit(); });
+}
+#endif
 
 #if TIDE_ENABLE_PLANAR_CONTROLLER
-    if (_planarController)
-    {
-        connect(_planarController.get(), &PlanarController::powerStateChanged,
-                _logger.get(), &LoggingUtility::logScreenStateChanged);
+void MasterApplication::_initPlanarController()
+{
+    _planarController.reset(
+        new PlanarController(_config->getPlanarSerialPort()));
 
-        connect(_planarController.get(), &PlanarController::powerStateChanged,
-                [this](const ScreenState state) {
-                    if (state == ScreenState::ON)
-                        _inactivityTimer->restart();
-                    else
-                        _inactivityTimer->stop();
-                });
+    connect(_inactivityTimer.get(), &InactivityTimer::poweroff, [this]() {
+        _planarController->powerOff();
+        print_log(LOG_INFO, LOG_POWER,
+                  "Powering off the screens on inactivity timeout");
+    });
 
-        connect(_planarController.get(), &PlanarController::powerStateChanged,
-                [this](const ScreenState state) {
-                    if (state == ScreenState::OFF)
-                        _lock->unlock();
-                });
+    connect(_planarController.get(), &PlanarController::powerStateChanged,
+            [this](const ScreenState state) {
+                if (state == ScreenState::ON)
+                    _inactivityTimer->restart();
+                else
+                    _inactivityTimer->stop();
+            });
 
-        connect(&appController, &AppController::powerOff, [this]() {
-            if (_planarController->powerOff())
-                DisplayGroupController(*_displayGroup).hidePanels();
-            else
-                print_log(LOG_ERROR, LOG_POWER,
-                          "Could not power off the screens");
-        });
-    }
+    connect(_planarController.get(), &PlanarController::powerStateChanged,
+            [this](const ScreenState state) {
+                if (state == ScreenState::OFF)
+                    _lock->unlock();
+            });
+
+#if TIDE_ENABLE_REST_INTERFACE
+    connect(_planarController.get(), &PlanarController::powerStateChanged,
+            _logger.get(), &LoggingUtility::logScreenStateChanged);
 #endif
 }
 #endif
@@ -607,6 +535,34 @@ void MasterApplication::_restoreBackground()
             content = ContentFactory::getErrorContent();
         _options->setBackgroundContent(content);
     }
+}
+
+void MasterApplication::_suspend()
+{
+#if TIDE_ENABLE_PLANAR_CONTROLLER
+    if (_planarController && _planarController->getState() == ScreenState::ON)
+    {
+        if (_planarController->powerOff())
+            DisplayGroupController(*_displayGroup).hidePanels();
+        else
+            print_log(LOG_ERROR, LOG_POWER, "Could not power off the screens");
+    }
+#endif
+}
+
+void MasterApplication::_resume()
+{
+#if TIDE_ENABLE_PLANAR_CONTROLLER
+    if (_planarController && _planarController->getState() == ScreenState::OFF)
+    {
+        if (_planarController->powerOn())
+            print_log(LOG_INFO, LOG_POWER,
+                      "Powered on the screens by touching the wall");
+        else
+            print_log(LOG_ERROR, LOG_POWER,
+                      "Could not power on the screens by touching the wall");
+    }
+#endif
 }
 
 void MasterApplication::_apply(DisplayGroupConstPtr group)
@@ -631,5 +587,53 @@ void MasterApplication::_deleteTempContentFile(ContentWindowPtr window)
         QDir().remove(filename);
         print_log(LOG_INFO, LOG_REST, "Deleted temporary file: %s",
                   filename.toLocal8Bit().constData());
+    }
+}
+
+bool MasterApplication::notify(QObject* receiver, QEvent* event)
+{
+    switch (event->type())
+    {
+    case QEvent::TouchBegin:
+    case QEvent::TouchUpdate:
+    case QEvent::TouchEnd:
+    case QEvent::TouchCancel:
+    {
+        _handle(static_cast<const QTouchEvent*>(event));
+    }
+    default:
+        break;
+    }
+    return QApplication::notify(receiver, event);
+}
+
+void MasterApplication::_handle(const QTouchEvent* event)
+{
+    _inactivityTimer->restart();
+    _resume();
+
+    const auto wallSize = _config->getTotalSize();
+    auto getWallPos = [wallSize](const QPointF& normalizedPos) {
+        return QPointF{normalizedPos.x() * wallSize.width(),
+                       normalizedPos.y() * wallSize.height()};
+    };
+
+    for (const auto& point : event->touchPoints())
+    {
+        switch (point.state())
+        {
+        case Qt::TouchPointPressed:
+            _markers->addMarker(point.id(), getWallPos(point.normalizedPos()));
+            break;
+        case Qt::TouchPointMoved:
+            _markers->updateMarker(point.id(),
+                                   getWallPos(point.normalizedPos()));
+            break;
+        case Qt::TouchPointReleased:
+            _markers->removeMarker(point.id());
+            break;
+        case Qt::TouchPointStationary:
+            break;
+        }
     }
 }

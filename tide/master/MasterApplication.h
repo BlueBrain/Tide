@@ -44,9 +44,6 @@
 #include "types.h"
 
 #include <deflect/qt/OffscreenQuickView.h>
-#if TIDE_ENABLE_TUIO_TOUCH_LISTENER
-#include <deflect/qt/TouchInjector.h>
-#endif
 
 #if TIDE_ENABLE_PLANAR_CONTROLLER
 #include "PlanarController.h"
@@ -65,7 +62,6 @@ class MasterWindow;
 class PixelStreamerLauncher;
 class PixelStreamWindowManager;
 class MasterConfiguration;
-class MultitouchListener;
 class RestInterface;
 class ScreenshotAssembler;
 class LoggingUtility;
@@ -87,7 +83,7 @@ public:
      * @param forkChannel The MPI channel for forking processes
      * @throw std::runtime_error if an error occured during initialization
      */
-    MasterApplication(int &argc, char **argv, const QString &config,
+    MasterApplication(int& argc, char** argv, const QString& config,
                       MPIChannelPtr worldChannel, MPIChannelPtr forkChannel);
 
     /** Destructor */
@@ -123,11 +119,6 @@ private:
     std::unique_ptr<PixelStreamerLauncher> _pixelStreamerLauncher;
     std::unique_ptr<PixelStreamWindowManager> _pixelStreamWindowManager;
 
-#if TIDE_ENABLE_TUIO_TOUCH_LISTENER
-    std::unique_ptr<MultitouchListener> _touchListener;
-    std::unique_ptr<deflect::qt::TouchInjector> _touchInjector;
-#endif
-
 #if TIDE_ENABLE_REST_INTERFACE
     std::unique_ptr<RestInterface> _restInterface;
     std::unique_ptr<LoggingUtility> _logger;
@@ -153,16 +144,20 @@ private:
     void _initOffscreenView();
     void _startDeflectServer();
     void _setupMPIConnections();
-#if TIDE_ENABLE_TUIO_TOUCH_LISTENER
-    using MapToSceneFunc = deflect::qt::TouchInjector::MapToSceneFunc;
-    void _initTouchListener();
-#endif
 #if TIDE_ENABLE_REST_INTERFACE
     void _initRestInterface();
 #endif
+#if TIDE_ENABLE_PLANAR_CONTROLLER
+    void _initPlanarController();
+#endif
     void _restoreBackground();
+    void _suspend();
+    void _resume();
     void _apply(DisplayGroupConstPtr group);
     void _deleteTempContentFile(ContentWindowPtr window);
+
+    bool notify(QObject* receiver, QEvent* event) final;
+    void _handle(const QTouchEvent* event);
 };
 
 #endif

@@ -54,7 +54,7 @@ stereo3d: side by side
 Tide listens on the following ports:
 
 * TCP port 1701 - incoming Deflect connections.
-* UDP port 3333 - TUIO messages (if compiled with TUIO multitouch support).
+* UDP port 3333 - TUIO messages (if using TuioTouch Qt plugin).
 * TCP port 8888 - REST interface (if compiled with ZeroEQ support),
                   configurable.
 

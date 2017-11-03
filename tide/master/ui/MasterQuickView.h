@@ -81,6 +81,7 @@ signals:
 private:
     /** Re-implement QWindow event to capture tab key. */
     bool event(QEvent* event) final;
+    void _mapTouchEvent(QTouchEvent* event);
 
     QQuickItem* _wallItem = nullptr;
 };
