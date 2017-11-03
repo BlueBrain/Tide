@@ -177,8 +177,10 @@ try:
         forker_host = host    # forker goes at the end of the hostlist
 
     export_display = EXPORT_ENV_VAR.format('DISPLAY', display)
+    export_tuio = EXPORT_ENV_VAR.format('QT_QPA_GENERIC_PLUGINS', 'TuioTouch')
     environment = '%s %s %s' % (MPI_SPECIAL_FLAGS, export_display, node_host)
-    mastercmd = '%s -np 1 %s%s %s' % (environment, VGLRUN_BIN, TIDEMASTER_BIN, TIDE_PARAMS)
+    masterexec = '%s%s %s' % (VGLRUN_BIN, TIDEMASTER_BIN, TIDE_PARAMS)
+    mastercmd = '%s %s -np 1 %s' % (export_tuio, environment, masterexec)
     runcommands.append(mastercmd)
 
     # add a separate 'forker' process on the same host as the master process

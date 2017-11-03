@@ -63,7 +63,6 @@
 #define LOG_REST "REST"
 #define LOG_STREAM "STREAM"
 #define LOG_TIFF "TIFF"
-#define LOG_TUIO "TUIO"
 
 extern std::string logger_id;
 extern void put_log(const int level, const std::string& facility,
@@ -77,8 +76,6 @@ extern void tiffMessageLoggerWarn(const char* module, const char* fmt,
                                   va_list ap);
 extern void tiffMessageLoggerErr(const char* module, const char* fmt,
                                  va_list ap);
-
-extern void tuioMessageLogger(int level, const std::string& message);
 
 #ifdef _WIN32
 #define print_log(l, facility, fmt, ...) \

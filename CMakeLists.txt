@@ -2,7 +2,7 @@
 #                          Raphael Dumusc <raphael.dumusc@epfl.ch>
 
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
-project(Tide VERSION 1.4.0)
+project(Tide VERSION 1.5.0)
 set(Tide_VERSION_ABI 1)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMake/common)
@@ -33,6 +33,9 @@ common_find_package(MPI REQUIRED)
 common_find_package(Qt5Concurrent REQUIRED)
 common_find_package(Qt5Core REQUIRED)
 common_find_package(Qt5Gui REQUIRED COMPONENTS Private)
+if(NOT TARGET Qt5::QTuioTouchPlugin)
+  message(WARNING "Qt5::QTuioTouchPlugin not found, touch may be unavailable")
+endif()
 common_find_package(Qt5Network REQUIRED)
 common_find_package(Qt5Qml REQUIRED)
 common_find_package(Qt5Quick 5.4 REQUIRED)
@@ -54,6 +57,7 @@ common_find_package(RSVG MODULE librsvg-2.0 2.36.2)
 common_find_package(Threads REQUIRED)
 common_find_package(TIFF)
 common_find_package(VirtualKeyboard)
+common_find_package(X11) # for webbrowser and swap sync unit tests
 
 common_find_package(FFMPEG)
 if(FFMPEG_FOUND)
@@ -69,16 +73,6 @@ else()
   if(POPPLER-QT5_FOUND)
     option(TIDE_ENABLE_PDF_SUPPORT "Enable Pdf support using Poppler-qt5" ON)
   endif()
-endif()
-
-common_find_package(TUIO 1.4 SYSTEM)
-if(TUIO_FOUND)
-  option(TIDE_ENABLE_TUIO_TOUCH_LISTENER "Enable TUIO touch listener for multi-touch events" ON)
-endif()
-if(TIDE_ENABLE_TUIO_TOUCH_LISTENER)
-  common_find_package(X11 REQUIRED)
-else()
-  common_find_package(X11) # for webbrowser unit tests
 endif()
 
 common_find_package(ZeroEQ)
@@ -106,9 +100,6 @@ install(DIRECTORY examples DESTINATION share/Tide COMPONENT examples)
 if(Deflect_IS_SUBPROJECT)
   set(_deflect_deb qtbase5-dev libturbojpeg)
   set(TIDE_PACKAGE_REPLACES desktopstreamer)
-endif()
-if(TUIO_IS_SUBPROJECT)
-  set(TIDE_PACKAGE_CONFLICTS liboscpack-dev liboscpack1)
 endif()
 if(ZeroEQ_IS_SUBPROJECT)
   set(_cppnetlib_deb libboost-atomic-dev libboost-chrono-dev

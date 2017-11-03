@@ -136,8 +136,24 @@ bool MasterQuickView::event(QEvent* evt)
             emit mouseReleased(_wallItem->mapFromScene(e->localPos()));
         break;
     }
+    case QEvent::TouchBegin:
+    case QEvent::TouchUpdate:
+    case QEvent::TouchEnd:
+    case QEvent::TouchCancel:
+    {
+        _mapTouchEvent(static_cast<QTouchEvent*>(evt));
+    }
     default:
         break;
     }
     return QQuickView::event(evt);
+}
+
+void MasterQuickView::_mapTouchEvent(QTouchEvent* event)
+{
+    for (const auto& point : event->touchPoints())
+    {
+        auto& p = const_cast<QTouchEvent::TouchPoint&>(point);
+        p.setPos(mapToWallPos(point.normalizedPos()));
+    }
 }

@@ -27,7 +27,6 @@ cloned by CMake during the configure step. They come with their own additional
 requirements:
 * Deflect: streaming of contents and applications
   - libjpeg-turbo
-* TUIO: multitouch interface
 * VirtualKeyboard: on-screen virtual keyboard (Qml)
 * ZeroEQ: http / REST interface (technically optional, but needed to operate
   the on-screen Launcher panel)

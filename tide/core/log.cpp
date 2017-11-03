@@ -204,8 +204,3 @@ void tiffMessageLoggerErr(const char* module, const char* fmt, va_list ap)
     vsnprintf(log_string, MAX_LOG_LENGTH, fmt, ap);
     put_log(LOG_ERROR, LOG_TIFF, "%s: '%s'", module, log_string);
 }
-
-void tuioMessageLogger(const int level, const std::string& message)
-{
-    put_log(level, LOG_TUIO, message.c_str());
-}

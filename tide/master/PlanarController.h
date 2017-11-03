@@ -68,11 +68,11 @@ public:
     /** Refresh the power state of Planar displays */
     void checkPowerState();
 
-    /** Power off Planar displays */
-    bool powerOff();
-
-    /** Power on Planar displays */
+    /** Power on the displays. */
     bool powerOn();
+
+    /** Power off the displays. */
+    bool powerOff();
 
 signals:
     /** Emitted when power state of Planar displays changes */
