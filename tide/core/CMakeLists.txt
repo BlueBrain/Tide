@@ -222,7 +222,7 @@ list(APPEND TIDECORE_SOURCES
   resources/core.qrc
 )
 
-if(TARGET Qt5::WebKitWidgets OR TARGET Qt5::WebEngine)
+if(TIDE_ENABLE_WEBBROWSER_SUPPORT)
   list(APPEND TIDECORE_PUBLIC_HEADERS
     scene/WebbrowserContent.h
     scene/WebbrowserHistory.h
@@ -233,15 +233,15 @@ if(TARGET Qt5::WebKitWidgets OR TARGET Qt5::WebEngine)
     scene/WebbrowserHistory.cpp
     thumbnail/WebbrowserThumbnailGenerator.cpp
   )
-endif()
-if(TARGET Qt5::WebKitWidgets)
-  list(APPEND TIDECORE_PUBLIC_HEADERS
-    scene/AddressBar.h
-  )
-  list(APPEND TIDECORE_SOURCES
-    scene/AddressBar.cpp
-  )
-  list(APPEND TIDECORE_LINK_LIBRARIES PRIVATE Qt5::WebKitWidgets)
+  if(TARGET Qt5::WebKitWidgets)
+    list(APPEND TIDECORE_PUBLIC_HEADERS
+      scene/AddressBar.h
+    )
+    list(APPEND TIDECORE_SOURCES
+      scene/AddressBar.cpp
+    )
+    list(APPEND TIDECORE_LINK_LIBRARIES PRIVATE Qt5::WebKitWidgets)
+  endif()
 endif()
 
 set(TIDECORE_INCLUDE_NAME tide/core)

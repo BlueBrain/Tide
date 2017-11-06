@@ -45,7 +45,9 @@
 #include "log.h"
 #include "scene/ContentType.h"
 #include "scene/ContentWindow.h"
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT
 #include "scene/WebbrowserContent.h"
+#endif
 
 #include <QCoreApplication>
 #include <QDir>
@@ -64,7 +66,9 @@ const QString LAUNCHER_BIN("tideLauncher");
 const QString WEBBROWSER_BIN("tideWebbrowser");
 #endif
 
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT
 const QSize WEBBROWSER_DEFAULT_SIZE(1280, 1024);
+#endif
 const QSize WHITEBOARD_DEFAULT_SIZE(1920, 1080);
 }
 
@@ -74,6 +78,7 @@ QString _getLauncherCommand(const QString& args)
     return QString("%1/%2 %3").arg(appDir, LAUNCHER_BIN, args);
 }
 
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT
 QString _getWebbrowserCommand(const QString& args)
 {
     const auto appDir = QCoreApplication::applicationDirPath();
@@ -106,6 +111,7 @@ QStringList _getWebbrowserEnv(const ushort debugPort)
         env.append(QString::number((uint)debugPort));
     return QStringList{env};
 }
+#endif
 
 QString _getWhiteboardCommand(const QString& args)
 {
@@ -129,6 +135,7 @@ void PixelStreamerLauncher::openWebBrowser(QPointF pos, QSize size,
                                            const QString url,
                                            const ushort debugPort)
 {
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT
     if (pos.isNull())
         pos = _getDefaultWindowPosition();
     if (size.isEmpty())
@@ -141,14 +148,25 @@ void PixelStreamerLauncher::openWebBrowser(QPointF pos, QSize size,
     auto& webbrowser = dynamic_cast<WebbrowserContent&>(*content);
     webbrowser.setUrl(url);
     launch(webbrowser, debugPort);
+#else
+    Q_UNUSED(pos);
+    Q_UNUSED(size);
+    Q_UNUSED(url);
+    Q_UNUSED(debugPort);
+#endif
 }
 
 void PixelStreamerLauncher::launch(const WebbrowserContent& webbrowser,
                                    const ushort debugPort)
 {
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT
     const auto cmd = _getWebbrowserCommand(webbrowser);
     const auto env = _getWebbrowserEnv(debugPort);
     _startProcess(webbrowser.getURI(), cmd, env);
+#else
+    Q_UNUSED(webbrowser)
+    Q_UNUSED(debugPort)
+#endif
 }
 
 void PixelStreamerLauncher::openLauncher()

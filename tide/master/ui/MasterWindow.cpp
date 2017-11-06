@@ -50,7 +50,7 @@
 #include "scene/ContentWindow.h"
 #include "scene/DisplayGroup.h"
 #include "scene/Options.h"
-#if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT
 #include "WebbrowserWidget.h"
 #endif
 
@@ -71,7 +71,7 @@ MasterWindow::MasterWindow(DisplayGroupPtr displayGroup, OptionsPtr options,
     , _displayGroup(displayGroup)
     , _options(options)
     , _backgroundWidget(new BackgroundWidget(config, this))
-#if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT
     , _webbrowserWidget(new WebbrowserWidget(config, this))
 #endif
     , _contentFolder(config.getContentDir())
@@ -85,7 +85,7 @@ MasterWindow::MasterWindow(DisplayGroupPtr displayGroup, OptionsPtr options,
     connect(_backgroundWidget, &BackgroundWidget::backgroundContentChanged,
             _options.get(), &Options::setBackgroundContent);
 
-#if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT
     connect(_webbrowserWidget, &WebbrowserWidget::openWebBrowser, this,
             &MasterWindow::openWebBrowser);
 #endif
@@ -163,7 +163,7 @@ void MasterWindow::_setupMasterWindowUI(
     connect(loadSessionAction, &QAction::triggered, this,
             &MasterWindow::_openSession);
 
-#if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT
     // Open webbrowser action
     QAction* webbrowserAction = new QAction("Web Browser", this);
     webbrowserAction->setStatusTip("Open a web browser");
@@ -317,7 +317,7 @@ void MasterWindow::_setupMasterWindowUI(
     fileMenu->addAction(openContentsDirectoryAction);
     fileMenu->addAction(loadSessionAction);
     fileMenu->addAction(saveSessionAction);
-#if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT
     fileMenu->addAction(webbrowserAction);
 #endif
     fileMenu->addAction(whiteboardAction);
@@ -342,7 +342,7 @@ void MasterWindow::_setupMasterWindowUI(
     toolbar->addAction(openContentsDirectoryAction);
     toolbar->addAction(loadSessionAction);
     toolbar->addAction(saveSessionAction);
-#if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT
     toolbar->addAction(webbrowserAction);
 #endif
     toolbar->addAction(whiteboardAction);

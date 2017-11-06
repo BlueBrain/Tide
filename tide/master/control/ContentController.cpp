@@ -46,7 +46,7 @@
 #include "PDFController.h"
 #endif
 #include "PixelStreamController.h"
-#if TIDE_USE_QT5WEBKITWIDGETS
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT && TIDE_USE_QT5WEBKITWIDGETS
 #include "WebbrowserController.h"
 #endif
 #include "ZoomController.h"
@@ -60,12 +60,14 @@ std::unique_ptr<ContentController> ContentController::create(
     {
     case CONTENT_TYPE_PIXEL_STREAM:
         return make_unique<PixelStreamController>(window);
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT
 #if TIDE_USE_QT5WEBKITWIDGETS
     case CONTENT_TYPE_WEBBROWSER:
         return make_unique<WebbrowserController>(window);
 #elif TIDE_USE_QT5WEBENGINE
     case CONTENT_TYPE_WEBBROWSER:
         return make_unique<PixelStreamController>(window);
+#endif
 #endif
 #if TIDE_ENABLE_PDF_SUPPORT
     case CONTENT_TYPE_PDF:
