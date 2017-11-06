@@ -41,7 +41,7 @@
 
 #include "CommandLineOptions.h"
 #include "PixelStreamerType.h"
-#ifdef TIDE_USE_QT5WEBKITWIDGETS
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT && TIDE_USE_QT5WEBKITWIDGETS
 #include "WebkitPixelStreamer.h"
 #endif
 
@@ -52,7 +52,7 @@ PixelStreamer* PixelStreamerFactory::create(const CommandLineOptions& options)
     const QSize size(options.getWidth(), options.getHeight());
     switch (options.getPixelStreamerType())
     {
-#ifdef TIDE_USE_QT5WEBKITWIDGETS
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT && TIDE_USE_QT5WEBKITWIDGETS
     case PS_WEBKIT:
         return new WebkitPixelStreamer(size, options.getUrl());
 #endif

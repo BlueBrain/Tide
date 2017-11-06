@@ -59,12 +59,15 @@
 #include "scene/DisplayGroup.h"
 #include "scene/Markers.h"
 #include "scene/Options.h"
-#include "scene/WebbrowserContent.h"
 #include "ui/MasterQuickView.h"
 #include "ui/MasterWindow.h"
 
 #if TIDE_ENABLE_TUIO_TOUCH_LISTENER
 #include "MultitouchListener.h"
+#endif
+
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT
+#include "scene/WebbrowserContent.h"
 #endif
 
 #if TIDE_ENABLE_REST_INTERFACE
@@ -537,7 +540,7 @@ void MasterApplication::_initRestInterface()
             [this](bool locked) { _restInterface->lock(locked); });
 
     connect(&appController, &AppController::browse, [this](QString uri) {
-#if TIDE_USE_QT5WEBKITWIDGETS || TIDE_USE_QT5WEBENGINE
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT
         if (uri.isEmpty())
             uri = _config->getWebBrowserDefaultURL();
         _pixelStreamerLauncher->openWebBrowser(QPointF(), QSize(), uri, 0);
@@ -610,11 +613,13 @@ void MasterApplication::_apply(DisplayGroupConstPtr group)
 {
     _displayGroup->setContentWindows(group->getContentWindows());
 
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT
     // Restore webbrowsers
     using WebContent = const WebbrowserContent*;
     for (const auto& window : group->getContentWindows())
         if (auto browser = dynamic_cast<WebContent>(window->getContentPtr()))
             _pixelStreamerLauncher->launch(*browser);
+#endif
 }
 
 void MasterApplication::_deleteTempContentFile(ContentWindowPtr window)

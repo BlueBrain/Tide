@@ -41,7 +41,7 @@ else()
   )
 endif()
 
-if(X11_FOUND AND TARGET Qt5::WebKitWidgets)
+if(TIDE_ENABLE_WEBBROWSER_SUPPORT AND X11_FOUND AND TARGET Qt5::WebKitWidgets)
   list(APPEND TEST_LIBRARIES Qt5::WebKitWidgets)
 else()
   list(APPEND EXCLUDE_FROM_TESTS
@@ -50,7 +50,7 @@ else()
     core/WebkitHtmlSelectReplacementTests.cpp)
 endif()
 
-if(NOT TARGET Qt5::WebEngine AND NOT TARGET Qt5::WebKitWidgets)
+if(NOT TIDE_ENABLE_WEBBROWSER_SUPPORT)
   list(APPEND EXCLUDE_FROM_TESTS core/WebbrowserContentTests.cpp)
 endif()
 
