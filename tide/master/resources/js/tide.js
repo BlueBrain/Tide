@@ -51,7 +51,7 @@ function autoRefresh() {
 function bootstrapMenus() {
 
   $("#addButton").click(function (e) {
-    $("#uploadMenu,#sessionMenu,#optionsMenu,#appsMenu").each(function () {
+    $("#uploadMenu,#sessionMenu,#optionsMenu,#appsMenu,#infoMenu").each(function () {
       $(this).hide("puff", showEffectSpeed);
       e.stopPropagation()
     });
@@ -63,7 +63,7 @@ function bootstrapMenus() {
   });
 
   $("#sessionButton").click(function (e) {
-    $("#uploadMenu,#fsMenu,#optionsMenu,#appsMenu").each(function () {
+    $("#uploadMenu,#fsMenu,#optionsMenu,#appsMenu,#infoMenu").each(function () {
       $(this).hide("puff", showEffectSpeed);
       e.stopPropagation()
     });
@@ -75,7 +75,7 @@ function bootstrapMenus() {
   });
 
   $("#uploadButton").click(function (e) {
-    $("#sessionMenu,#fsMenu,#optionsMenu,#appsMenu").each(function () {
+    $("#sessionMenu,#fsMenu,#optionsMenu,#appsMenu,#infoMenu").each(function () {
       $(this).hide("puff", showEffectSpeed);
       e.stopPropagation()
     });
@@ -87,7 +87,7 @@ function bootstrapMenus() {
   });
 
   $("#optionsButton").click(function (e) {
-    $("#sessionMenu,#fsMenu,#uploadMenu,#appsMenu").each(function () {
+    $("#sessionMenu,#fsMenu,#uploadMenu,#appsMenu,#infoMenu").each(function () {
       $(this).hide("puff", showEffectSpeed);
     });
 
@@ -99,7 +99,7 @@ function bootstrapMenus() {
   });
 
   $("#appsButton").click(function (e) {
-    $("#sessionMenu,#fsMenu,#uploadMenu,#optionsMenu").each(function () {
+    $("#sessionMenu,#fsMenu,#uploadMenu,#optionsMenu,#infoMenu").each(function () {
       $(this).hide("puff", showEffectSpeed);
     });
 
@@ -110,6 +110,18 @@ function bootstrapMenus() {
   });
 
   $("#browseUrlInput").on("click", function (e) {
+    e.stopPropagation()
+  });
+
+  $("#infoButton").click(function (e) {
+    $("#uploadMenu,#fsMenu,#optionsMenu,#appsMenu,#sessionMenu").each(function () {
+      $(this).hide("puff", showEffectSpeed);
+      e.stopPropagation()
+    });
+
+    $("#infoMenu").css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed);
+    $(".menuButton:not(#infoButton)").removeClass("buttonPressed");
+    $("#infoButton").toggleClass("buttonPressed")
     e.stopPropagation()
   });
 
@@ -639,9 +651,9 @@ function init() {
       }
     );
 
-    $("#buttonContainer").append("Tide ", config["version"], " rev ",
+    $("#infoMenu").append("Tide ", config["version"], " rev ",
       "<a href=\"https://github.com/BlueBrain/Tide/commit/" + config["revision"] + "\">" + config["revision"],
-      " </a>", " running on ", config["hostname"], " since ", config["startTime"]);
+      " </a><br>", "running on ", config["hostname"], "<br>since ", config["startTime"]);
     getFileSystemContent("");
     getSessionFolderContent();
     updateWall();

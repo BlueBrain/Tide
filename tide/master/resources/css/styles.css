@@ -89,6 +89,13 @@ label {
   width: 70px;
 }
 
+.infoMenu {
+  padding: 10px;
+  text-align: left;
+  background-color: white;
+  width: auto!important
+}
+
 .infoIcon{
  margin-top: 5px;
  margin-left: 5px
