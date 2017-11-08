@@ -35,10 +35,6 @@ iframe{
   display: none;
 }
 
-label {
-  height: 0px;
-}
-
 .buttonPressed {
   background-color: #0096d3;
 }
@@ -89,9 +85,16 @@ label {
   width: 70px;
 }
 
+.infoMenu {
+  padding: 10px;
+  text-align: left;
+  background-color: white;
+  width: auto!important
+}
+
 .infoIcon{
  margin-top: 5px;
- margin-right: 5px
+ margin-left: 5px
 }
 
 .menuButton:disabled{
@@ -122,6 +125,7 @@ label {
 .thumbnail {
   width: 100%;
   height: 100%;
+  margin-bottom: 0px;
 }
 
 .topMenu {
@@ -137,21 +141,23 @@ label {
 
 .optionInput {
   float: left;
+  margin: 0px
 }
 
 .optionLabel
 {
   height: 1em;
   font-weight: normal;
+  white-space: nowrap;
   clear: both;
   float:left;
  }
 
 .optionsMenu {
-  padding: 5px;
-  padding-right: 15px;
   background-color: white;
-  width: auto
+  width: auto;
+  padding: 5px;
+  overflow: hidden
 }
 
 .textInput {
@@ -238,7 +244,7 @@ label {
   text-align: center;
   margin-top: 5px;
   border: 0px solid;
-  width: 1200px;
+  width: auto;
   z-index: 100;
   font-family: Arial;
   font-size: 11px;
@@ -263,11 +269,10 @@ label {
   top: 0;
   width: 75px;
   display: block;
-  text-align: left;
+  text-align: right;
   margin-top: 0;
   position: absolute
 }
-
 
 #lock{
   height: 50%;
@@ -276,7 +281,6 @@ label {
   display: block;
   top: 25%
 }
-
 
 #outputList {
   padding-left: 10px;
@@ -329,24 +333,15 @@ label {
 }
 
 #wallOutline {
-  outline: 30px solid black;
+  outline: 0px solid black;
   z-index: 0;
   display: grid;
   opacity: 1;
 }
 
-#wallContainer {
-  border: 0px solid grey;
-  position: absolute;
-  margin: 0;
-  margin-top: 100px;
-  z-index: 0;
-  -moz-transform-origin: 0 0;
-  -webkit-transform-origin: 0 0;
-}
-
 #wallWrapper {
-  height: 100%;
+  height: 99%;
+  width: 99%;
   overflow: hidden;
 }
 

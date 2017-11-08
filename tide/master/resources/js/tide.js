@@ -51,7 +51,7 @@ function autoRefresh() {
 function bootstrapMenus() {
 
   $("#addButton").click(function (e) {
-    $("#uploadMenu,#sessionMenu,#optionsMenu,#appsMenu").each(function () {
+    $("#uploadMenu,#sessionMenu,#optionsMenu,#appsMenu,#infoMenu").each(function () {
       $(this).hide("puff", showEffectSpeed);
       e.stopPropagation()
     });
@@ -63,7 +63,7 @@ function bootstrapMenus() {
   });
 
   $("#sessionButton").click(function (e) {
-    $("#uploadMenu,#fsMenu,#optionsMenu,#appsMenu").each(function () {
+    $("#uploadMenu,#fsMenu,#optionsMenu,#appsMenu,#infoMenu").each(function () {
       $(this).hide("puff", showEffectSpeed);
       e.stopPropagation()
     });
@@ -75,7 +75,7 @@ function bootstrapMenus() {
   });
 
   $("#uploadButton").click(function (e) {
-    $("#sessionMenu,#fsMenu,#optionsMenu,#appsMenu").each(function () {
+    $("#sessionMenu,#fsMenu,#optionsMenu,#appsMenu,#infoMenu").each(function () {
       $(this).hide("puff", showEffectSpeed);
       e.stopPropagation()
     });
@@ -87,7 +87,7 @@ function bootstrapMenus() {
   });
 
   $("#optionsButton").click(function (e) {
-    $("#sessionMenu,#fsMenu,#uploadMenu,#appsMenu").each(function () {
+    $("#sessionMenu,#fsMenu,#uploadMenu,#appsMenu,#infoMenu").each(function () {
       $(this).hide("puff", showEffectSpeed);
     });
 
@@ -99,7 +99,7 @@ function bootstrapMenus() {
   });
 
   $("#appsButton").click(function (e) {
-    $("#sessionMenu,#fsMenu,#uploadMenu,#optionsMenu").each(function () {
+    $("#sessionMenu,#fsMenu,#uploadMenu,#optionsMenu,#infoMenu").each(function () {
       $(this).hide("puff", showEffectSpeed);
     });
 
@@ -110,6 +110,18 @@ function bootstrapMenus() {
   });
 
   $("#browseUrlInput").on("click", function (e) {
+    e.stopPropagation()
+  });
+
+  $("#infoButton").click(function (e) {
+    $("#uploadMenu,#fsMenu,#optionsMenu,#appsMenu,#sessionMenu").each(function () {
+      $(this).hide("puff", showEffectSpeed);
+      e.stopPropagation()
+    });
+
+    $("#infoMenu").css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed);
+    $(".menuButton:not(#infoButton)").removeClass("buttonPressed");
+    $("#infoButton").toggleClass("buttonPressed")
     e.stopPropagation()
   });
 
@@ -601,8 +613,11 @@ function init() {
     displayWidth = config["dimensions"]["displayWidth"];
     displayHeight = config["dimensions"]["displayHeight"];
 
-    setBezels();
+    if(config["name"] !== "")
+      document.title = config["name"];
+
     setScale();
+    setBezels();
 
     filters = config["filters"];
     for (var i = 0; i < filters.length; i++)
@@ -639,9 +654,9 @@ function init() {
       }
     );
 
-    $("#buttonContainer").append("Tide ", config["version"], " rev ",
-      "<a href=\"https://github.com/BlueBrain/Tide/commit/" + config["revision"] + "\">" + config["revision"],
-      " </a>", " running on ", config["hostname"], " since ", config["startTime"]);
+    $("#infoMenu").append("<b>Tide " + config["version"] + "</b> rev ",
+      "<a style='text-decoration: underline' href=\"https://github.com/BlueBrain/Tide/commit/" + config["revision"] + "\">" + config["revision"],
+      " </a><br>", "running on <b>" + config["hostname"], "</b><br>since <b>" + config["startTime"]+"</b>");
     getFileSystemContent("");
     getSessionFolderContent();
     updateWall();
@@ -904,8 +919,11 @@ function saveSession() {
 }
 
 function setBezels() {
-  if (displayHeight === 0 || displayWidth === 0)
+  if (bezelHeight <= 0 && bezelWidth <= 0){
+    $("#showBezelButton").remove();
     return;
+  }
+  stickyBezelSize = (stickyBezelSize / zoomScale);
   $('#wall').css("grid-template-columns", "repeat("+screenCountX +", 1fr)").
   css("grid-template-rows", "repeat("+screenCountY+", 1fr)").
   css("grid-column-gap", bezelWidth).css("grid-row-gap", bezelHeight);
@@ -917,12 +935,12 @@ function setBezels() {
     screen.css("grid-template-rows", "repeat(" + displaysPerScreenY +", 1fr)");
     screen.css("grid-template-columns", "repeat(" + displaysPerScreenX +", 1fr)");
     var totalDisplaysPerScreen = displaysPerScreenX * displaysPerScreenY;
-    
+
     for (var j = 0; j < totalDisplaysPerScreen; j++) {
       let display = $("<div class='display'> </div>");
       display.css("outline-width", bezelHeight/2);
       screen.append(display)
- 
+
      var bezels = [{name: 'N', type: 'horizontal'},{name: 'S', type: 'horizontal'},
         {name: 'E', type: 'vertical'},{name: 'W', type: 'vertical'}];
       for (var k = 0; k < bezels.length; k++) {
@@ -944,6 +962,7 @@ function setBezels() {
       }
      }
   }
+  $("#showBezelButton").addClass("buttonPressed");
 }
 
 function setCurtain(type) {
@@ -1003,9 +1022,10 @@ function setHandles(tile) {
       ui.position.top = newTop;
     },
     stop: function (event) {
+      if ($('.screenbezel').css("opacity") != 0)
+        $('.screenbezel').fadeTo('fast', 0).css("pointer-events", "none").css("zIndex", 50);
       var stickToOverlay = $("#stickToOverlay");
       if (stickToOverlay.length>0) {
-        $('.screenbezel').fadeTo('fast', 0).css("pointer-events", "none").css("zIndex", 50);
         var paramsMove = {"id": tile.uuid, "x": parseFloat(stickToOverlay.css("left")) ,
           "y": parseFloat(stickToOverlay.css("top"))};
         var paramsResize = {"id": tile.uuid, "w": parseFloat(stickToOverlay.css("width"))  / zoomScale ,
@@ -1065,7 +1085,6 @@ function setOption(property) {
 }
 
 function setScale() {
-  $("#infoBox").css("left", window.innerWidth -  parseInt($("#infoBox").css("width"),10));
   var viewportWidth = window.innerWidth;
   var viewportHeight = window.innerHeight;
 
@@ -1081,6 +1100,7 @@ function setScale() {
     zoomScale = Math.round(scaleH * 100) / 100;
 
   var wallMargin = (window.innerWidth - (wallWidth * zoomScale)) / 2;
+  $("#infoBox").css("right", wallMargin - wallOutlineWidth )
   var wall = $("#wall");
   wall.css({transform: 'scale(' + zoomScale + ')'});
   wall.css("margin-left", wallMargin);
@@ -1088,14 +1108,15 @@ function setScale() {
   wall.css("margin-top", 25);
   wall.css("margin-bottom", minimalVerticalMargin);
   $(".windowControl").css({ transform: 'scale(1)' });
+  $("#wallOutline").css("outline-width", wallOutlineWidth / zoomScale  )
 }
 
 function showBezels() {
   $(".screen").toggle();
-  if (isBezelVisible)
-    $("#showBezelsButton").addClass("buttonPressed");
+  if (isBezelVisible())
+    $("#showBezelButton").addClass("buttonPressed");
   else
-    $("#showBezelsButton").removeClass("buttonPressed");
+    $("#showBezelButton").removeClass("buttonPressed");
 }
 
 function stickToBezel(event, bezel) {
@@ -1155,12 +1176,18 @@ function stickToBezel(event, bezel) {
   var dir = bezel.id;
 
   if (vertical) {
-    if (dir == 'E')
+    if (dir == 'E') {
       $div.css("left", right);
-    else if (dir == 'W')
+      $div.css("top", top);
+    }
+    else if (dir == 'W') {
       $div.css("left", left);
-    else if (dir == 'N' || dir == 'S')
+      $div.css("top", top);
+    }
+    else if (dir == 'N' || dir == 'S') {
       $div.css("left", centerH);
+      $div.css("top", top);
+    }
   }
   else {
     if (dir == 'N') {
