@@ -1161,12 +1161,18 @@ function stickToBezel(event, bezel) {
   var dir = bezel.id;
 
   if (vertical) {
-    if (dir == 'E')
+    if (dir == 'E') {
       $div.css("left", right);
-    else if (dir == 'W')
+      $div.css("top", top);
+    }
+    else if (dir == 'W') {
       $div.css("left", left);
-    else if (dir == 'N' || dir == 'S')
+      $div.css("top", top);
+    }
+    else if (dir == 'N' || dir == 'S') {
       $div.css("left", centerH);
+      $div.css("top", top);
+    }
   }
   else {
     if (dir == 'N') {
