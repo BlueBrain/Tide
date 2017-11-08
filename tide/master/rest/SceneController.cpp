@@ -165,6 +165,10 @@ SceneController::SceneController(DisplayGroup& group)
         }
         return noWindow;
     });
+
+    _rpc.bind<WindowId>("unfocus-window", [this](const WindowId params) {
+        return _controller.unfocus(params.id) ? ok : noWindow;
+    });
 }
 
 void SceneController::processJsonRpc(const std::string& request,
