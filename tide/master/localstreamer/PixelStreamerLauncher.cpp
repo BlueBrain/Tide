@@ -39,6 +39,8 @@
 
 #include "PixelStreamerLauncher.h"
 
+#include "config.h"
+
 #include "CommandLineOptions.h"
 #include "MasterConfiguration.h"
 #include "PixelStreamWindowManager.h"

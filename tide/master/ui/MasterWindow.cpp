@@ -39,6 +39,8 @@
 
 #include "MasterWindow.h"
 
+#include "config.h"
+
 #include "BackgroundWidget.h"
 #include "ContentLoader.h"
 #include "DisplayGroupListWidget.h"

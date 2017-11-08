@@ -39,6 +39,8 @@
 
 #include "PixelStreamerFactory.h"
 
+#include "config.h"
+
 #include "CommandLineOptions.h"
 #include "PixelStreamerType.h"
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT && TIDE_USE_QT5WEBKITWIDGETS
