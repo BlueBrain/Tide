@@ -35,10 +35,6 @@ iframe{
   display: none;
 }
 
-label {
-  height: 0px;
-}
-
 .buttonPressed {
   background-color: #0096d3;
 }
@@ -145,21 +141,23 @@ label {
 
 .optionInput {
   float: left;
+  margin: 0px
 }
 
 .optionLabel
 {
   height: 1em;
   font-weight: normal;
+  white-space: nowrap;
   clear: both;
   float:left;
  }
 
 .optionsMenu {
-  padding: 5px;
-  padding-right: 15px;
   background-color: white;
-  width: auto
+  width: auto;
+  padding: 5px;
+  overflow: hidden
 }
 
 .textInput {
@@ -246,7 +244,7 @@ label {
   text-align: center;
   margin-top: 5px;
   border: 0px solid;
-  width: 1200px;
+  width: auto;
   z-index: 100;
   font-family: Arial;
   font-size: 11px;

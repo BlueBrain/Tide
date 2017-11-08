@@ -613,6 +613,9 @@ function init() {
     displayWidth = config["dimensions"]["displayWidth"];
     displayHeight = config["dimensions"]["displayHeight"];
 
+    if(config["name"] !== "")
+      document.title = config["name"];
+
     setScale();
     setBezels();
 
@@ -651,9 +654,9 @@ function init() {
       }
     );
 
-    $("#infoMenu").append("Tide ", config["version"], " rev ",
-      "<a href=\"https://github.com/BlueBrain/Tide/commit/" + config["revision"] + "\">" + config["revision"],
-      " </a><br>", "running on ", config["hostname"], "<br>since ", config["startTime"]);
+    $("#infoMenu").append("<b>Tide " + config["version"] + "</b> rev ",
+      "<a style='text-decoration: underline' href=\"https://github.com/BlueBrain/Tide/commit/" + config["revision"] + "\">" + config["revision"],
+      " </a><br>", "running on <b>" + config["hostname"], "</b><br>since <b>" + config["startTime"]+"</b>");
     getFileSystemContent("");
     getSessionFolderContent();
     updateWall();
