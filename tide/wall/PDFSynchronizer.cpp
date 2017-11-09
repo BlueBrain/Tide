@@ -58,7 +58,6 @@ void PDFSynchronizer::update(const ContentWindow& window,
     if (_pageChanged)
     {
         _pageChanged = false;
-        emit zoomContextTileChanged();
         emit statisticsChanged();
     }
 }
@@ -69,9 +68,8 @@ QString PDFSynchronizer::getStatistics() const
     return LodSynchronizer::getStatistics() + QString(" ") + pageStatistics;
 }
 
-TilePtr PDFSynchronizer::getZoomContextTile() const
+TilePtr PDFSynchronizer::createZoomContextTile() const
 {
     const auto tileId = _source->getPreviewTileId();
-    const auto rect = getDataSource().getTileRect(tileId);
-    return Tile::create(tileId, rect);
+    return Tile::create(tileId, getDataSource().getTileRect(tileId));
 }

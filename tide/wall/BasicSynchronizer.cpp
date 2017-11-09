@@ -46,6 +46,9 @@ BasicSynchronizer::BasicSynchronizer(std::shared_ptr<DataSource> source)
     : _dataSource(std::move(source))
 {
     _dataSource->synchronizers.insert(this);
+
+    connect(this, &ContentSynchronizer::zoomContextVisibleChanged,
+            [this] { _zoomContextTileDirty = true; });
 }
 
 BasicSynchronizer::~BasicSynchronizer()
@@ -64,6 +67,12 @@ void BasicSynchronizer::updateTiles()
 {
     if (_addTile)
         _createTile();
+
+    if (_zoomContextTileDirty)
+    {
+        _zoomContextTileDirty = false;
+        emit zoomContextTileChanged(getZoomContextVisible());
+    }
 }
 
 bool BasicSynchronizer::canSwapTiles() const
@@ -95,7 +104,7 @@ void BasicSynchronizer::onSwapReady(TilePtr tile)
     tile->swapImage();
 }
 
-TilePtr BasicSynchronizer::getZoomContextTile() const
+TilePtr BasicSynchronizer::createZoomContextTile() const
 {
     return Tile::create(0, getDataSource().getTileRect(0));
 }

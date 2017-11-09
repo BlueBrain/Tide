@@ -68,8 +68,8 @@ public:
     /** @copydoc ContentSynchronizer::getStatistics */
     QString getStatistics() const override;
 
-    /** @copydoc ContentSynchronizer::getZoomContextTile */
-    TilePtr getZoomContextTile() const override;
+    /** @copydoc ContentSynchronizer::createZoomContextTile */
+    TilePtr createZoomContextTile() const override;
 
 protected:
     /**
@@ -89,6 +89,7 @@ protected:
 private:
     std::shared_ptr<DataSource> _source;
     bool _tilesDirty = true;
+    bool _zoomContextTileDirty = true;
     int _backgroundTileId = 0;
 
     uint _getLod(const QSize& targetDisplaySize) const;

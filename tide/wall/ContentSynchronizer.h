@@ -56,6 +56,8 @@ class ContentSynchronizer : public QObject
     Q_DISABLE_COPY(ContentSynchronizer)
     Q_PROPERTY(QSize tilesArea READ getTilesArea NOTIFY tilesAreaChanged)
     Q_PROPERTY(QString statistics READ getStatistics NOTIFY statisticsChanged)
+    Q_PROPERTY(bool zoomContextVisible READ getZoomContextVisible WRITE
+                   setZoomContextVisible NOTIFY zoomContextVisibleChanged)
 
 public:
     /** Constructor */
@@ -68,7 +70,10 @@ public:
     virtual void update(const ContentWindow& window,
                         const QRectF& visibleArea) = 0;
 
-    /** Update the tiles; call addTile and updateTile only in this method. */
+    /**
+     * Update the tiles.
+     * Call addTile, updateTile and zoomContextTileChanged only in this method.
+     */
     virtual void updateTiles() = 0;
 
     /**
@@ -87,11 +92,13 @@ public:
     /** Get statistics about this Content. */
     virtual QString getStatistics() const = 0;
 
+    /** Check if the zoom context tile is visible in Qml. */
+    bool getZoomContextVisible() const { return _zoomContextVisible; }
     /** Get the data source. */
     virtual const DataSource& getDataSource() const = 0;
 
-    /** Notify the window to add a tile for the zoom context. */
-    virtual TilePtr getZoomContextTile() const { return TilePtr(); }
+    /** @return a new tile for the zoom context, or nullptr if unsupported. */
+    virtual TilePtr createZoomContextTile() const { return TilePtr(); }
     /** Get the view for this synchronizer. */
     virtual deflect::View getView() const { return deflect::View::mono; }
 public slots:
@@ -108,12 +115,25 @@ public slots:
         emit requestTileUpdate(tile, getView());
     }
 
+    /** Set by the Qml ZoomContext element. */
+    void setZoomContextVisible(const bool zoomContextVisible)
+    {
+        if (_zoomContextVisible == zoomContextVisible)
+            return;
+
+        _zoomContextVisible = zoomContextVisible;
+        emit zoomContextVisibleChanged();
+    }
+
 signals:
     /** Notifier for the tiles area property. */
     void tilesAreaChanged();
 
     /** Notifier for the statistics property. */
     void statisticsChanged();
+
+    /** Notifier for the zoomContextVisible property. */
+    void zoomContextVisibleChanged();
 
     /** Notify the window to add a tile. */
     void addTile(TilePtr tile);
@@ -128,7 +148,10 @@ signals:
     void requestTileUpdate(TilePtr tile, deflect::View view);
 
     /** Notify that the zoom context tile has changed and must be recreated. */
-    void zoomContextTileChanged();
+    void zoomContextTileChanged(bool visible);
+
+private:
+    bool _zoomContextVisible = false;
 };
 
 #endif

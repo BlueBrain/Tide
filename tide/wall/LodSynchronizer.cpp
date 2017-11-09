@@ -51,6 +51,9 @@ LodSynchronizer::LodSynchronizer(std::shared_ptr<DataSource> source)
     , _source(std::move(source))
 {
     _source->synchronizers.insert(this);
+
+    connect(this, &ContentSynchronizer::zoomContextVisibleChanged,
+            [this] { _zoomContextTileDirty = true; });
 }
 
 LodSynchronizer::~LodSynchronizer()
@@ -72,6 +75,12 @@ void LodSynchronizer::updateTiles()
         TiledSynchronizer::updateTiles();
         _tilesDirty = false;
     }
+
+    if (_zoomContextTileDirty)
+    {
+        _zoomContextTileDirty = false;
+        emit zoomContextTileChanged(getZoomContextVisible());
+    }
 }
 
 QSize LodSynchronizer::getTilesArea() const
@@ -89,10 +98,9 @@ QString LodSynchronizer::getStatistics() const
     return stats;
 }
 
-TilePtr LodSynchronizer::getZoomContextTile() const
+TilePtr LodSynchronizer::createZoomContextTile() const
 {
-    const auto rect = getDataSource().getTileRect(0);
-    return Tile::create(0, rect);
+    return Tile::create(0, getDataSource().getTileRect(0));
 }
 
 void LodSynchronizer::update(const ContentWindow& window,
@@ -118,6 +126,9 @@ void LodSynchronizer::update(const ContentWindow& window,
 
     _backgroundTileId = backgroundTileId;
     _tilesDirty = true;
+
+    if (forceUpdate)
+        _zoomContextTileDirty = true;
 }
 
 const DataSource& LodSynchronizer::getDataSource() const

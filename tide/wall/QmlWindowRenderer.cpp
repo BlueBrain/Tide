@@ -70,7 +70,7 @@ QmlWindowRenderer::QmlWindowRenderer(
     connect(_synchronizer.get(), &ContentSynchronizer::updateTile, this,
             &QmlWindowRenderer::_updateTile);
     connect(_synchronizer.get(), &ContentSynchronizer::zoomContextTileChanged,
-            this, &QmlWindowRenderer::_createZoomContextTile);
+            this, &QmlWindowRenderer::_updateZoomContextTile);
 
     _windowContext->setContextProperty("contentwindow", _contentWindow.get());
     _windowContext->setContextProperty("contentsync", _synchronizer.get());
@@ -78,10 +78,6 @@ QmlWindowRenderer::QmlWindowRenderer(
                                     _windowContext.get()));
     _windowItem->setParentItem(&parentItem);
     _windowItem->setProperty("isBackground", isBackground);
-
-    auto item = _getZoomContextParentItem();
-    connect(item, &QQuickItem::visibleChanged,
-            [this, item] { _showZoomContextTile(item->isVisible()); });
 }
 
 QmlWindowRenderer::~QmlWindowRenderer()
@@ -134,25 +130,23 @@ void QmlWindowRenderer::_addTile(TilePtr tile)
     tile->requestNextFrame(tile);
 }
 
-void QmlWindowRenderer::_showZoomContextTile(const bool visible)
-{
-    if (visible)
-        _createZoomContextTile();
-    else
-        _removeZoomContextTile();
-}
-
 QQuickItem* QmlWindowRenderer::_getZoomContextParentItem() const
 {
     return _windowItem->findChild<QQuickItem*>(ZOOM_CONTEXT_PARENT_OBJECT_NAME);
 }
 
-void QmlWindowRenderer::_createZoomContextTile()
+void QmlWindowRenderer::_updateZoomContextTile(const bool visible)
 {
     if (_zoomContextTile)
         _removeZoomContextTile();
 
-    TilePtr tile = _synchronizer->getZoomContextTile();
+    if (visible)
+        _addZoomContextTile();
+}
+
+void QmlWindowRenderer::_addZoomContextTile()
+{
+    auto tile = _synchronizer->createZoomContextTile();
     if (!tile)
         return;
 

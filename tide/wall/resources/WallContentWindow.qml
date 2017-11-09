@@ -61,6 +61,9 @@ BaseContentWindow {
     }
 
     ZoomContext {
+        Connections {
+            onVisibleChanged: contentsync.zoomContextVisible = visible
+        }
     }
 
     Text {
