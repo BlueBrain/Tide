@@ -92,7 +92,7 @@ void Tile::update(const QRect& rect)
     QQuickItem::update();
 }
 
-void Tile::updateBackTexture(ImagePtr image)
+void Tile::updateBackTexture(ImagePtr image, TilePtr self)
 {
     if (!image)
     {
@@ -111,7 +111,7 @@ void Tile::updateBackTexture(ImagePtr image)
     // could not be established. However, it was verified (using glFenceSync)
     // that textures always upload faster than they are generated in practice.
     // There is no need to check for upload completion in _updateTextureNode.
-    emit readyToSwap(shared_from_this());
+    emit readyToSwap(self);
 
     QQuickItem::update();
 }

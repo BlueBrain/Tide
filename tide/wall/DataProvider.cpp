@@ -346,7 +346,8 @@ void DataProvider::_load(DataSourcePtr source, const TileUpdateList& tiles)
             }
             QMetaObject::invokeMethod(tile.get(), "updateBackTexture",
                                       Qt::QueuedConnection,
-                                      Q_ARG(ImagePtr, image[view]));
+                                      Q_ARG(ImagePtr, image[view]),
+                                      Q_ARG(TilePtr, tile));
         }
         else
             print_log(LOG_DEBUG, LOG_GENERAL, "Tile expired");
