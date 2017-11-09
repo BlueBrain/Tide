@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -88,10 +88,13 @@ bool DisplayGroupController::showFullscreen(const QUuid& id)
 
     exitFullscreen();
 
+    window->backupModeAndZoom();
+
     const auto target = ContentWindowController::Coordinates::FULLSCREEN;
     ContentWindowController controller(*window, _group, target);
     controller.adjustSize(SizeState::SIZE_FULLSCREEN);
 
+    window->setMode(ContentWindow::WindowMode::FULLSCREEN);
     _group.setFullscreenWindow(window);
     return true;
 }
@@ -102,6 +105,7 @@ void DisplayGroupController::exitFullscreen()
     if (!window)
         return;
 
+    window->restoreModeAndZoom();
     _group.setFullscreenWindow(ContentWindowPtr());
 
     if (!window->isFocused())

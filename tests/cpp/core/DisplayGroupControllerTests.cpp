@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,43 +37,60 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef DUMMYCONTENT_H
-#define DUMMYCONTENT_H
+#define BOOST_TEST_MODULE DisplayGroupControllerTests
+#include <boost/test/unit_test.hpp>
 
-#include "scene/Content.h"
+#include "control/DisplayGroupController.h"
+#include "scene/ContentWindow.h"
+#include "scene/DisplayGroup.h"
 
-class DummyContent : public Content
+#include "DummyContent.h"
+
+namespace
 {
-public:
-    DummyContent(const QString& uri = QString())
-        : Content(uri)
-    {
-    }
+const QSizeF WALL_SIZE(2000, 1000);
+const QSize CONTENT_SIZE(800, 600);
+const qreal CONTENT_AR = qreal(CONTENT_SIZE.width()) / CONTENT_SIZE.height();
+}
 
-    DummyContent(const QSize& dimensions) { setDimensions(dimensions); }
-    CONTENT_TYPE getType() const final { return type; }
-    bool readMetadata() final { return true; }
-    bool hasFixedAspectRatio() const final { return fixedAspectRatio; }
-    bool canBeZoomed() const final { return zoomable; }
-    int dummyParam_ = 0;
-    CONTENT_TYPE type = CONTENT_TYPE_ANY;
-    bool fixedAspectRatio = true;
-    bool zoomable = true;
-
-private:
-    friend class boost::serialization::access;
-
-    template <class Archive>
-    void serialize(Archive& ar, const unsigned int)
-    {
-        // serialize base class information (with NVP for xml archives)
-        // clang-format off
-        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Content);
-        ar & BOOST_SERIALIZATION_NVP(dummyParam_);
-        // clang-format on
-    }
+struct Fixture
+{
+    Fixture() { displayGroup->addContentWindow(window); }
+    ContentPtr content{new DummyContent{CONTENT_SIZE}};
+    ContentWindowPtr window{new ContentWindow{content}};
+    DisplayGroupPtr displayGroup{new DisplayGroup{WALL_SIZE}};
+    DisplayGroupController controller{*displayGroup};
 };
 
-BOOST_CLASS_EXPORT_GUID(DummyContent, "DummyContent")
+BOOST_FIXTURE_TEST_CASE(testShowWindowFullscreenAndExit, Fixture)
+{
+    BOOST_REQUIRE_EQUAL(content->getZoomRect(), UNIT_RECTF);
+    BOOST_REQUIRE(!window->isFullscreen());
+    BOOST_REQUIRE_EQUAL(window->size(), CONTENT_SIZE);
 
-#endif
+    window->setX(100);
+    window->setY(150);
+    window->setWidth(CONTENT_SIZE.width() / 2);
+    window->setHeight(CONTENT_SIZE.height() / 4);
+    content->setZoomRect(QRectF(0.2, 0.2, 0.7, 0.7));
+
+    controller.showFullscreen(window->getID());
+
+    BOOST_CHECK(window->isFullscreen());
+    BOOST_CHECK_EQUAL(displayGroup->getFullscreenWindow(), window.get());
+    const auto& coord = window->getDisplayCoordinates();
+    BOOST_CHECK_EQUAL(coord.x(), (WALL_SIZE.width() - coord.width()) / 2);
+    BOOST_CHECK_EQUAL(coord.y(), 0);
+    BOOST_CHECK_EQUAL(coord.height(), WALL_SIZE.height());
+    BOOST_CHECK_EQUAL(coord.width(), coord.height() * CONTENT_AR);
+    BOOST_CHECK_EQUAL(content->getZoomRect(), UNIT_RECTF);
+
+    controller.exitFullscreen();
+
+    BOOST_CHECK(!window->isFullscreen());
+    BOOST_CHECK_EQUAL(content->getZoomRect(), QRectF(0.2, 0.2, 0.7, 0.7));
+    BOOST_CHECK_EQUAL(window->x(), 100);
+    BOOST_CHECK_EQUAL(window->y(), 150);
+    BOOST_CHECK_EQUAL(window->width(), CONTENT_SIZE.width() / 2);
+    BOOST_CHECK_EQUAL(window->height(), CONTENT_SIZE.height() / 4);
+}
