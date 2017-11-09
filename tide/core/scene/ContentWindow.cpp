@@ -1,8 +1,8 @@
 /*********************************************************************/
-/* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/* Copyright (c) 2011-2012, The University of Texas at Austin.       */
+/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/*                          Daniel.Nachbaur@epfl.ch                  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -293,6 +293,18 @@ bool ContentWindow::isSelected() const
 size_t ContentWindow::getVersion() const
 {
     return _version;
+}
+
+void ContentWindow::backupModeAndZoom()
+{
+    _backupMode = getMode();
+    _backupZoom = _content->getZoomRect();
+}
+
+void ContentWindow::restoreModeAndZoom()
+{
+    setMode(_backupMode);
+    _content->setZoomRect(_backupZoom);
 }
 
 void ContentWindow::setSelected(const bool value)

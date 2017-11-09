@@ -252,10 +252,6 @@ private:
     ContentWindowSet _focusedWindows;
     ContentWindowPtr _fullscreenWindow;
     ContentWindowSet _panels;
-
-    ContentWindow::WindowMode _fullscreenWindowPrevMode =
-        ContentWindow::WindowMode::STANDARD;
-    QRectF _fullscreenWindowPrevZoom;
 };
 
 BOOST_CLASS_VERSION(DisplayGroup, FIRST_DISPLAYGROUP_VERSION)

@@ -282,21 +282,6 @@ void DisplayGroup::setFullscreenWindow(ContentWindowPtr window)
     if (_fullscreenWindow == window)
         return;
 
-    // restore window state
-    if (_fullscreenWindow)
-    {
-        _fullscreenWindow->setMode(_fullscreenWindowPrevMode);
-        _fullscreenWindow->getContent()->setZoomRect(_fullscreenWindowPrevZoom);
-    }
-
-    // backup window state
-    if (window)
-    {
-        _fullscreenWindowPrevMode = window->getMode();
-        _fullscreenWindowPrevZoom = window->getContent()->getZoomRect();
-        window->setMode(ContentWindow::WindowMode::FULLSCREEN);
-    }
-
     _fullscreenWindow = window;
     emit hasFullscreenWindowsChanged();
     _sendDisplayGroup();

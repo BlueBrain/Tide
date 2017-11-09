@@ -1,8 +1,8 @@
 /*********************************************************************/
-/* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/* Copyright (c) 2011-2012, The University of Texas at Austin.       */
+/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/*                          Daniel.Nachbaur@epfl.ch                  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -216,6 +216,12 @@ public:
     /** @return the version of the window to apply changes on Wall processes. */
     size_t getVersion() const;
 
+    /** Backup the mode and zoom rectangle (before making fullscreen). */
+    void backupModeAndZoom();
+
+    /** Restore the mode and zoom rectangle (after exiting fullscreen). */
+    void restoreModeAndZoom();
+
 public slots:
     /** Set the current active resize handle. */
     void setActiveHandle(ContentWindow::ResizeHandle handle);
@@ -348,6 +354,9 @@ private:
     ContentWindow::WindowState _windowState;
     bool _selected;
     size_t _version;
+
+    WindowMode _backupMode = WindowMode::STANDARD;
+    QRectF _backupZoom;
 };
 
 BOOST_CLASS_VERSION(ContentWindow, 3)
