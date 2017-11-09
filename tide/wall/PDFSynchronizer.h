@@ -62,8 +62,8 @@ public:
     /** @copydoc ContentSynchronizer::getStatistics */
     QString getStatistics() const final;
 
-    /** @copydoc ContentSynchronizer::getZoomContextTile */
-    TilePtr getZoomContextTile() const final;
+    /** @copydoc ContentSynchronizer::createZoomContextTile */
+    TilePtr createZoomContextTile() const final;
 
 private:
     std::shared_ptr<PDFTiler> _source;

@@ -81,8 +81,8 @@ private:
 
     void _addTile(TilePtr tile);
     QQuickItem* _getZoomContextParentItem() const;
-    void _showZoomContextTile(bool visible);
-    void _createZoomContextTile();
+    void _updateZoomContextTile(bool visible);
+    void _addZoomContextTile();
     void _removeZoomContextTile();
     void _removeTile(uint tileIndex);
     void _updateTile(uint tileIndex, const QRect& coordinates);

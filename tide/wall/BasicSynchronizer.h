@@ -77,13 +77,14 @@ public:
     /** @copydoc ContentSynchronizer::onSwapReady */
     void onSwapReady(TilePtr tile) override;
 
-    /** @copydoc ContentSynchronizer::getZoomContextTile */
-    TilePtr getZoomContextTile() const override;
+    /** @copydoc ContentSynchronizer::createZoomContextTile */
+    TilePtr createZoomContextTile() const override;
 
 private:
     std::shared_ptr<DataSource> _dataSource;
     bool _tileAdded = false;
     bool _addTile = false;
+    bool _zoomContextTileDirty = false;
 
     /** @copydoc ContentSynchronizer::getDataSource */
     const DataSource& getDataSource() const final;
