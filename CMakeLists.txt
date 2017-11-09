@@ -28,7 +28,7 @@ include(Common)
 
 common_find_package(Boost REQUIRED COMPONENTS program_options serialization
   unit_test_framework)
-common_find_package(Deflect REQUIRED)
+common_find_package(Deflect 0.14 REQUIRED)
 common_find_package(MPI REQUIRED)
 common_find_package(Qt5Concurrent REQUIRED)
 common_find_package(Qt5Core REQUIRED)

@@ -47,7 +47,7 @@ application or download any client from [TUIO](http://www.tuio.org/?software).
 On a smartphone, search for *TuioPad* app.
 
 For more detailed information refer to the
-[User Guide](http://bluebrain.github.io/Tide-1.3/user_guide.html).
+[User Guide](http://bluebrain.github.io/Tide-1.4/user_guide.html).
 
 ## Web Interface
 
@@ -80,7 +80,7 @@ system packages on Ubuntu (apt-get) or OSX (macports) run:
     cmake .. -DINSTALL_PACKAGES=1
 
 For detailed instructions on how to build Tide on a specific platform refer to
-[Building Tide](http://bluebrain.github.io/Tide-1.3/building.html).
+[Building Tide](http://bluebrain.github.io/Tide-1.4/building.html).
 
 ## Similar Projects
 
@@ -95,4 +95,4 @@ proven and efficient technologies (C++11, Qt5, MPI).
 ## Documentation
 
 The full documentation is available at
-[bluebrain.github.io](http://bluebrain.github.io/Tide-1.3)
+[bluebrain.github.io](http://bluebrain.github.io/Tide-1.4)
