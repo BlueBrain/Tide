@@ -1,5 +1,5 @@
 # -*- mode: cmake -*-
-git_subproject(ZeroEQ https://github.com/HBPVIS/ZeroEQ.git 6a2d44e)
-git_subproject(Deflect https://github.com/BlueBrain/Deflect.git de281e9)
+git_subproject(ZeroEQ https://github.com/HBPVIS/ZeroEQ.git 1e66ee3)
+git_subproject(Deflect https://github.com/BlueBrain/Deflect.git cc4c732)
 git_subproject(TUIO https://github.com/BlueBrain/TUIO.git 52afa43)
 git_subproject(VirtualKeyboard https://github.com/BlueBrain/QtFreeVirtualKeyboard.git d026536)

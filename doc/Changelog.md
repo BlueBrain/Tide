@@ -1,7 +1,7 @@
 Changelog {#changelog}
 ============
 
-# Release 1.4 (git master)
+# Release 1.4 (09-11-2017)
 
 * [203](https://github.com/BlueBrain/Tide/pull/203):
   Webbrowser: added option to enable remote debugging (from MasterWindow UI).
