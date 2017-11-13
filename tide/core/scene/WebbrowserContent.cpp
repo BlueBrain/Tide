@@ -47,39 +47,19 @@ IMPLEMENT_SERIALIZE_FOR_XML(WebbrowserContent)
 
 namespace
 {
-#if TIDE_USE_QT5WEBKITWIDGETS
-const bool showKeyboardAction = true;
-const QString WEBBROWSER_CONTROLS{"qrc:///qml/core/WebbrowserControls.qml"};
-#else
 const bool showKeyboardAction = false;
-const QString WEBBROWSER_CONTROLS;
-#endif
 const QString title{"Web Browser"};
 }
 
 WebbrowserContent::WebbrowserContent(const QString& uri)
     : PixelStreamContent(uri, showKeyboardAction)
-#if TIDE_USE_QT5WEBKITWIDGETS
-    , _addressBar(new AddressBar(this))
-{
-    connect(_addressBar, &AddressBar::modified, this, &Content::modified);
-}
-#else
 {
 }
-#endif
 
 WebbrowserContent::WebbrowserContent()
     : PixelStreamContent(showKeyboardAction)
-#if TIDE_USE_QT5WEBKITWIDGETS
-    , _addressBar(new AddressBar(this))
-{
-    connect(_addressBar, &AddressBar::modified, this, &Content::modified);
-}
-#else
 {
 }
-#endif
 
 CONTENT_TYPE WebbrowserContent::getType() const
 {
@@ -98,11 +78,6 @@ bool WebbrowserContent::hasFixedAspectRatio() const
     return false;
 }
 
-QString WebbrowserContent::getQmlControls() const
-{
-    return WEBBROWSER_CONTROLS;
-}
-
 int WebbrowserContent::getPage() const
 {
     return _history.currentItemIndex();
@@ -111,11 +86,6 @@ int WebbrowserContent::getPage() const
 int WebbrowserContent::getPageCount() const
 {
     return _history.items().size();
-}
-
-int WebbrowserContent::getRestPort() const
-{
-    return _restPort;
 }
 
 QString WebbrowserContent::getUrl() const
@@ -132,31 +102,19 @@ void WebbrowserContent::setUrl(const QString& url)
     emit modified();
 }
 
-#if TIDE_USE_QT5WEBKITWIDGETS
-AddressBar* WebbrowserContent::getAddressBar() const
-{
-    return _addressBar;
-}
-#endif
-
 void WebbrowserContent::parseData(const QByteArray data)
 {
-    serialization::fromBinary(data, _history, _pageTitle, _restPort);
-#if TIDE_USE_QT5WEBKITWIDGETS
-    _addressBar->setUrl(_history.currentItem());
-#endif
+    serialization::fromBinary(data, _history, _pageTitle);
 
     emit pageChanged();
     emit pageCountChanged();
-    emit restPortChanged();
     emit titleChanged(getTitle());
     emit modified();
 }
 
 QByteArray WebbrowserContent::serializeData(const WebbrowserHistory& history,
-                                            const QString& pageTitle,
-                                            const int restPort)
+                                            const QString& pageTitle)
 {
-    const auto string = serialization::toBinary(history, pageTitle, restPort);
+    const auto string = serialization::toBinary(history, pageTitle);
     return QByteArray::fromStdString(string);
 }

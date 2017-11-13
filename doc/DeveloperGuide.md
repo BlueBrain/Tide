@@ -23,15 +23,10 @@ pointers to auxilary documentation.
   * TideWall: The wall application launched for each wall segment launched by
               tide which presents all opened contents.
   * TideForker: An auxilary process launched by tide which forks new processes
-                like LocalStreamer.
+                like the Launcher or Webbrowser.
   * Launcher: The application which streams the Qml control panel for browsing
               documents, sessions and launching applications.
-  * LocalStreamer: An application that generates content according to launch
-                   parameters and streams that content to the local tide
-                   instance. The webbrowser content for instance is one
-                   exisiting implementation.
-  * Webbrowser: The application which streams the newer Qml2 WebEngine-based
-                webbrowser.
+  * Webbrowser: The application which streams a Qml WebEngine-based webbrowser.
   * pyramidmaker: A script that generates a TIFF image pyramid from a big
                   source image using ImageMagick's convert tool. %Image pyramids
                   can be loaded and rendered by Tide more efficently.

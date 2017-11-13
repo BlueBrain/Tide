@@ -42,9 +42,6 @@
 
 #include "PixelStreamContent.h" // Base class
 #include "WebbrowserHistory.h"  // Member
-#if TIDE_USE_QT5WEBKITWIDGETS
-#include "AddressBar.h" // Member
-#endif
 
 /**
  * The Webbrowser is a PixelStream extended with history navigation.
@@ -54,10 +51,6 @@ class WebbrowserContent : public PixelStreamContent
     Q_OBJECT
     Q_PROPERTY(int page READ getPage NOTIFY pageChanged)
     Q_PROPERTY(int pageCount READ getPageCount NOTIFY pageCountChanged)
-    Q_PROPERTY(int restPort READ getRestPort NOTIFY restPortChanged)
-#if TIDE_USE_QT5WEBKITWIDGETS
-    Q_PROPERTY(QObject* addressBar READ getAddressBar CONSTANT)
-#endif
 
 public:
     /**
@@ -75,27 +68,17 @@ public:
     /** @return false, webbrowsers can adjust their aspect ratio. */
     bool hasFixedAspectRatio() const final;
 
-    /** @return the qml file which contains the webbrowser controls. */
-    QString getQmlControls() const final;
-
     /** Get the index of the page navigation history. */
     int getPage() const;
 
     /** Get the number of pages in the navigation history. */
     int getPageCount() const;
 
-    /** Get the port number of the webbrowser's REST interface. */
-    int getRestPort() const;
-
     /** Get the url of the current webpage. */
     QString getUrl() const;
 
     /** Replace the navigation history with a single url. */
     void setUrl(const QString& url);
-
-#if TIDE_USE_QT5WEBKITWIDGETS
-    AddressBar* getAddressBar() const;
-#endif
 
     /**
      * Parse data received from the deflect::Stream.
@@ -109,18 +92,16 @@ public:
      *
      * @param history the navigation history
      * @param pageTitle the title of the current web page
-     * @param restPort the port of the REST interface to send commands to
      * @return a serialized data buffer that can be parsed by parseData()
      */
     static QByteArray serializeData(const WebbrowserHistory& history,
-                                    const QString& pageTitle, int restPort);
+                                    const QString& pageTitle);
 
 signals:
     /** @name QProperty notifiers */
     //@{
     void pageChanged();
     void pageCountChanged();
-    void restPortChanged();
     //@}
 
 private:
@@ -137,10 +118,6 @@ private:
         ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(PixelStreamContent);
         ar & _history;
         ar & _pageTitle;
-#if TIDE_USE_QT5WEBKITWIDGETS
-        ar & _addressBar;
-        _addressBar->setParent(this);
-#endif
         // clang-format on
     }
 
@@ -164,12 +141,6 @@ private:
     /** Information received from the Webbrowser PixelStreamer. */
     WebbrowserHistory _history;
     QString _pageTitle;
-    int _restPort = 0;
-
-/** State of the address bar on master shared with the wall processes. */
-#if TIDE_USE_QT5WEBKITWIDGETS
-    AddressBar* _addressBar; // child QObject
-#endif
 };
 
 DECLARE_SERIALIZE_FOR_XML(WebbrowserContent)

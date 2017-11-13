@@ -42,10 +42,6 @@
 
 #include "serialization/includes.h"
 
-#ifdef TIDE_USE_QT5WEBKITWIDGETS
-#include <QWebHistory>
-#endif
-
 /**
  * A serializable navigation history.
  */
@@ -53,9 +49,6 @@ class WebbrowserHistory
 {
 public:
     WebbrowserHistory() = default;
-#ifdef TIDE_USE_QT5WEBKITWIDGETS
-    explicit WebbrowserHistory(const QWebHistory& history);
-#endif
     WebbrowserHistory(std::vector<QString>&& items, size_t currentItemIndex);
 
     const std::vector<QString>& items() const;

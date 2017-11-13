@@ -29,7 +29,6 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   localstreamer/HtmlSelectReplacer.h
   localstreamer/CommandLineOptions.h
   localstreamer/PixelStreamerLauncher.h
-  localstreamer/PixelStreamerType.h
   localstreamer/ProcessForker.h
   localstreamer/QmlKeyInjector.h
   LoggingUtility.h
@@ -76,7 +75,6 @@ list(APPEND TIDEMASTER_SOURCES
   localstreamer/HtmlSelectReplacer.cpp
   localstreamer/CommandLineOptions.cpp
   localstreamer/PixelStreamerLauncher.cpp
-  localstreamer/PixelStreamerType.cpp
   localstreamer/ProcessForker.cpp
   localstreamer/QmlKeyInjector.cpp
   LoggingUtility.cpp
@@ -107,33 +105,12 @@ list(APPEND TIDEMASTER_SOURCES
 )
 
 if(TIDE_ENABLE_WEBBROWSER_SUPPORT)
-  if(TARGET Qt5::WebEngine)
-    list(APPEND TIDEMASTER_PUBLIC_HEADERS
-      ui/WebbrowserWidget.h
-    )
-    list(APPEND TIDEMASTER_SOURCES
-      ui/WebbrowserWidget.cpp
-    )
-  elseif(TARGET Qt5::WebKitWidgets)
-    list(APPEND TIDEMASTER_PUBLIC_HEADERS
-      control/WebbrowserController.h
-      localstreamer/PixelStreamerFactory.h
-      localstreamer/PixelStreamer.h
-      localstreamer/WebkitAuthenticationHelper.h
-      localstreamer/WebkitHtmlSelectReplacer.h
-      localstreamer/WebkitPixelStreamer.h
-      ui/WebbrowserWidget.h
-    )
-    list(APPEND TIDEMASTER_SOURCES
-      control/WebbrowserController.cpp
-      localstreamer/PixelStreamerFactory.cpp
-      localstreamer/WebkitAuthenticationHelper.cpp
-      localstreamer/WebkitHtmlSelectReplacer.cpp
-      localstreamer/WebkitPixelStreamer.cpp
-      ui/WebbrowserWidget.cpp
-    )
-    list(APPEND TIDEMASTER_LINK_LIBRARIES PRIVATE Qt5::WebKitWidgets)
-  endif()
+  list(APPEND TIDEMASTER_PUBLIC_HEADERS
+    ui/WebbrowserWidget.h
+  )
+  list(APPEND TIDEMASTER_SOURCES
+    ui/WebbrowserWidget.cpp
+  )
 endif()
 
 if(TIDE_ENABLE_PDF_SUPPORT)

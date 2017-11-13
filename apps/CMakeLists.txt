@@ -29,14 +29,8 @@ endforeach()
 add_dependencies(tide tideForker tideMaster tideWall tideLauncher tideWhiteboard)
 
 if(TIDE_ENABLE_WEBBROWSER_SUPPORT)
-  if(TARGET Qt5::WebKitWidgets)
-    add_subdirectory(LocalStreamer)
-    add_dependencies(tide tideLocalstreamer)
-  endif()
-  if(TARGET Qt5::WebEngine)
-    add_subdirectory(Webbrowser)
-    add_dependencies(tide tideWebbrowser)
-  endif()
+  add_subdirectory(Webbrowser)
+  add_dependencies(tide tideWebbrowser)
 endif()
 
 # Copy the default config to the share folder to be able to launch after

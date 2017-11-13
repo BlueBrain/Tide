@@ -170,9 +170,7 @@ void Webbrowser::_sendData()
 {
     const auto history = _getNavigationHistory(_webengine);
     const auto title = QQmlProperty::read(_webengine, "title").toString();
-    const auto restPort = 0; // no rest interface
-    const auto data =
-        WebbrowserContent::serializeData(history, title, restPort);
+    const auto data = WebbrowserContent::serializeData(history, title);
     if (!_qmlStreamer->sendData(data))
         QGuiApplication::quit();
 }
