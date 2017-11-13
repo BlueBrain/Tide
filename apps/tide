@@ -241,5 +241,4 @@ START_CMD = '%s %s %s %s' % (MPIRUN_CMD, mpi_args, HOST_LIST, RUN_COMMANDS)
 if args.printcmd:
     print(START_CMD)
 else:
-    print('launching with command: ', START_CMD)
     subprocess.call(shlex.split(START_CMD))
