@@ -57,12 +57,10 @@
 namespace
 {
 #ifdef _WIN32
-const QString LOCALSTREAMER_BIN("tideLocalstreamer.exe");
 const QString LAUNCHER_BIN("tideLauncher.exe");
 const QString WEBBROWSER_BIN("tideWebbrowser.exe");
 const QString WHITEBOARD_BIN("tideWhiteboard.exe");
 #else
-const QString LOCALSTREAMER_BIN("tideLocalstreamer");
 const QString WHITEBOARD_BIN("tideWhiteboard");
 const QString LAUNCHER_BIN("tideLauncher");
 const QString WEBBROWSER_BIN("tideWebbrowser");
@@ -84,12 +82,7 @@ QString _getLauncherCommand(const QString& args)
 QString _getWebbrowserCommand(const QString& args)
 {
     const auto appDir = QCoreApplication::applicationDirPath();
-#ifdef TIDE_USE_QT5WEBENGINE
-    const auto& app = WEBBROWSER_BIN;
-#else
-    const auto& app = LOCALSTREAMER_BIN;
-#endif
-    return QString("%1/%2 %3").arg(appDir, app, args);
+    return QString("%1/%2 %3").arg(appDir, WEBBROWSER_BIN, args);
 }
 
 QString _getWebbrowserCommand(const WebbrowserContent& webbrowser)
@@ -99,9 +92,6 @@ QString _getWebbrowserCommand(const WebbrowserContent& webbrowser)
     options.setUrl(webbrowser.getUrl());
     options.setWidth(webbrowser.width());
     options.setHeight(webbrowser.height());
-#ifdef TIDE_USE_QT5WEBKITWIDGETS
-    options.setPixelStreamerType(PS_WEBKIT);
-#endif
     return _getWebbrowserCommand(options.getCommandLine());
 }
 
@@ -129,7 +119,7 @@ PixelStreamerLauncher::PixelStreamerLauncher(PixelStreamWindowManager& manager,
     , _config(config)
 {
     connect(&_windowManager, &PixelStreamWindowManager::streamWindowClosed,
-            this, &PixelStreamerLauncher::_dereferenceLocalStreamer,
+            this, &PixelStreamerLauncher::_dereferenceProcess,
             Qt::QueuedConnection);
 }
 
@@ -220,7 +210,7 @@ void PixelStreamerLauncher::openWhiteboard()
     _startProcess(uri, command, {});
 }
 
-void PixelStreamerLauncher::_dereferenceLocalStreamer(const QString uri)
+void PixelStreamerLauncher::_dereferenceProcess(const QString uri)
 {
     _processes.erase(uri);
 }

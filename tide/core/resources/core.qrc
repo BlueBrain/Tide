@@ -1,8 +1,4 @@
 <RCC>
-    <qresource prefix="/html">
-        <file>login-form.htm</file>
-        <file>login-form.css</file>
-    </qresource>
     <qresource prefix="/img">
         <file>add.svg</file>
         <file>browser-icon.png</file>
@@ -60,7 +56,6 @@
         <file>SideControl.qml</file>
         <file>StreamNotificationArea.qml</file>
         <file>Triangle.qml</file>
-        <file>WebbrowserControls.qml</file>
         <file>WindowControlsDelegate.qml</file>
         <file>WindowControls.qml</file>
     </qresource>

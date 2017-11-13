@@ -41,7 +41,8 @@
 #define COMMANDLINEOPTIONS_H
 
 #include "CommandLineParser.h"
-#include "PixelStreamerType.h"
+
+#include <QStringList>
 
 /**
  * Command line options to pass startup parameters to a local application.
@@ -69,7 +70,6 @@ public:
 
     /** @name Getters */
     //@{
-    PixelStreamerType getPixelStreamerType() const;
     const QString& getUrl() const;
     const QString& getStreamId() const;
     unsigned int getWidth() const;
@@ -79,7 +79,6 @@ public:
 
     /** @name Setters */
     //@{
-    void setPixelStreamerType(PixelStreamerType type);
     void setUrl(const QString& url);
     void setStreamId(const QString& id);
     void setWidth(unsigned int width);
@@ -88,7 +87,6 @@ public:
     //@}
 
 private:
-    PixelStreamerType _streamerType = PS_UNKNOWN;
     QString _url;
     QString _streamId;
     uint _width = 0;

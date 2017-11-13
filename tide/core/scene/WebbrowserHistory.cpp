@@ -39,21 +39,9 @@
 
 #include "WebbrowserHistory.h"
 
-#include <QUrl>
-
-#ifdef TIDE_USE_QT5WEBKITWIDGETS
-WebbrowserHistory::WebbrowserHistory(const QWebHistory& history)
-    : _items()
-    , _currentItemIndex(history.currentItemIndex())
-{
-    for (auto item : history.items())
-        _items.push_back(item.url().toString());
-}
-#endif
-
 WebbrowserHistory::WebbrowserHistory(std::vector<QString>&& items_,
                                      const size_t currentItemIndex_)
-    : _items{items_}
+    : _items{std::move(items_)}
     , _currentItemIndex{currentItemIndex_}
 {
 }

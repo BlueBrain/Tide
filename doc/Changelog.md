@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [212](https://github.com/BlueBrain/Tide/pull/212):
+  Removed legacy Webkit webbrowser (Qt < 5.6), require boost 1.56 or later.
 * [211](https://github.com/BlueBrain/Tide/pull/211):
   Qt's TuioTouch plugin replaces BlueBrain's TUIO subproject. Note: when not in
   headless mode, the touch points can only be delivered when the main window's

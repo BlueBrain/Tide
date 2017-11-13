@@ -102,7 +102,7 @@ private:
     const MasterConfiguration& _config;
     std::set<QString> _processes;
 
-    void _dereferenceLocalStreamer(QString uri);
+    void _dereferenceProcess(QString uri);
     QPointF _getDefaultWindowPosition() const;
     void _startProcess(const QString& uri, const QString& command,
                        const QStringList& env);

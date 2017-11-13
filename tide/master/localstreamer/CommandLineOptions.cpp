@@ -62,7 +62,6 @@ void CommandLineOptions::parse(const int argc, char** argv)
         return;
 
     _streamId = vm["streamid"].as<std::string>().c_str();
-    _streamerType = getStreamerType(vm["type"].as<std::string>().c_str());
     _url = vm["url"].as<std::string>().c_str();
     _width = vm["width"].as<unsigned int>();
     _height = vm["height"].as<unsigned int>();
@@ -75,8 +74,6 @@ void CommandLineOptions::_fillDesc()
     desc.add_options()
         ("streamid", po::value<std::string>()->required(),
          "unique identifier for this stream")
-        ("type", po::value<std::string>()->default_value( "" ),
-         "streamer type [webkit]")
         ("width", po::value<unsigned int>()->default_value( 0 ),
          "width of the stream in pixel")
         ("height", po::value<unsigned int>()->default_value( 0 ),
@@ -107,9 +104,6 @@ QStringList CommandLineOptions::getCommandLineArguments() const
 {
     QStringList arguments;
 
-    if (_streamerType != PS_UNKNOWN)
-        arguments << "--type" << getStreamerTypeString(_streamerType);
-
     if (_width > 0)
         arguments << "--width" << QString::number(_width);
 
@@ -126,11 +120,6 @@ QStringList CommandLineOptions::getCommandLineArguments() const
         arguments << "--config" << _configuration;
 
     return arguments;
-}
-
-PixelStreamerType CommandLineOptions::getPixelStreamerType() const
-{
-    return _streamerType;
 }
 
 const QString& CommandLineOptions::getUrl() const
@@ -156,11 +145,6 @@ unsigned int CommandLineOptions::getHeight() const
 const QString& CommandLineOptions::getConfiguration() const
 {
     return _configuration;
-}
-
-void CommandLineOptions::setPixelStreamerType(const PixelStreamerType type)
-{
-    _streamerType = type;
 }
 
 void CommandLineOptions::setUrl(const QString& url)

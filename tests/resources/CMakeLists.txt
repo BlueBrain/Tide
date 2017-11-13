@@ -7,8 +7,6 @@
 
 # Copy the files needed by the tests to the build directory
 set(TEST_RESOURCES
-  webgl_interaction.html
-  select_test.htm
   configuration.xml
   configuration_default.xml
   configuration_empty.xml
