@@ -40,6 +40,8 @@
 #include "WallConfiguration.h"
 
 #include <QtXmlPatterns>
+
+#include <cassert>
 #include <stdexcept>
 
 namespace

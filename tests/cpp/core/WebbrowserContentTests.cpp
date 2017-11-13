@@ -140,7 +140,7 @@ BOOST_AUTO_TEST_CASE(testDataSerialization)
 
 BOOST_AUTO_TEST_CASE(testBinarySerialization)
 {
-    using WebbrowserContentPtr = boost::shared_ptr<WebbrowserContent>;
+    using WebbrowserContentPtr = std::shared_ptr<WebbrowserContent>;
 
     WebbrowserContentPtr source{new WebbrowserContent{"Webbrowser_1"}};
     source->parseData(

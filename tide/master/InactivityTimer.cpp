@@ -96,6 +96,6 @@ void InactivityTimer::restart()
 void InactivityTimer::_sendCountdownStatus()
 {
     emit countdownUpdated(
-        boost::make_shared<CountdownStatus>(_countdownTimer.isActive(),
-                                            (uint)_countdownTimer.interval()));
+        std::make_shared<CountdownStatus>(_countdownTimer.isActive(),
+                                          (uint)_countdownTimer.interval()));
 }

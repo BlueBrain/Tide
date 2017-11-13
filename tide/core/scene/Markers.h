@@ -49,13 +49,11 @@
 #include <QPointF>
 #include <map>
 
-#include <boost/enable_shared_from_this.hpp>
-
 /**
  * Store Markers to display user interaction.
  */
 class Markers : public QAbstractListModel,
-                public boost::enable_shared_from_this<Markers>
+                public std::enable_shared_from_this<Markers>
 {
     Q_OBJECT
     Q_DISABLE_COPY(Markers)

@@ -18,7 +18,7 @@ The standard build procedure using git and CMake is the following:
 Tide builds on top of standard and well tested libraries for core
 functionalities such as rendering, serialization, file handling and network
 communication. Those dependencies are:
-* Boost 1.54 or later
+* Boost 1.56 or later
 * MPI with MPI_THREAD_MULTIPLE support (openmpi 1.6.5 or later recommended)
 * Qt 5.4 or later (5.8 or later recommended)
 
@@ -116,51 +116,6 @@ OpenCL.
 Alternative: If the above does not work for you, try installing the libmpich-dev
 system package. Tide will then only run in single-window mode (using
 configuration_1x1.xml).
-
-### Ubuntu 14.04
-
-Tide has been extensively developed and tested on Ubuntu 14.04. Only a few
-system packages are outdated and must be replaced:
-* CMake 2.8: download recent CMake 3 binaries
-  [from here](https://cmake.org/download/) and export PATH to *cmake* executable
-* Qt 5.2.1: use Qt 5.4.1 (or later) installer downloaded from
-  [the Qt website](http://download.qt.io) and export (add in ~/.bashrc):
-
-      QT_HOME=$HOME/Qt5.4.1/5.4/gcc_64
-      export PATH=$QT_HOME/bin:$PATH
-      export LD_LIBRARY_PATH=$QT_HOME/lib:$LD_LIBRARY_PATH
-      export QML_IMPORT_PATH=$QT_HOME/qml
-
-* cppcheck + lcov: build custom cppcheck-1.68 and lcov-1.11 (or newer) and
-  export PATH to the binaries (only needed for *tests* and *doxygen* targets)
-
-The system libopenmpi-dev package (verion 1.6.5-8) only reports
-MPI_THREAD_SERIALIZED support. Despite this, it works just the same as if it had
-full MPI_THREAD_MULTIPLE support. The MPI thread support check can thus be
-safely disabled when configuring the project on this platform:
-
-    cmake .. -DTIDE_IGNORE_MPI_THREADSAFETY=ON
-
-### RedHat 6
-
-Tide has been built and used in production on RHEL 6.7 machines. However, the
-deployment requires a large amount of Linux modules to replace the outdated
-system packages and even then some of the latest features remain unavailable
-(Cairo backend). This system is therefore not recommended for new deployments.
-
-For those interested, here is a list of modules used at BlueBrain at the time of
-writing (September 2016):
-* cmake/3.2.3
-* gcc/4.8.3 (+ gdb/7.5.1)
-* boost/1.54.0
-* openmpi/1.8.7
-* qt/5.4.1
-* poppler/0.45.0
-* libzmq/4.0.6
-* python/3.4.3-1
-* doxygen/1.8.9.1
-* cppcheck/1.68
-* lcov/1.11
 
 ### MacOS
 

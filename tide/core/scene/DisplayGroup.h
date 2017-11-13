@@ -47,8 +47,6 @@
 #include "serialization/includes.h"
 #include "types.h"
 
-#include <boost/enable_shared_from_this.hpp>
-
 #include <QUuid>
 
 /**
@@ -66,7 +64,7 @@ enum DisplayGroupVersion
  * Can be serialized and distributed to the Wall applications.
  */
 class DisplayGroup : public Rectangle,
-                     public boost::enable_shared_from_this<DisplayGroup>
+                     public std::enable_shared_from_this<DisplayGroup>
 {
     Q_OBJECT
     Q_DISABLE_COPY(DisplayGroup)

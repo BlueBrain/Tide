@@ -107,7 +107,7 @@ ContentWindowPtr _makeStreamWindow(const QString& uri, const QSize& size,
 
     const auto type = (stream == StreamType::LAUNCHER) ? ContentWindow::PANEL
                                                        : ContentWindow::DEFAULT;
-    return boost::make_shared<ContentWindow>(content, type);
+    return std::make_shared<ContentWindow>(content, type);
 }
 
 void PixelStreamWindowManager::openWindow(const QString& uri,

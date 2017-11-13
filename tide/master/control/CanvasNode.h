@@ -41,20 +41,17 @@
 #define CANVASNODE_H
 
 #include "scene/ContentType.h"
-#include "scene/ContentWindow.h"
 #include "types.h"
-
-#include <boost/enable_shared_from_this.hpp>
 
 /**
  * Represent a node or a leaf in the binary tree structure used by
  * AutomaticLayout
  */
 class CanvasNode : public QRectF,
-                   public boost::enable_shared_from_this<CanvasNode>
+                   public std::enable_shared_from_this<CanvasNode>
 {
 public:
-    using NodePtr = boost::shared_ptr<CanvasNode>;
+    using NodePtr = std::shared_ptr<CanvasNode>;
 
     CanvasNode(NodePtr rootPtr, NodePtr parent, NodePtr firstChild,
                NodePtr secondChild, QRectF rect);

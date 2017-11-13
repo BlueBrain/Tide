@@ -57,9 +57,9 @@ BOOST_AUTO_TEST_CASE(testFocusWindows)
 {
     ContentPtr content(new DummyContent);
     content->setDimensions(QSize(WIDTH, HEIGHT));
-    ContentWindowPtr window = boost::make_shared<ContentWindow>(content);
+    ContentWindowPtr window = std::make_shared<ContentWindow>(content);
     ContentWindowPtr panel =
-        boost::make_shared<ContentWindow>(content, ContentWindow::PANEL);
+        std::make_shared<ContentWindow>(content, ContentWindow::PANEL);
 
     BOOST_REQUIRE(!window->isFocused());
     BOOST_REQUIRE(!panel->isFocused());
@@ -80,11 +80,11 @@ BOOST_AUTO_TEST_CASE(testWindowZorder)
 {
     ContentPtr content(new DummyContent);
     content->setDimensions(QSize(WIDTH, HEIGHT));
-    ContentWindowPtr window0 = boost::make_shared<ContentWindow>(content);
-    ContentWindowPtr window1 = boost::make_shared<ContentWindow>(content);
-    ContentWindowPtr window2 = boost::make_shared<ContentWindow>(content);
+    ContentWindowPtr window0 = std::make_shared<ContentWindow>(content);
+    ContentWindowPtr window1 = std::make_shared<ContentWindow>(content);
+    ContentWindowPtr window2 = std::make_shared<ContentWindow>(content);
 
-    DisplayGroupPtr group = boost::make_shared<DisplayGroup>(wallSize);
+    DisplayGroupPtr group = std::make_shared<DisplayGroup>(wallSize);
     BOOST_REQUIRE(group->isEmpty());
 
     BOOST_CHECK_EQUAL(group->getZindex(window0), -1);

@@ -215,7 +215,7 @@ void DisplayGroupRenderer::_setBackground(ContentPtr content)
     if (!_hasBackgroundChanged(content->getURI()))
         return;
 
-    auto window = boost::make_shared<ContentWindow>(content);
+    auto window = std::make_shared<ContentWindow>(content);
     window->setCoordinates(geometry::adjustAndCenter(*window, *_displayGroup));
     auto sync = _provider.createSynchronizer(*window, _view);
     _backgroundWindowItem.reset(

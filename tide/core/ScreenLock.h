@@ -44,14 +44,13 @@
 #include "types.h"
 
 #include <QObject>
-#include <boost/enable_shared_from_this.hpp>
 
 /**
  * Allow wall lock preventing unwanted streams from opening and making Web
  * Interface view-only.
  */
 class ScreenLock : public QObject,
-                   public boost::enable_shared_from_this<ScreenLock>
+                   public std::enable_shared_from_this<ScreenLock>
 {
     Q_OBJECT
 

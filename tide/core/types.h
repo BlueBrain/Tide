@@ -46,12 +46,10 @@
 #include <QRectF>
 #include <QString>
 
-#include <boost/make_shared.hpp>
-#include <boost/shared_ptr.hpp>
-
 #include <functional>
 #include <future>
 #include <iostream>
+#include <memory>
 #include <set>
 #include <vector>
 
@@ -143,18 +141,18 @@ class WallToWallChannel;
 class WallWindow;
 class WebbrowserContent;
 
-typedef boost::shared_ptr<Content> ContentPtr;
+typedef std::shared_ptr<Content> ContentPtr;
 typedef std::shared_ptr<ContentSynchronizer> ContentSynchronizerSharedPtr;
-typedef boost::shared_ptr<ContentWindow> ContentWindowPtr;
-typedef boost::shared_ptr<CountdownStatus> CountdownStatusPtr;
-typedef boost::shared_ptr<DisplayGroup> DisplayGroupPtr;
-typedef boost::shared_ptr<const DisplayGroup> DisplayGroupConstPtr;
+typedef std::shared_ptr<ContentWindow> ContentWindowPtr;
+typedef std::shared_ptr<CountdownStatus> CountdownStatusPtr;
+typedef std::shared_ptr<DisplayGroup> DisplayGroupPtr;
+typedef std::shared_ptr<const DisplayGroup> DisplayGroupConstPtr;
 typedef std::shared_ptr<Image> ImagePtr;
 typedef std::shared_ptr<FFMPEGPicture> PicturePtr;
-typedef boost::shared_ptr<Markers> MarkersPtr;
-typedef boost::shared_ptr<MPIChannel> MPIChannelPtr;
-typedef boost::shared_ptr<Options> OptionsPtr;
-typedef boost::shared_ptr<ScreenLock> ScreenLockPtr;
+typedef std::shared_ptr<Markers> MarkersPtr;
+typedef std::shared_ptr<MPIChannel> MPIChannelPtr;
+typedef std::shared_ptr<Options> OptionsPtr;
+typedef std::shared_ptr<ScreenLock> ScreenLockPtr;
 typedef std::shared_ptr<Tile> TilePtr;
 typedef std::weak_ptr<Tile> TileWeakPtr;
 
