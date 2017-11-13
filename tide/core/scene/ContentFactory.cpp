@@ -130,25 +130,25 @@ ContentPtr ContentFactory::getContent(const QString& uri)
     switch (getContentTypeForFile(uri))
     {
     case CONTENT_TYPE_SVG:
-        content = boost::make_shared<SVGContent>(uri);
+        content = std::make_shared<SVGContent>(uri);
         break;
 #if TIDE_USE_TIFF
     case CONTENT_TYPE_IMAGE_PYRAMID:
-        content = boost::make_shared<ImagePyramidContent>(uri);
+        content = std::make_shared<ImagePyramidContent>(uri);
         break;
 #endif
 #if TIDE_ENABLE_MOVIE_SUPPORT
     case CONTENT_TYPE_MOVIE:
-        content = boost::make_shared<MovieContent>(uri);
+        content = std::make_shared<MovieContent>(uri);
         break;
 #endif
 #if TIDE_ENABLE_PDF_SUPPORT
     case CONTENT_TYPE_PDF:
-        content = boost::make_shared<PDFContent>(uri);
+        content = std::make_shared<PDFContent>(uri);
         break;
 #endif
     case CONTENT_TYPE_TEXTURE:
-        content = boost::make_shared<TextureContent>(uri);
+        content = std::make_shared<TextureContent>(uri);
         break;
     case CONTENT_TYPE_ANY:
     default:

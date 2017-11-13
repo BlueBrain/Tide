@@ -41,33 +41,25 @@
 
 #include "CanvasNode.h"
 #include "LayoutPolicy.h"
-#include "types.h"
 
 CanvasTree::CanvasTree(ContentWindowPtrs windowVec,
                        const QRectF& available_space)
+    : rootNode{std::make_shared<CanvasNode>(available_space)}
 {
-    rootNode = boost::make_shared<CanvasNode>(available_space);
     rootNode->rootPtr = rootNode;
-    for (size_t i = 0; i < windowVec.size(); i++)
-    {
-        rootNode->insert(windowVec[i]);
-    }
+    for (const auto& window : windowVec)
+        rootNode->insert(window);
 }
 
 void CanvasTree::updateFocusCoordinates()
 {
     if (rootNode)
-    {
         rootNode->updateFocusCoordinates();
-    }
 }
 
 qreal CanvasTree::getOccupiedSpace()
 {
     if (rootNode)
-    {
         return rootNode->getOccupiedSpace();
-    }
-    else
-        return 0;
+    return 0;
 }

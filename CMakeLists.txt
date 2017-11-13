@@ -26,7 +26,7 @@ set(TIDE_PORT_DEPENDS boost ffmpeg mpich-devel qt5)
 
 include(Common)
 
-common_find_package(Boost REQUIRED COMPONENTS program_options serialization
+common_find_package(Boost 1.56 REQUIRED COMPONENTS program_options serialization
   unit_test_framework)
 common_find_package(Deflect 0.14 REQUIRED)
 common_find_package(MPI REQUIRED)

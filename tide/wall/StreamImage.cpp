@@ -42,6 +42,8 @@
 
 #include <deflect/Frame.h>
 
+#include <cassert>
+
 StreamImage::StreamImage(deflect::FramePtr frame, const uint tileIndex)
     : _frame{frame}
     , _tileIndex{tileIndex}

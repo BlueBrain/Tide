@@ -55,8 +55,8 @@ RenderController::RenderController(std::vector<WallWindow*> windows,
     : _windows{std::move(windows)}
     , _provider{provider}
     , _wallChannel{wallChannel}
-    , _syncCountdownStatus{boost::make_shared<CountdownStatus>()}
-    , _syncDisplayGroup{boost::make_shared<DisplayGroup>(QSize())}
+    , _syncCountdownStatus{std::make_shared<CountdownStatus>()}
+    , _syncDisplayGroup{std::make_shared<DisplayGroup>(QSize())}
     , _syncLock(ScreenLock::create())
     , _syncOptions{Options::create()}
 {

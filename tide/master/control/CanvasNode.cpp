@@ -41,12 +41,9 @@
 
 #include "CanvasTree.h"
 #include "LayoutPolicy.h"
-#include "scene/ContentType.h"
 #include "scene/ContentWindow.h"
-#include "types.h"
 
 #include <algorithm>
-#include <boost/enable_shared_from_this.hpp>
 
 namespace
 {
@@ -302,9 +299,9 @@ bool CanvasNode::_insertRoot(ContentWindowPtr window)
             {
                 // we have to create some new space
                 auto newNodePtr =
-                    boost::make_shared<CanvasNode>(rootPtr, rootPtr, firstChild,
-                                                   secondChild,
-                                                   QRectF(topLeft(), size()));
+                    std::make_shared<CanvasNode>(rootPtr, rootPtr, firstChild,
+                                                 secondChild,
+                                                 QRectF(topLeft(), size()));
                 firstChild = newNodePtr;
                 return _insertSecondChild(window);
             }
@@ -316,8 +313,8 @@ bool CanvasNode::_insertRoot(ContentWindowPtr window)
     }
     else
     {
-        firstChild = boost::make_shared<CanvasNode>(rootPtr, rootPtr, window,
-                                                    _addMargins(window));
+        firstChild = std::make_shared<CanvasNode>(rootPtr, rootPtr, window,
+                                                  _addMargins(window));
         _setRect(_addMargins(window));
         return true;
     }
@@ -377,19 +374,20 @@ bool CanvasNode::_insertTerminal(ContentWindowPtr window)
 
         auto thisPtr = shared_from_this();
         auto internalNodePtr =
-            boost::make_shared<CanvasNode>(rootPtr, thisPtr, nullptr, nullptr,
-                                           internalNodeBoundaries);
-        auto firstChildPtr = boost::make_shared<CanvasNode>(
-            rootPtr, internalNodePtr, window,
-            QRectF(left(), top(), realSize.width(), realSize.height()));
+            std::make_shared<CanvasNode>(rootPtr, thisPtr, nullptr, nullptr,
+                                         internalNodeBoundaries);
+        auto firstChildPtr =
+            std::make_shared<CanvasNode>(rootPtr, internalNodePtr, window,
+                                         QRectF(left(), top(), realSize.width(),
+                                                realSize.height()));
         auto secondChildPtr =
-            boost::make_shared<CanvasNode>(rootPtr, internalNodePtr, nullptr,
-                                           internalFreeLeafBoundaries);
+            std::make_shared<CanvasNode>(rootPtr, internalNodePtr, nullptr,
+                                         internalFreeLeafBoundaries);
         internalNodePtr->firstChild = firstChildPtr;
         internalNodePtr->secondChild = secondChildPtr;
         auto externalFreeLeafPtr =
-            boost::make_shared<CanvasNode>(rootPtr, thisPtr, nullptr,
-                                           externalFreeleafBoundaries);
+            std::make_shared<CanvasNode>(rootPtr, thisPtr, nullptr,
+                                         externalFreeleafBoundaries);
         firstChild = internalNodePtr;
         secondChild = externalFreeLeafPtr;
         return true;
@@ -408,9 +406,9 @@ bool CanvasNode::_insertTerminal(ContentWindowPtr window)
         auto freeLeafBoundaries =
             QRectF(left() + newWidthWindow, top() + newHeightWindow,
                    width() - newWidthWindow, height() - newHeightWindow);
-        firstChild = boost::make_shared<CanvasNode>(
+        firstChild = std::make_shared<CanvasNode>(
             CanvasNode(rootPtr, thisPtr, window, firstChildBoundaries));
-        secondChild = boost::make_shared<CanvasNode>(
+        secondChild = std::make_shared<CanvasNode>(
             CanvasNode(rootPtr, thisPtr, NULL, NULL, freeLeafBoundaries));
         return true;
     }
@@ -427,18 +425,18 @@ bool CanvasNode::_insertSecondChild(ContentWindowPtr window)
         {
             // meaning we would have a to add some space
             auto newEmptySpace =
-                boost::make_shared<CanvasNode>(rootPtr, nullptr, nullptr,
-                                               QRectF(left(), height(), width(),
-                                                      realSize.height() -
-                                                          height()));
+                std::make_shared<CanvasNode>(rootPtr, nullptr, nullptr,
+                                             QRectF(left(), height(), width(),
+                                                    realSize.height() -
+                                                        height()));
             auto newFirstChildNode =
-                boost::make_shared<CanvasNode>(rootPtr, rootPtr, firstChild,
-                                               newEmptySpace,
-                                               QRectF(left(), top(), width(),
-                                                      realSize.height()));
+                std::make_shared<CanvasNode>(rootPtr, rootPtr, firstChild,
+                                             newEmptySpace,
+                                             QRectF(left(), top(), width(),
+                                                    realSize.height()));
             firstChild = newFirstChildNode;
             newFirstChildNode->firstChild->parent = newFirstChildNode;
-            secondChild = boost::make_shared<CanvasNode>(
+            secondChild = std::make_shared<CanvasNode>(
                 rootPtr, rootPtr, nullptr,
                 QRectF(width(), top(), realSize.width(), realSize.height()));
             setRect(left(), top(), width() + realSize.width(),
@@ -446,7 +444,7 @@ bool CanvasNode::_insertSecondChild(ContentWindowPtr window)
         }
         else
         {
-            secondChild = boost::make_shared<CanvasNode>(
+            secondChild = std::make_shared<CanvasNode>(
                 rootPtr, rootPtr, nullptr,
                 QRectF(width(), top(), realSize.width(), height()));
             setWidth(width() + realSize.width());
@@ -456,15 +454,15 @@ bool CanvasNode::_insertSecondChild(ContentWindowPtr window)
     {
         if (realSize.width() > width())
         {
-            auto newEmptySpace = boost::make_shared<CanvasNode>(
+            auto newEmptySpace = std::make_shared<CanvasNode>(
                 rootPtr, nullptr, nullptr,
                 QRectF(width(), top(), realSize.width() - width(), height()));
-            auto newFirstChildNode = boost::make_shared<CanvasNode>(
+            auto newFirstChildNode = std::make_shared<CanvasNode>(
                 rootPtr, rootPtr, firstChild, newEmptySpace,
                 QRectF(left(), top(), realSize.width(), height()));
             firstChild = newFirstChildNode;
             newFirstChildNode->firstChild->parent = newFirstChildNode;
-            secondChild = boost::make_shared<CanvasNode>(
+            secondChild = std::make_shared<CanvasNode>(
                 rootPtr, rootPtr, nullptr,
                 QRectF(left(), height(), realSize.width(), realSize.height()));
             setRect(left(), top(), realSize.width(),
@@ -473,9 +471,9 @@ bool CanvasNode::_insertSecondChild(ContentWindowPtr window)
         else
         {
             secondChild =
-                boost::make_shared<CanvasNode>(rootPtr, rootPtr, nullptr,
-                                               QRectF(left(), height(), width(),
-                                                      realSize.height()));
+                std::make_shared<CanvasNode>(rootPtr, rootPtr, nullptr,
+                                             QRectF(left(), height(), width(),
+                                                    realSize.height()));
             setHeight(height() + realSize.height());
         }
     }

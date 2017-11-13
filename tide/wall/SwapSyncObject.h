@@ -40,6 +40,7 @@
 #ifndef SWAPSYNCOBJECT_H
 #define SWAPSYNCOBJECT_H
 
+#include <cassert>
 #include <functional>
 
 /** Function to be used to synchronize the swapping. */

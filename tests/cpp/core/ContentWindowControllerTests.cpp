@@ -128,7 +128,7 @@ ContentWindowPtr makeDummyWindow()
 {
     ContentPtr content(new DummyContent);
     content->setDimensions(CONTENT_SIZE);
-    ContentWindowPtr window = boost::make_shared<ContentWindow>(content);
+    ContentWindowPtr window = std::make_shared<ContentWindow>(content);
     window->setCoordinates(QRectF(610, 220, 30, 40));
 
     const QRectF& coords = window->getCoordinates();
@@ -522,7 +522,7 @@ BOOST_AUTO_TEST_CASE(testLayoutEngineOneWindow)
 {
     ContentPtr content(new DummyContent);
     content->setDimensions(CONTENT_SIZE);
-    ContentWindowPtr window = boost::make_shared<ContentWindow>(content);
+    ContentWindowPtr window = std::make_shared<ContentWindow>(content);
 
     DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
     displayGroup->addContentWindow(window);
@@ -550,8 +550,8 @@ BOOST_AUTO_TEST_CASE(testLayoutEngineTwoWindows)
 {
     ContentPtr content(new DummyContent);
     content->setDimensions(CONTENT_SIZE);
-    ContentWindowPtr window1 = boost::make_shared<ContentWindow>(content);
-    ContentWindowPtr window2 = boost::make_shared<ContentWindow>(content);
+    ContentWindowPtr window1 = std::make_shared<ContentWindow>(content);
+    ContentWindowPtr window2 = std::make_shared<ContentWindow>(content);
 
     DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
     displayGroup->addContentWindow(window1);

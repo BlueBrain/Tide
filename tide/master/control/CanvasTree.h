@@ -45,26 +45,21 @@
 
 /**
  * Represent the binary tree used by the AutomaticLayout class, is on top of
- * CanvasNode
+ * CanvasNode.
  */
 class CanvasTree
 {
 public:
     CanvasTree(ContentWindowPtrs windowVec, const QRectF& available_space);
 
-    /**
-     * resize the tree, update the coordinates of the window
-     */
+    /** Resize the tree, updating the coordinates of the windows. */
     void updateFocusCoordinates();
 
-    /**
-     * return the space occupied by the windows
-     */
+    /** @return the space occupied by the windows. */
     qreal getOccupiedSpace();
 
 private:
-    using NodePtr = boost::shared_ptr<CanvasNode>;
-    NodePtr rootNode;
+    std::shared_ptr<CanvasNode> rootNode;
 };
 
 #endif

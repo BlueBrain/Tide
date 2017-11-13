@@ -46,8 +46,6 @@
 
 #include "serialization/includes.h"
 
-#include <boost/enable_shared_from_this.hpp>
-
 #include <QColor>
 #include <QObject>
 
@@ -57,7 +55,7 @@
  * Can be serialized and distributed to the Wall applications, and also set as
  * a Qml context object.
  */
-class Options : public QObject, public boost::enable_shared_from_this<Options>
+class Options : public QObject, public std::enable_shared_from_this<Options>
 {
     Q_OBJECT
     Q_DISABLE_COPY(Options)
