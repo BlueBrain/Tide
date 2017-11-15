@@ -111,6 +111,8 @@ elif IS_MPICH3:
     mpi_args += '-genvlist LD_LIBRARY_PATH'
 else: # OpenMPI
     MPI_SPECIAL_FLAGS = '-x IPATH_NO_CPUAFFINITY=1'
+    if os.getenv("LD_LIBRARY_PATH"): # set and not empty
+        MPI_SPECIAL_FLAGS += ' -x LD_LIBRARY_PATH'
     MPI_GLOBAL_HOST_LIST = '-host'
     MPI_PER_NODE_HOST = '-H'
     EXPORT_ENV_VAR = '-x {0}={1}'
@@ -119,8 +121,6 @@ else: # OpenMPI
     # It does nothing in that case, but the (now deprecated) "--bind-to-none"
     # was the default anyways.
     mpi_args += '--mca hwloc_base_binding_policy none'
-    if 'LD_LIBRARY_PATH' in os.environ:
-        mpi_args += ' -x LD_LIBRARY_PATH'
 
 # Form the application parameters list
 TIDE_PARAMS = '--config ' + TIDE_CONFIG_FILE
