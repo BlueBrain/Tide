@@ -1,6 +1,11 @@
 Changelog {#changelog}
 ============
 
+# Release 1.4.1 (git 1.4)
+
+* [215](https://github.com/BlueBrain/Tide/pull/215):
+  OpenMPI: Fix export of LD_LIBRARY_PATH.
+
 # Release 1.4 (09-11-2017)
 
 * [203](https://github.com/BlueBrain/Tide/pull/203):
