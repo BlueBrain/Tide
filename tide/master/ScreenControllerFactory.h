@@ -37,62 +37,18 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef PLANARCONTROLLER_H
-#define PLANARCONTROLLER_H
+#ifndef ScreenControllerFactory_H
+#define ScreenControllerFactory_H
 
 #include "ScreenController.h"
-#include "types.h"
-
-#include <QObject>
-#include <QSerialPort>
-#include <QTimer>
 
 /**
- * Allow control of Planar device over serial connection.
+ * Provide a ScreenController used to control the displays.
  */
-class PlanarController : public ScreenController
+class ScreenControllerFactory
 {
-    Q_OBJECT
-
 public:
-    /**
-     * Construct Planar equipment controller.
-     * @param serialport the serial port used to connect to Quad Controller
-     * @throw std::runtime_error if the port is already in use or a connection
-     *        issue occured.
-     */
-    PlanarController(const QString& serialport, const Type type);
-
-    /** Get the power state of Planar displays. */
-    ScreenState getState() const final;
-
-    /** Refresh the power state of Planar displays */
-    void checkPowerState() final;
-
-    /** Power on the displays. */
-    bool powerOn() final;
-
-    /** Power off the displays. */
-    bool powerOff() final;
-
-signals:
-    /** Emitted when power state of Planar displays changes */
-    void powerStateChanged(ScreenState state) final;
-
-private:
-    struct PlanarConfig
-    {
-        int baudrate;
-        const char* powerOn;
-        const char* powerOff;
-        const char* powerState;
-    };
-    PlanarConfig _config;
-    ScreenState _state;
-    QSerialPort _serial;
-    QTimer _timer;
-
-    PlanarConfig getConfig(const ScreenController::Type type);
+    static std::unique_ptr<ScreenController> create(const QString& ports);
 };
 
 #endif

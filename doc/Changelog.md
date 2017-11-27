@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [220](https://github.com/BlueBrain/Tide/pull/220):
+  Power control feature available in setups with mutliple controllers. 
 * [214](https://github.com/BlueBrain/Tide/pull/214):
   Rockets replaces ZeroEQ dependency for the REST interface.
 * [212](https://github.com/BlueBrain/Tide/pull/212):

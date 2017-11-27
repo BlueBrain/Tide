@@ -37,62 +37,49 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef PLANARCONTROLLER_H
-#define PLANARCONTROLLER_H
+#ifndef ScreenController_H
+#define ScreenController_H
 
-#include "ScreenController.h"
 #include "types.h"
 
 #include <QObject>
-#include <QSerialPort>
-#include <QTimer>
+#include <QVector>
 
 /**
  * Allow control of Planar device over serial connection.
  */
-class PlanarController : public ScreenController
+class ScreenController : public QObject
 {
     Q_OBJECT
 
 public:
     /**
-     * Construct Planar equipment controller.
-     * @param serialport the serial port used to connect to Quad Controller
-     * @throw std::runtime_error if the port is already in use or a connection
-     *        issue occured.
+     * The type of the display's power controller interface.
      */
-    PlanarController(const QString& serialport, const Type type);
+    enum class Type
+    {
+        planarMatrix,
+        planarTV
+    };
 
     /** Get the power state of Planar displays. */
-    ScreenState getState() const final;
+    virtual ScreenState getState() const = 0;
 
     /** Refresh the power state of Planar displays */
-    void checkPowerState() final;
+    virtual void checkPowerState() = 0;
 
     /** Power on the displays. */
-    bool powerOn() final;
+    virtual bool powerOn() = 0;
 
     /** Power off the displays. */
-    bool powerOff() final;
+    virtual bool powerOff() = 0;
 
 signals:
-    /** Emitted when power state of Planar displays changes */
-    void powerStateChanged(ScreenState state) final;
+
+    virtual void powerStateChanged(ScreenState state);
 
 private:
-    struct PlanarConfig
-    {
-        int baudrate;
-        const char* powerOn;
-        const char* powerOff;
-        const char* powerState;
-    };
-    PlanarConfig _config;
-    ScreenState _state;
-    QSerialPort _serial;
-    QTimer _timer;
-
-    PlanarConfig getConfig(const ScreenController::Type type);
+    QVector<QString> _vect;
 };
 
 #endif

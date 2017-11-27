@@ -46,6 +46,7 @@
 #include "MasterDisplayGroupRenderer.h"
 #include "PixelStreamWindowManager.h"
 #include "QmlTypeRegistration.h"
+#include "ScreenControllerFactory.h"
 #include "ScreenLock.h"
 #include "ScreenshotAssembler.h"
 #include "StateSerializationHelper.h"
@@ -501,16 +502,16 @@ void MasterApplication::_initRestInterface()
 #if TIDE_ENABLE_PLANAR_CONTROLLER
 void MasterApplication::_initPlanarController()
 {
-    _planarController.reset(
-        new PlanarController(_config->getPlanarSerialPort()));
+    _screenController =
+        ScreenControllerFactory::create(_config->getPlanarSerialPort());
 
     connect(_inactivityTimer.get(), &InactivityTimer::poweroff, [this]() {
-        _planarController->powerOff();
+        _screenController->powerOff();
         print_log(LOG_INFO, LOG_POWER,
                   "Powering off the screens on inactivity timeout");
     });
 
-    connect(_planarController.get(), &PlanarController::powerStateChanged,
+    connect(_screenController.get(), &ScreenController::powerStateChanged,
             [this](const ScreenState state) {
                 if (state == ScreenState::ON)
                     _inactivityTimer->restart();
@@ -518,14 +519,14 @@ void MasterApplication::_initPlanarController()
                     _inactivityTimer->stop();
             });
 
-    connect(_planarController.get(), &PlanarController::powerStateChanged,
+    connect(_screenController.get(), &ScreenController::powerStateChanged,
             [this](const ScreenState state) {
                 if (state == ScreenState::OFF)
                     _lock->unlock();
             });
 
 #if TIDE_ENABLE_REST_INTERFACE
-    connect(_planarController.get(), &PlanarController::powerStateChanged,
+    connect(_screenController.get(), &ScreenController::powerStateChanged,
             _logger.get(), &LoggingUtility::logScreenStateChanged);
 #endif
 }
@@ -534,9 +535,9 @@ void MasterApplication::_initPlanarController()
 void MasterApplication::_suspend()
 {
 #if TIDE_ENABLE_PLANAR_CONTROLLER
-    if (_planarController && _planarController->getState() == ScreenState::ON)
+    if (_screenController && _screenController->getState() == ScreenState::ON)
     {
-        if (_planarController->powerOff())
+        if (_screenController->powerOff())
             DisplayGroupController(*_displayGroup).hidePanels();
         else
             print_log(LOG_ERROR, LOG_POWER, "Could not power off the screens");
@@ -547,9 +548,9 @@ void MasterApplication::_suspend()
 void MasterApplication::_resume()
 {
 #if TIDE_ENABLE_PLANAR_CONTROLLER
-    if (_planarController && _planarController->getState() == ScreenState::OFF)
+    if (_screenController && _screenController->getState() == ScreenState::OFF)
     {
-        if (_planarController->powerOn())
+        if (_screenController->powerOn())
             print_log(LOG_INFO, LOG_POWER,
                       "Powered on the screens by touching the wall");
         else

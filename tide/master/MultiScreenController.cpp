@@ -37,62 +37,55 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef PLANARCONTROLLER_H
-#define PLANARCONTROLLER_H
+#include "MultiScreenController.h"
 
-#include "ScreenController.h"
-#include "types.h"
+#include "MasterConfiguration.h"
+#include "PlanarController.h"
 
-#include <QObject>
-#include <QSerialPort>
-#include <QTimer>
-
-/**
- * Allow control of Planar device over serial connection.
- */
-class PlanarController : public ScreenController
+MultiScreenController::MultiScreenController(
+    std::vector<std::shared_ptr<PlanarController>>&& controllers)
+    : _controllers{std::move(controllers)}
 {
-    Q_OBJECT
+    for (auto controller : _controllers)
+        connect(controller.get(), &PlanarController::powerStateChanged,
+                [this]() { emit powerStateChanged(getState()); });
+}
 
-public:
-    /**
-     * Construct Planar equipment controller.
-     * @param serialport the serial port used to connect to Quad Controller
-     * @throw std::runtime_error if the port is already in use or a connection
-     *        issue occured.
-     */
-    PlanarController(const QString& serialport, const Type type);
-
-    /** Get the power state of Planar displays. */
-    ScreenState getState() const final;
-
-    /** Refresh the power state of Planar displays */
-    void checkPowerState() final;
-
-    /** Power on the displays. */
-    bool powerOn() final;
-
-    /** Power off the displays. */
-    bool powerOff() final;
-
-signals:
-    /** Emitted when power state of Planar displays changes */
-    void powerStateChanged(ScreenState state) final;
-
-private:
-    struct PlanarConfig
+ScreenState MultiScreenController::getState() const
+{
+    ScreenState state = _controllers[0]->getState();
+    for (const auto controller : _controllers)
     {
-        int baudrate;
-        const char* powerOn;
-        const char* powerOff;
-        const char* powerState;
-    };
-    PlanarConfig _config;
-    ScreenState _state;
-    QSerialPort _serial;
-    QTimer _timer;
+        if (controller->getState() != state)
+            return ScreenState::UNDEF;
+    }
+    return state;
+}
 
-    PlanarConfig getConfig(const ScreenController::Type type);
-};
+void MultiScreenController::checkPowerState()
+{
+    for (const auto controller : _controllers)
+        controller->checkPowerState();
+}
 
-#endif
+bool MultiScreenController::powerOn()
+{
+    bool success = true;
+    for (auto controller : _controllers)
+    {
+        if (!controller->powerOn())
+            success = false;
+    }
+    return success;
+}
+
+bool MultiScreenController::powerOff()
+{
+    bool success = true;
+    for (auto controller : _controllers)
+    {
+        if (controller->powerOff())
+            success = false;
+    }
+    return success;
+}

@@ -37,62 +37,49 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef PLANARCONTROLLER_H
-#define PLANARCONTROLLER_H
+#ifndef MultiScreenController_H
+#define MultiScreenController_H
 
+#include "PlanarController.h"
 #include "ScreenController.h"
 #include "types.h"
 
 #include <QObject>
-#include <QSerialPort>
-#include <QTimer>
+#include <QVector>
 
 /**
- * Allow control of Planar device over serial connection.
+ * Allow control of multiple devices with multiple display controllers.
  */
-class PlanarController : public ScreenController
+class MultiScreenController : public ScreenController
 {
     Q_OBJECT
 
 public:
     /**
-     * Construct Planar equipment controller.
-     * @param serialport the serial port used to connect to Quad Controller
-     * @throw std::runtime_error if the port is already in use or a connection
-     *        issue occured.
+     * Construct a controller embracing multiple screen controlers.
+     * @param controllers the list of controllers
      */
-    PlanarController(const QString& serialport, const Type type);
+    MultiScreenController(
+        std::vector<std::shared_ptr<PlanarController>>&& controllers);
 
-    /** Get the power state of Planar displays. */
+    /** Get the power state of controlled displays. */
     ScreenState getState() const final;
 
-    /** Refresh the power state of Planar displays */
+    /** Refresh the power state of controlled displays */
     void checkPowerState() final;
 
-    /** Power on the displays. */
+    /** Power on the controlled displays. */
     bool powerOn() final;
 
-    /** Power off the displays. */
+    /** Power off the controlled displays. */
     bool powerOff() final;
 
 signals:
-    /** Emitted when power state of Planar displays changes */
-    void powerStateChanged(ScreenState state) final;
+    /** Emitted when power state of displays changes */
+    void powerStateChanged(ScreenState state);
 
 private:
-    struct PlanarConfig
-    {
-        int baudrate;
-        const char* powerOn;
-        const char* powerOff;
-        const char* powerState;
-    };
-    PlanarConfig _config;
-    ScreenState _state;
-    QSerialPort _serial;
-    QTimer _timer;
-
-    PlanarConfig getConfig(const ScreenController::Type type);
+    std::vector<std::shared_ptr<PlanarController>> _controllers;
 };
 
 #endif

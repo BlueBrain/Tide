@@ -37,62 +37,33 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef PLANARCONTROLLER_H
-#define PLANARCONTROLLER_H
+#include "ScreenControllerFactory.h"
 
-#include "ScreenController.h"
-#include "types.h"
+#include "MultiScreenController.h"
+#include "PlanarController.h"
 
-#include <QObject>
-#include <QSerialPort>
-#include <QTimer>
+#include <QStringList>
 
-/**
- * Allow control of Planar device over serial connection.
- */
-class PlanarController : public ScreenController
+std::unique_ptr<ScreenController> ScreenControllerFactory::create(
+    const QString& ports)
 {
-    Q_OBJECT
-
-public:
-    /**
-     * Construct Planar equipment controller.
-     * @param serialport the serial port used to connect to Quad Controller
-     * @throw std::runtime_error if the port is already in use or a connection
-     *        issue occured.
-     */
-    PlanarController(const QString& serialport, const Type type);
-
-    /** Get the power state of Planar displays. */
-    ScreenState getState() const final;
-
-    /** Refresh the power state of Planar displays */
-    void checkPowerState() final;
-
-    /** Power on the displays. */
-    bool powerOn() final;
-
-    /** Power off the displays. */
-    bool powerOff() final;
-
-signals:
-    /** Emitted when power state of Planar displays changes */
-    void powerStateChanged(ScreenState state) final;
-
-private:
-    struct PlanarConfig
+    auto serialports = ports.split(';');
+    if (serialports.length() == 0)
+        return nullptr;
+    if (serialports.length() > 1)
     {
-        int baudrate;
-        const char* powerOn;
-        const char* powerOff;
-        const char* powerState;
-    };
-    PlanarConfig _config;
-    ScreenState _state;
-    QSerialPort _serial;
-    QTimer _timer;
-
-    PlanarConfig getConfig(const ScreenController::Type type);
-};
-
-#endif
+        std::vector<std::shared_ptr<PlanarController>> controllers;
+        for (const auto serialport : serialports)
+        {
+            auto controller = std::make_shared<PlanarController>(
+                serialport, ScreenController::Type::planarTV);
+            controllers.push_back(controller);
+        }
+        return std::unique_ptr<ScreenController>(
+            new MultiScreenController(std::move(controllers)));
+    }
+    else
+        return std::unique_ptr<ScreenController>(
+            new PlanarController(serialports[0],
+                                 ScreenController::Type::planarMatrix));
+}

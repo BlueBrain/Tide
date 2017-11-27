@@ -45,10 +45,11 @@ const int serialTimeout = 1000;    // in ms
 const int powerStateTimer = 60000; // in ms
 }
 
-PlanarController::PlanarController(const QString& serialport)
+PlanarController::PlanarController(const QString& serialport, const Type type)
+    : _config{getConfig(type)}
 {
     _serial.setPortName(serialport);
-    _serial.setBaudRate(QSerialPort::Baud9600, QSerialPort::AllDirections);
+    _serial.setBaudRate(_config.baudrate, QSerialPort::AllDirections);
     _serial.setDataBits(QSerialPort::Data8);
     _serial.setParity(QSerialPort::NoParity);
     _serial.setStopBits(QSerialPort::OneStop);
@@ -81,13 +82,13 @@ PlanarController::PlanarController(const QString& serialport)
 
 bool PlanarController::powerOn()
 {
-    _serial.write("OPA1DISPLAY.POWER=ON\r");
+    _serial.write(_config.powerOn);
     return _serial.waitForBytesWritten(serialTimeout);
 }
 
 bool PlanarController::powerOff()
 {
-    _serial.write("OPA1DISPLAY.POWER=OFF\r");
+    _serial.write(_config.powerOff);
     return _serial.waitForBytesWritten(serialTimeout);
 }
 
@@ -95,9 +96,24 @@ ScreenState PlanarController::getState() const
 {
     return _state;
 }
-
 void PlanarController::checkPowerState()
 {
-    _serial.write("OPA1DISPLAY.POWER?\r");
+    _serial.write(_config.powerState);
     _serial.waitForBytesWritten(serialTimeout);
+}
+
+PlanarController::PlanarConfig PlanarController::getConfig(
+    const ScreenController::Type type)
+{
+    switch (type)
+    {
+    case ScreenController::Type::planarTV:
+        return {19200, "DISPLAY.POWER=ON\r", "DISPLAY.POWER=OFF\r",
+                "DISPLAY.POWER?\r"};
+    case ScreenController::Type::planarMatrix:
+        return {9600, "OPA1DISPLAY.POWER=ON\r", "OPA1DISPLAY.POWER=OFF\r",
+                "OPA1DISPLAY.POWER?\r"};
+    default:
+        throw std::invalid_argument("Non existing serial type");
+    }
 }

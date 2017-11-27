@@ -46,7 +46,7 @@
 #include <deflect/qt/OffscreenQuickView.h>
 
 #if TIDE_ENABLE_PLANAR_CONTROLLER
-#include "PlanarController.h"
+#include "ScreenController.h"
 #endif
 
 #include <QApplication>
@@ -65,7 +65,6 @@ class MasterConfiguration;
 class RestInterface;
 class ScreenshotAssembler;
 class LoggingUtility;
-
 /**
  * The main application for the Master process.
  */
@@ -126,7 +125,7 @@ private:
 #endif
 
 #if TIDE_ENABLE_PLANAR_CONTROLLER
-    std::unique_ptr<PlanarController> _planarController;
+    std::unique_ptr<ScreenController> _screenController;
 #endif
 
     QFutureWatcher<DisplayGroupConstPtr> _loadSessionOp;
