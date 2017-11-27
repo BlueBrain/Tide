@@ -69,7 +69,7 @@ bool ContentLoader::load(const QString& filename,
         return false;
     }
 
-    ContentPtr content = ContentFactory::getContent(filename);
+    auto content = ContentFactory::getContent(filename);
     if (!content)
     {
         print_log(LOG_WARN, LOG_CONTENT, "ignoring unsupported file: '%s'",
@@ -77,7 +77,7 @@ bool ContentLoader::load(const QString& filename,
         return false;
     }
 
-    ContentWindowPtr contentWindow(new ContentWindow(content));
+    ContentWindowPtr contentWindow(new ContentWindow(std::move(content)));
     ContentWindowController controller(*contentWindow, *_displayGroup);
 
     if (windowSize.isValid())
@@ -150,7 +150,7 @@ bool ContentLoader::isAlreadyOpen(const QString& filename) const
 {
     for (const auto& window : _displayGroup->getContentWindows())
     {
-        if (window->getContent()->getURI() == filename)
+        if (window->getContent().getURI() == filename)
             return true;
     }
     return false;
@@ -160,7 +160,7 @@ ContentWindowPtr ContentLoader::findWindow(const QString& filename) const
 {
     for (const auto& window : _displayGroup->getContentWindows())
     {
-        if (window->getContent()->getURI() == filename)
+        if (window->getContent().getURI() == filename)
             return window;
     }
     return {};

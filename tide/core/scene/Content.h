@@ -91,6 +91,9 @@ public:
     /** Constructor **/
     Content(const QString& uri);
 
+    /** Make a clone of this Content (virtual copy constructor). */
+    ContentPtr clone() const;
+
     /** Get the content URI **/
     const QString& getURI() const;
 

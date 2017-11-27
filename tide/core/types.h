@@ -141,7 +141,7 @@ class WallToWallChannel;
 class WallWindow;
 class WebbrowserContent;
 
-typedef std::shared_ptr<Content> ContentPtr;
+typedef std::unique_ptr<Content> ContentPtr;
 typedef std::shared_ptr<ContentSynchronizer> ContentSynchronizerSharedPtr;
 typedef std::shared_ptr<ContentWindow> ContentWindowPtr;
 typedef std::shared_ptr<CountdownStatus> CountdownStatusPtr;

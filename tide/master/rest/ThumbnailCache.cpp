@@ -80,10 +80,9 @@ std::future<http::Response> ThumbnailCache::getThumbnail(
 
 void ThumbnailCache::_cacheThumbnail(ContentWindowPtr window)
 {
-    const auto content = window->getContent();
-
-    _thumbnailCache[window->getID()] = QtConcurrent::run([content]() {
-        const auto image = thumbnail::create(*content, thumbnailSize);
+    _thumbnailCache[window->getID()] = QtConcurrent::run([window]() {
+        const auto& content = window->getContent();
+        const auto image = thumbnail::create(content, thumbnailSize);
         QByteArray imageArray;
         QBuffer buffer(&imageArray);
         buffer.open(QIODevice::WriteOnly);

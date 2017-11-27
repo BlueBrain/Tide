@@ -111,7 +111,7 @@ private:
     void _createDisplayGroupQmlItem(QQuickItem& parentItem);
     void _createWindowQmlItem(ContentWindowPtr window);
     bool _hasBackgroundChanged(const QString& newUri) const;
-    void _setBackground(ContentPtr backgroundContent);
+    void _setBackground(const Content* content);
     void _adjustBackgroundTo(const DisplayGroup& displayGroup);
 };
 

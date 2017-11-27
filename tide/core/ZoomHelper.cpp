@@ -48,7 +48,7 @@ ZoomHelper::ZoomHelper(const ContentWindow& window)
 
 QRectF ZoomHelper::getContentRect() const
 {
-    return toContentRect(_contentWindow.getContent()->getZoomRect());
+    return toContentRect(_contentWindow.getContent().getZoomRect());
 }
 
 QRectF ZoomHelper::toContentRect(const QRectF& zoomRect) const

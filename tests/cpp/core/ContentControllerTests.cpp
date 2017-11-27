@@ -74,11 +74,9 @@ public:
 
 BOOST_AUTO_TEST_CASE(testFactoryMethod)
 {
-    ContentPtr content(new DummyContent);
-    content->setDimensions(QSize(WIDTH, HEIGHT));
-    ContentWindow window(content);
+    ContentWindow window{make_unique<DummyContent>(QSize{WIDTH, HEIGHT})};
 
-    auto& dummyContent = dynamic_cast<DummyContent&>(*content);
+    auto& dummyContent = dynamic_cast<DummyContent&>(window.getContent());
 
     auto controller = ContentController::create(window);
     BOOST_CHECK(dynamic_cast<ContentController*>(controller.get()));
@@ -123,9 +121,7 @@ BOOST_AUTO_TEST_CASE(testFactoryMethod)
 
 BOOST_AUTO_TEST_CASE(testNormalizedPosition)
 {
-    ContentPtr content(new DummyContent);
-    content->setDimensions(QSize(WIDTH, HEIGHT));
-    ContentWindow window(content);
+    ContentWindow window{make_unique<DummyContent>(QSize{WIDTH, HEIGHT})};
 
     TestController controller(window);
     const QPointF point(WIDTH * 0.5, HEIGHT * 0.25);

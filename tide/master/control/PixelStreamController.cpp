@@ -50,7 +50,7 @@ PixelStreamController::PixelStreamController(ContentWindow& window)
     connect(&window, &ContentWindow::modeChanged, this,
             &PixelStreamController::_sendSizeChangedEvent);
 
-    auto& content = dynamic_cast<PixelStreamContent&>(*window.getContent());
+    auto& content = dynamic_cast<PixelStreamContent&>(window.getContent());
     connect(this, &PixelStreamController::notify, &content,
             &PixelStreamContent::notify);
 }

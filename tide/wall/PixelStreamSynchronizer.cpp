@@ -65,7 +65,7 @@ void PixelStreamSynchronizer::update(const ContentWindow& window,
                                      const QRectF& visibleArea)
 {
     // Tiles area corresponds to Content dimensions for PixelStreams
-    const auto tilesSurface = window.getContent()->getDimensions();
+    const auto tilesSurface = window.getContent().getDimensions();
 
     const auto visibleTilesArea =
         ZoomHelper{window}.toTilesArea(visibleArea, tilesSurface);

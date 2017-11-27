@@ -41,7 +41,6 @@
 
 #include "Options.h"
 
-#include "Content.h"
 #include "ContentFactory.h"
 
 // false-positive on qt signals for Q_PROPERTY notifiers
@@ -59,6 +58,12 @@ Options::Options()
     , _showWindowTitles(true)
     , _showZoomContext(true)
 {
+}
+
+Options::~Options()
+{
+    if (_backgroundContent)
+        _backgroundContent->setParent(nullptr); // avoid double deletion
 }
 
 bool Options::isAlphaBlendingEnabled() const
@@ -121,9 +126,9 @@ QColor Options::getBackgroundColor() const
     return _backgroundColor;
 }
 
-ContentPtr Options::getBackgroundContent() const
+const Content* Options::getBackgroundContent() const
 {
-    return _backgroundContent;
+    return _backgroundContent.get();
 }
 
 QString Options::getBackgroundUri() const
@@ -250,15 +255,6 @@ void Options::setBackgroundColor(const QColor color)
     emit updated(shared_from_this());
 }
 
-void Options::setBackgroundContent(ContentPtr content)
-{
-    if (_backgroundContent == content)
-        return;
-
-    _backgroundContent = content;
-    emit updated(shared_from_this());
-}
-
 void Options::setBackgroundUri(const QString& uri)
 {
     if (uri == getBackgroundUri())
@@ -266,24 +262,18 @@ void Options::setBackgroundUri(const QString& uri)
 
     if (uri.isEmpty())
     {
-        setBackgroundContent(ContentPtr());
+        _setBackgroundContent(ContentPtr());
         return;
     }
 
-    ContentPtr content = ContentFactory::getContent(uri);
-    if (content)
-        setBackgroundContent(content);
+    if (auto content = ContentFactory::getContent(uri))
+        _setBackgroundContent(std::move(content));
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wshadow"
-void Options::moveToThread(QThread* thread)
+void Options::_setBackgroundContent(ContentPtr content)
 {
+    _backgroundContent = std::move(content);
     if (_backgroundContent)
-        _backgroundContent->moveToThread(thread);
-    QObject::moveToThread(thread);
+        _backgroundContent->setParent(this);
+    emit updated(shared_from_this());
 }
-#pragma GCC diagnostic pop
-#pragma clang diagnostic pop

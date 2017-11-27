@@ -52,25 +52,26 @@ const QSize groupSize(800, 600);
 const QSize size(200, 200);
 const QRect viewRect(0, 0, groupSize.width() / 2, groupSize.height());
 const QRect centeredViewRect(350, 250, 100, 100);
+
+ContentPtr makeDummyContent()
+{
+    return make_unique<DummyContent>(size);
+}
 }
 
 struct Fixture
 {
     Fixture()
-        : group(new DisplayGroup(groupSize))
-        , content(new DummyContent)
+        : group{new DisplayGroup(groupSize)}
+        , window{new ContentWindow{makeDummyContent()}}
         , helper(*group, viewRect)
     {
-        content->setDimensions(size);
-        window = std::make_shared<ContentWindow>(content);
         group->addContentWindow(window);
-
         BOOST_REQUIRE_EQUAL(window->getCoordinates(),
                             QRectF(QPointF(0, 0), size));
     }
 
     DisplayGroupPtr group;
-    ContentPtr content;
     ContentWindowPtr window;
     VisibilityHelper helper;
 };
@@ -122,10 +123,10 @@ BOOST_FIXTURE_TEST_CASE(testSingleWindowCenteredViewRect, Fixture)
 
 BOOST_FIXTURE_TEST_CASE(testOverlappingWindow, Fixture)
 {
-    const QRectF& coord = window->getCoordinates();
+    const auto& coord = window->getCoordinates();
     BOOST_REQUIRE_EQUAL(helper.getVisibleArea(*window), coord);
 
-    ContentWindowPtr otherWindow = std::make_shared<ContentWindow>(content);
+    auto otherWindow = std::make_shared<ContentWindow>(makeDummyContent());
     group->addContentWindow(otherWindow);
 
     // Full overlap
@@ -155,9 +156,9 @@ BOOST_FIXTURE_TEST_CASE(testOverlappingWindow, Fixture)
 
 BOOST_FIXTURE_TEST_CASE(testUnderlyingWindow, Fixture)
 {
-    const QRectF& coord = window->getCoordinates();
+    const auto& coord = window->getCoordinates();
 
-    ContentWindowPtr otherWindow = std::make_shared<ContentWindow>(content);
+    auto otherWindow = std::make_shared<ContentWindow>(makeDummyContent());
     group->addContentWindow(otherWindow);
     BOOST_CHECK_EQUAL(helper.getVisibleArea(*window), QRectF());
     BOOST_CHECK_EQUAL(helper.getVisibleArea(*otherWindow), coord);
@@ -169,7 +170,7 @@ BOOST_FIXTURE_TEST_CASE(testUnderlyingWindow, Fixture)
 
 BOOST_FIXTURE_TEST_CASE(testViewCutCombinedWithOverlappingWindow, Fixture)
 {
-    ContentWindowPtr otherWindow = std::make_shared<ContentWindow>(content);
+    auto otherWindow = std::make_shared<ContentWindow>(makeDummyContent());
     group->addContentWindow(otherWindow);
 
     // Corner view cut
@@ -189,9 +190,9 @@ BOOST_FIXTURE_TEST_CASE(testViewCutCombinedWithOverlappingWindow, Fixture)
 
 BOOST_FIXTURE_TEST_CASE(testFullscreenWindowOverlapEverything, Fixture)
 {
-    const QRectF& coord = window->getCoordinates();
+    const auto& coord = window->getCoordinates();
 
-    ContentWindowPtr otherWindow = std::make_shared<ContentWindow>(content);
+    auto otherWindow = std::make_shared<ContentWindow>(makeDummyContent());
     group->addContentWindow(otherWindow);
     BOOST_REQUIRE_EQUAL(helper.getVisibleArea(*window), QRectF());
     BOOST_REQUIRE_EQUAL(helper.getVisibleArea(*otherWindow), coord);
@@ -205,7 +206,7 @@ BOOST_FIXTURE_TEST_CASE(testFullscreenWindowOverlapEverything, Fixture)
     BOOST_CHECK_EQUAL(helper.getVisibleArea(*window), fullscreen);
 
     // ...including focused windows
-    ContentWindowPtr focusWindow = std::make_shared<ContentWindow>(content);
+    auto focusWindow = std::make_shared<ContentWindow>(makeDummyContent());
     group->addContentWindow(focusWindow);
     group->addFocusedWindow(focusWindow);
     BOOST_CHECK_EQUAL(helper.getVisibleArea(*focusWindow), QRectF());
@@ -214,9 +215,9 @@ BOOST_FIXTURE_TEST_CASE(testFullscreenWindowOverlapEverything, Fixture)
 
 BOOST_FIXTURE_TEST_CASE(testHiddenWindowNotObstructingOthers, Fixture)
 {
-    const QRectF& coord = window->getCoordinates();
+    const auto& coord = window->getCoordinates();
 
-    ContentWindowPtr otherWindow = std::make_shared<ContentWindow>(content);
+    auto otherWindow = std::make_shared<ContentWindow>(makeDummyContent());
     group->addContentWindow(otherWindow);
     otherWindow->setState(ContentWindow::WindowState::HIDDEN);
     BOOST_CHECK_EQUAL(helper.getVisibleArea(*window), coord);

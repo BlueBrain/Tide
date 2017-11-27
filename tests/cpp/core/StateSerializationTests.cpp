@@ -86,7 +86,7 @@ State makeTestStateCopy()
     dummyContent->dummyParam_ = DUMMY_PARAM_VALUE;
 
     content->setDimensions(CONTENT_SIZE);
-    ContentWindowPtr window(new ContentWindow(content));
+    ContentWindowPtr window(new ContentWindow(std::move(content)));
 
     DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
     displayGroup->addContentWindow(window);
@@ -98,20 +98,19 @@ State makeTestStateCopy()
 BOOST_AUTO_TEST_CASE(
     testWhenStateIsSerializedAndDeserializedThenContentPropertiesArePreserved)
 {
-    State state = makeTestStateCopy();
+    auto state = makeTestStateCopy();
     auto contentWindows = state.getDisplayGroup()->getContentWindows();
 
     BOOST_REQUIRE_EQUAL(contentWindows.size(), 1);
-    Content* content = contentWindows[0]->getContent().get();
-    DummyContent* dummyContent = dynamic_cast<DummyContent*>(content);
-    BOOST_REQUIRE(dummyContent);
+    auto& content = contentWindows[0]->getContent();
+    auto& dummyContent = dynamic_cast<DummyContent&>(content);
 
-    const QSize dimensions = dummyContent->getDimensions();
+    const auto dimensions = dummyContent.getDimensions();
 
     BOOST_CHECK_EQUAL(dimensions, CONTENT_SIZE);
-    BOOST_CHECK_EQUAL(dummyContent->dummyParam_, DUMMY_PARAM_VALUE);
-    BOOST_CHECK_EQUAL(dummyContent->getType(), CONTENT_TYPE_ANY);
-    BOOST_CHECK_EQUAL(dummyContent->getURI().toStdString(),
+    BOOST_CHECK_EQUAL(dummyContent.dummyParam_, DUMMY_PARAM_VALUE);
+    BOOST_CHECK_EQUAL(dummyContent.getType(), CONTENT_TYPE_ANY);
+    BOOST_CHECK_EQUAL(dummyContent.getURI().toStdString(),
                       DUMMY_URI.toStdString());
 }
 
@@ -155,17 +154,17 @@ BOOST_AUTO_TEST_CASE(testWhenOpeningBrokenStateThenNoExceptionIsThrown)
     BOOST_CHECK(!group);
 }
 
-void checkContent(ContentPtr content)
+void checkContent(const Content& content)
 {
-    BOOST_CHECK_EQUAL(content->getDimensions(), VALID_TEXTURE_SIZE);
-    BOOST_CHECK_EQUAL(content->getType(), CONTENT_TYPE_TEXTURE);
-    BOOST_CHECK_EQUAL(content->getURI().toStdString(),
+    BOOST_CHECK_EQUAL(content.getDimensions(), VALID_TEXTURE_SIZE);
+    BOOST_CHECK_EQUAL(content.getType(), CONTENT_TYPE_TEXTURE);
+    BOOST_CHECK_EQUAL(content.getURI().toStdString(),
                       VALID_TEXTURE_URI.toStdString());
 }
 
 void checkLegacyWindow(ContentWindowPtr window)
 {
-    BOOST_CHECK_EQUAL(window->getContent()->getZoomRect().width(), 1.0 / 1.5);
+    BOOST_CHECK_EQUAL(window->getContent().getZoomRect().width(), 1.0 / 1.5);
     BOOST_CHECK_EQUAL(window->getCoordinates(), QRectF(0.25, 0.25, 0.5, 0.5));
 
     checkContent(window->getContent());
@@ -173,7 +172,7 @@ void checkLegacyWindow(ContentWindowPtr window)
 
 void checkWindow(ContentWindowPtr window)
 {
-    BOOST_CHECK_EQUAL(window->getContent()->getZoomRect().width(), 1.0 / 1.5);
+    BOOST_CHECK_EQUAL(window->getContent().getZoomRect().width(), 1.0 / 1.5);
 
     BOOST_CHECK_EQUAL(window->getCoordinates().x(), 0.25 * wallSize.width());
     BOOST_CHECK_EQUAL(window->getCoordinates().y(), 0.25 * wallSize.height());
@@ -184,7 +183,7 @@ void checkWindow(ContentWindowPtr window)
 
 void checkWindowVersion0(ContentWindowPtr window)
 {
-    BOOST_CHECK_EQUAL(window->getContent()->getZoomRect().width(), 1.0 / 1.5);
+    BOOST_CHECK_EQUAL(window->getContent().getZoomRect().width(), 1.0 / 1.5);
 
     // The window's content size is 256x128, the window has width and height of
     // 0.5 and a position of (0.25; 0.25).
@@ -210,7 +209,7 @@ void checkWindowVersion0(ContentWindowPtr window)
 
 void checkWindowVersion3(ContentWindowPtr window)
 {
-    BOOST_CHECK_EQUAL(window->getContent()->getZoomRect().width(), 1.0);
+    BOOST_CHECK_EQUAL(window->getContent().getZoomRect().width(), 1.0);
     BOOST_CHECK_EQUAL(window->getCoordinates(), QRectF(486, 170, 600, 300));
     BOOST_CHECK(!window->isFocused());
 
@@ -219,7 +218,7 @@ void checkWindowVersion3(ContentWindowPtr window)
 
 void checkWindowVersion4(ContentWindowPtr window)
 {
-    BOOST_CHECK_EQUAL(window->getContent()->getZoomRect().width(), 1.0);
+    BOOST_CHECK_EQUAL(window->getContent().getZoomRect().width(), 1.0);
     BOOST_CHECK_EQUAL(window->getCoordinates(), QRectF(486, 170, 600, 300));
     BOOST_CHECK(window->isFocused());
 
@@ -329,12 +328,13 @@ DisplayGroupPtr createTestDisplayGroup()
     ContentPtr content = ContentFactory::getContent(VALID_TEXTURE_URI);
     BOOST_REQUIRE(content);
     BOOST_REQUIRE_EQUAL(content->getDimensions(), VALID_TEXTURE_SIZE);
-    ContentWindowPtr contentWindow(new ContentWindow(content));
+
+    ContentWindowPtr window(new ContentWindow(std::move(content)));
     const QPointF position(0.25 * wallSize.width(), 0.25 * wallSize.height());
-    contentWindow->setCoordinates(QRectF(position, 0.5 * wallSize));
-    content->setZoomRect(QRectF(0.1, 0.2, 1.0 / 1.5, 1.0 / 1.5));
+    window->setCoordinates(QRectF(position, 0.5 * wallSize));
+    window->getContent().setZoomRect(QRectF(0.1, 0.2, 1.0 / 1.5, 1.0 / 1.5));
     DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
-    displayGroup->addContentWindow(contentWindow);
+    displayGroup->addContentWindow(window);
     return displayGroup;
 }
 
@@ -408,7 +408,7 @@ BOOST_AUTO_TEST_CASE(testStateSerializationUploadedToFile)
     ContentPtr content = ContentFactory::getContent(newValidUri);
     BOOST_REQUIRE(content);
     BOOST_REQUIRE_EQUAL(content->getDimensions(), VALID_TEXTURE_SIZE);
-    ContentWindowPtr contentWindow(new ContentWindow(content));
+    ContentWindowPtr contentWindow(new ContentWindow(std::move(content)));
     displayGroup->addContentWindow(contentWindow);
     StateSerializationHelper helper(displayGroup);
     BOOST_CHECK(helper.save(TEST_DIR + "/test.dcx", TEST_DIR).result());
@@ -425,13 +425,13 @@ BOOST_AUTO_TEST_CASE(testStateSerializationUploadedToFile)
     BOOST_CHECK(sessionFiles.contains(newValidFile));
     BOOST_CHECK(uploadDirFiles.contains("test.dcx"));
     BOOST_CHECK(uploadDirFiles.contains("test.dcxpreview"));
-    BOOST_CHECK(contentWindow->getContent()->getURI() ==
+    BOOST_CHECK(contentWindow->getContent().getURI() ==
                 TEST_DIR + "/test/" + "uploaded.png");
 
     // 4) Add another file with the same name and test saving
     QFile::copy(VALID_TEXTURE_URI, newValidUri);
     content = ContentFactory::getContent(newValidUri);
-    ContentWindowPtr newContentWindow(new ContentWindow(content));
+    ContentWindowPtr newContentWindow(new ContentWindow(std::move(content)));
     displayGroup->addContentWindow(newContentWindow);
     BOOST_CHECK(helper.save(TEST_DIR + "/test.dcx", TEST_DIR).result());
     uploadDirFiles = uploadDir.entryList(QDir::NoDotAndDotDot | QDir::Files);
@@ -440,7 +440,7 @@ BOOST_AUTO_TEST_CASE(testStateSerializationUploadedToFile)
     BOOST_CHECK(!tempDirFiles.contains(newValidFile));
     BOOST_CHECK(sessionFiles.contains("uploaded.png"));
     BOOST_CHECK(sessionFiles.contains("uploaded_1.png"));
-    BOOST_CHECK(newContentWindow->getContent()->getURI() ==
+    BOOST_CHECK(newContentWindow->getContent().getURI() ==
                 TEST_DIR + "/test/" + "uploaded_1.png");
 
     uploadDir.removeRecursively();

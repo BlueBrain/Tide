@@ -44,37 +44,22 @@
 IMPLEMENT_SERIALIZE_FOR_XML(ContentWindow)
 
 ContentWindow::ContentWindow(ContentPtr content, const WindowType type)
-    : _uuid(QUuid::createUuid())
-    , _type(type)
-    , _content(content)
-    , _activeHandle(NOHANDLE)
-    , _resizePolicy(KEEP_ASPECT_RATIO)
-    , _mode(WindowMode::STANDARD)
-    , _windowState(NONE)
-    , _selected(false)
-    , _version(0)
+    : _type{type}
 {
-    assert(content);
-    _init();
-    _coordinates.setSize(content->getDimensions());
+    setContent(std::move(content));
+    _coordinates.setSize(_content->getDimensions());
     connect(this, &ContentWindow::modified, [this] { ++_version; });
 }
 
 ContentWindow::ContentWindow()
-    : _uuid(QUuid::createUuid())
-    , _type(WindowType::DEFAULT)
-    , _activeHandle(NOHANDLE)
-    , _resizePolicy(KEEP_ASPECT_RATIO)
-    , _mode(WindowMode::STANDARD)
-    , _windowState(NONE)
-    , _selected(false)
-    , _version(0)
 {
     connect(this, &ContentWindow::modified, [this] { ++_version; });
 }
 
 ContentWindow::~ContentWindow()
 {
+    if (_content)
+        _content->setParent(nullptr); // avoid double deletion
 }
 
 const QUuid& ContentWindow::getID() const
@@ -87,26 +72,32 @@ bool ContentWindow::isPanel() const
     return _type == WindowType::PANEL;
 }
 
+Content& ContentWindow::getContent()
+{
+    return *_content;
+}
+
+const Content& ContentWindow::getContent() const
+{
+    return *_content;
+}
+
 Content* ContentWindow::getContentPtr() const
 {
     return _content.get();
 }
 
-ContentPtr ContentWindow::getContent() const
-{
-    return _content;
-}
-
 void ContentWindow::setContent(ContentPtr content)
 {
-    assert(content);
+    if (!content)
+        throw std::invalid_argument("ContentWindow's content cannot be null");
 
-    if (_content)
-        _content->disconnect(this, SIGNAL(contentModified()));
+    content->setParent(this);
+    _content = std::move(content);
 
-    content->moveToThread(thread());
-    _content = content;
-    _init();
+    setResizePolicy(_content->hasFixedAspectRatio() ? KEEP_ASPECT_RATIO
+                                                    : ADJUST_CONTENT);
+    _initContentConnections();
 }
 
 void ContentWindow::setCoordinates(const QRectF& coordinates)
@@ -317,10 +308,8 @@ void ContentWindow::setSelected(const bool value)
     emit modified();
 }
 
-void ContentWindow::_init()
+void ContentWindow::_initContentConnections()
 {
-    setResizePolicy(_content->hasFixedAspectRatio() ? KEEP_ASPECT_RATIO
-                                                    : ADJUST_CONTENT);
     connect(_content.get(), &Content::modified, [this] { ++_version; });
     connect(_content.get(), &Content::modified, this,
             &ContentWindow::contentModified);

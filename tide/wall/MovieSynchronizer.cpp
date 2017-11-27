@@ -68,7 +68,7 @@ void MovieSynchronizer::update(const ContentWindow& window,
         emit sliderPositionChanged();
 
     // Tiles area corresponds to Content dimensions for Movies
-    const auto tilesSurface = window.getContent()->getDimensions();
+    const auto tilesSurface = window.getContent().getDimensions();
 
     const auto visibleTilesArea =
         ZoomHelper{window}.toTilesArea(visibleArea, tilesSurface);

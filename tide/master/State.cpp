@@ -155,21 +155,21 @@ ContentWindowPtr _restoreContent(QXmlQuery& query, ContentPtr content,
         zoom = qstring.toDouble();
     }
 
-    ContentWindowPtr contentWindow(new ContentWindow(content));
+    auto contentWindow = std::make_shared<ContentWindow>(std::move(content));
 
-    QRectF windowCoordinates(contentWindow->getCoordinates());
+    auto windowCoordinates = contentWindow->getCoordinates();
     if (x != -1. || y != -1.)
         windowCoordinates.moveTopLeft(QPointF(x, y));
     if (w != -1. || h != -1.)
         windowCoordinates.setSize(QSizeF(w, h));
     contentWindow->setCoordinates(windowCoordinates);
 
-    QRectF zoomRect(contentWindow->getContent()->getZoomRect());
+    auto zoomRect = contentWindow->getContent().getZoomRect();
     if (zoom != -1.)
         zoomRect.setSize(QSizeF(1.0 / zoom, 1.0 / zoom));
     if (centerX != -1. || centerY != -1.)
         zoomRect.moveCenter(QPointF(centerX, centerY));
-    contentWindow->getContent()->setZoomRect(zoomRect);
+    contentWindow->getContent().setZoomRect(zoomRect);
 
     return contentWindow;
 }
@@ -199,13 +199,12 @@ bool State::legacyLoadXML(const QString& filename)
     contentWindows.reserve(numContentWindows);
     for (int i = 1; i <= numContentWindows; ++i)
     {
-        ContentPtr content = _loadContent(query, i);
+        auto content = _loadContent(query, i);
         if (!content)
             content = ContentFactory::getErrorContent();
 
-        ContentWindowPtr contentWindow = _restoreContent(query, content, i);
-        if (contentWindow)
-            contentWindows.push_back(contentWindow);
+        if (auto window = _restoreContent(query, std::move(content), i))
+            contentWindows.push_back(std::move(window));
     }
 
     _displayGroup->setContentWindows(contentWindows);

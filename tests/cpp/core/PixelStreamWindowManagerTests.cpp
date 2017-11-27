@@ -119,10 +119,9 @@ BOOST_AUTO_TEST_CASE(testEventReceiver)
     ContentWindowPtr window = windowManager.getWindow(CONTENT_URI);
     BOOST_REQUIRE(window);
 
-    auto content = dynamic_cast<PixelStreamContent*>(window->getContentPtr());
-    BOOST_REQUIRE(content);
-    BOOST_REQUIRE(!content->hasEventReceivers());
-    BOOST_REQUIRE_EQUAL(content->getInteractionPolicy(),
+    auto& content = dynamic_cast<PixelStreamContent&>(window->getContent());
+    BOOST_REQUIRE(!content.hasEventReceivers());
+    BOOST_REQUIRE_EQUAL(content.getInteractionPolicy(),
                         Content::Interaction::OFF);
 
     DummyEventReceiver receiver;
@@ -137,12 +136,11 @@ BOOST_AUTO_TEST_CASE(testEventReceiver)
     BOOST_CHECK(!receiver.success);
 
     auto promise = std::make_shared<std::promise<bool>>();
-    windowManager.registerEventReceiver(content->getURI(), false, &receiver,
+    windowManager.registerEventReceiver(content.getURI(), false, &receiver,
                                         promise);
     BOOST_CHECK(promise->get_future().get());
-    BOOST_CHECK(content->hasEventReceivers());
-    BOOST_CHECK_EQUAL(content->getInteractionPolicy(),
-                      Content::Interaction::ON);
+    BOOST_CHECK(content.hasEventReceivers());
+    BOOST_CHECK_EQUAL(content.getInteractionPolicy(), Content::Interaction::ON);
     BOOST_CHECK(!receiver.success);
 
     streamController->notify(deflect::Event());
@@ -168,10 +166,9 @@ BOOST_AUTO_TEST_CASE(testExplicitWindowCreation)
     windowManager.handleStreamStart(uri);
     BOOST_CHECK_EQUAL(window, windowManager.getWindow(uri));
 
-    ContentPtr content = window->getContent();
-    BOOST_REQUIRE(content);
-    BOOST_CHECK(content->getURI() == uri);
-    BOOST_CHECK_EQUAL(content->getType(), CONTENT_TYPE_PIXEL_STREAM);
+    const auto& content = window->getContent();
+    BOOST_CHECK_EQUAL(content.getURI(), uri);
+    BOOST_CHECK_EQUAL(content.getType(), CONTENT_TYPE_PIXEL_STREAM);
 
     const QRectF& coords = window->getCoordinates();
     BOOST_CHECK_EQUAL(coords.center(), pos);
@@ -179,7 +176,7 @@ BOOST_AUTO_TEST_CASE(testExplicitWindowCreation)
 
     // Check that the window is NOT resized to the first frame dimensions
     windowManager.updateStreamDimensions(createTestFrame(testFrameSize));
-    BOOST_CHECK_EQUAL(content->getDimensions(), testFrameSize);
+    BOOST_CHECK_EQUAL(content.getDimensions(), testFrameSize);
     BOOST_CHECK_EQUAL(coords.center(), pos);
     BOOST_CHECK_EQUAL(coords.size(), size);
 
@@ -203,11 +200,10 @@ BOOST_AUTO_TEST_CASE(testImplicitWindowCreation)
     BOOST_REQUIRE(window);
     BOOST_CHECK_EQUAL(window, displayGroup->getContentWindow(window->getID()));
 
-    ContentPtr content = window->getContent();
-    BOOST_REQUIRE(content);
-    BOOST_CHECK(content->getURI() == uri);
-    BOOST_CHECK_EQUAL(content->getType(), CONTENT_TYPE_PIXEL_STREAM);
-    BOOST_CHECK_EQUAL(content->getDimensions(), UNDEFINED_SIZE);
+    const auto& content = window->getContent();
+    BOOST_CHECK(content.getURI() == uri);
+    BOOST_CHECK_EQUAL(content.getType(), CONTENT_TYPE_PIXEL_STREAM);
+    BOOST_CHECK_EQUAL(content.getDimensions(), UNDEFINED_SIZE);
 
     const QRectF& coords = window->getCoordinates();
     BOOST_CHECK_EQUAL(coords.center(), pos);
@@ -215,13 +211,13 @@ BOOST_AUTO_TEST_CASE(testImplicitWindowCreation)
 
     // Check that the window is resized to the first frame dimensions
     windowManager.updateStreamDimensions(createTestFrame(testFrameSize));
-    BOOST_CHECK_EQUAL(content->getDimensions(), testFrameSize);
+    BOOST_CHECK_EQUAL(content.getDimensions(), testFrameSize);
     BOOST_CHECK_EQUAL(coords.center(), pos);
     BOOST_CHECK_EQUAL(coords.size(), testFrameSize);
 
     // Check that the window is NOT resized to the next frame dimensions
     windowManager.updateStreamDimensions(createTestFrame(testFrameSize2));
-    BOOST_CHECK_EQUAL(content->getDimensions(), testFrameSize2);
+    BOOST_CHECK_EQUAL(content.getDimensions(), testFrameSize2);
     BOOST_CHECK_EQUAL(coords.center(), pos);
     BOOST_CHECK_EQUAL(coords.size(), testFrameSize);
 
@@ -237,12 +233,12 @@ BOOST_AUTO_TEST_CASE(testSizeHints)
     const QString uri = CONTENT_URI;
     windowManager.handleStreamStart(uri);
     ContentWindowPtr window = windowManager.getWindow(uri);
-    ContentPtr content = window->getContent();
+    const auto& content = window->getContent();
 
-    BOOST_CHECK_EQUAL(content->getDimensions(), QSizeF());
-    BOOST_CHECK_EQUAL(content->getMinDimensions(), QSizeF());
-    BOOST_CHECK_EQUAL(content->getMaxDimensions(), QSizeF());
-    BOOST_CHECK_EQUAL(content->getPreferredDimensions(), QSizeF());
+    BOOST_CHECK_EQUAL(content.getDimensions(), QSizeF());
+    BOOST_CHECK_EQUAL(content.getMinDimensions(), QSizeF());
+    BOOST_CHECK_EQUAL(content.getMaxDimensions(), QSizeF());
+    BOOST_CHECK_EQUAL(content.getPreferredDimensions(), QSizeF());
 
     const QSize minSize(80, 100);
     const QSize maxSize(800, 1000);
@@ -256,10 +252,10 @@ BOOST_AUTO_TEST_CASE(testSizeHints)
     hints.preferredHeight = preferredSize.height();
     windowManager.updateSizeHints(CONTENT_URI, hints);
 
-    BOOST_CHECK_EQUAL(content->getDimensions(), preferredSize);
-    BOOST_CHECK_EQUAL(content->getMinDimensions(), minSize);
-    BOOST_CHECK_EQUAL(content->getMaxDimensions(), maxSize);
-    BOOST_CHECK_EQUAL(content->getPreferredDimensions(), preferredSize);
+    BOOST_CHECK_EQUAL(content.getDimensions(), preferredSize);
+    BOOST_CHECK_EQUAL(content.getMinDimensions(), minSize);
+    BOOST_CHECK_EQUAL(content.getMaxDimensions(), maxSize);
+    BOOST_CHECK_EQUAL(content.getPreferredDimensions(), preferredSize);
 }
 
 BOOST_AUTO_TEST_CASE(hideAndShowWindow)
@@ -339,7 +335,7 @@ BOOST_AUTO_TEST_CASE(check_external_stream_opening_after_sizehints)
     BOOST_CHECK_EQUAL(externalStreamOpened, true);
 
     BOOST_CHECK_EQUAL(
-        windowManager.getWindow(uri)->getContent()->getDimensions(),
+        windowManager.getWindow(uri)->getContent().getDimensions(),
         expectedDimension);
 }
 
@@ -378,7 +374,7 @@ BOOST_AUTO_TEST_CASE(check_external_stream_opening_after_firstframe)
     BOOST_CHECK(window->isHidden());
 
     BOOST_CHECK_EQUAL(
-        windowManager.getWindow(uri)->getContent()->getDimensions(),
+        windowManager.getWindow(uri)->getContent().getDimensions(),
         expectedDimension);
 }
 
@@ -414,7 +410,7 @@ BOOST_AUTO_TEST_CASE(resize_external_stream)
     BOOST_CHECK(!window->isHidden());
 
     BOOST_CHECK_EQUAL(
-        windowManager.getWindow(uri)->getContent()->getDimensions(),
+        windowManager.getWindow(uri)->getContent().getDimensions(),
         expectedDimension);
 
     const QSize newDimension{200, 200};
@@ -428,7 +424,7 @@ BOOST_AUTO_TEST_CASE(resize_external_stream)
     windowManager.updateStreamDimensions(frame);
 
     BOOST_CHECK_EQUAL(
-        windowManager.getWindow(uri)->getContent()->getDimensions(),
+        windowManager.getWindow(uri)->getContent().getDimensions(),
         newDimension);
 }
 

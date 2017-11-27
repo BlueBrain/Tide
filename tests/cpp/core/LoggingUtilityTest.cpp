@@ -89,15 +89,18 @@ const QString regexJson{
     \}
 \}
 )"};
+
+ContentWindowPtr makeDummyWindow()
+{
+    return std::make_shared<ContentWindow>(ContentPtr{new DummyContent});
+}
 }
 
 struct Fixture
 {
-    ContentPtr content{new DummyContent};
     DisplayGroupPtr displayGroup{new DisplayGroup(wallSize)};
-
-    ContentWindowPtr window1 = std::make_shared<ContentWindow>(content);
-    ContentWindowPtr window2 = std::make_shared<ContentWindow>(content);
+    ContentWindowPtr window1 = makeDummyWindow();
+    ContentWindowPtr window2 = makeDummyWindow();
     LoggingUtility logger;
 };
 

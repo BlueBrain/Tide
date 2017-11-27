@@ -70,7 +70,7 @@ bool _canBeRestored(const CONTENT_TYPE type)
 
 void _relocateTempContent(ContentWindow& window, const QString& dstDir)
 {
-    const auto& uri = window.getContent()->getURI();
+    const auto& uri = window.getContent().getURI();
     if (!uri.startsWith(QDir::tempPath()))
         return;
 
@@ -113,7 +113,7 @@ void _relocateTempContent(DisplayGroup& group, const QString& dstDir)
     std::vector<ContentWindowPtr> windowsToRelocate;
     for (const auto& window : group.getContentWindows())
     {
-        const auto& uri = window->getContent()->getURI();
+        const auto& uri = window->getContent().getURI();
         if (QFileInfo{uri}.absolutePath() == QDir::tempPath())
             windowsToRelocate.push_back(window);
     }
@@ -131,7 +131,7 @@ void _relocateTempContent(DisplayGroup& group, const QString& dstDir)
 
 bool _validateContent(const ContentWindowPtr& window)
 {
-    ContentPtr content = window->getContent();
+    auto content = window->getContentPtr();
     if (!content)
     {
         print_log(LOG_WARN, LOG_CONTENT, "Window '%s' does not have a Content!",
@@ -155,8 +155,8 @@ bool _validateContent(const ContentWindowPtr& window)
                       "a regular texture: '%s'",
                       content->getURI().toLocal8Bit().constData());
 
-            content = ContentFactory::getContent(uri);
-            window->setContent(content);
+            window->setContent(ContentFactory::getContent(uri));
+            content = window->getContentPtr();
         }
         else
         {
@@ -170,7 +170,7 @@ bool _validateContent(const ContentWindowPtr& window)
 
     // Refresh content information, files can have been modified or removed
     // since the state was saved.
-    if (content->readMetadata())
+    if (window->getContent().readMetadata())
     {
         print_log(LOG_DEBUG, LOG_CONTENT, "Restoring content: '%s'",
                   content->getURI().toLocal8Bit().constData());
@@ -268,7 +268,7 @@ void _filterContents(DisplayGroup& group)
     std::copy_if(windows.begin(), windows.end(),
                  std::back_inserter(filteredWindows),
                  [](const ContentWindowPtr& window) {
-                     return _canBeRestored(window->getContent()->getType());
+                     return _canBeRestored(window->getContent().getType());
                  });
     group.setContentWindows(filteredWindows);
 }
