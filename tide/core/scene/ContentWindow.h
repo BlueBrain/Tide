@@ -58,6 +58,8 @@
 class ContentWindow : public Rectangle
 {
     Q_OBJECT
+    Q_DISABLE_COPY(ContentWindow)
+
     Q_PROPERTY(QUuid id READ getID CONSTANT)
     Q_PROPERTY(bool isPanel READ isPanel CONSTANT)
     Q_PROPERTY(Content* content READ getContentPtr CONSTANT)
@@ -147,11 +149,12 @@ public:
     /** @return true if window is a panel. */
     bool isPanel() const;
 
+    /** Get the content. */
+    Content& getContent();
+    const Content& getContent() const;
+
     /** Get the content from QML. */
     Content* getContentPtr() const;
-
-    /** Get the content. */
-    ContentPtr getContent() const;
 
     /** Set the content, replacing the existing one. @note Rank0 only. */
     void setContent(ContentPtr content);
@@ -281,6 +284,8 @@ private:
         ar & _selected;
         ar & _version;
         // clang-format on
+        if (_content)
+            _content->setParent(this);
     }
 
     /** Serialize members to and from xml. */
@@ -288,7 +293,6 @@ private:
     void serialize_members_xml(Archive& ar, const unsigned int version)
     {
         // clang-format off
-        ar & boost::serialization::make_nvp("content", _content);
         if (version < 1)
         {
             int contentWidth = 0, contentHeight = 0;
@@ -326,34 +330,48 @@ private:
         // clang-format on
     }
 
+    void deserialize_content_as_shared_ptr(boost::archive::xml_iarchive& ar)
+    {
+        std::shared_ptr<Content> tmp;
+        ar >> boost::serialization::make_nvp("content", tmp);
+        setContent(tmp->clone());
+    }
+
+    void serialize_content_as_shared_ptr(boost::archive::xml_oarchive& ar)
+    {
+        std::shared_ptr<Content> wrapper(_content.get(), [](Content*) {});
+        ar << boost::serialization::make_nvp("content", wrapper);
+    }
+
     /** Loading from xml. */
     void serialize_for_xml(boost::archive::xml_iarchive& ar,
                            const unsigned int version)
     {
+        deserialize_content_as_shared_ptr(ar);
         serialize_members_xml(ar, version);
-        _init();
     }
 
     /** Saving to xml. */
     void serialize_for_xml(boost::archive::xml_oarchive& ar,
                            const unsigned int version)
     {
+        serialize_content_as_shared_ptr(ar);
         serialize_members_xml(ar, version);
     }
 
-    void _init();
+    void _initContentConnections();
 
-    QUuid _uuid;
-    WindowType _type;
+    QUuid _uuid = QUuid::createUuid();
+    WindowType _type = WindowType::DEFAULT;
     ContentPtr _content;
-    ContentWindow::ResizeHandle _activeHandle;
-    ContentWindow::ResizePolicy _resizePolicy;
-    ContentWindow::WindowMode _mode;
+    ResizeHandle _activeHandle = ResizeHandle::NOHANDLE;
+    ResizePolicy _resizePolicy = ResizePolicy::KEEP_ASPECT_RATIO;
+    WindowMode _mode = WindowMode::STANDARD;
     QRectF _focusedCoordinates;
     QRectF _fullscreenCoordinates;
-    ContentWindow::WindowState _windowState;
-    bool _selected;
-    size_t _version;
+    WindowState _windowState = WindowState::NONE;
+    bool _selected = false;
+    size_t _version = 0u;
 
     WindowMode _backupMode = WindowMode::STANDARD;
     QRectF _backupZoom;

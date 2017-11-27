@@ -85,7 +85,7 @@ MasterWindow::MasterWindow(DisplayGroupPtr displayGroup, OptionsPtr options,
     connect(_backgroundWidget, &BackgroundWidget::backgroundColorChanged,
             _options.get(), &Options::setBackgroundColor);
     connect(_backgroundWidget, &BackgroundWidget::backgroundContentChanged,
-            _options.get(), &Options::setBackgroundContent);
+            _options.get(), &Options::setBackgroundUri);
 
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
     connect(_webbrowserWidget, &WebbrowserWidget::openWebBrowser, this,

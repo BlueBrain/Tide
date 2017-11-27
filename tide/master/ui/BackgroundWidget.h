@@ -68,7 +68,7 @@ signals:
     void backgroundColorChanged(QColor color);
 
     /** Emitted when the user selected a different background */
-    void backgroundContentChanged(ContentPtr content);
+    void backgroundContentChanged(QString content);
 
 public slots:
     /** Store the new settings and close the widget */

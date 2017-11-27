@@ -78,7 +78,7 @@ std::shared_ptr<typename Map::mapped_type::element_type> _get(
 
     if (!source)
     {
-        const auto& uri = window.getContent()->getURI();
+        const auto& uri = window.getContent().getURI();
         source = std::make_shared<typename Map::mapped_type::element_type>(uri);
         map[id] = source;
     }
@@ -146,7 +146,7 @@ void DataProvider::updateDataSources(const DisplayGroup& group)
 
     for (const auto& window : group.getContentWindows())
     {
-        const auto& content = *window->getContent();
+        const auto& content = window->getContent();
         switch (content.getType())
         {
 #if TIDE_ENABLE_MOVIE_SUPPORT
@@ -292,7 +292,7 @@ void DataProvider::_processTileImageRequests(DataSourcePtr source)
 std::shared_ptr<PixelStreamUpdater> DataProvider::_getStreamSource(
     const ContentWindow& window)
 {
-    const auto& uri = window.getContent()->getURI();
+    const auto& uri = window.getContent().getURI();
     std::shared_ptr<PixelStreamUpdater> updater;
     if (_streamSources.count(uri))
         updater = _streamSources[uri].lock();
@@ -364,7 +364,7 @@ void DataProvider::_handleFinished()
 std::unique_ptr<ContentSynchronizer> DataProvider::_makeSynchronizer(
     const ContentWindow& window, const deflect::View view)
 {
-    switch (window.getContent()->getType())
+    switch (window.getContent().getType())
     {
 #if TIDE_USE_TIFF
     case CONTENT_TYPE_IMAGE_PYRAMID:
@@ -374,7 +374,7 @@ std::unique_ptr<ContentSynchronizer> DataProvider::_makeSynchronizer(
     case CONTENT_TYPE_MOVIE:
     {
         auto updater = _get(_movieSources, window);
-        updater->update(static_cast<const MovieContent&>(*window.getContent()));
+        updater->update(static_cast<const MovieContent&>(window.getContent()));
         return make_unique<MovieSynchronizer>(updater, view);
     }
 #endif
@@ -382,7 +382,7 @@ std::unique_ptr<ContentSynchronizer> DataProvider::_makeSynchronizer(
     case CONTENT_TYPE_PDF:
     {
         auto updater = _get(_pdfSources, window);
-        updater->update(static_cast<const PDFContent&>(*window.getContent()));
+        updater->update(static_cast<const PDFContent&>(window.getContent()));
         return make_unique<PDFSynchronizer>(updater);
     }
 #endif

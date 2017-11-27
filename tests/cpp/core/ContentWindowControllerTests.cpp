@@ -59,19 +59,23 @@ const QSize BIG_CONTENT_SIZE(CONTENT_SIZE*(Content::getMaxScale() + 1));
 const QSize SMALL_CONTENT_SIZE(CONTENT_SIZE / 4);
 const qreal CONTENT_AR =
     qreal(CONTENT_SIZE.width()) / qreal(CONTENT_SIZE.height());
+
+ContentPtr make_dummy_content()
+{
+    return make_unique<DummyContent>(CONTENT_SIZE);
+}
 }
 
 BOOST_AUTO_TEST_CASE(testResizeAndMove)
 {
-    ContentPtr content(new DummyContent);
-    content->setDimensions(CONTENT_SIZE);
-    ContentWindow window(content);
+    ContentWindow window(make_dummy_content());
+    const auto& content = window.getContent();
 
     DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
     ContentWindowController controller(window, *displayGroup);
 
     const QPointF targetPosition(124.2, 457.3);
-    const QSizeF targetSize(0.7 * QSizeF(content->getDimensions()));
+    const QSizeF targetSize(0.7 * QSizeF(content.getDimensions()));
 
     controller.moveTo(targetPosition);
     controller.resize(targetSize);
@@ -88,7 +92,7 @@ BOOST_AUTO_TEST_CASE(testResizeAndMove)
     BOOST_CHECK_EQUAL(coords.size(), targetSize);
 
     const QPointF fixedCenter = coords.center();
-    const QSizeF centeredSize(0.5 * QSizeF(content->getDimensions()));
+    const QSizeF centeredSize(0.5 * QSizeF(content.getDimensions()));
 
     controller.resize(centeredSize, WindowPoint::CENTER);
 
@@ -100,9 +104,7 @@ BOOST_AUTO_TEST_CASE(testResizeAndMove)
 
 BOOST_AUTO_TEST_CASE(testScaleByPixelDelta)
 {
-    ContentPtr content(new DummyContent);
-    content->setDimensions(CONTENT_SIZE);
-    ContentWindow window(content);
+    ContentWindow window(make_dummy_content());
 
     DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
     ContentWindowController controller(window, *displayGroup);
@@ -126,12 +128,10 @@ BOOST_AUTO_TEST_CASE(testScaleByPixelDelta)
 
 ContentWindowPtr makeDummyWindow()
 {
-    ContentPtr content(new DummyContent);
-    content->setDimensions(CONTENT_SIZE);
-    ContentWindowPtr window = std::make_shared<ContentWindow>(content);
+    auto window = std::make_shared<ContentWindow>(make_dummy_content());
     window->setCoordinates(QRectF(610, 220, 30, 40));
 
-    const QRectF& coords = window->getCoordinates();
+    const auto& coords = window->getCoordinates();
     BOOST_REQUIRE_EQUAL(coords.topLeft(), QPointF(610, 220));
     BOOST_REQUIRE_EQUAL(coords.center(), QPointF(625, 240));
 
@@ -166,7 +166,7 @@ BOOST_AUTO_TEST_CASE(testOneToOneFittingSize)
     BOOST_CHECK_EQUAL(coords.center(), QPointF(625, 240));
 
     // Big content constrained to 0.9 * wallSize
-    window->getContent()->setDimensions(2 * wallSize.toSize());
+    window->getContent().setDimensions(2 * wallSize.toSize());
     controller.adjustSize(SIZE_1TO1_FITTING);
     BOOST_CHECK_EQUAL(coords.size(), 0.9 * wallSize);
     BOOST_CHECK_EQUAL(coords.center(), QPointF(625, 240));
@@ -179,10 +179,10 @@ BOOST_AUTO_TEST_CASE(testSizeLimitsBigContent)
     ContentWindowController controller(*window, *displayGroup);
 
     // Make a large content and validate it
-    ContentPtr content = window->getContent();
-    content->setDimensions(BIG_CONTENT_SIZE);
+    auto& content = window->getContent();
+    content.setDimensions(BIG_CONTENT_SIZE);
     BOOST_REQUIRE_EQUAL(Content::getMaxScale(), 3.0);
-    BOOST_REQUIRE_EQUAL(content->getMaxDimensions(),
+    BOOST_REQUIRE_EQUAL(content.getMaxDimensions(),
                         BIG_CONTENT_SIZE * Content::getMaxScale());
 
     // Test controller and zoom limits
@@ -193,7 +193,7 @@ BOOST_AUTO_TEST_CASE(testSizeLimitsBigContent)
                       QSize(400, 300));
 
     const QSizeF normalMaxSize = controller.getMaxSize();
-    window->getContent()->setZoomRect(
+    window->getContent().setZoomRect(
         QRectF(QPointF(0.3, 0.1), QSizeF(0.25, 0.25)));
     BOOST_CHECK_EQUAL(controller.getMaxSize(), 0.25 * normalMaxSize);
 }
@@ -205,9 +205,9 @@ BOOST_AUTO_TEST_CASE(testSizeLimitsSmallContent)
     ContentWindowController controller(*window, *displayGroup);
 
     // Make a small content and validate it
-    ContentPtr content = window->getContent();
-    content->setDimensions(SMALL_CONTENT_SIZE);
-    BOOST_REQUIRE_EQUAL(content->getMaxDimensions(),
+    auto& content = window->getContent();
+    content.setDimensions(SMALL_CONTENT_SIZE);
+    BOOST_REQUIRE_EQUAL(content.getMaxDimensions(),
                         SMALL_CONTENT_SIZE * Content::getMaxScale());
     BOOST_REQUIRE_EQUAL(Content::getMaxScale(), 3.0);
 
@@ -219,7 +219,7 @@ BOOST_AUTO_TEST_CASE(testSizeLimitsSmallContent)
                       SMALL_CONTENT_SIZE * Content::getMaxScale());
 
     const QSizeF normalMaxSize = controller.getMaxSize();
-    window->getContent()->setZoomRect(
+    window->getContent().setZoomRect(
         QRectF(QPointF(0.3, 0.1), QSizeF(0.25, 0.25)));
     BOOST_CHECK_EQUAL(controller.getMaxSize(), 0.25 * normalMaxSize);
 }
@@ -231,36 +231,36 @@ BOOST_AUTO_TEST_CASE(testAspectRatioMinSize)
     ContentWindowController controller(*window, *displayGroup);
 
     // Make a content and validate MinSize keeps aspect ratio
-    ContentPtr content = window->getContent();
-    content->setDimensions(QSize(400, 800));
+    auto& content = window->getContent();
+    content.setDimensions(QSize(400, 800));
     BOOST_CHECK_EQUAL(controller.getMinSizeAspectRatioCorrect(),
                       QSize(300, 600));
 
-    content->setDimensions(QSize(800, 1600));
+    content.setDimensions(QSize(800, 1600));
     BOOST_CHECK_EQUAL(controller.getMinSizeAspectRatioCorrect(),
                       QSize(300, 600));
 
-    content->setDimensions(QSize(2000, 1500));
+    content.setDimensions(QSize(2000, 1500));
     BOOST_CHECK_EQUAL(controller.getMinSizeAspectRatioCorrect(),
                       QSize(400, 300));
 
     window->setMode(ContentWindow::FULLSCREEN);
-    content->setDimensions(QSize(800, 1600));
+    content.setDimensions(QSize(800, 1600));
     BOOST_CHECK_EQUAL(controller.getMinSizeAspectRatioCorrect(),
                       QSize(500, 1000));
 
     window->setMode(ContentWindow::STANDARD);
-    content->setDimensions(QSize(800, 1600));
+    content.setDimensions(QSize(800, 1600));
     BOOST_CHECK_EQUAL(controller.getMinSizeAspectRatioCorrect(),
                       QSize(300, 600));
 
     window->setMode(ContentWindow::FULLSCREEN);
-    content->setDimensions(QSize(2500, 1250));
+    content.setDimensions(QSize(2500, 1250));
     BOOST_CHECK_EQUAL(controller.getMinSizeAspectRatioCorrect(),
                       QSize(1000, 500));
 
     window->setMode(ContentWindow::FOCUSED);
-    content->setDimensions(QSize(2500, 1250));
+    content.setDimensions(QSize(2500, 1250));
     BOOST_CHECK_EQUAL(controller.getMinSizeAspectRatioCorrect(),
                       QSize(600, 300));
 
@@ -273,8 +273,8 @@ BOOST_AUTO_TEST_CASE(testAspectRatioMinSize)
     hints.minWidth = minSize.width();
     hints.minHeight = minSize.height();
 
-    content->setSizeHints(hints);
-    content->setDimensions(CONTENT_SIZE);
+    content.setSizeHints(hints);
+    content.setDimensions(CONTENT_SIZE);
 
     controller.resize(maxSize, CENTER);
     BOOST_CHECK_EQUAL(controller.getMinSizeAspectRatioCorrect(),
@@ -294,7 +294,7 @@ BOOST_AUTO_TEST_CASE(testSizeHints)
     ContentWindowPtr window = makeDummyWindow();
     DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
     ContentWindowController controller(*window, *displayGroup);
-    ContentPtr content = window->getContent();
+    auto& content = window->getContent();
 
     const QSize maxSize(CONTENT_SIZE * 2);
     const QSize minSize(CONTENT_SIZE / 2);
@@ -305,8 +305,8 @@ BOOST_AUTO_TEST_CASE(testSizeHints)
     hints.minHeight = minSize.height();
     hints.preferredWidth = CONTENT_SIZE.width();
     hints.preferredHeight = CONTENT_SIZE.height();
-    content->setSizeHints(hints);
-    content->setDimensions(CONTENT_SIZE);
+    content.setSizeHints(hints);
+    content.setDimensions(CONTENT_SIZE);
     const QRectF& coords = window->getCoordinates();
 
     // too big, constrains to maxSize
@@ -359,48 +359,39 @@ void _checkFullscreenMax(const QRectF& coords)
     BOOST_CHECK_EQUAL(coords.height(), wallSize.height());
 }
 
-BOOST_AUTO_TEST_CASE(testFullScreenSize)
+struct ZoomedContentFixture
 {
-    ContentPtr content(new DummyContent);
-    content->setDimensions(CONTENT_SIZE);
-    content->setZoomRect(QRectF(0.25, 0.25, 0.5, 0.5));
-    ContentWindow window(content);
+    ContentWindow window{_makeZoomedContent()};
+    DisplayGroupPtr displayGroup{new DisplayGroup{wallSize}};
+    ContentWindowController controller{window, *displayGroup};
 
-    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
-    ContentWindowController controller(window, *displayGroup);
+private:
+    ContentPtr _makeZoomedContent()
+    {
+        auto content = make_dummy_content();
+        content->setZoomRect(QRectF(0.25, 0.25, 0.5, 0.5));
+        return content;
+    }
+};
 
+BOOST_FIXTURE_TEST_CASE(testFullScreenSize, ZoomedContentFixture)
+{
     controller.adjustSize(SIZE_FULLSCREEN);
     _checkFullscreen(window.getCoordinates());
     // zoom reset
-    BOOST_CHECK_EQUAL(content->getZoomRect(), UNIT_RECTF);
+    BOOST_CHECK_EQUAL(window.getContent().getZoomRect(), UNIT_RECTF);
 }
 
-BOOST_AUTO_TEST_CASE(testFullScreenMaxSize)
+BOOST_FIXTURE_TEST_CASE(testFullScreenMaxSize, ZoomedContentFixture)
 {
-    ContentPtr content(new DummyContent);
-    content->setDimensions(CONTENT_SIZE);
-    content->setZoomRect(QRectF(0.25, 0.25, 0.5, 0.5));
-    ContentWindow window(content);
-
-    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
-    ContentWindowController controller(window, *displayGroup);
-
     controller.adjustSize(SIZE_FULLSCREEN_MAX);
     _checkFullscreenMax(window.getCoordinates());
     // zoom reset
-    BOOST_CHECK_EQUAL(content->getZoomRect(), UNIT_RECTF);
+    BOOST_CHECK_EQUAL(window.getContent().getZoomRect(), UNIT_RECTF);
 }
 
-BOOST_AUTO_TEST_CASE(testToggleFullScreenMaxSize)
+BOOST_FIXTURE_TEST_CASE(testToggleFullScreenMaxSize, ZoomedContentFixture)
 {
-    ContentPtr content(new DummyContent);
-    content->setDimensions(CONTENT_SIZE);
-    content->setZoomRect(QRectF(0.25, 0.25, 0.5, 0.5));
-    ContentWindow window(content);
-
-    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
-    ContentWindowController controller(window, *displayGroup);
-
     // No effect if window is not in fullscreen
     const auto originalCoord = window.getDisplayCoordinates();
     controller.toogleFullscreenMaxSize();
@@ -418,16 +409,8 @@ BOOST_AUTO_TEST_CASE(testToggleFullScreenMaxSize)
     _checkFullscreen(window.getFullscreenCoordinates());
 }
 
-BOOST_AUTO_TEST_CASE(testResizeAndMoveInFullScreenMode)
+BOOST_FIXTURE_TEST_CASE(testResizeAndMoveInFullScreenMode, ZoomedContentFixture)
 {
-    ContentPtr content(new DummyContent);
-    content->setDimensions(CONTENT_SIZE);
-    content->setZoomRect(QRectF(0.25, 0.25, 0.5, 0.5));
-    ContentWindow window(content);
-
-    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
-    ContentWindowController controller(window, *displayGroup);
-
     window.setMode(ContentWindow::WindowMode::FULLSCREEN);
     controller.adjustSize(SIZE_FULLSCREEN);
     _checkFullscreen(window.getDisplayCoordinates());
@@ -455,14 +438,11 @@ BOOST_AUTO_TEST_CASE(testResizeAndMoveInFullScreenMode)
 
 BOOST_AUTO_TEST_CASE(testResizeRelativeToBorder)
 {
-    ContentPtr content(new DummyContent);
-    content->setDimensions(CONTENT_SIZE);
-    ContentWindow window(content);
-
+    ContentWindow window(make_dummy_content());
     DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
     ContentWindowController controller(window, *displayGroup);
 
-    const QRectF originalCoords = window.getCoordinates();
+    const auto originalCoords = window.getCoordinates();
 
     controller.resizeRelative(QPointF(5, 5));
     BOOST_CHECK(window.getCoordinates() == originalCoords);
@@ -484,17 +464,14 @@ BOOST_AUTO_TEST_CASE(testResizeRelativeToBorder)
 
 BOOST_AUTO_TEST_CASE(testResizeRelativeToCorner)
 {
-    ContentPtr content(new DummyContent);
-    content->setDimensions(CONTENT_SIZE);
-    ContentWindow window(content);
-
+    ContentWindow window(make_dummy_content());
     DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
     ContentWindowController controller(window, *displayGroup);
 
-    const QRectF originalCoords = window.getCoordinates();
+    const auto originalCoords = window.getCoordinates();
 
     // These corner resize alters the window aspect ratio
-    static_cast<DummyContent*>(content.get())->fixedAspectRatio = false;
+    static_cast<DummyContent&>(window.getContent()).fixedAspectRatio = false;
     BOOST_REQUIRE(window.setResizePolicy(ContentWindow::ADJUST_CONTENT));
     window.setActiveHandle(ContentWindow::TOP_RIGHT);
     controller.resizeRelative(QPointF(2, 10));
@@ -506,7 +483,7 @@ BOOST_AUTO_TEST_CASE(testResizeRelativeToCorner)
     BOOST_CHECK_EQUAL(window.getCoordinates().width() - 2,
                       originalCoords.width());
 
-    const QRectF prevCoords = window.getCoordinates();
+    const auto prevCoords = window.getCoordinates();
 
     window.setActiveHandle(ContentWindow::BOTTOM_LEFT);
     controller.resizeRelative(QPointF(1, 2));
@@ -520,9 +497,8 @@ BOOST_AUTO_TEST_CASE(testResizeRelativeToCorner)
 
 BOOST_AUTO_TEST_CASE(testLayoutEngineOneWindow)
 {
-    ContentPtr content(new DummyContent);
-    content->setDimensions(CONTENT_SIZE);
-    ContentWindowPtr window = std::make_shared<ContentWindow>(content);
+    auto window = std::make_shared<ContentWindow>(make_dummy_content());
+    const auto& content = window->getContent();
 
     DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
     displayGroup->addContentWindow(window);
@@ -536,7 +512,7 @@ BOOST_AUTO_TEST_CASE(testLayoutEngineOneWindow)
     const qreal expectedXOffset = 200.0; // window controls width
     const qreal totalExpectedMargin = 2.0 * expectedPadding + expectedXOffset;
     const qreal expectedWidth = wallSize.width() - totalExpectedMargin;
-    const qreal expectedHeight = expectedWidth / content->getAspectRatio();
+    const qreal expectedHeight = expectedWidth / content.getAspectRatio();
     const qreal expectedY = (wallSize.height() - expectedHeight) / 2.0;
 
     // focus mode, vertically centered on wall and repects inner margin
@@ -548,10 +524,8 @@ BOOST_AUTO_TEST_CASE(testLayoutEngineOneWindow)
 
 BOOST_AUTO_TEST_CASE(testLayoutEngineTwoWindows)
 {
-    ContentPtr content(new DummyContent);
-    content->setDimensions(CONTENT_SIZE);
-    ContentWindowPtr window1 = std::make_shared<ContentWindow>(content);
-    ContentWindowPtr window2 = std::make_shared<ContentWindow>(content);
+    auto window1 = std::make_shared<ContentWindow>(make_dummy_content());
+    auto window2 = std::make_shared<ContentWindow>(make_dummy_content());
 
     DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
     displayGroup->addContentWindow(window1);

@@ -136,8 +136,8 @@ void PixelStreamerLauncher::openWebBrowser(QPointF pos, QSize size,
     const auto uri = QUuid::createUuid().toString();
     _windowManager.openWindow(uri, pos, size, StreamType::WEBBROWSER);
 
-    auto content = _windowManager.getWindow(uri)->getContent();
-    auto& webbrowser = dynamic_cast<WebbrowserContent&>(*content);
+    auto& content = _windowManager.getWindow(uri)->getContent();
+    auto& webbrowser = dynamic_cast<WebbrowserContent&>(content);
     webbrowser.setUrl(url);
     launch(webbrowser, debugPort);
 #else

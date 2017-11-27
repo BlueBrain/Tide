@@ -51,9 +51,7 @@
 std::unique_ptr<ContentController> ContentController::create(
     ContentWindow& window)
 {
-    assert(window.getContent());
-
-    switch (window.getContent()->getType())
+    switch (window.getContent().getType())
     {
     case CONTENT_TYPE_PIXEL_STREAM:
         return make_unique<PixelStreamController>(window);

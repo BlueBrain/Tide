@@ -107,7 +107,7 @@ ContentWindowPtr _makeStreamWindow(const QString& uri, const QSize& size,
 
     const auto type = (stream == StreamType::LAUNCHER) ? ContentWindow::PANEL
                                                        : ContentWindow::DEFAULT;
-    return std::make_shared<ContentWindow>(content, type);
+    return std::make_shared<ContentWindow>(std::move(content), type);
 }
 
 void PixelStreamWindowManager::openWindow(const QString& uri,
@@ -177,7 +177,7 @@ void PixelStreamWindowManager::registerEventReceiver(
 
     // If a receiver is already registered, don't register this one if
     // "exclusive" was requested
-    auto& content = dynamic_cast<PixelStreamContent&>(*window->getContent());
+    auto& content = dynamic_cast<PixelStreamContent&>(window->getContent());
     if (!exclusive || !content.hasEventReceivers())
     {
         if (connect(&content, &PixelStreamContent::notify, receiver,
@@ -198,7 +198,7 @@ void PixelStreamWindowManager::_updateWindowSize(ContentWindowPtr window,
     bool emitOpen = false;
 
     // External streamers might not have reported an initial size yet
-    if (window->getContent()->getDimensions().isEmpty())
+    if (window->getContent().getDimensions().isEmpty())
     {
         emitOpen = true;
 
@@ -207,15 +207,15 @@ void PixelStreamWindowManager::_updateWindowSize(ContentWindowPtr window,
         controller.resize(size, CENTER);
     }
 
-    if (size == window->getContent()->getDimensions())
+    if (size == window->getContent().getDimensions())
         return;
 
-    window->getContent()->setDimensions(size);
+    window->getContent().setDimensions(size);
     if (window->isFocused())
         DisplayGroupController{_displayGroup}.updateFocusedWindowsCoordinates();
 
     if (emitOpen)
-        emit externalStreamOpening(window->getContent()->getURI());
+        emit externalStreamOpening(window->getContent().getURI());
 }
 
 void PixelStreamWindowManager::updateStreamDimensions(deflect::FramePtr frame)
@@ -235,7 +235,7 @@ void PixelStreamWindowManager::sendDataToWindow(const QString uri,
     if (!window)
         return;
 
-    auto& content = dynamic_cast<PixelStreamContent&>(*window->getContent());
+    auto& content = dynamic_cast<PixelStreamContent&>(window->getContent());
     content.parseData(data);
 }
 
@@ -256,10 +256,10 @@ void PixelStreamWindowManager::updateSizeHints(const QString uri,
     if (!window)
         return;
 
-    window->getContent()->setSizeHints(hints);
+    window->getContent().setSizeHints(hints);
 
     const QSize size(hints.preferredWidth, hints.preferredHeight);
-    if (size.isEmpty() || !window->getContent()->getDimensions().isEmpty())
+    if (size.isEmpty() || !window->getContent().getDimensions().isEmpty())
         return;
 
     _updateWindowSize(window, size);
@@ -279,16 +279,16 @@ void PixelStreamWindowManager::_onWindowAdded(ContentWindowPtr window)
 {
     // Do the mapping here, not in openWindow(), to include any streamer
     // restored from a session (for which openWindow is not called).
-    if (_isStreamType(window->getContent()->getType()))
-        _streamWindows[window->getContent()->getURI()] = window->getID();
+    if (_isStreamType(window->getContent().getType()))
+        _streamWindows[window->getContent().getURI()] = window->getID();
 }
 
 void PixelStreamWindowManager::_onWindowRemoved(ContentWindowPtr window)
 {
-    if (!_isStreamType(window->getContent()->getType()))
+    if (!_isStreamType(window->getContent().getType()))
         return;
 
-    const auto& uri = window->getContent()->getURI();
+    const auto& uri = window->getContent().getURI();
     _streamWindows.erase(uri);
     emit streamWindowClosed(uri);
 }

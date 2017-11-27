@@ -74,7 +74,7 @@ QJsonObject to_json_object(ContentWindowPtr window, const DisplayGroup& group)
 {
     const ContentWindowController controller(*window, group);
     return QJsonObject{
-        {"aspectRatio", window->getContent()->getAspectRatio()},
+        {"aspectRatio", window->getContent().getAspectRatio()},
         {"minWidth", controller.getMinSizeAspectRatioCorrect().width()},
         {"minHeight", controller.getMinSizeAspectRatioCorrect().height()},
         {"width", window->getDisplayCoordinates().width()},
@@ -82,12 +82,12 @@ QJsonObject to_json_object(ContentWindowPtr window, const DisplayGroup& group)
         {"x", window->getDisplayCoordinates().x()},
         {"y", window->getDisplayCoordinates().y()},
         {"z", group.getZindex(window)},
-        {"title", window->getContent()->getTitle()},
+        {"title", window->getContent().getTitle()},
         {"mode", window->getMode()},
         {"selected", window->isSelected()},
         {"fullscreen", window->isFullscreen()},
         {"focus", window->isFocused()},
-        {"uri", window->getContent()->getURI()},
+        {"uri", window->getContent().getURI()},
         {"visible", window->getState() == ContentWindow::HIDDEN ? false : true},
         {"uuid", url_encode(window->getID())}};
 }
@@ -97,7 +97,7 @@ QJsonObject to_json_object(const DisplayGroup& group)
     QJsonArray windows;
     for (const auto& window : group.getContentWindows())
     {
-        if (window->getContent()->getURI() == "Launcher")
+        if (window->getContent().getURI() == "Launcher")
             continue;
 
         windows.append(to_json_object(window, group));

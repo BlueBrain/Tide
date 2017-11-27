@@ -263,11 +263,8 @@ const ContentWindowSet& DisplayGroup::getPanels() const
 void DisplayGroup::moveToThread(QThread* thread)
 {
     QObject::moveToThread(thread);
-    for (auto window : _contentWindows)
-    {
+    for (auto& window : _contentWindows)
         window->moveToThread(thread);
-        window->getContent()->moveToThread(thread);
-    }
 }
 #pragma GCC diagnostic pop
 #pragma clang diagnostic pop

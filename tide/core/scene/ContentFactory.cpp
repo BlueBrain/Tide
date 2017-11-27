@@ -70,6 +70,32 @@
 namespace
 {
 const QSize maxTextureSize(16384, 16384);
+
+ContentPtr _makeContent(const QString& uri)
+{
+    switch (ContentFactory::getContentTypeForFile(uri))
+    {
+    case CONTENT_TYPE_SVG:
+        return make_unique<SVGContent>(uri);
+#if TIDE_USE_TIFF
+    case CONTENT_TYPE_IMAGE_PYRAMID:
+        return make_unique<ImagePyramidContent>(uri);
+#endif
+#if TIDE_ENABLE_MOVIE_SUPPORT
+    case CONTENT_TYPE_MOVIE:
+        return make_unique<MovieContent>(uri);
+#endif
+#if TIDE_ENABLE_PDF_SUPPORT
+    case CONTENT_TYPE_PDF:
+        return make_unique<PDFContent>(uri);
+#endif
+    case CONTENT_TYPE_TEXTURE:
+        return make_unique<TextureContent>(uri);
+    case CONTENT_TYPE_ANY:
+    default:
+        return nullptr;
+    }
+}
 }
 
 CONTENT_TYPE ContentFactory::getContentTypeForFile(const QString& uri)
@@ -125,36 +151,7 @@ CONTENT_TYPE ContentFactory::getContentTypeForFile(const QString& uri)
 
 ContentPtr ContentFactory::getContent(const QString& uri)
 {
-    ContentPtr content;
-
-    switch (getContentTypeForFile(uri))
-    {
-    case CONTENT_TYPE_SVG:
-        content = std::make_shared<SVGContent>(uri);
-        break;
-#if TIDE_USE_TIFF
-    case CONTENT_TYPE_IMAGE_PYRAMID:
-        content = std::make_shared<ImagePyramidContent>(uri);
-        break;
-#endif
-#if TIDE_ENABLE_MOVIE_SUPPORT
-    case CONTENT_TYPE_MOVIE:
-        content = std::make_shared<MovieContent>(uri);
-        break;
-#endif
-#if TIDE_ENABLE_PDF_SUPPORT
-    case CONTENT_TYPE_PDF:
-        content = std::make_shared<PDFContent>(uri);
-        break;
-#endif
-    case CONTENT_TYPE_TEXTURE:
-        content = std::make_shared<TextureContent>(uri);
-        break;
-    case CONTENT_TYPE_ANY:
-    default:
-        break;
-    }
-
+    auto content = _makeContent(uri);
     if (content && content->readMetadata())
         return content;
 

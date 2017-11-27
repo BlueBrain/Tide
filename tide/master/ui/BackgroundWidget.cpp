@@ -137,11 +137,7 @@ void BackgroundWidget::reject()
     _configuration.setBackgroundColor(_previousColor);
     _configuration.setBackgroundUri(_previousBackgroundURI);
 
-    ContentPtr content;
-    if (!_previousBackgroundURI.isEmpty())
-        content = ContentFactory::getContent(_previousBackgroundURI);
-
-    emit backgroundContentChanged(content);
+    emit backgroundContentChanged(_previousBackgroundURI);
     emit backgroundColorChanged(_previousColor);
 
     QDialog::reject();
@@ -172,12 +168,11 @@ void BackgroundWidget::_openBackgroundContent()
 
     _backgroundFolder = QFileInfo(filename).absoluteDir().path();
 
-    ContentPtr content = ContentFactory::getContent(filename);
-    if (content)
+    if (ContentFactory::getContent(filename))
     {
         _backgroundLabel->setText(filename);
         _configuration.setBackgroundUri(filename);
-        emit backgroundContentChanged(content);
+        emit backgroundContentChanged(filename);
     }
     else
     {
@@ -191,5 +186,5 @@ void BackgroundWidget::_removeBackground()
 {
     _backgroundLabel->setText("");
     _configuration.setBackgroundUri("");
-    emit backgroundContentChanged(ContentPtr());
+    emit backgroundContentChanged("");
 }

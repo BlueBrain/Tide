@@ -235,7 +235,7 @@ void DisplayGroupController::adjustWindowsAspectRatioToContent()
 {
     for (ContentWindowPtr window : _group.getContentWindows())
     {
-        QSizeF exactSize = window->getContent()->getDimensions();
+        QSizeF exactSize = window->getContent().getDimensions();
         exactSize.scale(window->getCoordinates().size(), Qt::KeepAspectRatio);
         window->setWidth(exactSize.width());
         window->setHeight(exactSize.height());
@@ -273,10 +273,10 @@ void DisplayGroupController::_extend(const QSizeF& newSize)
 qreal DisplayGroupController::_estimateAspectRatio() const
 {
     qreal averageAR = 0.0;
-    for (ContentWindowPtr window : _group.getContentWindows())
+    for (auto window : _group.getContentWindows())
     {
         const qreal windowAR = window->width() / window->height();
-        averageAR += window->getContent()->getAspectRatio() / windowAR;
+        averageAR += window->getContent().getAspectRatio() / windowAR;
     }
     averageAR /= _group.getContentWindows().size();
     return averageAR;

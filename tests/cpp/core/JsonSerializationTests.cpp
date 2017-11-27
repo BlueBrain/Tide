@@ -55,10 +55,11 @@ const QSize wallSize{1000, 1000};
 
 BOOST_AUTO_TEST_CASE(testSerializeDisplayGroup)
 {
-    DisplayGroupPtr group(new DisplayGroup(wallSize));
-    ContentPtr content = ContentFactory::getContent(imageUri);
-    ContentWindowPtr contentWindow(new ContentWindow(content));
-    contentWindow->setCoordinates({QPointF{64, 79}, content->getDimensions()});
+    auto group = std::make_shared<DisplayGroup>(wallSize);
+    auto content = ContentFactory::getContent(imageUri);
+    const auto contentSize = content->getDimensions();
+    auto contentWindow = std::make_shared<ContentWindow>(std::move(content));
+    contentWindow->setCoordinates({QPointF{64, 79}, contentSize});
     group->addContentWindow(contentWindow);
 
     const auto serializedWindows = to_json(*group);

@@ -41,6 +41,8 @@
 
 #include "Content.h"
 
+#include "serialization/utils.h"
+
 IMPLEMENT_SERIALIZE_FOR_XML(Content)
 
 qreal Content::_maxScale = 3.0;
@@ -62,6 +64,11 @@ Content::Content()
     , _captureInteraction(false)
 {
     _init();
+}
+
+ContentPtr Content::clone() const
+{
+    return ContentPtr{const_cast<Content*>(serialization::binaryCopy(this))};
 }
 
 void Content::_init()

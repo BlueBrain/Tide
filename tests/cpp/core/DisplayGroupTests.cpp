@@ -51,15 +51,18 @@ namespace
 const QSize wallSize(1000, 1000);
 const int WIDTH = 512;
 const int HEIGHT = 512;
+
+ContentPtr makeDummyContent()
+{
+    return make_unique<DummyContent>(QSize{WIDTH, HEIGHT});
+}
 }
 
 BOOST_AUTO_TEST_CASE(testFocusWindows)
 {
-    ContentPtr content(new DummyContent);
-    content->setDimensions(QSize(WIDTH, HEIGHT));
-    ContentWindowPtr window = std::make_shared<ContentWindow>(content);
-    ContentWindowPtr panel =
-        std::make_shared<ContentWindow>(content, ContentWindow::PANEL);
+    auto window = std::make_shared<ContentWindow>(makeDummyContent());
+    auto panel = std::make_shared<ContentWindow>(makeDummyContent(),
+                                                 ContentWindow::PANEL);
 
     BOOST_REQUIRE(!window->isFocused());
     BOOST_REQUIRE(!panel->isFocused());
@@ -78,11 +81,9 @@ BOOST_AUTO_TEST_CASE(testFocusWindows)
 
 BOOST_AUTO_TEST_CASE(testWindowZorder)
 {
-    ContentPtr content(new DummyContent);
-    content->setDimensions(QSize(WIDTH, HEIGHT));
-    ContentWindowPtr window0 = std::make_shared<ContentWindow>(content);
-    ContentWindowPtr window1 = std::make_shared<ContentWindow>(content);
-    ContentWindowPtr window2 = std::make_shared<ContentWindow>(content);
+    auto window0 = std::make_shared<ContentWindow>(makeDummyContent());
+    auto window1 = std::make_shared<ContentWindow>(makeDummyContent());
+    auto window2 = std::make_shared<ContentWindow>(makeDummyContent());
 
     DisplayGroupPtr group = std::make_shared<DisplayGroup>(wallSize);
     BOOST_REQUIRE(group->isEmpty());

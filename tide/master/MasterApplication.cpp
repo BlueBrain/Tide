@@ -526,15 +526,7 @@ void MasterApplication::_initPlanarController()
 void MasterApplication::_restoreBackground()
 {
     _options->setBackgroundColor(_config->getBackgroundColor());
-
-    const QString& uri = _config->getBackgroundUri();
-    if (!uri.isEmpty())
-    {
-        ContentPtr content = ContentFactory::getContent(uri);
-        if (!content)
-            content = ContentFactory::getErrorContent();
-        _options->setBackgroundContent(content);
-    }
+    _options->setBackgroundUri(_config->getBackgroundUri());
 }
 
 void MasterApplication::_suspend()
@@ -580,8 +572,8 @@ void MasterApplication::_apply(DisplayGroupConstPtr group)
 
 void MasterApplication::_deleteTempContentFile(ContentWindowPtr window)
 {
-    const bool isFile = contentTypeIsFile(window->getContent()->getType());
-    const auto& filename = window->getContent()->getURI();
+    const auto isFile = contentTypeIsFile(window->getContent().getType());
+    const auto& filename = window->getContent().getURI();
     if (isFile && QFileInfo(filename).absolutePath() == QDir::tempPath())
     {
         QDir().remove(filename);

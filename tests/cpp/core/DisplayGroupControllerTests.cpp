@@ -51,20 +51,25 @@ namespace
 const QSizeF WALL_SIZE(2000, 1000);
 const QSize CONTENT_SIZE(800, 600);
 const qreal CONTENT_AR = qreal(CONTENT_SIZE.width()) / CONTENT_SIZE.height();
+
+ContentPtr makeDummyContent()
+{
+    return make_unique<DummyContent>(CONTENT_SIZE);
+}
 }
 
 struct Fixture
 {
     Fixture() { displayGroup->addContentWindow(window); }
-    ContentPtr content{new DummyContent{CONTENT_SIZE}};
-    ContentWindowPtr window{new ContentWindow{content}};
+    ContentWindowPtr window{new ContentWindow{makeDummyContent()}};
+    Content& content{window->getContent()};
     DisplayGroupPtr displayGroup{new DisplayGroup{WALL_SIZE}};
     DisplayGroupController controller{*displayGroup};
 };
 
 BOOST_FIXTURE_TEST_CASE(testShowWindowFullscreenAndExit, Fixture)
 {
-    BOOST_REQUIRE_EQUAL(content->getZoomRect(), UNIT_RECTF);
+    BOOST_REQUIRE_EQUAL(content.getZoomRect(), UNIT_RECTF);
     BOOST_REQUIRE(!window->isFullscreen());
     BOOST_REQUIRE_EQUAL(window->size(), CONTENT_SIZE);
 
@@ -72,7 +77,7 @@ BOOST_FIXTURE_TEST_CASE(testShowWindowFullscreenAndExit, Fixture)
     window->setY(150);
     window->setWidth(CONTENT_SIZE.width() / 2);
     window->setHeight(CONTENT_SIZE.height() / 4);
-    content->setZoomRect(QRectF(0.2, 0.2, 0.7, 0.7));
+    content.setZoomRect(QRectF(0.2, 0.2, 0.7, 0.7));
 
     controller.showFullscreen(window->getID());
 
@@ -83,12 +88,12 @@ BOOST_FIXTURE_TEST_CASE(testShowWindowFullscreenAndExit, Fixture)
     BOOST_CHECK_EQUAL(coord.y(), 0);
     BOOST_CHECK_EQUAL(coord.height(), WALL_SIZE.height());
     BOOST_CHECK_EQUAL(coord.width(), coord.height() * CONTENT_AR);
-    BOOST_CHECK_EQUAL(content->getZoomRect(), UNIT_RECTF);
+    BOOST_CHECK_EQUAL(content.getZoomRect(), UNIT_RECTF);
 
     controller.exitFullscreen();
 
     BOOST_CHECK(!window->isFullscreen());
-    BOOST_CHECK_EQUAL(content->getZoomRect(), QRectF(0.2, 0.2, 0.7, 0.7));
+    BOOST_CHECK_EQUAL(content.getZoomRect(), QRectF(0.2, 0.2, 0.7, 0.7));
     BOOST_CHECK_EQUAL(window->x(), 100);
     BOOST_CHECK_EQUAL(window->y(), 150);
     BOOST_CHECK_EQUAL(window->width(), CONTENT_SIZE.width() / 2);

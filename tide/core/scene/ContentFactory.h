@@ -40,6 +40,7 @@
 #ifndef CONTENTFACTORY_H
 #define CONTENTFACTORY_H
 
+#include "scene/Content.h"
 #include "scene/ContentType.h"
 #include "types.h"
 

@@ -105,7 +105,7 @@ void StatePreview::generateImage(const QSize& wallDimensions,
         const auto area = QRectF{window->getCoordinates().topLeft() * ratio,
                                  window->size() * ratio};
         const auto thumbnail =
-            thumbnail::create(*window->getContent(), area.size().toSize());
+            thumbnail::create(window->getContent(), area.size().toSize());
         painter.drawImage(area, thumbnail);
     }
     painter.end();

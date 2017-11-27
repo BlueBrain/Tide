@@ -199,12 +199,12 @@ void DisplayGroupRenderer::_createWindowQmlItem(ContentWindowPtr window)
 
 bool DisplayGroupRenderer::_hasBackgroundChanged(const QString& newUri) const
 {
-    ContentPtr prevContent = _options->getBackgroundContent();
-    const QString& prevUri = prevContent ? prevContent->getURI() : QString();
+    const auto prevContent = _options->getBackgroundContent();
+    const auto& prevUri = prevContent ? prevContent->getURI() : QString();
     return newUri != prevUri;
 }
 
-void DisplayGroupRenderer::_setBackground(ContentPtr content)
+void DisplayGroupRenderer::_setBackground(const Content* content)
 {
     if (!content)
     {
@@ -215,7 +215,7 @@ void DisplayGroupRenderer::_setBackground(ContentPtr content)
     if (!_hasBackgroundChanged(content->getURI()))
         return;
 
-    auto window = std::make_shared<ContentWindow>(content);
+    auto window = std::make_shared<ContentWindow>(content->clone());
     window->setCoordinates(geometry::adjustAndCenter(*window, *_displayGroup));
     auto sync = _provider.createSynchronizer(*window, _view);
     _backgroundWindowItem.reset(

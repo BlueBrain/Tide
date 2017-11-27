@@ -193,7 +193,7 @@ void CanvasNode::_update()
 
 QRectF CanvasNode::_rectWithoutMargins(const QRectF& rect) const
 {
-    return _rectWithoutMargins(rect, content->getContent()->getType());
+    return _rectWithoutMargins(rect, content->getContent().getType());
 }
 
 QRectF CanvasNode::_rectWithoutMargins(const QRectF& rect,
@@ -495,7 +495,7 @@ QRectF CanvasNode::_addMargins(const ContentWindowPtr window) const
 {
     return _addMargins(QRectF(window->x(), window->y(), window->width(),
                               window->height()),
-                       window->getContent()->getType());
+                       window->getContent().getType());
 }
 
 QRectF CanvasNode::_addMargins(const QRectF& rect) const

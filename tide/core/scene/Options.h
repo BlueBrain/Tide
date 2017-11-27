@@ -42,9 +42,9 @@
 #ifndef OPTIONS_H
 #define OPTIONS_H
 
-#include "types.h"
-
+#include "Content.h"
 #include "serialization/includes.h"
+#include "types.h"
 
 #include <QColor>
 #include <QObject>
@@ -59,6 +59,7 @@ class Options : public QObject, public std::enable_shared_from_this<Options>
 {
     Q_OBJECT
     Q_DISABLE_COPY(Options)
+
     Q_PROPERTY(bool alphaBlending READ isAlphaBlendingEnabled NOTIFY
                    alphaBlendingEnabledChanged)
     Q_PROPERTY(bool showClock READ getShowClock WRITE setShowClock NOTIFY
@@ -81,6 +82,9 @@ class Options : public QObject, public std::enable_shared_from_this<Options>
 public:
     /** Create a shared Options object. */
     static OptionsPtr create() { return OptionsPtr{new Options()}; }
+    /** Destructor. */
+    ~Options();
+
     /** @name QProperty getters */
     //@{
     bool isAlphaBlendingEnabled() const;
@@ -99,19 +103,9 @@ public:
     /** @name Background settings */
     //@{
     QColor getBackgroundColor() const;
-    ContentPtr getBackgroundContent() const;
+    const Content* getBackgroundContent() const;
     QString getBackgroundUri() const;
     //@}
-
-    /**
-     * Move this object and its member QObjects to the given QThread.
-     *
-     * This intentionally shadows the default QObject::moveToThread to include
-     * member QObjects which are stored using shared_ptr and thus can't be made
-     * direct children of this class.
-     * @param thread the target thread.
-     */
-    void moveToThread(QThread* thread);
 
 public slots:
     /** @name QProperty setters. @see updated() */
@@ -133,13 +127,6 @@ public slots:
     //@{
     /** Set the color of the background. */
     void setBackgroundColor(QColor color);
-
-    /**
-     * Set the background content.
-     * @param content The content to set.
-     *        A null pointer removes the current background.
-     */
-    void setBackgroundContent(ContentPtr content);
 
     /**
      * Set the background content from a uri.
@@ -174,6 +161,8 @@ private:
     /** Default constructor */
     Options();
 
+    void _setBackgroundContent(ContentPtr content);
+
     template <class Archive>
     void serialize(Archive& ar, const unsigned int)
     {
@@ -191,6 +180,8 @@ private:
         ar & _showZoomContext;
         ar & _backgroundColor;
         ar & _backgroundContent;
+        if (_backgroundContent)
+            _backgroundContent->setParent(this);
         // clang-format on
     }
 

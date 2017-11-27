@@ -75,7 +75,7 @@ void DisplayGroupListWidget::setDataModel(DisplayGroupPtr displayGroup)
 void DisplayGroupListWidget::_addContentWindow(ContentWindowPtr contentWindow)
 {
     auto newItem = new ContentWindowListWidgetItem(contentWindow);
-    newItem->setText(contentWindow->getContent()->getTitle());
+    newItem->setText(contentWindow->getContent().getTitle());
     connect(contentWindow->getContentPtr(), &Content::titleChanged,
             [newItem](const QString title) { newItem->setText(title); });
     insertItem(0, newItem);
