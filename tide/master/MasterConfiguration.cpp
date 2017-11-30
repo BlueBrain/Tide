@@ -40,6 +40,7 @@
 #include "MasterConfiguration.h"
 
 #include "log.h"
+#include "scene/Background.h"
 
 #include <QDomElement>
 #include <QtXmlPatterns>
@@ -56,7 +57,7 @@ const QString DEFAULT_WHITEBOARD_SAVE_FOLDER("/tmp/");
 MasterConfiguration::MasterConfiguration(const QString& filename)
     : Configuration(filename)
     , _webServicePort(DEFAULT_WEBSERVICE_PORT)
-    , _backgroundColor(Qt::black)
+    , _background(Background::create())
     , _planarTimeout(DEFAULT_PLANAR_TIMEOUT_MIN)
 {
     loadMasterSettings();
@@ -170,16 +171,17 @@ void MasterConfiguration::loadWebBrowserStartURL(QXmlQuery& query)
 
 void MasterConfiguration::loadBackgroundProperties(QXmlQuery& query)
 {
-    query.setQuery("string(/configuration/background/@uri)");
-    getString(query, _backgroundUri);
-
     QString queryResult;
+    query.setQuery("string(/configuration/background/@uri)");
+    if (getString(query, queryResult))
+        _background->setUri(queryResult);
+
     query.setQuery("string(/configuration/background/@color)");
     if (getString(query, queryResult))
     {
-        const QColor newColor(queryResult);
-        if (newColor.isValid())
-            _backgroundColor = newColor;
+        const QColor color(queryResult);
+        if (color.isValid())
+            _background->setColor(color);
     }
 }
 
@@ -253,24 +255,14 @@ const QString& MasterConfiguration::getWhiteboardSaveFolder() const
     return _whiteboardSaveUrl;
 }
 
-const QString& MasterConfiguration::getBackgroundUri() const
+Background& MasterConfiguration::getBackground()
 {
-    return _backgroundUri;
+    return *_background;
 }
 
-const QColor& MasterConfiguration::getBackgroundColor() const
+const Background& MasterConfiguration::getBackground() const
 {
-    return _backgroundColor;
-}
-
-void MasterConfiguration::setBackgroundColor(const QColor& color)
-{
-    _backgroundColor = color;
-}
-
-void MasterConfiguration::setBackgroundUri(const QString& uri)
-{
-    _backgroundUri = uri;
+    return *_background;
 }
 
 bool MasterConfiguration::save() const
@@ -300,8 +292,8 @@ bool MasterConfiguration::save(const QString& filename) const
         background = doc.createElement("background");
         root.appendChild(background);
     }
-    background.setAttribute("uri", _backgroundUri);
-    background.setAttribute("color", _backgroundColor.name());
+    background.setAttribute("uri", _background->getUri());
+    background.setAttribute("color", _background->getColor().name());
 
     QFile outfile(filename);
     if (!outfile.open(QIODevice::WriteOnly | QIODevice::Text))

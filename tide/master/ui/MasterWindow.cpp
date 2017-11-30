@@ -48,6 +48,7 @@
 #include "MasterQuickView.h"
 #include "StateSerializationHelper.h"
 #include "log.h"
+#include "scene/Background.h"
 #include "scene/ContentFactory.h"
 #include "scene/ContentWindow.h"
 #include "scene/DisplayGroup.h"
@@ -81,11 +82,6 @@ MasterWindow::MasterWindow(DisplayGroupPtr displayGroup, OptionsPtr options,
     , _uploadDir(config.getUploadDir())
 {
     _backgroundWidget->setModal(true);
-
-    connect(_backgroundWidget, &BackgroundWidget::backgroundColorChanged,
-            _options.get(), &Options::setBackgroundColor);
-    connect(_backgroundWidget, &BackgroundWidget::backgroundContentChanged,
-            _options.get(), &Options::setBackgroundUri);
 
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
     connect(_webbrowserWidget, &WebbrowserWidget::openWebBrowser, this,

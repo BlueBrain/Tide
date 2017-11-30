@@ -102,6 +102,7 @@ enum class TextureType
     Dynamic
 };
 
+class Background;
 class Configuration;
 class Content;
 class ContentSynchronizer;
@@ -137,10 +138,12 @@ class SwapSynchronizer;
 class TestPattern;
 class Tile;
 class WallConfiguration;
+class WallRenderer;
 class WallToWallChannel;
 class WallWindow;
 class WebbrowserContent;
 
+typedef std::shared_ptr<Background> BackgroundPtr;
 typedef std::unique_ptr<Content> ContentPtr;
 typedef std::shared_ptr<ContentSynchronizer> ContentSynchronizerSharedPtr;
 typedef std::shared_ptr<ContentWindow> ContentWindowPtr;

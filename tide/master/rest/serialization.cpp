@@ -43,6 +43,7 @@
 #include "MasterConfiguration.h"
 #include "control/ContentWindowController.h"
 #include "json.h"
+#include "scene/Background.h"
 #include "scene/ContentFactory.h"
 #include "scene/DisplayGroup.h"
 #include "scene/Options.h"
@@ -68,6 +69,12 @@ QString to_qstring(const ScreenState state)
         return "UNDEF";
     }
 }
+}
+
+QJsonObject to_json_object(const Background& background)
+{
+    return QJsonObject{{"color", background.getColor().name()},
+                       {"uri", background.getUri()}};
 }
 
 QJsonObject to_json_object(ContentWindowPtr window, const DisplayGroup& group)
@@ -144,7 +151,7 @@ QJsonObject to_json_object(const MasterConfiguration& config)
              {"screenHeight", (int)config.getScreenHeight()},
              {"displaysPerScreenX", (int)config.getDisplaysPerScreenX()},
              {"displaysPerScreenY", (int)config.getDisplaysPerScreenY()}}},
-        {"backgroundColor", config.getBackgroundColor().name()},
+        {"background", to_json_object(config.getBackground())},
         {"contentDir", config.getContentDir()},
         {"sessionDir", config.getSessionsDir()},
         {"name", config.getInfoName()},
@@ -158,8 +165,6 @@ QJsonObject to_json_object(const Options& options)
     return QJsonObject{
         {"alphaBlending", options.isAlphaBlendingEnabled()},
         {"autoFocusStreamers", options.getAutoFocusPixelStreams()},
-        {"backgroundColor", options.getBackgroundColor().name()},
-        {"background", options.getBackgroundUri()},
         {"clock", options.getShowClock()},
         {"contentTiles", options.getShowContentTiles()},
         {"controlArea", options.getShowControlArea()},
@@ -176,6 +181,28 @@ QJsonObject to_json_object(const QSize& size)
     return QJsonObject{{"width", size.width()}, {"height", size.height()}};
 }
 
+bool from_json_object(Background& background, const QJsonObject& object)
+{
+    if (!object.contains("color") && !object.contains("uri"))
+        return false;
+
+    QJsonValue value;
+    value = object["color"];
+    if (value.isString())
+    {
+        const auto color = QColor{value.toString()};
+        if (!color.isValid())
+            return false;
+        background.setColor(color);
+    }
+
+    value = object["uri"];
+    if (value.isString())
+        background.setUri(value.toString());
+
+    return true;
+}
+
 bool from_json_object(Options& options, const QJsonObject& object)
 {
     if (object.isEmpty())
@@ -189,14 +216,6 @@ bool from_json_object(Options& options, const QJsonObject& object)
     value = object["autoFocusStreamers"];
     if (value.isBool())
         options.setAutoFocusPixelStreams(value.toBool());
-
-    value = object["backgroundColor"];
-    if (value.isString())
-        options.setBackgroundColor(QColor(value.toString()));
-
-    value = object["background"];
-    if (value.isString())
-        options.setBackgroundUri(value.toString());
 
     value = object["clock"];
     if (value.isBool())

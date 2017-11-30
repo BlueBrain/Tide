@@ -624,7 +624,7 @@ function init() {
       filters[i] = filters[i].replace(/\*/g, "");
     $("#file-select").attr("accept", filters);
     var wall = $("#wall");
-    wall.css("background-color", config["backgroundColor"]);
+    wall.css("background-color", config["background"]["color"]);
     wall.css("width", wallWidth).css("height", wallHeight);
 
     $('#wallWrapper').click(function(){
@@ -1163,7 +1163,7 @@ function stickToBezel(event, bezel) {
   var parentLeft = parent.offset().left - $("#wall").offset().left
   var parentTop = parent.offset().top - $("#wall").offset().top
   var left = parentLeft / zoomScale
-  
+
   var right = (parentLeft / zoomScale + displayWidth) - newWidth;
   var centerV = (parentTop / zoomScale + 0.5 * displayHeight) - 0.5 * newHeight;
   var centerH = (parentLeft / zoomScale + 0.5 * displayWidth) - newWidth * 0.5;

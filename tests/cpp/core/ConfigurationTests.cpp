@@ -44,6 +44,7 @@
 
 #include "MasterConfiguration.h"
 #include "WallConfiguration.h"
+#include "scene/Background.h"
 #include "scene/VectorialContent.h"
 
 #include <QDir>
@@ -55,7 +56,7 @@
 #define CONFIG_TEST_FILENAME_II "./configuration_default.xml"
 #define CONFIG_TEST_FILENAME_STEREO "./configuration_stereo.xml"
 
-#define CONFIG_EXPECTED_BACKGROUND "/nfs4/bbp.epfl.ch/visualization/DisplayWall/media/background.png"
+#define CONFIG_EXPECTED_BACKGROUND "wall.png"
 #define CONFIG_EXPECTED_BACKGROUND_COLOR "#242424"
 #define CONFIG_EXPECTED_CONTENT_DIR "/nfs4/bbp.epfl.ch/visualization/DisplayWall/media"
 #define CONFIG_EXPECTED_SERIAL_PORT "/dev/ttyS0"
@@ -247,9 +248,10 @@ BOOST_AUTO_TEST_CASE(test_master_configuration)
                       CONFIG_EXPECTED_WEBSERVICE_PORT);
     BOOST_CHECK_EQUAL(config.getWebBrowserDefaultURL(), CONFIG_EXPECTED_URL);
 
-    BOOST_CHECK(config.getBackgroundColor() ==
+    const auto& background = config.getBackground();
+    BOOST_CHECK(background.getColor() ==
                 QColor(CONFIG_EXPECTED_BACKGROUND_COLOR));
-    BOOST_CHECK_EQUAL(config.getBackgroundUri(), CONFIG_EXPECTED_BACKGROUND);
+    BOOST_CHECK_EQUAL(background.getUri(), CONFIG_EXPECTED_BACKGROUND);
 
     BOOST_CHECK_EQUAL(config.getAppLauncherFile(), CONFIG_EXPECTED_APPLAUNCHER);
 
@@ -283,11 +285,11 @@ BOOST_AUTO_TEST_CASE(test_save_configuration)
 {
     {
         MasterConfiguration config(CONFIG_TEST_FILENAME);
-        config.setBackgroundColor(QColor("#123456"));
+        config.getBackground().setColor(QColor("#123456"));
         BOOST_CHECK(config.save("configuration_modified.xml"));
     }
 
     // Check reloading
     MasterConfiguration config("configuration_modified.xml");
-    BOOST_CHECK(config.getBackgroundColor() == QColor("#123456"));
+    BOOST_CHECK(config.getBackground().getColor() == QColor("#123456"));
 }

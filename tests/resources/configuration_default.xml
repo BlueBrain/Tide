@@ -18,5 +18,5 @@
     <process display=":0.1" host="bbplxviz04i">
         <screen x="0" y="2160" i="1" j="2"/>
     </process>
-    <background uri="/nfs4/bbp.epfl.ch/visualization/DisplayWall/media/background.png" color="#242424"/>
+    <background uri="wall.png" color="#242424"/>
 </configuration>

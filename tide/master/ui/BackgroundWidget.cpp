@@ -42,13 +42,15 @@
 #include <QtWidgets>
 
 #include "MasterConfiguration.h"
+#include "scene/Background.h"
 #include "scene/ContentFactory.h"
 
 BackgroundWidget::BackgroundWidget(MasterConfiguration& configuration,
                                    QWidget* parent_)
-    : QDialog(parent_)
-    , _configuration(configuration)
-    , _backgroundFolder(configuration.getContentDir())
+    : QDialog{parent_}
+    , _configuration{configuration}
+    , _background{_configuration.getBackground()}
+    , _backgroundFolder{configuration.getContentDir()}
 {
     setWindowTitle(tr("Background settings"));
 
@@ -56,8 +58,8 @@ BackgroundWidget::BackgroundWidget(MasterConfiguration& configuration,
 
     // Get current variables
 
-    _previousColor = _configuration.getBackgroundColor();
-    _previousBackgroundURI = _configuration.getBackgroundUri();
+    _previousColor = _background.getColor();
+    _previousBackgroundURI = _background.getUri();
 
     // Color chooser
 
@@ -66,28 +68,25 @@ BackgroundWidget::BackgroundWidget(MasterConfiguration& configuration,
     _colorLabel->setPalette(QPalette(_previousColor));
     _colorLabel->setAutoFillBackground(true);
 
-    QPushButton* colorButton =
-        new QPushButton(tr("Choose background color..."));
+    auto colorButton = new QPushButton(tr("Choose background color..."));
     connect(colorButton, SIGNAL(clicked()), this, SLOT(_chooseColor()));
 
     // Background chooser
 
     _backgroundLabel = new QLabel(_previousBackgroundURI);
     _backgroundLabel->setFrameStyle(frameStyle);
-    QPushButton* backgroundButton =
-        new QPushButton(tr("Choose background content..."));
+    auto backgroundButton = new QPushButton(tr("Choose background content..."));
     connect(backgroundButton, SIGNAL(clicked()), this,
             SLOT(_openBackgroundContent()));
 
-    QPushButton* backgroundClearButton =
-        new QPushButton(tr("Remove background"));
+    auto backgroundClearButton = new QPushButton(tr("Remove background"));
     connect(backgroundClearButton, SIGNAL(clicked()), this,
             SLOT(_removeBackground()));
 
     // Standard buttons
 
     typedef QDialogButtonBox::StandardButton button;
-    QDialogButtonBox* buttonBox =
+    auto buttonBox =
         new QDialogButtonBox(button::Ok | button::Cancel, Qt::Horizontal, this);
 
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
@@ -95,7 +94,7 @@ BackgroundWidget::BackgroundWidget(MasterConfiguration& configuration,
 
     // Layout
 
-    QGridLayout* gridLayout = new QGridLayout;
+    auto gridLayout = new QGridLayout();
     gridLayout->setColumnStretch(1, 1);
     gridLayout->setColumnMinimumWidth(1, 250);
     setLayout(gridLayout);
@@ -112,8 +111,8 @@ void BackgroundWidget::accept()
 {
     if (_configuration.save())
     {
-        _previousColor = _configuration.getBackgroundColor();
-        _previousBackgroundURI = _configuration.getBackgroundUri();
+        _previousColor = _background.getColor();
+        _previousBackgroundURI = _background.getUri();
 
         QDialog::accept();
     }
@@ -134,11 +133,8 @@ void BackgroundWidget::reject()
     _colorLabel->setPalette(QPalette(_previousColor));
     _backgroundLabel->setText(_previousBackgroundURI);
 
-    _configuration.setBackgroundColor(_previousColor);
-    _configuration.setBackgroundUri(_previousBackgroundURI);
-
-    emit backgroundContentChanged(_previousBackgroundURI);
-    emit backgroundColorChanged(_previousColor);
+    _background.setColor(_previousColor);
+    _background.setUri(_previousBackgroundURI);
 
     QDialog::reject();
 }
@@ -153,8 +149,7 @@ void BackgroundWidget::_chooseColor()
     _colorLabel->setText(color.name());
     _colorLabel->setPalette(QPalette(color));
 
-    _configuration.setBackgroundColor(color);
-    emit backgroundColorChanged(color);
+    _background.setColor(color);
 }
 
 void BackgroundWidget::_openBackgroundContent()
@@ -171,8 +166,7 @@ void BackgroundWidget::_openBackgroundContent()
     if (ContentFactory::getContent(filename))
     {
         _backgroundLabel->setText(filename);
-        _configuration.setBackgroundUri(filename);
-        emit backgroundContentChanged(filename);
+        _background.setUri(filename);
     }
     else
     {
@@ -185,6 +179,5 @@ void BackgroundWidget::_openBackgroundContent()
 void BackgroundWidget::_removeBackground()
 {
     _backgroundLabel->setText("");
-    _configuration.setBackgroundUri("");
-    emit backgroundContentChanged("");
+    _background.setUri("");
 }

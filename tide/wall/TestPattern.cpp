@@ -50,8 +50,8 @@
 #define TEXT_POS_X 50
 
 TestPattern::TestPattern(const WallConfiguration& configuration,
-                         QQuickItem* parent_)
-    : QQuickPaintedItem(parent_)
+                         QQuickItem& parent_)
+    : QQuickPaintedItem(&parent_)
     , _wallSize(configuration.getTotalSize())
 {
     setVisible(false);
@@ -78,6 +78,7 @@ TestPattern::TestPattern(const WallConfiguration& configuration,
 void TestPattern::paint(QPainter* painter)
 {
     painter->setRenderHint(QPainter::Antialiasing);
+    painter->fillRect(_windowRect, Qt::black);
     renderCrossPattern(painter);
     renderLabels(painter);
 }

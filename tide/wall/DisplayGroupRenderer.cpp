@@ -39,68 +39,36 @@
 
 #include "DisplayGroupRenderer.h"
 
-#include "CountdownStatus.h"
 #include "DataProvider.h"
-#include "ScreenLock.h"
 #include "VisibilityHelper.h"
-#include "WallWindow.h"
 #include "geometry.h"
 #include "qmlUtils.h"
-#include "scene/ContentWindow.h"
 #include "scene/DisplayGroup.h"
-#include "scene/Markers.h"
-#include "scene/Options.h"
-
-#include <deflect/Frame.h>
-
-#include <QQmlComponent>
-#include <QQmlContext>
-#include <QQuickItem>
 
 namespace
 {
-const QUrl QML_DISPLAYGROUP_URL("qrc:/qml/wall/WallDisplayGroup.qml");
+const QUrl QML_DISPLAYGROUP_URL("qrc:/qml/core/DisplayGroup.qml");
 }
 
-DisplayGroupRenderer::DisplayGroupRenderer(WallWindow& parentWindow,
-                                           DataProvider& provider,
-                                           const QRect& screenRect,
-                                           const deflect::View view)
-    : _engine{*parentWindow.engine()}
-    , _provider{provider}
+DisplayGroupRenderer::DisplayGroupRenderer(const WallRenderContext& context,
+                                           QQuickItem& parentItem)
+    : _context{context}
+    , _qmlContext{*_context.engine.rootContext()}
     , _displayGroup{new DisplayGroup(QSize())}
-    , _markers(Markers::create())
-    , _options{Options::create()}
-    , _lock(ScreenLock::create())
-    , _countdownStatus{new CountdownStatus}
-    , _screenRect{screenRect}
-    , _view{view}
 {
-    auto context = _engine.rootContext();
-    context->setContextProperty("markers", _markers.get());
-    context->setContextProperty("options", _options.get());
-    context->setContextProperty("countdownStatus", _countdownStatus.get());
-    context->setContextProperty("lock", _lock.get());
-    _createDisplayGroupQmlItem(*parentWindow.rootObject());
-    _displayGroupItem->setPosition(-screenRect.topLeft());
-    _setBackground(_options->getBackgroundContent());
-}
-
-bool DisplayGroupRenderer::needRedraw() const
-{
-    return _options->getShowStatistics() || _options->getShowClock();
+    _qmlContext.setContextProperty("displaygroup", _displayGroup.get());
+    _createDisplayGroupQmlItem(parentItem);
 }
 
 void DisplayGroupRenderer::setDisplayGroup(DisplayGroupPtr displayGroup)
 {
     // Update the scene with the new information
-    _engine.rootContext()->setContextProperty("displaygroup",
-                                              displayGroup.get());
+    _qmlContext.setContextProperty("displaygroup", displayGroup.get());
 
     // Update windows, creating new ones if needed
     QSet<QUuid> updatedWindows;
     const QQuickItem* parentItem = nullptr;
-    const VisibilityHelper helper(*displayGroup, _screenRect);
+    const VisibilityHelper helper(*displayGroup, _context.screenRect);
     for (const auto& window : displayGroup->getContentWindows())
     {
         const auto& id = window->getID();
@@ -147,82 +115,19 @@ void DisplayGroupRenderer::setDisplayGroup(DisplayGroupPtr displayGroup)
     }
 }
 
-void DisplayGroupRenderer::setMarkers(MarkersPtr markers)
-{
-    _engine.rootContext()->setContextProperty("markers", markers.get());
-    _markers = markers; // Retain the new Markers
-}
-
-void DisplayGroupRenderer::setRenderingOptions(OptionsPtr options)
-{
-    _engine.rootContext()->setContextProperty("options", options.get());
-    _setBackground(options->getBackgroundContent());
-    _displayGroupItem->setVisible(!options->getShowTestPattern());
-    _options = options; // Retain the new Options
-}
-
-void DisplayGroupRenderer::setScreenLock(ScreenLockPtr lock)
-{
-    _engine.rootContext()->setContextProperty("lock", lock.get());
-    _lock = lock;
-}
-
-void DisplayGroupRenderer::setCountdownStatus(CountdownStatusPtr status)
-{
-    _engine.rootContext()->setContextProperty("countdownStatus", status.get());
-    _countdownStatus = std::move(status);
-}
-
-void DisplayGroupRenderer::updateRenderedFrames()
-{
-    const int frames = _displayGroupItem->property("frames").toInt();
-    _displayGroupItem->setProperty("frames", frames + 1);
-}
-
 void DisplayGroupRenderer::_createDisplayGroupQmlItem(QQuickItem& parentItem)
 {
-    _engine.rootContext()->setContextProperty("displaygroup",
-                                              _displayGroup.get());
-
-    _displayGroupItem = qml::makeItem(_engine, QML_DISPLAYGROUP_URL);
+    _displayGroupItem = qml::makeItem(_context.engine, QML_DISPLAYGROUP_URL);
     _displayGroupItem->setParentItem(&parentItem);
+    _displayGroupItem->setPosition(-_context.screenRect.topLeft());
 }
 
 void DisplayGroupRenderer::_createWindowQmlItem(ContentWindowPtr window)
 {
     const auto& id = window->getID();
-    auto sync = _provider.createSynchronizer(*window, _view);
-    _windowItems[id].reset(new QmlWindowRenderer(std::move(sync), window,
+    auto sync = _context.provider.createSynchronizer(*window, _context.view);
+    _windowItems[id].reset(new QmlWindowRenderer(std::move(sync),
+                                                 std::move(window),
                                                  *_displayGroupItem,
-                                                 _engine.rootContext()));
-}
-
-bool DisplayGroupRenderer::_hasBackgroundChanged(const QString& newUri) const
-{
-    const auto prevContent = _options->getBackgroundContent();
-    const auto& prevUri = prevContent ? prevContent->getURI() : QString();
-    return newUri != prevUri;
-}
-
-void DisplayGroupRenderer::_setBackground(const Content* content)
-{
-    if (!content)
-    {
-        _backgroundWindowItem.reset();
-        return;
-    }
-
-    if (!_hasBackgroundChanged(content->getURI()))
-        return;
-
-    auto window = std::make_shared<ContentWindow>(content->clone());
-    window->setCoordinates(geometry::adjustAndCenter(*window, *_displayGroup));
-    auto sync = _provider.createSynchronizer(*window, _view);
-    _backgroundWindowItem.reset(
-        new QmlWindowRenderer(std::move(sync), window, *_displayGroupItem,
-                              _engine.rootContext(), true));
-
-    DisplayGroup emptyGroup(_screenRect.size());
-    const VisibilityHelper helper(emptyGroup, _screenRect);
-    _backgroundWindowItem->update(window, helper.getVisibleArea(*window));
+                                                 _context.engine.rootContext()));
 }

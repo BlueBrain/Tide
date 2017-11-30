@@ -43,8 +43,8 @@
 #include "config.h"
 #include "log.h"
 #include "network/WallToWallChannel.h"
-#include "scene/Content.h"
-#include "scene/DisplayGroup.h"
+#include "scene/Background.h"
+#include "scene/ContentWindow.h"
 
 #include "BasicSynchronizer.h"
 #include "LodSynchronizer.h"
@@ -69,20 +69,27 @@ namespace
 {
 template <typename Map>
 std::shared_ptr<typename Map::mapped_type::element_type> _get(
-    Map& map, const ContentWindow& window)
+    Map& map, const QUuid& id, const QString& uri)
 {
-    const auto& id = window.getID();
     std::shared_ptr<typename Map::mapped_type::element_type> source;
     if (map.count(id))
         source = map[id].lock();
 
     if (!source)
     {
-        const auto& uri = window.getContent().getURI();
         source = std::make_shared<typename Map::mapped_type::element_type>(uri);
         map[id] = source;
     }
     return source;
+}
+
+template <typename Map>
+std::shared_ptr<typename Map::mapped_type::element_type> _get(
+    Map& map, const ContentWindow& window)
+{
+    const auto& id = window.getID();
+    const auto& uri = window.getContent().getURI();
+    return _get(map, id, uri);
 }
 
 template <typename Map>
@@ -114,6 +121,13 @@ void _synchronize(WallToWallChannel& channel, Updater& updater)
 
     updater.synchronizeFrameAdvance(channel);
 }
+
+bool _isMovie(const Background& background)
+{
+    if (auto content = background.getContent())
+        return content->getType() == CONTENT_TYPE_MOVIE;
+    return false;
+}
 }
 
 DataProvider::~DataProvider()
@@ -137,34 +151,26 @@ std::unique_ptr<ContentSynchronizer> DataProvider::createSynchronizer(
     return synchronizer;
 }
 
-void DataProvider::updateDataSources(const DisplayGroup& group)
+void DataProvider::updateDataSources(const ContentWindowPtrs& windows)
 {
-    std::set<QString> updatedStreams;
 #if TIDE_ENABLE_MOVIE_SUPPORT
     std::set<QUuid> updatedMovies;
+    if (_background && _isMovie(*_background))
+        updatedMovies.insert(_background->getContentUUID());
 #endif
+    std::set<QString> updatedStreams;
 
-    for (const auto& window : group.getContentWindows())
+    for (const auto& window : windows)
     {
         const auto& content = window->getContent();
+        _updateDataSource(content, window->getID());
+
         switch (content.getType())
         {
 #if TIDE_ENABLE_MOVIE_SUPPORT
         case CONTENT_TYPE_MOVIE:
-        {
-            const auto& movie = static_cast<const MovieContent&>(content);
-            _get(_movieSources, *window)->update(movie);
             updatedMovies.insert(window->getID());
-        }
-        break;
-#endif
-#if TIDE_ENABLE_PDF_SUPPORT
-        case CONTENT_TYPE_PDF:
-        {
-            const auto& pdf = static_cast<const PDFContent&>(content);
-            _get(_pdfSources, *window)->update(pdf);
-        }
-        break;
+            break;
 #endif
         case CONTENT_TYPE_PIXEL_STREAM:
         case CONTENT_TYPE_WEBBROWSER:
@@ -183,6 +189,23 @@ void DataProvider::updateDataSources(const DisplayGroup& group)
 #if TIDE_ENABLE_MOVIE_SUPPORT
     _removeUnused(_movieSources, updatedMovies);
 #endif
+}
+
+void DataProvider::updateDataSource(BackgroundPtr background)
+{
+    if (auto content = background->getContent())
+        _updateDataSource(*content, background->getContentUUID());
+
+#if TIDE_ENABLE_MOVIE_SUPPORT
+    // Movies must be removed synchronously here, see detailed comment in
+    // updateDataSources(windows).
+    if (_background && _isMovie(*_background) &&
+        _background->getContentUUID() != background->getContentUUID())
+    {
+        _movieSources.erase(_background->getContentUUID());
+    }
+#endif
+    _background = std::move(background);
 }
 
 void DataProvider::synchronizeTilesSwap(WallToWallChannel& channel)
@@ -227,6 +250,31 @@ void DataProvider::setNewFrame(deflect::FramePtr frame)
         updater->updatePixelStream(frame);
     else
         _streamSources.erase(frame->uri);
+}
+
+void DataProvider::_updateDataSource(const Content& content, const QUuid& id)
+{
+    switch (content.getType())
+    {
+#if TIDE_ENABLE_MOVIE_SUPPORT
+    case CONTENT_TYPE_MOVIE:
+    {
+        const auto& movie = static_cast<const MovieContent&>(content);
+        _get(_movieSources, id, content.getURI())->update(movie);
+    }
+    break;
+#endif
+#if TIDE_ENABLE_PDF_SUPPORT
+    case CONTENT_TYPE_PDF:
+    {
+        const auto& pdf = static_cast<const PDFContent&>(content);
+        _get(_pdfSources, id, content.getURI())->update(pdf);
+    }
+    break;
+#endif
+    default:
+        break; /** nothing to do */
+    }
 }
 
 template <typename DataSources>

@@ -55,6 +55,7 @@
 #include "network/MasterFromWallChannel.h"
 #include "network/MasterToForkerChannel.h"
 #include "network/MasterToWallChannel.h"
+#include "scene/Background.h"
 #include "scene/ContentFactory.h"
 #include "scene/DisplayGroup.h"
 #include "scene/Markers.h"
@@ -93,6 +94,7 @@ MasterApplication::MasterApplication(int& argc_, char** argv_,
     , _masterToForkerChannel(new MasterToForkerChannel(forkChannel))
     , _masterToWallChannel(new MasterToWallChannel(worldChannel))
     , _masterFromWallChannel(new MasterFromWallChannel(worldChannel))
+    , _background{_config->getBackground().shared_from_this()}
     , _lock(ScreenLock::create())
     , _markers(Markers::create())
     , _options(Options::create())
@@ -105,11 +107,11 @@ MasterApplication::MasterApplication(int& argc_, char** argv_,
 
     _init();
 
-    // send initial display group to wall processes so that they at least the
-    // real display group size to compute correct sizes for full screen etc.
-    // which is vital for the following restoreBackground().
+    _masterToWallChannel->sendAsync(_background);
+
+    // WAR: the wall processes need the initial display group to render the
+    // side control area attached to it (which should be moved to root).
     _masterToWallChannel->sendAsync(_displayGroup);
-    _restoreBackground();
 }
 
 MasterApplication::~MasterApplication()
@@ -349,6 +351,12 @@ void MasterApplication::_setupMPIConnections()
     connect(_pixelStreamerLauncher.get(), &PixelStreamerLauncher::start,
             _masterToForkerChannel.get(), &MasterToForkerChannel::sendStart);
 
+    connect(_background.get(), &Background::updated, _masterToWallChannel.get(),
+            [this](BackgroundPtr background) {
+                _masterToWallChannel->sendAsync(background);
+            },
+            Qt::DirectConnection);
+
     connect(_displayGroup.get(), &DisplayGroup::modified,
             _masterToWallChannel.get(),
             [this](DisplayGroupPtr displayGroup) {
@@ -522,12 +530,6 @@ void MasterApplication::_initPlanarController()
 #endif
 }
 #endif
-
-void MasterApplication::_restoreBackground()
-{
-    _options->setBackgroundColor(_config->getBackgroundColor());
-    _options->setBackgroundUri(_config->getBackgroundUri());
-}
 
 void MasterApplication::_suspend()
 {

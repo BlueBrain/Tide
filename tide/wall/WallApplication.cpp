@@ -141,6 +141,9 @@ void WallApplication::_initMPIConnection(MPIChannelPtr worldChannel)
             _renderController.get(),
             &RenderController::updateRequestScreenshot);
 
+    connect(_fromMasterChannel.get(), SIGNAL(received(BackgroundPtr)),
+            _renderController.get(), SLOT(updateBackground(BackgroundPtr)));
+
     connect(_fromMasterChannel.get(), SIGNAL(received(DisplayGroupPtr)),
             _renderController.get(), SLOT(updateDisplayGroup(DisplayGroupPtr)));
 

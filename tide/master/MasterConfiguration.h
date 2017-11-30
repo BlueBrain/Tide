@@ -145,29 +145,9 @@ public:
      */
     const QString& getWhiteboardSaveFolder() const;
 
-    /**
-     * Get the URI to the Content to be used as background
-     * @return empty string if unspecified
-     */
-    const QString& getBackgroundUri() const;
-
-    /**
-     * Get the uniform color to use for Background
-     * @return defaults to black if unspecified
-     */
-    const QColor& getBackgroundColor() const;
-
-    /**
-     * Set the background color
-     * @param color
-     */
-    void setBackgroundColor(const QColor& color);
-
-    /**
-     * Set the URI to the Content to be used as background
-     * @param uri empty string to use no background content
-     */
-    void setBackgroundUri(const QString& uri);
+    /** @return the background information stored in the configuration. */
+    Background& getBackground();
+    const Background& getBackground() const;
 
     /**
      * Save the configuration to the current xml file.
@@ -211,8 +191,7 @@ private:
     uint16_t _webServicePort;
     QString _webBrowserDefaultURL;
 
-    QString _backgroundUri;
-    QColor _backgroundColor;
+    BackgroundPtr _background;
 
     QString _planarSerialPort;
     int _planarTimeout;

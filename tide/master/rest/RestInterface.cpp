@@ -148,8 +148,7 @@ public:
 };
 
 RestInterface::RestInterface(const uint16_t port, OptionsPtr options,
-                             DisplayGroup& group,
-                             const MasterConfiguration& config)
+                             DisplayGroup& group, MasterConfiguration& config)
     : _impl(new Impl(port, options, group, config, false))
 {
     put_log(LOG_INFO, LOG_REST, "listening to REST messages on TCP port %hu",
@@ -162,6 +161,8 @@ RestInterface::RestInterface(const uint16_t port, OptionsPtr options,
 
     static tide::Version version;
     server.handleGET("tide/version", version);
+    server.handleGET("tide/background", config.getBackground());
+    server.handlePUT("tide/background", config.getBackground());
     server.handleGET("tide/config", config);
     server.handleGET("tide/lock", _impl->lockState);
     server.handleGET("tide/size", _impl->size);

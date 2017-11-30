@@ -63,6 +63,7 @@ public:
 public slots:
     void requestRender();
 
+    void updateBackground(BackgroundPtr background);
     void updateCountdownStatus(CountdownStatusPtr status);
     void updateDisplayGroup(DisplayGroupPtr displayGroup);
     void updateLock(ScreenLockPtr lock);
@@ -80,6 +81,7 @@ private:
     WallToWallChannel& _wallChannel;
     std::unique_ptr<SwapSynchronizer> _swapSynchronizer;
 
+    SwapSyncObject<BackgroundPtr> _syncBackground;
     SwapSyncObject<CountdownStatusPtr> _syncCountdownStatus;
     SwapSyncObject<DisplayGroupPtr> _syncDisplayGroup;
     SwapSyncObject<ScreenLockPtr> _syncLock;

@@ -72,6 +72,7 @@ bool from_json(Obj& object, const std::string& json)
 
 /** @name JSON serialization of objects. */
 //@{
+QJsonObject to_json_object(const Background& background);
 QJsonObject to_json_object(ContentWindowPtr window, const DisplayGroup& group);
 QJsonObject to_json_object(const DisplayGroup& group);
 QJsonObject to_json_object(const LoggingUtility& logger);
@@ -82,6 +83,7 @@ QJsonObject to_json_object(const QSize& size);
 
 /** @name JSON deserialization of objects. */
 //@{
+bool from_json_object(Background& background, const QJsonObject& object);
 bool from_json_object(Options& options, const QJsonObject& object);
 //@}
 
