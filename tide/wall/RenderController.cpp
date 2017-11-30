@@ -45,6 +45,7 @@
 #include "ScreenLock.h"
 #include "WallWindow.h"
 #include "network/WallToWallChannel.h"
+#include "scene/Background.h"
 #include "scene/DisplayGroup.h"
 #include "scene/Options.h"
 
@@ -55,13 +56,19 @@ RenderController::RenderController(std::vector<WallWindow*> windows,
     : _windows{std::move(windows)}
     , _provider{provider}
     , _wallChannel{wallChannel}
+    , _syncBackground(Background::create())
     , _syncCountdownStatus{std::make_shared<CountdownStatus>()}
     , _syncDisplayGroup{std::make_shared<DisplayGroup>(QSize())}
     , _syncLock(ScreenLock::create())
     , _syncOptions{Options::create()}
 {
+    _syncBackground.setCallback([this](BackgroundPtr background) {
+        _provider.updateDataSource(background);
+        for (auto window : _windows)
+            window->setBackground(background);
+    });
     _syncDisplayGroup.setCallback([this](DisplayGroupPtr group) {
-        _provider.updateDataSources(*group);
+        _provider.updateDataSources(group->getContentWindows());
         for (auto window : _windows)
             window->setDisplayGroup(group);
     });
@@ -181,6 +188,12 @@ bool RenderController::_syncAndRenderWindows(const bool grab)
     return _wallChannel.allReady(!_needRedraw);
 }
 
+void RenderController::updateBackground(BackgroundPtr background)
+{
+    _syncBackground.update(background);
+    requestRender();
+}
+
 void RenderController::updateCountdownStatus(CountdownStatusPtr status)
 {
     _syncCountdownStatus.update(status);
@@ -225,6 +238,7 @@ void RenderController::updateQuit()
 
 void RenderController::_synchronizeObjects(const SyncFunction& versionCheckFunc)
 {
+    _syncBackground.sync(versionCheckFunc);
     _syncCountdownStatus.sync(versionCheckFunc);
     _syncDisplayGroup.sync(versionCheckFunc);
     _syncLock.sync(versionCheckFunc);

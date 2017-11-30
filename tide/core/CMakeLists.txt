@@ -137,6 +137,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   qmlUtils.h
   ScreenLock.h
   StatePreview.h
+  scene/Background.h
   scene/ContentAction.h
   scene/ContentActionsModel.h
   scene/ContentFactory.h
@@ -190,6 +191,7 @@ list(APPEND TIDECORE_SOURCES
   network/MPIContext.cpp
   network/MPINospin.cpp
   network/SharedNetworkBarrier.cpp
+  scene/Background.cpp
   scene/ContentAction.cpp
   scene/ContentActionsModel.cpp
   scene/Content.cpp

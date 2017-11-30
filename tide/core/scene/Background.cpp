@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Raphael.Dumusc@epfl.ch                        */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,55 +37,65 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef BACKGROUNDWIDGET_H
-#define BACKGROUNDWIDGET_H
+#include "Background.h"
 
-#include <QDialog>
+#include "ContentFactory.h"
 
-#include "types.h"
-
-class MasterConfiguration;
-class QLabel;
-
-/**
- * Simple widget to edit and save background settings.
- */
-class BackgroundWidget : public QDialog
+Background::~Background()
 {
-    Q_OBJECT
+    if (_content)
+        _content->setParent(nullptr); // avoid double deletion
+}
 
-public:
-    /**
-     * Create a BackgroundWidget
-     * @param configuration The configuration in which to read and save
-     *                      background settings.
-     * @param parent An optional parent widget
-     */
-    BackgroundWidget(MasterConfiguration& configuration, QWidget* parent = 0);
+QColor Background::getColor() const
+{
+    return _color;
+}
 
-public slots:
-    /** Store the new settings and close the widget */
-    void accept() override;
+QString Background::getUri() const
+{
+    return _content ? _content->getURI() : QString();
+}
 
-    /** Revert to the previous settings and close the widget */
-    void reject() override;
+const Content* Background::getContent() const
+{
+    return _content.get();
+}
 
-private slots:
-    void _chooseColor();
-    void _openBackgroundContent();
-    void _removeBackground();
+const QUuid& Background::getContentUUID() const
+{
+    return _contentID;
+}
 
-private:
-    MasterConfiguration& _configuration;
-    Background& _background;
+void Background::setColor(const QColor color)
+{
+    if (color == _color || !color.isValid())
+        return;
 
-    QLabel* _colorLabel;
-    QLabel* _backgroundLabel;
+    _color = color;
+    emit updated(shared_from_this());
+}
 
-    QColor _previousColor;
-    QString _previousBackgroundURI;
+void Background::setUri(const QString& uri)
+{
+    if (uri == getUri())
+        return;
 
-    QString _backgroundFolder;
-};
+    if (uri.isEmpty())
+    {
+        _setContent(ContentPtr());
+        return;
+    }
 
-#endif
+    if (auto content = ContentFactory::getContent(uri))
+        _setContent(std::move(content));
+}
+
+void Background::_setContent(ContentPtr content)
+{
+    _content = std::move(content);
+    _contentID = QUuid::createUuid();
+    if (_content)
+        _content->setParent(this);
+    emit updated(shared_from_this());
+}

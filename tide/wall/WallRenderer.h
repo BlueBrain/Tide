@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,55 +37,85 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef BACKGROUNDWIDGET_H
-#define BACKGROUNDWIDGET_H
-
-#include <QDialog>
+#ifndef WALLRENDERER_H
+#define WALLRENDERER_H
 
 #include "types.h"
 
-class MasterConfiguration;
-class QLabel;
+#include "BackgroundRenderer.h"
+#include "WallRenderContext.h"
+
+#include <QtCore/QMap>
+#include <QtCore/QObject>
+#include <QtCore/QUuid>
+
+#include <QQmlContext>
+#include <QQuickItem>
+
+class QQuickItem;
 
 /**
- * Simple widget to edit and save background settings.
+ * Renders the contents on the wall.
  */
-class BackgroundWidget : public QDialog
+class WallRenderer : public QObject
 {
     Q_OBJECT
+    Q_DISABLE_COPY(WallRenderer)
 
 public:
     /**
-     * Create a BackgroundWidget
-     * @param configuration The configuration in which to read and save
-     *                      background settings.
-     * @param parent An optional parent widget
+     * Constructor.
+     * @param context for rendering Qml elements.
+     * @param parentItem to attach to.
      */
-    BackgroundWidget(MasterConfiguration& configuration, QWidget* parent = 0);
+    WallRenderer(WallRenderContext context, QQuickItem& parentItem);
+
+    /** Destructor. */
+    ~WallRenderer();
+
+    /** Set background content. */
+    void setBackground(BackgroundPtr background);
+
+    /** Set the DisplayGroup to render, replacing the previous one. */
+    void setDisplayGroup(DisplayGroupPtr displayGroup);
+
+    /** Set different touchpoint's markers. */
+    void setMarkers(MarkersPtr markers);
+
+    /** Set different options used for rendering. */
+    void setRenderingOptions(OptionsPtr options);
+
+    /** Set the ScreenLock replacing the previous one. */
+    void setScreenLock(ScreenLockPtr lock);
+
+    /** Set status used to notify about inactivity timeout. */
+    void setCountdownStatus(CountdownStatusPtr status);
+
+    /** @return true if the renderer requires a redraw. */
+    bool needRedraw() const;
 
 public slots:
-    /** Store the new settings and close the widget */
-    void accept() override;
-
-    /** Revert to the previous settings and close the widget */
-    void reject() override;
-
-private slots:
-    void _chooseColor();
-    void _openBackgroundContent();
-    void _removeBackground();
+    /** Increment number of rendered/swapped frames for FPS display. */
+    void updateRenderedFrames();
 
 private:
-    MasterConfiguration& _configuration;
-    Background& _background;
+    WallRenderContext _context;
+    QQmlContext& _qmlContext;
 
-    QLabel* _colorLabel;
-    QLabel* _backgroundLabel;
+    QQuickItem* _rootItem = nullptr; // child qobject of contentItem()
 
-    QColor _previousColor;
-    QString _previousBackgroundURI;
+    BackgroundPtr _background;
+    MarkersPtr _markers;
+    OptionsPtr _options;
+    ScreenLockPtr _lock;
+    CountdownStatusPtr _countdownStatus;
 
-    QString _backgroundFolder;
+    std::unique_ptr<BackgroundRenderer> _backgroundRenderer;
+    std::unique_ptr<DisplayGroupRenderer> _displayGroupRenderer;
+
+    void _setBackground(const Background& background);
+    bool _hasBackgroundChanged(const QString& newUri) const;
+    void _adjustBackgroundTo(const DisplayGroup& displayGroup);
 };
 
 #endif

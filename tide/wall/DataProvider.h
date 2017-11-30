@@ -77,11 +77,18 @@ public:
         const ContentWindow& window, deflect::View view);
 
     /**
-     * Update the data sources with information from a new display group.
+     * Update the data sources with information from a new set of windows.
      *
-     * @param group containing updated information for the movies/pdfs/streams.
+     * @param windows with updated information for the movies/pdfs/streams.
      */
-    void updateDataSources(const DisplayGroup& group);
+    void updateDataSources(const ContentWindowPtrs& windows);
+
+    /**
+     * Update the data sources for the background content.
+     *
+     * @param background to add or remove.
+     */
+    void updateDataSource(BackgroundPtr background);
 
     /**
      * Synchronize the swap of Tiles just before rendering for movies/streams.
@@ -124,9 +131,13 @@ private:
     std::map<QString, std::weak_ptr<PixelStreamUpdater>> _streamSources;
     std::map<QUuid, std::weak_ptr<SVGTiler>> _svgSources;
 
+    void _updateDataSource(const Content& content, const QUuid& id);
+
     using TileUpdateInfo = std::pair<TileWeakPtr, deflect::View>;
     using TileUpdateList = std::vector<TileUpdateInfo>;
     std::map<uint, TileUpdateList> _tileImageRequests;
+
+    BackgroundPtr _background;
 
     using DataSourcePtr = std::shared_ptr<DataSource>;
     void _processTileImageRequests(DataSourcePtr source);

@@ -52,6 +52,7 @@ struct MetaTypeRegistration
 {
     MetaTypeRegistration()
     {
+        qRegisterMetaType<BackgroundPtr>("BackgroundPtr");
         qRegisterMetaType<BoolCallback>("BoolCallback");
         qRegisterMetaType<ContentWindowPtr>("ContentWindowPtr");
         qRegisterMetaType<ContentWindowPtrs>("ContentWindowPtrs");

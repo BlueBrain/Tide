@@ -43,76 +43,41 @@
 #include "types.h"
 
 #include "QmlWindowRenderer.h"
+#include "WallRenderContext.h"
 
 #include <QtCore/QMap>
 #include <QtCore/QObject>
 #include <QtCore/QUuid>
 
-class QQuickItem;
-
 /**
  * Renders a DisplayGroup.
  */
-class DisplayGroupRenderer : public QObject
+class DisplayGroupRenderer
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(DisplayGroupRenderer)
-
 public:
     /**
      * Constructor.
-     * @param parentWindow the window to render the scene contents to
-     * @param provider the provider of data for the windows
-     * @param screenRect the rectangle this renderers is rendering wrt global
-     *                   screen setup
-     * @param view to use for stereo contents.
+     * @param context for rendering Qml elements.
+     * @param parentItem to attach to.
      */
-    DisplayGroupRenderer(WallWindow& parentWindow, DataProvider& provider,
-                         const QRect& screenRect, deflect::View view);
+    DisplayGroupRenderer(const WallRenderContext& context,
+                         QQuickItem& parentItem);
 
     /** Set the DisplayGroup to render, replacing the previous one. */
     void setDisplayGroup(DisplayGroupPtr displayGroup);
 
-    /** Set different touchpoint's markers. */
-    void setMarkers(MarkersPtr markers);
-
-    /** Set different options used for rendering. */
-    void setRenderingOptions(OptionsPtr options);
-
-    /** Set the ScreenLock replacing the previous one. */
-    void setScreenLock(ScreenLockPtr lock);
-
-    /** Set statis used to notify about inactivity timeout. */
-    void setCountdownStatus(CountdownStatusPtr status);
-
-    /** @return true if the renderer requires a redraw. */
-    bool needRedraw() const;
-
-public slots:
-    /** Increment number of rendered/swapped frames for FPS display. */
-    void updateRenderedFrames();
-
 private:
-    QQmlEngine& _engine;
-    DataProvider& _provider;
+    WallRenderContext _context;
+    QQmlContext& _qmlContext;
+
     DisplayGroupPtr _displayGroup;
-    MarkersPtr _markers;
-    OptionsPtr _options;
-    ScreenLockPtr _lock;
-    CountdownStatusPtr _countdownStatus;
-    const QRect _screenRect;
-    const deflect::View _view;
 
     QQuickItem* _displayGroupItem = nullptr; // child of parent item
     using QmlWindowPtr = std::shared_ptr<QmlWindowRenderer>;
     QMap<QUuid, QmlWindowPtr> _windowItems;
-    QmlWindowPtr _backgroundWindowItem;
 
     void _createDisplayGroupQmlItem(QQuickItem& parentItem);
     void _createWindowQmlItem(ContentWindowPtr window);
-    bool _hasBackgroundChanged(const QString& newUri) const;
-    void _setBackground(const Content* content);
-    void _adjustBackgroundTo(const DisplayGroup& displayGroup);
 };
 
 #endif

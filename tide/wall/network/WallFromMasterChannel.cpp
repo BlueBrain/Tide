@@ -42,6 +42,7 @@
 #include "CountdownStatus.h"
 #include "ScreenLock.h"
 #include "network/MPIChannel.h"
+#include "scene/Background.h"
 #include "scene/ContentWindow.h"
 #include "scene/DisplayGroup.h"
 #include "scene/Markers.h"
@@ -74,6 +75,9 @@ void WallFromMasterChannel::receiveMessage()
 
     switch (mh.type)
     {
+    case MPIMessageType::BACKGROUND:
+        emit received(receiveQObjectBroadcast<BackgroundPtr>(mh.size));
+        break;
     case MPIMessageType::DISPLAYGROUP:
         emit received(receiveQObjectBroadcast<DisplayGroupPtr>(mh.size));
         break;

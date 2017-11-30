@@ -47,6 +47,7 @@ if(TIDE_USE_TIFF)
 endif()
 
 list(APPEND TIDEWALL_PUBLIC_HEADERS
+  BackgroundRenderer.h
   BasicSynchronizer.h
   CachedDataSource.h
   ContentSynchronizer.h
@@ -91,10 +92,13 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   VisibilityHelper.h
   WallApplication.h
   WallConfiguration.h
+  WallRenderContext.h
+  WallRenderer.h
   WallWindow.h
 )
 
 list(APPEND TIDEWALL_SOURCES
+  BackgroundRenderer.cpp
   BasicSynchronizer.cpp
   CachedDataSource.cpp
   DataProvider.cpp
@@ -136,6 +140,7 @@ list(APPEND TIDEWALL_SOURCES
   VisibilityHelper.cpp
   WallApplication.cpp
   WallConfiguration.cpp
+  WallRenderer.cpp
   WallWindow.cpp
   resources/wall.qrc
 )

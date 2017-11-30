@@ -39,14 +39,14 @@
 
 #include "WallWindow.h"
 
-#include "CountdownStatus.h"
-#include "DataProvider.h"
-#include "DisplayGroupRenderer.h"
 #include "SwapSynchronizer.h"
 #include "TestPattern.h"
 #include "WallConfiguration.h"
+#include "WallRenderContext.h"
+#include "WallRenderer.h"
 #include "log.h"
 #include "qmlUtils.h"
+#include "scene/Background.h"
 #include "scene/Options.h"
 #include "screens.h"
 
@@ -57,11 +57,6 @@
 #include <QQmlEngine>
 #include <QQuickRenderControl>
 #include <QThread>
-
-namespace
-{
-const QUrl QML_ROOT_COMPONENT("qrc:/qml/wall/Background.qml");
-}
 
 WallWindow::WallWindow(const WallConfiguration& config, const uint windowIndex,
                        DataProvider& provider,
@@ -77,8 +72,6 @@ WallWindow::WallWindow(const WallConfiguration& config, const uint windowIndex,
     _quickRendererThread->setObjectName("Render #" + windowNumber);
 
     const auto& currentScreen = config.getScreens().at(windowIndex);
-    const auto screenSize =
-        config.getScreenRect(currentScreen.globalIndex).size();
 
     if (auto qscreen = screens::find(currentScreen.display))
         setScreen(qscreen);
@@ -88,7 +81,7 @@ WallWindow::WallWindow(const WallConfiguration& config, const uint windowIndex,
 
     setFlags(Qt::FramelessWindowHint);
     setPosition(currentScreen.position);
-    resize(screenSize);
+    resize(config.getScreenRect(currentScreen.globalIndex).size());
 
     if (config.getFullscreen())
     {
@@ -120,7 +113,7 @@ bool WallWindow::isInitialized() const
 
 bool WallWindow::needRedraw() const
 {
-    return _displayGroupRenderer->needRedraw();
+    return _wallRenderer->needRedraw();
 }
 
 void WallWindow::exposeEvent(QExposeEvent*)
@@ -151,22 +144,9 @@ void WallWindow::exposeEvent(QExposeEvent*)
 void WallWindow::_startQuick(const WallConfiguration& config,
                              const uint windowIndex)
 {
-    _rootItem = qml::makeItem(*_qmlEngine, QML_ROOT_COMPONENT);
-    _rootItem->setParentItem(contentItem());
-
-    // behave like SizeRootObjectToView
-    _rootItem->setWidth(width());
-    _rootItem->setHeight(height());
-
     const auto& currentScreen = config.getScreens().at(windowIndex);
-    const auto screenRect = config.getScreenRect(currentScreen.globalIndex);
-    const auto view = config.getScreens().at(windowIndex).stereoMode;
-
-    // DisplayGroupRenderer needs _engine and _rootItem from *this*
-    _displayGroupRenderer.reset(
-        new DisplayGroupRenderer(*this, _provider, screenRect, view));
-
     const auto globalIndex = currentScreen.globalIndex;
+
     connect(_quickRenderer.get(), &deflect::qt::QuickRenderer::afterRender,
             [this, globalIndex] {
                 if (_synchronizer)
@@ -174,7 +154,7 @@ void WallWindow::_startQuick(const WallConfiguration& config,
 
                 _quickRenderer->context()->swapBuffers(this);
                 _quickRenderer->context()->functions()->glFlush();
-                QMetaObject::invokeMethod(_displayGroupRenderer.get(),
+                QMetaObject::invokeMethod(_wallRenderer.get(),
                                           "updateRenderedFrames",
                                           Qt::QueuedConnection);
                 if (_grabImage)
@@ -190,7 +170,15 @@ void WallWindow::_startQuick(const WallConfiguration& config,
                     _synchronizer->exitBarrier(*this);
             });
 
-    _testPattern.reset(new TestPattern(config, _rootItem));
+    const auto screenRect = config.getScreenRect(currentScreen.globalIndex);
+    const auto view = config.getScreens().at(windowIndex).stereoMode;
+    const auto wallSize = config.getTotalSize();
+
+    WallRenderContext context{*_qmlEngine, _provider, wallSize, screenRect,
+                              view};
+    _wallRenderer.reset(new WallRenderer(context, *contentItem()));
+
+    _testPattern.reset(new TestPattern(config, *contentItem()));
     _testPattern->setPosition(-screenRect.topLeft());
 }
 
@@ -202,41 +190,34 @@ void WallWindow::render(const bool grab)
     _quickRenderer->render();
 }
 
+void WallWindow::setBackground(BackgroundPtr background)
+{
+    setColor(background->getColor());
+    _wallRenderer->setBackground(background);
+}
+
 void WallWindow::setDisplayGroup(DisplayGroupPtr displayGroup)
 {
-    _displayGroupRenderer->setDisplayGroup(displayGroup);
+    _wallRenderer->setDisplayGroup(displayGroup);
 }
 
 void WallWindow::setScreenLock(ScreenLockPtr lock)
 {
-    _displayGroupRenderer->setScreenLock(lock);
+    _wallRenderer->setScreenLock(lock);
 }
 
 void WallWindow::setCountdownStatus(CountdownStatusPtr status)
 {
-    _displayGroupRenderer->setCountdownStatus(status);
+    _wallRenderer->setCountdownStatus(status);
 }
 
 void WallWindow::setMarkers(MarkersPtr markers)
 {
-    _displayGroupRenderer->setMarkers(markers);
+    _wallRenderer->setMarkers(markers);
 }
 
 void WallWindow::setRenderOptions(OptionsPtr options)
 {
-    setColor(options->getShowTestPattern() ? Qt::black
-                                           : options->getBackgroundColor());
     _testPattern->setVisible(options->getShowTestPattern());
-
-    _displayGroupRenderer->setRenderingOptions(options);
-}
-
-QQmlEngine* WallWindow::engine() const
-{
-    return _qmlEngine.get();
-}
-
-QQuickItem* WallWindow::rootObject() const
-{
-    return _rootItem;
+    _wallRenderer->setRenderingOptions(options);
 }

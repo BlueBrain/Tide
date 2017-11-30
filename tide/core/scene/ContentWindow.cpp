@@ -56,6 +56,12 @@ ContentWindow::ContentWindow()
     connect(this, &ContentWindow::modified, [this] { ++_version; });
 }
 
+ContentWindow::ContentWindow(ContentPtr content, const QUuid& uuid)
+    : _uuid{uuid}
+{
+    setContent(std::move(content));
+}
+
 ContentWindow::~ContentWindow()
 {
     if (_content)

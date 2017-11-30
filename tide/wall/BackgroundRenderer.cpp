@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,55 +37,37 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef BACKGROUNDWIDGET_H
-#define BACKGROUNDWIDGET_H
+#include "BackgroundRenderer.h"
 
-#include <QDialog>
+#include "DataProvider.h"
+#include "QmlWindowRenderer.h"
+#include "VisibilityHelper.h"
+#include "WallRenderContext.h"
+#include "geometry.h"
+#include "qmlUtils.h"
+#include "scene/Background.h"
+#include "scene/DisplayGroup.h"
 
-#include "types.h"
-
-class MasterConfiguration;
-class QLabel;
-
-/**
- * Simple widget to edit and save background settings.
- */
-class BackgroundWidget : public QDialog
+BackgroundRenderer::BackgroundRenderer(const Background& background,
+                                       const WallRenderContext& context,
+                                       QQuickItem& parentItem)
 {
-    Q_OBJECT
+    auto content = background.getContent()->clone();
+    const auto& uuid = background.getContentUUID();
+    auto window = std::make_shared<ContentWindow>(std::move(content), uuid);
 
-public:
-    /**
-     * Create a BackgroundWidget
-     * @param configuration The configuration in which to read and save
-     *                      background settings.
-     * @param parent An optional parent widget
-     */
-    BackgroundWidget(MasterConfiguration& configuration, QWidget* parent = 0);
+    const auto wallRect = QRect{QPoint(), context.wallSize};
+    window->setCoordinates(geometry::adjustAndCenter(*window, wallRect));
+    auto sync = context.provider.createSynchronizer(*window, context.view);
 
-public slots:
-    /** Store the new settings and close the widget */
-    void accept() override;
+    _renderer.reset(new QmlWindowRenderer(std::move(sync), window, parentItem,
+                                          context.engine.rootContext(), true));
 
-    /** Revert to the previous settings and close the widget */
-    void reject() override;
+    DisplayGroup emptyGroup(context.screenRect.size());
+    const VisibilityHelper helper(emptyGroup, context.screenRect);
+    _renderer->update(window, helper.getVisibleArea(*window));
+}
 
-private slots:
-    void _chooseColor();
-    void _openBackgroundContent();
-    void _removeBackground();
-
-private:
-    MasterConfiguration& _configuration;
-    Background& _background;
-
-    QLabel* _colorLabel;
-    QLabel* _backgroundLabel;
-
-    QColor _previousColor;
-    QString _previousBackgroundURI;
-
-    QString _backgroundFolder;
-};
-
-#endif
+BackgroundRenderer::~BackgroundRenderer()
+{
+}

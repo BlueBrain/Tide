@@ -46,8 +46,6 @@
 
 class QQuickRenderControl;
 class QQmlEngine;
-class QQmlComponent;
-class QQuickItem;
 
 class WallWindow : public QQuickWindow
 {
@@ -85,6 +83,9 @@ public:
      */
     void render(bool grab = false);
 
+    /** Set new background. */
+    void setBackground(BackgroundPtr background);
+
     /** Set new display group. */
     void setDisplayGroup(DisplayGroupPtr displayGroup);
 
@@ -100,12 +101,6 @@ public:
     /** Set new render options. */
     void setRenderOptions(OptionsPtr options);
 
-    /** @return the QML engine. */
-    QQmlEngine* engine() const;
-
-    /** @return the root object of the QML scene. */
-    QQuickItem* rootObject() const;
-
 signals:
     /** Emitted after syncAndRender() has been called with grab set to true. */
     void imageGrabbed(QImage image, QPoint index);
@@ -116,6 +111,7 @@ private:
     void _startQuick(const WallConfiguration& config, const uint windowIndex);
 
     DataProvider& _provider;
+
     std::unique_ptr<QQuickRenderControl> _renderControl;
     SwapSynchronizer* _synchronizer = nullptr;
     bool _rendererInitialized = false;
@@ -123,10 +119,8 @@ private:
 
     std::unique_ptr<deflect::qt::QuickRenderer> _quickRenderer;
     std::unique_ptr<QThread> _quickRendererThread;
-
     std::unique_ptr<QQmlEngine> _qmlEngine;
-    QQuickItem* _rootItem = nullptr; // child qobject of contentItem()
-    std::unique_ptr<DisplayGroupRenderer> _displayGroupRenderer;
+    std::unique_ptr<WallRenderer> _wallRenderer;
     std::unique_ptr<TestPattern> _testPattern;
 };
 

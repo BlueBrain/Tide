@@ -57,7 +57,7 @@ public:
      * @param configuration The configuration to get information from
      * @param parent the parent object which renders this test pattern
      */
-    TestPattern(const WallConfiguration& configuration, QQuickItem* parent);
+    TestPattern(const WallConfiguration& configuration, QQuickItem& parent);
 
     /** Render the test pattern. */
     void paint(QPainter* painter) final;

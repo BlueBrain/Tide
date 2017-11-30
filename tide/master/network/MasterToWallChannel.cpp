@@ -42,6 +42,7 @@
 #include "CountdownStatus.h"
 #include "ScreenLock.h"
 #include "network/MPIChannel.h"
+#include "scene/Background.h"
 #include "scene/ContentWindow.h"
 #include "scene/DisplayGroup.h"
 #include "scene/Markers.h"
@@ -70,6 +71,11 @@ void MasterToWallChannel::broadcastAsync(const T& object,
     QMetaObject::invokeMethod(this, "_broadcast", Qt::QueuedConnection,
                               Q_ARG(MPIMessageType, type),
                               Q_ARG(std::string, data));
+}
+
+void MasterToWallChannel::sendAsync(BackgroundPtr background)
+{
+    broadcastAsync(background, MPIMessageType::BACKGROUND);
 }
 
 void MasterToWallChannel::sendAsync(DisplayGroupPtr displayGroup)

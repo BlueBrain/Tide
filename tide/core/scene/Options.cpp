@@ -1,8 +1,8 @@
 /*********************************************************************/
-/* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael.Dumusc@epfl.ch                        */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/* Copyright (c) 2011-2012, The University of Texas at Austin.       */
+/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael.Dumusc@epfl.ch                   */
+/*                          Daniel.Nachbaur@epfl.ch                  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -40,31 +40,6 @@
 /*********************************************************************/
 
 #include "Options.h"
-
-#include "ContentFactory.h"
-
-// false-positive on qt signals for Q_PROPERTY notifiers
-// cppcheck-suppress uninitMemberVar
-Options::Options()
-    : _alphaBlendingEnabled(false)
-    , _autoFocusPixelStreams(true)
-    , _showClock(false)
-    , _showContentTiles(false)
-    , _showControlArea(true)
-    , _showStreamingStatistics(false)
-    , _showTestPattern(false)
-    , _showTouchPoints(true)
-    , _showWindowBorders(true)
-    , _showWindowTitles(true)
-    , _showZoomContext(true)
-{
-}
-
-Options::~Options()
-{
-    if (_backgroundContent)
-        _backgroundContent->setParent(nullptr); // avoid double deletion
-}
 
 bool Options::isAlphaBlendingEnabled() const
 {
@@ -119,21 +94,6 @@ bool Options::getShowWindowTitles() const
 bool Options::getShowZoomContext() const
 {
     return _showZoomContext;
-}
-
-QColor Options::getBackgroundColor() const
-{
-    return _backgroundColor;
-}
-
-const Content* Options::getBackgroundContent() const
-{
-    return _backgroundContent.get();
-}
-
-QString Options::getBackgroundUri() const
-{
-    return _backgroundContent ? _backgroundContent->getURI() : QString();
 }
 
 void Options::enableAlphaBlending(const bool set)
@@ -243,37 +203,5 @@ void Options::setShowZoomContext(const bool set)
 
     _showZoomContext = set;
     emit showZoomContextChanged(set);
-    emit updated(shared_from_this());
-}
-
-void Options::setBackgroundColor(const QColor color)
-{
-    if (color == _backgroundColor || !color.isValid())
-        return;
-
-    _backgroundColor = color;
-    emit updated(shared_from_this());
-}
-
-void Options::setBackgroundUri(const QString& uri)
-{
-    if (uri == getBackgroundUri())
-        return;
-
-    if (uri.isEmpty())
-    {
-        _setBackgroundContent(ContentPtr());
-        return;
-    }
-
-    if (auto content = ContentFactory::getContent(uri))
-        _setBackgroundContent(std::move(content));
-}
-
-void Options::_setBackgroundContent(ContentPtr content)
-{
-    _backgroundContent = std::move(content);
-    if (_backgroundContent)
-        _backgroundContent->setParent(this);
     emit updated(shared_from_this());
 }

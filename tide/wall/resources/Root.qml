@@ -3,7 +3,7 @@ import Tide 1.0
 import "qrc:/qml/core/."
 import "qrc:/qml/core/style.js" as Style
 
-DisplayGroup {
+Item {
     PowerOffCountdown {
         anchors.fill: parent
         z: Style.countdownZorder
@@ -15,7 +15,7 @@ DisplayGroup {
         anchors.topMargin: 0.5 * width
         anchors.rightMargin: 0.5 * width
         visible: options.showClock
-        displayedHeight: displaygroup.height * Style.clockScale
+        displayedHeight: parent.height * Style.clockScale
         z: Style.overlayZorder
     }
 

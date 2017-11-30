@@ -1,8 +1,8 @@
 /*********************************************************************/
-/* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael.Dumusc@epfl.ch                        */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/* Copyright (c) 2011-2012, The University of Texas at Austin.       */
+/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/*                          Raphael.Dumusc@epfl.ch                   */
+/*                          Daniel.Nachbaur@epfl.ch                  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -42,11 +42,9 @@
 #ifndef OPTIONS_H
 #define OPTIONS_H
 
-#include "Content.h"
 #include "serialization/includes.h"
 #include "types.h"
 
-#include <QColor>
 #include <QObject>
 
 /**
@@ -82,9 +80,6 @@ class Options : public QObject, public std::enable_shared_from_this<Options>
 public:
     /** Create a shared Options object. */
     static OptionsPtr create() { return OptionsPtr{new Options()}; }
-    /** Destructor. */
-    ~Options();
-
     /** @name QProperty getters */
     //@{
     bool isAlphaBlendingEnabled() const;
@@ -98,13 +93,6 @@ public:
     bool getShowWindowBorders() const;
     bool getShowWindowTitles() const;
     bool getShowZoomContext() const;
-    //@}
-
-    /** @name Background settings */
-    //@{
-    QColor getBackgroundColor() const;
-    const Content* getBackgroundContent() const;
-    QString getBackgroundUri() const;
     //@}
 
 public slots:
@@ -121,19 +109,6 @@ public slots:
     void setShowWindowBorders(bool set);
     void setShowWindowTitles(bool set);
     void setShowZoomContext(bool set);
-    //@}
-
-    /** @name Background settings. @see updated(). */
-    //@{
-    /** Set the color of the background. */
-    void setBackgroundColor(QColor color);
-
-    /**
-     * Set the background content from a uri.
-     * @param uri The uri of the content to set. If the uri is invalid, the
-     *        content is not modified. An empty uri removes the content.
-     */
-    void setBackgroundUri(const QString& uri);
     //@}
 
 signals:
@@ -158,10 +133,7 @@ signals:
 private:
     friend class boost::serialization::access;
 
-    /** Default constructor */
-    Options();
-
-    void _setBackgroundContent(ContentPtr content);
+    Options() = default;
 
     template <class Archive>
     void serialize(Archive& ar, const unsigned int)
@@ -178,26 +150,20 @@ private:
         ar & _showWindowBorders;
         ar & _showWindowTitles;
         ar & _showZoomContext;
-        ar & _backgroundColor;
-        ar & _backgroundContent;
-        if (_backgroundContent)
-            _backgroundContent->setParent(this);
         // clang-format on
     }
 
-    bool _alphaBlendingEnabled;
-    bool _autoFocusPixelStreams;
-    bool _showClock;
-    bool _showContentTiles;
-    bool _showControlArea;
-    bool _showStreamingStatistics;
-    bool _showTestPattern;
-    bool _showTouchPoints;
-    bool _showWindowBorders;
-    bool _showWindowTitles;
-    bool _showZoomContext;
-    QColor _backgroundColor;
-    ContentPtr _backgroundContent;
+    bool _alphaBlendingEnabled = false;
+    bool _autoFocusPixelStreams = true;
+    bool _showClock = false;
+    bool _showContentTiles = false;
+    bool _showControlArea = true;
+    bool _showStreamingStatistics = false;
+    bool _showTestPattern = false;
+    bool _showTouchPoints = true;
+    bool _showWindowBorders = true;
+    bool _showWindowTitles = true;
+    bool _showZoomContext = true;
 };
 
 #endif

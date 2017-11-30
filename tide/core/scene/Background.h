@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Raphael.Dumusc@epfl.ch                        */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,112 +37,82 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef WALLFROMMASTERCHANNEL_H
-#define WALLFROMMASTERCHANNEL_H
+#ifndef BACKGROUND_H
+#define BACKGROUND_H
 
-#include "network/ReceiveBuffer.h"
+#include "Content.h"
+#include "serialization/includes.h"
 #include "types.h"
 
+#include <QColor>
 #include <QObject>
 
 /**
- * Receiving channel from the master application to the wall processes.
+ * Background color and content.
+ *
+ * Can be serialized and distributed to the Wall applications.
  */
-class WallFromMasterChannel : public QObject
+class Background : public QObject,
+                   public std::enable_shared_from_this<Background>
 {
     Q_OBJECT
-    Q_DISABLE_COPY(WallFromMasterChannel)
+    Q_DISABLE_COPY(Background)
 
 public:
-    /** Constructor */
-    WallFromMasterChannel(MPIChannelPtr mpiChannel);
+    /** Create a shared Options object. */
+    static BackgroundPtr create() { return BackgroundPtr{new Background()}; }
+    /** Destructor. */
+    ~Background();
 
-    /** Check if a message is available from the Master process. */
-    bool isMessageAvailable();
+    /** Get the color of the background. */
+    QColor getColor() const;
+
+    /** Get the uri of the background content. */
+    QString getUri() const;
+
+    /** Set the color of the background. */
+    void setColor(QColor color);
 
     /**
-     * Receive a message.
-     * A received() signal will be emitted according to the message type.
-     * This method is blocking.
+     * Set the background content from a uri.
+     * @param uri The uri of the content to set. If the uri is invalid, the
+     *        content is not modified. An empty uri removes the content.
      */
-    void receiveMessage();
+    void setUri(const QString& uri);
 
-public slots:
-    /**
-     * Process messages until the QUIT message is received.
-     */
-    void processMessages();
+    /** @name Accessors for internal properties, used on the wall only. */
+    //@{
+    const Content* getContent() const;
+    const QUuid& getContentUUID() const;
+    //@}
 
 signals:
-    /**
-     * Emitted when a background was recieved
-     * @see receiveMessage()
-     * @param background The Background that was received
-     */
-    void received(BackgroundPtr background);
-
-    /**
-     * Emitted when a displayGroup was recieved
-     * @see receiveMessage()
-     * @param displayGroup The DisplayGroup that was received
-     */
-    void received(DisplayGroupPtr displayGroup);
-
-    /**
-     * Emitted when new Options were recieved
-     * @see receiveMessage()
-     * @param options The options that were received
-     */
-    void received(OptionsPtr options);
-
-    /** Emitted when a new CountdownStatus was received
-     * @see receiveMessage()
-     * @param status The status that was received
-     */
-    void received(CountdownStatusPtr status);
-
-    /**
-     * Emitted when new ScreenLock was recieved
-     * @see receiveMessage()
-     * @param lock The ScreenLock that was received
-     */
-    void received(ScreenLockPtr lock);
-
-    /**
-     * Emitted when new Markers were recieved
-     * @see receiveMessage()
-     * @param markers The markers that were received
-     */
-    void received(MarkersPtr markers);
-
-    /**
-     * Emitted when a new PixelStream frame was recieved
-     * @see receiveMessage()
-     * @param frame The frame that was received
-     */
-    void received(deflect::FramePtr frame);
-
-    /**
-     * Emitted when a screenshot was requested.
-     * @see receiveMessage()
-     */
-    void receivedScreenshotRequest();
-
-    /**
-     * Emitted when the quit message was recieved
-     * @see receiveMessage()
-     */
-    void receivedQuit();
+    /** Emitted when any value is changed by one of the setters. */
+    void updated(BackgroundPtr);
 
 private:
-    MPIChannelPtr _mpiChannel;
-    ReceiveBuffer _buffer;
-    bool _processMessages;
+    friend class boost::serialization::access;
 
-    template <typename T>
-    T receiveBroadcast(const size_t messageSize);
-    template <typename T>
-    T receiveQObjectBroadcast(const size_t messageSize);
+    /** Default constructor */
+    Background() = default;
+
+    void _setContent(ContentPtr content);
+
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int)
+    {
+        // clang-format off
+        ar & _color;
+        ar & _content;
+        if (_content)
+            _content->setParent(this);
+        ar & _contentID;
+        // clang-format on
+    }
+
+    QColor _color;
+    ContentPtr _content;
+    QUuid _contentID = QUuid::createUuid();
 };
 
 #endif

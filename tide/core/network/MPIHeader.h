@@ -58,7 +58,8 @@ enum class MPIMessageType
     IMAGE,
     COUNTDOWN_STATUS,
     PIXELSTREAM_CLOSE,
-    LOCK
+    LOCK,
+    BACKGROUND
 };
 
 /** Fixed-size message header. */

@@ -73,6 +73,12 @@ public:
 
 public slots:
     /**
+     * Send the given Background to the wall processes.
+     * @param background The Background to send
+     */
+    void sendAsync(BackgroundPtr background);
+
+    /**
      * Send the given DisplayGroup to the wall processes.
      * @param displayGroup The DisplayGroup to send
      */

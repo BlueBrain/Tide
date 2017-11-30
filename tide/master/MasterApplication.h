@@ -105,6 +105,7 @@ private:
     QThread _mpiSendThread;
     QThread _mpiReceiveThread;
 
+    BackgroundPtr _background;
     DisplayGroupPtr _displayGroup;
     ScreenLockPtr _lock;
     MarkersPtr _markers;
@@ -150,7 +151,6 @@ private:
 #if TIDE_ENABLE_PLANAR_CONTROLLER
     void _initPlanarController();
 #endif
-    void _restoreBackground();
     void _suspend();
     void _resume();
     void _apply(DisplayGroupConstPtr group);

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,112 +37,35 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef WALLFROMMASTERCHANNEL_H
-#define WALLFROMMASTERCHANNEL_H
+#ifndef WALLRENDERCONTEXT_H
+#define WALLRENDERCONTEXT_H
 
-#include "network/ReceiveBuffer.h"
 #include "types.h"
 
-#include <QObject>
+#include <QQmlContext>
+#include <QQmlEngine>
 
 /**
- * Receiving channel from the master application to the wall processes.
+ * Context for rendering Qml items in a wall window.
  */
-class WallFromMasterChannel : public QObject
+struct WallRenderContext
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(WallFromMasterChannel)
+    QQmlEngine& engine;     //< The Qml engine
+    DataProvider& provider; //< The provider of data for Tile textures
+    QSize wallSize;         //< The total size of the wall
+    QRect screenRect;       //< The area of the wall visible in this window
+    deflect::View view;     //< The view to use for stereo contents
 
-public:
-    /** Constructor */
-    WallFromMasterChannel(MPIChannelPtr mpiChannel);
-
-    /** Check if a message is available from the Master process. */
-    bool isMessageAvailable();
-
-    /**
-     * Receive a message.
-     * A received() signal will be emitted according to the message type.
-     * This method is blocking.
-     */
-    void receiveMessage();
-
-public slots:
-    /**
-     * Process messages until the QUIT message is received.
-     */
-    void processMessages();
-
-signals:
-    /**
-     * Emitted when a background was recieved
-     * @see receiveMessage()
-     * @param background The Background that was received
-     */
-    void received(BackgroundPtr background);
-
-    /**
-     * Emitted when a displayGroup was recieved
-     * @see receiveMessage()
-     * @param displayGroup The DisplayGroup that was received
-     */
-    void received(DisplayGroupPtr displayGroup);
-
-    /**
-     * Emitted when new Options were recieved
-     * @see receiveMessage()
-     * @param options The options that were received
-     */
-    void received(OptionsPtr options);
-
-    /** Emitted when a new CountdownStatus was received
-     * @see receiveMessage()
-     * @param status The status that was received
-     */
-    void received(CountdownStatusPtr status);
-
-    /**
-     * Emitted when new ScreenLock was recieved
-     * @see receiveMessage()
-     * @param lock The ScreenLock that was received
-     */
-    void received(ScreenLockPtr lock);
-
-    /**
-     * Emitted when new Markers were recieved
-     * @see receiveMessage()
-     * @param markers The markers that were received
-     */
-    void received(MarkersPtr markers);
-
-    /**
-     * Emitted when a new PixelStream frame was recieved
-     * @see receiveMessage()
-     * @param frame The frame that was received
-     */
-    void received(deflect::FramePtr frame);
-
-    /**
-     * Emitted when a screenshot was requested.
-     * @see receiveMessage()
-     */
-    void receivedScreenshotRequest();
-
-    /**
-     * Emitted when the quit message was recieved
-     * @see receiveMessage()
-     */
-    void receivedQuit();
-
-private:
-    MPIChannelPtr _mpiChannel;
-    ReceiveBuffer _buffer;
-    bool _processMessages;
-
-    template <typename T>
-    T receiveBroadcast(const size_t messageSize);
-    template <typename T>
-    T receiveQObjectBroadcast(const size_t messageSize);
+    WallRenderContext(QQmlEngine& engine_, DataProvider& provider_,
+                      const QSize& wallSize_, const QRect& screenRect_,
+                      deflect::View view_)
+        : engine{engine_}
+        , provider{provider_}
+        , wallSize{wallSize_}
+        , screenRect{screenRect_}
+        , view{view_}
+    {
+    }
 };
 
 #endif

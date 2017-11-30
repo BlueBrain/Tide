@@ -50,8 +50,6 @@ const std::string defaultJson{
     R"({
     "alphaBlending": false,
     "autoFocusStreamers": true,
-    "background": "",
-    "backgroundColor": "#000000",
     "clock": false,
     "contentTiles": false,
     "controlArea": true,
@@ -66,23 +64,15 @@ const std::string defaultJson{
 
 const std::string notJson{"I'm not a Json string %#&"};
 
-const std::string singleValueChangedJson{
+const std::string uriChangedJson{
     R"({
     "testPattern": true
-})"};
-
-const std::string invalidBackgroundParametersJson{
-    R"({
-    "background": "notAValidFile.txt",
-    "backgroundColor": "#aeiouy"
 })"};
 
 const std::string allValuesChangedJson{
     R"({
     "alphaBlending": true,
     "autoFocusStreamers": false,
-    "background": "wall.png",
-    "backgroundColor": "#ff3300",
     "clock": true,
     "contentTiles": true,
     "controlArea": false,
@@ -112,17 +102,10 @@ BOOST_FIXTURE_TEST_CASE(testInvalidJsonHasNoEffect, Fixture)
     BOOST_CHECK_EQUAL(to_json(*options), defaultJson);
 }
 
-BOOST_FIXTURE_TEST_CASE(testInvalidBackgroundParametersHaveNoEffect, Fixture)
-{
-    BOOST_CHECK(from_json(*options, invalidBackgroundParametersJson));
-    BOOST_CHECK_EQUAL(options->getBackgroundColor().name(), "#000000");
-    BOOST_CHECK_EQUAL(options->getBackgroundUri(), "");
-}
-
 BOOST_FIXTURE_TEST_CASE(testChangeSingleValueFromJson, Fixture)
 {
     BOOST_REQUIRE_EQUAL(options->getShowTestPattern(), false);
-    BOOST_CHECK(from_json(*options, singleValueChangedJson));
+    BOOST_CHECK(from_json(*options, uriChangedJson));
     BOOST_CHECK_EQUAL(options->getShowTestPattern(), true);
 }
 

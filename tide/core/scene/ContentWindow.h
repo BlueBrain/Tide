@@ -140,6 +140,14 @@ public:
      */
     ContentWindow(ContentPtr content, WindowType type = DEFAULT);
 
+    /**
+     * Create a new window.
+     * @param content The Content to be displayed.
+     * @param uuid The unique identifier for the window.
+     * @note Wall process only, for rendering background content.
+     */
+    ContentWindow(ContentPtr content, const QUuid& uuid);
+
     /** Destructor. */
     ~ContentWindow();
 
