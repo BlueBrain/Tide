@@ -26,9 +26,12 @@ set(TIDE_PORT_DEPENDS boost ffmpeg mpich-devel qt5)
 
 include(Common)
 
+set(_deflect_min_version 0.14)
+set(_zeroeq_min_version 0.9)
+
 common_find_package(Boost REQUIRED COMPONENTS program_options serialization
   unit_test_framework)
-common_find_package(Deflect 0.14 REQUIRED)
+common_find_package(Deflect ${_deflect_min_version} REQUIRED)
 common_find_package(MPI REQUIRED)
 common_find_package(Qt5Concurrent REQUIRED)
 common_find_package(Qt5Core REQUIRED)
@@ -81,7 +84,7 @@ else()
   common_find_package(X11) # for webbrowser unit tests
 endif()
 
-common_find_package(ZeroEQ)
+common_find_package(ZeroEQ ${_zeroeq_min_version})
 if(TARGET ZeroEQHTTP)
   option(TIDE_ENABLE_REST_INTERFACE "Enable REST interface using ZeroEQ" ON)
 endif()
@@ -104,20 +107,32 @@ install(DIRECTORY examples DESTINATION share/Tide COMPONENT examples)
 
 # Packaging (including subprojects)
 if(Deflect_IS_SUBPROJECT)
+  list(APPEND TIDE_PACKAGE_REPLACES desktopstreamer)
   set(_deflect_deb qtbase5-dev libturbojpeg)
-  set(TIDE_PACKAGE_REPLACES desktopstreamer)
+else()
+  set(_deflect_deb "desktopstreamer (>= ${_deflect_min_version})")
 endif()
 if(TUIO_IS_SUBPROJECT)
   set(TIDE_PACKAGE_CONFLICTS liboscpack-dev liboscpack1)
 endif()
 if(ZeroEQ_IS_SUBPROJECT)
+  list(APPEND TIDE_PACKAGE_REPLACES zeroeq)
+  list(APPEND TIDE_PACKAGE_CONFLICTS libcppnetlib-dev libcppnetlib0)
   set(_cppnetlib_deb libboost-atomic-dev libboost-chrono-dev
     libboost-date-time-dev libboost-filesystem-dev libboost-program-options-dev
     libboost-regex-dev libboost-system-dev libboost-thread-dev libssl1.0.0)
   set(_zeroeq_deb libc6 libzmq5 ${_cppnetlib_deb})
-  list(APPEND TIDE_PACKAGE_CONFLICTS libcppnetlib-dev libcppnetlib0)
+elseif(TIDE_ENABLE_REST_INTERFACE)
+  set(_zeroeq_deb "zeroeq (>= ${_zeroeq_min_version})")
 endif()
-set(TIDE_PACKAGE_DEB_DEPENDS ${_deflect_deb} ${_zeroeq_deb} ${TIDE_DEB_DEPENDS})
+if(Servus_IS_SUBPROJECT)
+  list(APPEND TIDE_PACKAGE_REPLACES servus)
+  set(_servus_deb libavahi-client-dev avahi-daemon)
+elseif(TIDE_ENABLE_REST_INTERFACE)
+  set(_servus_deb "servus (>= 1.6)")
+endif()
+set(TIDE_PACKAGE_DEB_DEPENDS ${_deflect_deb} ${_zeroeq_deb} ${_servus_deb}
+  ${TIDE_DEB_DEPENDS})
 include(CommonCPack) # also includes CommonPackageConfig
 
 # Documentation
