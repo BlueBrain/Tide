@@ -60,7 +60,7 @@ public:
      * @param controllers the list of controllers
      */
     MultiScreenController(
-        std::vector<std::shared_ptr<PlanarController>>&& controllers);
+        std::vector<std::unique_ptr<PlanarController>>&& controllers);
 
     /** Get the power state of controlled displays. */
     ScreenState getState() const final;
@@ -74,12 +74,8 @@ public:
     /** Power off the controlled displays. */
     bool powerOff() final;
 
-signals:
-    /** Emitted when power state of displays changes */
-    void powerStateChanged(ScreenState state);
-
 private:
-    std::vector<std::shared_ptr<PlanarController>> _controllers;
+    std::vector<std::unique_ptr<PlanarController>> _controllers;
 };
 
 #endif

@@ -46,22 +46,13 @@
 #include <QVector>
 
 /**
- * Allow control of Planar device over serial connection.
+ * Allow basic power control of display devices.
  */
 class ScreenController : public QObject
 {
     Q_OBJECT
 
 public:
-    /**
-     * The type of the display's power controller interface.
-     */
-    enum class Type
-    {
-        planarMatrix,
-        planarTV
-    };
-
     /** Get the power state of Planar displays. */
     virtual ScreenState getState() const = 0;
 
@@ -75,11 +66,8 @@ public:
     virtual bool powerOff() = 0;
 
 signals:
-
-    virtual void powerStateChanged(ScreenState state);
-
-private:
-    QVector<QString> _vect;
+    /** Emitted when the power state of a display changes. */
+    void powerStateChanged(ScreenState state);
 };
 
 #endif

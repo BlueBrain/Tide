@@ -50,20 +50,20 @@ std::unique_ptr<ScreenController> ScreenControllerFactory::create(
     auto serialports = ports.split(';');
     if (serialports.length() == 0)
         return nullptr;
-    if (serialports.length() > 1)
+    if (serialports.length() == 1)
     {
-        std::vector<std::shared_ptr<PlanarController>> controllers;
-        for (const auto serialport : serialports)
-        {
-            auto controller = std::make_shared<PlanarController>(
-                serialport, ScreenController::Type::planarTV);
-            controllers.push_back(controller);
-        }
-        return std::unique_ptr<ScreenController>(
-            new MultiScreenController(std::move(controllers)));
-    }
-    else
         return std::unique_ptr<ScreenController>(
             new PlanarController(serialports[0],
-                                 ScreenController::Type::planarMatrix));
+                                 PlanarController::Type::Matrix));
+    }
+
+    std::vector<std::unique_ptr<PlanarController>> controllers;
+    for (const auto serialport : serialports)
+    {
+        auto controller = std::unique_ptr<PlanarController>(
+            new PlanarController(serialport, PlanarController::Type::TV));
+        controllers.push_back(std::move(controller));
+    }
+    return std::unique_ptr<ScreenController>(
+        new MultiScreenController(std::move(controllers)));
 }

@@ -43,18 +43,18 @@
 #include "PlanarController.h"
 
 MultiScreenController::MultiScreenController(
-    std::vector<std::shared_ptr<PlanarController>>&& controllers)
+    std::vector<std::unique_ptr<PlanarController>>&& controllers)
     : _controllers{std::move(controllers)}
 {
-    for (auto controller : _controllers)
-        connect(controller.get(), &PlanarController::powerStateChanged,
+    for (auto& controller : _controllers)
+        connect(controller.get(), &ScreenController::powerStateChanged,
                 [this]() { emit powerStateChanged(getState()); });
 }
 
 ScreenState MultiScreenController::getState() const
 {
-    ScreenState state = _controllers[0]->getState();
-    for (const auto controller : _controllers)
+    const auto state = _controllers[0]->getState();
+    for (const auto& controller : _controllers)
     {
         if (controller->getState() != state)
             return ScreenState::UNDEF;
@@ -64,14 +64,14 @@ ScreenState MultiScreenController::getState() const
 
 void MultiScreenController::checkPowerState()
 {
-    for (const auto controller : _controllers)
+    for (const auto& controller : _controllers)
         controller->checkPowerState();
 }
 
 bool MultiScreenController::powerOn()
 {
     bool success = true;
-    for (auto controller : _controllers)
+    for (auto& controller : _controllers)
     {
         if (!controller->powerOn())
             success = false;
@@ -82,7 +82,7 @@ bool MultiScreenController::powerOn()
 bool MultiScreenController::powerOff()
 {
     bool success = true;
-    for (auto controller : _controllers)
+    for (auto& controller : _controllers)
     {
         if (controller->powerOff())
             success = false;

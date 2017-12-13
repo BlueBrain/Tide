@@ -56,8 +56,18 @@ class PlanarController : public ScreenController
 
 public:
     /**
+     * The type of the display's power controller interface.
+     */
+    enum class Type
+    {
+        Matrix,
+        TV
+    };
+
+    /**
      * Construct Planar equipment controller.
-     * @param serialport the serial port used to connect to Quad Controller
+     * @param serialport the serial port used to connect to Quad Controller.
+     * @param type the type of controller.
      * @throw std::runtime_error if the port is already in use or a connection
      *        issue occured.
      */
@@ -75,10 +85,6 @@ public:
     /** Power off the displays. */
     bool powerOff() final;
 
-signals:
-    /** Emitted when power state of Planar displays changes */
-    void powerStateChanged(ScreenState state) final;
-
 private:
     struct PlanarConfig
     {
@@ -92,7 +98,7 @@ private:
     QSerialPort _serial;
     QTimer _timer;
 
-    PlanarConfig getConfig(const ScreenController::Type type);
+    PlanarConfig _getConfig(const PlanarController::Type type) const;
 };
 
 #endif
