@@ -50,6 +50,7 @@ namespace
 {
 const int DEFAULT_WEBSERVICE_PORT = 8888;
 const int DEFAULT_PLANAR_TIMEOUT_MIN = 60;
+const int DEFAULT_PLANAR_REQUIRED_TOUCHPOINTS = 1;
 const QString DEFAULT_URL("http://www.google.com");
 const QString DEFAULT_WHITEBOARD_SAVE_FOLDER("/tmp/");
 }
@@ -59,6 +60,7 @@ MasterConfiguration::MasterConfiguration(const QString& filename)
     , _webServicePort(DEFAULT_WEBSERVICE_PORT)
     , _background(Background::create())
     , _planarTimeout(DEFAULT_PLANAR_TIMEOUT_MIN)
+    , _wakeupTouchpoints(DEFAULT_PLANAR_REQUIRED_TOUCHPOINTS)
 {
     loadMasterSettings();
 }
@@ -132,6 +134,11 @@ void MasterConfiguration::loadInfo(QXmlQuery& query)
     getString(query, _infoName);
 }
 
+int MasterConfiguration::getWakeupTouchpoints() const
+{
+    return _wakeupTouchpoints;
+}
+
 void MasterConfiguration::loadPlanarSettings(QXmlQuery& query)
 {
     query.setQuery("string(/configuration/planar/@serialport)");
@@ -139,6 +146,9 @@ void MasterConfiguration::loadPlanarSettings(QXmlQuery& query)
 
     query.setQuery("string(/configuration/planar/@timeout)");
     getInt(query, _planarTimeout);
+
+    query.setQuery("string(/configuration/planar/@touchpointsToPower)");
+    getInt(query, _wakeupTouchpoints);
 }
 
 void MasterConfiguration::loadWebService(QXmlQuery& query)

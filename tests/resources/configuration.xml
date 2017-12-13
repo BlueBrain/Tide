@@ -5,7 +5,7 @@
     <launcher display=":0" demoServiceUrl="https://visualization-dev.humanbrainproject.eu/viz/rendering-resource-manager/v1" demoServiceImageFolder="/nfs4/bbp.epfl.ch/visualization/resources/software/displaywall/demo_previews" />
     <webservice port="10000" />
     <info name="TestWall" />
-    <planar timeout="45" serialport="/dev/ttyS0" />
+    <planar timeout="45" serialport="/dev/ttyS0" touchpointsToPower="10" />
     <webbrowser defaultURL="http://bbp.epfl.ch" />
     <whiteboard saveUrl="/nfs4/bbp.epfl.ch/media/DisplayWall/whiteboard/" />
     <applauncher qml="/some/path/to/launcher.qml" />

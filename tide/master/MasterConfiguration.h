@@ -125,6 +125,12 @@ public:
     int getPlanarTimeout() const;
 
     /**
+     * Get the number of touch points required to power on screens.
+     * @return default value if unspecified.
+     */
+    int getWakeupTouchpoints() const;
+
+    /**
      * Get the port where the WebService server will be listening for incoming
      * requests.
      * @return port for WebService server.
@@ -195,6 +201,7 @@ private:
 
     QString _planarSerialPort;
     int _planarTimeout;
+    int _wakeupTouchpoints;
 
     QString _infoName;
 };
