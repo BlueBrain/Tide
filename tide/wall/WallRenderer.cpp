@@ -75,8 +75,8 @@ WallRenderer::WallRenderer(WallRenderContext context, QQuickItem& parentItem)
 
     _rootItem = qml::makeItem(_context.engine, QML_ROOT_COMPONENT);
     _rootItem->setParentItem(&parentItem);
-    _rootItem->setWidth(_context.screenRect.width());
-    _rootItem->setHeight(_context.screenRect.height());
+    _rootItem->setSize(_context.wallSize);
+    _rootItem->setPosition(-_context.screenRect.topLeft());
 
     _displayGroupRenderer =
         make_unique<DisplayGroupRenderer>(_context, *_rootItem);

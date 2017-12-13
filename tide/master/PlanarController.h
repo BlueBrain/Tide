@@ -98,7 +98,7 @@ private:
     QSerialPort _serial;
     QTimer _timer;
 
-    PlanarConfig _getConfig(const PlanarController::Type type) const;
+    PlanarConfig _getConfig(Type type) const;
 };
 
 #endif
