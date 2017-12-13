@@ -40,6 +40,7 @@
 #ifndef PLANARCONTROLLER_H
 #define PLANARCONTROLLER_H
 
+#include "ScreenController.h"
 #include "types.h"
 
 #include <QObject>
@@ -49,39 +50,55 @@
 /**
  * Allow control of Planar device over serial connection.
  */
-class PlanarController : public QObject
+class PlanarController : public ScreenController
 {
     Q_OBJECT
 
 public:
     /**
+     * The type of the display's power controller interface.
+     */
+    enum class Type
+    {
+        Matrix,
+        TV
+    };
+
+    /**
      * Construct Planar equipment controller.
-     * @param serialport the serial port used to connect to Quad Controller
+     * @param serialport the serial port used to connect to Quad Controller.
+     * @param type the type of controller.
      * @throw std::runtime_error if the port is already in use or a connection
      *        issue occured.
      */
-    PlanarController(const QString& serialport);
+    PlanarController(const QString& serialport, const Type type);
 
     /** Get the power state of Planar displays. */
-    ScreenState getState() const;
+    ScreenState getState() const final;
 
     /** Refresh the power state of Planar displays */
-    void checkPowerState();
+    void checkPowerState() final;
 
     /** Power on the displays. */
-    bool powerOn();
+    bool powerOn() final;
 
     /** Power off the displays. */
-    bool powerOff();
-
-signals:
-    /** Emitted when power state of Planar displays changes */
-    void powerStateChanged(ScreenState state);
+    bool powerOff() final;
 
 private:
+    struct PlanarConfig
+    {
+        int baudrate;
+        const char* powerOn;
+        const char* powerOff;
+        const char* powerState;
+    };
+    PlanarConfig _config;
     ScreenState _state;
     QSerialPort _serial;
     QTimer _timer;
+
+    PlanarConfig _getConfig(const PlanarController::Type type) const;
 };
 
 #endif

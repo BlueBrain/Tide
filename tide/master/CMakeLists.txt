@@ -123,8 +123,13 @@ if(TIDE_ENABLE_PDF_SUPPORT)
 endif()
 
 if(TIDE_ENABLE_PLANAR_CONTROLLER)
+  list(APPEND TIDEMASTER_HEADERS MultiScreenController.h)
+  list(APPEND TIDEMASTER_SOURCES MultiScreenController.cpp)
   list(APPEND TIDEMASTER_HEADERS PlanarController.h)
   list(APPEND TIDEMASTER_SOURCES PlanarController.cpp)
+  list(APPEND TIDEMASTER_SOURCES ScreenController.h)
+  list(APPEND TIDEMASTER_SOURCES ScreenControllerFactory.h)
+  list(APPEND TIDEMASTER_SOURCES ScreenControllerFactory.cpp)
   list(APPEND TIDEMASTER_LINK_LIBRARIES PRIVATE Qt5::SerialPort)
 endif()
 

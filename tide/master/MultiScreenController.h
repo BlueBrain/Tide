@@ -37,83 +37,45 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
+#ifndef MultiScreenController_H
+#define MultiScreenController_H
+
 #include "PlanarController.h"
+#include "ScreenController.h"
+#include "types.h"
 
-namespace
+#include <QObject>
+#include <QVector>
+
+/**
+ * Allow control of multiple devices with multiple display controllers.
+ */
+class MultiScreenController : public ScreenController
 {
-const int serialTimeout = 1000;    // in ms
-const int powerStateTimer = 60000; // in ms
-}
+    Q_OBJECT
 
-PlanarController::PlanarController(const QString& serialport, const Type type)
-    : _config{_getConfig(type)}
-{
-    _serial.setPortName(serialport);
-    _serial.setBaudRate(_config.baudrate, QSerialPort::AllDirections);
-    _serial.setDataBits(QSerialPort::Data8);
-    _serial.setParity(QSerialPort::NoParity);
-    _serial.setStopBits(QSerialPort::OneStop);
-    _serial.setFlowControl(QSerialPort::NoFlowControl);
-    if (!_serial.open(QIODevice::ReadWrite))
-        throw std::runtime_error("Could not open " + serialport.toStdString());
+public:
+    /**
+     * Construct a controller embracing multiple screen controlers.
+     * @param controllers the list of controllers
+     */
+    MultiScreenController(
+        std::vector<std::unique_ptr<PlanarController>>&& controllers);
 
-    connect(&_serial, &QSerialPort::readyRead, [this]() {
-        if (_serial.canReadLine())
-        {
-            QString output(_serial.readLine());
-            output = output.trimmed();
-            ScreenState previousState = _state;
-            if (output.endsWith("OFF") || output.endsWith("0"))
-                _state = ScreenState::OFF;
-            else if (output.endsWith("ON") || output.endsWith("1"))
-                _state = ScreenState::ON;
-            else
-                _state = ScreenState::UNDEF;
+    /** Get the power state of controlled displays. */
+    ScreenState getState() const final;
 
-            if (_state != previousState)
-                emit powerStateChanged(_state);
-        }
-    });
+    /** Refresh the power state of controlled displays */
+    void checkPowerState() final;
 
-    checkPowerState();
-    connect(&_timer, &QTimer::timeout, [this]() { checkPowerState(); });
-    _timer.start(powerStateTimer);
-}
+    /** Power on the controlled displays. */
+    bool powerOn() final;
 
-bool PlanarController::powerOn()
-{
-    _serial.write(_config.powerOn);
-    return _serial.waitForBytesWritten(serialTimeout);
-}
+    /** Power off the controlled displays. */
+    bool powerOff() final;
 
-bool PlanarController::powerOff()
-{
-    _serial.write(_config.powerOff);
-    return _serial.waitForBytesWritten(serialTimeout);
-}
+private:
+    std::vector<std::unique_ptr<PlanarController>> _controllers;
+};
 
-ScreenState PlanarController::getState() const
-{
-    return _state;
-}
-void PlanarController::checkPowerState()
-{
-    _serial.write(_config.powerState);
-    _serial.waitForBytesWritten(serialTimeout);
-}
-
-PlanarController::PlanarConfig PlanarController::_getConfig(
-    const PlanarController::Type type) const
-{
-    switch (type)
-    {
-    case PlanarController::Type::TV:
-        return {19200, "DISPLAY.POWER=ON\r", "DISPLAY.POWER=OFF\r",
-                "DISPLAY.POWER?\r"};
-    case PlanarController::Type::Matrix:
-        return {9600, "OPA1DISPLAY.POWER=ON\r", "OPA1DISPLAY.POWER=OFF\r",
-                "OPA1DISPLAY.POWER?\r"};
-    default:
-        throw std::invalid_argument("Non existing serial type");
-    }
-}
+#endif
