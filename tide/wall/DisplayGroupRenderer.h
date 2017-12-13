@@ -68,8 +68,7 @@ public:
 
 private:
     WallRenderContext _context;
-    QQmlContext& _qmlContext;
-
+    std::unique_ptr<QQmlContext> _qmlContext;
     DisplayGroupPtr _displayGroup;
 
     QQuickItem* _displayGroupItem = nullptr; // child of parent item

@@ -53,7 +53,7 @@
 #include <QFutureWatcher>
 #include <QThread>
 
-class MasterDisplayGroupRenderer;
+class MasterSceneRenderer;
 class MasterQuickView;
 class MasterToWallChannel;
 class MasterToForkerChannel;
@@ -113,7 +113,7 @@ private:
 
     std::unique_ptr<MasterWindow> _masterWindow;
     std::unique_ptr<deflect::qt::OffscreenQuickView> _offscreenQuickView;
-    std::unique_ptr<MasterDisplayGroupRenderer> _masterGroupRenderer;
+    std::unique_ptr<MasterSceneRenderer> _sceneRenderer;
 
     std::unique_ptr<deflect::Server> _deflectServer;
     std::unique_ptr<PixelStreamerLauncher> _pixelStreamerLauncher;

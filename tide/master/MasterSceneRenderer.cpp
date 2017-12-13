@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,47 +37,61 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef MASTERDISPLAYGROUPRENDERER_H
-#define MASTERDISPLAYGROUPRENDERER_H
+#include "MasterSceneRenderer.h"
 
-#include "types.h"
+#include "MasterDisplayGroupRenderer.h"
+#include "control/DisplayGroupController.h"
+#include "qmlUtils.h"
+#include "scene/DisplayGroup.h"
 
-#include <QQuickItem>
-#include <QUuid>
+#include <QQmlContext>
+#include <QQmlEngine>
 
-/**
- * A view of the display group in the master application.
- */
-class MasterDisplayGroupRenderer : public QObject
+namespace
 {
-    Q_OBJECT
+const QUrl QML_SCENE_URL("qrc:/qml/master/MasterScene.qml");
+}
 
-public:
-    /** Constructor. */
-    MasterDisplayGroupRenderer(DisplayGroupPtr group, QQmlEngine& engine,
-                               QQuickItem& parentItem);
+MasterSceneRenderer::MasterSceneRenderer(DisplayGroupPtr group,
+                                         QQmlEngine& engine,
+                                         QQuickItem& parentItem)
+    : _group{group}
+    , _groupController{new DisplayGroupController{*_group}}
+{
+    _setContextProperties(*engine.rootContext());
+    _createSceneItem(engine, parentItem);
+    _createGroupRenderer(engine);
+}
 
-    /** Destructor */
-    ~MasterDisplayGroupRenderer();
+MasterSceneRenderer::~MasterSceneRenderer()
+{
+    _displayGroupRenderer.reset();
 
-private:
-    DisplayGroupPtr _displayGroup;
-    std::unique_ptr<DisplayGroupController> _groupController;
-    QQmlEngine& _engine;
-    std::unique_ptr<QQmlContext> _qmlContext;
+    if (_sceneItem)
+    {
+        _sceneItem->setParentItem(nullptr);
+        delete _sceneItem;
+        _sceneItem = nullptr;
+    }
+}
 
-    QQuickItem* _displayGroupItem = nullptr;
-    typedef QMap<QUuid, QQuickItem*> UuidToWindowMap;
-    UuidToWindowMap _uuidToWindowMap;
+void MasterSceneRenderer::_setContextProperties(QQmlContext& context)
+{
+    // SideControl buttons need a displaygroup and groupcontroller
+    context.setContextProperty("displaygroup", _group.get());
+    context.setContextProperty("groupcontroller", _groupController.get());
+}
 
-    void _setContextProperties();
-    void _createQmlItem(QQuickItem& parentItem);
-    void _addWindows();
-    void _watchDisplayGroupUpdates();
+void MasterSceneRenderer::_createSceneItem(QQmlEngine& engine,
+                                           QQuickItem& parentItem)
+{
+    _sceneItem = qml::makeItem(engine, QML_SCENE_URL);
+    _sceneItem->setParentItem(&parentItem);
+    connect(_sceneItem, SIGNAL(openLauncher()), this, SIGNAL(openLauncher()));
+}
 
-    void _add(ContentWindowPtr contentWindow);
-    void _remove(ContentWindowPtr contentWindow);
-    void _moveToFront(ContentWindowPtr contentWindow);
-};
-
-#endif
+void MasterSceneRenderer::_createGroupRenderer(QQmlEngine& engine)
+{
+    _displayGroupRenderer =
+        make_unique<MasterDisplayGroupRenderer>(_group, engine, *_sceneItem);
+}

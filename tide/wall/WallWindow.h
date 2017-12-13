@@ -120,7 +120,7 @@ private:
     std::unique_ptr<deflect::qt::QuickRenderer> _quickRenderer;
     std::unique_ptr<QThread> _quickRendererThread;
     std::unique_ptr<QQmlEngine> _qmlEngine;
-    std::unique_ptr<WallRenderer> _wallRenderer;
+    std::unique_ptr<WallSceneRenderer> _sceneRenderer;
     std::unique_ptr<TestPattern> _testPattern;
 };
 

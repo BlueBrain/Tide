@@ -4,9 +4,9 @@
     </qresource>
     <qresource prefix="/qml/wall">
         <file>PowerOffCountdown.qml</file>
-        <file>Root.qml</file>
         <file>TouchPointMarker.qml</file>
         <file>WallContentWindow.qml</file>
+        <file>WallScene.qml</file>
         <file>ZoomContext.qml</file>
     </qresource>
 </RCC>

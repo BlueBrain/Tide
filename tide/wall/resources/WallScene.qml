@@ -3,7 +3,7 @@ import Tide 1.0
 import "qrc:/qml/core/."
 import "qrc:/qml/core/style.js" as Style
 
-Item {
+Scene {
     PowerOffCountdown {
         anchors.fill: parent
         z: Style.countdownZorder

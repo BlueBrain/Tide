@@ -37,7 +37,7 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "WallRenderer.h"
+#include "WallSceneRenderer.h"
 
 #include "CountdownStatus.h"
 #include "DataProvider.h"
@@ -45,95 +45,114 @@
 #include "ScreenLock.h"
 #include "qmlUtils.h"
 #include "scene/Background.h"
+#include "scene/DisplayGroup.h"
 #include "scene/Markers.h"
 #include "scene/Options.h"
 
 #include <deflect/Frame.h>
 
-#include <QQmlComponent>
 #include <QQmlContext>
 #include <QQuickItem>
 
 namespace
 {
-const QUrl QML_ROOT_COMPONENT("qrc:/qml/wall/Root.qml");
+const QUrl QML_SCENE_URL("qrc:/qml/wall/WallScene.qml");
 }
 
-WallRenderer::WallRenderer(WallRenderContext context, QQuickItem& parentItem)
+WallSceneRenderer::WallSceneRenderer(WallRenderContext context,
+                                     QQuickItem& parentItem)
     : _context{std::move(context)}
     , _qmlContext{*_context.engine.rootContext()}
     , _background{Background::create()}
+    , _countdownStatus{new CountdownStatus}
+    , _displayGroup{new DisplayGroup{QSize(1, 1)}}
     , _markers{Markers::create()}
     , _options{Options::create()}
-    , _lock{ScreenLock::create()}
-    , _countdownStatus{new CountdownStatus}
+    , _screenLock{ScreenLock::create()}
 {
-    _qmlContext.setContextProperty("markers", _markers.get());
-    _qmlContext.setContextProperty("options", _options.get());
-    _qmlContext.setContextProperty("countdownStatus", _countdownStatus.get());
-    _qmlContext.setContextProperty("lock", _lock.get());
-
-    _rootItem = qml::makeItem(_context.engine, QML_ROOT_COMPONENT);
-    _rootItem->setParentItem(&parentItem);
-    _rootItem->setSize(_context.wallSize);
-    _rootItem->setPosition(-_context.screenRect.topLeft());
-
-    _displayGroupRenderer =
-        make_unique<DisplayGroupRenderer>(_context, *_rootItem);
+    _setContextProperties();
+    _createSceneItem(parentItem);
+    _createGroupRenderer();
 }
 
-WallRenderer::~WallRenderer()
+WallSceneRenderer::~WallSceneRenderer()
 {
 }
 
-void WallRenderer::setBackground(BackgroundPtr background)
+void WallSceneRenderer::setBackground(BackgroundPtr background)
 {
     _setBackground(*background);
     _background = std::move(background);
 }
 
-bool WallRenderer::needRedraw() const
+bool WallSceneRenderer::needRedraw() const
 {
     return _options->getShowStatistics() || _options->getShowClock();
 }
 
-void WallRenderer::setDisplayGroup(DisplayGroupPtr displayGroup)
+void WallSceneRenderer::setDisplayGroup(DisplayGroupPtr displayGroup)
 {
+    _qmlContext.setContextProperty("displaygroup", displayGroup.get());
+    _displayGroup = displayGroup;
+
     _displayGroupRenderer->setDisplayGroup(displayGroup);
 }
 
-void WallRenderer::setMarkers(MarkersPtr markers)
+void WallSceneRenderer::setMarkers(MarkersPtr markers)
 {
     _qmlContext.setContextProperty("markers", markers.get());
     _markers = std::move(markers); // Retain the new Markers
 }
 
-void WallRenderer::setRenderingOptions(OptionsPtr options)
+void WallSceneRenderer::setRenderingOptions(OptionsPtr options)
 {
     _qmlContext.setContextProperty("options", options.get());
-    _rootItem->setVisible(!options->getShowTestPattern());
+    _sceneItem->setVisible(!options->getShowTestPattern());
     _options = std::move(options); // Retain the new Options
 }
 
-void WallRenderer::setScreenLock(ScreenLockPtr lock)
+void WallSceneRenderer::setScreenLock(ScreenLockPtr lock)
 {
     _qmlContext.setContextProperty("lock", lock.get());
-    _lock = std::move(lock); // Retain the new ScreenLock
+    _screenLock = std::move(lock); // Retain the new ScreenLock
 }
 
-void WallRenderer::setCountdownStatus(CountdownStatusPtr status)
+void WallSceneRenderer::setCountdownStatus(CountdownStatusPtr status)
 {
     _qmlContext.setContextProperty("countdownStatus", status.get());
     _countdownStatus = std::move(status);
 }
 
-void WallRenderer::updateRenderedFrames()
+void WallSceneRenderer::updateRenderedFrames()
 {
-    const int frames = _rootItem->property("frames").toInt();
-    _rootItem->setProperty("frames", frames + 1);
+    const int frames = _sceneItem->property("frames").toInt();
+    _sceneItem->setProperty("frames", frames + 1);
 }
 
-void WallRenderer::_setBackground(const Background& background)
+void WallSceneRenderer::_setContextProperties()
+{
+    _qmlContext.setContextProperty("countdownStatus", _countdownStatus.get());
+    _qmlContext.setContextProperty("displaygroup", _displayGroup.get());
+    _qmlContext.setContextProperty("markers", _markers.get());
+    _qmlContext.setContextProperty("options", _options.get());
+    _qmlContext.setContextProperty("lock", _screenLock.get());
+}
+
+void WallSceneRenderer::_createSceneItem(QQuickItem& parentItem)
+{
+    _sceneItem = qml::makeItem(_context.engine, QML_SCENE_URL);
+    _sceneItem->setSize(_context.wallSize);
+    _sceneItem->setPosition(-_context.screenRect.topLeft());
+    _sceneItem->setParentItem(&parentItem);
+}
+
+void WallSceneRenderer::_createGroupRenderer()
+{
+    _displayGroupRenderer =
+        make_unique<DisplayGroupRenderer>(_context, *_sceneItem);
+}
+
+void WallSceneRenderer::_setBackground(const Background& background)
 {
     const auto content = background.getContent();
 
@@ -141,10 +160,10 @@ void WallRenderer::_setBackground(const Background& background)
         _backgroundRenderer.reset();
     else if (_hasBackgroundChanged(content->getURI()))
         _backgroundRenderer =
-            make_unique<BackgroundRenderer>(background, _context, *_rootItem);
+            make_unique<BackgroundRenderer>(background, _context, *_sceneItem);
 }
 
-bool WallRenderer::_hasBackgroundChanged(const QString& newUri) const
+bool WallSceneRenderer::_hasBackgroundChanged(const QString& newUri) const
 {
     return newUri != _background->getUri();
 }

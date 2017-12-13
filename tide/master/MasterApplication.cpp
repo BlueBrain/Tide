@@ -43,7 +43,7 @@
 #include "ContentLoader.h"
 #include "InactivityTimer.h"
 #include "MasterConfiguration.h"
-#include "MasterDisplayGroupRenderer.h"
+#include "MasterSceneRenderer.h"
 #include "PixelStreamWindowManager.h"
 #include "QmlTypeRegistration.h"
 #include "ScreenControllerFactory.h"
@@ -204,8 +204,7 @@ void MasterApplication::_init()
     else
         _initMasterWindow();
 
-    connect(_masterGroupRenderer.get(),
-            &MasterDisplayGroupRenderer::openLauncher,
+    connect(_sceneRenderer.get(), &MasterSceneRenderer::openLauncher,
             _pixelStreamerLauncher.get(), &PixelStreamerLauncher::openLauncher);
 
     connect(&_loadSessionOp, &QFutureWatcher<DisplayGroupConstPtr>::finished,
@@ -265,8 +264,8 @@ void MasterApplication::_initMasterWindow()
 
     auto engine = view->engine();
     auto item = view->wallItem();
-    _masterGroupRenderer.reset(
-        new MasterDisplayGroupRenderer{_displayGroup, *engine, *item});
+    _sceneRenderer.reset(
+        new MasterSceneRenderer{_displayGroup, *engine, *item});
 }
 
 void MasterApplication::_initOffscreenView()
@@ -283,8 +282,8 @@ void MasterApplication::_initOffscreenView()
 
     auto engine = _offscreenQuickView->getEngine();
     auto item = _offscreenQuickView->getRootItem();
-    _masterGroupRenderer.reset(
-        new MasterDisplayGroupRenderer{_displayGroup, *engine, *item});
+    _sceneRenderer.reset(
+        new MasterSceneRenderer{_displayGroup, *engine, *item});
 }
 
 void MasterApplication::_startDeflectServer()
