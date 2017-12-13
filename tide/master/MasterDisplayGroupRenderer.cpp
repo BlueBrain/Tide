@@ -46,7 +46,6 @@
 #include "scene/ContentWindow.h"
 #include "scene/DisplayGroup.h"
 
-#include <QQmlComponent>
 #include <QQmlContext>
 #include <QQmlEngine>
 
@@ -60,34 +59,14 @@ MasterDisplayGroupRenderer::MasterDisplayGroupRenderer(DisplayGroupPtr group,
                                                        QQmlEngine& engine,
                                                        QQuickItem& parentItem)
     : _displayGroup{group}
+    , _groupController{new DisplayGroupController{*_displayGroup}}
     , _engine{engine}
+    , _qmlContext{new QQmlContext(engine.rootContext())}
 {
-    auto rootContext = _engine.rootContext();
-    rootContext->setContextProperty("displaygroup", _displayGroup.get());
-
-    auto controller = make_unique<DisplayGroupController>(*_displayGroup);
-    rootContext->setContextProperty("groupcontroller", controller.get());
-
-    _displayGroupItem = qml::makeItem(_engine, QML_DISPLAYGROUP_URL);
-    _displayGroupItem->setParentItem(&parentItem);
-
-    // Transfer ownership of the controller to qml item
-    controller->setParent(_displayGroupItem);
-    controller.release();
-
-    connect(_displayGroupItem, SIGNAL(openLauncher()), this,
-            SIGNAL(openLauncher()));
-
-    const auto contentWindows = _displayGroup->getContentWindows();
-    for (const auto& contentWindow : contentWindows)
-        _add(contentWindow);
-
-    connect(_displayGroup.get(), &DisplayGroup::contentWindowAdded, this,
-            &MasterDisplayGroupRenderer::_add);
-    connect(_displayGroup.get(), &DisplayGroup::contentWindowRemoved, this,
-            &MasterDisplayGroupRenderer::_remove);
-    connect(_displayGroup.get(), &DisplayGroup::contentWindowMovedToFront, this,
-            &MasterDisplayGroupRenderer::_moveToFront);
+    _setContextProperties();
+    _createQmlItem(parentItem);
+    _addWindows();
+    _watchDisplayGroupUpdates();
 }
 
 MasterDisplayGroupRenderer::~MasterDisplayGroupRenderer()
@@ -102,10 +81,39 @@ MasterDisplayGroupRenderer::~MasterDisplayGroupRenderer()
     }
 }
 
+void MasterDisplayGroupRenderer::_setContextProperties()
+{
+    _qmlContext->setContextProperty("displaygroup", _displayGroup.get());
+    _qmlContext->setContextProperty("groupcontroller", _groupController.get());
+}
+
+void MasterDisplayGroupRenderer::_createQmlItem(QQuickItem& parentItem)
+{
+    _displayGroupItem =
+        qml::makeItem(_engine, QML_DISPLAYGROUP_URL, _qmlContext.get());
+    _displayGroupItem->setParentItem(&parentItem);
+}
+
+void MasterDisplayGroupRenderer::_addWindows()
+{
+    for (const auto& window : _displayGroup->getContentWindows())
+        _add(window);
+}
+
+void MasterDisplayGroupRenderer::_watchDisplayGroupUpdates()
+{
+    connect(_displayGroup.get(), &DisplayGroup::contentWindowAdded, this,
+            &MasterDisplayGroupRenderer::_add);
+    connect(_displayGroup.get(), &DisplayGroup::contentWindowRemoved, this,
+            &MasterDisplayGroupRenderer::_remove);
+    connect(_displayGroup.get(), &DisplayGroup::contentWindowMovedToFront, this,
+            &MasterDisplayGroupRenderer::_moveToFront);
+}
+
 void MasterDisplayGroupRenderer::_add(ContentWindowPtr window)
 {
     // New Context for the window, ownership retained by the windowItem
-    auto windowContext = new QQmlContext(_engine.rootContext());
+    auto windowContext = new QQmlContext(_qmlContext.get());
     windowContext->setContextProperty("contentwindow", window.get());
 
     auto controller = new ContentWindowController(*window, *_displayGroup);
@@ -121,14 +129,14 @@ void MasterDisplayGroupRenderer::_add(ContentWindowPtr window)
     windowContext->setParent(windowItem);
 
     // Store a reference to the window and add it to the scene
-    const QUuid& id = window->getID();
+    const auto& id = window->getID();
     _uuidToWindowMap[id] = qobject_cast<QQuickItem*>(windowItem);
     _uuidToWindowMap[id]->setParentItem(_displayGroupItem);
 }
 
 void MasterDisplayGroupRenderer::_remove(ContentWindowPtr contentWindow)
 {
-    const QUuid& id = contentWindow->getID();
+    const auto& id = contentWindow->getID();
     if (!_uuidToWindowMap.contains(id))
         return;
 
@@ -139,7 +147,7 @@ void MasterDisplayGroupRenderer::_remove(ContentWindowPtr contentWindow)
 
 void MasterDisplayGroupRenderer::_moveToFront(ContentWindowPtr contentWindow)
 {
-    const QUuid& id = contentWindow->getID();
+    const auto& id = contentWindow->getID();
     if (!_uuidToWindowMap.contains(id))
         return;
 

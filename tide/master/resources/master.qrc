@@ -3,6 +3,7 @@
     <qresource prefix="/qml/master">
         <file>MasterContentWindow.qml</file>
         <file>MasterDisplayGroup.qml</file>
+        <file>MasterScene.qml</file>
         <file>OffscreenRoot.qml</file>
         <file>Root.qml</file>
         <file>Wall.qml</file>

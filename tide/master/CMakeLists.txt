@@ -35,6 +35,7 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   MasterApplication.h
   MasterConfiguration.h
   MasterDisplayGroupRenderer.h
+  MasterSceneRenderer.h
   multitouch/DoubleTapDetector.h
   multitouch/MathUtils.h
   multitouch/MultitouchArea.h
@@ -81,6 +82,7 @@ list(APPEND TIDEMASTER_SOURCES
   MasterApplication.cpp
   MasterConfiguration.cpp
   MasterDisplayGroupRenderer.cpp
+  MasterSceneRenderer.cpp
   multitouch/DoubleTapDetector.cpp
   multitouch/MathUtils.cpp
   multitouch/MultitouchArea.cpp

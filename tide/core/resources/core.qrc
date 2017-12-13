@@ -52,6 +52,7 @@
         <file>OneToOneControlButton.qml</file>
         <file>ResizeCircle.qml</file>
         <file>ResizeCircles.qml</file>
+        <file>Scene.qml</file>
         <file>SideButton.qml</file>
         <file>SideControl.qml</file>
         <file>StreamNotificationArea.qml</file>

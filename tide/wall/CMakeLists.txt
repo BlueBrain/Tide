@@ -93,7 +93,7 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   WallApplication.h
   WallConfiguration.h
   WallRenderContext.h
-  WallRenderer.h
+  WallSceneRenderer.h
   WallWindow.h
 )
 
@@ -140,7 +140,7 @@ list(APPEND TIDEWALL_SOURCES
   VisibilityHelper.cpp
   WallApplication.cpp
   WallConfiguration.cpp
-  WallRenderer.cpp
+  WallSceneRenderer.cpp
   WallWindow.cpp
   resources/wall.qrc
 )

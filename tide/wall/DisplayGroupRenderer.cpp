@@ -53,17 +53,17 @@ const QUrl QML_DISPLAYGROUP_URL("qrc:/qml/core/DisplayGroup.qml");
 DisplayGroupRenderer::DisplayGroupRenderer(const WallRenderContext& context,
                                            QQuickItem& parentItem)
     : _context{context}
-    , _qmlContext{*_context.engine.rootContext()}
+    , _qmlContext{new QQmlContext(context.engine.rootContext())}
     , _displayGroup{new DisplayGroup(QSize())}
 {
-    _qmlContext.setContextProperty("displaygroup", _displayGroup.get());
+    _qmlContext->setContextProperty("displaygroup", _displayGroup.get());
     _createDisplayGroupQmlItem(parentItem);
 }
 
 void DisplayGroupRenderer::setDisplayGroup(DisplayGroupPtr displayGroup)
 {
     // Update the scene with the new information
-    _qmlContext.setContextProperty("displaygroup", displayGroup.get());
+    _qmlContext->setContextProperty("displaygroup", displayGroup.get());
 
     // Update windows, creating new ones if needed
     QSet<QUuid> updatedWindows;
@@ -117,7 +117,8 @@ void DisplayGroupRenderer::setDisplayGroup(DisplayGroupPtr displayGroup)
 
 void DisplayGroupRenderer::_createDisplayGroupQmlItem(QQuickItem& parentItem)
 {
-    _displayGroupItem = qml::makeItem(_context.engine, QML_DISPLAYGROUP_URL);
+    _displayGroupItem =
+        qml::makeItem(_context.engine, QML_DISPLAYGROUP_URL, _qmlContext.get());
     _displayGroupItem->setParentItem(&parentItem);
 }
 
@@ -125,8 +126,7 @@ void DisplayGroupRenderer::_createWindowQmlItem(ContentWindowPtr window)
 {
     const auto& id = window->getID();
     auto sync = _context.provider.createSynchronizer(*window, _context.view);
-    _windowItems[id].reset(new QmlWindowRenderer(std::move(sync),
-                                                 std::move(window),
-                                                 *_displayGroupItem,
-                                                 _context.engine.rootContext()));
+    _windowItems[id].reset(
+        new QmlWindowRenderer(std::move(sync), std::move(window),
+                              *_displayGroupItem, _qmlContext.get()));
 }

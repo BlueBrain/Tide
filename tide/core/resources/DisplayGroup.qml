@@ -7,8 +7,6 @@ Item {
 
     property alias showFocusContext: focuscontext.visible
     property alias focusContextZorder: focuscontext.z
-    property alias sideControl: sideControl
-    property alias streamNotificationArea: streamNotificationArea
 
     width: displaygroup.width
     height: displaygroup.height
@@ -29,18 +27,6 @@ Item {
                 easing.type: Easing.InOutQuad
             }
         }
-    }
-
-    SideControl {
-        id: sideControl
-        z: Style.sideControlZorder
-        visible: options.showControlArea
-    }
-
-    StreamNotificationArea {
-        id: streamNotificationArea
-        anchors.top: parent.verticalCenter
-        anchors.left: parent.left
     }
 
     states: [
