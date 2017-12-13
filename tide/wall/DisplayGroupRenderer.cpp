@@ -119,7 +119,6 @@ void DisplayGroupRenderer::_createDisplayGroupQmlItem(QQuickItem& parentItem)
 {
     _displayGroupItem = qml::makeItem(_context.engine, QML_DISPLAYGROUP_URL);
     _displayGroupItem->setParentItem(&parentItem);
-    _displayGroupItem->setPosition(-_context.screenRect.topLeft());
 }
 
 void DisplayGroupRenderer::_createWindowQmlItem(ContentWindowPtr window)

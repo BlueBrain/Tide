@@ -46,7 +46,7 @@ const int powerStateTimer = 60000; // in ms
 }
 
 PlanarController::PlanarController(const QString& serialport, const Type type)
-    : _config{_getConfig(type)}
+    : _config(_getConfig(type))
 {
     _serial.setPortName(serialport);
     _serial.setBaudRate(_config.baudrate, QSerialPort::AllDirections);
@@ -103,14 +103,14 @@ void PlanarController::checkPowerState()
 }
 
 PlanarController::PlanarConfig PlanarController::_getConfig(
-    const PlanarController::Type type) const
+    const Type type) const
 {
     switch (type)
     {
-    case PlanarController::Type::TV:
+    case Type::TV:
         return {19200, "DISPLAY.POWER=ON\r", "DISPLAY.POWER=OFF\r",
                 "DISPLAY.POWER?\r"};
-    case PlanarController::Type::Matrix:
+    case Type::Matrix:
         return {9600, "OPA1DISPLAY.POWER=ON\r", "OPA1DISPLAY.POWER=OFF\r",
                 "OPA1DISPLAY.POWER?\r"};
     default:
