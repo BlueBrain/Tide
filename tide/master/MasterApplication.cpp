@@ -605,7 +605,9 @@ bool MasterApplication::notify(QObject* receiver, QEvent* event)
 void MasterApplication::_handle(const QTouchEvent* event)
 {
     _inactivityTimer->restart();
-    _resume();
+
+    if (event->touchPoints().length() >= _config->getWakeupTouchpoints())
+        _resume();
 
     const auto wallSize = _config->getTotalSize();
     auto getWallPos = [wallSize](const QPointF& normalizedPos) {
