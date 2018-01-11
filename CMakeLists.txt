@@ -96,19 +96,10 @@ add_subdirectory(tests)
 install(DIRECTORY examples DESTINATION share/Tide COMPONENT examples)
 
 # Packaging (including subprojects)
-if(Deflect_IS_SUBPROJECT)
-  list(APPEND TIDE_PACKAGE_REPLACES desktopstreamer)
-  set(_deflect_deb qtbase5-dev libturbojpeg)
-else()
-  set(_deflect_deb "desktopstreamer (>= ${_deflect_min_version})")
-endif()
-if(Rockets_IS_SUBPROJECT)
-  list(APPEND TIDE_PACKAGE_REPLACES rockets)
-  set(_rockets_deb libwebsockets-dev)
-elseif(TIDE_ENABLE_REST_INTERFACE)
-  set(_rockets_deb "rockets (>= ${_rockets_min_version})")
-endif()
-set(TIDE_PACKAGE_DEB_DEPENDS ${_deflect_deb} ${_rockets_deb} ${TIDE_DEB_DEPENDS})
+set(TIDE_PACKAGE_DEB_DEPENDS ${TIDE_DEB_DEPENDS})
+add_deb_depends(Deflect PACKAGE_NAME desktopstreamer MIN_VERSION
+  ${_deflect_min_version} qtbase5-dev libturbojpeg)
+add_deb_depends(Rockets MIN_VERSION ${_rockets_min_version} libwebsockets-dev)
 include(CommonCPack) # also includes CommonPackageConfig
 
 # Documentation
