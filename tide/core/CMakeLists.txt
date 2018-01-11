@@ -116,7 +116,6 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   CommandLineParameters.h
   CommandLineParser.h
   Configuration.h
-  CountdownStatus.h
   data/Image.h
   data/QtImage.h
   data/SVG.h
@@ -135,7 +134,6 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   network/SharedNetworkBarrier.h
   QmlTypeRegistration.h
   qmlUtils.h
-  ScreenLock.h
   StatePreview.h
   scene/Background.h
   scene/ContentAction.h
@@ -144,6 +142,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   scene/Content.h
   scene/ContentType.h
   scene/ContentWindow.h
+  scene/CountdownStatus.h
   scene/DisplayGroup.h
   scene/DynamicTextureContent.h
   scene/KeyboardState.h
@@ -151,6 +150,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   scene/Options.h
   scene/PixelStreamContent.h
   scene/Rectangle.h
+  scene/ScreenLock.h
   scene/SVGContent.h
   scene/TextureContent.h
   scene/VectorialContent.h
@@ -178,7 +178,6 @@ list(APPEND TIDECORE_SOURCES
   CommandLineParameters.cpp
   CommandLineParser.cpp
   Configuration.cpp
-  CountdownStatus.cpp
   data/QtImage.cpp
   data/SVG.cpp
   data/SVGQtGpuBackend.cpp
@@ -198,17 +197,18 @@ list(APPEND TIDECORE_SOURCES
   scene/ContentFactory.cpp
   scene/ContentType.cpp
   scene/ContentWindow.cpp
+  scene/CountdownStatus.cpp
   scene/DisplayGroup.cpp
   scene/DynamicTextureContent.cpp
   scene/KeyboardState.cpp
-  scene/PixelStreamContent.cpp
   scene/Markers.cpp
   scene/Options.cpp
+  scene/PixelStreamContent.cpp
   scene/Rectangle.cpp
+  scene/ScreenLock.cpp
   scene/SVGContent.cpp
   scene/TextureContent.cpp
   scene/VectorialContent.cpp
-  ScreenLock.cpp
   StatePreview.cpp
   thumbnail/DefaultThumbnailGenerator.cpp
   thumbnail/FolderThumbnailGenerator.cpp

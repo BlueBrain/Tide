@@ -39,15 +39,15 @@
 
 #include "WallSceneRenderer.h"
 
-#include "CountdownStatus.h"
 #include "DataProvider.h"
 #include "DisplayGroupRenderer.h"
-#include "ScreenLock.h"
 #include "qmlUtils.h"
 #include "scene/Background.h"
+#include "scene/CountdownStatus.h"
 #include "scene/DisplayGroup.h"
 #include "scene/Markers.h"
 #include "scene/Options.h"
+#include "scene/ScreenLock.h"
 
 #include <deflect/Frame.h>
 

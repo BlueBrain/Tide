@@ -47,7 +47,6 @@
 #include "PixelStreamWindowManager.h"
 #include "QmlTypeRegistration.h"
 #include "ScreenControllerFactory.h"
-#include "ScreenLock.h"
 #include "ScreenshotAssembler.h"
 #include "StateSerializationHelper.h"
 #include "control/DisplayGroupController.h"
@@ -61,6 +60,7 @@
 #include "scene/DisplayGroup.h"
 #include "scene/Markers.h"
 #include "scene/Options.h"
+#include "scene/ScreenLock.h"
 #include "ui/MasterQuickView.h"
 #include "ui/MasterWindow.h"
 

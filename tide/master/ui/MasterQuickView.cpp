@@ -40,8 +40,8 @@
 #include "MasterQuickView.h"
 
 #include "MasterConfiguration.h"
-#include "ScreenLock.h"
 #include "scene/Options.h"
+#include "scene/ScreenLock.h"
 
 #include <QQmlContext>
 #include <QQmlProperty>
@@ -59,8 +59,8 @@ MasterQuickView::MasterQuickView(OptionsPtr options, ScreenLockPtr lock,
     setResizeMode(QQuickView::SizeRootObjectToView);
 
     rootContext()->setContextProperty("options", options.get());
-    rootContext()->setContextProperty("view", this);
     rootContext()->setContextProperty("lock", lock.get());
+    rootContext()->setContextProperty("view", this);
 
     setSource(QML_ROOT_COMPONENT);
 

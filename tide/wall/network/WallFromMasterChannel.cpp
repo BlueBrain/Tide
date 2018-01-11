@@ -39,14 +39,14 @@
 
 #include "WallFromMasterChannel.h"
 
-#include "CountdownStatus.h"
-#include "ScreenLock.h"
 #include "network/MPIChannel.h"
 #include "scene/Background.h"
 #include "scene/ContentWindow.h"
+#include "scene/CountdownStatus.h"
 #include "scene/DisplayGroup.h"
 #include "scene/Markers.h"
 #include "scene/Options.h"
+#include "scene/ScreenLock.h"
 #include "serialization/utils.h"
 
 #include <deflect/Frame.h>
