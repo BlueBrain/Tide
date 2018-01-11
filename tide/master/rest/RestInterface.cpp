@@ -46,7 +46,6 @@
 #include "MasterConfiguration.h"
 #include "RestServer.h"
 #include "SceneController.h"
-#include "ScreenLock.h"
 #include "ThumbnailCache.h"
 #include "log.h"
 #include "scene/ContentFactory.h"

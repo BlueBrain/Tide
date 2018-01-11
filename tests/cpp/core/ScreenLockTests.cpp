@@ -41,7 +41,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "ScreenLock.h"
+#include "scene/ScreenLock.h"
 
 #include <QList>
 #include <QObject>

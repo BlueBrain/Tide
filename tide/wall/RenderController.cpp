@@ -39,15 +39,15 @@
 
 #include "RenderController.h"
 
-#include "CountdownStatus.h"
 #include "DataProvider.h"
 #include "DisplayGroupRenderer.h"
-#include "ScreenLock.h"
 #include "WallWindow.h"
 #include "network/WallToWallChannel.h"
 #include "scene/Background.h"
+#include "scene/CountdownStatus.h"
 #include "scene/DisplayGroup.h"
 #include "scene/Options.h"
+#include "scene/ScreenLock.h"
 
 RenderController::RenderController(std::vector<WallWindow*> windows,
                                    DataProvider& provider,
