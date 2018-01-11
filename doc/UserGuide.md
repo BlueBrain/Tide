@@ -41,6 +41,10 @@ store such metadata. A valid side-by-side stereo movie can be created using
 
 > ffmpeg -i left_right_clip.mpg -an -c:v libvpx -metadata stereo_mode=left_right -y stereo_clip.webm
 
+Just changing the container for mkv (no re-encoding):
+
+> ffmpeg -i left_right_clip.mp4 -an -c:v copy -metadata stereo_mode=left_right -y left_right_clip.mkv
+
 To check if a movie has the correct stereo metadata, use ffprobe:
 
 > ffprobe stereo_clip.webm
