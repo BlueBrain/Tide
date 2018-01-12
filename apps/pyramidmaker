@@ -44,8 +44,14 @@ parser.add_argument("source", help="The source image to convert")
 parser.add_argument("target", help="The target .tiff image pyramid file to create")
 args = parser.parse_args()
 
-CONVERT_BIN = locate_binary("convert")
-START_CMD = "%s %s -monitor -define tiff:tile-geometry=512x512 -compress jpeg 'ptif:%s'" % (CONVERT_BIN, args.source, args.target)
+cmd = [locate_binary("convert")]
+cmd += [args.source]
+cmd += ['-monitor']
+cmd += ['-define tiff:tile-geometry=512x512']
+cmd += ['-compress jpeg']
+cmd += ['-type TrueColor']
+cmd += ['ptif:%s' % args.target]
+START_CMD = ' '.join(cmd)
 
 print(START_CMD)
 subprocess.call(shlex.split(START_CMD))
