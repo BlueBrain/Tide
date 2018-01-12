@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+"""
+TIFF image pyramid maker helper script for Tide
+"""
+
+import argparse
+import os
+import subprocess
+
+parser = argparse.ArgumentParser(description='Convert one or more images to TIFF image pyramid(s)')
+parser.add_argument('sources', nargs='+', help='The source image(s) to convert')
+parser.add_argument('--output-dir', help='The output folder (default: same as source)')
+args = parser.parse_args()
+
+if args.output_dir and not os.path.exists(args.output_dir):
+    print('The output folder does not exists: ' + args.output_dir)
+    exit(-1)
+
+for source in args.sources:
+    name, ext = os.path.splitext(source)
+    output = name + '.tif' if ext != '.tif' else name + '.pyr.tif'
+    if args.output_dir:
+        output = os.path.abspath(args.output_dir) + '/' + os.path.basename(output)
+    cmd = [os.path.dirname(os.path.abspath(__file__)) + '/pyramidmaker']
+    cmd += [source]
+    cmd += [output]
+    subprocess.call(cmd)

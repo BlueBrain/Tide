@@ -11,7 +11,7 @@ add_subdirectory(TideWall)
 add_subdirectory(Launcher)
 add_subdirectory(Whiteboard)
 
-set(scripts tide pyramidmaker)
+set(scripts tide pyramidify pyramidmaker)
 foreach(script ${scripts})
   set(_in ${CMAKE_CURRENT_SOURCE_DIR}/${script})
   set(_out ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${script})
