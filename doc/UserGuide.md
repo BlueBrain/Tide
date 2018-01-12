@@ -29,7 +29,10 @@ installed under ${install_prefix}/share/Tide/examples.
 Tide can open any image pyramid saved in standard TIFF file format. To convert
 an existing image to a TIFF pyramid one can use for instance ImageMagick:
 > convert myimage.xyz -monitor -define tiff:tile-geometry=512x512 -compress jpeg 'ptif:myimage.tif'
-Or even more simply use the *pyramidmaker* script provided by Tide:
+For more convenience, use the *pyramidify* tool provided by Tide:
+> pyramidify myimagefolder/*.png
+Which is equivalent to calling manually the *pyramidmaker* script (also provided
+by Tide) for each image:
 > pyramidmaker myimage.xyz myimage.tif
 
 ## Stereo 3D movies
