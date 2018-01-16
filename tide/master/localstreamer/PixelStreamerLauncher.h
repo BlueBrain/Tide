@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -101,6 +101,9 @@ private:
     PixelStreamWindowManager& _windowManager;
     const MasterConfiguration& _config;
     std::set<QString> _processes;
+
+    QSize _getLauncherSize() const;
+    QPointF _getLauncherPos() const;
 
     void _dereferenceProcess(QString uri);
     QPointF _getDefaultWindowPosition() const;

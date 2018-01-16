@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -44,6 +44,7 @@
 #include "CommandLineOptions.h"
 #include "MasterConfiguration.h"
 #include "PixelStreamWindowManager.h"
+#include "geometry.h"
 #include "log.h"
 #include "scene/ContentType.h"
 #include "scene/ContentWindow.h"
@@ -170,20 +171,15 @@ void PixelStreamerLauncher::openLauncher()
         return;
     }
 
-    const qreal width = 0.25 * _config.getTotalWidth();
-    const QSize launcherSize(width, 0.9 * width);
-    const qreal x = 0.25 * _config.getTotalWidth();
-    const qreal y = 0.35 * _config.getTotalHeight();
-    const QPointF centerPos(x, y);
-
-    _windowManager.openWindow(uri, centerPos, launcherSize,
-                              StreamType::LAUNCHER);
+    const auto pos = _getLauncherPos();
+    const auto size = _getLauncherSize();
+    _windowManager.openWindow(uri, pos, size, StreamType::LAUNCHER);
 
     CommandLineOptions options;
     options.setStreamId(launcherUri);
     options.setConfiguration(_config.getFilename());
-    options.setWidth(launcherSize.width());
-    options.setHeight(launcherSize.height());
+    options.setWidth(size.width());
+    options.setHeight(size.height());
     const auto command = _getLauncherCommand(options.getCommandLine());
 
     QStringList env;
@@ -208,6 +204,33 @@ void PixelStreamerLauncher::openWhiteboard()
     const auto command = _getWhiteboardCommand(options.getCommandLine());
 
     _startProcess(uri, command, {});
+}
+
+QSize PixelStreamerLauncher::_getLauncherSize() const
+{
+    const auto width = 0.25 * _config.getTotalWidth();
+    const auto size = QSize(width, 0.9 * width);
+
+    const auto minSize = QSize{100, 100};
+    const auto maxSize = 0.9 * _config.getTotalSize();
+
+    return geometry::constrain(size, minSize, maxSize).toSize();
+}
+
+QPointF PixelStreamerLauncher::_getLauncherPos() const
+{
+    // Position for "standard" walls, slightly above the middle
+    const auto x = 0.25 * _config.getTotalWidth();
+    const auto y = 0.35 * _config.getTotalHeight();
+
+    auto rect = QRectF{QPointF(), _getLauncherSize()};
+    rect.moveCenter({x, y});
+
+    // If the wall is not tall enough, center vertically to fit
+    if (rect.top() < 0.05 * _config.getTotalHeight())
+        rect.moveCenter({x, 0.5 * _config.getTotalHeight()});
+
+    return rect.center();
 }
 
 void PixelStreamerLauncher::_dereferenceProcess(const QString uri)
