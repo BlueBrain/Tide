@@ -59,11 +59,12 @@ int main(int argc, char* argv[])
 
     // Load virtualkeyboard input context plugin
     qputenv("QT_IM_MODULE", QByteArray("virtualkeyboard"));
+
     // For TuioTouch plugin in headless mode
     qputenv("QT_TUIOTOUCH_DELIVER_WITHOUT_FOCUS", QByteArray("1"));
     // WAR bug in TuioTouch plugin with http_proxy in Qt 5.8.0 [QTBUG-58706]
     if (QString(qVersion()) == "5.8.0")
-        qputenv("http_proxy", QByteArray());
+        qunsetenv("http_proxy");
 
     {
         MPIChannelPtr worldChannel(new MPIChannel(argc, argv));
