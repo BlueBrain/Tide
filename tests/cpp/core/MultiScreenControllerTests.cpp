@@ -37,89 +37,60 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "PlanarController.h"
+#define BOOST_TEST_MODULE MutliScreenControllerTest
 
-namespace
+#include <boost/test/unit_test.hpp>
+
+#include "MockScreenController.h"
+#include "MultiScreenController.h"
+#include "ScreenController.h"
+#include "types.h"
+
+
+BOOST_AUTO_TEST_CASE(testUniformScreenStates)
 {
-const int serialTimeout = 1000;    // in ms
-const int powerStateTimer = 60000; // in ms
+    auto mockController1 = new MockScreenController(ScreenState::ON);
+    auto mockController2 = new MockScreenController(ScreenState::ON);
+    std::vector<std::unique_ptr<ScreenController>> controllers;
+
+    controllers.push_back(std::unique_ptr<ScreenController>(mockController1));
+    controllers.push_back(std::unique_ptr<ScreenController>(mockController2));
+
+    auto multiController = new MultiScreenController(std::move(controllers));
+    multiController->getState();
+    BOOST_CHECK_EQUAL(multiController->getState(), ScreenState::ON);
 }
 
-PlanarController::PlanarController(const QString& serialport, const Type type)
-    : _config(_getConfig(type))
+BOOST_AUTO_TEST_CASE(testDifferentScreenStates)
 {
-    _serial.setPortName(serialport);
-    _serial.setBaudRate(_config.baudrate, QSerialPort::AllDirections);
-    _serial.setDataBits(QSerialPort::Data8);
-    _serial.setParity(QSerialPort::NoParity);
-    _serial.setStopBits(QSerialPort::OneStop);
-    _serial.setFlowControl(QSerialPort::NoFlowControl);
-    if (!_serial.open(QIODevice::ReadWrite))
-        throw std::runtime_error("Could not open " + serialport.toStdString());
+    auto mockControllerOn = new MockScreenController(ScreenState::ON);
+    auto mockControllerOff = new MockScreenController(ScreenState::OFF);
+    std::vector<std::unique_ptr<ScreenController>> controllers;
 
-    connect(&_serial, &QSerialPort::readyRead, [this, type]() {
-        if (_serial.canReadLine())
-        {
-            QString output(_serial.readLine());
-            output = output.trimmed();
-            // TV_UR9850 returns "(0;PWR=0)"
-            // Others return DISPLAY.POWER=O or DISPLAY.POWER=OFF
-            if (type == Type::TV_UR9850)
-                output.remove(")");
-            ScreenState previousState = _state;
-            if (output.endsWith("OFF") || output.endsWith("0"))
-                _state = ScreenState::OFF;
-            else if (output.endsWith("ON") || output.endsWith("1"))
-                _state = ScreenState::ON;
-            else
-                _state = ScreenState::UNDEF;
+    controllers.push_back(std::unique_ptr<ScreenController>(mockControllerOn));
+    controllers.push_back(std::unique_ptr<ScreenController>(mockControllerOff));
 
-            if (_state != previousState)
-                emit powerStateChanged(_state);
-        }
-    });
+    auto multiController = new MultiScreenController(std::move(controllers));
+    multiController->getState();
 
-    checkPowerState();
-    connect(&_timer, &QTimer::timeout, [this]() { checkPowerState(); });
-    _timer.start(powerStateTimer);
+    BOOST_CHECK_EQUAL(multiController->getState(), ScreenState::UNDEF);
+
 }
 
-bool PlanarController::powerOn()
+BOOST_AUTO_TEST_CASE(testSignals)
 {
-    _serial.write(_config.powerOn);
-    return _serial.waitForBytesWritten(serialTimeout);
-}
+    auto mockController = new MockScreenController(ScreenState::ON);
+    std::vector<std::unique_ptr<ScreenController>> controllers;
+    controllers.push_back(std::unique_ptr<ScreenController>(mockController));
 
-bool PlanarController::powerOff()
-{
-    _serial.write(_config.powerOff);
-    return _serial.waitForBytesWritten(serialTimeout);
-}
+    auto multiController = new MultiScreenController(std::move(controllers));
 
-ScreenState PlanarController::getState() const
-{
-    return _state;
-}
-void PlanarController::checkPowerState()
-{
-    _serial.write(_config.powerState);
-    _serial.waitForBytesWritten(serialTimeout);
-}
+    multiController->checkPowerState();
+    BOOST_CHECK_EQUAL(multiController->getState(), ScreenState::ON);
 
-PlanarController::PlanarConfig PlanarController::_getConfig(
-    const Type type) const
-{
-    switch (type)
-    {
-    case Type::TV_UR9851:
-        return {19200, "DISPLAY.POWER=ON\n", "DISPLAY.POWER=OFF\n",
-                "DISPLAY.POWER?\n"};
-    case Type::TV_UR9850:
-        return {19200, "(PWR=1)\r", "(PWR=0)\r", "(PWR?)\r"};
-    case Type::Matrix:
-        return {9600, "OPA1DISPLAY.POWER=ON\r", "OPA1DISPLAY.POWER=OFF\r",
-                "OPA1DISPLAY.POWER?\r"};
-    default:
-        throw std::invalid_argument("Non existing serial type");
-    }
+    multiController->powerOff();
+    BOOST_CHECK_EQUAL(multiController->getState(), ScreenState::OFF);
+
+    multiController->powerOn();
+    BOOST_CHECK_EQUAL(multiController->getState(), ScreenState::ON);
 }

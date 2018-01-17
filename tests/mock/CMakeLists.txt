@@ -19,5 +19,6 @@ target_sources(TideMock INTERFACE
   "${CMAKE_CURRENT_SOURCE_DIR}/MinimalGlobalQtApp.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/MockNetworkBarrier.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/MockTouchEvents.h"
+  "${CMAKE_CURRENT_SOURCE_DIR}/MockScreenController.h"
   "${CMAKE_CURRENT_SOURCE_DIR}/QGuiAppFixture.h"
 )

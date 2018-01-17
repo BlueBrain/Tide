@@ -43,7 +43,7 @@
 #include "PlanarController.h"
 
 MultiScreenController::MultiScreenController(
-    std::vector<std::unique_ptr<PlanarController>>&& controllers)
+    std::vector<std::unique_ptr<ScreenController>>&& controllers)
     : _controllers{std::move(controllers)}
 {
     for (auto& controller : _controllers)
@@ -84,7 +84,7 @@ bool MultiScreenController::powerOff()
     bool success = true;
     for (auto& controller : _controllers)
     {
-        if (controller->powerOff())
+        if (!controller->powerOff())
             success = false;
     }
     return success;

@@ -40,6 +40,7 @@
 #ifndef ScreenControllerFactory_H
 #define ScreenControllerFactory_H
 
+#include "PlanarController.h"
 #include "ScreenController.h"
 
 /**
@@ -48,7 +49,18 @@
 class ScreenControllerFactory
 {
 public:
+    /**
+     * Create a ScreenController.
+     * @param ports a configurable combination of port and device type.
+     */
     static std::unique_ptr<ScreenController> create(const QString& ports);
+
+    /**
+     * Process and validate a combination of port and device type.
+     * @param ports a configurable combination of port and device type.
+     */
+    static QMap<QString, PlanarController::Type> processInputString(
+        const QString& ports);
 };
 
 #endif

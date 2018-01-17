@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [229](https://github.com/BlueBrain/Tide/pull/229):
+  Different models of Planar TV can be controlled now.
 * [226](https://github.com/BlueBrain/Tide/pull/226):
   New pyramidify tool to simplify the creation of multiple TIFF image pyramids.
 * [224](https://github.com/BlueBrain/Tide/pull/224):

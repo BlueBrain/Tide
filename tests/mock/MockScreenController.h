@@ -1,6 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,45 +37,37 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef MultiScreenController_H
-#define MultiScreenController_H
+#ifndef MOCKSCREENCONTROLLER_H
+#define MOCKSCREENCONTROLLER_H
 
-#include "PlanarController.h"
 #include "ScreenController.h"
 #include "types.h"
 
 #include <QObject>
-#include <QVector>
 
-/**
- * Allow control of multiple devices with multiple display controllers.
- */
-class MultiScreenController : public ScreenController
+class MockScreenController : public ScreenController
 {
     Q_OBJECT
-
 public:
-    /**
-     * Construct a controller embracing multiple screen controlers.
-     * @param controllers the list of controllers
-     */
-    MultiScreenController(
-        std::vector<std::unique_ptr<ScreenController>>&& controllers);
-
-    /** Get the power state of controlled displays. */
-    ScreenState getState() const final;
-
-    /** Refresh the power state of controlled displays */
-    void checkPowerState() final;
-
-    /** Power on the controlled displays. */
-    bool powerOn() final;
-
-    /** Power off the controlled displays. */
-    bool powerOff() final;
+    MockScreenController(ScreenState state)
+        : _state(state)
+    {
+    }
+    ScreenState getState() const { return _state; }
+    void checkPowerState() { emit powerStateChanged(_state); }
+    bool powerOn()
+    {
+        _state = ScreenState::ON;
+        return true;
+    }
+    bool powerOff()
+    {
+        _state = ScreenState::OFF;
+        return true;
+    }
 
 private:
-    std::vector<std::unique_ptr<ScreenController>> _controllers;
+    ScreenState _state;
 };
 
 #endif
