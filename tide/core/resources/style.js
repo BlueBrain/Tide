@@ -38,7 +38,7 @@ var fpsY = 10;
 var fpsFontSize = 32;
 var fpsFontColor = "blue";
 
-var clockScale = 0.2;  // times the height of the displaygroup
+var clockScale = 0.2;  // times the height of the wall
 
 var countdownTextScale = 0.045;
 
