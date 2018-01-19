@@ -111,14 +111,14 @@ PlanarController::PlanarConfig PlanarController::_getConfig(
 {
     switch (type)
     {
+    case Type::Matrix:
+        return {9600, "OPA1DISPLAY.POWER=ON\r", "OPA1DISPLAY.POWER=OFF\r",
+                "OPA1DISPLAY.POWER?\r"};
     case Type::TV_UR9850:
         return {19200, "(PWR=1)\r", "(PWR=0)\r", "(PWR?)\r"};
     case Type::TV_UR9851:
         return {19200, "DISPLAY.POWER=ON\n", "DISPLAY.POWER=OFF\n",
                 "DISPLAY.POWER?\n"};
-    case Type::Matrix:
-        return {9600, "OPA1DISPLAY.POWER=ON\r", "OPA1DISPLAY.POWER=OFF\r",
-                "OPA1DISPLAY.POWER?\r"};
     default:
         throw std::invalid_argument("Non existing serial type");
     }

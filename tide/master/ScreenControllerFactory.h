@@ -58,6 +58,7 @@ public:
     /**
      * Process and validate a combination of port and device type.
      * @param ports a configurable combination of port and device type.
+     * @internal
      */
     static QMap<QString, PlanarController::Type> parseInputString(
         const QString& ports);

@@ -64,10 +64,9 @@ std::unique_ptr<ScreenController> ScreenControllerFactory::create(
         return nullptr;
 
     std::vector<std::unique_ptr<ScreenController>> controllers;
-    for (const auto key : connections.keys())
+    for (const auto& kv : connections.toStdMap())
     {
-        controllers.emplace_back(
-            new PlanarController(key, connections.value(key)));
+        controllers.emplace_back(new PlanarController(kv.first, kv.second));
     }
     if (controllers.size() == 1)
         return std::move(controllers[0]);
@@ -89,7 +88,7 @@ QMap<QString, PlanarController::Type> ScreenControllerFactory::parseInputString(
         if (connection.isEmpty())
             continue;
 
-        if (connection.contains("#"))
+        if (!connection.endsWith("#") && connection.contains("#"))
         {
             const auto serialEntity = connection.split("#");
             const auto& serialPort = serialEntity[0];

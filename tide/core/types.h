@@ -212,7 +212,7 @@ inline std::ostream& operator<<(std::ostream& str, const ScreenState state)
     case ScreenState::OFF:
         str << "OFF";
         break;
-    default:
+    case ScreenState::UNDEF:
         str << "UNDEF";
         break;
     }

@@ -48,21 +48,24 @@
 class MockScreenController : public ScreenController
 {
     Q_OBJECT
+
 public:
     MockScreenController(ScreenState state)
         : _state(state)
     {
     }
-    ScreenState getState() const { return _state; }
-    void checkPowerState() { emit powerStateChanged(_state); }
-    bool powerOn()
+    ScreenState getState() const final { return _state; }
+    void checkPowerState() final { emit powerStateChanged(_state); }
+
+    bool powerOn() final
     {
         _state = ScreenState::ON;
         emit powerStateChanged(_state);
         powerOnCalled = true;
         return true;
     }
-    bool powerOff()
+
+    bool powerOff() final
     {
         _state = ScreenState::OFF;
         emit powerStateChanged(_state);

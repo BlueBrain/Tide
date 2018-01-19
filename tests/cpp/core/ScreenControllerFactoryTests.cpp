@@ -52,19 +52,22 @@ inline std::ostream& operator<<(std::ostream& str,
 {
     switch (type)
     {
+    case PlanarController::Type::Matrix:
+        str << "Matrix";
+        break;
     case PlanarController::Type::TV_UR9850:
         str << "TV_UR9850";
         break;
     case PlanarController::Type::TV_UR9851:
         str << "TV_UR9851";
         break;
-    case PlanarController::Type::Matrix:
-        str << "Matrix";
-        break;
-    default:
-        break;
     }
     return str;
+}
+
+BOOST_AUTO_TEST_CASE(testEmpty)
+{
+    BOOST_CHECK(!ScreenControllerFactory::create(""));
 }
 
 BOOST_AUTO_TEST_CASE(testException)
@@ -80,7 +83,7 @@ BOOST_AUTO_TEST_CASE(testException)
                       std::runtime_error)
 }
 
-BOOST_AUTO_TEST_CASE(testNonseparatedSerial)
+BOOST_AUTO_TEST_CASE(testSingleController)
 {
     const QMap<QString, PlanarController::Type> expectedMatrix{
         {"/dev/usb1", PlanarController::Type::Matrix}};
@@ -113,7 +116,7 @@ BOOST_AUTO_TEST_CASE(testNonseparatedSerial)
                                   processedUR9851.end());
 }
 
-BOOST_AUTO_TEST_CASE(testSeparatedSerials)
+BOOST_AUTO_TEST_CASE(testMultipleConnectionsWithType)
 {
     const QMap<QString, PlanarController::Type> expected{
         {"/dev/usb1", PlanarController::Type::Matrix},
@@ -127,10 +130,10 @@ BOOST_AUTO_TEST_CASE(testSeparatedSerials)
                                   processed.begin(), processed.end());
 }
 
-BOOST_AUTO_TEST_CASE(testEmptySerial)
+BOOST_AUTO_TEST_CASE(testMultipleConnectionsWithOneEmpty)
 {
-    QMap<QString, PlanarController::Type> expected;
-    expected.insert("/dev/usb1", PlanarController::Type::Matrix);
+    const QMap<QString, PlanarController::Type> expected{
+        {"/dev/usb1", PlanarController::Type::Matrix}};
     const auto processed =
         ScreenControllerFactory::parseInputString(";/dev/usb1");
 
@@ -138,10 +141,10 @@ BOOST_AUTO_TEST_CASE(testEmptySerial)
                                   processed.begin(), processed.end());
 }
 
-BOOST_AUTO_TEST_CASE(testEmptySerialDeviceWithHash)
+BOOST_AUTO_TEST_CASE(testMultipleConnectionsWithOneEmptyDevice)
 {
-    QMap<QString, PlanarController::Type> expected;
-    expected.insert("/dev/usb1", PlanarController::Type::Matrix);
+    const QMap<QString, PlanarController::Type> expected{
+        {"/dev/usb1", PlanarController::Type::Matrix}};
     const auto processed =
         ScreenControllerFactory::parseInputString("#UR9850;/dev/usb1");
 
@@ -149,10 +152,10 @@ BOOST_AUTO_TEST_CASE(testEmptySerialDeviceWithHash)
                                   processed.begin(), processed.end());
 }
 
-BOOST_AUTO_TEST_CASE(testEmptySerialTypeWithHash)
+BOOST_AUTO_TEST_CASE(testConnectionsWithEmptyDeviceType)
 {
-    QMap<QString, PlanarController::Type> expected;
-    expected.insert("/dev/usb1", PlanarController::Type::Matrix);
+    const QMap<QString, PlanarController::Type> expected{
+        {"/dev/usb1", PlanarController::Type::Matrix}};
     const auto processed =
         ScreenControllerFactory::parseInputString("/dev/usb1#");
 
