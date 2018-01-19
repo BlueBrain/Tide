@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
 /*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -46,51 +46,69 @@
 #include "ScreenController.h"
 #include "types.h"
 
-
 BOOST_AUTO_TEST_CASE(testUniformScreenStates)
 {
-    auto mockController1 = new MockScreenController(ScreenState::ON);
-    auto mockController2 = new MockScreenController(ScreenState::ON);
     std::vector<std::unique_ptr<ScreenController>> controllers;
 
-    controllers.push_back(std::unique_ptr<ScreenController>(mockController1));
-    controllers.push_back(std::unique_ptr<ScreenController>(mockController2));
+    controllers.emplace_back(new MockScreenController(ScreenState::ON));
+    controllers.emplace_back(new MockScreenController(ScreenState::ON));
 
-    auto multiController = new MultiScreenController(std::move(controllers));
-    multiController->getState();
-    BOOST_CHECK_EQUAL(multiController->getState(), ScreenState::ON);
+    MultiScreenController multiController(std::move(controllers));
+
+    multiController.powerOn();
+
+    for (auto& controller : controllers)
+    {
+        BOOST_CHECK(
+            static_cast<MockScreenController&>(*controller).powerOnCalled);
+    }
+    multiController.powerOff();
+
+    for (auto& controller : controllers)
+    {
+        BOOST_CHECK(
+            static_cast<MockScreenController&>(*controller).powerOffCalled);
+    }
+    BOOST_CHECK_EQUAL(multiController.getState(), ScreenState::OFF);
+
 }
 
 BOOST_AUTO_TEST_CASE(testDifferentScreenStates)
 {
-    auto mockControllerOn = new MockScreenController(ScreenState::ON);
-    auto mockControllerOff = new MockScreenController(ScreenState::OFF);
     std::vector<std::unique_ptr<ScreenController>> controllers;
+    controllers.emplace_back(new MockScreenController(ScreenState::ON));
+    controllers.emplace_back(new MockScreenController(ScreenState::OFF));
 
-    controllers.push_back(std::unique_ptr<ScreenController>(mockControllerOn));
-    controllers.push_back(std::unique_ptr<ScreenController>(mockControllerOff));
+    MultiScreenController multiController(std::move(controllers));
 
-    auto multiController = new MultiScreenController(std::move(controllers));
-    multiController->getState();
-
-    BOOST_CHECK_EQUAL(multiController->getState(), ScreenState::UNDEF);
-
+    multiController.getState();
+    BOOST_CHECK_EQUAL(multiController.getState(), ScreenState::UNDEF);
 }
 
-BOOST_AUTO_TEST_CASE(testSignals)
+BOOST_AUTO_TEST_CASE(testSignalAndControllers)
 {
     auto mockController = new MockScreenController(ScreenState::ON);
     std::vector<std::unique_ptr<ScreenController>> controllers;
     controllers.push_back(std::unique_ptr<ScreenController>(mockController));
 
-    auto multiController = new MultiScreenController(std::move(controllers));
+    MultiScreenController multiController(std::move(controllers));
 
-    multiController->checkPowerState();
-    BOOST_CHECK_EQUAL(multiController->getState(), ScreenState::ON);
+    bool emitted = false;
 
-    multiController->powerOff();
-    BOOST_CHECK_EQUAL(multiController->getState(), ScreenState::OFF);
+    QObject::connect(&multiController, &MultiScreenController::powerStateChanged,
+                     [this, &emitted]() { emitted = true; });
 
-    multiController->powerOn();
-    BOOST_CHECK_EQUAL(multiController->getState(), ScreenState::ON);
+    multiController.checkPowerState();
+    BOOST_CHECK_EQUAL(multiController.getState(), ScreenState::ON);
+    BOOST_CHECK_EQUAL(emitted, true);
+
+    emitted = false;
+    multiController.powerOff();
+    BOOST_CHECK_EQUAL(multiController.getState(), ScreenState::OFF);
+    BOOST_CHECK_EQUAL(emitted, true);
+
+    emitted = false;
+    multiController.powerOn();
+    BOOST_CHECK_EQUAL(multiController.getState(), ScreenState::ON);
+    BOOST_CHECK_EQUAL(emitted, true);
 }

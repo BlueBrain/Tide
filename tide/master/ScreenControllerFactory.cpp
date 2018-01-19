@@ -41,12 +41,12 @@
 
 #include "MultiScreenController.h"
 
-#include <QDebug>
+#include <QMap>
 #include <QStringList>
 
 namespace
 {
-PlanarController::Type _getType(const QString& name = "Matrix")
+PlanarController::Type _getType(const QString& name)
 {
     if (name == "UR9850")
         return PlanarController::Type::TV_UR9850;
@@ -59,8 +59,8 @@ PlanarController::Type _getType(const QString& name = "Matrix")
 std::unique_ptr<ScreenController> ScreenControllerFactory::create(
     const QString& ports)
 {
-    const auto connections = processInputString(ports);
-    if (connections.size() == 0)
+    const auto connections = parseInputString(ports);
+    if (connections.empty())
         return nullptr;
 
     std::vector<std::unique_ptr<ScreenController>> controllers;
@@ -76,22 +76,22 @@ std::unique_ptr<ScreenController> ScreenControllerFactory::create(
         new MultiScreenController(std::move(controllers)));
 }
 
-QMap<QString, PlanarController::Type>
-    ScreenControllerFactory::processInputString(const QString& ports)
+QMap<QString, PlanarController::Type> ScreenControllerFactory::parseInputString(
+    const QString& ports)
 {
     QMap<QString, PlanarController::Type> map;
 
     const auto connections = ports.split(';');
-    if (connections.length() == 0)
+    if (connections.empty())
         return map;
-    for (auto connection : connections)
+    for (const auto& connection : connections)
     {
         if (connection.isEmpty())
             continue;
 
         if (connection.contains("#"))
         {
-            auto serialEntity = connection.split("#");
+            const auto serialEntity = connection.split("#");
             const auto& serialPort = serialEntity[0];
             if (serialPort.isEmpty())
                 continue;
@@ -101,7 +101,7 @@ QMap<QString, PlanarController::Type>
         else
         {
             const auto& serialPort = connection;
-            const auto type = _getType();
+            const auto type = _getType("");
             map.insert(serialPort, type);
         }
     }

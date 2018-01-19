@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
+/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -58,13 +58,20 @@ public:
     bool powerOn()
     {
         _state = ScreenState::ON;
+        emit powerStateChanged(_state);
+        powerOnCalled = true;
         return true;
     }
     bool powerOff()
     {
         _state = ScreenState::OFF;
+        emit powerStateChanged(_state);
+        powerOffCalled = true;
         return true;
     }
+
+    bool powerOffCalled = false;
+    bool powerOnCalled = false;
 
 private:
     ScreenState _state;

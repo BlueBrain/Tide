@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
 /*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -48,7 +48,7 @@
 #include <QMap>
 
 inline std::ostream& operator<<(std::ostream& str,
-                                const PlanarController::Type& type)
+                                const PlanarController::Type type)
 {
     switch (type)
     {
@@ -82,31 +82,31 @@ BOOST_AUTO_TEST_CASE(testException)
 
 BOOST_AUTO_TEST_CASE(testNonseparatedSerial)
 {
-    QMap<QString, PlanarController::Type> expectedMatrix;
-    expectedMatrix.insert("/dev/usb1", PlanarController::Type::Matrix);
+    const QMap<QString, PlanarController::Type> expectedMatrix{
+        {"/dev/usb1", PlanarController::Type::Matrix}};
 
     const auto processedMatrix =
-        ScreenControllerFactory::processInputString("/dev/usb1");
+        ScreenControllerFactory::parseInputString("/dev/usb1");
 
     BOOST_CHECK_EQUAL_COLLECTIONS(expectedMatrix.begin(), expectedMatrix.end(),
                                   processedMatrix.begin(),
                                   processedMatrix.end());
 
-    QMap<QString, PlanarController::Type> expectedUR9850;
-    expectedUR9850.insert("/dev/usb1", PlanarController::Type::TV_UR9850);
+    const QMap<QString, PlanarController::Type> expectedUR9850{
+        {"/dev/usb1", PlanarController::Type::TV_UR9850}};
 
     const auto processedUR9850 =
-        ScreenControllerFactory::processInputString("/dev/usb1#UR9850");
+        ScreenControllerFactory::parseInputString("/dev/usb1#UR9850");
 
     BOOST_CHECK_EQUAL_COLLECTIONS(expectedUR9850.begin(), expectedUR9850.end(),
                                   processedUR9850.begin(),
                                   processedUR9850.end());
 
-    QMap<QString, PlanarController::Type> expectedUR9851;
-    expectedUR9851.insert("/dev/usb1", PlanarController::Type::TV_UR9851);
+    const QMap<QString, PlanarController::Type> expectedUR9851{
+        {"/dev/usb1", PlanarController::Type::TV_UR9851}};
 
     const auto processedUR9851 =
-        ScreenControllerFactory::processInputString("/dev/usb1#UR9851");
+        ScreenControllerFactory::parseInputString("/dev/usb1#UR9851");
 
     BOOST_CHECK_EQUAL_COLLECTIONS(expectedUR9851.begin(), expectedUR9851.end(),
                                   processedUR9851.begin(),
@@ -115,11 +115,12 @@ BOOST_AUTO_TEST_CASE(testNonseparatedSerial)
 
 BOOST_AUTO_TEST_CASE(testSeparatedSerials)
 {
-    QMap<QString, PlanarController::Type> expected;
-    expected.insert("/dev/usb1", PlanarController::Type::Matrix);
-    expected.insert("/dev/usb2", PlanarController::Type::TV_UR9850);
-    expected.insert("/dev/usb3", PlanarController::Type::TV_UR9851);
-    const auto processed = ScreenControllerFactory::processInputString(
+    const QMap<QString, PlanarController::Type> expected{
+        {"/dev/usb1", PlanarController::Type::Matrix},
+        {"/dev/usb2", PlanarController::Type::TV_UR9850},
+        {"/dev/usb3", PlanarController::Type::TV_UR9851}};
+
+    const auto processed = ScreenControllerFactory::parseInputString(
         "/dev/usb1;/dev/usb2#UR9850;/dev/usb3#UR9851");
 
     BOOST_CHECK_EQUAL_COLLECTIONS(expected.begin(), expected.end(),
@@ -131,7 +132,7 @@ BOOST_AUTO_TEST_CASE(testEmptySerial)
     QMap<QString, PlanarController::Type> expected;
     expected.insert("/dev/usb1", PlanarController::Type::Matrix);
     const auto processed =
-        ScreenControllerFactory::processInputString(";/dev/usb1");
+        ScreenControllerFactory::parseInputString(";/dev/usb1");
 
     BOOST_CHECK_EQUAL_COLLECTIONS(expected.begin(), expected.end(),
                                   processed.begin(), processed.end());
@@ -142,7 +143,7 @@ BOOST_AUTO_TEST_CASE(testEmptySerialDeviceWithHash)
     QMap<QString, PlanarController::Type> expected;
     expected.insert("/dev/usb1", PlanarController::Type::Matrix);
     const auto processed =
-        ScreenControllerFactory::processInputString("#UR9850;/dev/usb1");
+        ScreenControllerFactory::parseInputString("#UR9850;/dev/usb1");
 
     BOOST_CHECK_EQUAL_COLLECTIONS(expected.begin(), expected.end(),
                                   processed.begin(), processed.end());
@@ -153,7 +154,7 @@ BOOST_AUTO_TEST_CASE(testEmptySerialTypeWithHash)
     QMap<QString, PlanarController::Type> expected;
     expected.insert("/dev/usb1", PlanarController::Type::Matrix);
     const auto processed =
-        ScreenControllerFactory::processInputString("/dev/usb1#");
+        ScreenControllerFactory::parseInputString("/dev/usb1#");
 
     BOOST_CHECK_EQUAL_COLLECTIONS(expected.begin(), expected.end(),
                                   processed.begin(), processed.end());
