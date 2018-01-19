@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
 /*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,44 +37,35 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef MultiScreenController_H
-#define MultiScreenController_H
+#include "MockScreenController.h"
 
-#include "PlanarController.h"
-#include "types.h"
-
-#include <QObject>
-#include <QVector>
-
-/**
- * Allow control of multiple devices with multiple display controllers.
- */
-class MultiScreenController : public ScreenController
+MockScreenController::MockScreenController(ScreenState state)
+    : _state(state)
 {
-    Q_OBJECT
+}
 
-public:
-    /**
-     * Construct a controller embracing multiple screen controlers.
-     * @param controllers the list of controllers
-     */
-    MultiScreenController(
-        std::vector<std::unique_ptr<ScreenController>>&& controllers);
+ScreenState MockScreenController::getState() const
+{
+    return _state;
+}
 
-    /** Get the power state of controlled displays. */
-    ScreenState getState() const final;
+void MockScreenController::checkPowerState()
+{
+    emit powerStateChanged(_state);
+}
 
-    /** Refresh the power state of controlled displays */
-    void checkPowerState() final;
+bool MockScreenController::powerOn()
+{
+    _state = ScreenState::ON;
+    emit powerStateChanged(_state);
+    powerOnCalled = true;
+    return true;
+}
 
-    /** Power on the controlled displays. */
-    bool powerOn() final;
-
-    /** Power off the controlled displays. */
-    bool powerOff() final;
-
-private:
-    std::vector<std::unique_ptr<ScreenController>> _controllers;
-};
-
-#endif
+bool MockScreenController::powerOff()
+{
+    _state = ScreenState::OFF;
+    emit powerStateChanged(_state);
+    powerOffCalled = true;
+    return true;
+}

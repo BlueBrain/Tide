@@ -46,7 +46,6 @@
 #include "MasterSceneRenderer.h"
 #include "PixelStreamWindowManager.h"
 #include "QmlTypeRegistration.h"
-#include "ScreenControllerFactory.h"
 #include "ScreenshotAssembler.h"
 #include "StateSerializationHelper.h"
 #include "control/DisplayGroupController.h"
@@ -71,6 +70,10 @@
 #if TIDE_ENABLE_REST_INTERFACE
 #include "LoggingUtility.h"
 #include "rest/RestInterface.h"
+
+#endif
+#if TIDE_ENABLE_PLANAR_CONTROLLER
+#include "ScreenControllerFactory.h"
 #endif
 
 #include <deflect/EventReceiver.h>

@@ -43,8 +43,6 @@
 
 #include "MockScreenController.h"
 #include "MultiScreenController.h"
-#include "ScreenController.h"
-#include "types.h"
 
 BOOST_AUTO_TEST_CASE(testUniformScreenStates)
 {
