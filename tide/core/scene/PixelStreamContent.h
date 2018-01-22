@@ -1,8 +1,8 @@
 /*********************************************************************/
-/* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael.Dumusc@epfl.ch                        */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/* Copyright (c) 2011-2012, The University of Texas at Austin.       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael.Dumusc@epfl.ch                   */
+/*                          Daniel.Nachbaur@epfl.ch                  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -56,7 +56,7 @@ public:
      * @param uri The unique stream identifier.
      * @param keyboard Show the keyboard action.
      */
-    explicit PixelStreamContent(const QString& uri, bool keyboard = true);
+    explicit PixelStreamContent(const QString& uri, bool keyboard);
 
     /** Get the content type **/
     CONTENT_TYPE getType() const override;
@@ -84,13 +84,15 @@ signals:
 
 protected:
     // Default constructor required for boost::serialization
+    // Derived classes can disable the keyboard action
     PixelStreamContent(const bool keyboard = true)
+        : _hasKeyboardAction{keyboard}
     {
-        if (keyboard)
-            _createActions();
     }
 
 private:
+    void _createActions();
+
     friend class boost::serialization::access;
 
     /** Serialize for sending to Wall applications. */
@@ -118,6 +120,7 @@ private:
                            const unsigned int version)
     {
         serialize_members_xml(ar, version);
+        _createActions(); // actions are not saved to xml file
     }
 
     /** Saving to xml. */
@@ -128,8 +131,7 @@ private:
     }
 
     unsigned int _eventReceiversCount = 0;
-
-    void _createActions();
+    bool _hasKeyboardAction = true;
 };
 
 DECLARE_SERIALIZE_FOR_XML(PixelStreamContent)

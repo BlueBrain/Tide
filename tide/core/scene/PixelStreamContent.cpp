@@ -1,8 +1,8 @@
 /*********************************************************************/
-/* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael.Dumusc@epfl.ch                        */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/* Copyright (c) 2011-2012, The University of Texas at Austin.       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael.Dumusc@epfl.ch                   */
+/*                          Daniel.Nachbaur@epfl.ch                  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -51,11 +51,10 @@ const QString ICON_KEYBOARD("qrc:///img/keyboard.svg");
 }
 
 PixelStreamContent::PixelStreamContent(const QString& uri, const bool keyboard)
-    : Content(uri)
-    , _eventReceiversCount(0)
+    : Content{uri}
+    , _hasKeyboardAction{keyboard}
 {
-    if (keyboard)
-        _createActions();
+    _createActions();
 }
 
 CONTENT_TYPE PixelStreamContent::getType() const
@@ -90,13 +89,16 @@ void PixelStreamContent::incrementEventReceiverCount()
 
 void PixelStreamContent::_createActions()
 {
-    ContentAction* keyboardAction = new ContentAction();
+    if (!_hasKeyboardAction)
+        return;
+
+    auto keyboardAction = make_unique<ContentAction>();
     keyboardAction->setCheckable(true);
     keyboardAction->setIcon(ICON_KEYBOARD);
     keyboardAction->setIconChecked(ICON_KEYBOARD);
-    connect(keyboardAction, &ContentAction::triggered, &_keyboardState,
+    connect(keyboardAction.get(), &ContentAction::triggered, &_keyboardState,
             &KeyboardState::setVisible);
-    connect(&_keyboardState, &KeyboardState::visibleChanged, keyboardAction,
-            &ContentAction::setChecked);
-    _actions.add(keyboardAction);
+    connect(&_keyboardState, &KeyboardState::visibleChanged,
+            keyboardAction.get(), &ContentAction::setChecked);
+    _actions.add(std::move(keyboardAction));
 }

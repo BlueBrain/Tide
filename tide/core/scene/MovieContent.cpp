@@ -1,8 +1,8 @@
 /*********************************************************************/
-/* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
-/*                     Raphael.Dumusc@epfl.ch                        */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/* Copyright (c) 2011-2012, The University of Texas at Austin.       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael.Dumusc@epfl.ch                   */
+/*                          Daniel.Nachbaur@epfl.ch                  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -168,14 +168,14 @@ void MovieContent::_pause()
 
 void MovieContent::_createActions()
 {
-    ContentAction* playPauseAction = new ContentAction();
+    auto playPauseAction = make_unique<ContentAction>();
     playPauseAction->setCheckable(true);
     playPauseAction->setIcon(ICON_PAUSE);
     playPauseAction->setIconChecked(ICON_PLAY);
     playPauseAction->setChecked(_controlState & STATE_PAUSED);
-    connect(playPauseAction, &ContentAction::checked, this,
+    connect(playPauseAction.get(), &ContentAction::checked, this,
             &MovieContent::_pause);
-    connect(playPauseAction, &ContentAction::unchecked, this,
+    connect(playPauseAction.get(), &ContentAction::unchecked, this,
             &MovieContent::_play);
-    _actions.add(playPauseAction);
+    _actions.add(std::move(playPauseAction));
 }

@@ -1,8 +1,8 @@
 /*********************************************************************/
-/* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael.Dumusc@epfl.ch                        */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/* Copyright (c) 2011-2012, The University of Texas at Austin.       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael.Dumusc@epfl.ch                   */
+/*                          Daniel.Nachbaur@epfl.ch                  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -142,7 +142,9 @@ private:
                            const unsigned int version)
     {
         serialize_members_xml(ar, version);
-        _createActions(); // Need to be done after _controlState is restored
+        // Actions are not saved to xml file. Their creation need to be done
+        // after _controlState is restored.
+        _createActions();
     }
 
     /** Saving to xml. */

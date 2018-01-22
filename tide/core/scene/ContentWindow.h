@@ -1,6 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2011-2012, The University of Texas at Austin.       */
-/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /*                          Daniel.Nachbaur@epfl.ch                  */
 /* All rights reserved.                                              */
@@ -47,6 +47,7 @@
 #include "Content.h"   // member, needed for serialization
 #include "Rectangle.h" // base class
 #include "serialization/includes.h"
+#include "serialization/utils.h"
 
 #include <QUuid>
 
@@ -342,7 +343,7 @@ private:
     {
         std::shared_ptr<Content> tmp;
         ar >> boost::serialization::make_nvp("content", tmp);
-        setContent(tmp->clone());
+        setContent(ContentPtr{serialization::xmlCopy(tmp.get())});
     }
 
     void serialize_content_as_shared_ptr(boost::archive::xml_oarchive& ar)
