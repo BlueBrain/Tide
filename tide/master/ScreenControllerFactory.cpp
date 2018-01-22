@@ -40,30 +40,71 @@
 #include "ScreenControllerFactory.h"
 
 #include "MultiScreenController.h"
-#include "PlanarController.h"
 
+#include <QMap>
 #include <QStringList>
+
+namespace
+{
+PlanarController::Type _getType(const QString& name)
+{
+    if (name == "UR9850")
+        return PlanarController::Type::TV_UR9850;
+    if (name == "UR9851")
+        return PlanarController::Type::TV_UR9851;
+    return PlanarController::Type::Matrix;
+}
+}
 
 std::unique_ptr<ScreenController> ScreenControllerFactory::create(
     const QString& ports)
 {
-    auto serialports = ports.split(';');
-    if (serialports.length() == 0)
+    const auto connections = parseInputString(ports);
+    if (connections.empty())
         return nullptr;
-    if (serialports.length() == 1)
-    {
-        return std::unique_ptr<ScreenController>(
-            new PlanarController(serialports[0],
-                                 PlanarController::Type::Matrix));
-    }
 
-    std::vector<std::unique_ptr<PlanarController>> controllers;
-    for (const auto serialport : serialports)
+    std::vector<std::unique_ptr<ScreenController>> controllers;
+    QMapIterator<QString, PlanarController::Type> i(connections);
+    while (i.hasNext())
     {
-        auto controller = std::unique_ptr<PlanarController>(
-            new PlanarController(serialport, PlanarController::Type::TV));
-        controllers.push_back(std::move(controller));
+        i.next();
+        controllers.emplace_back(new PlanarController(i.key(), i.value()));
     }
+    if (controllers.size() == 1)
+        return std::move(controllers[0]);
+
     return std::unique_ptr<ScreenController>(
         new MultiScreenController(std::move(controllers)));
+}
+
+QMap<QString, PlanarController::Type> ScreenControllerFactory::parseInputString(
+    const QString& ports)
+{
+    QMap<QString, PlanarController::Type> map;
+
+    const auto connections = ports.split(';');
+    if (connections.empty())
+        return map;
+    for (const auto& connection : connections)
+    {
+        if (connection.isEmpty())
+            continue;
+
+        if (connection.contains("#"))
+        {
+            const auto serialEntity = connection.split("#");
+            const auto& serialPort = serialEntity[0];
+            if (serialPort.isEmpty())
+                continue;
+            const auto type = _getType(serialEntity[1]);
+            map.insert(serialPort, type);
+        }
+        else
+        {
+            const auto& serialPort = connection;
+            const auto type = _getType("");
+            map.insert(serialPort, type);
+        }
+    }
+    return map;
 }

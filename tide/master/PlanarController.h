@@ -61,7 +61,8 @@ public:
     enum class Type
     {
         Matrix,
-        TV
+        TV_UR9850,
+        TV_UR9851
     };
 
     /**

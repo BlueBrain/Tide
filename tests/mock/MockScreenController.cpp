@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
 /*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,31 +37,35 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef ScreenControllerFactory_H
-#define ScreenControllerFactory_H
+#include "MockScreenController.h"
 
-#include "PlanarController.h"
-#include "ScreenController.h"
-
-/**
- * Provide a ScreenController used to control the displays.
- */
-class ScreenControllerFactory
+MockScreenController::MockScreenController(ScreenState state)
+    : _state(state)
 {
-public:
-    /**
-     * Create a ScreenController.
-     * @param ports a configurable combination of port and device type.
-     */
-    static std::unique_ptr<ScreenController> create(const QString& ports);
+}
 
-    /**
-     * Process and validate a combination of port and device type.
-     * @param ports a configurable combination of port and device type.
-     * @internal
-     */
-    static QMap<QString, PlanarController::Type> parseInputString(
-        const QString& ports);
-};
+ScreenState MockScreenController::getState() const
+{
+    return _state;
+}
 
-#endif
+void MockScreenController::checkPowerState()
+{
+    emit powerStateChanged(_state);
+}
+
+bool MockScreenController::powerOn()
+{
+    _state = ScreenState::ON;
+    emit powerStateChanged(_state);
+    powerOnCalled = true;
+    return true;
+}
+
+bool MockScreenController::powerOff()
+{
+    _state = ScreenState::OFF;
+    emit powerStateChanged(_state);
+    powerOffCalled = true;
+    return true;
+}

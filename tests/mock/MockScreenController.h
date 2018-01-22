@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
 /*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,31 +37,31 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef ScreenControllerFactory_H
-#define ScreenControllerFactory_H
+#ifndef MOCKSCREENCONTROLLER_H
+#define MOCKSCREENCONTROLLER_H
 
-#include "PlanarController.h"
 #include "ScreenController.h"
+#include "types.h"
 
-/**
- * Provide a ScreenController used to control the displays.
- */
-class ScreenControllerFactory
+#include <QObject>
+
+class MockScreenController : public ScreenController
 {
-public:
-    /**
-     * Create a ScreenController.
-     * @param ports a configurable combination of port and device type.
-     */
-    static std::unique_ptr<ScreenController> create(const QString& ports);
+    Q_OBJECT
 
-    /**
-     * Process and validate a combination of port and device type.
-     * @param ports a configurable combination of port and device type.
-     * @internal
-     */
-    static QMap<QString, PlanarController::Type> parseInputString(
-        const QString& ports);
+public:
+    MockScreenController(ScreenState state);
+
+    ScreenState getState() const final;
+    void checkPowerState() final;
+    bool powerOn() final;
+    bool powerOff() final;
+
+    bool powerOffCalled = false;
+    bool powerOnCalled = false;
+
+private:
+    ScreenState _state;
 };
 
 #endif

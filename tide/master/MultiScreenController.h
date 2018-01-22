@@ -41,7 +41,6 @@
 #define MultiScreenController_H
 
 #include "PlanarController.h"
-#include "ScreenController.h"
 #include "types.h"
 
 #include <QObject>
@@ -60,7 +59,7 @@ public:
      * @param controllers the list of controllers
      */
     MultiScreenController(
-        std::vector<std::unique_ptr<PlanarController>>&& controllers);
+        std::vector<std::unique_ptr<ScreenController>>&& controllers);
 
     /** Get the power state of controlled displays. */
     ScreenState getState() const final;
@@ -75,7 +74,7 @@ public:
     bool powerOff() final;
 
 private:
-    std::vector<std::unique_ptr<PlanarController>> _controllers;
+    std::vector<std::unique_ptr<ScreenController>> _controllers;
 };
 
 #endif

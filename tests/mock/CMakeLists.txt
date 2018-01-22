@@ -5,19 +5,27 @@
 #
 # Generates a mock library used by the cpp unit tests.
 
+set(TIDEMOCK_HEADERS
+  GlobalQtApp.h
+  glVersion.h
+  glxDisplay.h
+  imageCompare.h
+  MinimalGlobalQtApp.h
+  MockNetworkBarrier.h
+  MockTouchEvents.h
+  QGuiAppFixture.h
+)
+
+if(TIDE_ENABLE_PLANAR_CONTROLLER)
+  list(APPEND TIDEMOCK_HEADERS MockScreenController.h)
+  set(TIDEMOCK_SOURCES MockScreenController.cpp)
+endif()
+
+set(TIDEMOCK_LINK_LIBRARIES TideMaster)
+
 set(TIDEMOCK_INCLUDE_NAME tide/mock)
 set(TIDEMOCK_OMIT_LIBRARY_HEADER ON)
 set(TIDEMOCK_OMIT_CHECK_TARGETS ON)
 set(TIDEMOCK_OMIT_INSTALL ON)
-common_library(TideMock)
 
-target_sources(TideMock INTERFACE
-  "${CMAKE_CURRENT_SOURCE_DIR}/GlobalQtApp.h"
-  "${CMAKE_CURRENT_SOURCE_DIR}/glVersion.h"
-  "${CMAKE_CURRENT_SOURCE_DIR}/glxDisplay.h"
-  "${CMAKE_CURRENT_SOURCE_DIR}/imageCompare.h"
-  "${CMAKE_CURRENT_SOURCE_DIR}/MinimalGlobalQtApp.h"
-  "${CMAKE_CURRENT_SOURCE_DIR}/MockNetworkBarrier.h"
-  "${CMAKE_CURRENT_SOURCE_DIR}/MockTouchEvents.h"
-  "${CMAKE_CURRENT_SOURCE_DIR}/QGuiAppFixture.h"
-)
+common_library(TideMock)

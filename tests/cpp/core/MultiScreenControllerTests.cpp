@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
 /*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,31 +37,75 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef ScreenControllerFactory_H
-#define ScreenControllerFactory_H
+#define BOOST_TEST_MODULE MutliScreenControllerTest
 
-#include "PlanarController.h"
-#include "ScreenController.h"
+#include <boost/test/unit_test.hpp>
 
-/**
- * Provide a ScreenController used to control the displays.
- */
-class ScreenControllerFactory
+#include "MockScreenController.h"
+#include "MultiScreenController.h"
+
+BOOST_AUTO_TEST_CASE(testUniformScreenStates)
 {
-public:
-    /**
-     * Create a ScreenController.
-     * @param ports a configurable combination of port and device type.
-     */
-    static std::unique_ptr<ScreenController> create(const QString& ports);
+    std::vector<std::unique_ptr<ScreenController>> controllers;
+    controllers.emplace_back(new MockScreenController(ScreenState::UNDEF));
+    controllers.emplace_back(new MockScreenController(ScreenState::UNDEF));
 
-    /**
-     * Process and validate a combination of port and device type.
-     * @param ports a configurable combination of port and device type.
-     * @internal
-     */
-    static QMap<QString, PlanarController::Type> parseInputString(
-        const QString& ports);
-};
+    MultiScreenController multiController(std::move(controllers));
 
-#endif
+    BOOST_CHECK_EQUAL(multiController.getState(), ScreenState::UNDEF);
+
+    multiController.powerOn();
+
+    for (auto& controller : controllers)
+    {
+        BOOST_CHECK(
+            static_cast<MockScreenController&>(*controller).powerOnCalled);
+    }
+
+    BOOST_CHECK_EQUAL(multiController.getState(), ScreenState::ON);
+
+    multiController.powerOff();
+
+    for (auto& controller : controllers)
+    {
+        BOOST_CHECK(
+            static_cast<MockScreenController&>(*controller).powerOffCalled);
+    }
+    BOOST_CHECK_EQUAL(multiController.getState(), ScreenState::OFF);
+}
+
+BOOST_AUTO_TEST_CASE(testDifferentScreenStates)
+{
+    std::vector<std::unique_ptr<ScreenController>> controllers;
+    controllers.emplace_back(new MockScreenController(ScreenState::ON));
+    controllers.emplace_back(new MockScreenController(ScreenState::OFF));
+
+    MultiScreenController multiController(std::move(controllers));
+
+    multiController.getState();
+    BOOST_CHECK_EQUAL(multiController.getState(), ScreenState::UNDEF);
+}
+
+BOOST_AUTO_TEST_CASE(testSignal)
+{
+    std::vector<std::unique_ptr<ScreenController>> controllers;
+    controllers.emplace_back(new MockScreenController(ScreenState::ON));
+    MultiScreenController multiController(std::move(controllers));
+
+    bool emitted = false;
+
+    QObject::connect(&multiController, &MultiScreenController::powerStateChanged,
+                     [&emitted]() { emitted = true; });
+
+    multiController.checkPowerState();
+    BOOST_CHECK(emitted);
+
+    emitted = false;
+    multiController.powerOff();
+    BOOST_CHECK(emitted);
+
+    emitted = false;
+    multiController.powerOn();
+    BOOST_CHECK_EQUAL(multiController.getState(), ScreenState::ON);
+    BOOST_CHECK(emitted);
+}

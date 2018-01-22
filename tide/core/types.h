@@ -202,6 +202,23 @@ inline std::ostream& operator<<(std::ostream& str, const QPointF& p)
     return str;
 }
 
+inline std::ostream& operator<<(std::ostream& str, const ScreenState state)
+{
+    switch (state)
+    {
+    case ScreenState::ON:
+        str << "ON";
+        break;
+    case ScreenState::OFF:
+        str << "OFF";
+        break;
+    case ScreenState::UNDEF:
+        str << "UNDEF";
+        break;
+    }
+    return str;
+}
+
 inline std::ostream& operator<<(std::ostream& str, const QRectF& r)
 {
     str << r.x() << ',' << r.y() << ' ' << r.width() << 'x' << r.height();
