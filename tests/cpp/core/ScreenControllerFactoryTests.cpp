@@ -65,12 +65,12 @@ inline std::ostream& operator<<(std::ostream& str,
     return str;
 }
 
-BOOST_AUTO_TEST_CASE(testEmpty)
+BOOST_AUTO_TEST_CASE(testEmptySerialDeviceReturnsNullptr)
 {
     BOOST_CHECK(!ScreenControllerFactory::create(""));
 }
 
-BOOST_AUTO_TEST_CASE(testException)
+BOOST_AUTO_TEST_CASE(testExceptionWhenSerialDeviceCannotBeOpened)
 {
     BOOST_CHECK_THROW(ScreenControllerFactory::create("/dev/null;/dev/das"),
                       std::runtime_error);
@@ -83,7 +83,7 @@ BOOST_AUTO_TEST_CASE(testException)
                       std::runtime_error);
 }
 
-BOOST_AUTO_TEST_CASE(testSingleController)
+BOOST_AUTO_TEST_CASE(testParsingSingleController)
 {
     const QMap<QString, PlanarController::Type> expectedMatrix{
         {"/dev/usb1", PlanarController::Type::Matrix}};
@@ -116,7 +116,7 @@ BOOST_AUTO_TEST_CASE(testSingleController)
                                   processedUR9851.end());
 }
 
-BOOST_AUTO_TEST_CASE(testMultipleConnectionsWithType)
+BOOST_AUTO_TEST_CASE(testParsingMultipleConnectionsWithType)
 {
     const QMap<QString, PlanarController::Type> expected{
         {"/dev/usb1", PlanarController::Type::Matrix},
@@ -130,7 +130,7 @@ BOOST_AUTO_TEST_CASE(testMultipleConnectionsWithType)
                                   processed.begin(), processed.end());
 }
 
-BOOST_AUTO_TEST_CASE(testMultipleConnectionsWithOneEmpty)
+BOOST_AUTO_TEST_CASE(testParsingMultipleConnectionsWithOneEmpty)
 {
     const QMap<QString, PlanarController::Type> expected{
         {"/dev/usb1", PlanarController::Type::Matrix}};
@@ -141,7 +141,7 @@ BOOST_AUTO_TEST_CASE(testMultipleConnectionsWithOneEmpty)
                                   processed.begin(), processed.end());
 }
 
-BOOST_AUTO_TEST_CASE(testMultipleConnectionsWithOneEmptyDevice)
+BOOST_AUTO_TEST_CASE(testParsingMultipleConnectionsWithOneEmptyDevice)
 {
     const QMap<QString, PlanarController::Type> expected{
         {"/dev/usb1", PlanarController::Type::Matrix}};
@@ -152,7 +152,7 @@ BOOST_AUTO_TEST_CASE(testMultipleConnectionsWithOneEmptyDevice)
                                   processed.begin(), processed.end());
 }
 
-BOOST_AUTO_TEST_CASE(testConnectionsWithEmptyDeviceType)
+BOOST_AUTO_TEST_CASE(testParsingConnectionsWithEmptyDeviceType)
 {
     const QMap<QString, PlanarController::Type> expected{
         {"/dev/usb1", PlanarController::Type::Matrix}};
