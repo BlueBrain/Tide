@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -76,8 +76,8 @@ int ContentActionsModel::rowCount(const QModelIndex& parent_) const
     return _actions.size();
 }
 
-void ContentActionsModel::add(ContentAction* action)
+void ContentActionsModel::add(std::unique_ptr<ContentAction> action)
 {
-    _actions.push_back(action);
-    action->setParent(this);
+    _actions.push_back(action.get());
+    action.release()->setParent(this);
 }

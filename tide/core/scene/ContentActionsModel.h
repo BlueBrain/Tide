@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -60,7 +60,7 @@ public:
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
 
     /** Add an action and retains ownership by setting itself as the parent. */
-    void add(ContentAction* action);
+    void add(std::unique_ptr<ContentAction> action);
 
 private:
     friend class boost::serialization::access;
