@@ -70,8 +70,8 @@
 #if TIDE_ENABLE_REST_INTERFACE
 #include "LoggingUtility.h"
 #include "rest/RestInterface.h"
-
 #endif
+
 #if TIDE_ENABLE_PLANAR_CONTROLLER
 #include "ScreenControllerFactory.h"
 #endif
