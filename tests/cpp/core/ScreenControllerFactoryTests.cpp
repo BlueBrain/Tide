@@ -80,7 +80,7 @@ BOOST_AUTO_TEST_CASE(testException)
     BOOST_CHECK_THROW(ScreenControllerFactory::create("/dev/null#UR9850"),
                       std::runtime_error);
     BOOST_CHECK_THROW(ScreenControllerFactory::create("/dev/null"),
-                      std::runtime_error)
+                      std::runtime_error);
 }
 
 BOOST_AUTO_TEST_CASE(testSingleController)

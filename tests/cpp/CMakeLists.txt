@@ -33,10 +33,10 @@ else()
 endif()
 
 if(NOT TIDE_ENABLE_PLANAR_CONTROLLER)
-    list(APPEND EXCLUDE_FROM_TESTS
-        core/MultiScreenControllerTests.cpp
-        core/ScreenControllerFactoryTests.cpp
-        )
+  list(APPEND EXCLUDE_FROM_TESTS
+    core/MultiScreenControllerTests.cpp
+    core/ScreenControllerFactoryTests.cpp
+  )
 endif()
 
 if(X11_FOUND)
