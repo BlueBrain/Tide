@@ -144,7 +144,6 @@ if(TIDE_ENABLE_REST_INTERFACE)
     rest/FileReceiver.h
     rest/HtmlContent.h
     rest/json.h
-    rest/JsonRpc.h
     rest/jsonschema.h
     rest/RestInterface.h
     rest/RestServer.h
@@ -158,7 +157,6 @@ if(TIDE_ENABLE_REST_INTERFACE)
     rest/FileReceiver.cpp
     rest/HtmlContent.cpp
     rest/json.cpp
-    rest/JsonRpc.cpp
     rest/jsonschema.cpp
     rest/RestInterface.cpp
     rest/RestServer.cpp

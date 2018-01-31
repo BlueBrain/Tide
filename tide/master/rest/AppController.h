@@ -1,7 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
-/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -41,15 +41,16 @@
 #ifndef APPCONTROLLER_H
 #define APPCONTROLLER_H
 
-#include "JsonRpc.h"
 #include "types.h"
+
+#include <rockets/jsonrpc/receiver.h>
 
 #include <QObject>
 
 /**
  * Remote controller for the application using JSON-RPC.
  */
-class AppController : public QObject
+class AppController : public QObject, private rockets::jsonrpc::Receiver
 {
     Q_OBJECT
 
@@ -61,11 +62,7 @@ public:
      */
     AppController(const MasterConfiguration& config);
 
-    // clang-format off
-    //! @copydoc JsonRpc::process(const std::string&,JsonRpc::ProcessAsyncCallback)
-    // clang-format on
-    void processJsonRpc(const std::string& request,
-                        JsonRpc::ProcessAsyncCallback callback);
+    using rockets::jsonrpc::Receiver::process;
 
 signals:
     /** Open a content. */
@@ -91,9 +88,6 @@ signals:
 
     /** Exit the application. */
     void exit();
-
-private:
-    JsonRpc _rpc;
 };
 
 #endif

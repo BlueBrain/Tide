@@ -1,7 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
-/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -41,15 +41,16 @@
 #ifndef SCENECONTROLLER_H
 #define SCENECONTROLLER_H
 
-#include "JsonRpc.h"
 #include "control/DisplayGroupController.h"
 #include "scene/DisplayGroup.h"
 #include "types.h"
 
+#include <rockets/jsonrpc/receiver.h>
+
 /**
  * Remote controller for the scene windows using JSON-RPC.
  */
-class SceneController
+class SceneController : private rockets::jsonrpc::Receiver
 {
 public:
     /**
@@ -59,16 +60,11 @@ public:
      */
     SceneController(DisplayGroup& group);
 
-    // clang-format off
-    //! @copydoc JsonRpc::process(const std::string&,JsonRpc::ProcessAsyncCallback)
-    // clang-format on
-    void processJsonRpc(const std::string& request,
-                        JsonRpc::ProcessAsyncCallback callback);
+    using rockets::jsonrpc::Receiver::process;
 
 private:
     DisplayGroup& _group;
     DisplayGroupController _controller;
-    JsonRpc _rpc;
 };
 
 #endif

@@ -1,7 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
-/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -43,10 +43,13 @@
 #include "control/ContentWindowController.h"
 #include "serialization.h"
 
+using namespace rockets;
+
 namespace
 {
-const JsonRpc::Response noWindow{"window does not exist", 2};
-const JsonRpc::Response ok{"OK"};
+const jsonrpc::Response noWindow{
+    jsonrpc::Response::Error{"window does not exist", 2}};
+const jsonrpc::Response ok{"OK"};
 }
 
 /** Wrapper function to call fromJson for all parameters. */
@@ -110,13 +113,13 @@ SceneController::SceneController(DisplayGroup& group)
     : _group{group}
     , _controller{group}
 {
-    _rpc.notify("deselect-windows", [this] { _controller.deselectAll(); });
-    _rpc.notify("exit-fullscreen", [this] { _controller.exitFullscreen(); });
-    _rpc.notify("focus-windows", [this] { _controller.focusSelected(); });
-    _rpc.notify("unfocus-windows", [this] { _controller.unfocusAll(); });
-    _rpc.notify("clear", [this] { _group.clear(); });
+    connect("deselect-windows", [this] { _controller.deselectAll(); });
+    connect("exit-fullscreen", [this] { _controller.exitFullscreen(); });
+    connect("focus-windows", [this] { _controller.focusSelected(); });
+    connect("unfocus-windows", [this] { _controller.unfocusAll(); });
+    connect("clear", [this] { _group.clear(); });
 
-    _rpc.bind<WindowId>("close-window", [this](const WindowId params) {
+    bind<WindowId>("close-window", [this](const WindowId params) {
         if (auto window = _group.getContentWindow(params.id))
         {
             _group.removeContentWindow(window);
@@ -125,7 +128,7 @@ SceneController::SceneController(DisplayGroup& group)
         return noWindow;
     });
 
-    _rpc.bind<WindowPos>("move-window", [this](const WindowPos params) {
+    bind<WindowPos>("move-window", [this](const WindowPos params) {
         if (auto window = _group.getContentWindow(params.id))
         {
             ContentWindowController(*window, _group)
@@ -136,18 +139,15 @@ SceneController::SceneController(DisplayGroup& group)
         return noWindow;
     });
 
-    _rpc.bind<WindowId>("move-window-to-front", [this](const WindowId params) {
+    bind<WindowId>("move-window-to-front", [this](const WindowId params) {
         return _controller.moveWindowToFront(params.id) ? ok : noWindow;
     });
 
-    _rpc.bind<WindowId>("move-window-to-fullscreen",
-                        [this](const WindowId params) {
-                            return _controller.showFullscreen(params.id)
-                                       ? ok
-                                       : noWindow;
-                        });
+    bind<WindowId>("move-window-to-fullscreen", [this](const WindowId params) {
+        return _controller.showFullscreen(params.id) ? ok : noWindow;
+    });
 
-    _rpc.bind<WindowSize>("resize-window", [this](const WindowSize params) {
+    bind<WindowSize>("resize-window", [this](const WindowSize params) {
         if (auto window = _group.getContentWindow(params.id))
         {
             ContentWindowController(*window, _group)
@@ -157,7 +157,7 @@ SceneController::SceneController(DisplayGroup& group)
         return noWindow;
     });
 
-    _rpc.bind<WindowId>("toggle-select-window", [this](const WindowId params) {
+    bind<WindowId>("toggle-select-window", [this](const WindowId params) {
         if (auto window = _group.getContentWindow(params.id))
         {
             window->setSelected(!window->isSelected());
@@ -166,13 +166,7 @@ SceneController::SceneController(DisplayGroup& group)
         return noWindow;
     });
 
-    _rpc.bind<WindowId>("unfocus-window", [this](const WindowId params) {
+    bind<WindowId>("unfocus-window", [this](const WindowId params) {
         return _controller.unfocus(params.id) ? ok : noWindow;
     });
-}
-
-void SceneController::processJsonRpc(const std::string& request,
-                                     JsonRpc::ProcessAsyncCallback callback)
-{
-    return _rpc.process(request, callback);
 }
