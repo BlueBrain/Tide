@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -53,30 +53,11 @@
 
 #include <tide/master/version.h>
 
+#include <rockets/jsonrpc/http.h>
+
 #include <QDir>
 
-using namespace std::placeholders;
 using namespace rockets;
-
-namespace
-{
-template <typename T>
-std::future<http::Response> processJsonRpc(T* controller,
-                                           const http::Request& request)
-{
-    // Package json-rpc response in http::Response when ready
-    auto promise = std::make_shared<std::promise<http::Response>>();
-    auto callback = [promise](const std::string& body) {
-        if (body.empty())
-            promise->set_value(http::Response{http::Code::OK});
-        else
-            promise->set_value(
-                http::Response{http::Code::OK, body, "application/json"});
-    };
-    controller->processJsonRpc(request.body, callback);
-    return promise->get_future();
-}
-}
 
 struct LockState
 {
@@ -158,6 +139,9 @@ RestInterface::RestInterface(const uint16_t port, OptionsPtr options,
 
     auto& server = _impl->server;
 
+    jsonrpc::connect(server, "tide/application", _impl->appController);
+    jsonrpc::connect(server, "tide/controller", _impl->sceneController);
+
     static tide::Version version;
     server.handleGET("tide/version", version);
     server.handleGET("tide/background", config.getBackground());
@@ -169,16 +153,10 @@ RestInterface::RestInterface(const uint16_t port, OptionsPtr options,
     server.handlePUT("tide/options", *_impl->options);
     server.handleGET("tide/windows", group);
 
+    using namespace std::placeholders;
+
     server.handle(http::Method::GET, "tide/windows/",
                   std::bind(&Impl::getWindowInfo, _impl.get(), _1));
-
-    server.handle(http::Method::POST, "tide/application",
-                  std::bind(processJsonRpc<AppController>,
-                            &_impl->appController, _1));
-
-    server.handle(http::Method::POST, "tide/controller",
-                  std::bind(processJsonRpc<SceneController>,
-                            &_impl->sceneController, _1));
 
     server.handle(http::Method::POST, "tide/upload",
                   std::bind(&FileReceiver::prepareUpload, &_impl->fileReceiver,

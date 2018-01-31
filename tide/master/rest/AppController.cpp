@@ -1,7 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
-/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -46,6 +46,8 @@
 
 #include <QDir>
 
+using namespace rockets;
+
 namespace
 {
 QString _makeAbsPath(const QString& baseDir, const QString& uri)
@@ -61,10 +63,11 @@ bool from_json_object(T& params, const QJsonObject& object)
     return params.fromJson(object);
 }
 
-JsonRpc::Response makeJsonRpcResponse(const bool success)
+jsonrpc::Response makeJsonRpcResponse(const bool success)
 {
-    return success ? JsonRpc::Response{"OK"}
-                   : JsonRpc::Response{"operation failed", -1};
+    return success ? jsonrpc::Response{"OK"}
+                   : jsonrpc::Response{
+                         jsonrpc::Response::Error{"operation failed", -1}};
 }
 
 struct Uri
@@ -83,44 +86,35 @@ AppController::AppController(const MasterConfiguration& config)
     const auto contentDir = config.getContentDir();
     const auto sessionDir = config.getSessionsDir();
 
-    _rpc.bindAsync<Uri>("open", [this,
-                                 contentDir](Uri uri,
-                                             JsonRpc::AsyncResponse callback) {
+    bindAsync<Uri>("open", [this, contentDir](Uri uri,
+                                              jsonrpc::AsyncResponse callback) {
         auto boolCallback = [callback](const bool result) {
             callback(makeJsonRpcResponse(result));
         };
         emit open(_makeAbsPath(contentDir, uri.uri), QPointF(), boolCallback);
     });
-    _rpc.bindAsync<Uri>("load", [this,
-                                 sessionDir](Uri uri,
-                                             JsonRpc::AsyncResponse callback) {
+    bindAsync<Uri>("load", [this, sessionDir](Uri uri,
+                                              jsonrpc::AsyncResponse callback) {
         auto boolCallback = [callback](const bool result) {
             callback(makeJsonRpcResponse(result));
         };
         emit load(_makeAbsPath(sessionDir, uri.uri), boolCallback);
     });
-    _rpc.bindAsync<Uri>("save", [this,
-                                 sessionDir](Uri uri,
-                                             JsonRpc::AsyncResponse callback) {
+    bindAsync<Uri>("save", [this, sessionDir](Uri uri,
+                                              jsonrpc::AsyncResponse callback) {
         auto boolCallback = [callback](const bool result) {
             callback(makeJsonRpcResponse(result));
         };
         emit save(_makeAbsPath(sessionDir, uri.uri), boolCallback);
     });
 
-    _rpc.notify<Uri>("browse", [this](Uri uri) { emit browse(uri.uri); });
-    _rpc.notify<Uri>("screenshot",
-                     [this](Uri uri) { emit takeScreenshot(uri.uri); });
-    _rpc.notify("whiteboard", [this] { emit openWhiteboard(); });
-    _rpc.notify("exit", [this] { emit exit(); });
-
+    using rpc = jsonrpc::Receiver; // Disambiguating from QObject::connect
+    rpc::connect<Uri>("browse", [this](Uri uri) { emit browse(uri.uri); });
+    rpc::connect<Uri>("screenshot",
+                      [this](Uri uri) { emit takeScreenshot(uri.uri); });
+    rpc::connect("whiteboard", [this] { emit openWhiteboard(); });
+    rpc::connect("exit", [this] { emit exit(); });
 #if TIDE_ENABLE_PLANAR_CONTROLLER
-    _rpc.notify("poweroff", [this] { emit powerOff(); });
+    rpc::connect("poweroff", [this] { emit powerOff(); });
 #endif
-}
-
-void AppController::processJsonRpc(const std::string& request,
-                                   JsonRpc::ProcessAsyncCallback callback)
-{
-    return _rpc.process(request, callback);
 }
