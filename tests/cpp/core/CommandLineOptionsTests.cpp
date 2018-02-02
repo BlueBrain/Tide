@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -81,7 +81,7 @@ void checkOptionParameters(const CommandLineOptions& options)
                       "/path/to/configuration.xml");
 
     BOOST_CHECK_EQUAL(options.getCommandLine().toStdString(),
-                      "--width 480 --height 640 --streamid MyStreamer "
+                      "--streamid MyStreamer --width 480 --height 640 "
                       "--url http://www.perdu.com "
                       "--config /path/to/configuration.xml");
 }

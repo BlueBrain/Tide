@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -74,14 +74,14 @@ void CommandLineOptions::_fillDesc()
     desc.add_options()
         ("streamid", po::value<std::string>()->required(),
          "unique identifier for this stream")
-        ("width", po::value<unsigned int>()->default_value( 0 ),
-         "width of the stream in pixel")
-        ("height", po::value<unsigned int>()->default_value( 0 ),
-         "height of the stream in pixel")
-        ("url", po::value<std::string>()->default_value( "" ),
-         "webkit only: url")
-        ("config", po::value<std::string>()->default_value( "" ),
-         "Launcher only: Tide xml configuation file")
+        ("width", po::value<unsigned int>()->default_value(0),
+         "width of the stream in pixels")
+        ("height", po::value<unsigned int>()->default_value(0),
+         "height of the stream in pixels")
+        ("url", po::value<std::string>()->default_value(""),
+         "webbrowser only: url to open")
+        ("config", po::value<std::string>()->default_value(""),
+         "launcher & whiteboard: Tide configuation file for extra settings")
     ;
     // clang-format on
 }
@@ -104,14 +104,14 @@ QStringList CommandLineOptions::getCommandLineArguments() const
 {
     QStringList arguments;
 
+    if (!_streamId.isEmpty())
+        arguments << "--streamid" << _streamId;
+
     if (_width > 0)
         arguments << "--width" << QString::number(_width);
 
     if (_height > 0)
         arguments << "--height" << QString::number(_height);
-
-    if (!_streamId.isEmpty())
-        arguments << "--streamid" << _streamId;
 
     if (!_url.isEmpty())
         arguments << "--url" << _url;

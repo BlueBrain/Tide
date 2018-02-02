@@ -1,4 +1,4 @@
 # -*- mode: cmake -*-
-git_subproject(Deflect https://github.com/BlueBrain/Deflect.git cc4c732)
+git_subproject(Deflect https://github.com/BlueBrain/Deflect.git 54c6e95)
 git_subproject(Rockets https://github.com/BlueBrain/Rockets.git 0b6035f)
 git_subproject(VirtualKeyboard https://github.com/BlueBrain/QtFreeVirtualKeyboard.git d026536)

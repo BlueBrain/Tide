@@ -67,6 +67,12 @@ Whiteboard::Whiteboard(int& argc, char* argv[])
     auto item = _qmlStreamer->getRootItem();
     item->setProperty("saveURL", config.getWhiteboardSaveFolder());
 
+    // General setup
+    if (options.getWidth())
+        item->setProperty("width", options.getWidth());
+    if (options.getHeight())
+        item->setProperty("height", options.getHeight());
+
     QQmlEngine* engine = _qmlStreamer->getQmlEngine();
     engine->rootContext()->setContextProperty("fileInfo", &_fileInfoHelper);
 }
