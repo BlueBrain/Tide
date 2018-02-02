@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -70,27 +70,27 @@ public:
 
     /** @name Getters */
     //@{
-    const QString& getUrl() const;
     const QString& getStreamId() const;
     unsigned int getWidth() const;
     unsigned int getHeight() const;
+    const QString& getUrl() const;
     const QString& getConfiguration() const;
     //@}
 
     /** @name Setters */
     //@{
-    void setUrl(const QString& url);
     void setStreamId(const QString& id);
     void setWidth(unsigned int width);
     void setHeight(unsigned int height);
+    void setUrl(const QString& url);
     void setConfiguration(const QString& file);
     //@}
 
 private:
-    QString _url;
     QString _streamId;
     uint _width = 0;
     uint _height = 0;
+    QString _url;
     QString _configuration;
 
     void _fillDesc();
