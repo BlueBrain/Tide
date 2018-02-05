@@ -119,7 +119,8 @@ std::unique_ptr<QSGTexture> createTextureRgba(const QSize& size,
 
 std::unique_ptr<QOpenGLBuffer> createPbo(const bool dynamic)
 {
-    auto pbo = make_unique<QOpenGLBuffer>(QOpenGLBuffer::PixelUnpackBuffer);
+    auto pbo =
+        std::make_unique<QOpenGLBuffer>(QOpenGLBuffer::PixelUnpackBuffer);
     pbo->create();
     pbo->setUsagePattern(dynamic ? QOpenGLBuffer::DynamicDraw
                                  : QOpenGLBuffer::StaticDraw);

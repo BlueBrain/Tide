@@ -76,21 +76,21 @@ ContentPtr _makeContent(const QString& uri)
     switch (ContentFactory::getContentTypeForFile(uri))
     {
     case CONTENT_TYPE_SVG:
-        return make_unique<SVGContent>(uri);
+        return std::make_unique<SVGContent>(uri);
 #if TIDE_USE_TIFF
     case CONTENT_TYPE_IMAGE_PYRAMID:
-        return make_unique<ImagePyramidContent>(uri);
+        return std::make_unique<ImagePyramidContent>(uri);
 #endif
 #if TIDE_ENABLE_MOVIE_SUPPORT
     case CONTENT_TYPE_MOVIE:
-        return make_unique<MovieContent>(uri);
+        return std::make_unique<MovieContent>(uri);
 #endif
 #if TIDE_ENABLE_PDF_SUPPORT
     case CONTENT_TYPE_PDF:
-        return make_unique<PDFContent>(uri);
+        return std::make_unique<PDFContent>(uri);
 #endif
     case CONTENT_TYPE_TEXTURE:
-        return make_unique<TextureContent>(uri);
+        return std::make_unique<TextureContent>(uri);
     case CONTENT_TYPE_ANY:
     default:
         return nullptr;

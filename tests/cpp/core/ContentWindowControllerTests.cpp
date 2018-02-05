@@ -62,7 +62,7 @@ const qreal CONTENT_AR =
 
 ContentPtr make_dummy_content()
 {
-    return make_unique<DummyContent>(CONTENT_SIZE);
+    return std::make_unique<DummyContent>(CONTENT_SIZE);
 }
 }
 

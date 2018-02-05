@@ -54,7 +54,7 @@ const qreal CONTENT_AR = qreal(CONTENT_SIZE.width()) / CONTENT_SIZE.height();
 
 ContentPtr makeDummyContent()
 {
-    return make_unique<DummyContent>(CONTENT_SIZE);
+    return std::make_unique<DummyContent>(CONTENT_SIZE);
 }
 }
 

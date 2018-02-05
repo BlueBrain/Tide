@@ -168,7 +168,7 @@ void MovieContent::_pause()
 
 void MovieContent::_createActions()
 {
-    auto playPauseAction = make_unique<ContentAction>();
+    auto playPauseAction = std::make_unique<ContentAction>();
     playPauseAction->setCheckable(true);
     playPauseAction->setIcon(ICON_PAUSE);
     playPauseAction->setIconChecked(ICON_PLAY);

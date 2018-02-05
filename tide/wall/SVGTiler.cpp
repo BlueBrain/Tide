@@ -76,7 +76,7 @@ QImage SVGTiler::getCachableTileImage(const uint tileId) const
         const auto id = QThread::currentThreadId();
         const QMutexLocker lock(&_threadMapMutex);
         if (!_perThreadSVG.count(id))
-            _perThreadSVG[id] = make_unique<SVG>(_svg.getData());
+            _perThreadSVG[id] = std::make_unique<SVG>(_svg.getData());
         svg = _perThreadSVG[id].get();
     }
 #else

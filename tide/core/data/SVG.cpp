@@ -51,9 +51,9 @@
 std::unique_ptr<SVGBackend> _createSvgBackend(const QByteArray& svgData)
 {
 #if TIDE_USE_CAIRO && TIDE_USE_RSVG
-    return make_unique<SVGCairoRSVGBackend>(svgData);
+    return std::make_unique<SVGCairoRSVGBackend>(svgData);
 #else
-    return make_unique<SVGQtGpuBackend>(svgData);
+    return std::make_unique<SVGQtGpuBackend>(svgData);
 #endif
 }
 

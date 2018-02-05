@@ -49,11 +49,11 @@ std::unique_ptr<TextureNode> TextureNodeFactoryImpl::create(
     switch (format)
     {
     case TextureFormat::rgba:
-        return make_unique<TextureNodeRGBA>(_window, dynamic);
+        return std::make_unique<TextureNodeRGBA>(_window, dynamic);
     case TextureFormat::yuv444:
     case TextureFormat::yuv422:
     case TextureFormat::yuv420:
-        return make_unique<TextureNodeYUV>(_window, dynamic);
+        return std::make_unique<TextureNodeYUV>(_window, dynamic);
     default:
         throw std::runtime_error("unsupported texture format");
     }

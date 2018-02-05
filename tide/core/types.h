@@ -231,14 +231,6 @@ inline std::ostream& operator<<(std::ostream& str, const QString& s)
     return str;
 }
 
-// missing make_unique() implementation in C++11 standard
-// source: http://herbsutter.com/gotw/_102/
-template <typename T, typename... Args>
-std::unique_ptr<T> make_unique(Args&&... args)
-{
-    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
-}
-
 template <typename R>
 bool is_ready(std::future<R> const& f)
 {

@@ -92,7 +92,7 @@ void PixelStreamContent::_createActions()
     if (!_hasKeyboardAction)
         return;
 
-    auto keyboardAction = make_unique<ContentAction>();
+    auto keyboardAction = std::make_unique<ContentAction>();
     keyboardAction->setCheckable(true);
     keyboardAction->setIcon(ICON_KEYBOARD);
     keyboardAction->setIconChecked(ICON_KEYBOARD);

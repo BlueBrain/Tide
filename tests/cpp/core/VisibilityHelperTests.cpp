@@ -55,7 +55,7 @@ const QRect centeredViewRect(350, 250, 100, 100);
 
 ContentPtr makeDummyContent()
 {
-    return make_unique<DummyContent>(size);
+    return std::make_unique<DummyContent>(size);
 }
 }
 

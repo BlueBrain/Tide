@@ -54,7 +54,7 @@ const int HEIGHT = 512;
 
 ContentPtr makeDummyContent()
 {
-    return make_unique<DummyContent>(QSize{WIDTH, HEIGHT});
+    return std::make_unique<DummyContent>(QSize{WIDTH, HEIGHT});
 }
 }
 

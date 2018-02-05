@@ -54,23 +54,23 @@ std::unique_ptr<ContentController> ContentController::create(
     switch (window.getContent().getType())
     {
     case CONTENT_TYPE_PIXEL_STREAM:
-        return make_unique<PixelStreamController>(window);
+        return std::make_unique<PixelStreamController>(window);
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
     case CONTENT_TYPE_WEBBROWSER:
-        return make_unique<PixelStreamController>(window);
+        return std::make_unique<PixelStreamController>(window);
 #endif
 #if TIDE_ENABLE_PDF_SUPPORT
     case CONTENT_TYPE_PDF:
-        return make_unique<PDFController>(window);
+        return std::make_unique<PDFController>(window);
 #endif
     case CONTENT_TYPE_IMAGE_PYRAMID:
     case CONTENT_TYPE_TEXTURE:
     case CONTENT_TYPE_SVG:
-        return make_unique<ZoomController>(window);
+        return std::make_unique<ZoomController>(window);
     case CONTENT_TYPE_MOVIE:
     case CONTENT_TYPE_ANY:
     default:
-        return make_unique<ContentController>(window);
+        return std::make_unique<ContentController>(window);
     }
 }
 

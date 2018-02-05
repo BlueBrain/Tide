@@ -416,14 +416,15 @@ std::unique_ptr<ContentSynchronizer> DataProvider::_makeSynchronizer(
     {
 #if TIDE_USE_TIFF
     case CONTENT_TYPE_IMAGE_PYRAMID:
-        return make_unique<LodSynchronizer>(_get(_imagePyrSources, window));
+        return std::make_unique<LodSynchronizer>(
+            _get(_imagePyrSources, window));
 #endif
 #if TIDE_ENABLE_MOVIE_SUPPORT
     case CONTENT_TYPE_MOVIE:
     {
         auto updater = _get(_movieSources, window);
         updater->update(static_cast<const MovieContent&>(window.getContent()));
-        return make_unique<MovieSynchronizer>(updater, view);
+        return std::make_unique<MovieSynchronizer>(updater, view);
     }
 #endif
 #if TIDE_ENABLE_PDF_SUPPORT
@@ -431,17 +432,18 @@ std::unique_ptr<ContentSynchronizer> DataProvider::_makeSynchronizer(
     {
         auto updater = _get(_pdfSources, window);
         updater->update(static_cast<const PDFContent&>(window.getContent()));
-        return make_unique<PDFSynchronizer>(updater);
+        return std::make_unique<PDFSynchronizer>(updater);
     }
 #endif
     case CONTENT_TYPE_PIXEL_STREAM:
     case CONTENT_TYPE_WEBBROWSER:
-        return make_unique<PixelStreamSynchronizer>(_getStreamSource(window),
-                                                    view);
+        return std::make_unique<PixelStreamSynchronizer>(_getStreamSource(
+                                                             window),
+                                                         view);
     case CONTENT_TYPE_SVG:
-        return make_unique<LodSynchronizer>(_get(_svgSources, window));
+        return std::make_unique<LodSynchronizer>(_get(_svgSources, window));
     case CONTENT_TYPE_TEXTURE:
-        return make_unique<BasicSynchronizer>(_get(_imageSources, window));
+        return std::make_unique<BasicSynchronizer>(_get(_imageSources, window));
     default:
         throw std::runtime_error("No ContentSynchronizer for ContentType");
     }
