@@ -107,7 +107,8 @@ MasterWindow::MasterWindow(DisplayGroupPtr displayGroup, OptionsPtr options,
     resize(DEFAULT_WINDOW_SIZE);
     setAcceptDrops(true);
 
-    _setupMasterWindowUI(make_unique<MasterQuickView>(_options, lock, config));
+    _setupMasterWindowUI(
+        std::make_unique<MasterQuickView>(_options, lock, config));
 
     show();
 }

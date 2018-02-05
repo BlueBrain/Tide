@@ -39,13 +39,13 @@
 
 #include "SVGQtGpuBackend.h"
 
-#include "types.h" // for make_unique()
-
 #include <QOpenGLContext>
 #include <QOpenGLFramebufferObject>
 #include <QOpenGLFunctions>
 #include <QOpenGLPaintDevice>
 #include <QPainter>
+
+#include <memory>
 
 namespace
 {
@@ -92,7 +92,7 @@ std::unique_ptr<QOpenGLFramebufferObject> _createMultisampledFBO(
     format.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
     format.setSamples(MULTI_SAMPLE_ANTI_ALIASING_SAMPLES);
 
-    auto fbo = make_unique<QOpenGLFramebufferObject>(size, format);
+    auto fbo = std::make_unique<QOpenGLFramebufferObject>(size, format);
     fbo->bind();
     auto gl = QOpenGLContext::currentContext()->functions();
     gl->glClearColor(0.0f, 0.0f, 0.0f, 0.0f);

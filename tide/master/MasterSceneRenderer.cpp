@@ -93,5 +93,6 @@ void MasterSceneRenderer::_createSceneItem(QQmlEngine& engine,
 void MasterSceneRenderer::_createGroupRenderer(QQmlEngine& engine)
 {
     _displayGroupRenderer =
-        make_unique<MasterDisplayGroupRenderer>(_group, engine, *_sceneItem);
+        std::make_unique<MasterDisplayGroupRenderer>(_group, engine,
+                                                     *_sceneItem);
 }

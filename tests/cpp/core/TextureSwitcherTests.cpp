@@ -66,7 +66,7 @@ class MockTextureNodeFactory : public TextureNodeFactory
 public:
     std::unique_ptr<TextureNode> create(TextureFormat format) final
     {
-        return make_unique<MockTextureNode>(format);
+        return std::make_unique<MockTextureNode>(format);
     }
     bool needToChangeNodeType(TextureFormat a, TextureFormat b) const final
     {

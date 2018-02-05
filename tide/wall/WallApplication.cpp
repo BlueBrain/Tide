@@ -122,7 +122,7 @@ void WallApplication::_initWallWindows()
 WallWindow* WallApplication::_makeWindow(const uint screen)
 {
     return new WallWindow(*_config, screen, *_provider,
-                          make_unique<QQuickRenderControl>(this));
+                          std::make_unique<QQuickRenderControl>(this));
 }
 
 void WallApplication::_initMPIConnection(MPIChannelPtr worldChannel)

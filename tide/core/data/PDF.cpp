@@ -55,9 +55,9 @@ const int INVALID_PAGE_NUMBER = -1;
 std::unique_ptr<PDFBackend> _createPdfBackend(const QString& uri)
 {
 #if TIDE_USE_CAIRO && TIDE_USE_POPPLER_GLIB
-    return make_unique<PDFPopplerCairoBackend>(uri);
+    return std::make_unique<PDFPopplerCairoBackend>(uri);
 #else
-    return make_unique<PDFPopplerQtBackend>(uri);
+    return std::make_unique<PDFPopplerQtBackend>(uri);
 #endif
 }
 

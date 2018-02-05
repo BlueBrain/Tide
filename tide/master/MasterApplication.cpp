@@ -273,9 +273,9 @@ void MasterApplication::_initMasterWindow()
 
 void MasterApplication::_initOffscreenView()
 {
-    _offscreenQuickView.reset(
-        new deflect::qt::OffscreenQuickView{make_unique<QQuickRenderControl>(),
-                                            deflect::qt::RenderMode::DISABLED});
+    _offscreenQuickView.reset(new deflect::qt::OffscreenQuickView{
+        std::make_unique<QQuickRenderControl>(),
+        deflect::qt::RenderMode::DISABLED});
     _offscreenQuickView->getRootContext()->setContextProperty("options",
                                                               _options.get());
     _offscreenQuickView->getRootContext()->setContextProperty("lock",
@@ -442,10 +442,10 @@ void MasterApplication::_setupMPIConnections()
 void MasterApplication::_initRestInterface()
 {
     _restInterface =
-        make_unique<RestInterface>(_config->getWebServicePort(), _options,
-                                   *_displayGroup, *_config);
+        std::make_unique<RestInterface>(_config->getWebServicePort(), _options,
+                                        *_displayGroup, *_config);
 
-    _logger = make_unique<LoggingUtility>();
+    _logger = std::make_unique<LoggingUtility>();
 
     connect(_displayGroup.get(), &DisplayGroup::contentWindowAdded,
             _logger.get(), &LoggingUtility::logContentWindowAdded);

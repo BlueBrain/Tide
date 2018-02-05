@@ -149,7 +149,7 @@ void WallSceneRenderer::_createSceneItem(QQuickItem& parentItem)
 void WallSceneRenderer::_createGroupRenderer()
 {
     _displayGroupRenderer =
-        make_unique<DisplayGroupRenderer>(_context, *_sceneItem);
+        std::make_unique<DisplayGroupRenderer>(_context, *_sceneItem);
 }
 
 void WallSceneRenderer::_setBackground(const Background& background)
@@ -160,7 +160,8 @@ void WallSceneRenderer::_setBackground(const Background& background)
         _backgroundRenderer.reset();
     else if (_hasBackgroundChanged(content->getURI()))
         _backgroundRenderer =
-            make_unique<BackgroundRenderer>(background, _context, *_sceneItem);
+            std::make_unique<BackgroundRenderer>(background, _context,
+                                                 *_sceneItem);
 }
 
 bool WallSceneRenderer::_hasBackgroundChanged(const QString& newUri) const

@@ -48,7 +48,7 @@ public:
     std::unique_ptr<SwapSynchronizer> create(NetworkBarrier& barrier,
                                              uint windowCount) final
     {
-        return make_unique<SwapSynchronizerHardware>(barrier, windowCount);
+        return std::make_unique<SwapSynchronizerHardware>(barrier, windowCount);
     }
 };
 
@@ -58,7 +58,7 @@ public:
     std::unique_ptr<SwapSynchronizer> create(NetworkBarrier& barrier,
                                              uint windowCount) final
     {
-        return make_unique<SwapSynchronizerSoftware>(barrier, windowCount);
+        return std::make_unique<SwapSynchronizerSoftware>(barrier, windowCount);
     }
 };
 
@@ -68,9 +68,9 @@ std::unique_ptr<SwapSynchronizerFactory> SwapSynchronizerFactory::get(
     switch (type)
     {
     case SwapSync::hardware:
-        return make_unique<HardwareSwapSynchronizerFactory>();
+        return std::make_unique<HardwareSwapSynchronizerFactory>();
     case SwapSync::software:
-        return make_unique<SoftwareSwapSynchronizerFactory>();
+        return std::make_unique<SoftwareSwapSynchronizerFactory>();
     default:
         throw std::logic_error("No such swap synchronization method");
     }

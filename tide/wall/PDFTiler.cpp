@@ -100,7 +100,7 @@ QImage PDFTiler::getCachableTileImage(uint tileId) const
     {
         QMutexLocker lock(&_threadMapMutex);
         if (!_perThreadPDF.count(id))
-            _perThreadPDF[id] = make_unique<PDF>(_uri);
+            _perThreadPDF[id] = std::make_unique<PDF>(_uri);
         pdf = _perThreadPDF[id].get();
     }
     pdf->setPage(tileId / _tilesPerPage);
