@@ -49,7 +49,7 @@ namespace
 {
 const jsonrpc::Response noWindow{
     jsonrpc::Response::Error{"window does not exist", 2}};
-const jsonrpc::Response ok{"OK"};
+const jsonrpc::Response ok{"\"OK\""};
 }
 
 /** Wrapper function to call fromJson for all parameters. */

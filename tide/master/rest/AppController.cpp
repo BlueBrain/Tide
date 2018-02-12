@@ -65,7 +65,7 @@ bool from_json_object(T& params, const QJsonObject& object)
 
 jsonrpc::Response makeJsonRpcResponse(const bool success)
 {
-    return success ? jsonrpc::Response{"OK"}
+    return success ? jsonrpc::Response{"\"OK\""}
                    : jsonrpc::Response{
                          jsonrpc::Response::Error{"operation failed", -1}};
 }
