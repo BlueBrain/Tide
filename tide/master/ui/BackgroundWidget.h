@@ -44,7 +44,6 @@
 
 #include "types.h"
 
-class MasterConfiguration;
 class QLabel;
 
 /**
@@ -61,7 +60,7 @@ public:
      *                      background settings.
      * @param parent An optional parent widget
      */
-    BackgroundWidget(MasterConfiguration& configuration, QWidget* parent = 0);
+    BackgroundWidget(Configuration& configuration, QWidget* parent = 0);
 
 public slots:
     /** Store the new settings and close the widget */
@@ -76,7 +75,7 @@ private slots:
     void _removeBackground();
 
 private:
-    MasterConfiguration& _configuration;
+    Configuration& _configuration;
     Background& _background;
 
     QLabel* _colorLabel;

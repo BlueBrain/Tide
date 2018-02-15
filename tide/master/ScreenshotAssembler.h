@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -40,7 +40,7 @@
 #ifndef SCREENSHOTASSEMBLER_H
 #define SCREENSHOTASSEMBLER_H
 
-#include "Configuration.h"
+#include "configuration/Surface.h"
 
 #include <QImage>
 #include <QObject>
@@ -58,7 +58,7 @@ public:
      *
      * @param config the configuration of the wall.
      */
-    explicit ScreenshotAssembler(const Configuration& config);
+    explicit ScreenshotAssembler(const Surface& config);
 
 public slots:
     /**
@@ -73,7 +73,7 @@ signals:
     void screenshotComplete(QImage image);
 
 private:
-    const Configuration& _config;
+    const Surface& _surface;
     QImage _screenshot;
     std::vector<bool> _imagesReceived;
 };

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -40,69 +40,43 @@
 #ifndef WALLCONFIGURATION_H
 #define WALLCONFIGURATION_H
 
-#include "Configuration.h"
-
-#include <QPoint>
+#include "configuration/Configuration.h"
 
 /**
- * Configuration for an individual screen of a wall process.
- */
-struct ScreenConfiguration
-{
-    /** Display identifier in string format matching Linux DISPLAY env_var. */
-    QString display;
-
-    /** Coordinates of the screen in pixel units. */
-    QPoint position;
-
-    /** Global index for the screen starting at {0,0} from the top-left. */
-    QPoint globalIndex;
-
-    /** Stereo mode for this screen. */
-    deflect::View stereoMode = deflect::View::mono;
-};
-
-/**
- * Read the parameters needed to setup a Wall process from an xml file.
+ * Read the parameters needed to setup a Wall process from a configuration file.
  *
- * @warning: this class can only be used AFTER creating a QApplication.
+ * @warning: can only be used AFTER creating a QApplication.
  */
-class WallConfiguration : public Configuration
+struct WallConfiguration
 {
-public:
     /**
      * Constructor.
      * @param filename \see Configuration
-     * @param processIndex MPI index in the range [1;n] of the process
+     * @param processIndex MPI index in the range [0;n] of wall processes
      * @throw std::runtime_error if the file could not be read
      */
-    WallConfiguration(const QString& filename, int processIndex);
+    WallConfiguration(const QString& filename, uint processIndex);
 
-    /** Get the index of the process. */
-    int getProcessIndex() const;
+    /** The index of the process. */
+    uint processIndex = 0;
 
-    /** Get the name of the host on which this process is running. */
-    const QString& getHost() const;
+    /** The process configuration. */
+    Process process;
 
-    /** @return the screen configurations for this process. */
-    const std::vector<ScreenConfiguration>& getScreens() const;
+    /** The surface informations. */
+    std::vector<Surface> surfaces;
 
-    /** @return the number of wall processes running on the same host. */
-    int getProcessCountForHost() const;
+    /** The number of wall processes running on the same host. */
+    int processCountForHost = 0;
 
-private:
-    const int _processIndex;
-    QString _host;
-    std::vector<ScreenConfiguration> _screens;
+    /** The swap synchronization mode. */
+    SwapSync swapsync = SwapSync::software;
 
-    int _processCountForHost = 0;
+    /** Maximum scaling factor for bitmap contents. */
+    double contentMaxScale = 0.0;
 
-    deflect::View _stereoMode = deflect::View::mono;
-    QString _display;
-
-    void _loadWallSettings();
-    ScreenConfiguration _loadScreenSettings(QXmlQuery& query,
-                                            int screenIndex) const;
+    /** Maximum scaling factor for vectorial contents. */
+    double contentMaxScaleVectorial = 0.0;
 };
 
 #endif

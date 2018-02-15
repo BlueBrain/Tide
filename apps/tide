@@ -6,11 +6,12 @@ Usage: ./tide --help
 
 import os
 import sys
-import xml.etree.ElementTree as ET
 import subprocess
 import shlex
 import distutils.spawn
 import argparse
+import json
+import xml.etree.ElementTree as ET
 
 # rtneuron vglrun env detection
 def using_virtualGL():
@@ -52,6 +53,61 @@ def locate_binary(exec_name):
         exit(-4)
     return binary
 
+class ProcessConfig:
+    def __init__(self, host):
+        self.host = host
+        self.displays = []
+
+class Configuration:
+    def __init__(self):
+        self.master = ProcessConfig('localhost')
+        self.walls = []
+
+def parse_config_xml(filename):
+    config = Configuration()
+    xml_config = ET.parse(filename)
+
+    # parse the masterProcess element
+    master_process = xml_config.find('masterProcess')
+    if master_process is None:
+        print("masterProcess not found, using defaults: 'localhost' ':0'")
+    else:
+        config.master.host = master_process.get("host")
+        config.master.displays.append(master_process.get('display'))
+
+    # parse the wall processes
+    for process in xml_config.findall('.//process'):
+        wall = ProcessConfig(process.get("host"))
+        if wall.host is None:
+            print('Error, no host attribute in <process> tag.')
+            exit(-1)
+        display = process.get('display')
+        if display is not None: # old format - single display per process
+            wall.displays.append(display)
+        else: # new format - multiple displays per process
+            for screen in process.findall('screen'):
+                wall.displays.append(screen.get('display'))
+        config.walls.append(wall)
+    return config
+
+def parse_config_json(filename):
+    config = Configuration()
+    data = json.load(open(filename))
+    config.master.host = data["master"]["host"]
+    config.master.displays.append(data["master"]["display"])
+    for process in data["processes"]:
+        wall = ProcessConfig(process["host"])
+        for screen in process["screens"]:
+            wall.displays.append(screen["display"])
+        config.walls.append(wall)
+    return config
+
+def parse_config(filename):
+    extension = os.path.splitext(filename)[1]
+    if extension == '.xml':
+        return parse_config_xml(filename)
+    return parse_config_json(filename)
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--config", help="The configuration file to load")
 parser.add_argument("--mpiargs", help="Extra arguments for the mpiexec command")
@@ -74,7 +130,7 @@ TIDEFORKER_BIN = locate_binary("tideForker")
 if args.config:
     TIDE_CONFIG_FILE = os.path.abspath(args.config)
 else:
-    TIDE_CONFIG_FILE = TIDE_PATH + '/share/Tide/examples/configuration_1x3.xml'
+    TIDE_CONFIG_FILE = TIDE_PATH + '/share/Tide/examples/configuration_1x3.json'
 
 # find full path to mpiexec; if MPI is installed in a non-standard location the
 # full path may be necessary to launch correctly across the cluster.
@@ -145,40 +201,25 @@ else:
 # Override VirtualGL detection
 using_vgl = not args.vglrun and using_virtualGL()
 
-# configuration.xml gives the rest of the hosts and the displays
+# configuration file gives the list of the hosts and the displays
 try:
-    XML_CONFIG = ET.parse(TIDE_CONFIG_FILE)
-
-    # parse the masterProcess element
-    master_process = XML_CONFIG.find('masterProcess')
-    if master_process is None:
-        print("masterProcess not found, using defaults: 'localhost' ':0'")
-    else:
-        host = master_process.get("host")
-        if using_vgl:
-            display = os.environ["DISPLAY"]
-        else:
-            display = master_process.get('display')
-
-    if host is None:
-        host = 'localhost'
-
+    config = parse_config(TIDE_CONFIG_FILE)
     if using_vgl:
-        display = os.environ["DISPLAY"]
+        config.master.displays[0] = os.environ["DISPLAY"]
+        for wall in config.walls:
+            wall.displays[0] = os.environ["DISPLAY"]
 
-    if display is None:
-        display = ":0"
-
+    # add the master and forker commands
     if MPI_PER_NODE_HOST:
-        node_host = '%s %s' % (MPI_PER_NODE_HOST, host)
+        node_host = '%s %s' % (MPI_PER_NODE_HOST, config.master.host)
     else:
         node_host = ''
 
     if MPI_GLOBAL_HOST_LIST:
-        hostlist.append(host) # master
-        forker_host = host    # forker goes at the end of the hostlist
+        hostlist.append(config.master.host) # master
+        forker_host = config.master.host    # forker goes at the end of hostlist
 
-    export_display = EXPORT_ENV_VAR.format('DISPLAY', display)
+    export_display = EXPORT_ENV_VAR.format('DISPLAY', config.master.displays[0])
     env_vars = [MPI_SPECIAL_FLAGS, export_display, node_host]
     environment = ' '.join(env_vars)
 
@@ -193,36 +234,22 @@ try:
     mastercmd = '%s -np 1 %s' % (environment, masterexec)
     runcommands.append(mastercmd)
 
-    # parse the wall processes
-    for process in XML_CONFIG.findall('.//process'):
-        host = process.get("host")
-
-        if host is None:
-            print('Error, no host attribute in <process> tag.')
-            exit(-1)
-
-        if using_vgl:
-            display = os.environ["DISPLAY"]
-        else:
-            display = process.get('display')
-
-        if display is None:
-            displays = ['xcb']
-            for screen in process.findall('screen'):
-                displays.append(screen.get('display'))
-            export_display = EXPORT_ENV_VAR.format('DISPLAY', displays[1])
-            export_qpa = EXPORT_ENV_VAR.format('QT_QPA_PLATFORM', ':'.join(displays))
+    # add the wall commands
+    for wall in config.walls:
+        export_display = EXPORT_ENV_VAR.format('DISPLAY', wall.displays[0])
+        if len(wall.displays) > 1: # multiple screens per process, needs QPA
+            xcb_config = ['xcb'] + wall.displays
+            qpa = ':'.join(xcb_config)
+            export_qpa = EXPORT_ENV_VAR.format('QT_QPA_PLATFORM', qpa)
             export_display = '%s %s' % (export_display, export_qpa)
-        else:
-            export_display = EXPORT_ENV_VAR.format('DISPLAY', display)
 
         if MPI_PER_NODE_HOST:
-            node_host = '%s %s' % (MPI_PER_NODE_HOST, host)
+            node_host = '%s %s' % (MPI_PER_NODE_HOST, wall.host)
         else:
             node_host = ''
 
         if MPI_GLOBAL_HOST_LIST:
-            hostlist.append(host)
+            hostlist.append(wall.host)
 
         env_vars = [MPI_SPECIAL_FLAGS, export_display, node_host]
         environment = ' '.join(env_vars)
@@ -235,7 +262,7 @@ try:
     runcommands.append(forkercmd)
 
 except Exception as e:
-    print("Error processing xml configuration '%s'. (%s)" % (TIDE_CONFIG_FILE, e))
+    print("Error processing configuration '%s'. (%s)" % (TIDE_CONFIG_FILE, e))
     exit(-2)
 
 if MPI_GLOBAL_HOST_LIST:

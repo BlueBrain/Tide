@@ -40,7 +40,7 @@
 
 #include "FileBrowser.h"
 
-#include "json.h"
+#include "json/json.h"
 
 #include <QDir>
 #include <QUrl>
@@ -84,7 +84,7 @@ std::future<rockets::http::Response> FileBrowser::list(
     if (!absolutePath.exists())
         return make_ready_response(Code::NO_CONTENT);
 
-    const auto body = json::toString(_toJsonArray(_contents(fullpath)));
+    const auto body = json::dump(_toJsonArray(_contents(fullpath)));
     return make_ready_response(Code::OK, body, "application/json");
 }
 

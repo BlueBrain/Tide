@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -40,22 +40,25 @@
 #define BOOST_TEST_MODULE ScreenshotAssembler
 #include <boost/test/unit_test.hpp>
 
-#include "Configuration.h"
 #include "ScreenshotAssembler.h"
 
 #include "MinimalGlobalQtApp.h"
 #include "imageCompare.h"
 
-#define CONFIG_TEST_FILENAME "./configuration.xml"
-#define REFERENCE_SCREENSHOT "./reference_screenshot.png"
+namespace
+{
+const Surface referenceSurface{1920, 1080, 2, 1, 2, 3, 14, 12};
+const QString referenceScreenshot{"./reference_screenshot.png"};
+}
 
 // Needed for relative path to resources to work
 BOOST_GLOBAL_FIXTURE(MinimalGlobalQtApp);
 
 BOOST_AUTO_TEST_CASE(test_assemble_screenshot)
 {
-    const Configuration config{CONFIG_TEST_FILENAME};
-    ScreenshotAssembler assembler{config};
+    const auto& surface = referenceSurface;
+
+    ScreenshotAssembler assembler{surface};
 
     QImage screenshot;
     assembler.connect(&assembler, &ScreenshotAssembler::screenshotComplete,
@@ -63,29 +66,28 @@ BOOST_AUTO_TEST_CASE(test_assemble_screenshot)
                           screenshot = image;
                       });
 
-    const QSize screenSize{(int)config.getScreenWidth(),
-                           (int)config.getScreenHeight()};
-    const auto screenCount =
-        config.getTotalScreenCountY() * config.getTotalScreenCountX();
+    const QSize screenSize{(int)surface.getScreenWidth(),
+                           (int)surface.getScreenHeight()};
+    const auto screenCount = surface.screenCountX * surface.screenCountY;
 
     QImage screen{screenSize, QImage::Format_RGB32};
 
-    for (auto y = 0; y < (int)config.getTotalScreenCountY(); ++y)
+    for (auto y = 0; y < (int)surface.screenCountY; ++y)
     {
-        for (auto x = 0; x < (int)config.getTotalScreenCountX(); ++x)
+        for (auto x = 0; x < (int)surface.screenCountX; ++x)
         {
             screen.fill(QColor{x * 64, y * 64, 128});
             assembler.addImage(screen, {x, y});
-            const auto index = x + y * config.getTotalScreenCountX();
+            const auto index = x + y * surface.screenCountX;
             if (index < screenCount - 1)
                 BOOST_CHECK(screenshot.isNull());
         }
     }
 
     BOOST_CHECK(!screenshot.isNull());
-    BOOST_CHECK_EQUAL(screenshot.size(), config.getTotalSize());
+    BOOST_CHECK_EQUAL(screenshot.size(), surface.getTotalSize());
 
     QImage reference;
-    BOOST_REQUIRE(reference.load(REFERENCE_SCREENSHOT));
+    BOOST_REQUIRE(reference.load(referenceScreenshot));
     BOOST_CHECK_LT(compareImages(screenshot, reference), 0.005);
 }

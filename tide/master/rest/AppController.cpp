@@ -40,11 +40,12 @@
 
 #include "AppController.h"
 
-#include "MasterConfiguration.h"
 #include "config.h"
-#include "serialization.h"
+#include "configuration/Configuration.h"
+#include "json/json.h"
 
 #include <QDir>
+#include <QJsonObject>
 
 using namespace rockets;
 
@@ -56,18 +57,10 @@ QString _makeAbsPath(const QString& baseDir, const QString& uri)
 }
 } // anonymous namespace
 
-/** Wrapper function to call fromJson for all parameters. */
-template <typename T>
-bool from_json_object(T& params, const QJsonObject& object)
+template <typename Obj>
+bool from_json(Obj& object, const std::string& json)
 {
-    return params.fromJson(object);
-}
-
-jsonrpc::Response makeJsonRpcResponse(const bool success)
-{
-    return success ? jsonrpc::Response{"\"OK\""}
-                   : jsonrpc::Response{
-                         jsonrpc::Response::Error{"operation failed", -1}};
+    return object.fromJson(json::parse(json));
 }
 
 struct Uri
@@ -81,31 +74,38 @@ struct Uri
     }
 };
 
-AppController::AppController(const MasterConfiguration& config)
+jsonrpc::Response makeJsonRpcResponse(const bool success)
 {
-    const auto contentDir = config.getContentDir();
-    const auto sessionDir = config.getSessionsDir();
+    return success ? jsonrpc::Response{"\"OK\""}
+                   : jsonrpc::Response{
+                         jsonrpc::Response::Error{"operation failed", -1}};
+}
 
-    bindAsync<Uri>("open", [this, contentDir](Uri uri,
-                                              jsonrpc::AsyncResponse callback) {
-        auto boolCallback = [callback](const bool result) {
-            callback(makeJsonRpcResponse(result));
+AppController::AppController(const Configuration& config)
+{
+    const auto& contentsDir = config.folders.contents;
+    const auto& sessionsDir = config.folders.sessions;
+
+    bindAsync<Uri>("open", [this, contentsDir](Uri uri,
+                                               jsonrpc::AsyncResponse respond) {
+        auto boolCallback = [respond](const bool result) {
+            respond(makeJsonRpcResponse(result));
         };
-        emit open(_makeAbsPath(contentDir, uri.uri), QPointF(), boolCallback);
+        emit open(_makeAbsPath(contentsDir, uri.uri), QPointF(), boolCallback);
     });
-    bindAsync<Uri>("load", [this, sessionDir](Uri uri,
-                                              jsonrpc::AsyncResponse callback) {
-        auto boolCallback = [callback](const bool result) {
-            callback(makeJsonRpcResponse(result));
+    bindAsync<Uri>("load", [this, sessionsDir](Uri uri,
+                                               jsonrpc::AsyncResponse respond) {
+        auto boolCallback = [respond](const bool result) {
+            respond(makeJsonRpcResponse(result));
         };
-        emit load(_makeAbsPath(sessionDir, uri.uri), boolCallback);
+        emit load(_makeAbsPath(sessionsDir, uri.uri), boolCallback);
     });
-    bindAsync<Uri>("save", [this, sessionDir](Uri uri,
-                                              jsonrpc::AsyncResponse callback) {
-        auto boolCallback = [callback](const bool result) {
-            callback(makeJsonRpcResponse(result));
+    bindAsync<Uri>("save", [this, sessionsDir](Uri uri,
+                                               jsonrpc::AsyncResponse respond) {
+        auto boolCallback = [respond](const bool result) {
+            respond(makeJsonRpcResponse(result));
         };
-        emit save(_makeAbsPath(sessionDir, uri.uri), boolCallback);
+        emit save(_makeAbsPath(sessionsDir, uri.uri), boolCallback);
     });
 
     using rpc = jsonrpc::Receiver; // Disambiguating from QObject::connect

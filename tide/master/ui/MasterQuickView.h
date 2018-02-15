@@ -59,7 +59,7 @@ class MasterQuickView : public QQuickView
 public:
     /** Constructor. */
     MasterQuickView(OptionsPtr options, ScreenLockPtr lock,
-                    const MasterConfiguration& config);
+                    const Configuration& config);
 
     /** Destructor */
     ~MasterQuickView();

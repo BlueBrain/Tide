@@ -1,14 +1,14 @@
 
-# Copyright (c) 2013-2016, EPFL/Blue Brain Project
-#                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>
-#                     Raphael Dumusc <raphael.dumusc@epfl.ch>
+# Copyright (c) 2013-2018, EPFL/Blue Brain Project
+#                          Daniel Nachbaur <daniel.nachbaur@epfl.ch>
+#                          Raphael Dumusc <raphael.dumusc@epfl.ch>
 #
 # Copy and configure resources used by the tests
 
 # Copy the files needed by the tests to the build directory
 set(TEST_RESOURCES
+  configuration.json
   configuration.xml
-  configuration_default.xml
   configuration_empty.xml
   configuration_minimal.xml
   configuration_stereo.xml

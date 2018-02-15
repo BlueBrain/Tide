@@ -39,7 +39,7 @@
 
 #include "jsonschema.h"
 
-#include "json.h"
+#include "json/json.h"
 
 #include <QStringList>
 
@@ -123,7 +123,7 @@ std::string create(const QString& title, const QJsonObject& object,
 {
     auto schema = _getObjectSchema(title, object);
     schema["description"] = description;
-    return json::toString(schema);
+    return json::dump(schema);
 }
 
 std::string create(const QString& title, const QJsonArray& array,
@@ -136,6 +136,6 @@ std::string create(const QString& title, const QJsonArray& array,
         schema["minItems"] = array.size();
         schema["maxItems"] = array.size();
     }
-    return json::toString(schema);
+    return json::dump(schema);
 }
 }

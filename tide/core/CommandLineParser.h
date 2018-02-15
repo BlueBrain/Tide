@@ -98,6 +98,9 @@ protected:
     /** The list of options which already includes "--help". */
     boost::program_options::options_description desc{"Allowed options"};
 
+    /** The list of positional options. */
+    boost::program_options::positional_options_description pos_desc;
+
     /** Contains the results of the parse() operation. */
     boost::program_options::variables_map vm;
 };

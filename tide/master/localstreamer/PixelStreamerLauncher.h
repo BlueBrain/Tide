@@ -68,7 +68,7 @@ public:
      * @param config The configuration for the default parameters
      */
     PixelStreamerLauncher(PixelStreamWindowManager& manager,
-                          const MasterConfiguration& config);
+                          const Configuration& config);
 
     static const QString launcherUri;
 
@@ -99,7 +99,7 @@ signals:
 
 private:
     PixelStreamWindowManager& _windowManager;
-    const MasterConfiguration& _config;
+    const Configuration& _config;
     std::set<QString> _processes;
 
     QSize _getLauncherSize() const;
@@ -109,6 +109,7 @@ private:
     QPointF _getDefaultWindowPosition() const;
     void _startProcess(const QString& uri, const QString& command,
                        const QStringList& env);
+    const Surface& getSurface() const;
 };
 
 #endif

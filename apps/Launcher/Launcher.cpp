@@ -43,7 +43,6 @@
 #include "tide/core/scene/ContentFactory.h"
 #include "tide/core/thumbnail/ThumbnailProvider.h"
 
-#include "tide/master/MasterConfiguration.h"
 #include "tide/master/localstreamer/CommandLineOptions.h"
 #include "tide/master/localstreamer/QmlKeyInjector.h"
 
@@ -61,9 +60,8 @@ Launcher::Launcher(int& argc, char* argv[])
     : QGuiApplication(argc, argv)
 {
     const CommandLineOptions options(argc, argv);
-    const MasterConfiguration config(options.getConfiguration());
 
-    const auto deflectStreamId = options.getStreamId().toStdString();
+    const auto deflectStreamId = options.streamId.toStdString();
     _qmlStreamer.reset(new deflect::qt::QmlStreamer(deflectQmlFile, deflectHost,
                                                     deflectStreamId));
 
@@ -73,17 +71,17 @@ Launcher::Launcher(int& argc, char* argv[])
     auto item = _qmlStreamer->getRootItem();
 
     // General setup
-    item->setProperty("restPort", config.getWebServicePort());
-    if (options.getWidth())
-        item->setProperty("width", options.getWidth());
-    if (options.getHeight())
-        item->setProperty("height", options.getHeight());
+    item->setProperty("restPort", options.webservicePort);
+    if (options.width)
+        item->setProperty("width", options.width);
+    if (options.height)
+        item->setProperty("height", options.height);
 
     // FileBrowser setup
     const auto filters = ContentFactory::getSupportedFilesFilter();
     item->setProperty("filesFilter", filters);
-    item->setProperty("rootFilesFolder", config.getContentDir());
-    item->setProperty("rootSessionsFolder", config.getSessionsDir());
+    item->setProperty("rootFilesFolder", options.contentsDir);
+    item->setProperty("rootSessionsFolder", options.sessionsDir);
 
     QQmlEngine* engine = _qmlStreamer->getQmlEngine();
 #if TIDE_ASYNC_THUMBNAIL_PROVIDER
@@ -94,11 +92,10 @@ Launcher::Launcher(int& argc, char* argv[])
     engine->rootContext()->setContextProperty("fileInfo", &_fileInfoHelper);
 
     // DemoLauncher setup
-    item->setProperty("demoServiceUrl", config.getDemoServiceUrl());
-    item->setProperty("demoServiceImageFolder",
-                      config.getDemoServiceImageFolder());
+    item->setProperty("demoServiceUrl", options.demoServiceUrl);
+    item->setProperty("demoServiceImageFolder", options.demoServiceImageDir);
     item->setProperty("demoServiceDeflectHost", QHostInfo::localHostName());
-    if (!config.getPlanarSerialPort().isEmpty())
+    if (options.showPowerButton)
         item->setProperty("powerButtonVisible", true);
 }
 

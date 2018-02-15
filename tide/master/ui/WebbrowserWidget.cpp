@@ -39,17 +39,14 @@
 
 #include "WebbrowserWidget.h"
 
-#include "MasterConfiguration.h"
+#include "configuration/Configuration.h"
 
 #include <QtWidgets>
 
 #define SPIN_BOX_MIN_VALUE 0
 #define SPIN_BOX_MAX_VALUE 10000
 
-#define WEBBROWSER_DEFAULT_WIDTH 1280
-#define WEBBROWSER_DEFAULT_HEIGHT 1024
-
-WebbrowserWidget::WebbrowserWidget(const MasterConfiguration& config,
+WebbrowserWidget::WebbrowserWidget(const Configuration& config,
                                    QWidget* parent_)
     : QDialog(parent_)
     , _widthSpinBox(0)
@@ -60,7 +57,7 @@ WebbrowserWidget::WebbrowserWidget(const MasterConfiguration& config,
     // URL input
 
     QLabel* urlLabel = new QLabel("Url: ", this);
-    _urlLineEdit = new QLineEdit(config.getWebBrowserDefaultURL(), this);
+    _urlLineEdit = new QLineEdit(config.webbrowser.defaultUrl, this);
     urlLabel->setBuddy(_urlLineEdit);
 
     // Standard buttons
@@ -79,14 +76,14 @@ WebbrowserWidget::WebbrowserWidget(const MasterConfiguration& config,
     _widthSpinBox = new QSpinBox(this);
     _widthSpinBox->setMinimum(SPIN_BOX_MIN_VALUE);
     _widthSpinBox->setMaximum(SPIN_BOX_MAX_VALUE);
-    _widthSpinBox->setValue(WEBBROWSER_DEFAULT_WIDTH);
+    _widthSpinBox->setValue(config.webbrowser.defaultSize.width());
 
     QLabel* heightLabel = new QLabel("Height: ", this);
 
     _heightSpinBox = new QSpinBox(this);
     _heightSpinBox->setMinimum(SPIN_BOX_MIN_VALUE);
     _heightSpinBox->setMaximum(SPIN_BOX_MAX_VALUE);
-    _heightSpinBox->setValue(WEBBROWSER_DEFAULT_HEIGHT);
+    _heightSpinBox->setValue(config.webbrowser.defaultSize.height());
 
     // Debug port
 

@@ -115,7 +115,7 @@ OpenCL.
 
 Alternative: If the above does not work for you, try installing the libmpich-dev
 system package. Tide will then only run in single-window mode (using
-configuration_1x1.xml).
+configuration_1x1.json).
 
 ### MacOS
 

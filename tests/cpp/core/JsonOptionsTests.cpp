@@ -41,8 +41,9 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "rest/serialization.h"
 #include "scene/Options.h"
+#include "json/serialization.h"
+#include "json/templates.h"
 
 namespace
 {
@@ -93,24 +94,24 @@ struct Fixture
 
 BOOST_FIXTURE_TEST_CASE(testDefaultSerialization, Fixture)
 {
-    BOOST_CHECK_EQUAL(to_json(*options), defaultJson);
+    BOOST_CHECK_EQUAL(json::dump(*options), defaultJson);
 }
 
 BOOST_FIXTURE_TEST_CASE(testInvalidJsonHasNoEffect, Fixture)
 {
-    BOOST_CHECK(!from_json(*options, notJson));
-    BOOST_CHECK_EQUAL(to_json(*options), defaultJson);
+    BOOST_CHECK(!json::deserialize(notJson, *options));
+    BOOST_CHECK_EQUAL(json::dump(*options), defaultJson);
 }
 
 BOOST_FIXTURE_TEST_CASE(testChangeSingleValueFromJson, Fixture)
 {
     BOOST_REQUIRE_EQUAL(options->getShowTestPattern(), false);
-    BOOST_CHECK(from_json(*options, uriChangedJson));
+    BOOST_CHECK(json::deserialize(uriChangedJson, *options));
     BOOST_CHECK_EQUAL(options->getShowTestPattern(), true);
 }
 
 BOOST_FIXTURE_TEST_CASE(testChangeAllValuesFromJson, Fixture)
 {
-    BOOST_CHECK(from_json(*options, allValuesChangedJson));
-    BOOST_CHECK_EQUAL(to_json(*options), allValuesChangedJson);
+    BOOST_CHECK(json::deserialize(allValuesChangedJson, *options));
+    BOOST_CHECK_EQUAL(json::dump(*options), allValuesChangedJson);
 }

@@ -94,7 +94,8 @@ BOOST_AUTO_TEST_CASE(testSignal)
 
     bool emitted = false;
 
-    QObject::connect(&multiController, &MultiScreenController::powerStateChanged,
+    QObject::connect(&multiController,
+                     &MultiScreenController::powerStateChanged,
                      [&emitted]() { emitted = true; });
 
     multiController.checkPowerState();

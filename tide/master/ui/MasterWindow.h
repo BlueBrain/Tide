@@ -62,7 +62,7 @@ class MasterWindow : public QMainWindow
 public:
     /** Constructor. */
     MasterWindow(DisplayGroupPtr displayGroup, OptionsPtr options,
-                 ScreenLockPtr lock, MasterConfiguration& config);
+                 ScreenLockPtr lock, Configuration& config);
 
     /** @return the quick view. */
     MasterQuickView* getQuickView();

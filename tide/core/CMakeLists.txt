@@ -115,15 +115,28 @@ endif()
 list(APPEND TIDECORE_PUBLIC_HEADERS
   CommandLineParameters.h
   CommandLineParser.h
-  Configuration.h
+  geometry.h
+  log.h
+  QmlTypeRegistration.h
+  qmlUtils.h
+  StatePreview.h
+  types.h
+  yuv.h
+  ZoomHelper.h
+  configuration/Configuration.h
+  configuration/Process.h
+  configuration/Screen.h
+  configuration/Surface.h
+  configuration/XmlParser.h
   data/Image.h
   data/QtImage.h
   data/SVG.h
   data/SVGBackend.h
   data/SVGQtGpuBackend.h
   data/YUVImage.h
-  geometry.h
-  log.h
+  json/json.h
+  json/serialization.h
+  json/templates.h
   network/LocalBarrier.h
   network/MPIChannel.h
   network/MPIContext.h
@@ -132,9 +145,6 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   network/NetworkBarrier.h
   network/ReceiveBuffer.h
   network/SharedNetworkBarrier.h
-  QmlTypeRegistration.h
-  qmlUtils.h
-  StatePreview.h
   scene/Background.h
   scene/ContentAction.h
   scene/ContentActionsModel.h
@@ -169,27 +179,32 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   thumbnail/ThumbnailGeneratorFactory.h
   thumbnail/ThumbnailGenerator.h
   thumbnail/ThumbnailProvider.h
-  types.h
-  yuv.h
-  ZoomHelper.h
 )
 
 list(APPEND TIDECORE_SOURCES
   CommandLineParameters.cpp
   CommandLineParser.cpp
-  Configuration.cpp
+  geometry.cpp
+  log.cpp
+  MetaTypeRegistration.cpp
+  StatePreview.cpp
+  yuv.cpp
+  ZoomHelper.cpp
+  configuration/Configuration.cpp
+  configuration/Surface.cpp
+  configuration/XmlParser.cpp
   data/QtImage.cpp
   data/SVG.cpp
   data/SVGQtGpuBackend.cpp
   data/YUVImage.cpp
-  geometry.cpp
-  log.cpp
-  MetaTypeRegistration.cpp
+  json/json.cpp
+  json/serialization.cpp
   network/LocalBarrier.cpp
   network/MPIChannel.cpp
   network/MPIContext.cpp
   network/MPINospin.cpp
   network/SharedNetworkBarrier.cpp
+  resources/core.qrc
   scene/Background.cpp
   scene/ContentAction.cpp
   scene/ContentActionsModel.cpp
@@ -209,7 +224,6 @@ list(APPEND TIDECORE_SOURCES
   scene/SVGContent.cpp
   scene/TextureContent.cpp
   scene/VectorialContent.cpp
-  StatePreview.cpp
   thumbnail/DefaultThumbnailGenerator.cpp
   thumbnail/FolderThumbnailGenerator.cpp
   thumbnail/ImageThumbnailGenerator.cpp
@@ -219,9 +233,6 @@ list(APPEND TIDECORE_SOURCES
   thumbnail/ThumbnailGenerator.cpp
   thumbnail/ThumbnailGeneratorFactory.cpp
   thumbnail/ThumbnailProvider.cpp
-  yuv.cpp
-  ZoomHelper.cpp
-  resources/core.qrc
 )
 
 if(TIDE_ENABLE_WEBBROWSER_SUPPORT)

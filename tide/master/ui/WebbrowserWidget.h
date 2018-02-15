@@ -42,9 +42,10 @@
 
 #include <QDialog>
 
+class Configuration;
+
 class QLineEdit;
 class QSpinBox;
-class MasterConfiguration;
 
 /**
  * Dialog for opening a new webbrowser window.
@@ -55,7 +56,7 @@ class WebbrowserWidget : public QDialog
 
 public:
     /** Constructor. */
-    WebbrowserWidget(const MasterConfiguration& config, QWidget* parent = 0);
+    WebbrowserWidget(const Configuration& config, QWidget* parent = 0);
 
 signals:
     /** Emitted when users want to open a webbrowser. */

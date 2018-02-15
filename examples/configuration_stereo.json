@@ -1,0 +1,58 @@
+{
+    "master": {
+        "display": ":0",
+        "host": "localhost"
+    },
+    "processes": [
+        {
+            "host": "localhost",
+            "screens": [
+                {
+                    "display": ":0",
+                    "stereo": "left"
+                }
+            ]
+        },
+        {
+            "host": "localhost",
+            "screens": [
+                {
+                    "display": ":0",
+                    "stereo": "right",
+                    "y": 800
+                }
+            ]
+        },
+        {
+            "host": "localhost",
+            "screens": [
+                {
+                    "display": ":0",
+                    "i": 1,
+                    "stereo": "left",
+                    "x": 900
+                }
+            ]
+        },
+        {
+            "host": "localhost",
+            "screens": [
+                {
+                    "display": ":0",
+                    "i": 1,
+                    "stereo": "right",
+                    "x": 900,
+                    "y": 800
+                }
+            ]
+        }
+    ],
+    "surfaces": [
+        {
+            "bezelWidth": -60,
+            "displayHeight": 540,
+            "displayWidth": 960,
+            "numScreensX": 2
+        }
+    ]
+}

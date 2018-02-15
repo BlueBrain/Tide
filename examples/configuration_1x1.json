@@ -1,0 +1,25 @@
+{
+    "background": {
+        "color": "#00e6ff"
+    },
+    "master": {
+        "display": ":0",
+        "host": "localhost"
+    },
+    "processes": [
+        {
+            "host": "localhost",
+            "screens": [
+                {
+                    "display": ":0"
+                }
+            ]
+        }
+    ],
+    "surfaces": [
+        {
+            "displayHeight": 600,
+            "displayWidth": 1200
+        }
+    ]
+}

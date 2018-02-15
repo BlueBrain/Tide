@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,7 +39,7 @@
 
 #include "MasterQuickView.h"
 
-#include "MasterConfiguration.h"
+#include "configuration/Configuration.h"
 #include "scene/Options.h"
 #include "scene/ScreenLock.h"
 
@@ -54,7 +54,7 @@ const QString WALL_OBJECT_NAME("Wall");
 }
 
 MasterQuickView::MasterQuickView(OptionsPtr options, ScreenLockPtr lock,
-                                 const MasterConfiguration& config)
+                                 const Configuration& config)
 {
     setResizeMode(QQuickView::SizeRootObjectToView);
 
@@ -64,15 +64,17 @@ MasterQuickView::MasterQuickView(OptionsPtr options, ScreenLockPtr lock,
 
     setSource(QML_ROOT_COMPONENT);
 
+    const auto& surface = config.surfaces[0];
+
     _wallItem = rootObject()->findChild<QQuickItem*>(WALL_OBJECT_NAME);
-    _wallItem->setProperty("numberOfTilesX", config.getTotalScreenCountX());
-    _wallItem->setProperty("numberOfTilesY", config.getTotalScreenCountY());
-    _wallItem->setProperty("bezelWidth", config.getBezelWidth());
-    _wallItem->setProperty("bezelHeight", config.getBezelHeight());
-    _wallItem->setProperty("screenWidth", config.getScreenWidth());
-    _wallItem->setProperty("screenHeight", config.getScreenHeight());
-    _wallItem->setProperty("wallWidth", config.getTotalWidth());
-    _wallItem->setProperty("wallHeight", config.getTotalHeight());
+    _wallItem->setProperty("numberOfTilesX", surface.screenCountX);
+    _wallItem->setProperty("numberOfTilesY", surface.screenCountY);
+    _wallItem->setProperty("bezelWidth", surface.bezelWidth);
+    _wallItem->setProperty("bezelHeight", surface.bezelHeight);
+    _wallItem->setProperty("screenWidth", surface.getScreenWidth());
+    _wallItem->setProperty("screenHeight", surface.getScreenHeight());
+    _wallItem->setProperty("wallWidth", surface.getTotalWidth());
+    _wallItem->setProperty("wallHeight", surface.getTotalHeight());
 }
 
 MasterQuickView::~MasterQuickView()

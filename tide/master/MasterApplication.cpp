@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /*                          Daniel.Nachbaur@epfl.ch                  */
 /* All rights reserved.                                              */
@@ -42,12 +42,12 @@
 
 #include "ContentLoader.h"
 #include "InactivityTimer.h"
-#include "MasterConfiguration.h"
 #include "MasterSceneRenderer.h"
 #include "PixelStreamWindowManager.h"
 #include "QmlTypeRegistration.h"
 #include "ScreenshotAssembler.h"
 #include "StateSerializationHelper.h"
+#include "configuration/Configuration.h"
 #include "control/DisplayGroupController.h"
 #include "localstreamer/PixelStreamerLauncher.h"
 #include "log.h"
@@ -60,6 +60,7 @@
 #include "scene/Markers.h"
 #include "scene/Options.h"
 #include "scene/ScreenLock.h"
+#include "scene/VectorialContent.h"
 #include "ui/MasterQuickView.h"
 #include "ui/MasterWindow.h"
 
@@ -94,16 +95,18 @@ MasterApplication::MasterApplication(int& argc_, char** argv_,
                                      MPIChannelPtr worldChannel,
                                      MPIChannelPtr forkChannel)
     : QApplication(argc_, argv_)
-    , _config(new MasterConfiguration(config))
+    , _config(new Configuration(config))
     , _masterToForkerChannel(new MasterToForkerChannel(forkChannel))
     , _masterToWallChannel(new MasterToWallChannel(worldChannel))
     , _masterFromWallChannel(new MasterFromWallChannel(worldChannel))
-    , _background{_config->getBackground().shared_from_this()}
+    , _background{_config->background->shared_from_this()}
     , _lock(ScreenLock::create())
     , _markers(Markers::create())
     , _options(Options::create())
 {
     master::registerQmlTypes();
+    Content::setMaxScale(_config->settings.contentMaxScale);
+    VectorialContent::setMaxScale(_config->settings.contentMaxScaleVectorial);
 
     // don't create touch points for mouse events and vice versa
     setAttribute(Qt::AA_SynthesizeTouchForUnhandledMouseEvents, false);
@@ -178,12 +181,13 @@ void MasterApplication::_save(const QString sessionFile, BoolCallback callback)
     _saveSessionCallback = callback;
 
     StateSerializationHelper helper(_displayGroup);
-    _saveSessionOp.setFuture(helper.save(sessionFile, _config->getUploadDir()));
+    _saveSessionOp.setFuture(helper.save(sessionFile, _config->folders.upload));
 }
 
 void MasterApplication::_init()
 {
-    _displayGroup.reset(new DisplayGroup(_config->getTotalSize()));
+    const auto& surface = _config->surfaces[0];
+    _displayGroup.reset(new DisplayGroup(surface.getTotalSize()));
     connect(_displayGroup.get(), &DisplayGroup::contentWindowRemoved, this,
             &MasterApplication::_deleteTempContentFile);
 
@@ -198,11 +202,12 @@ void MasterApplication::_init()
     _pixelStreamerLauncher.reset(
         new PixelStreamerLauncher(*_pixelStreamWindowManager, *_config));
 
-    _screenshotAssembler.reset(new ScreenshotAssembler(*_config));
+    _screenshotAssembler.reset(new ScreenshotAssembler(surface));
 
-    _inactivityTimer.reset(new InactivityTimer(_config->getPlanarTimeout()));
+    _inactivityTimer.reset(
+        new InactivityTimer(_config->settings.inactivityTimeout));
 
-    if (_config->getHeadless())
+    if (_config->master.headless)
         _initOffscreenView();
     else
         _initMasterWindow();
@@ -232,7 +237,7 @@ void MasterApplication::_init()
     _initRestInterface();
 #endif
 #if TIDE_ENABLE_PLANAR_CONTROLLER
-    if (!_config->getPlanarSerialPort().isEmpty())
+    if (!_config->master.planarSerialPort.isEmpty())
         _initPlanarController();
 #endif
     _startDeflectServer();
@@ -281,7 +286,7 @@ void MasterApplication::_initOffscreenView()
     _offscreenQuickView->getRootContext()->setContextProperty("lock",
                                                               _lock.get());
     _offscreenQuickView->load(QML_OFFSCREEN_ROOT_COMPONENT).wait();
-    _offscreenQuickView->resize(_config->getTotalSize());
+    _offscreenQuickView->resize(_config->surfaces[0].getTotalSize());
 
     auto engine = _offscreenQuickView->getEngine();
     auto item = _offscreenQuickView->getRootItem();
@@ -442,8 +447,8 @@ void MasterApplication::_setupMPIConnections()
 void MasterApplication::_initRestInterface()
 {
     _restInterface =
-        std::make_unique<RestInterface>(_config->getWebServicePort(), _options,
-                                        *_displayGroup, *_config);
+        std::make_unique<RestInterface>(_config->master.webservicePort,
+                                        _options, *_displayGroup, *_config);
 
     _logger = std::make_unique<LoggingUtility>();
 
@@ -475,7 +480,7 @@ void MasterApplication::_initRestInterface()
     connect(&appController, &AppController::browse, [this](QString uri) {
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
         if (uri.isEmpty())
-            uri = _config->getWebBrowserDefaultURL();
+            uri = _config->webbrowser.defaultUrl;
         _pixelStreamerLauncher->openWebBrowser(QPointF(), QSize(), uri, 0);
 #else
         print_log(LOG_INFO, LOG_GENERAL,
@@ -505,7 +510,7 @@ void MasterApplication::_initRestInterface()
 void MasterApplication::_initPlanarController()
 {
     _screenController =
-        ScreenControllerFactory::create(_config->getPlanarSerialPort());
+        ScreenControllerFactory::create(_config->master.planarSerialPort);
 
     connect(_inactivityTimer.get(), &InactivityTimer::poweroff, [this]() {
         _screenController->powerOff();
@@ -608,10 +613,13 @@ void MasterApplication::_handle(const QTouchEvent* event)
 {
     _inactivityTimer->restart();
 
-    if (event->touchPoints().length() >= _config->getWakeupTouchpoints())
+    if ((uint)event->touchPoints().length() >=
+        _config->settings.touchpointsToWakeup)
+    {
         _resume();
+    }
 
-    const auto wallSize = _config->getTotalSize();
+    const auto wallSize = _config->surfaces[0].getTotalSize();
     auto getWallPos = [wallSize](const QPointF& normalizedPos) {
         return QPointF{normalizedPos.x() * wallSize.width(),
                        normalizedPos.y() * wallSize.height()};

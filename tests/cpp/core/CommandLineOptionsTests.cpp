@@ -41,6 +41,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "localstreamer/CommandLineOptions.h"
+#include "types.h"
 
 #include <QStringList>
 #include <string>
@@ -51,39 +52,61 @@ BOOST_AUTO_TEST_CASE(testCommandLineDefaults)
     CommandLineOptions options;
 
     BOOST_CHECK(!options.getHelp());
-    BOOST_CHECK_EQUAL(options.getStreamId().toStdString(), "");
-    BOOST_CHECK_EQUAL(options.getUrl().toStdString(), "");
-    BOOST_CHECK_EQUAL(options.getConfiguration().toStdString(), "");
-
-    BOOST_CHECK_EQUAL(options.getHeight(), 0);
-    BOOST_CHECK_EQUAL(options.getWidth(), 0);
+    BOOST_CHECK_EQUAL(options.streamId, "");
+    BOOST_CHECK_EQUAL(options.height, 0);
+    BOOST_CHECK_EQUAL(options.width, 0);
+    BOOST_CHECK_EQUAL(options.url, "");
+    BOOST_CHECK_EQUAL(options.contentsDir, "");
+    BOOST_CHECK_EQUAL(options.sessionsDir, "");
+    BOOST_CHECK_EQUAL(options.webservicePort, 0);
+    BOOST_CHECK_EQUAL(options.demoServiceUrl, "");
+    BOOST_CHECK_EQUAL(options.demoServiceImageDir, "");
+    BOOST_CHECK_EQUAL(options.showPowerButton, false);
+    BOOST_CHECK_EQUAL(options.saveDir, "");
 
     BOOST_CHECK_EQUAL(options.getCommandLine().toStdString(), "");
 }
 
 void setOptionParameters(CommandLineOptions& options)
 {
-    options.setStreamId("MyStreamer");
-    options.setUrl("http://www.perdu.com");
-    options.setHeight(640);
-    options.setWidth(480);
-    options.setConfiguration("/path/to/configuration.xml");
+    options.streamId = "MyStreamer";
+    options.url = "http://www.perdu.com";
+    options.height = 640;
+    options.width = 480;
+    options.contentsDir = "/var/contents";
+    options.sessionsDir = "/var/sessions";
+    options.webservicePort = 8888;
+    options.demoServiceUrl = "http://demoservice.bbp.epfl.ch";
+    options.demoServiceImageDir = "/var/images";
+    options.showPowerButton = true;
+    options.saveDir = "/tmp/whiteboards";
 }
 
 void checkOptionParameters(const CommandLineOptions& options)
 {
     BOOST_CHECK(!options.getHelp());
-    BOOST_CHECK_EQUAL(options.getStreamId().toStdString(), "MyStreamer");
-    BOOST_CHECK_EQUAL(options.getUrl().toStdString(), "http://www.perdu.com");
-    BOOST_CHECK_EQUAL(options.getHeight(), 640);
-    BOOST_CHECK_EQUAL(options.getWidth(), 480);
-    BOOST_CHECK_EQUAL(options.getConfiguration().toStdString(),
-                      "/path/to/configuration.xml");
+    BOOST_CHECK_EQUAL(options.streamId, "MyStreamer");
+    BOOST_CHECK_EQUAL(options.url, "http://www.perdu.com");
+    BOOST_CHECK_EQUAL(options.height, 640);
+    BOOST_CHECK_EQUAL(options.width, 480);
+    BOOST_CHECK_EQUAL(options.contentsDir, "/var/contents");
+    BOOST_CHECK_EQUAL(options.sessionsDir, "/var/sessions");
+    BOOST_CHECK_EQUAL(options.webservicePort, 8888);
+    BOOST_CHECK_EQUAL(options.demoServiceUrl, "http://demoservice.bbp.epfl.ch");
+    BOOST_CHECK_EQUAL(options.demoServiceImageDir, "/var/images");
+    BOOST_CHECK_EQUAL(options.showPowerButton, true);
+    BOOST_CHECK_EQUAL(options.saveDir, "/tmp/whiteboards");
 
     BOOST_CHECK_EQUAL(options.getCommandLine().toStdString(),
                       "--streamid MyStreamer --width 480 --height 640 "
                       "--url http://www.perdu.com "
-                      "--config /path/to/configuration.xml");
+                      "--contentsDir /var/contents "
+                      "--sessionsDir /var/sessions "
+                      "--webservicePort 8888 "
+                      "--demoServiceUrl http://demoservice.bbp.epfl.ch "
+                      "--demoServiceImageDir /var/images "
+                      "--showPowerButton "
+                      "--saveDir /tmp/whiteboards");
 }
 
 BOOST_AUTO_TEST_CASE(testCommandLineManualCreation)

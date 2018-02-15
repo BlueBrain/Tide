@@ -43,13 +43,16 @@
 #include "FileReceiver.h"
 #include "HtmlContent.h"
 #include "LoggingUtility.h"
-#include "MasterConfiguration.h"
 #include "RestServer.h"
 #include "SceneController.h"
 #include "ThumbnailCache.h"
+#include "configuration/Configuration.h"
 #include "log.h"
+#include "rest/serialization.h"
 #include "scene/ContentFactory.h"
-#include "serialization.h"
+#include "json/serialization.h"
+// include last
+#include "rest/templates.h"
 
 #include <tide/master/version.h>
 
@@ -59,43 +62,46 @@
 
 using namespace rockets;
 
+namespace tide
+{
+std::string to_json(const Version& version)
+{
+    return version.toJSON();
+}
+}
+
+namespace
+{
 struct LockState
 {
     bool locked;
 };
-QJsonObject to_json_object(const LockState& lockState)
+std::string to_json(const LockState& lockState)
 {
-    return QJsonObject{{"locked", lockState.locked}};
+    return json::dump(QJsonObject{{"locked", lockState.locked}});
+}
 }
 
-/** Overload to serialize QSize as an array instead of an object. */
-std::string to_json(const QSize& size)
+/** Use REST-specific serialization of Configuration. */
+std::string to_json(const Configuration& config)
 {
-    return json::toString(QJsonArray{{size.width(), size.height()}});
-}
-
-namespace tide
-{
-std::string to_json(const Version& object)
-{
-    return object.toJSON();
-}
+    return json::dump(json::serializeForRest(config));
 }
 
 class RestInterface::Impl
 {
 public:
     Impl(const uint16_t port, OptionsPtr options_, DisplayGroup& group,
-         const MasterConfiguration& config, const bool locked)
+         const Configuration& config, const bool locked)
         : server{port}
         , options{options_}
-        , size{config.getTotalSize()}
+        , size{config.surfaces[0].getTotalSize()}
         , thumbnailCache{group}
         , appController{config}
         , sceneController{group}
-        , contentBrowser{config.getContentDir(),
+        , contentBrowser{config.folders.contents,
                          ContentFactory::getSupportedFilesFilter()}
-        , sessionBrowser{config.getSessionsDir(), QStringList{"*.dcx"}}
+        , sessionBrowser{config.folders.sessions, QStringList{"*.dcx"}}
         , htmlContent{server}
         , lockState{locked}
     {
@@ -109,7 +115,10 @@ public:
         {
             const auto pathSplit = path.split("/");
             if (pathSplit.size() == 2 && pathSplit[1] == "thumbnail")
-                return thumbnailCache.getThumbnail(url_decode(pathSplit[0]));
+            {
+                const auto uuid = json::url_decode(pathSplit[0]);
+                return thumbnailCache.getThumbnail(uuid);
+            }
         }
         return make_ready_response(http::Code::BAD_REQUEST);
     }
@@ -128,7 +137,7 @@ public:
 };
 
 RestInterface::RestInterface(const uint16_t port, OptionsPtr options,
-                             DisplayGroup& group, MasterConfiguration& config)
+                             DisplayGroup& group, Configuration& config)
     : _impl(new Impl(port, options, group, config, false))
 {
     put_log(LOG_INFO, LOG_REST, "listening to REST messages on TCP port %hu",
@@ -144,8 +153,8 @@ RestInterface::RestInterface(const uint16_t port, OptionsPtr options,
 
     static tide::Version version;
     server.handleGET("tide/version", version);
-    server.handleGET("tide/background", config.getBackground());
-    server.handlePUT("tide/background", config.getBackground());
+    server.handleGET("tide/background", *config.background);
+    server.handlePUT("tide/background", *config.background);
     server.handleGET("tide/config", config);
     server.handleGET("tide/lock", _impl->lockState);
     server.handleGET("tide/size", _impl->size);

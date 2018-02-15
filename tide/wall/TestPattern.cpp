@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -49,30 +49,57 @@
 #define LINE_WIDTH 10
 #define TEXT_POS_X 50
 
-TestPattern::TestPattern(const WallConfiguration& configuration,
+namespace
+{
+std::string to_string(const deflect::View view)
+{
+    switch (view)
+    {
+    case deflect::View::mono:
+        return "mono";
+    case deflect::View::left_eye:
+        return "left_eye";
+    case deflect::View::right_eye:
+        return "right_eye";
+    case deflect::View::side_by_side:
+        return "side_by_side";
+    default:
+        throw std::logic_error("unknown deflect::View");
+    }
+}
+
+std::string to_string(const bool value)
+{
+    return value ? "true" : "false";
+}
+}
+
+TestPattern::TestPattern(const WallConfiguration& config,
+                         const Surface& surface, const Screen& screen,
                          QQuickItem& parent_)
     : QQuickPaintedItem(&parent_)
-    , _wallSize(configuration.getTotalSize())
+    , _wallSize(surface.getTotalSize())
 {
     setVisible(false);
-    setSize(configuration.getTotalSize());
+    setSize(_wallSize);
 
-    const auto screenIndex = 0;
-    const auto fullsceenMode = configuration.getFullscreen() ? "True" : "False";
+    const auto fullsceen = to_string(screen.fullscreen);
+    const auto stereoView = to_string(screen.stereoMode);
 
-    const auto& screen = configuration.getScreens().at(screenIndex);
-    _windowRect = configuration.getScreenRect(screen.globalIndex);
+    _windowRect = surface.getScreenRect(screen.globalIndex);
 
-    _labels.push_back(QString("Rank: %1").arg(configuration.getProcessIndex()));
-    _labels.push_back(QString("Host: %1").arg(configuration.getHost()));
+    _labels.push_back(QString("Surface: %1").arg(screen.surfaceIndex));
+    _labels.push_back(QString("Rank: %1").arg(config.processIndex));
+    _labels.push_back(QString("Host: %1").arg(config.process.host));
     _labels.push_back(QString("Display: %1").arg(screen.display));
-    _labels.push_back(QString("Tile coordinates: (%1,%2)")
+    _labels.push_back(QString("Screen global index: (%1,%2)")
                           .arg(screen.globalIndex.x())
                           .arg(screen.globalIndex.y()));
     _labels.push_back(QString("Resolution: %1 x %2")
-                          .arg(configuration.getScreenWidth())
-                          .arg(configuration.getScreenHeight()));
-    _labels.push_back(QString("Fullscreen mode: %1").arg(fullsceenMode));
+                          .arg(surface.getScreenWidth())
+                          .arg(surface.getScreenHeight()));
+    _labels.push_back(QString("Fullscreen: %1").arg(fullsceen.c_str()));
+    _labels.push_back(QString("Stereo view: %1").arg(stereoView.c_str()));
 }
 
 void TestPattern::paint(QPainter* painter)
@@ -103,7 +130,7 @@ void TestPattern::renderCrossPattern(QPainter* painter)
 
 void TestPattern::renderLabels(QPainter* painter)
 {
-    const QPoint offset = _windowRect.topLeft();
+    const auto offset = _windowRect.topLeft();
 
     QFont textFont;
     textFont.setPixelSize(FONT_SIZE);
@@ -111,7 +138,7 @@ void TestPattern::renderLabels(QPainter* painter)
     painter->setPen(QColor(Qt::white));
 
     unsigned int pos = 0;
-    foreach (QString label, _labels)
+    for (const auto& label : _labels)
         painter->drawText(QPoint(TEXT_POS_X, ++pos * FONT_SIZE) + offset,
                           label);
 }

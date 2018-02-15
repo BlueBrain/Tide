@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,60 +37,24 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef SERIALIZATION_H
-#define SERIALIZATION_H
+#ifndef REST_SERIALIZATION_H
+#define REST_SERIALIZATION_H
 
 #include "types.h"
 
-#include "json.h"
+#include <QJsonObject>
 
-#include <QUuid>
+#include <tide/master/version.h>
 
-/**
- * Serialize an object as a JSON string.
- *
- * @param object to serialize.
- * @return json string, empty on error.
- */
-template <typename Obj>
-std::string to_json(const Obj& object)
+namespace json
 {
-    return json::toString(to_json_object(object));
+/** @name JSON serialization of objects for the REST interface. */
+//@{
+QJsonObject serialize(ContentWindowPtr window, const DisplayGroup& group);
+QJsonObject serialize(const DisplayGroup& group);
+QJsonObject serialize(const LoggingUtility& logger);
+QJsonObject serializeForRest(const Configuration& config);
+//@}
 }
-
-/**
- * Deserialize an object from a JSON string.
- *
- * @param object to serialize.
- * @return json string, empty on error.
- */
-template <typename Obj>
-bool from_json(Obj& object, const std::string& json)
-{
-    return from_json_object(object, json::toObject(json));
-}
-
-/** @name JSON serialization of objects. */
-//@{
-QJsonObject to_json_object(const Background& background);
-QJsonObject to_json_object(ContentWindowPtr window, const DisplayGroup& group);
-QJsonObject to_json_object(const DisplayGroup& group);
-QJsonObject to_json_object(const LoggingUtility& logger);
-QJsonObject to_json_object(const MasterConfiguration& config);
-QJsonObject to_json_object(const Options& options);
-QJsonObject to_json_object(const QSize& size);
-//@}
-
-/** @name JSON deserialization of objects. */
-//@{
-bool from_json_object(Background& background, const QJsonObject& object);
-bool from_json_object(Options& options, const QJsonObject& object);
-//@}
-
-/** @name Helpers for QUuid (strip '{}' in JSON form). */
-//@{
-QString url_encode(const QUuid& uuid);
-QUuid url_decode(const QString& uuid);
-//@}
 
 #endif

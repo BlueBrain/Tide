@@ -41,16 +41,16 @@
 
 #include <QtWidgets>
 
-#include "MasterConfiguration.h"
+#include "configuration/Configuration.h"
 #include "scene/Background.h"
 #include "scene/ContentFactory.h"
 
-BackgroundWidget::BackgroundWidget(MasterConfiguration& configuration,
+BackgroundWidget::BackgroundWidget(Configuration& configuration,
                                    QWidget* parent_)
     : QDialog{parent_}
     , _configuration{configuration}
-    , _background{_configuration.getBackground()}
-    , _backgroundFolder{configuration.getContentDir()}
+    , _background{*_configuration.background}
+    , _backgroundFolder{configuration.folders.contents}
 {
     setWindowTitle(tr("Background settings"));
 

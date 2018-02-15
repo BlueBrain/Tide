@@ -78,7 +78,7 @@ Webbrowser::Webbrowser(int& argc, char* argv[])
 {
     const CommandLineOptions options(argc, argv);
 
-    const auto deflectStreamId = options.getStreamId().toStdString();
+    const auto deflectStreamId = options.streamId.toStdString();
     _qmlStreamer.reset(new deflect::qt::QmlStreamer(deflectQmlFile, deflectHost,
                                                     deflectStreamId));
 
@@ -91,17 +91,17 @@ Webbrowser::Webbrowser(int& argc, char* argv[])
     auto item = _qmlStreamer->getRootItem();
 
     // General setup
-    if (options.getWidth())
-        item->setProperty("width", options.getWidth());
-    if (options.getHeight())
-        item->setProperty("height", options.getHeight());
+    if (options.width)
+        item->setProperty("width", options.width);
+    if (options.height)
+        item->setProperty("height", options.height);
 
     connect(item, SIGNAL(addressBarTextEntered(QString)), this,
             SLOT(_processAddressBarInput(QString)));
 
     // Keep pointer to the webengine to send key events
     _webengine = item->findChild<QQuickItem*>(webengineviewItemName);
-    _webengine->setProperty("url", options.getUrl());
+    _webengine->setProperty("url", options.url);
 
     connect(_webengine, SIGNAL(urlChanged()), this, SLOT(_sendData()));
     connect(_webengine, SIGNAL(titleChanged()), this, SLOT(_sendData()));

@@ -41,9 +41,10 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "rest/serialization.h"
 #include "scene/Background.h"
 #include "serialization/utils.h"
+#include "json/serialization.h"
+#include "json/templates.h"
 
 namespace
 {
@@ -132,19 +133,20 @@ BOOST_FIXTURE_TEST_CASE(testBinarySerialization, Fixture)
 
 BOOST_FIXTURE_TEST_CASE(testJsonSerialization, Fixture)
 {
-    BOOST_CHECK_EQUAL(to_json(*background), defaultJson);
+    BOOST_CHECK_EQUAL(json::dump(*background), defaultJson);
 }
 
 BOOST_FIXTURE_TEST_CASE(testInvalidJsonHasNoEffect, Fixture)
 {
-    BOOST_CHECK(!from_json(*background, notJson));
-    BOOST_CHECK_EQUAL(to_json(*background), defaultJson);
+    BOOST_CHECK(!json::deserialize(notJson, *background));
+    BOOST_CHECK_EQUAL(json::dump(*background), defaultJson);
     BOOST_CHECK_EQUAL(background->getContentUUID(), uuid);
 }
 
 BOOST_FIXTURE_TEST_CASE(testInvalidBackgroundParametersHaveNoEffect, Fixture)
 {
-    BOOST_CHECK(!from_json(*background, invalidBackgroundParametersJson));
+    BOOST_CHECK(
+        !json::deserialize(invalidBackgroundParametersJson, *background));
     BOOST_CHECK_EQUAL(background->getColor().name(), "#000000");
     BOOST_CHECK_EQUAL(background->getUri(), "");
     BOOST_CHECK_EQUAL(background->getContentUUID(), uuid);
@@ -153,15 +155,15 @@ BOOST_FIXTURE_TEST_CASE(testInvalidBackgroundParametersHaveNoEffect, Fixture)
 BOOST_FIXTURE_TEST_CASE(testChangeOnlyUriFromJson, Fixture)
 {
     BOOST_REQUIRE_EQUAL(background->getUri(), "");
-    BOOST_CHECK(from_json(*background, uriChangedJson));
+    BOOST_CHECK(json::deserialize(uriChangedJson, *background));
     BOOST_CHECK_EQUAL(background->getUri(), "wall.png");
     BOOST_CHECK_NE(background->getContentUUID(), uuid);
 }
 
 BOOST_FIXTURE_TEST_CASE(testChangeAllValuesFromJson, Fixture)
 {
-    BOOST_CHECK(from_json(*background, allValuesChangedJson));
-    BOOST_CHECK_EQUAL(to_json(*background), allValuesChangedJson);
+    BOOST_CHECK(json::deserialize(allValuesChangedJson, *background));
+    BOOST_CHECK_EQUAL(json::dump(*background), allValuesChangedJson);
     BOOST_CHECK_EQUAL(background->getColor().name(), "#aa3300");
     BOOST_CHECK_EQUAL(background->getUri(), "wall.png");
     BOOST_CHECK_NE(background->getContentUUID(), uuid);

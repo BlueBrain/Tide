@@ -1,0 +1,152 @@
+{
+    "background": {
+        "color": "#242424",
+        "uri": "wall.png"
+    },
+    "folders": {
+        "contents": "/nfs4/bbp.epfl.ch/visualization/DisplayWall/media",
+        "sessions": "/nfs4/bbp.epfl.ch/visualization/DisplayWall/sessions",
+        "tmp": "/nfs4/bbp.epfl.ch/media/DisplayWall/tmp",
+        "upload": "/nfs4/bbp.epfl.ch/media/DisplayWall/upload"
+    },
+    "global": {
+        "swapsync": "hardware"
+    },
+    "launcher": {
+        "demoServiceImageDir": "/nfs4/bbp.epfl.ch/visualization/demo_previews",
+        "demoServiceUrl": "https://visualization-dev.humanbrainproject.eu/rrm",
+        "display": ":0"
+    },
+    "master": {
+        "display": ":1",
+        "headless": true,
+        "host": "bbplxviz03i",
+        "planarSerialPort": "/dev/ttyS0",
+        "webservicePort": 10000
+    },
+    "processes": [
+        {
+            "host": "bbplxviz03i",
+            "screens": [
+                {
+                    "display": ":0.2",
+                    "fullscreen": true,
+                    "i": 0,
+                    "j": 0,
+                    "stereo": "mono",
+                    "surface": 0,
+                    "x": 0,
+                    "y": 0
+                }
+            ]
+        },
+        {
+            "host": "bbplxviz03i",
+            "screens": [
+                {
+                    "display": ":0.0",
+                    "fullscreen": true,
+                    "i": 0,
+                    "j": 1,
+                    "stereo": "mono",
+                    "surface": 0,
+                    "x": 0,
+                    "y": 1080
+                }
+            ]
+        },
+        {
+            "host": "bbplxviz03i",
+            "screens": [
+                {
+                    "display": ":0.1",
+                    "fullscreen": true,
+                    "i": 0,
+                    "j": 2,
+                    "stereo": "mono",
+                    "surface": 0,
+                    "x": 0,
+                    "y": 2160
+                }
+            ]
+        },
+        {
+            "host": "bbplxviz04i",
+            "screens": [
+                {
+                    "display": ":0.2",
+                    "fullscreen": true,
+                    "i": 1,
+                    "j": 0,
+                    "stereo": "mono",
+                    "surface": 0,
+                    "x": 0,
+                    "y": 0
+                }
+            ]
+        },
+        {
+            "host": "bbplxviz04i",
+            "screens": [
+                {
+                    "display": ":0.0",
+                    "fullscreen": true,
+                    "i": 1,
+                    "j": 1,
+                    "stereo": "mono",
+                    "surface": 0,
+                    "x": 0,
+                    "y": 1080
+                }
+            ]
+        },
+        {
+            "host": "bbplxviz04i",
+            "screens": [
+                {
+                    "display": ":0.1",
+                    "fullscreen": true,
+                    "i": 1,
+                    "j": 2,
+                    "stereo": "mono",
+                    "surface": 0,
+                    "x": 0,
+                    "y": 2160
+                }
+            ]
+        }
+    ],
+    "settings": {
+        "contentMaxScale": 4.4,
+        "contentMaxScaleVectorial": 8.8,
+        "inactivityTimeout": 27,
+        "infoName": "TestWall",
+        "touchpointsToWakeup": 10
+    },
+    "surfaces": [
+        {
+            "bezelHeight": 12,
+            "bezelWidth": 14,
+            "displayHeight": 1080,
+            "displayWidth": 1920,
+            "displaysPerScreenX": 2,
+            "displaysPerScreenY": 1,
+            "numScreensX": 2,
+            "numScreensY": 3
+        }
+    ],
+    "webbrowser": {
+        "defaultSize": [
+            1680,
+            1320
+        ],
+        "defaultUrl": "http://bbp.epfl.ch"
+    },
+    "whiteboard": {
+        "defaultSize": [
+            1570,
+            1240
+        ],
+        "saveDir": "/nfs4/bbp.epfl.ch/media/DisplayWall/whiteboard/"
+    }
+}

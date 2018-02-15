@@ -68,7 +68,7 @@ public:
      *        issue occured.
      */
     RestInterface(uint16_t port, OptionsPtr options, DisplayGroup& group,
-                  MasterConfiguration& config);
+                  Configuration& config);
 
     /** Out-of-line destructor. */
     ~RestInterface();
