@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
 /*                          Daniel Nachbaur <daniel.nachbaur@epfl.ch>*/
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
@@ -124,7 +124,6 @@ class ImagePyramidDataSource;
 class InactivityTimer;
 class LoggingUtility;
 class Markers;
-class MasterConfiguration;
 class MovieContent;
 class MovieUpdater;
 class MPIChannel;
@@ -133,12 +132,14 @@ class Options;
 class PDFContent;
 class PixelStreamUpdater;
 class PixelStreamWindowManager;
+struct Process;
 class ScreenLock;
 class SharedNetworkBarrier;
+struct Surface;
 class SwapSynchronizer;
 class TestPattern;
 class Tile;
-class WallConfiguration;
+struct WallConfiguration;
 class WallSceneRenderer;
 class WallToWallChannel;
 class WallWindow;

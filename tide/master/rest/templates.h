@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,51 +37,34 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "json.h"
+#ifndef REST_TEMPLATES_H
+#define REST_TEMPLATES_H
 
-#include "log.h"
+#include "types.h"
+#include "json/json.h"
 
-#include <QJsonDocument>
-
-namespace json
+/**
+ * Serialize an object as a JSON string.
+ *
+ * @param object to serialize.
+ * @return json string, empty on error.
+ */
+template <typename Obj>
+std::string to_json(const Obj& object)
 {
-QJsonArray toArray(const std::string& data)
-{
-    const auto input = QByteArray::fromRawData(data.c_str(), data.size());
-    QJsonParseError error;
-    const auto doc = QJsonDocument::fromJson(input, &error);
-
-    if (doc.isNull() || !doc.isArray())
-    {
-        print_log(LOG_ERROR, LOG_REST, "Error parsing JSON string '%s' '%s'",
-                  data.c_str(), error.errorString().toLocal8Bit().constData());
-        return QJsonArray{};
-    }
-    return doc.array();
+    return json::dump(json::serialize(object));
 }
 
-QJsonObject toObject(const std::string& data)
+/**
+ * Deserialize an object from a JSON string.
+ *
+ * @param object to serialize.
+ * @return json string, empty on error.
+ */
+template <typename Obj>
+bool from_json(Obj& object, const std::string& json)
 {
-    const auto input = QByteArray::fromRawData(data.c_str(), data.size());
-    QJsonParseError error;
-    const auto doc = QJsonDocument::fromJson(input, &error);
-
-    if (doc.isNull() || !doc.isObject())
-    {
-        print_log(LOG_ERROR, LOG_REST, "Error parsing JSON string '%s' '%s'",
-                  data.c_str(), error.errorString().toLocal8Bit().constData());
-        return QJsonObject{};
-    }
-    return doc.object();
+    return json::deserialize(json::parse(json), object);
 }
 
-std::string toString(const QJsonArray& array)
-{
-    return QJsonDocument{array}.toJson().toStdString();
-}
-
-std::string toString(const QJsonObject& object)
-{
-    return QJsonDocument{object}.toJson().toStdString();
-}
-}
+#endif

@@ -61,7 +61,6 @@ class MasterFromWallChannel;
 class MasterWindow;
 class PixelStreamerLauncher;
 class PixelStreamWindowManager;
-class MasterConfiguration;
 class RestInterface;
 class ScreenshotAssembler;
 class LoggingUtility;
@@ -96,7 +95,7 @@ public:
     void load(QString sessionFile, BoolCallback callback = BoolCallback());
 
 private:
-    std::unique_ptr<MasterConfiguration> _config;
+    std::unique_ptr<Configuration> _config;
 
     std::unique_ptr<MasterToForkerChannel> _masterToForkerChannel;
     std::unique_ptr<MasterToWallChannel> _masterToWallChannel;

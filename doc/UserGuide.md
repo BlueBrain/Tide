@@ -15,11 +15,11 @@ Some useful command line options:
 
 ## %Configuration file
 
-A single xml configuration file is required to launch the application. It
+A single json configuration file is required to launch the application. It
 defines the number of processes to launch, the hosts on which they have to run
 and the list of windows that each one of them will display.
 
-\include examples/configuration_1x3.xml
+\include examples/configuration_1x3.json
 
 More examples can be found in the examples folder of the source directory, or
 installed under ${install_prefix}/share/Tide/examples.
@@ -84,4 +84,4 @@ The following steps might be required to run the application on OSX.
 
 Multiple windows are not supported, only the basic single-window configuation
 works:
-> bin/tide --config $PWD/../examples/configuration_1x1.xml
+> bin/tide --config $PWD/../examples/configuration_1x1.json

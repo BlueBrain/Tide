@@ -33,7 +33,6 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   localstreamer/QmlKeyInjector.h
   LoggingUtility.h
   MasterApplication.h
-  MasterConfiguration.h
   MasterDisplayGroupRenderer.h
   MasterSceneRenderer.h
   multitouch/DoubleTapDetector.h
@@ -80,7 +79,6 @@ list(APPEND TIDEMASTER_SOURCES
   localstreamer/QmlKeyInjector.cpp
   LoggingUtility.cpp
   MasterApplication.cpp
-  MasterConfiguration.cpp
   MasterDisplayGroupRenderer.cpp
   MasterSceneRenderer.cpp
   multitouch/DoubleTapDetector.cpp
@@ -143,20 +141,19 @@ if(TIDE_ENABLE_REST_INTERFACE)
     rest/FileBrowser.h
     rest/FileReceiver.h
     rest/HtmlContent.h
-    rest/json.h
     rest/jsonschema.h
     rest/RestInterface.h
     rest/RestServer.h
     rest/ThumbnailCache.h
     rest/SceneController.h
     rest/serialization.h
+    rest/templates.h
   )
   list(APPEND TIDEMASTER_SOURCES
     rest/AppController.cpp
     rest/FileBrowser.cpp
     rest/FileReceiver.cpp
     rest/HtmlContent.cpp
-    rest/json.cpp
     rest/jsonschema.cpp
     rest/RestInterface.cpp
     rest/RestServer.cpp

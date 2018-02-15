@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -41,22 +41,21 @@
 
 #include <QPainter>
 
-ScreenshotAssembler::ScreenshotAssembler(const Configuration& config)
-    : _config(config)
-    , _screenshot{_config.getTotalSize(), QImage::Format_RGB32}
+ScreenshotAssembler::ScreenshotAssembler(const Surface& surface)
+    : _surface(surface)
+    , _screenshot{_surface.getTotalSize(), QImage::Format_RGB32}
 {
-    const size_t count =
-        _config.getTotalScreenCountX() * _config.getTotalScreenCountY();
+    const auto count = _surface.screenCountX * _surface.screenCountY;
     _imagesReceived.resize(count, false);
 }
 
 void ScreenshotAssembler::addImage(const QImage image, const QPoint index)
 {
     {
-        QPainter{&_screenshot}.drawImage(_config.getScreenRect(index), image);
+        QPainter{&_screenshot}.drawImage(_surface.getScreenRect(index), image);
     }
 
-    const auto source = index.x() + index.y() * _config.getTotalScreenCountX();
+    const auto source = index.x() + index.y() * _surface.screenCountX;
     _imagesReceived[source] = true;
     for (const auto& received : _imagesReceived)
         if (!received)

@@ -43,7 +43,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "rest/FileReceiver.h"
-#include "rest/json.h"
+#include "json/json.h"
 
 #include <rockets/http/request.h>
 #include <rockets/http/response.h>
@@ -70,7 +70,7 @@ std::string _readImageFile(const QString& filename)
 http::Request _makeFileRequest(const QString& filename)
 {
     http::Request request;
-    request.body = json::toString(
+    request.body = json::dump(
         QJsonObject{{"filename", filename}, {"x", 25.0}, {"y", 17.4}});
     return request;
 }
@@ -78,7 +78,7 @@ http::Request _makeFileRequest(const QString& filename)
 http::Request _makeFileRequestWithoutPosition(const QString& filename)
 {
     http::Request request;
-    request.body = json::toString(QJsonObject{{"filename", filename}});
+    request.body = json::dump(QJsonObject{{"filename", filename}});
     return request;
 }
 
@@ -92,7 +92,7 @@ http::Request _makeDataRequest(const QString& filename)
 
 QString _parseJsonResponse(const std::string& responseBody)
 {
-    const auto object = json::toObject(responseBody);
+    const auto object = json::parse(responseBody);
     BOOST_REQUIRE(object.value("url").isString());
     return object.value("url").toString();
 }

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -49,6 +49,7 @@
 #include "network/WallFromMasterChannel.h"
 #include "network/WallToMasterChannel.h"
 #include "network/WallToWallChannel.h"
+#include "scene/VectorialContent.h"
 
 #include <stdexcept>
 
@@ -60,15 +61,17 @@ WallApplication::WallApplication(int& argc_, char** argv_,
                                  MPIChannelPtr worldChannel,
                                  MPIChannelPtr wallChannel)
     : QGuiApplication{argc_, argv_}
-    , _config{new WallConfiguration{config, worldChannel->getRank()}}
+    , _config{new WallConfiguration{config, (uint)wallChannel->getRank()}}
     , _provider{new DataProvider}
     , _wallChannel{new WallToWallChannel{wallChannel}}
 {
     core::registerQmlTypes();
+    Content::setMaxScale(_config->contentMaxScale);
+    VectorialContent::setMaxScale(_config->contentMaxScaleVectorial);
 
     // avoid overcommit for async content loading; consider number of processes
     // on the same machine
-    const auto prCount = _config->getProcessCountForHost();
+    const auto prCount = _config->processCountForHost;
     const int maxThreads = std::max(QThread::idealThreadCount() / prCount, 2);
     QThreadPool::globalInstance()->setMaxThreadCount(maxThreads);
 
@@ -100,7 +103,8 @@ void WallApplication::_initWallWindows()
     std::vector<WallWindow*> windows;
     try
     {
-        for (uint screen = 0; screen < _config->getScreens().size(); ++screen)
+        const auto screenCount = _config->process.screens.size();
+        for (uint screen = 0; screen < screenCount; ++screen)
             windows.push_back(_makeWindow(screen));
     }
     catch (const std::runtime_error& e)
@@ -110,13 +114,13 @@ void WallApplication::_initWallWindows()
         throw std::runtime_error("WallApplication: initialization failed.");
     }
 
-    const auto swapSync = _config->getSwapSync();
-    if (swapSync == SwapSync::hardware)
+    if (_config->swapsync == SwapSync::hardware)
         print_log(LOG_INFO, LOG_GENERAL,
                   "Launching with hardware swap synchronization...");
 
     _renderController.reset(new RenderController(std::move(windows), *_provider,
-                                                 *_wallChannel, swapSync));
+                                                 *_wallChannel,
+                                                 _config->swapsync));
 }
 
 WallWindow* WallApplication::_makeWindow(const uint screen)

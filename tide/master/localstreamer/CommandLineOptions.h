@@ -68,31 +68,23 @@ public:
     /** Get the command line arguments in list format. */
     QStringList getCommandLineArguments() const;
 
-    /** @name Getters */
-    //@{
-    const QString& getStreamId() const;
-    unsigned int getWidth() const;
-    unsigned int getHeight() const;
-    const QString& getUrl() const;
-    const QString& getConfiguration() const;
-    //@}
+    QString streamId;
+    uint width = 0;
+    uint height = 0;
+    QString url;
 
-    /** @name Setters */
-    //@{
-    void setStreamId(const QString& id);
-    void setWidth(unsigned int width);
-    void setHeight(unsigned int height);
-    void setUrl(const QString& url);
-    void setConfiguration(const QString& file);
-    //@}
+    // Launcher only
+    QString contentsDir;
+    QString sessionsDir;
+    uint16_t webservicePort = 0;
+    QString demoServiceUrl;
+    QString demoServiceImageDir;
+    bool showPowerButton = false;
+
+    // whiteboard only
+    QString saveDir;
 
 private:
-    QString _streamId;
-    uint _width = 0;
-    uint _height = 0;
-    QString _url;
-    QString _configuration;
-
     void _fillDesc();
 };
 

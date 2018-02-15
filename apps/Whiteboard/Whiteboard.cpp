@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Pawel Podhajski  <pawel.podhajski@epfl.ch>    */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,7 +39,6 @@
 
 #include "Whiteboard.h"
 
-#include "tide/master/MasterConfiguration.h"
 #include "tide/master/localstreamer/CommandLineOptions.h"
 #include "tide/master/localstreamer/QmlKeyInjector.h"
 
@@ -55,9 +54,8 @@ Whiteboard::Whiteboard(int& argc, char* argv[])
     : QGuiApplication(argc, argv)
 {
     const CommandLineOptions options(argc, argv);
-    const MasterConfiguration config(options.getConfiguration());
 
-    const auto deflectStreamId = options.getStreamId().toStdString();
+    const auto deflectStreamId = options.streamId.toStdString();
     _qmlStreamer.reset(new deflect::qt::QmlStreamer(deflectQmlFile, deflectHost,
                                                     deflectStreamId));
 
@@ -65,13 +63,13 @@ Whiteboard::Whiteboard(int& argc, char* argv[])
             &QCoreApplication::quit);
 
     auto item = _qmlStreamer->getRootItem();
-    item->setProperty("saveURL", config.getWhiteboardSaveFolder());
+    item->setProperty("saveURL", options.saveDir);
 
     // General setup
-    if (options.getWidth())
-        item->setProperty("width", options.getWidth());
-    if (options.getHeight())
-        item->setProperty("height", options.getHeight());
+    if (options.width)
+        item->setProperty("width", options.width);
+    if (options.height)
+        item->setProperty("height", options.height);
 
     QQmlEngine* engine = _qmlStreamer->getQmlEngine();
     engine->rootContext()->setContextProperty("fileInfo", &_fileInfoHelper);

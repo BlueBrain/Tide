@@ -44,6 +44,9 @@
 #include "LoggingUtility.h"
 #include "rest/serialization.h"
 #include "scene/DisplayGroup.h"
+#include "json/serialization.h"
+// include last
+#include "json/templates.h"
 
 #include "DummyContent.h"
 
@@ -211,7 +214,7 @@ BOOST_FIXTURE_TEST_CASE(hideLauncher, Fixture)
 
 BOOST_FIXTURE_TEST_CASE(testJsonOutput, Fixture)
 {
-    BOOST_CHECK_EQUAL(to_json(logger), defaultJson);
+    BOOST_CHECK_EQUAL(json::dump(logger), defaultJson);
 
     QObject::connect(displayGroup.get(), &DisplayGroup::contentWindowAdded,
                      &logger, &LoggingUtility::logContentWindowAdded);
@@ -219,7 +222,7 @@ BOOST_FIXTURE_TEST_CASE(testJsonOutput, Fixture)
     displayGroup->addContentWindow(window2);
 
     const auto regex = QRegularExpression(regexJson);
-    const auto json = QString::fromStdString(to_json(logger));
+    const auto json = QString::fromStdString(json::dump(logger));
     const auto matchedJson = regex.match(json).captured();
     BOOST_CHECK_EQUAL(json, matchedJson);
 }

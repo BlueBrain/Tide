@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -71,7 +71,7 @@ WallWindow::WallWindow(const WallConfiguration& config, const uint windowIndex,
     const auto windowNumber = QString::number(windowIndex);
     _quickRendererThread->setObjectName("Render #" + windowNumber);
 
-    const auto& currentScreen = config.getScreens().at(windowIndex);
+    const auto& currentScreen = config.process.screens.at(windowIndex);
 
     if (auto qscreen = screens::find(currentScreen.display))
         setScreen(qscreen);
@@ -81,9 +81,10 @@ WallWindow::WallWindow(const WallConfiguration& config, const uint windowIndex,
 
     setFlags(Qt::FramelessWindowHint);
     setPosition(currentScreen.position);
-    resize(config.getScreenRect(currentScreen.globalIndex).size());
+    const auto& surface = config.surfaces[currentScreen.surfaceIndex];
+    resize(surface.getScreenRect(currentScreen.globalIndex).size());
 
-    if (config.getFullscreen())
+    if (currentScreen.fullscreen)
     {
         setCursor(Qt::BlankCursor);
         showFullScreen();
@@ -144,7 +145,7 @@ void WallWindow::exposeEvent(QExposeEvent*)
 void WallWindow::_startQuick(const WallConfiguration& config,
                              const uint windowIndex)
 {
-    const auto& currentScreen = config.getScreens().at(windowIndex);
+    const auto& currentScreen = config.process.screens.at(windowIndex);
     const auto globalIndex = currentScreen.globalIndex;
 
     connect(_quickRenderer.get(), &deflect::qt::QuickRenderer::afterRender,
@@ -170,15 +171,18 @@ void WallWindow::_startQuick(const WallConfiguration& config,
                     _synchronizer->exitBarrier(*this);
             });
 
-    const auto screenRect = config.getScreenRect(currentScreen.globalIndex);
-    const auto view = config.getScreens().at(windowIndex).stereoMode;
-    const auto wallSize = config.getTotalSize();
+    const auto& surface = config.surfaces[currentScreen.surfaceIndex];
+
+    const auto screenRect = surface.getScreenRect(currentScreen.globalIndex);
+    const auto wallSize = surface.getTotalSize();
+    const auto view = currentScreen.stereoMode;
 
     WallRenderContext context{*_qmlEngine, _provider, wallSize, screenRect,
                               view};
     _sceneRenderer.reset(new WallSceneRenderer(context, *contentItem()));
 
-    _testPattern.reset(new TestPattern(config, *contentItem()));
+    _testPattern.reset(
+        new TestPattern(config, surface, currentScreen, *contentItem()));
     _testPattern->setPosition(-screenRect.topLeft());
 }
 

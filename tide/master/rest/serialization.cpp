@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -40,13 +40,12 @@
 #include "serialization.h"
 
 #include "LoggingUtility.h"
-#include "MasterConfiguration.h"
+#include "configuration/Configuration.h"
 #include "control/ContentWindowController.h"
-#include "json.h"
-#include "scene/Background.h"
 #include "scene/ContentFactory.h"
 #include "scene/DisplayGroup.h"
-#include "scene/Options.h"
+#include "json/json.h"
+#include "json/serialization.h"
 
 #include <tide/master/version.h>
 
@@ -56,7 +55,10 @@
 namespace
 {
 const QString _applicationStartTime = QDateTime::currentDateTime().toString();
+}
 
+namespace
+{
 QString to_qstring(const ScreenState state)
 {
     switch (state)
@@ -71,13 +73,9 @@ QString to_qstring(const ScreenState state)
 }
 }
 
-QJsonObject to_json_object(const Background& background)
+namespace json
 {
-    return QJsonObject{{"color", background.getColor().name()},
-                       {"uri", background.getUri()}};
-}
-
-QJsonObject to_json_object(ContentWindowPtr window, const DisplayGroup& group)
+QJsonObject serialize(ContentWindowPtr window, const DisplayGroup& group)
 {
     const ContentWindowController controller(*window, group);
     return QJsonObject{
@@ -96,10 +94,10 @@ QJsonObject to_json_object(ContentWindowPtr window, const DisplayGroup& group)
         {"focus", window->isFocused()},
         {"uri", window->getContent().getURI()},
         {"visible", window->getState() == ContentWindow::HIDDEN ? false : true},
-        {"uuid", url_encode(window->getID())}};
+        {"uuid", json::url_encode(window->getID())}};
 }
 
-QJsonObject to_json_object(const DisplayGroup& group)
+QJsonObject serialize(const DisplayGroup& group)
 {
     QJsonArray windows;
     for (const auto& window : group.getContentWindows())
@@ -107,12 +105,42 @@ QJsonObject to_json_object(const DisplayGroup& group)
         if (window->getContent().getURI() == "Launcher")
             continue;
 
-        windows.append(to_json_object(window, group));
+        windows.append(serialize(window, group));
     }
     return QJsonObject{{"windows", windows}};
 }
 
-QJsonObject to_json_object(const LoggingUtility& logger)
+QJsonObject serializeForRest(const Configuration& config)
+{
+    const auto& surface = config.surfaces[0];
+
+    QJsonObject configObject{
+        {"hostname", QHostInfo::localHostName()},
+        {"version", QString::fromStdString(tide::Version::getString())},
+        {"revision", QString::number(tide::Version::getRevision(), 16)},
+        {"startTime", _applicationStartTime},
+        {"wallSize", serializeAsObject(surface.getTotalSize())},
+        {"dimensions",
+         QJsonObject{{"screenCountX", (int)surface.screenCountX},
+                     {"screenCountY", (int)surface.screenCountY},
+                     {"bezelWidth", surface.bezelWidth},
+                     {"bezelHeight", surface.bezelHeight},
+                     {"displayWidth", (int)surface.displayWidth},
+                     {"displayHeight", (int)surface.displayHeight},
+                     {"screenWidth", (int)surface.getScreenWidth()},
+                     {"screenHeight", (int)surface.getScreenHeight()},
+                     {"displaysPerScreenX", (int)surface.displaysPerScreenX},
+                     {"displaysPerScreenY", (int)surface.displaysPerScreenY}}},
+        {"background", serialize(*config.background)},
+        {"contentDir", config.folders.contents},
+        {"sessionDir", config.folders.sessions},
+        {"name", config.settings.infoName},
+        {"filters", QJsonArray::fromStringList(
+                        ContentFactory::getSupportedFilesFilter())}};
+    return QJsonObject{{"config", configObject}};
+}
+
+QJsonObject serialize(const LoggingUtility& logger)
 {
     const QJsonObject event{{"last_event", logger.getLastInteractionName()},
                             {"last_event_date",
@@ -130,142 +158,4 @@ QJsonObject to_json_object(const LoggingUtility& logger)
                        {"window", window},
                        {"screens", screens}};
 }
-
-QJsonObject to_json_object(const MasterConfiguration& config)
-{
-    QJsonObject configObject{
-        {"hostname", QHostInfo::localHostName()},
-        {"version", QString::fromStdString(tide::Version::getString())},
-        {"revision", QString::number(tide::Version::getRevision(), 16)},
-        {"startTime", _applicationStartTime},
-        {"wallSize", to_json_object(config.getTotalSize())},
-        {"dimensions",
-         QJsonObject{
-             {"screenCountX", (int)config.getTotalScreenCountX()},
-             {"screenCountY", (int)config.getTotalScreenCountY()},
-             {"bezelWidth", config.getBezelWidth()},
-             {"bezelHeight", config.getBezelHeight()},
-             {"displayWidth", (int)config.getDisplayWidth()},
-             {"displayHeight", (int)config.getDisplayHeight()},
-             {"screenWidth", (int)config.getScreenWidth()},
-             {"screenHeight", (int)config.getScreenHeight()},
-             {"displaysPerScreenX", (int)config.getDisplaysPerScreenX()},
-             {"displaysPerScreenY", (int)config.getDisplaysPerScreenY()}}},
-        {"background", to_json_object(config.getBackground())},
-        {"contentDir", config.getContentDir()},
-        {"sessionDir", config.getSessionsDir()},
-        {"name", config.getInfoName()},
-        {"filters", QJsonArray::fromStringList(
-                        ContentFactory::getSupportedFilesFilter())}};
-    return QJsonObject{{"config", configObject}};
-}
-
-QJsonObject to_json_object(const Options& options)
-{
-    return QJsonObject{
-        {"alphaBlending", options.isAlphaBlendingEnabled()},
-        {"autoFocusStreamers", options.getAutoFocusPixelStreams()},
-        {"clock", options.getShowClock()},
-        {"contentTiles", options.getShowContentTiles()},
-        {"controlArea", options.getShowControlArea()},
-        {"statistics", options.getShowStatistics()},
-        {"testPattern", options.getShowTestPattern()},
-        {"touchPoints", options.getShowTouchPoints()},
-        {"windowBorders", options.getShowWindowBorders()},
-        {"windowTitles", options.getShowWindowTitles()},
-        {"zoomContext", options.getShowZoomContext()}};
-}
-
-QJsonObject to_json_object(const QSize& size)
-{
-    return QJsonObject{{"width", size.width()}, {"height", size.height()}};
-}
-
-bool from_json_object(Background& background, const QJsonObject& object)
-{
-    if (!object.contains("color") && !object.contains("uri"))
-        return false;
-
-    QJsonValue value;
-    value = object["color"];
-    if (value.isString())
-    {
-        const auto color = QColor{value.toString()};
-        if (!color.isValid())
-            return false;
-        background.setColor(color);
-    }
-
-    value = object["uri"];
-    if (value.isString())
-        background.setUri(value.toString());
-
-    return true;
-}
-
-bool from_json_object(Options& options, const QJsonObject& object)
-{
-    if (object.isEmpty())
-        return false;
-
-    QJsonValue value;
-    value = object["alphaBlending"];
-    if (value.isBool())
-        options.enableAlphaBlending(value.toBool());
-
-    value = object["autoFocusStreamers"];
-    if (value.isBool())
-        options.setAutoFocusPixelStreams(value.toBool());
-
-    value = object["clock"];
-    if (value.isBool())
-        options.setShowClock(value.toBool());
-
-    value = object["contentTiles"];
-    if (value.isBool())
-        options.setShowContentTiles(value.toBool());
-
-    value = object["controlArea"];
-    if (value.isBool())
-        options.setShowControlArea(value.toBool());
-
-    value = object["clock"];
-    if (value.isBool())
-        options.setShowClock(value.toBool());
-
-    value = object["statistics"];
-    if (value.isBool())
-        options.setShowStatistics(value.toBool());
-
-    value = object["testPattern"];
-    if (value.isBool())
-        options.setShowTestPattern(value.toBool());
-
-    value = object["touchPoints"];
-    if (value.isBool())
-        options.setShowTouchPoints(value.toBool());
-
-    value = object["windowBorders"];
-    if (value.isBool())
-        options.setShowWindowBorders(value.toBool());
-
-    value = object["windowTitles"];
-    if (value.isBool())
-        options.setShowWindowTitles(value.toBool());
-
-    value = object["zoomContext"];
-    if (value.isBool())
-        options.setShowZoomContext(value.toBool());
-
-    return true;
-}
-
-QString url_encode(const QUuid& uuid)
-{
-    return uuid.toString().replace(QRegExp("\\{|\\}"), "");
-}
-
-QUuid url_decode(const QString& uuid)
-{
-    return QUuid{QString("{%1}").arg(uuid)};
 }

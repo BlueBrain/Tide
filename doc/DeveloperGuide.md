@@ -18,6 +18,9 @@ pointers to auxilary documentation.
 * apps: Applications delivered with the project:
   * tide: The main application which launches the master and wall processes
           according to the provided configuration file.
+  * TideConverter: A small utility to convert deprecated xml configuration files
+                   to json format. It can also be used to convert json
+                   configurations between a compact and detailed representation.
   * TideMaster: The master application launched by tide which provides a control
                 user interface to open contents and sessions, change options etc.
   * TideWall: The wall application launched for each wall segment launched by
@@ -33,7 +36,7 @@ pointers to auxilary documentation.
 
 * tests: Unit tests.
 * doc: Doxygen and other documentation.
-* examples: Example xml configuration files, installed under share/Tide.
+* examples: Example configuration files, installed under share/Tide.
 
 ## CMakeLists
 

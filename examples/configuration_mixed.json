@@ -1,0 +1,93 @@
+{
+    "background": {
+        "color": "#00f5ff"
+    },
+    "master": {
+        "display": ":0",
+        "host": "localhost"
+    },
+    "processes": [
+        {
+            "host": "localhost",
+            "screens": [
+                {
+                    "display": ":0",
+                    "stereo": "left",
+                    "y": 80
+                },
+                {
+                    "display": ":0",
+                    "j": 1,
+                    "stereo": "left",
+                    "y": 480
+                }
+            ]
+        },
+        {
+            "host": "localhost",
+            "screens": [
+                {
+                    "display": ":0",
+                    "i": 1,
+                    "stereo": "left",
+                    "x": 400,
+                    "y": 80
+                },
+                {
+                    "display": ":0",
+                    "i": 1,
+                    "j": 1,
+                    "stereo": "left",
+                    "x": 400,
+                    "y": 480
+                }
+            ]
+        },
+        {
+            "host": "localhost",
+            "screens": [
+                {
+                    "display": ":0",
+                    "stereo": "right",
+                    "x": 820,
+                    "y": 80
+                },
+                {
+                    "display": ":0",
+                    "j": 1,
+                    "stereo": "right",
+                    "x": 820,
+                    "y": 480
+                }
+            ]
+        },
+        {
+            "host": "localhost",
+            "screens": [
+                {
+                    "display": ":0",
+                    "i": 1,
+                    "stereo": "right",
+                    "x": 1220,
+                    "y": 80
+                },
+                {
+                    "display": ":0",
+                    "i": 1,
+                    "j": 1,
+                    "stereo": "right",
+                    "x": 1220,
+                    "y": 480
+                }
+            ]
+        }
+    ],
+    "surfaces": [
+        {
+            "displayHeight": 400,
+            "displayWidth": 400,
+            "numScreensX": 2,
+            "numScreensY": 2
+        }
+    ]
+}

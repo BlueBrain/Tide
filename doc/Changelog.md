@@ -3,14 +3,22 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [236](https://github.com/BlueBrain/Tide/pull/236):
+  A new .json configuration file format replaces the old .xml configurations.
+  Those are now deprecated and support for xml will be removed in the future
+  Tide 1.6 release. Use the provided tideConverter command line tool to easily
+  convert existing xml configurations to json format.
+* [232](https://github.com/BlueBrain/Tide/pull/232):
+  Tide was upgraded to C++14 and requires a compatible compiler
+  (GCC 5, Clang 3.4).
 * [229](https://github.com/BlueBrain/Tide/pull/229):
-  Different models of Planar TV can be controlled now.
+  Different models of Planar TV can be controlled.
 * [226](https://github.com/BlueBrain/Tide/pull/226):
   New pyramidify tool to simplify the creation of multiple TIFF image pyramids.
 * [224](https://github.com/BlueBrain/Tide/pull/224):
   Number of touch points required to power on the screens is configurable.
 * [220](https://github.com/BlueBrain/Tide/pull/220):
-  Power control feature available in setups with mutliple controllers. 
+  Power control feature available in setups with mutliple controllers.
 * [214](https://github.com/BlueBrain/Tide/pull/214):
   Rockets replaces ZeroEQ dependency for the REST interface.
 * [212](https://github.com/BlueBrain/Tide/pull/212):

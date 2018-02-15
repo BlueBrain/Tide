@@ -60,7 +60,7 @@ public:
      *
      * @param config the application configuration.
      */
-    AppController(const MasterConfiguration& config);
+    AppController(const Configuration& config);
 
     using rockets::jsonrpc::Receiver::process;
 

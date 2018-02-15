@@ -2,15 +2,14 @@
     <dimensions fullscreen="1" numScreensX="2" numScreensY="3" displayWidth="1920" displayHeight="1080" displaysPerScreenX="2" displaysPerScreenY="1"  bezelHeight="12" bezelWidth="14"/>
     <dock directory="/nfs4/bbp.epfl.ch/visualization/DisplayWall/media"/>
     <sessions directory="/nfs4/bbp.epfl.ch/visualization/DisplayWall/sessions"/>
-    <launcher display=":0" demoServiceUrl="https://visualization-dev.humanbrainproject.eu/viz/rendering-resource-manager/v1" demoServiceImageFolder="/nfs4/bbp.epfl.ch/visualization/resources/software/displaywall/demo_previews" />
-    <webservice port="10000" />
+    <launcher display=":0" demoServiceUrl="https://visualization-dev.humanbrainproject.eu/rrm" demoServiceImageFolder="/nfs4/bbp.epfl.ch/visualization/demo_previews" />
+    <webservice port="10000" uploadDirectory="/nfs4/bbp.epfl.ch/media/DisplayWall/upload" tmpDirectory="/nfs4/bbp.epfl.ch/media/DisplayWall/tmp"/>
     <info name="TestWall" />
-    <planar timeout="45" serialport="/dev/ttyS0" touchpointsToPower="10" />
-    <webbrowser defaultURL="http://bbp.epfl.ch" />
-    <whiteboard saveUrl="/nfs4/bbp.epfl.ch/media/DisplayWall/whiteboard/" />
-    <applauncher qml="/some/path/to/launcher.qml" />
+    <planar timeout="27" serialport="/dev/ttyS0" touchpointsToPower="10" />
+    <webbrowser defaultURL="http://bbp.epfl.ch" defaultWidth="1680" defaultHeight="1320" />
+    <whiteboard saveUrl="/nfs4/bbp.epfl.ch/media/DisplayWall/whiteboard/" defaultWidth="1570" defaultHeight="1240"/>
     <masterProcess display=":1" host="bbplxviz03i" headless="true" />
-    <content maxScale="4.0" maxScaleVectorial="8.0" />
+    <content maxScale="4.4" maxScaleVectorial="8.8" />
     <setup swapsync="hardware" />
     <process display=":0.2" host="bbplxviz03i">
         <screen x="0" y="0" i="0" j="0"/>

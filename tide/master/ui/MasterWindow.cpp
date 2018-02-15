@@ -44,9 +44,9 @@
 #include "BackgroundWidget.h"
 #include "ContentLoader.h"
 #include "DisplayGroupListWidget.h"
-#include "MasterConfiguration.h"
 #include "MasterQuickView.h"
 #include "StateSerializationHelper.h"
+#include "configuration/Configuration.h"
 #include "log.h"
 #include "scene/Background.h"
 #include "scene/ContentFactory.h"
@@ -69,7 +69,7 @@ const QSize DEFAULT_WINDOW_SIZE(810, 600);
 }
 
 MasterWindow::MasterWindow(DisplayGroupPtr displayGroup, OptionsPtr options,
-                           ScreenLockPtr lock, MasterConfiguration& config)
+                           ScreenLockPtr lock, Configuration& config)
     : QMainWindow()
     , _displayGroup(displayGroup)
     , _options(options)
@@ -77,9 +77,9 @@ MasterWindow::MasterWindow(DisplayGroupPtr displayGroup, OptionsPtr options,
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
     , _webbrowserWidget(new WebbrowserWidget(config, this))
 #endif
-    , _contentFolder(config.getContentDir())
-    , _sessionFolder(config.getSessionsDir())
-    , _uploadDir(config.getUploadDir())
+    , _contentFolder(config.folders.contents)
+    , _sessionFolder(config.folders.sessions)
+    , _uploadDir(config.folders.upload)
 {
     _backgroundWidget->setModal(true);
 

@@ -1,0 +1,47 @@
+{
+    "background": {
+        "color": "#282828"
+    },
+    "master": {
+        "display": ":0",
+        "host": "localhost"
+    },
+    "processes": [
+        {
+            "host": "localhost",
+            "screens": [
+                {
+                    "display": ":0",
+                    "y": 50
+                }
+            ]
+        },
+        {
+            "host": "localhost",
+            "screens": [
+                {
+                    "display": ":0",
+                    "j": 1,
+                    "y": 266
+                }
+            ]
+        },
+        {
+            "host": "localhost",
+            "screens": [
+                {
+                    "display": ":0",
+                    "j": 2,
+                    "y": 482
+                }
+            ]
+        }
+    ],
+    "surfaces": [
+        {
+            "displayHeight": 216,
+            "displayWidth": 1536,
+            "numScreensY": 3
+        }
+    ]
+}

@@ -5,6 +5,7 @@ include(CommonHelp)
 
 include_directories(${PROJECT_SOURCE_DIR}/tide/core)
 
+add_subdirectory(TideConverter)
 add_subdirectory(TideForker)
 add_subdirectory(TideMaster)
 add_subdirectory(TideWall)
@@ -36,6 +37,6 @@ endif()
 # Copy the default config to the share folder to be able to launch after
 # building without requiring an install folder and 'make install'
 file(
-  COPY ${PROJECT_SOURCE_DIR}/examples/configuration_1x3.xml
+  COPY ${PROJECT_SOURCE_DIR}/examples/configuration_1x3.json
   DESTINATION ${PROJECT_BINARY_DIR}/share/Tide/examples
 )

@@ -46,6 +46,8 @@
 #include <QQuickPaintedItem>
 #include <QString>
 
+struct Screen;
+
 /**
  * Render a test pattern to help setup and debug the display configuration.
  */
@@ -54,10 +56,13 @@ class TestPattern : public QQuickPaintedItem
 public:
     /**
      * Constructor
-     * @param configuration The configuration to get information from
-     * @param parent the parent object which renders this test pattern
+     * @param config The configuration to get information from.
+     * @param surface The surface to which this test pattern belongs.
+     * @param screen The screen on which this pattern is rendered.
+     * @param parent The parent object which renders this test pattern.
      */
-    TestPattern(const WallConfiguration& configuration, QQuickItem& parent);
+    TestPattern(const WallConfiguration& config, const Surface& surface,
+                const Screen& screen, QQuickItem& parent);
 
     /** Render the test pattern. */
     void paint(QPainter* painter) final;

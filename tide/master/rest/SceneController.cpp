@@ -41,7 +41,7 @@
 #include "SceneController.h"
 
 #include "control/ContentWindowController.h"
-#include "serialization.h"
+#include "json/json.h"
 
 using namespace rockets;
 
@@ -52,20 +52,19 @@ const jsonrpc::Response noWindow{
 const jsonrpc::Response ok{"\"OK\""};
 }
 
-/** Wrapper function to call fromJson for all parameters. */
-template <typename T>
-bool from_json_object(T& params, const QJsonObject& object)
+template <typename Obj>
+bool from_json(Obj& object, const std::string& json)
 {
-    return params.fromJson(object);
+    return object.fromJson(json::parse(json));
 }
 
 struct WindowId
 {
     QUuid id;
 
-    bool fromJson(const QJsonObject& object)
+    bool fromJson(const QJsonObject& obj)
     {
-        id = object["id"].toString();
+        id = obj["id"].toString();
         return !id.isNull();
     }
 };

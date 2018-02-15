@@ -39,8 +39,8 @@
 
 #include "MultiScreenController.h"
 
-#include "MasterConfiguration.h"
 #include "PlanarController.h"
+#include "configuration/Configuration.h"
 
 MultiScreenController::MultiScreenController(
     std::vector<std::unique_ptr<ScreenController>>&& controllers)

@@ -40,9 +40,9 @@
 
 #include "FileReceiver.h"
 
-#include "json.h"
 #include "log.h"
 #include "scene/ContentFactory.h"
+#include "json/json.h"
 
 #include <QByteArray>
 #include <QDir>
@@ -82,7 +82,7 @@ std::future<http::Response> _makeResponse(const http::Code code,
                                           const QString& key,
                                           const QString& info)
 {
-    const auto body = json::toString(QJsonObject{{key, info}});
+    const auto body = json::dump(QJsonObject{{key, info}});
     return make_ready_response(code, body, "application/json");
 }
 }
@@ -90,7 +90,7 @@ std::future<http::Response> _makeResponse(const http::Code code,
 std::future<http::Response> FileReceiver::prepareUpload(
     const http::Request& request)
 {
-    const auto obj = json::toObject(request.body);
+    const auto obj = json::parse(request.body);
     if (obj.empty())
         return make_ready_response(http::Code::BAD_REQUEST);
 

@@ -61,11 +61,17 @@ void CommandLineOptions::parse(const int argc, char** argv)
     if (getHelp())
         return;
 
-    _streamId = vm["streamid"].as<std::string>().c_str();
-    _url = vm["url"].as<std::string>().c_str();
-    _width = vm["width"].as<unsigned int>();
-    _height = vm["height"].as<unsigned int>();
-    _configuration = vm["config"].as<std::string>().c_str();
+    streamId = vm["streamid"].as<std::string>().c_str();
+    url = vm["url"].as<std::string>().c_str();
+    width = vm["width"].as<unsigned int>();
+    height = vm["height"].as<unsigned int>();
+    contentsDir = vm["contentsDir"].as<std::string>().c_str();
+    sessionsDir = vm["sessionsDir"].as<std::string>().c_str();
+    webservicePort = vm["webservicePort"].as<uint16_t>();
+    demoServiceUrl = vm["demoServiceUrl"].as<std::string>().c_str();
+    demoServiceImageDir = vm["demoServiceImageDir"].as<std::string>().c_str();
+    showPowerButton = vm["showPowerButton"].as<bool>();
+    saveDir = vm["saveDir"].as<std::string>().c_str();
 }
 
 void CommandLineOptions::_fillDesc()
@@ -82,6 +88,20 @@ void CommandLineOptions::_fillDesc()
          "webbrowser only: url to open")
         ("config", po::value<std::string>()->default_value(""),
          "launcher & whiteboard: Tide configuation file for extra settings")
+        ("contentsDir", po::value<std::string>()->default_value(""),
+         "launcher: directory where the contents are located")
+        ("sessionsDir", po::value<std::string>()->default_value(""),
+         "launcher: directory where the session files are located")
+        ("webservicePort", po::value<uint16_t>()->default_value(0),
+         "launcher: port where the master application's webservice is running")
+        ("demoServiceUrl", po::value<std::string>()->default_value(""),
+         "launcher: url for the demo service")
+        ("demoServiceImageDir", po::value<std::string>()->default_value(""),
+         "launcher: folder for the images for the demo service")
+        ("showPowerButton", po::bool_switch()->default_value(false),
+         "launcher: show the power button")
+        ("saveDir", po::value<std::string>()->default_value(""),
+         "whiteboard: directory to use for saving images")
     ;
     // clang-format on
 }
@@ -104,70 +124,38 @@ QStringList CommandLineOptions::getCommandLineArguments() const
 {
     QStringList arguments;
 
-    if (!_streamId.isEmpty())
-        arguments << "--streamid" << _streamId;
+    if (!streamId.isEmpty())
+        arguments << "--streamid" << streamId;
 
-    if (_width > 0)
-        arguments << "--width" << QString::number(_width);
+    if (width > 0)
+        arguments << "--width" << QString::number(width);
 
-    if (_height > 0)
-        arguments << "--height" << QString::number(_height);
+    if (height > 0)
+        arguments << "--height" << QString::number(height);
 
-    if (!_url.isEmpty())
-        arguments << "--url" << _url;
+    if (!url.isEmpty())
+        arguments << "--url" << url;
 
-    if (!_configuration.isEmpty())
-        arguments << "--config" << _configuration;
+    if (!contentsDir.isEmpty())
+        arguments << "--contentsDir" << contentsDir;
+
+    if (!sessionsDir.isEmpty())
+        arguments << "--sessionsDir" << sessionsDir;
+
+    if (webservicePort > 0)
+        arguments << "--webservicePort" << QString::number((int)webservicePort);
+
+    if (!demoServiceUrl.isEmpty())
+        arguments << "--demoServiceUrl" << demoServiceUrl;
+
+    if (!demoServiceImageDir.isEmpty())
+        arguments << "--demoServiceImageDir" << demoServiceImageDir;
+
+    if (showPowerButton)
+        arguments << "--showPowerButton";
+
+    if (!saveDir.isEmpty())
+        arguments << "--saveDir" << saveDir;
 
     return arguments;
-}
-
-const QString& CommandLineOptions::getUrl() const
-{
-    return _url;
-}
-
-const QString& CommandLineOptions::getStreamId() const
-{
-    return _streamId;
-}
-
-unsigned int CommandLineOptions::getWidth() const
-{
-    return _width;
-}
-
-unsigned int CommandLineOptions::getHeight() const
-{
-    return _height;
-}
-
-const QString& CommandLineOptions::getConfiguration() const
-{
-    return _configuration;
-}
-
-void CommandLineOptions::setUrl(const QString& url)
-{
-    _url = url;
-}
-
-void CommandLineOptions::setStreamId(const QString& id)
-{
-    _streamId = id;
-}
-
-void CommandLineOptions::setConfiguration(const QString& file)
-{
-    _configuration = file;
-}
-
-void CommandLineOptions::setWidth(const unsigned int width)
-{
-    _width = width;
-}
-
-void CommandLineOptions::setHeight(const unsigned int height)
-{
-    _height = height;
 }

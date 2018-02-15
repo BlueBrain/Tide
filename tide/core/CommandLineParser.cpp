@@ -56,7 +56,10 @@ void CommandLineParser::parse(const int argc, char** argv)
 {
     try
     {
-        po::store(po::parse_command_line(argc, argv, desc), vm);
+        po::command_line_parser parser{argc, argv};
+        parser.options(desc).positional(pos_desc);
+        const auto parsed = parser.run();
+        po::store(parsed, vm);
         po::notify(vm);
     }
     catch (const po::required_option&)

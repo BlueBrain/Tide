@@ -42,10 +42,11 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "rest/json.h"
 #include "rest/serialization.h"
 #include "scene/ContentFactory.h"
 #include "scene/DisplayGroup.h"
+// include last
+#include "json/templates.h"
 
 namespace
 {
@@ -62,9 +63,9 @@ BOOST_AUTO_TEST_CASE(testSerializeDisplayGroup)
     contentWindow->setCoordinates({QPointF{64, 79}, contentSize});
     group->addContentWindow(contentWindow);
 
-    const auto serializedWindows = to_json(*group);
+    const auto serializedWindows = json::dump(*group);
 
-    const auto object = json::toObject(serializedWindows);
+    const auto object = json::parse(serializedWindows);
     BOOST_REQUIRE(object.contains("windows"));
 
     const auto windows = object.value("windows").toArray();
