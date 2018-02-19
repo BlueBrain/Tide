@@ -44,7 +44,7 @@ function Communicator(baseUrl, deflectStreamHost) {
     this.environmentVariables = 'DEFLECT_HOST='+deflectStreamHost;
 
     // The id of the demo (or application name), set by the launch() function
-    this.renderer_id = '';
+    this.configuration_id = '';
 
     // Status of the session, returned by the RRM
     this.currentStatus = SESSION_STATUS_STOPPED;
@@ -128,11 +128,11 @@ Communicator.prototype.queryStatus = function(callback) {
  * of starting the remote rendering resource.
  */
 Communicator.prototype.launch = function(demo_id) {
-    this.renderer_id = demo_id;
+    this.configuration_id = demo_id;
 
     var openSessionParams = {
         owner: demo_id+'@'+this.deflectStreamHost,
-        renderer_id: demo_id
+        configuration_id: demo_id
     };
 
     var self = this;
