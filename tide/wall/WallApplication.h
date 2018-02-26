@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -65,13 +65,12 @@ public:
      * Constructor
      * @param argc Command line argument count (required by QApplication)
      * @param argv Command line arguments (required by QApplication)
-     * @param config The configuration file for the application
      * @param worldChannel The world MPI channel
      * @param wallChannel The wall MPI channel
      * @throw std::runtime_error if an error occured during initialization
      */
-    WallApplication(int& argc, char** argv, const QString& config,
-                    MPIChannelPtr worldChannel, MPIChannelPtr wallChannel);
+    WallApplication(int& argc, char** argv, MPIChannelPtr worldChannel,
+                    MPIChannelPtr wallChannel);
 
     /** Destructor */
     virtual ~WallApplication();
@@ -88,9 +87,9 @@ private:
     QThread _mpiSendThread;
     QThread _mpiReceiveThread;
 
-    void _initWallWindows();
+    void _initWallWindows(SwapSync swapsync);
     WallWindow* _makeWindow(uint screen);
-    void _initMPIConnection(MPIChannelPtr worldChannel);
+    void _initMPIConnection();
 };
 
 #endif

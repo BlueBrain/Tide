@@ -53,12 +53,15 @@
 class Configuration
 {
 public:
+    /** Default constructor used for deserialization. */
+    Configuration() = default;
+
     /**
      * Constructor
      * @param filename \see Configuration
      * @throw std::runtime_error if the file could not be read
      */
-    Configuration(const QString& _filename);
+    Configuration(const QString& filename);
 
     /** The list of display surfaces. */
     std::vector<Surface> surfaces;
@@ -173,8 +176,6 @@ public:
 
 private:
     QString _filename;
-
-    Configuration() = default;
 
     bool _isXml() const;
     void _loadJson();

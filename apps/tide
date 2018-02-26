@@ -253,7 +253,7 @@ try:
 
         env_vars = [MPI_SPECIAL_FLAGS, export_display, node_host]
         environment = ' '.join(env_vars)
-        wallcmd = '%s -np 1 %s %s' % (environment, TIDEWALL_BIN, TIDE_PARAMS)
+        wallcmd = '%s -np 1 %s' % (environment, TIDEWALL_BIN)
         runcommands.append(wallcmd)
 
     # the 'forker' process is the last one

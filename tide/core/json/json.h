@@ -89,6 +89,22 @@ std::string dump(const QJsonArray& array);
  * @return json string.
  */
 std::string dump(const QJsonObject& object);
+
+/**
+ * Pack a json object to Qt's binary format.
+ *
+ * @param object json object to pack.
+ * @return binaray data.
+ */
+QByteArray pack(const QJsonObject& object);
+
+/**
+ * Unpack a json object in Qt's binary format.
+ *
+ * @param binaryData json data to parse.
+ * @return json object, empty on error.
+ */
+QJsonObject unpack(const QByteArray& binaryData);
 }
 
 #endif

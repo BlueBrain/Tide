@@ -71,7 +71,7 @@ WallWindow::WallWindow(const WallConfiguration& config, const uint windowIndex,
     const auto windowNumber = QString::number(windowIndex);
     _quickRendererThread->setObjectName("Render #" + windowNumber);
 
-    const auto& currentScreen = config.process.screens.at(windowIndex);
+    const auto& currentScreen = config.screens.at(windowIndex);
 
     if (auto qscreen = screens::find(currentScreen.display))
         setScreen(qscreen);
@@ -145,7 +145,7 @@ void WallWindow::exposeEvent(QExposeEvent*)
 void WallWindow::_startQuick(const WallConfiguration& config,
                              const uint windowIndex)
 {
-    const auto& currentScreen = config.process.screens.at(windowIndex);
+    const auto& currentScreen = config.screens.at(windowIndex);
     const auto globalIndex = currentScreen.globalIndex;
 
     connect(_quickRenderer.get(), &deflect::qt::QuickRenderer::afterRender,

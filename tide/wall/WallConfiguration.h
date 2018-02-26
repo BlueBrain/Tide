@@ -43,40 +43,26 @@
 #include "configuration/Configuration.h"
 
 /**
- * Read the parameters needed to setup a Wall process from a configuration file.
- *
- * @warning: can only be used AFTER creating a QApplication.
+ * The configuration parameters for a specific Wall process.
  */
-struct WallConfiguration
+struct WallConfiguration : public Process
 {
     /**
      * Constructor.
-     * @param filename \see Configuration
-     * @param processIndex MPI index in the range [0;n] of wall processes
-     * @throw std::runtime_error if the file could not be read
+     * @param config Configuration recevied from master process.
+     * @param processIndex MPI index in the range [0;n] of wall processes.
+     * @throw std::invalid_argument if the parameters are invalid.
      */
-    WallConfiguration(const QString& filename, uint processIndex);
+    WallConfiguration(const Configuration& config, uint processIndex);
 
-    /** The index of the process. */
+    /** The MPI index of the process. */
     uint processIndex = 0;
 
-    /** The process configuration. */
-    Process process;
-
-    /** The surface informations. */
+    /** The list of all the surfaces. */
     std::vector<Surface> surfaces;
 
     /** The number of wall processes running on the same host. */
     int processCountForHost = 0;
-
-    /** The swap synchronization mode. */
-    SwapSync swapsync = SwapSync::software;
-
-    /** Maximum scaling factor for bitmap contents. */
-    double contentMaxScale = 0.0;
-
-    /** Maximum scaling factor for vectorial contents. */
-    double contentMaxScaleVectorial = 0.0;
 };
 
 #endif

@@ -128,6 +128,7 @@ public:
      * @param serializedData The serialized data
      */
     void broadcast(MPIMessageType type, const std::string& serializedData);
+    void broadcast(MPIMessageType type, const QByteArray& serializedData);
 
     /** Nonblocking probe for messages from a given source */
     bool isMessageAvailable(int src);

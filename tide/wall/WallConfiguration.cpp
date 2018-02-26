@@ -44,27 +44,24 @@
 namespace
 {
 const char* invalidProcessIndex{"Invalid processIndex for WallConfiguration"};
+
+const Process& getProcess(const Configuration& config, const uint processIndex)
+{
+    if (processIndex >= config.processes.size())
+        throw std::invalid_argument(invalidProcessIndex);
+    return config.processes[processIndex];
+}
 }
 
-WallConfiguration::WallConfiguration(const QString& filename_,
+WallConfiguration::WallConfiguration(const Configuration& config,
                                      const uint processIndex_)
-    : processIndex{processIndex_}
+    : Process(getProcess(config, processIndex_))
+    , processIndex{processIndex_}
+    , surfaces{config.surfaces}
 {
-    const Configuration config{filename_};
-
-    if (processIndex >= config.processes.size())
-        throw std::logic_error(invalidProcessIndex);
-
-    process = config.processes[processIndex];
-    surfaces = config.surfaces;
-
-    swapsync = config.global.swapsync;
-    contentMaxScale = config.settings.contentMaxScale;
-    contentMaxScaleVectorial = config.settings.contentMaxScaleVectorial;
-
     processCountForHost =
         std::count_if(config.processes.begin(), config.processes.end(),
-                      [& host = process.host](const auto& p) {
+                      [& host = host](const auto& p) {
                           return p.host == host;
                       });
 }

@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -57,19 +57,16 @@ public:
     /** Constructor */
     WallFromMasterChannel(MPIChannelPtr mpiChannel);
 
-    /** Check if a message is available from the Master process. */
-    bool isMessageAvailable();
-
     /**
-     * Receive a message.
-     * A received() signal will be emitted according to the message type.
-     * This method is blocking.
+     * Receive the inital Configuration sent by the master process.
+     * @return configuration object.
      */
-    void receiveMessage();
+    Configuration receiveConfiguration();
 
 public slots:
     /**
      * Process messages until the QUIT message is received.
+     * This method is blocking and should be called from the processing thread.
      */
     void processMessages();
 
@@ -138,6 +135,13 @@ private:
     MPIChannelPtr _mpiChannel;
     ReceiveBuffer _buffer;
     bool _processMessages;
+
+    /**
+     * Receive a message.
+     * A received() signal will be emitted according to the message type.
+     * This method is blocking.
+     */
+    void receiveMessage();
 
     template <typename T>
     T receiveBroadcast(const size_t messageSize);

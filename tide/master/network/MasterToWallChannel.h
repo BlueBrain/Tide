@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -112,7 +112,13 @@ public slots:
      * Send pixel stream frame to the wall processes.
      * @param frame The frame to send
      */
-    void send(deflect::FramePtr frame);
+    void sendFrame(deflect::FramePtr frame);
+
+    /**
+     * Send the configuration to the wall processes.
+     * @param config The configuration to send
+     */
+    void send(const Configuration& config);
 
     /**
      * Send a screenshot request to the wall processes.

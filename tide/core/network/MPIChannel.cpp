@@ -135,6 +135,13 @@ void MPIChannel::sendAll(const MPIMessageType type)
 void MPIChannel::broadcast(const MPIMessageType type,
                            const std::string& serializedData)
 {
+    broadcast(type, QByteArray::fromRawData(serializedData.data(),
+                                            serializedData.size()));
+}
+
+void MPIChannel::broadcast(const MPIMessageType type,
+                           const QByteArray& serializedData)
+{
     MPIHeader mh;
     mh.size = serializedData.size();
     mh.type = type;
@@ -142,8 +149,8 @@ void MPIChannel::broadcast(const MPIMessageType type,
     for (int i = 0; i < _mpiSize; ++i)
         _send(mh, i);
 
-    MPI_CHECK(MPI_Bcast((void*)serializedData.data(), serializedData.size(),
-                        MPI_BYTE, _mpiRank, _mpiComm));
+    MPI_CHECK(MPI_Bcast(const_cast<char*>(serializedData.constData()),
+                        serializedData.size(), MPI_BYTE, _mpiRank, _mpiComm));
 }
 
 MPIHeader MPIChannel::receiveHeader(const int src)

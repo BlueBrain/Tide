@@ -99,7 +99,6 @@ MasterApplication::MasterApplication(int& argc_, char** argv_,
     , _masterToForkerChannel(new MasterToForkerChannel(forkChannel))
     , _masterToWallChannel(new MasterToWallChannel(worldChannel))
     , _masterFromWallChannel(new MasterFromWallChannel(worldChannel))
-    , _background{_config->background->shared_from_this()}
     , _lock(ScreenLock::create())
     , _markers(Markers::create())
     , _options(Options::create())
@@ -114,7 +113,7 @@ MasterApplication::MasterApplication(int& argc_, char** argv_,
 
     _init();
 
-    _masterToWallChannel->sendAsync(_background);
+    _masterToWallChannel->send(*_config);
 
     // WAR: the wall processes need the initial display group to render the
     // side control area attached to it (which should be moved to root).
@@ -359,7 +358,8 @@ void MasterApplication::_setupMPIConnections()
     connect(_pixelStreamerLauncher.get(), &PixelStreamerLauncher::start,
             _masterToForkerChannel.get(), &MasterToForkerChannel::sendStart);
 
-    connect(_background.get(), &Background::updated, _masterToWallChannel.get(),
+    connect(_config->background.get(), &Background::updated,
+            _masterToWallChannel.get(),
             [this](BackgroundPtr background) {
                 _masterToWallChannel->sendAsync(background);
             },
@@ -418,7 +418,7 @@ void MasterApplication::_setupMPIConnections()
                 _deflectServer.get(), &deflect::Server::requestFrame);
 
         connect(_deflectServer.get(), &deflect::Server::receivedFrame,
-                _masterToWallChannel.get(), &MasterToWallChannel::send);
+                _masterToWallChannel.get(), &MasterToWallChannel::sendFrame);
     }
 
     connect(_masterFromWallChannel.get(),

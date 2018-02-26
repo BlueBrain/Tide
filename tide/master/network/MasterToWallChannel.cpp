@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -48,6 +48,8 @@
 #include "scene/Options.h"
 #include "scene/ScreenLock.h"
 #include "serialization/utils.h"
+#include "json/serialization.h"
+#include "json/templates.h"
 
 #include <deflect/Frame.h>
 
@@ -103,7 +105,7 @@ void MasterToWallChannel::sendAsync(MarkersPtr markers)
     broadcastAsync(markers, MPIMessageType::MARKERS);
 }
 
-void MasterToWallChannel::send(deflect::FramePtr frame)
+void MasterToWallChannel::sendFrame(deflect::FramePtr frame)
 {
     assert(!frame->segments.empty() && "received an empty frame");
 #if BOOST_VERSION >= 106000
@@ -112,6 +114,11 @@ void MasterToWallChannel::send(deflect::FramePtr frame)
     // WAR missing support for std::shared_ptr
     broadcast(*frame, MPIMessageType::PIXELSTREAM);
 #endif
+}
+
+void MasterToWallChannel::send(const Configuration& config)
+{
+    _mpiChannel->broadcast(MPIMessageType::CONFIG, json::pack(config));
 }
 
 void MasterToWallChannel::sendRequestScreenshot()
