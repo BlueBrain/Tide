@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,6 +39,7 @@
 
 #include "WallFromMasterChannel.h"
 
+#include "configuration/Configuration.h"
 #include "network/MPIChannel.h"
 #include "scene/Background.h"
 #include "scene/ContentWindow.h"
@@ -48,6 +49,8 @@
 #include "scene/Options.h"
 #include "scene/ScreenLock.h"
 #include "serialization/utils.h"
+#include "json/serialization.h"
+#include "json/templates.h"
 
 #include <deflect/Frame.h>
 
@@ -59,20 +62,32 @@ const int RANK0 = 0;
 }
 
 WallFromMasterChannel::WallFromMasterChannel(MPIChannelPtr mpiChannel)
-    : _mpiChannel(mpiChannel)
-    , _processMessages(true)
+    : _mpiChannel{mpiChannel}
+    , _processMessages{true}
 {
 }
 
-bool WallFromMasterChannel::isMessageAvailable()
+Configuration WallFromMasterChannel::receiveConfiguration()
 {
-    return _mpiChannel->isMessageAvailable(RANK0);
+    const auto mh = _mpiChannel->receiveHeader(RANK0);
+    if (mh.type != MPIMessageType::CONFIG)
+        throw std::logic_error("Configuation object expected from master");
+
+    _buffer.setSize(mh.size);
+    _mpiChannel->receiveBroadcast(_buffer.data(), _buffer.size(), RANK0);
+    const auto data = QByteArray::fromRawData(_buffer.data(), _buffer.size());
+    return json::unpack<Configuration>(data);
+}
+
+void WallFromMasterChannel::processMessages()
+{
+    while (_processMessages)
+        receiveMessage();
 }
 
 void WallFromMasterChannel::receiveMessage()
 {
-    MPIHeader mh = _mpiChannel->receiveHeader(RANK0);
-
+    const auto mh = _mpiChannel->receiveHeader(RANK0);
     switch (mh.type)
     {
     case MPIMessageType::BACKGROUND:
@@ -111,15 +126,12 @@ void WallFromMasterChannel::receiveMessage()
         _processMessages = false;
         emit receivedQuit();
         break;
+    case MPIMessageType::CONFIG:
+        throw std::logic_error("Configuation object not expected at runtime");
+        break;
     default:
         break;
     }
-}
-
-void WallFromMasterChannel::processMessages()
-{
-    while (_processMessages)
-        receiveMessage();
 }
 
 template <typename T>

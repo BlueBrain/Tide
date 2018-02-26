@@ -45,6 +45,8 @@
 #include "MinimalGlobalQtApp.h"
 #include "imageCompare.h"
 
+#include <QColor>
+
 namespace
 {
 const Surface referenceSurface{1920, 1080, 2, 1, 2, 3, 14, 12};

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -103,7 +103,6 @@ private:
     QThread _mpiSendThread;
     QThread _mpiReceiveThread;
 
-    BackgroundPtr _background;
     DisplayGroupPtr _displayGroup;
     ScreenLockPtr _lock;
     MarkersPtr _markers;

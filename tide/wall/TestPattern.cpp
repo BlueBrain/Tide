@@ -90,7 +90,7 @@ TestPattern::TestPattern(const WallConfiguration& config,
 
     _labels.push_back(QString("Surface: %1").arg(screen.surfaceIndex));
     _labels.push_back(QString("Rank: %1").arg(config.processIndex));
-    _labels.push_back(QString("Host: %1").arg(config.process.host));
+    _labels.push_back(QString("Host: %1").arg(config.host));
     _labels.push_back(QString("Display: %1").arg(screen.display));
     _labels.push_back(QString("Screen global index: (%1,%2)")
                           .arg(screen.globalIndex.x())

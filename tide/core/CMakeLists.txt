@@ -113,7 +113,6 @@ if(TIDE_USE_TIFF)
 endif()
 
 list(APPEND TIDECORE_PUBLIC_HEADERS
-  CommandLineParameters.h
   CommandLineParser.h
   geometry.h
   log.h
@@ -182,7 +181,6 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
 )
 
 list(APPEND TIDECORE_SOURCES
-  CommandLineParameters.cpp
   CommandLineParser.cpp
   geometry.cpp
   log.cpp

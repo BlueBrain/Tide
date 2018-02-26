@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -45,7 +45,7 @@
 #include <QString>
 
 /**
- * Parse command line parameters for tide a master/wall application.
+ * Parse command line parameters for tide a master application.
  */
 class CommandLineParameters : public CommandLineParser
 {

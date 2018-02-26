@@ -66,6 +66,13 @@ std::string dump(const SerializableT& object)
     return dump(serialize(object));
 }
 
+/** @return binary json representation of a serializable object. */
+template <typename SerializableT>
+QByteArray pack(const SerializableT& object)
+{
+    return pack(serialize(object));
+}
+
 // forward-declare
 template <typename DeserializableT>
 DeserializableT create(const QJsonObject& object);
@@ -96,7 +103,14 @@ DeserializableT create(const QJsonObject& object)
 template <typename DeserializableT>
 bool deserialize(const std::string& json, DeserializableT& object)
 {
-    return json::deserialize(json::parse(json), object);
+    return deserialize(parse(json), object);
+}
+
+/** Deserialize an object from a binary JSON representation. */
+template <typename DeserializableT>
+DeserializableT unpack(const QByteArray& binaryData)
+{
+    return create<DeserializableT>(unpack(binaryData));
 }
 }
 

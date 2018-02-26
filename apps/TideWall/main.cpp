@@ -1,8 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
-/*                     Raphael.Dumusc@epfl.ch                        */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael.Dumusc@epfl.ch                   */
+/*                          Daniel.Nachbaur@epfl.ch                  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,7 +38,7 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "CommandLineParameters.h"
+#include "CommandLineParser.h"
 #include "WallApplication.h"
 #include "WallConfiguration.h"
 #include "log.h"
@@ -49,6 +48,20 @@
 
 #include <memory>
 #include <stdexcept>
+
+namespace
+{
+class CommandLineParameters : public CommandLineParser
+{
+public:
+    void showSyntax(const std::string& appName) const final
+    {
+        std::cout << "Usage: mpiexec " << appName << "\n\n";
+        std::cout << desc << std::endl;
+        std::cout << "Do not launch manually, use 'tide' script instead.\n";
+    }
+};
+}
 
 int main(int argc, char* argv[])
 {
@@ -77,9 +90,8 @@ int main(int argc, char* argv[])
         std::unique_ptr<WallApplication> app;
         try
         {
-            const auto config = commandLine.getConfigFilename();
-            app.reset(new WallApplication(argc, argv, config, mainChannel,
-                                          localChannel));
+            app.reset(
+                new WallApplication(argc, argv, mainChannel, localChannel));
         }
         catch (const std::exception& e)
         {

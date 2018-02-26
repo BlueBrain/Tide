@@ -57,26 +57,33 @@
 #include <QThreadPool>
 
 WallApplication::WallApplication(int& argc_, char** argv_,
-                                 const QString& config,
                                  MPIChannelPtr worldChannel,
                                  MPIChannelPtr wallChannel)
     : QGuiApplication{argc_, argv_}
-    , _config{new WallConfiguration{config, (uint)wallChannel->getRank()}}
     , _provider{new DataProvider}
+    , _fromMasterChannel{new WallFromMasterChannel(worldChannel)}
+    , _toMasterChannel{new WallToMasterChannel(worldChannel)}
     , _wallChannel{new WallToWallChannel{wallChannel}}
 {
     core::registerQmlTypes();
-    Content::setMaxScale(_config->contentMaxScale);
-    VectorialContent::setMaxScale(_config->contentMaxScaleVectorial);
+
+    const auto config = _fromMasterChannel->receiveConfiguration();
+    const auto rank = (uint)wallChannel->getRank();
+    _config = std::make_unique<WallConfiguration>(config, rank);
+
+    Content::setMaxScale(config.settings.contentMaxScale);
+    VectorialContent::setMaxScale(config.settings.contentMaxScaleVectorial);
 
     // avoid overcommit for async content loading; consider number of processes
     // on the same machine
     const auto prCount = _config->processCountForHost;
-    const int maxThreads = std::max(QThread::idealThreadCount() / prCount, 2);
+    const auto maxThreads = std::max(QThread::idealThreadCount() / prCount, 2);
     QThreadPool::globalInstance()->setMaxThreadCount(maxThreads);
 
-    _initWallWindows();
-    _initMPIConnection(worldChannel);
+    _initWallWindows(config.global.swapsync);
+    _initMPIConnection();
+
+    _renderController->updateBackground(config.background);
 }
 
 WallApplication::~WallApplication()
@@ -98,12 +105,12 @@ WallApplication::~WallApplication()
     _mpiSendThread.wait();
 }
 
-void WallApplication::_initWallWindows()
+void WallApplication::_initWallWindows(const SwapSync swapsync)
 {
     std::vector<WallWindow*> windows;
     try
     {
-        const auto screenCount = _config->process.screens.size();
+        const auto screenCount = _config->screens.size();
         for (uint screen = 0; screen < screenCount; ++screen)
             windows.push_back(_makeWindow(screen));
     }
@@ -114,13 +121,12 @@ void WallApplication::_initWallWindows()
         throw std::runtime_error("WallApplication: initialization failed.");
     }
 
-    if (_config->swapsync == SwapSync::hardware)
+    if (swapsync == SwapSync::hardware)
         print_log(LOG_INFO, LOG_GENERAL,
                   "Launching with hardware swap synchronization...");
 
     _renderController.reset(new RenderController(std::move(windows), *_provider,
-                                                 *_wallChannel,
-                                                 _config->swapsync));
+                                                 *_wallChannel, swapsync));
 }
 
 WallWindow* WallApplication::_makeWindow(const uint screen)
@@ -129,11 +135,8 @@ WallWindow* WallApplication::_makeWindow(const uint screen)
                           std::make_unique<QQuickRenderControl>(this));
 }
 
-void WallApplication::_initMPIConnection(MPIChannelPtr worldChannel)
+void WallApplication::_initMPIConnection()
 {
-    _fromMasterChannel.reset(new WallFromMasterChannel(worldChannel));
-    _toMasterChannel.reset(new WallToMasterChannel(worldChannel));
-
     _fromMasterChannel->moveToThread(&_mpiReceiveThread);
     _toMasterChannel->moveToThread(&_mpiSendThread);
 

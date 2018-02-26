@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2016, EPFL/Blue Brain Project
+# Copyright (c) 2013-2018, EPFL/Blue Brain Project
 #                          Raphael Dumusc <raphael.dumusc@epfl.ch>
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
@@ -13,6 +13,7 @@ set(TIDEMASTER_LINK_LIBRARIES
 )
 
 list(APPEND TIDEMASTER_PUBLIC_HEADERS
+  CommandLineParameters.h
   ContentLoader.h
   control/AutomaticLayout.h
   control/CanvasNode.h
@@ -60,6 +61,7 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
 )
 
 list(APPEND TIDEMASTER_SOURCES
+  CommandLineParameters.cpp
   ContentLoader.cpp
   control/AutomaticLayout.cpp
   control/CanvasNode.cpp

@@ -99,4 +99,14 @@ std::string dump(const QJsonObject& object)
 {
     return QJsonDocument{object}.toJson().toStdString();
 }
+
+QByteArray pack(const QJsonObject& object)
+{
+    return QJsonDocument{object}.toBinaryData();
+}
+
+QJsonObject unpack(const QByteArray& binaryData)
+{
+    return QJsonDocument::fromBinaryData(binaryData).object();
+}
 }

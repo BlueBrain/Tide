@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -59,7 +59,8 @@ enum class MPIMessageType
     COUNTDOWN_STATUS,
     PIXELSTREAM_CLOSE,
     LOCK,
-    BACKGROUND
+    BACKGROUND,
+    CONFIG
 };
 
 /** Fixed-size message header. */
