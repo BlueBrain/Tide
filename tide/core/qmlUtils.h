@@ -44,6 +44,7 @@
 #include <QQmlComponent>
 #include <QQuickItem>
 
+#include <memory>
 #include <stdexcept>
 
 /**
@@ -61,12 +62,13 @@ inline void checkOrThrow(const QQmlComponent& component)
     }
 }
 
-inline QQuickItem* makeItem(QQmlEngine& engine, const QUrl& url,
-                            QQmlContext* context = nullptr)
+inline std::unique_ptr<QQuickItem> makeItem(QQmlEngine& engine, const QUrl& url,
+                                            QQmlContext* context = nullptr)
 {
     QQmlComponent component(&engine, url);
     checkOrThrow(component);
-    return qobject_cast<QQuickItem*>(component.create(context));
+    return std::unique_ptr<QQuickItem>{
+        qobject_cast<QQuickItem*>(component.create(context))};
 }
 }
 

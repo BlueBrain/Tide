@@ -59,7 +59,7 @@ struct WallConfiguration : public Process
     uint processIndex = 0;
 
     /** The list of all the surfaces. */
-    std::vector<Surface> surfaces;
+    std::vector<SurfaceConfig> surfaces;
 
     /** The number of wall processes running on the same host. */
     int processCountForHost = 0;

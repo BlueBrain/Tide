@@ -4,9 +4,7 @@ import TideMaster 1.0
 import "qrc:/qml/core/."
 import "qrc:/qml/core/style.js" as Style
 
-Scene {
-    id: sceneitem
-
+ControlSurface {
     anchors.fill: parent
 
     signal openLauncher

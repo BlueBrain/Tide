@@ -1,8 +1,4 @@
 {
-    "background": {
-        "color": "#242424",
-        "uri": "wall.png"
-    },
     "folders": {
         "contents": "/nfs4/bbp.epfl.ch/visualization/DisplayWall/media",
         "sessions": "/nfs4/bbp.epfl.ch/visualization/DisplayWall/sessions",
@@ -125,14 +121,18 @@
     },
     "surfaces": [
         {
+            "background": {
+                "color": "#242424",
+                "uri": "wall.png"
+            },
             "bezelHeight": 12,
             "bezelWidth": 14,
             "displayHeight": 1080,
             "displayWidth": 1920,
             "displaysPerScreenX": 2,
             "displaysPerScreenY": 1,
-            "numScreensX": 2,
-            "numScreensY": 3
+            "screenCountX": 2,
+            "screenCountY": 3
         }
     ],
     "webbrowser": {

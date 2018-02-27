@@ -72,62 +72,47 @@ public slots:
 
 signals:
     /**
-     * Emitted when a background was recieved
-     * @see receiveMessage()
-     * @param background The Background that was received
+     * Emitted when a scene was recieved.
+     * @param scene The Scene that was received.
      */
-    void received(BackgroundPtr background);
+    void received(ScenePtr scene);
 
     /**
-     * Emitted when a displayGroup was recieved
-     * @see receiveMessage()
-     * @param displayGroup The DisplayGroup that was received
-     */
-    void received(DisplayGroupPtr displayGroup);
-
-    /**
-     * Emitted when new Options were recieved
-     * @see receiveMessage()
-     * @param options The options that were received
+     * Emitted when new Options were recieved.
+     * @param options The options that were received.
      */
     void received(OptionsPtr options);
 
-    /** Emitted when a new CountdownStatus was received
-     * @see receiveMessage()
-     * @param status The status that was received
+    /** Emitted when a new CountdownStatus was received.
+     * @param status The status that was received.
      */
     void received(CountdownStatusPtr status);
 
     /**
-     * Emitted when new ScreenLock was recieved
-     * @see receiveMessage()
-     * @param lock The ScreenLock that was received
+     * Emitted when new ScreenLock was recieved.
+     * @param lock The ScreenLock that was received.
      */
     void received(ScreenLockPtr lock);
 
     /**
-     * Emitted when new Markers were recieved
-     * @see receiveMessage()
-     * @param markers The markers that were received
+     * Emitted when new Markers were recieved.
+     * @param markers The markers that were received.
      */
     void received(MarkersPtr markers);
 
     /**
-     * Emitted when a new PixelStream frame was recieved
-     * @see receiveMessage()
-     * @param frame The frame that was received
+     * Emitted when a new PixelStream frame was recieved.
+     * @param frame The frame that was received.
      */
     void received(deflect::FramePtr frame);
 
     /**
      * Emitted when a screenshot was requested.
-     * @see receiveMessage()
      */
     void receivedScreenshotRequest();
 
     /**
-     * Emitted when the quit message was recieved
-     * @see receiveMessage()
+     * Emitted when the quit message was recieved.
      */
     void receivedQuit();
 
@@ -136,15 +121,13 @@ private:
     ReceiveBuffer _buffer;
     bool _processMessages;
 
-    /**
-     * Receive a message.
-     * A received() signal will be emitted according to the message type.
-     * This method is blocking.
-     */
     void receiveMessage();
 
+    void receiveBroadcast(const size_t messageSize);
     template <typename T>
-    T receiveBroadcast(const size_t messageSize);
+    T receiveBinaryBroadcast(const size_t messageSize);
+    template <typename T>
+    T receiveJsonBroadcast(const size_t messageSize);
     template <typename T>
     T receiveQObjectBroadcast(const size_t messageSize);
 };

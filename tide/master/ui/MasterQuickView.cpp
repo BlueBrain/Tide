@@ -39,7 +39,8 @@
 
 #include "MasterQuickView.h"
 
-#include "configuration/Configuration.h"
+#include "MasterSurfaceRenderer.h"
+#include "configuration/SurfaceConfig.h"
 #include "scene/Options.h"
 #include "scene/ScreenLock.h"
 
@@ -53,8 +54,10 @@ const QUrl QML_ROOT_COMPONENT("qrc:/qml/master/Root.qml");
 const QString WALL_OBJECT_NAME("Wall");
 }
 
-MasterQuickView::MasterQuickView(OptionsPtr options, ScreenLockPtr lock,
-                                 const Configuration& config)
+MasterQuickView::MasterQuickView(const SurfaceConfig& surface,
+                                 const size_t surfaceIndex,
+                                 DisplayGroupPtr group, OptionsPtr options,
+                                 ScreenLockPtr lock)
 {
     setResizeMode(QQuickView::SizeRootObjectToView);
 
@@ -63,8 +66,6 @@ MasterQuickView::MasterQuickView(OptionsPtr options, ScreenLockPtr lock,
     rootContext()->setContextProperty("view", this);
 
     setSource(QML_ROOT_COMPONENT);
-
-    const auto& surface = config.surfaces[0];
 
     _wallItem = rootObject()->findChild<QQuickItem*>(WALL_OBJECT_NAME);
     _wallItem->setProperty("numberOfTilesX", surface.screenCountX);
@@ -75,6 +76,13 @@ MasterQuickView::MasterQuickView(OptionsPtr options, ScreenLockPtr lock,
     _wallItem->setProperty("screenHeight", surface.getScreenHeight());
     _wallItem->setProperty("wallWidth", surface.getTotalWidth());
     _wallItem->setProperty("wallHeight", surface.getTotalHeight());
+
+    _surfaceRenderer =
+        std::make_unique<MasterSurfaceRenderer>(surfaceIndex, group, *engine(),
+                                                *_wallItem);
+
+    connect(_surfaceRenderer.get(), &MasterSurfaceRenderer::openLauncher, this,
+            &MasterQuickView::openLauncher);
 }
 
 MasterQuickView::~MasterQuickView()

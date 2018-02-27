@@ -1,7 +1,6 @@
-
-# Copyright (c) 2013-2017, EPFL/Blue Brain Project
-#                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>
-#                     Raphael Dumusc <raphael.dumusc@epfl.ch>
+# Copyright (c) 2013-2018, EPFL/Blue Brain Project
+#                          Daniel Nachbaur <daniel.nachbaur@epfl.ch>
+#                          Raphael Dumusc <raphael.dumusc@epfl.ch>
 #
 # Generates executables for the unit tests and defines a "tests" make target
 # which runs all of them.

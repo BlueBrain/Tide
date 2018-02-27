@@ -40,7 +40,7 @@
 #ifndef SCREENSHOTASSEMBLER_H
 #define SCREENSHOTASSEMBLER_H
 
-#include "configuration/Surface.h"
+#include "configuration/SurfaceConfig.h"
 
 #include <QImage>
 #include <QObject>
@@ -54,11 +54,14 @@ class ScreenshotAssembler : public QObject
 
 public:
     /**
-     * Construct a screenshot assembler for a certain display wall.
+     * Construct a screenshot assembler for a certain surface.
      *
-     * @param config the configuration of the wall.
+     * @param config the configuration of the surface.
      */
-    explicit ScreenshotAssembler(const Surface& config);
+    explicit ScreenshotAssembler(const SurfaceConfig& config);
+
+    /** @return true once the screenshot is complete. */
+    bool isComplete() const;
 
 public slots:
     /**
@@ -73,9 +76,12 @@ signals:
     void screenshotComplete(QImage image);
 
 private:
-    const Surface& _surface;
+    const SurfaceConfig& _surface;
     QImage _screenshot;
     std::vector<bool> _imagesReceived;
+    bool _complete = false;
+
+    bool _hasReceivedAllImages() const;
 };
 
 #endif

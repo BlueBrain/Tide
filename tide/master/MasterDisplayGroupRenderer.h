@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -46,7 +46,7 @@
 #include <QUuid>
 
 /**
- * A view of the display group in the master application.
+ * Render a display group in Qml in the master application.
  */
 class MasterDisplayGroupRenderer : public QObject
 {
@@ -66,8 +66,9 @@ private:
     QQmlEngine& _engine;
     std::unique_ptr<QQmlContext> _qmlContext;
 
-    QQuickItem* _displayGroupItem = nullptr;
-    typedef QMap<QUuid, QQuickItem*> UuidToWindowMap;
+    std::unique_ptr<QQuickItem> _displayGroupItem;
+
+    using UuidToWindowMap = std::map<QUuid, std::unique_ptr<QQuickItem>>;
     UuidToWindowMap _uuidToWindowMap;
 
     void _setContextProperties();

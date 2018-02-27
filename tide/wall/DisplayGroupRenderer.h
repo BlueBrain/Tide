@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -42,7 +42,7 @@
 
 #include "types.h"
 
-#include "QmlWindowRenderer.h"
+#include "ContentWindowRenderer.h"
 #include "WallRenderContext.h"
 
 #include <QtCore/QMap>
@@ -71,8 +71,8 @@ private:
     std::unique_ptr<QQmlContext> _qmlContext;
     DisplayGroupPtr _displayGroup;
 
-    QQuickItem* _displayGroupItem = nullptr; // child of parent item
-    using QmlWindowPtr = std::shared_ptr<QmlWindowRenderer>;
+    std::unique_ptr<QQuickItem> _displayGroupItem;
+    using QmlWindowPtr = std::shared_ptr<ContentWindowRenderer>;
     QMap<QUuid, QmlWindowPtr> _windowItems;
 
     void _createDisplayGroupQmlItem(QQuickItem& parentItem);

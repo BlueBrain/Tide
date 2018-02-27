@@ -61,21 +61,22 @@ class MasterWindow : public QMainWindow
 
 public:
     /** Constructor. */
-    MasterWindow(DisplayGroupPtr displayGroup, OptionsPtr options,
-                 ScreenLockPtr lock, Configuration& config);
+    MasterWindow(ScenePtr scene, OptionsPtr options, ScreenLockPtr lock,
+                 Configuration& config);
 
     /** @return the quick view. */
     MasterQuickView* getQuickView();
 
 signals:
     /** Emitted when users want to open a webbrowser. */
-    void openWebBrowser(QPointF pos, QSize size, QString url, ushort debugPort);
+    void openWebBrowser(uint surfaceIndex, QPointF pos, QSize size, QString url,
+                        ushort debugPort);
 
     /** Emitted when users want to open a whiteboard. */
-    void openWhiteboard();
+    void openWhiteboard(uint surfaceIndex);
 
     /** Emitted when a session has been successfully loaded. */
-    void sessionLoaded(DisplayGroupConstPtr group);
+    void sessionLoaded(SceneConstPtr group);
 
 protected:
     /** @name Drag events re-implemented from QMainWindow */
@@ -85,7 +86,10 @@ protected:
     //@}
 
 private:
-    void _setupMasterWindowUI(std::unique_ptr<MasterQuickView> masterQuickView);
+    void _setupMasterWindowUI();
+    void _addSurfacesTabViews(const Configuration& config, ScreenLockPtr lock);
+    void _addDisplayGroupTabView(std::unique_ptr<MasterQuickView> quickView,
+                                 const QString& title);
 
     void _openContent();
     void _addContentDirectory(const QString& directoryName,
@@ -98,14 +102,17 @@ private:
 
     void _openAboutWidget();
 
+    uint _getActiveSceneIndex() const;
+    DisplayGroup& _getActiveGroup();
+
     QStringList _extractValidContentUrls(const QMimeData* mimeData);
     QStringList _extractFolderUrls(const QMimeData* mimeData);
     QString _extractSessionFile(const QMimeData* mimeData);
 
-    DisplayGroupPtr _displayGroup;
+    ScenePtr _scene;
     OptionsPtr _options;
 
-    QFutureWatcher<DisplayGroupConstPtr> _loadSessionOp;
+    QFutureWatcher<SceneConstPtr> _loadSessionOp;
     QFutureWatcher<bool> _saveSessionOp;
 
     BackgroundWidget* _backgroundWidget; // child QObject

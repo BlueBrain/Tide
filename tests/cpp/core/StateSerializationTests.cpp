@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -79,19 +79,25 @@ const QString TEST_DIR = "tmp";
 const QSize VALID_TEXTURE_SIZE(256, 128);
 }
 
+ScenePtr makeTestScene()
+{
+    return Scene::create(wallSize);
+}
+
 State makeTestStateCopy()
 {
     DummyContent* dummyContent = new DummyContent(DUMMY_URI);
     ContentPtr content(dummyContent);
     dummyContent->dummyParam_ = DUMMY_PARAM_VALUE;
-
     content->setDimensions(CONTENT_SIZE);
-    ContentWindowPtr window(new ContentWindow(std::move(content)));
+    auto window = std::make_shared<ContentWindow>(std::move(content));
 
-    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
+    auto displayGroup = DisplayGroup::create(wallSize);
     displayGroup->addContentWindow(window);
 
-    State state(displayGroup);
+    const auto scene = Scene::create(displayGroup);
+
+    State state(scene);
     return serialization::xmlCopy(state);
 }
 
@@ -99,7 +105,7 @@ BOOST_AUTO_TEST_CASE(
     testWhenStateIsSerializedAndDeserializedThenContentPropertiesArePreserved)
 {
     auto state = makeTestStateCopy();
-    auto contentWindows = state.getDisplayGroup()->getContentWindows();
+    auto contentWindows = state.getScene()->getGroup(0).getContentWindows();
 
     BOOST_REQUIRE_EQUAL(contentWindows.size(), 1);
     auto& content = contentWindows[0]->getContent();
@@ -124,34 +130,30 @@ BOOST_AUTO_TEST_CASE(testWhenOpeningValidLegacyStateThenContentIsLoaded)
 {
     State state;
     BOOST_CHECK(state.legacyLoadXML(LEGACY_URI));
-    ContentWindowPtrs contentWindows =
-        state.getDisplayGroup()->getContentWindows();
+    auto contentWindows = state.getScene()->getGroup(0).getContentWindows();
 
     BOOST_REQUIRE_EQUAL(contentWindows.size(), 1);
 }
 
 BOOST_AUTO_TEST_CASE(testStateSerializationHelperReadingFromLegacyFile)
 {
-    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
-    StateSerializationHelper helper(displayGroup);
-
-    DisplayGroupConstPtr group;
+    StateSerializationHelper helper{makeTestScene()};
+    SceneConstPtr scene;
     // cppcheck-suppress redundantAssignment
-    BOOST_CHECK_NO_THROW(group = helper.load(LEGACY_URI).result());
-    BOOST_CHECK(group);
+    BOOST_CHECK_NO_THROW(scene = helper.load(LEGACY_URI).result());
+    BOOST_CHECK(scene);
 
-    BOOST_CHECK_EQUAL(group->getContentWindows().size(), 1);
+    BOOST_CHECK_EQUAL(scene->getSurfaces().size(), 1);
+    BOOST_CHECK_EQUAL(scene->getGroup(0).getContentWindows().size(), 1);
 }
 
 BOOST_AUTO_TEST_CASE(testWhenOpeningBrokenStateThenNoExceptionIsThrown)
 {
-    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
-    StateSerializationHelper helper(displayGroup);
-
-    DisplayGroupConstPtr group;
+    StateSerializationHelper helper(makeTestScene());
+    SceneConstPtr scene;
     // cppcheck-suppress redundantAssignment
-    BOOST_CHECK_NO_THROW(group = helper.load(STATE_V0_BROKEN_URI).result());
-    BOOST_CHECK(!group);
+    BOOST_CHECK_NO_THROW(scene = helper.load(STATE_V0_BROKEN_URI).result());
+    BOOST_CHECK(!scene);
 }
 
 void checkContent(const Content& content)
@@ -233,7 +235,9 @@ BOOST_AUTO_TEST_CASE(testWhenOpeningValidStateThenContentIsLoaded)
     BOOST_CHECK_NO_THROW(success = serialization::fromXmlFile(state, file));
     BOOST_REQUIRE(success);
 
-    const auto& windows = state.getDisplayGroup()->getContentWindows();
+    auto scene = state.getScene();
+    BOOST_CHECK_EQUAL(scene->getSurfaces().size(), 1);
+    const auto& windows = scene->getGroup(0).getContentWindows();
     BOOST_REQUIRE_EQUAL(windows.size(), 1);
 
     checkLegacyWindow(windows[0]);
@@ -241,19 +245,20 @@ BOOST_AUTO_TEST_CASE(testWhenOpeningValidStateThenContentIsLoaded)
 
 BOOST_AUTO_TEST_CASE(testStateSerializationHelperReadingFromVersion0File)
 {
-    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
-    StateSerializationHelper helper(displayGroup);
+    StateSerializationHelper helper(makeTestScene());
 
-    DisplayGroupConstPtr group;
+    SceneConstPtr scene;
     // cppcheck-suppress redundantAssignment
-    BOOST_CHECK_NO_THROW(group = helper.load(STATE_V0_URI).result());
-    BOOST_REQUIRE(group);
-    BOOST_REQUIRE_EQUAL(group->getContentWindows().size(), 1);
+    BOOST_CHECK_NO_THROW(scene = helper.load(STATE_V0_URI).result());
+    BOOST_REQUIRE(scene);
+
+    const auto& group = scene->getGroup(0);
+    BOOST_REQUIRE_EQUAL(group.getContentWindows().size(), 1);
 
     // The file contains only normalized coordinates, so all the windows have
     // to be denormalized to be adjusted to the new displaygroup.
-    BOOST_REQUIRE_EQUAL(group->getCoordinates().size(), wallSize);
-    checkWindowVersion0(group->getContentWindows()[0]);
+    BOOST_REQUIRE_EQUAL(group.getCoordinates().size(), wallSize);
+    checkWindowVersion0(group.getContentWindows()[0]);
 }
 
 BOOST_AUTO_TEST_CASE(testWhenOpeningValidVersion3StateThenContentIsLoaded)
@@ -264,68 +269,74 @@ BOOST_AUTO_TEST_CASE(testWhenOpeningValidVersion3StateThenContentIsLoaded)
     BOOST_CHECK_NO_THROW(success = serialization::fromXmlFile(state, file));
     BOOST_REQUIRE(success);
 
-    const auto& windows = state.getDisplayGroup()->getContentWindows();
+    auto scene = state.getScene();
+    const auto& group = scene->getGroup(0);
+    const auto& windows = group.getContentWindows();
     BOOST_REQUIRE_EQUAL(windows.size(), 1);
-    BOOST_CHECK_EQUAL(state.getDisplayGroup()->getCoordinates(),
-                      QRectF(0, 0, 1536, 648));
+    BOOST_CHECK_EQUAL(group.getCoordinates(), QRectF(0, 0, 1536, 648));
 
-    checkWindowVersion3(state.getDisplayGroup()->getContentWindows()[0]);
+    checkWindowVersion3(group.getContentWindows()[0]);
 }
 
 BOOST_AUTO_TEST_CASE(testStateSerializationHelperReadingFromVersion3File)
 {
-    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
-    StateSerializationHelper helper(displayGroup);
+    StateSerializationHelper helper(makeTestScene());
 
-    DisplayGroupConstPtr group;
+    SceneConstPtr scene;
     // cppcheck-suppress redundantAssignment
-    BOOST_CHECK_NO_THROW(group = helper.load(STATE_V3_URI).result());
-    BOOST_REQUIRE(group);
+    BOOST_CHECK_NO_THROW(scene = helper.load(STATE_V3_URI).result());
+    BOOST_REQUIRE(scene);
 
-    BOOST_REQUIRE_EQUAL(group->getContentWindows().size(), 1);
-    BOOST_CHECK_EQUAL(group->getCoordinates(), QRectF(QPointF(0, 0), wallSize));
+    const auto& group = scene->getGroup(0);
 
-    checkWindowVersion3(group->getContentWindows()[0]);
+    BOOST_REQUIRE_EQUAL(group.getContentWindows().size(), 1);
+    BOOST_CHECK_EQUAL(group.getCoordinates(), QRectF(QPointF(0, 0), wallSize));
+
+    checkWindowVersion3(group.getContentWindows()[0]);
 }
 
 BOOST_AUTO_TEST_CASE(
     testStateSerializationHelperReadingFromVersion3NoTitlesFile)
 {
-    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
-    StateSerializationHelper helper(displayGroup);
+    StateSerializationHelper helper(makeTestScene());
 
-    DisplayGroupConstPtr group;
+    SceneConstPtr scene;
     // cppcheck-suppress redundantAssignment
-    BOOST_CHECK_NO_THROW(group = helper.load(STATE_V3_NOTITLES_URI).result());
-    BOOST_REQUIRE(group);
+    BOOST_CHECK_NO_THROW(scene = helper.load(STATE_V3_NOTITLES_URI).result());
+    BOOST_REQUIRE(scene);
 
-    BOOST_REQUIRE_EQUAL(group->getContentWindows().size(), 1);
-    BOOST_CHECK_EQUAL(group->getCoordinates(), QRectF(QPointF(0, 0), wallSize));
+    const auto& group = scene->getGroup(0);
 
-    checkWindowVersion3(group->getContentWindows()[0]);
+    BOOST_REQUIRE_EQUAL(group.getContentWindows().size(), 1);
+    BOOST_CHECK_EQUAL(group.getCoordinates(), QRectF(QPointF(0, 0), wallSize));
+
+    checkWindowVersion3(group.getContentWindows()[0]);
 }
 
 BOOST_AUTO_TEST_CASE(testStateSerializationHelperReadingFromVersion4File)
 {
-    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
-    StateSerializationHelper helper(displayGroup);
-    BOOST_CHECK_EQUAL(displayGroup->hasFocusedWindows(), false);
+    auto testScene = makeTestScene();
+    const auto& displayGroup = testScene->getGroup(0);
+    StateSerializationHelper helper(testScene);
+    BOOST_CHECK_EQUAL(displayGroup.hasFocusedWindows(), false);
 
-    DisplayGroupConstPtr group;
+    SceneConstPtr scene;
     // cppcheck-suppress redundantAssignment
-    BOOST_CHECK_NO_THROW(group = helper.load(STATE_V4_URI).result());
-    BOOST_REQUIRE(group);
+    BOOST_CHECK_NO_THROW(scene = helper.load(STATE_V4_URI).result());
+    BOOST_REQUIRE(scene);
 
-    BOOST_REQUIRE_EQUAL(group->getContentWindows().size(), 1);
-    BOOST_CHECK_EQUAL(group->getCoordinates(), QRectF(QPointF(0, 0), wallSize));
-    BOOST_CHECK_EQUAL(group->hasFocusedWindows(), true);
+    const auto& group = scene->getGroup(0);
 
-    checkWindowVersion4(group->getContentWindows()[0]);
+    BOOST_REQUIRE_EQUAL(group.getContentWindows().size(), 1);
+    BOOST_CHECK_EQUAL(group.getCoordinates(), QRectF(QPointF(0, 0), wallSize));
+    BOOST_CHECK_EQUAL(group.hasFocusedWindows(), true);
+
+    checkWindowVersion4(group.getContentWindows()[0]);
 }
 
 DisplayGroupPtr createTestDisplayGroup()
 {
-    ContentPtr content = ContentFactory::getContent(VALID_TEXTURE_URI);
+    auto content = ContentFactory::getContent(VALID_TEXTURE_URI);
     BOOST_REQUIRE(content);
     BOOST_REQUIRE_EQUAL(content->getDimensions(), VALID_TEXTURE_SIZE);
 
@@ -356,11 +367,11 @@ BOOST_AUTO_TEST_CASE(testStateSerializationToFile)
     BOOST_REQUIRE_EQUAL(QDir(TEST_DIR).count(), 2);
 
     // 2) Test saving
-    DisplayGroupPtr displayGroup = createTestDisplayGroup();
-    StateSerializationHelper helper(displayGroup);
+    auto displayGroup = createTestDisplayGroup();
+    StateSerializationHelper helper(Scene::create(displayGroup));
     BOOST_CHECK(helper.save(TEST_DIR + "/test.dcx").result());
 
-    const QStringList files =
+    const auto files =
         QDir(TEST_DIR).entryList(QDir::NoDotAndDotDot | QDir::Files);
     BOOST_CHECK_EQUAL(files.size(), 2);
     BOOST_CHECK(files.contains("test.dcx"));
@@ -373,16 +384,16 @@ BOOST_AUTO_TEST_CASE(testStateSerializationToFile)
     BOOST_CHECK_LT(previewError, 0.02f);
 
     // 4) Test restoring
-    StateSerializationHelper loader(displayGroup);
-    DisplayGroupConstPtr loadedGroup =
-        loader.load(TEST_DIR + "/test.dcx").result();
-    BOOST_REQUIRE(loadedGroup);
+    StateSerializationHelper loader(Scene::create(displayGroup));
+    auto loadedScene = loader.load(TEST_DIR + "/test.dcx").result();
+    BOOST_REQUIRE(loadedScene);
+    const auto& loadedGroup = loadedScene->getGroup(0);
 
-    BOOST_REQUIRE_EQUAL(loadedGroup->getContentWindows().size(),
+    BOOST_REQUIRE_EQUAL(loadedGroup.getContentWindows().size(),
                         displayGroup->getContentWindows().size());
-    BOOST_REQUIRE_EQUAL(loadedGroup->getCoordinates(),
+    BOOST_REQUIRE_EQUAL(loadedGroup.getCoordinates(),
                         QRectF(QPointF(0, 0), wallSize));
-    checkWindow(loadedGroup->getContentWindows()[0]);
+    checkWindow(loadedGroup.getContentWindows()[0]);
 
     // 4) Cleanup
     QDir(TEST_DIR).removeRecursively();
@@ -404,13 +415,13 @@ BOOST_AUTO_TEST_CASE(testStateSerializationUploadedToFile)
     QFile::copy(VALID_TEXTURE_URI, newValidUri);
 
     // 3) Test saving
-    DisplayGroupPtr displayGroup = createTestDisplayGroup();
-    ContentPtr content = ContentFactory::getContent(newValidUri);
+    auto displayGroup = createTestDisplayGroup();
+    auto content = ContentFactory::getContent(newValidUri);
     BOOST_REQUIRE(content);
     BOOST_REQUIRE_EQUAL(content->getDimensions(), VALID_TEXTURE_SIZE);
-    ContentWindowPtr contentWindow(new ContentWindow(std::move(content)));
+    auto contentWindow = std::make_shared<ContentWindow>(std::move(content));
     displayGroup->addContentWindow(contentWindow);
-    StateSerializationHelper helper(displayGroup);
+    StateSerializationHelper helper{Scene::create(displayGroup)};
     BOOST_CHECK(helper.save(TEST_DIR + "/test.dcx", TEST_DIR).result());
     QDir sessionDir(TEST_DIR + "/test");
     QStringList tempDirFiles =

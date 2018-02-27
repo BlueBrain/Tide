@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2017, EPFL/Blue Brain Project
+# Copyright (c) 2013-2018, EPFL/Blue Brain Project
 #                          Raphael Dumusc <raphael.dumusc@epfl.ch>
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
@@ -125,7 +125,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   configuration/Configuration.h
   configuration/Process.h
   configuration/Screen.h
-  configuration/Surface.h
+  configuration/SurfaceConfig.h
   configuration/XmlParser.h
   data/Image.h
   data/QtImage.h
@@ -159,7 +159,9 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   scene/Options.h
   scene/PixelStreamContent.h
   scene/Rectangle.h
+  scene/Scene.h
   scene/ScreenLock.h
+  scene/Surface.h
   scene/SVGContent.h
   scene/TextureContent.h
   scene/VectorialContent.h
@@ -189,7 +191,7 @@ list(APPEND TIDECORE_SOURCES
   yuv.cpp
   ZoomHelper.cpp
   configuration/Configuration.cpp
-  configuration/Surface.cpp
+  configuration/SurfaceConfig.cpp
   configuration/XmlParser.cpp
   data/QtImage.cpp
   data/SVG.cpp
@@ -218,7 +220,9 @@ list(APPEND TIDECORE_SOURCES
   scene/Options.cpp
   scene/PixelStreamContent.cpp
   scene/Rectangle.cpp
+  scene/Scene.cpp
   scene/ScreenLock.cpp
+  scene/Surface.cpp
   scene/SVGContent.cpp
   scene/TextureContent.cpp
   scene/VectorialContent.cpp

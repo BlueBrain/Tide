@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -64,7 +64,8 @@ struct MetaTypeRegistration
             "ContentSynchronizerSharedPtr");
         qRegisterMetaType<CountdownStatusPtr>("CountdownStatusPtr");
         qRegisterMetaType<DisplayGroupPtr>("DisplayGroupPtr");
-        qRegisterMetaType<DisplayGroupConstPtr>("DisplayGroupConstPtr");
+        qRegisterMetaType<ScenePtr>("ScenePtr");
+        qRegisterMetaType<SceneConstPtr>("SceneConstPtr");
         qRegisterMetaType<ImagePtr>("ImagePtr");
         qRegisterMetaType<MarkersPtr>("MarkersPtr");
         qRegisterMetaType<MPIMessageType>("MPIMessageType");

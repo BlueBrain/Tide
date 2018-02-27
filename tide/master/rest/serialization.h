@@ -52,6 +52,8 @@ namespace json
 //@{
 QJsonObject serialize(ContentWindowPtr window, const DisplayGroup& group);
 QJsonObject serialize(const DisplayGroup& group);
+QJsonObject serialize(const Surface& surface);
+QJsonArray serialize(const Scene& scene);
 QJsonObject serialize(const LoggingUtility& logger);
 QJsonObject serializeForRest(const Configuration& config);
 //@}

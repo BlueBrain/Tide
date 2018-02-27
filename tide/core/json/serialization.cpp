@@ -189,7 +189,6 @@ QJsonObject serialize(const Configuration& config)
     return QJsonObject{
         {"surfaces", serialize(config.surfaces)},
         {"processes", serialize(config.processes)},
-        {"background", serialize(*config.background)},
         {"folders", QJsonObject{{"contents", config.folders.contents},
                                 {"sessions", config.folders.sessions},
                                 {"tmp", config.folders.tmp},
@@ -243,17 +242,18 @@ QJsonObject serialize(const Screen& screen)
                        {"fullscreen", screen.fullscreen}};
 }
 
-QJsonObject serialize(const Surface& surface)
+QJsonObject serialize(const SurfaceConfig& surface)
 {
     return QJsonObject{
         {"displayWidth", static_cast<int>(surface.displayWidth)},
         {"displayHeight", static_cast<int>(surface.displayHeight)},
         {"displaysPerScreenX", static_cast<int>(surface.displaysPerScreenX)},
         {"displaysPerScreenY", static_cast<int>(surface.displaysPerScreenY)},
-        {"numScreensX", static_cast<int>(surface.screenCountX)},
-        {"numScreensY", static_cast<int>(surface.screenCountY)},
+        {"screenCountX", static_cast<int>(surface.screenCountX)},
+        {"screenCountY", static_cast<int>(surface.screenCountY)},
         {"bezelWidth", surface.bezelWidth},
-        {"bezelHeight", surface.bezelHeight}};
+        {"bezelHeight", surface.bezelHeight},
+        {"background", serialize(*surface.background)}};
 }
 
 bool deserialize(const QJsonValue& value, QSize& size)
@@ -372,7 +372,6 @@ bool deserialize(const QJsonObject& object, Configuration& config)
 
     deserialize(object["surfaces"], config.surfaces);
     deserialize(object["processes"], config.processes);
-    deserialize(object["background"].toObject(), *config.background);
 
     const auto foldersObj = object["folders"].toObject();
     deserialize(foldersObj["contents"], config.folders.contents);
@@ -446,19 +445,20 @@ bool deserialize(const QJsonObject& object, Screen& screen)
     return true;
 }
 
-bool deserialize(const QJsonObject& object, Surface& surface)
+bool deserialize(const QJsonObject& object, SurfaceConfig& surface)
 {
     if (object.isEmpty())
         return false;
 
+    deserialize(object["background"].toObject(), *surface.background);
+    deserialize(object["bezelWidth"], surface.bezelWidth);
+    deserialize(object["bezelHeight"], surface.bezelHeight);
     deserialize(object["displayWidth"], surface.displayWidth);
     deserialize(object["displayHeight"], surface.displayHeight);
     deserialize(object["displaysPerScreenX"], surface.displaysPerScreenX);
     deserialize(object["displaysPerScreenY"], surface.displaysPerScreenY);
-    deserialize(object["numScreensX"], surface.screenCountX);
-    deserialize(object["numScreensY"], surface.screenCountY);
-    deserialize(object["bezelWidth"], surface.bezelWidth);
-    deserialize(object["bezelHeight"], surface.bezelHeight);
+    deserialize(object["screenCountX"], surface.screenCountX);
+    deserialize(object["screenCountY"], surface.screenCountY);
 
     return true;
 }

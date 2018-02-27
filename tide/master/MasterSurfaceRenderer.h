@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,8 +37,8 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef MASTERSCENERENDERER_H
-#define MASTERSCENERENDERER_H
+#ifndef MASTERSURFACERENDERER_H
+#define MASTERSURFACERENDERER_H
 
 #include "types.h"
 
@@ -47,19 +47,19 @@
 class MasterDisplayGroupRenderer;
 
 /**
- * A view of the scene in the master application.
+ * Render a surface in Qml in the master application.
  */
-class MasterSceneRenderer : public QObject
+class MasterSurfaceRenderer : public QObject
 {
     Q_OBJECT
 
 public:
     /** Constructor. */
-    MasterSceneRenderer(DisplayGroupPtr group, QQmlEngine& engine,
-                        QQuickItem& parentItem);
+    MasterSurfaceRenderer(size_t surfaceIndex, DisplayGroupPtr group,
+                          QQmlEngine& engine, QQuickItem& parentItem);
 
     /** Destructor */
-    ~MasterSceneRenderer();
+    ~MasterSurfaceRenderer();
 
 signals:
     /** Emitted when a user taps the launcher control to open it. */
@@ -68,11 +68,12 @@ signals:
 private:
     DisplayGroupPtr _group;
     std::unique_ptr<DisplayGroupController> _groupController;
-    QQuickItem* _sceneItem = nullptr;
+    std::unique_ptr<QQuickItem> _surfaceItem;
     std::unique_ptr<MasterDisplayGroupRenderer> _displayGroupRenderer;
 
     void _setContextProperties(QQmlContext& context);
-    void _createSceneItem(QQmlEngine& engine, QQuickItem& parentItem);
+    void _createSurfaceItem(QQmlEngine& engine);
+    void _createBasicSurfaceItem(QQmlEngine& engine);
     void _createGroupRenderer(QQmlEngine& engine);
 };
 

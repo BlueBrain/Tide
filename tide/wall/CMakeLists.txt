@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2017, EPFL/Blue Brain Project
+# Copyright (c) 2013-2018, EPFL/Blue Brain Project
 #                          Raphael Dumusc <raphael.dumusc@epfl.ch>
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
@@ -51,6 +51,7 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   BasicSynchronizer.h
   CachedDataSource.h
   ContentSynchronizer.h
+  ContentWindowRenderer.h
   DataProvider.h
   DataSource.h
   DisplayGroupRenderer.h
@@ -69,7 +70,6 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   PixelStreamPassthrough.h
   PixelStreamSynchronizer.h
   PixelStreamUpdater.h
-  QmlWindowRenderer.h
   QuadLineNode.h
   RenderController.h
   screens.h
@@ -93,7 +93,7 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   WallApplication.h
   WallConfiguration.h
   WallRenderContext.h
-  WallSceneRenderer.h
+  WallRenderer.h
   WallWindow.h
 )
 
@@ -101,6 +101,7 @@ list(APPEND TIDEWALL_SOURCES
   BackgroundRenderer.cpp
   BasicSynchronizer.cpp
   CachedDataSource.cpp
+  ContentWindowRenderer.cpp
   DataProvider.cpp
   DisplayGroupRenderer.cpp
   ElapsedTimer.cpp
@@ -118,7 +119,6 @@ list(APPEND TIDEWALL_SOURCES
   PixelStreamPassthrough.cpp
   PixelStreamSynchronizer.cpp
   PixelStreamUpdater.cpp
-  QmlWindowRenderer.cpp
   QuadLineNode.cpp
   RenderController.cpp
   screens.cpp
@@ -140,7 +140,7 @@ list(APPEND TIDEWALL_SOURCES
   VisibilityHelper.cpp
   WallApplication.cpp
   WallConfiguration.cpp
-  WallSceneRenderer.cpp
+  WallRenderer.cpp
   WallWindow.cpp
   resources/wall.qrc
 )

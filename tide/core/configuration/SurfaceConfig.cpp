@@ -1,7 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
-/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -38,33 +37,52 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef SCENECONTROLLER_H
-#define SCENECONTROLLER_H
+#include "SurfaceConfig.h"
 
-#include "control/DisplayGroupController.h"
-#include "scene/DisplayGroup.h"
-#include "types.h"
-
-#include <rockets/jsonrpc/receiver.h>
-
-/**
- * Remote controller for the scene windows using JSON-RPC.
- */
-class SceneController : private rockets::jsonrpc::Receiver
+uint SurfaceConfig::getScreenWidth() const
 {
-public:
-    /**
-     * Construct a JSON-RPC scene controller.
-     *
-     * @param group target for control commands.
-     */
-    SceneController(DisplayGroup& group);
+    return displayWidth * displaysPerScreenX +
+           ((displaysPerScreenX - 1) * bezelWidth);
+}
 
-    using rockets::jsonrpc::Receiver::process;
+uint SurfaceConfig::getScreenHeight() const
+{
+    return displayHeight * displaysPerScreenY +
+           ((displaysPerScreenY - 1) * bezelHeight);
+}
 
-private:
-    DisplayGroup& _group;
-    DisplayGroupController _controller;
-};
+QRect SurfaceConfig::getScreenRect(const QPoint& tileIndex) const
+{
+    if (tileIndex.x() < 0 || tileIndex.x() >= (int)screenCountX ||
+        tileIndex.y() < 0 || tileIndex.y() >= (int)screenCountY)
+    {
+        throw std::invalid_argument("tile index does not exist");
+    }
 
-#endif
+    const int xPos = tileIndex.x() * (getScreenWidth() + bezelWidth);
+    const int yPos = tileIndex.y() * (getScreenHeight() + bezelHeight);
+
+    return QRect(xPos, yPos, getScreenWidth(), getScreenHeight());
+}
+
+uint SurfaceConfig::getTotalWidth() const
+{
+    return screenCountX * getScreenWidth() + (screenCountX - 1) * bezelWidth;
+}
+
+uint SurfaceConfig::getTotalHeight() const
+{
+    return screenCountY * getScreenHeight() + (screenCountY - 1) * bezelHeight;
+}
+
+QSize SurfaceConfig::getTotalSize() const
+{
+    return QSize(getTotalWidth(), getTotalHeight());
+}
+
+double SurfaceConfig::getAspectRatio() const
+{
+    if (getTotalHeight() == 0)
+        return 0.0;
+    return double(getTotalWidth()) / getTotalHeight();
+}

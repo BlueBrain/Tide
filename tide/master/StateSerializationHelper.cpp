@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -44,7 +44,7 @@
 #include "control/DisplayGroupController.h"
 #include "log.h"
 #include "scene/ContentFactory.h"
-#include "scene/DisplayGroup.h"
+#include "scene/Scene.h"
 #include "serialization/utils.h"
 
 #include <QFileInfo>
@@ -54,8 +54,8 @@ namespace
 const QString SESSION_FILE_EXTENSION(".dcx");
 }
 
-StateSerializationHelper::StateSerializationHelper(DisplayGroupPtr group)
-    : _displayGroup(group)
+StateSerializationHelper::StateSerializationHelper(ScenePtr scene)
+    : _scene(scene)
 {
 }
 
@@ -129,6 +129,12 @@ void _relocateTempContent(DisplayGroup& group, const QString& dstDir)
     }
 }
 
+void _relocateTempContent(Scene& scene, const QString& dstDir)
+{
+    for (auto i = 0u; i < scene.getSurfaceCount(); ++i)
+        _relocateTempContent(scene.getGroup(i), dstDir);
+}
+
 bool _validateContent(const ContentWindowPtr& window)
 {
     auto content = window->getContentPtr();
@@ -146,7 +152,7 @@ bool _validateContent(const ContentWindowPtr& window)
     // migration to qml2 rendering
     if (content->getType() == CONTENT_TYPE_DYNAMIC_TEXTURE)
     {
-        const QString& uri = content->getURI();
+        const auto& uri = content->getURI();
         const auto type = ContentFactory::getContentTypeForFile(uri);
         if (type == CONTENT_TYPE_TEXTURE)
         {
@@ -155,7 +161,9 @@ bool _validateContent(const ContentWindowPtr& window)
                       "a regular texture: '%s'",
                       content->getURI().toLocal8Bit().constData());
 
-            window->setContent(ContentFactory::getContent(uri));
+            auto newContent = ContentFactory::getContent(uri);
+            newContent->moveToThread(window->thread());
+            window->setContent(std::move(newContent));
             content = window->getContentPtr();
         }
         else
@@ -179,79 +187,103 @@ bool _validateContent(const ContentWindowPtr& window)
     {
         print_log(LOG_WARN, LOG_CONTENT, "'%s' could not be restored!",
                   content->getURI().toLocal8Bit().constData());
-        const QSize& size = content->getDimensions();
-        window->setContent(ContentFactory::getErrorContent(size));
+        const auto& size = content->getDimensions();
+        auto errorContent = ContentFactory::getErrorContent(size);
+        errorContent->moveToThread(window->thread());
+        window->setContent(std::move(errorContent));
     }
     return true;
 }
 
 void _validateContents(DisplayGroup& group)
 {
-    typedef QVector<ContentWindowPtr> Windows;
-    Windows windows = Windows::fromStdVector(group.getContentWindows());
+    using Windows = QVector<ContentWindowPtr>;
+    auto windows = Windows::fromStdVector(group.getContentWindows());
 
     QtConcurrent::blockingFilter(windows, _validateContent);
 
     group.setContentWindows(windows.toStdVector());
 }
 
-DisplayGroupConstPtr _load(const QString& filename,
-                           DisplayGroupConstPtr referenceGroup)
+void _validateContents(Scene& scene)
+{
+    for (auto i = 0u; i < scene.getSurfaceCount(); ++i)
+        _validateContents(scene.getGroup(i));
+}
+
+void _adjust(DisplayGroup& group, const DisplayGroup& referenceGroup)
+{
+    // Reshape the new DisplayGroup only if it doesn't fit (legacy behaviour).
+    // If the saved group was smaller, resize it but don't modify its windows.
+    if (!referenceGroup.getCoordinates().contains(group.getCoordinates()))
+        DisplayGroupController{group}.reshape(referenceGroup.size());
+    else
+    {
+        group.setWidth(referenceGroup.width());
+        group.setHeight(referenceGroup.height());
+    }
+}
+
+void _adjust(Scene& scene, const Scene& currentScene)
+{
+    const auto max =
+        std::min(scene.getSurfaces().size(), currentScene.getSurfaces().size());
+
+    for (auto i = 0u; i < max; ++i)
+        _adjust(scene.getGroup(i), currentScene.getGroup(i));
+}
+
+SceneConstPtr _load(const QString& filename, SceneConstPtr referenceScene)
 {
     State state;
     // For backward compatibility, try to load the file as a legacy xml first
     if (!state.legacyLoadXML(filename) &&
         !serialization::fromXmlFile(state, filename.toStdString()))
     {
-        return DisplayGroupConstPtr();
+        return SceneConstPtr();
     }
 
-    DisplayGroupPtr group = state.getDisplayGroup();
-    _validateContents(*group);
+    auto scene = state.getScene();
+    _validateContents(*scene);
 
-    DisplayGroupController controller(*group);
+    auto& group = scene->getGroup(0);
+    const auto& referenceGroup = referenceScene->getGroup(0);
+
+    DisplayGroupController controller(group);
     controller.updateFocusedWindowsCoordinates();
 
     if (state.getVersion() < FIRST_PIXEL_COORDINATES_FILE_VERSION)
-        controller.denormalize(referenceGroup->size());
+        controller.denormalize(referenceGroup.size());
     else if (state.getVersion() == FIRST_PIXEL_COORDINATES_FILE_VERSION)
     {
         // Approximation; only applies to FIRST_PIXEL_COORDINATES_FILE_VERSION
         // which did not serialize the size of the DisplayGroup
-        assert(group->getCoordinates().isEmpty());
-        group->setCoordinates(controller.estimateSurface());
+        assert(group.getCoordinates().isEmpty());
+        group.setCoordinates(controller.estimateSurface());
     }
 
-    // Reshape the new DisplayGroup only if it doesn't fit (legacy behaviour).
-    // If the saved group was smaller, resize it but don't modify its windows.
-    if (!referenceGroup->getCoordinates().contains(group->getCoordinates()))
-        controller.reshape(referenceGroup->size());
-    else
-    {
-        group->setWidth(referenceGroup->width());
-        group->setHeight(referenceGroup->height());
-    }
-    group->moveToThread(referenceGroup->thread());
+    _adjust(*scene, *referenceScene);
 
-    return group;
+    scene->moveToThread(QCoreApplication::instance()->thread());
+    return scene;
 }
 
-QFuture<DisplayGroupConstPtr> StateSerializationHelper::load(
+QFuture<SceneConstPtr> StateSerializationHelper::load(
     const QString& filename) const
 {
     print_log(LOG_INFO, LOG_CONTENT, "Restoring session: '%s'",
               filename.toStdString().c_str());
 
-    DisplayGroupConstPtr referenceGroup = _displayGroup;
-    return QtConcurrent::run([referenceGroup, filename]() {
-        return _load(filename, referenceGroup);
+    return QtConcurrent::run([ referenceScene = _scene, filename ]() {
+        return _load(filename, referenceScene);
     });
 }
 
-void _generatePreview(const DisplayGroup& group, const QString& filename)
+void _generatePreview(const Scene& scene, const QString& filename)
 {
-    const QSize size = group.size().toSize();
-    const ContentWindowPtrs& windows = group.getContentWindows();
+    const auto& group = scene.getGroup(0);
+    const auto& windows = group.getContentWindows();
+    const auto size = group.size().toSize();
 
     StatePreview filePreview(filename);
     filePreview.generateImage(size, windows);
@@ -273,6 +305,12 @@ void _filterContents(DisplayGroup& group)
     group.setContentWindows(filteredWindows);
 }
 
+void _filterContents(Scene& scene)
+{
+    for (auto i = 0u; i < scene.getSurfaceCount(); ++i)
+        _filterContents(scene.getGroup(i));
+}
+
 QFuture<bool> StateSerializationHelper::save(QString filename,
                                              const QString& uploadDir,
                                              const bool generatePreview)
@@ -290,19 +328,19 @@ QFuture<bool> StateSerializationHelper::save(QString filename,
     if (!uploadDir.isEmpty())
     {
         const auto sessionName = QFileInfo{filename}.baseName();
-        _relocateTempContent(*_displayGroup, uploadDir + "/" + sessionName);
+        _relocateTempContent(*_scene, uploadDir + "/" + sessionName);
     }
 
     // Important: use xml archive not binary as they use different code paths
-    auto group = serialization::xmlCopy(_displayGroup);
-    return QtConcurrent::run([group, filename, generatePreview]() {
-        _filterContents(*group);
+    auto scene = serialization::xmlCopy(_scene);
+    return QtConcurrent::run([scene, filename, generatePreview]() {
+        _filterContents(*scene);
 
         // Create preview before session so that thumbnail shows in file browser
         if (generatePreview)
-            _generatePreview(*group, filename);
+            _generatePreview(*scene, filename);
 
-        if (!serialization::toXmlFile(State{group}, filename.toStdString()))
+        if (!serialization::toXmlFile(State{scene}, filename.toStdString()))
             return false;
 
         return true;

@@ -1,7 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>     */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Daniel Nachbaur <daniel.nachbaur@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -65,10 +65,9 @@ public:
     /**
      * Create a window manager that handles windows for streamers.
      *
-     * @param displayGroup the content windows of streamers will be added
-     *                     to and removed from this DisplayGroup.
+     * @param scene where the windows of streamers will be added and removed.
      */
-    PixelStreamWindowManager(DisplayGroup& displayGroup);
+    PixelStreamWindowManager(Scene& scene);
 
     /**
      * @param uri the URI of streamer
@@ -101,8 +100,9 @@ public:
      * @param size the desired size of the window in pixels.
      * @param stream the type of stream for the window.
      */
-    void openWindow(const QString& uri, const QPointF& pos, const QSize& size,
-                    const StreamType stream = StreamType::EXTERNAL);
+    void openWindow(uint surfaceIndex, const QString& uri, const QPointF& pos,
+                    const QSize& size,
+                    StreamType stream = StreamType::EXTERNAL);
 
     /** Check if new windows open in focus mode. */
     bool getAutoFocusNewWindows() const;
@@ -192,14 +192,16 @@ signals:
     void requestFirstFrame(QString uri);
 
 private:
-    DisplayGroup& _displayGroup;
+    Scene& _scene;
     std::map<QString, QUuid> _streamWindows;
     bool _autoFocusNewWindows = true;
 
+    void _monitor(const DisplayGroup& group);
     bool _isWindowOpen(const QString& uri) const;
     void _onWindowAdded(ContentWindowPtr window);
     void _onWindowRemoved(ContentWindowPtr window);
-    void _updateWindowSize(ContentWindowPtr window, const QSize size);
+    void _updateWindowSize(ContentWindow& window, DisplayGroup& group,
+                           QSize size);
 };
 
 #endif

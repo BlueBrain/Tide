@@ -1,7 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -45,9 +45,7 @@
 
 #include <rockets/server.h>
 
-#include <QMap>
 #include <QObject>
-#include <QString>
 
 /**
  * Receive HTTP file uploads.
@@ -67,6 +65,9 @@ class FileReceiver : public QObject
     Q_OBJECT
 
 public:
+    FileReceiver();
+    ~FileReceiver();
+
     using Response = rockets::http::Response;
 
     /**
@@ -89,10 +90,12 @@ public:
 
 signals:
     /** Open the uploaded file at the given position. */
-    void open(QString uri, QPointF position, BoolCallback callback);
+    void open(uint surfaceIndex, QString uri, QPointF position,
+              BoolCallback callback);
 
 private:
-    QMap<QString, QPointF> _preparedPaths;
+    struct UploadParameters;
+    std::map<QString, UploadParameters> _preparedPaths;
 };
 
 #endif

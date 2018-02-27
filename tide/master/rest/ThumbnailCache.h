@@ -41,7 +41,7 @@
 #ifndef THUMBNAILCACHE_H
 #define THUMBNAILCACHE_H
 
-#include "scene/DisplayGroup.h"
+#include "scene/Scene.h"
 
 #include <rockets/http/helpers.h>
 
@@ -50,7 +50,7 @@
 #include <QUuid>
 
 /**
- * This class maintains a cache of {512x512} thumbnails for a DisplayGroup.
+ * This class maintains a cache of {512x512} thumbnails for the scene.
  *
  * The thumbnails are generated asynchronously when windows are added.
  *
@@ -67,9 +67,9 @@ public:
     /**
      * Construct a thumbnail cache to expose to the REST interface.
      *
-     * @param displayGroup to monitor.
+     * @param scene to monitor.
      */
-    ThumbnailCache(const DisplayGroup& displayGroup);
+    ThumbnailCache(const Scene& scene);
 
     /**
      * Get the thumbnail of a window.
@@ -83,6 +83,7 @@ public:
 private:
     QMap<QUuid, QFuture<std::string>> _thumbnailCache;
 
+    void _monitor(const DisplayGroup& group);
     void _cacheThumbnail(ContentWindowPtr contentWindow);
 };
 

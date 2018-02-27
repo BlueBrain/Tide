@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,74 +37,103 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef MARKERS_H
-#define MARKERS_H
+#ifndef SCENE_H
+#define SCENE_H
 
+#include "scene/Surface.h"
+#include "serialization/includes.h"
 #include "types.h"
 
-#include "serialization/includes.h"
-
-#include <QAbstractListModel>
-#include <QObject>
-#include <QPointF>
-#include <map>
+class invalid_surface_index_error : public std::runtime_error
+{
+    using runtime_error::runtime_error;
+};
+class window_not_found_error : public std::runtime_error
+{
+    using runtime_error::runtime_error;
+};
 
 /**
- * Store Markers to display user interaction.
+ * Contains all the DisplayGroups for the different surfaces to be rendered.
  */
-class Markers : public QAbstractListModel,
-                public std::enable_shared_from_this<Markers>
+class Scene : public QObject, public std::enable_shared_from_this<Scene>
 {
     Q_OBJECT
-    Q_DISABLE_COPY(Markers)
+    Q_DISABLE_COPY(Scene)
 
 public:
-    /** Create Markers for a surface. */
-    static MarkersPtr create(size_t surfaceIndex);
+    static ScenePtr create(const QSize& size);
+    static ScenePtr create(const std::vector<SurfaceConfig>& surfaces);
+    static ScenePtr create(const std::vector<DisplayGroupPtr>& groups);
+    static ScenePtr create(DisplayGroupPtr group);
 
-    /** Get the surface index to which these markers belong. */
-    size_t getSurfaceIndex() const;
+    /** Destructor. */
+    ~Scene();
 
-    enum MarkerRoles
-    {
-        XPOSITION_ROLE = Qt::UserRole,
-        YPOSITION_ROLE
-    };
+    /** @return the number of surfaces. */
+    size_t getSurfaceCount() const;
 
-    QVariant data(const QModelIndex& index, int role) const override;
-    int rowCount(const QModelIndex& parent = QModelIndex()) const override;
-    QHash<int, QByteArray> roleNames() const override;
+    /** @return the surfaces that are part of the scene. */
+    const std::vector<Surface>& getSurfaces() const;
 
-public slots:
-    void addMarker(int id, const QPointF& position);
-    void updateMarker(int id, const QPointF& position);
-    void removeMarker(int id);
+    /**
+     * @return the group for a certain surface index
+     * @throw invalid_surface_index
+     */
+    DisplayGroup& getGroup(const size_t surfaceIndex);
+    const DisplayGroup& getGroup(const size_t surfaceIndex) const;
+
+    /** Get all windows from all groups. */
+    ContentWindowPtrs getContentWindows() const;
+
+    /**
+     * Move this object and its member QObjects to the given QThread.
+     *
+     * This intentionally shadows the default QObject::moveToThread to include
+     * member QObjects which are stored using shared_ptr and thus can't be made
+     * direct children of this class.
+     * @param thread the target thread.
+     */
+    void moveToThread(QThread* thread);
+
+    /** Find a window by its id. */
+    ContentWindowPtr findWindow(const QUuid& id) const;
+
+    /**
+     * Find a window and the group it belongs to.
+     * @param id of the window to find.
+     * @return window and group.
+     * @throw window_not_found_error
+     */
+    std::pair<ContentWindow&, DisplayGroup&> findWindowAndGroup(
+        const QUuid& id);
+    std::pair<ContentWindowPtr, DisplayGroup&> findWindowPtrAndGroup(
+        const QUuid& id);
 
 signals:
-    void updated(MarkersPtr markers);
+    /** Emitted when any value is changed by one of the setters. */
+    void modified(ScenePtr);
 
 private:
-    Markers() = default;
-    Markers(size_t surfaceIndex);
-
-    typedef std::pair<int, QPointF> Marker;
-    typedef std::vector<Marker> MarkersVector;
-
-    MarkersVector::iterator _findMarker(const int id);
-
     friend class boost::serialization::access;
+
+    /** Default constructor for serialization. */
+    Scene() = default;
+    Scene(const std::vector<SurfaceConfig>& surfaces);
+    Scene(const std::vector<DisplayGroupPtr>& groups);
+
+    void _forwardSceneModifiedSignals();
+    void _sendScene();
 
     template <class Archive>
     void serialize(Archive& ar, const unsigned int)
     {
         // clang-format off
-        ar & _surfaceIndex;
-        ar & _markers;
+        ar & boost::serialization::make_nvp("surfaces", _surfaces);
         // clang-format on
     }
 
-    size_t _surfaceIndex = 0;
-    MarkersVector _markers;
+    std::vector<Surface> _surfaces;
 };
 
 #endif

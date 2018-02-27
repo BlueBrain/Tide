@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -53,6 +53,7 @@
 #include "scene/ContentWindow.h"
 #include "scene/DisplayGroup.h"
 #include "scene/Options.h"
+#include "scene/Scene.h"
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
 #include "WebbrowserWidget.h"
 #endif
@@ -68,10 +69,10 @@ const QString SESSION_FILES_FILTER("Session files (*.dcx)");
 const QSize DEFAULT_WINDOW_SIZE(810, 600);
 }
 
-MasterWindow::MasterWindow(DisplayGroupPtr displayGroup, OptionsPtr options,
+MasterWindow::MasterWindow(ScenePtr scene_, OptionsPtr options,
                            ScreenLockPtr lock, Configuration& config)
     : QMainWindow()
-    , _displayGroup(displayGroup)
+    , _scene{scene_}
     , _options(options)
     , _backgroundWidget(new BackgroundWidget(config, this))
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
@@ -84,14 +85,17 @@ MasterWindow::MasterWindow(DisplayGroupPtr displayGroup, OptionsPtr options,
     _backgroundWidget->setModal(true);
 
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
-    connect(_webbrowserWidget, &WebbrowserWidget::openWebBrowser, this,
-            &MasterWindow::openWebBrowser);
+    connect(_webbrowserWidget, &WebbrowserWidget::openWebBrowser,
+            [this](QPointF pos, QSize size, QString url, ushort debugPort) {
+                emit openWebBrowser(_getActiveSceneIndex(), pos, size, url,
+                                    debugPort);
+            });
 #endif
 
-    connect(&_loadSessionOp, &QFutureWatcher<DisplayGroupConstPtr>::finished,
+    connect(&_loadSessionOp, &QFutureWatcher<SceneConstPtr>::finished,
             [this]() {
-                if (auto group = _loadSessionOp.result())
-                    emit sessionLoaded(group);
+                if (auto scene = _loadSessionOp.result())
+                    emit sessionLoaded(scene);
                 else
                     QMessageBox::warning(this, "Error",
                                          "Could not load session file.",
@@ -107,8 +111,8 @@ MasterWindow::MasterWindow(DisplayGroupPtr displayGroup, OptionsPtr options,
     resize(DEFAULT_WINDOW_SIZE);
     setAcceptDrops(true);
 
-    _setupMasterWindowUI(
-        std::make_unique<MasterQuickView>(_options, lock, config));
+    _setupMasterWindowUI();
+    _addSurfacesTabViews(config, lock);
 
     show();
 }
@@ -118,81 +122,86 @@ MasterQuickView* MasterWindow::getQuickView()
     return _quickView;
 }
 
-void MasterWindow::_setupMasterWindowUI(
-    std::unique_ptr<MasterQuickView> quickView)
+void MasterWindow::_setupMasterWindowUI()
 {
+    // add main tab widget
+    setCentralWidget(new QTabWidget());
+
     // create menus in menu bar
-    QMenu* fileMenu = menuBar()->addMenu("&File");
-    QMenu* editMenu = menuBar()->addMenu("&Edit");
-    QMenu* viewMenu = menuBar()->addMenu("&View");
-    QMenu* helpMenu = menuBar()->addMenu("&Help");
+    auto fileMenu = menuBar()->addMenu("&File");
+    auto editMenu = menuBar()->addMenu("&Edit");
+    auto viewMenu = menuBar()->addMenu("&View");
+    auto helpMenu = menuBar()->addMenu("&Help");
 
     // create tool bar
-    QToolBar* toolbar = addToolBar("toolbar");
+    auto toolbar = addToolBar("toolbar");
 
     /** FILE menu */
 
     // open content action
-    QAction* openContentAction = new QAction("Open Content", this);
+    auto openContentAction = new QAction("Open Content", this);
     openContentAction->setStatusTip("Open content");
     connect(openContentAction, &QAction::triggered, this,
             &MasterWindow::_openContent);
 
     // open contents directory action
-    QAction* openContentsDirectoryAction = new QAction("Open Directory", this);
+    auto openContentsDirectoryAction = new QAction("Open Directory", this);
     openContentsDirectoryAction->setStatusTip("Open directory of contents");
     connect(openContentsDirectoryAction, &QAction::triggered, this,
             &MasterWindow::_openContentsDirectory);
 
     // clear contents action
-    QAction* clearContentsAction = new QAction("Clear", this);
+    auto clearContentsAction = new QAction("Clear", this);
     clearContentsAction->setStatusTip("Clear all contents");
-    connect(clearContentsAction, &QAction::triggered, _displayGroup.get(),
-            &DisplayGroup::clear);
+    connect(clearContentsAction, &QAction::triggered,
+            [this]() { _getActiveGroup().clear(); });
 
     // save session action
-    QAction* saveSessionAction = new QAction("Save Session", this);
+    auto saveSessionAction = new QAction("Save Session", this);
     saveSessionAction->setStatusTip("Save current session");
     connect(saveSessionAction, &QAction::triggered, this,
             &MasterWindow::_saveSession);
 
     // load session action
-    QAction* loadSessionAction = new QAction("Load Session", this);
+    auto loadSessionAction = new QAction("Load Session", this);
     loadSessionAction->setStatusTip("Load a session");
     connect(loadSessionAction, &QAction::triggered, this,
             &MasterWindow::_openSession);
 
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
     // Open webbrowser action
-    QAction* webbrowserAction = new QAction("Web Browser", this);
+    auto webbrowserAction = new QAction("Web Browser", this);
     webbrowserAction->setStatusTip("Open a web browser");
     connect(webbrowserAction, &QAction::triggered, _webbrowserWidget,
             &WebbrowserWidget::show);
 #endif
 
     // Open whiteboard action
-    QAction* whiteboardAction = new QAction("Whiteboard", this);
+    auto whiteboardAction = new QAction("Whiteboard", this);
     whiteboardAction->setStatusTip("Open a whiteboard");
-    connect(whiteboardAction, &QAction::triggered, this,
-            &MasterWindow::openWhiteboard);
+    connect(whiteboardAction, &QAction::triggered,
+            [this] { emit openWhiteboard(_getActiveSceneIndex()); });
 
     // quit action
-    QAction* quitAction = new QAction("Quit", this);
+    auto quitAction = new QAction("Quit", this);
     quitAction->setStatusTip("Quit application");
     connect(quitAction, &QAction::triggered, this, &MasterWindow::close);
 
     /** EDIT menu */
 
     // background content action
-    QAction* backgroundAction = new QAction("Background", this);
+    auto backgroundAction = new QAction("Background", this);
     backgroundAction->setStatusTip("Select the background color and content");
     connect(backgroundAction, &QAction::triggered, _backgroundWidget,
             &BackgroundWidget::show);
+    connect(static_cast<QTabWidget*>(centralWidget()),
+            &QTabWidget::currentChanged, _backgroundWidget,
+            &BackgroundWidget::setActiveSurface);
 
     /** VIEW menu */
 
     // enable alpha blending
-    QAction* enableAlphaBlendingAction = new QAction("Alpha Blending", this);
+    auto enableAlphaBlendingAction = new QAction("Alpha Blending", this);
     enableAlphaBlendingAction->setStatusTip(
         "Enable alpha blending for transparent contents (png, svg, etc..)");
     enableAlphaBlendingAction->setCheckable(true);
@@ -203,8 +212,7 @@ void MasterWindow::_setupMasterWindowUI(
             enableAlphaBlendingAction, &QAction::setChecked);
 
     // auto focus pixel streams
-    QAction* autoFocusStreamersAction =
-        new QAction("Auto-focus streamers", this);
+    auto autoFocusStreamersAction = new QAction("Auto-focus streamers", this);
     autoFocusStreamersAction->setStatusTip(
         "Open the windows of the external streamers in focus mode");
     autoFocusStreamersAction->setCheckable(true);
@@ -215,7 +223,7 @@ void MasterWindow::_setupMasterWindowUI(
             autoFocusStreamersAction, &QAction::setChecked);
 
     // show clock action
-    QAction* showClockAction = new QAction("Clock", this);
+    auto showClockAction = new QAction("Clock", this);
     showClockAction->setStatusTip("Show a clock on the background");
     showClockAction->setCheckable(true);
     showClockAction->setChecked(_options->getShowClock());
@@ -225,7 +233,7 @@ void MasterWindow::_setupMasterWindowUI(
             &QAction::setChecked);
 
     // show content tiles action
-    QAction* showContentTilesAction = new QAction("Content Tiles", this);
+    auto showContentTilesAction = new QAction("Content Tiles", this);
     showContentTilesAction->setStatusTip("Show Content Tiles");
     showContentTilesAction->setCheckable(true);
     showContentTilesAction->setChecked(_options->getShowContentTiles());
@@ -235,7 +243,7 @@ void MasterWindow::_setupMasterWindowUI(
             showContentTilesAction, &QAction::setChecked);
 
     // show control area action
-    QAction* showControlAreaAction = new QAction("Control Area", this);
+    auto showControlAreaAction = new QAction("Control Area", this);
     showControlAreaAction->setStatusTip("Show the Control Area");
     showControlAreaAction->setCheckable(true);
     showControlAreaAction->setChecked(_options->getShowControlArea());
@@ -245,7 +253,7 @@ void MasterWindow::_setupMasterWindowUI(
             showControlAreaAction, &QAction::setChecked);
 
     // show streaming statistics action
-    QAction* showStatisticsAction = new QAction("Statistics", this);
+    auto showStatisticsAction = new QAction("Statistics", this);
     showStatisticsAction->setStatusTip("Show statistics");
     showStatisticsAction->setCheckable(true);
     showStatisticsAction->setChecked(_options->getShowStatistics());
@@ -255,7 +263,7 @@ void MasterWindow::_setupMasterWindowUI(
             showStatisticsAction, &QAction::setChecked);
 
     // show test pattern action
-    QAction* showTestPatternAction = new QAction("Test Pattern", this);
+    auto showTestPatternAction = new QAction("Test Pattern", this);
     showTestPatternAction->setStatusTip("Show test pattern");
     showTestPatternAction->setCheckable(true);
     showTestPatternAction->setChecked(_options->getShowTestPattern());
@@ -265,7 +273,7 @@ void MasterWindow::_setupMasterWindowUI(
             showTestPatternAction, &QAction::setChecked);
 
     // show touch points action
-    QAction* showTouchPoints = new QAction("Touch Points", this);
+    auto showTouchPoints = new QAction("Touch Points", this);
     showTouchPoints->setStatusTip("Show touch points");
     showTouchPoints->setCheckable(true);
     showTouchPoints->setChecked(_options->getShowTouchPoints());
@@ -275,7 +283,7 @@ void MasterWindow::_setupMasterWindowUI(
             &QAction::setChecked);
 
     // show window borders action
-    QAction* showWindowBordersAction = new QAction("Window Borders", this);
+    auto showWindowBordersAction = new QAction("Window Borders", this);
     showWindowBordersAction->setStatusTip("Show window borders");
     showWindowBordersAction->setCheckable(true);
     showWindowBordersAction->setChecked(_options->getShowWindowBorders());
@@ -285,7 +293,7 @@ void MasterWindow::_setupMasterWindowUI(
             showWindowBordersAction, &QAction::setChecked);
 
     // show window title action
-    QAction* showWindowTitlesAction = new QAction("Window Titles", this);
+    auto showWindowTitlesAction = new QAction("Window Titles", this);
     showWindowTitlesAction->setStatusTip("Show window titles");
     showWindowTitlesAction->setCheckable(true);
     showWindowTitlesAction->setChecked(_options->getShowWindowTitles());
@@ -295,7 +303,7 @@ void MasterWindow::_setupMasterWindowUI(
             showWindowTitlesAction, &QAction::setChecked);
 
     // show zoom context action
-    QAction* showZoomContextAction = new QAction("Zoom Context", this);
+    auto showZoomContextAction = new QAction("Zoom Context", this);
     showZoomContextAction->setStatusTip("Show zoom context");
     showZoomContextAction->setCheckable(true);
     showZoomContextAction->setChecked(_options->getShowZoomContext());
@@ -306,7 +314,7 @@ void MasterWindow::_setupMasterWindowUI(
 
     /** HELP menu */
 
-    QAction* showAboutDialog = new QAction("About", this);
+    auto showAboutDialog = new QAction("About", this);
     showAboutDialog->setStatusTip("About Tide");
     connect(showAboutDialog, &QAction::triggered, this,
             &MasterWindow::_openAboutWidget);
@@ -348,37 +356,54 @@ void MasterWindow::_setupMasterWindowUI(
     toolbar->addAction(clearContentsAction);
     toolbar->addAction(backgroundAction);
 
-    // main widget / layout area
-    QTabWidget* mainWidget = new QTabWidget();
-    setCentralWidget(mainWidget);
+    // create left dock widget
+    auto contentsDockWidget = new QDockWidget("Contents", this);
+    auto contentsWidget = new QWidget();
+    auto contentsLayout = new QVBoxLayout();
+    contentsWidget->setLayout(contentsLayout);
+    contentsDockWidget->setWidget(contentsWidget);
+    addDockWidget(Qt::LeftDockWidgetArea, contentsDockWidget);
+
+    // add list widget (first display group only at the moment)
+    auto displayGroupWidget = new DisplayGroupListWidget(this);
+    displayGroupWidget->setDataModel(_scene->getGroup(0).shared_from_this());
+    contentsLayout->addWidget(displayGroupWidget);
+}
+
+void MasterWindow::_addSurfacesTabViews(const Configuration& config,
+                                        ScreenLockPtr lock)
+{
+    for (auto i = 0u; i < _scene->getSurfaces().size(); ++i)
+    {
+        auto group = _scene->getGroup(i).shared_from_this();
+        const auto& surface = config.surfaces[i];
+        const auto tabTitle = QString{"Display group %1"}.arg(i);
+        auto quickView = std::make_unique<MasterQuickView>(surface, i, group,
+                                                           _options, lock);
+        if (i == 0)
+            _quickView = quickView.get(); // keep a reference for mouse -> touch
+        _addDisplayGroupTabView(std::move(quickView), tabTitle);
+    }
+}
+
+void MasterWindow::_addDisplayGroupTabView(
+    std::unique_ptr<MasterQuickView> quickView, const QString& title)
+{
+    auto mainTabWidget = static_cast<QTabWidget*>(centralWidget());
 
     // The QWidget wrapper *has* to retain ownership to the masterQuickView.
     // It is not possible to detach the masterQuickView from its parent wrapper
     // in the MasterWindow destructor. The parentChanged event doesn't have
     // time to be processed correctly resulting in a double-delete.
-    _quickView = quickView.get(); // keep a reference
-    mainWidget->addTab(QWidget::createWindowContainer(quickView.release()),
-                       "Display group 0");
-
-    // create contents dock widget
-    QDockWidget* contentsDockWidget = new QDockWidget("Contents", this);
-    QWidget* contentsWidget = new QWidget();
-    QVBoxLayout* contentsLayout = new QVBoxLayout();
-    contentsWidget->setLayout(contentsLayout);
-    contentsDockWidget->setWidget(contentsWidget);
-    addDockWidget(Qt::LeftDockWidgetArea, contentsDockWidget);
-
-    // add the list widget
-    DisplayGroupListWidget* dglwp = new DisplayGroupListWidget(this);
-    dglwp->setDataModel(_displayGroup);
-    contentsLayout->addWidget(dglwp);
+    mainTabWidget->addTab(QWidget::createWindowContainer(quickView.release()),
+                          title);
 }
 
 void MasterWindow::_openContent()
 {
-    const QString filter = ContentFactory::getSupportedFilesFilterAsString();
+    const auto filter = ContentFactory::getSupportedFilesFilterAsString();
 
-    const QString filename =
+    const auto filename =
         QFileDialog::getOpenFileName(this, tr("Choose content"), _contentFolder,
                                      filter);
     if (filename.isEmpty())
@@ -386,7 +411,7 @@ void MasterWindow::_openContent()
 
     _contentFolder = QFileInfo(filename).absoluteDir().path();
 
-    ContentLoader loader(_displayGroup);
+    ContentLoader loader(_getActiveGroup());
     if (!loader.load(filename))
     {
         QMessageBox messageBox;
@@ -404,7 +429,7 @@ void MasterWindow::_addContentDirectory(const QString& directoryName,
     directory.setFilter(QDir::Files);
     directory.setNameFilters(ContentFactory::getSupportedFilesFilter());
 
-    QFileInfoList list = directory.entryInfoList();
+    const auto list = directory.entryInfoList();
 
     // Prevent opening of folders with an excessively large number of items
     if (list.size() > 16)
@@ -420,28 +445,28 @@ void MasterWindow::_addContentDirectory(const QString& directoryName,
             return;
     }
 
-    ContentLoader{_displayGroup}.loadDir(directoryName, gridSize);
+    ContentLoader{_getActiveGroup()}.loadDir(directoryName, gridSize);
 }
 
 void MasterWindow::_openContentsDirectory()
 {
-    const QString dirName =
+    const auto dirName =
         QFileDialog::getExistingDirectory(this, QString(), _contentFolder);
     if (dirName.isEmpty())
         return;
 
     _contentFolder = dirName;
 
-    const int gridX = QInputDialog::getInt(this, "Grid X dimension",
-                                           "Grid X dimension", 0, 0);
-    const int gridY = QInputDialog::getInt(this, "Grid Y dimension",
-                                           "Grid Y dimension", 0, 0);
+    const auto gridX = QInputDialog::getInt(this, "Grid X dimension",
+                                            "Grid X dimension", 0, 0);
+    const auto gridY = QInputDialog::getInt(this, "Grid Y dimension",
+                                            "Grid Y dimension", 0, 0);
     _addContentDirectory(dirName, {gridX, gridY});
 }
 
 void MasterWindow::_openSession()
 {
-    const QString filename =
+    const auto filename =
         QFileDialog::getOpenFileName(this, "Load Session", _sessionFolder,
                                      SESSION_FILES_FILTER);
     if (filename.isEmpty())
@@ -462,13 +487,12 @@ void MasterWindow::_saveSession()
 
     _sessionFolder = QFileInfo(filename).absoluteDir().path();
     _saveSessionOp.setFuture(
-        StateSerializationHelper(_displayGroup).save(filename, _uploadDir));
+        StateSerializationHelper(_scene).save(filename, _uploadDir));
 }
 
 void MasterWindow::_loadSession(const QString& filename)
 {
-    _loadSessionOp.setFuture(
-        StateSerializationHelper(_displayGroup).load(filename));
+    _loadSessionOp.setFuture(StateSerializationHelper(_scene).load(filename));
 }
 
 void MasterWindow::_openAboutWidget()
@@ -483,17 +507,25 @@ void MasterWindow::_openAboutWidget()
     QMessageBox::about(this, "About Tide", aboutMsg.str().c_str());
 }
 
+uint MasterWindow::_getActiveSceneIndex() const
+{
+    return static_cast<QTabWidget*>(centralWidget())->currentIndex();
+}
+
+DisplayGroup& MasterWindow::_getActiveGroup()
+{
+    return _scene->getGroup(_getActiveSceneIndex());
+}
+
 QStringList MasterWindow::_extractValidContentUrls(const QMimeData* mimeData)
 {
     QStringList pathList;
 
     if (mimeData->hasUrls())
     {
-        QList<QUrl> urlList = mimeData->urls();
-
-        foreach (QUrl url, urlList)
+        for (const auto& url : mimeData->urls())
         {
-            const QString extension =
+            const auto extension =
                 QFileInfo(url.toLocalFile().toLower()).suffix();
             if (ContentFactory::getSupportedExtensions().contains(extension))
                 pathList.append(url.toLocalFile());
@@ -509,9 +541,7 @@ QStringList MasterWindow::_extractFolderUrls(const QMimeData* mimeData)
 
     if (mimeData->hasUrls())
     {
-        QList<QUrl> urlList = mimeData->urls();
-
-        foreach (QUrl url, urlList)
+        for (const auto& url : mimeData->urls())
         {
             if (QDir(url.toLocalFile()).exists())
                 pathList.append(url.toLocalFile());
@@ -548,16 +578,16 @@ void MasterWindow::dragEnterEvent(QDragEnterEvent* dragEvent)
 
 void MasterWindow::dropEvent(QDropEvent* dropEvt)
 {
-    const QStringList& urls = _extractValidContentUrls(dropEvt->mimeData());
-    ContentLoader loader(_displayGroup);
-    foreach (QString url, urls)
+    const auto urls = _extractValidContentUrls(dropEvt->mimeData());
+    ContentLoader loader(_getActiveGroup());
+    for (const auto& url : urls)
         loader.load(url);
 
-    const QStringList& folders = _extractFolderUrls(dropEvt->mimeData());
+    const auto folders = _extractFolderUrls(dropEvt->mimeData());
     if (!folders.isEmpty())
         _addContentDirectory(folders[0]); // Only one directory at a time
 
-    const QString& sessionFile = _extractSessionFile(dropEvt->mimeData());
+    const auto sessionFile = _extractSessionFile(dropEvt->mimeData());
     if (!sessionFile.isNull())
         _loadSession(sessionFile);
 

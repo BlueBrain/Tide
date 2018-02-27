@@ -38,10 +38,11 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "SceneController.h"
+#include "SceneRemoteController.h"
 
 #include "control/ContentWindowController.h"
 #include "json/json.h"
+#include "json/serialization.h"
 
 using namespace rockets;
 
@@ -57,6 +58,17 @@ bool from_json(Obj& object, const std::string& json)
 {
     return object.fromJson(json::parse(json));
 }
+
+struct SurfaceIndex
+{
+    uint surfaceIndex = 0;
+
+    bool fromJson(const QJsonObject& object)
+    {
+        json::deserialize(object["surfaceIndex"], surfaceIndex);
+        return true;
+    }
+};
 
 struct WindowId
 {
@@ -108,64 +120,161 @@ struct WindowSize
     }
 };
 
-SceneController::SceneController(DisplayGroup& group)
-    : _group{group}
-    , _controller{group}
+SceneRemoteController::SceneRemoteController(Scene& scene)
+    : _scene{scene}
 {
-    connect("deselect-windows", [this] { _controller.deselectAll(); });
-    connect("exit-fullscreen", [this] { _controller.exitFullscreen(); });
-    connect("focus-windows", [this] { _controller.focusSelected(); });
-    connect("unfocus-windows", [this] { _controller.unfocusAll(); });
-    connect("clear", [this] { _group.clear(); });
-
-    bind<WindowId>("close-window", [this](const WindowId params) {
-        if (auto window = _group.getContentWindow(params.id))
+    connect<SurfaceIndex>("deselect-windows", [this](const auto params) {
+        try
         {
-            _group.removeContentWindow(window);
-            return ok;
+            auto& group = _scene.getGroup(params.surfaceIndex);
+            DisplayGroupController{group}.deselectAll();
         }
-        return noWindow;
+        catch (const invalid_surface_index_error&)
+        {
+        }
     });
 
-    bind<WindowPos>("move-window", [this](const WindowPos params) {
-        if (auto window = _group.getContentWindow(params.id))
+    connect<SurfaceIndex>("exit-fullscreen", [this](const auto params) {
+        try
         {
-            ContentWindowController(*window, _group)
+            auto& group = _scene.getGroup(params.surfaceIndex);
+            DisplayGroupController{group}.exitFullscreen();
+        }
+        catch (const invalid_surface_index_error&)
+        {
+        }
+    });
+
+    connect<SurfaceIndex>("focus-windows", [this](const auto params) {
+        try
+        {
+            auto& group = _scene.getGroup(params.surfaceIndex);
+            DisplayGroupController{group}.focusSelected();
+        }
+        catch (const invalid_surface_index_error&)
+        {
+        }
+    });
+
+    connect<SurfaceIndex>("unfocus-windows", [this](const auto params) {
+        try
+        {
+            auto& group = _scene.getGroup(params.surfaceIndex);
+            DisplayGroupController{group}.unfocusAll();
+        }
+        catch (const invalid_surface_index_error&)
+        {
+        }
+    });
+
+    connect<SurfaceIndex>("clear", [this](const auto params) {
+        try
+        {
+            _scene.getGroup(params.surfaceIndex).clear();
+        }
+        catch (const invalid_surface_index_error&)
+        {
+        }
+    });
+
+    bind<WindowId>("close-window", [this](const auto params) {
+        try
+        {
+            auto windowAndGroup = _scene.findWindowPtrAndGroup(params.id);
+            windowAndGroup.second.removeContentWindow(windowAndGroup.first);
+            return ok;
+        }
+        catch (const window_not_found_error&)
+        {
+            return noWindow;
+        }
+    });
+
+    bind<WindowPos>("move-window", [this](const auto params) {
+        try
+        {
+            auto windowAndGroup = _scene.findWindowAndGroup(params.id);
+            auto& window = windowAndGroup.first;
+            auto& group = windowAndGroup.second;
+
+            ContentWindowController(window, group)
                 .moveTo(params.pos, WindowPoint::TOP_LEFT);
-            _controller.moveWindowToFront(params.id);
+            DisplayGroupController{group}.moveWindowToFront(params.id);
             return ok;
         }
-        return noWindow;
-    });
-
-    bind<WindowId>("move-window-to-front", [this](const WindowId params) {
-        return _controller.moveWindowToFront(params.id) ? ok : noWindow;
-    });
-
-    bind<WindowId>("move-window-to-fullscreen", [this](const WindowId params) {
-        return _controller.showFullscreen(params.id) ? ok : noWindow;
-    });
-
-    bind<WindowSize>("resize-window", [this](const WindowSize params) {
-        if (auto window = _group.getContentWindow(params.id))
+        catch (const window_not_found_error&)
         {
-            ContentWindowController(*window, _group)
+            return noWindow;
+        }
+    });
+
+    bind<WindowId>("move-window-to-front", [this](const auto params) {
+        try
+        {
+            auto windowAndGroup = _scene.findWindowAndGroup(params.id);
+            DisplayGroupController controller{windowAndGroup.second};
+            return controller.moveWindowToFront(params.id) ? ok : noWindow;
+        }
+        catch (const window_not_found_error&)
+        {
+            return noWindow;
+        }
+    });
+
+    bind<WindowId>("move-window-to-fullscreen", [this](const auto params) {
+        try
+        {
+            auto windowAndGroup = _scene.findWindowAndGroup(params.id);
+            DisplayGroupController controller{windowAndGroup.second};
+            return controller.showFullscreen(params.id) ? ok : noWindow;
+        }
+        catch (const window_not_found_error&)
+        {
+            return noWindow;
+        }
+    });
+
+    bind<WindowSize>("resize-window", [this](const auto params) {
+        try
+        {
+            auto windowAndGroup = _scene.findWindowAndGroup(params.id);
+            auto& window = windowAndGroup.first;
+            auto& group = windowAndGroup.second;
+
+            ContentWindowController(window, group)
                 .resize(params.size, params.fixedPoint);
+            DisplayGroupController{group}.moveWindowToFront(params.id);
             return ok;
         }
-        return noWindow;
+        catch (const window_not_found_error&)
+        {
+            return noWindow;
+        }
     });
 
-    bind<WindowId>("toggle-select-window", [this](const WindowId params) {
-        if (auto window = _group.getContentWindow(params.id))
+    bind<WindowId>("toggle-select-window", [this](const auto params) {
+        try
         {
+            auto window = _scene.findWindow(params.id);
             window->setSelected(!window->isSelected());
             return ok;
         }
-        return noWindow;
+        catch (const window_not_found_error&)
+        {
+            return noWindow;
+        }
     });
 
-    bind<WindowId>("unfocus-window", [this](const WindowId params) {
-        return _controller.unfocus(params.id) ? ok : noWindow;
+    bind<WindowId>("unfocus-window", [this](const auto params) {
+        try
+        {
+            auto windowAndGroup = _scene.findWindowAndGroup(params.id);
+            DisplayGroupController controller{windowAndGroup.second};
+            return controller.unfocus(params.id) ? ok : noWindow;
+        }
+        catch (const window_not_found_error&)
+        {
+            return noWindow;
+        }
     });
 }

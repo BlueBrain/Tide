@@ -42,7 +42,7 @@
 
 #include "types.h"
 
-class MasterDisplayGroupRenderer;
+class MasterSurfaceRenderer;
 
 #include <QGesture>
 #include <QGestureEvent>
@@ -50,7 +50,7 @@ class MasterDisplayGroupRenderer;
 #include <QUuid>
 
 /**
- * A view of the display wall inside the master window.
+ * A qml view of a single surface of the display wall inside the master window.
  */
 class MasterQuickView : public QQuickView
 {
@@ -58,8 +58,9 @@ class MasterQuickView : public QQuickView
 
 public:
     /** Constructor. */
-    MasterQuickView(OptionsPtr options, ScreenLockPtr lock,
-                    const Configuration& config);
+    MasterQuickView(const SurfaceConfig& surface, size_t surfaceIndex,
+                    DisplayGroupPtr group, OptionsPtr options,
+                    ScreenLockPtr lock);
 
     /** Destructor */
     ~MasterQuickView();
@@ -78,12 +79,15 @@ signals:
     void mouseReleased(QPointF pos);
     //@}
 
+    void openLauncher();
+
 private:
     /** Re-implement QWindow event to capture tab key. */
     bool event(QEvent* event) final;
     void _mapTouchEvent(QTouchEvent* event);
 
     QQuickItem* _wallItem = nullptr;
+    std::unique_ptr<MasterSurfaceRenderer> _surfaceRenderer;
 };
 
 #endif

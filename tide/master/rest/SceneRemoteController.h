@@ -38,56 +38,33 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef APPCONTROLLER_H
-#define APPCONTROLLER_H
+#ifndef SCENE_REMOTE_CONTROLLER_H
+#define SCENE_REMOTE_CONTROLLER_H
 
+#include "control/DisplayGroupController.h"
+#include "control/SceneController.h"
+#include "scene/Scene.h"
 #include "types.h"
 
 #include <rockets/jsonrpc/receiver.h>
 
-#include <QObject>
-
 /**
- * Remote controller for the application using JSON-RPC.
+ * Remote controller for the scene windows using JSON-RPC.
  */
-class AppController : public QObject, private rockets::jsonrpc::Receiver
+class SceneRemoteController : private rockets::jsonrpc::Receiver
 {
-    Q_OBJECT
-
 public:
     /**
-     * Construct an application controller.
+     * Construct a JSON-RPC scene controller.
      *
-     * @param config the application configuration.
+     * @param scene target for control commands.
      */
-    AppController(const Configuration& config);
+    SceneRemoteController(Scene& scene);
 
     using rockets::jsonrpc::Receiver::process;
 
-signals:
-    /** Open a content. */
-    void open(QString uri, QPointF coords, BoolCallback callback);
-
-    /** Load a session. */
-    void load(QString uri, BoolCallback callback);
-
-    /** Save a session to the given file. */
-    void save(QString uri, BoolCallback callback);
-
-    /** Browse a website. */
-    void browse(QString uri);
-
-    /** Open a whiteboard. */
-    void openWhiteboard();
-
-    /** Take a screenshot. */
-    void takeScreenshot(QString filename);
-
-    /** Power off the screens. */
-    void powerOff();
-
-    /** Exit the application. */
-    void exit();
+private:
+    Scene& _scene;
 };
 
 #endif

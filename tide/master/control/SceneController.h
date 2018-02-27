@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,55 +37,56 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef QMLWINDOWRENDERER_H
-#define QMLWINDOWRENDERER_H
+#ifndef SCENECONTROLLER_H
+#define SCENECONTROLLER_H
 
 #include "types.h"
 
-#include <QQmlContext>
-#include <QQmlEngine>
-#include <QQuickItem>
+#include "configuration/Configuration.h"
+#include "control/ContentWindowController.h"
+
+#include <QFutureWatcher>
+#include <QObject>
 
 /**
- * Provide a Qml representation of a ContentWindow on the Wall.
+ * Controller for all Scene operations.
  */
-class QmlWindowRenderer : public QObject
+class SceneController : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY(QmlWindowRenderer)
+    Q_DISABLE_COPY(SceneController);
 
 public:
-    /** Constructor. */
-    QmlWindowRenderer(std::unique_ptr<ContentSynchronizer> synchronizer,
-                      ContentWindowPtr contentWindow, QQuickItem& parentItem,
-                      QQmlContext* parentContext, bool isBackground = false);
-    /** Destructor. */
-    ~QmlWindowRenderer();
+    /** Constructor */
+    SceneController(Scene& scene, const Configuration::Folders& folders);
 
-    /** Update the qml object with a new data model. */
-    void update(ContentWindowPtr contentWindow, const QRectF& visibleArea);
+    void open(uint surfaceIndex, const QString& uri, const QPointF& coords,
+              BoolCallback callback);
+    void load(const QString& sessionFile, BoolCallback callback);
+    void save(const QString& sessionFile, BoolCallback callback);
 
-    /** Get the QML item. */
-    QQuickItem* getQuickItem();
+    /** Replace the contents by that of another scene. */
+    void apply(SceneConstPtr scene);
+
+    /** Hide the Launcher. */
+    void hideLauncher();
+
+    std::unique_ptr<ContentWindowController> getController(const QUuid& winId);
+
+signals:
+    void startWebbrowser(const WebbrowserContent& browser);
 
 private:
-    ContentSynchronizerSharedPtr _synchronizer;
-    ContentWindowPtr _contentWindow;
-    std::unique_ptr<QQmlContext> _windowContext;
-    std::unique_ptr<QQuickItem> _windowItem;
+    Scene& _scene;
+    Configuration::Folders _folders;
 
-    typedef std::map<uint, TilePtr> TilesMap;
-    TilesMap _tiles;
+    QFutureWatcher<SceneConstPtr> _loadSessionOp;
+    QFutureWatcher<bool> _saveSessionOp;
+    BoolCallback _loadSessionCallback;
+    BoolCallback _saveSessionCallback;
 
-    TilePtr _zoomContextTile;
-
-    void _addTile(TilePtr tile);
-    QQuickItem* _getZoomContextParentItem() const;
-    void _updateZoomContextTile(bool visible);
-    void _addZoomContextTile();
-    void _removeZoomContextTile();
-    void _removeTile(uint tileIndex);
-    void _updateTile(uint tileIndex, const QRect& coordinates);
+    void _restoreWebbrowsers(const Scene& scene);
+    void _deleteTempContentFile(ContentWindowPtr window);
 };
 
 #endif

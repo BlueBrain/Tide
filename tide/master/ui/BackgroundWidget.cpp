@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,27 +39,26 @@
 
 #include "BackgroundWidget.h"
 
-#include <QtWidgets>
-
 #include "configuration/Configuration.h"
 #include "scene/Background.h"
 #include "scene/ContentFactory.h"
+
+#include <QtWidgets>
 
 BackgroundWidget::BackgroundWidget(Configuration& configuration,
                                    QWidget* parent_)
     : QDialog{parent_}
     , _configuration{configuration}
-    , _background{*_configuration.background}
     , _backgroundFolder{configuration.folders.contents}
 {
     setWindowTitle(tr("Background settings"));
 
-    const int frameStyle = QFrame::Sunken | QFrame::Panel;
+    const auto frameStyle = QFrame::Sunken | QFrame::Panel;
 
     // Get current variables
 
-    _previousColor = _background.getColor();
-    _previousBackgroundURI = _background.getUri();
+    _previousColor = _background().getColor();
+    _previousBackgroundURI = _background().getUri();
 
     // Color chooser
 
@@ -85,7 +84,7 @@ BackgroundWidget::BackgroundWidget(Configuration& configuration,
 
     // Standard buttons
 
-    typedef QDialogButtonBox::StandardButton button;
+    using button = QDialogButtonBox::StandardButton;
     auto buttonBox =
         new QDialogButtonBox(button::Ok | button::Cancel, Qt::Horizontal, this);
 
@@ -111,8 +110,8 @@ void BackgroundWidget::accept()
 {
     if (_configuration.save())
     {
-        _previousColor = _background.getColor();
-        _previousBackgroundURI = _background.getUri();
+        _previousColor = _background().getColor();
+        _previousBackgroundURI = _background().getUri();
 
         QDialog::accept();
     }
@@ -133,29 +132,45 @@ void BackgroundWidget::reject()
     _colorLabel->setPalette(QPalette(_previousColor));
     _backgroundLabel->setText(_previousBackgroundURI);
 
-    _background.setColor(_previousColor);
-    _background.setUri(_previousBackgroundURI);
+    _background().setColor(_previousColor);
+    _background().setUri(_previousBackgroundURI);
 
     QDialog::reject();
 }
 
+void BackgroundWidget::setActiveSurface(const uint surfaceIndex)
+{
+    if (surfaceIndex >= _configuration.surfaces.size())
+        return;
+
+    _surfaceIndex = surfaceIndex;
+
+    const auto color = _background().getColor();
+    _colorLabel->setText(color.name());
+    _colorLabel->setPalette(QPalette(color));
+    _previousColor = color;
+
+    const auto uri = _background().getUri();
+    _backgroundLabel->setText(uri);
+    _previousBackgroundURI = uri;
+}
+
 void BackgroundWidget::_chooseColor()
 {
-    QColor color = QColorDialog::getColor(Qt::green, this);
-
+    const auto color = QColorDialog::getColor(Qt::green, this);
     if (!color.isValid())
         return;
 
     _colorLabel->setText(color.name());
     _colorLabel->setPalette(QPalette(color));
 
-    _background.setColor(color);
+    _background().setColor(color);
 }
 
 void BackgroundWidget::_openBackgroundContent()
 {
-    const QString filter = ContentFactory::getSupportedFilesFilterAsString();
-    const QString filename =
+    const auto filter = ContentFactory::getSupportedFilesFilterAsString();
+    const auto filename =
         QFileDialog::getOpenFileName(this, tr("Choose content"),
                                      _backgroundFolder, filter);
     if (filename.isEmpty())
@@ -166,7 +181,7 @@ void BackgroundWidget::_openBackgroundContent()
     if (ContentFactory::getContent(filename))
     {
         _backgroundLabel->setText(filename);
-        _background.setUri(filename);
+        _background().setUri(filename);
     }
     else
     {
@@ -179,5 +194,10 @@ void BackgroundWidget::_openBackgroundContent()
 void BackgroundWidget::_removeBackground()
 {
     _backgroundLabel->setText("");
-    _background.setUri("");
+    _background().setUri("");
+}
+
+Background& BackgroundWidget::_background()
+{
+    return *_configuration.surfaces[_surfaceIndex].background;
 }

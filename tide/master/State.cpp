@@ -1,7 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>     */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Daniel Nachbaur <daniel.nachbaur@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -40,179 +40,23 @@
 
 #include "State.h"
 
+#include "configuration/XmlParser.h"
 #include "log.h"
 #include "scene/ContentFactory.h"
 
-#include <QtXml/QtXml>
-#include <QtXmlPatterns/QXmlQuery>
+namespace
+{
+const QString query{"string(//state/ContentWindow[%1]/%2)"};
+}
 
 State::State()
-    : _displayGroup(new DisplayGroup(QSizeF()))
-    , _version(INVALID_FILE_VERSION)
+    : _scene{Scene::create(QSize())}
 {
 }
 
-State::State(DisplayGroupPtr displayGroup)
-    : _displayGroup(displayGroup)
-    , _version(INVALID_FILE_VERSION)
+State::State(ScenePtr scene)
+    : _scene{std::move(scene)}
 {
-}
-
-bool _isLegacyVersion(QXmlQuery& query)
-{
-    QString qstring;
-
-    int version = -1;
-    query.setQuery("string(/state/version)");
-
-    if (query.evaluateTo(&qstring))
-        version = qstring.toInt();
-
-    if (version == LEGACY_FILE_VERSION)
-        return true;
-
-    print_log(LOG_DEBUG, LOG_GENERAL,
-              "not a legacy state file. version: %i, legacy: %i", version,
-              LEGACY_FILE_VERSION);
-    return false;
-}
-
-ContentPtr _loadContent(QXmlQuery& query, const int index)
-{
-    char string[1024];
-    sprintf(string, "string(//state/ContentWindow[%i]/URI)", index);
-    query.setQuery(string);
-
-    QString qstring;
-    if (!query.evaluateTo(&qstring))
-        return ContentPtr();
-
-    const QString uri = qstring.trimmed(); // remove any whitespace
-    return ContentFactory::getContent(uri);
-}
-
-ContentWindowPtr _restoreContent(QXmlQuery& query, ContentPtr content,
-                                 const int index)
-{
-    double x, y, w, h, centerX, centerY, zoom;
-    x = y = w = h = centerX = centerY = zoom = -1.;
-
-    char string[1024];
-    sprintf(string, "string(//state/ContentWindow[%i]/x)", index);
-    query.setQuery(string);
-
-    QString qstring;
-    if (query.evaluateTo(&qstring))
-    {
-        x = qstring.toDouble();
-    }
-
-    sprintf(string, "string(//state/ContentWindow[%i]/y)", index);
-    query.setQuery(string);
-
-    if (query.evaluateTo(&qstring))
-    {
-        y = qstring.toDouble();
-    }
-
-    sprintf(string, "string(//state/ContentWindow[%i]/w)", index);
-    query.setQuery(string);
-
-    if (query.evaluateTo(&qstring))
-    {
-        w = qstring.toDouble();
-    }
-
-    sprintf(string, "string(//state/ContentWindow[%i]/h)", index);
-    query.setQuery(string);
-
-    if (query.evaluateTo(&qstring))
-    {
-        h = qstring.toDouble();
-    }
-
-    sprintf(string, "string(//state/ContentWindow[%i]/centerX)", index);
-    query.setQuery(string);
-
-    if (query.evaluateTo(&qstring))
-    {
-        centerX = qstring.toDouble();
-    }
-
-    sprintf(string, "string(//state/ContentWindow[%i]/centerY)", index);
-    query.setQuery(string);
-
-    if (query.evaluateTo(&qstring))
-    {
-        centerY = qstring.toDouble();
-    }
-
-    sprintf(string, "string(//state/ContentWindow[%i]/zoom)", index);
-    query.setQuery(string);
-
-    if (query.evaluateTo(&qstring))
-    {
-        zoom = qstring.toDouble();
-    }
-
-    auto contentWindow = std::make_shared<ContentWindow>(std::move(content));
-
-    auto windowCoordinates = contentWindow->getCoordinates();
-    if (x != -1. || y != -1.)
-        windowCoordinates.moveTopLeft(QPointF(x, y));
-    if (w != -1. || h != -1.)
-        windowCoordinates.setSize(QSizeF(w, h));
-    contentWindow->setCoordinates(windowCoordinates);
-
-    auto zoomRect = contentWindow->getContent().getZoomRect();
-    if (zoom != -1.)
-        zoomRect.setSize(QSizeF(1.0 / zoom, 1.0 / zoom));
-    if (centerX != -1. || centerY != -1.)
-        zoomRect.moveCenter(QPointF(centerX, centerY));
-    contentWindow->getContent().setZoomRect(zoomRect);
-
-    return contentWindow;
-}
-
-bool State::legacyLoadXML(const QString& filename)
-{
-    QXmlQuery query;
-
-    if (!query.setFocus(QUrl(filename)))
-    {
-        print_log(LOG_DEBUG, LOG_GENERAL, "Not a valid legacy session: '%s'",
-                  filename.toLocal8Bit().constData());
-        return false;
-    }
-
-    if (!_isLegacyVersion(query))
-        return false;
-
-    int numContentWindows = 0;
-    query.setQuery("string(count(//state/ContentWindow))");
-
-    QString qstring;
-    if (query.evaluateTo(&qstring))
-        numContentWindows = qstring.toInt();
-
-    ContentWindowPtrs contentWindows;
-    contentWindows.reserve(numContentWindows);
-    for (int i = 1; i <= numContentWindows; ++i)
-    {
-        auto content = _loadContent(query, i);
-        if (!content)
-            content = ContentFactory::getErrorContent();
-
-        if (auto window = _restoreContent(query, std::move(content), i))
-            contentWindows.push_back(std::move(window));
-    }
-
-    _displayGroup->setContentWindows(contentWindows);
-    // Preserve appearence of legacy sessions.
-    _displayGroup->setCoordinates(UNIT_RECTF);
-    _version = LEGACY_FILE_VERSION;
-
-    return true;
 }
 
 StateVersion State::getVersion() const
@@ -220,7 +64,93 @@ StateVersion State::getVersion() const
     return _version;
 }
 
-DisplayGroupPtr State::getDisplayGroup()
+ScenePtr State::getScene()
 {
-    return _displayGroup;
+    return _scene;
+}
+
+ContentPtr _loadContent(XmlParser& parser, const QString& index)
+{
+    ContentPtr content;
+
+    QString uri;
+    if (parser.get(query.arg(index, "URI"), uri))
+        content = ContentFactory::getContent(uri);
+    if (!content)
+        content = ContentFactory::getErrorContent();
+
+    return content;
+}
+
+ContentWindowPtr _loadWindow(XmlParser& parser, const int index_)
+{
+    const auto index = QString::number(index_);
+
+    double x, y, w, h, centerX, centerY, zoom;
+    x = y = w = h = centerX = centerY = zoom = -1.0;
+    parser.get(query.arg(index, "x"), x);
+    parser.get(query.arg(index, "y"), y);
+    parser.get(query.arg(index, "w"), w);
+    parser.get(query.arg(index, "h"), h);
+    parser.get(query.arg(index, "centerX"), centerX);
+    parser.get(query.arg(index, "centerY"), centerY);
+    parser.get(query.arg(index, "zoom"), zoom);
+
+    auto window = std::make_shared<ContentWindow>(_loadContent(parser, index));
+
+    auto windowCoordinates = window->getCoordinates();
+    if (x != -1. || y != -1.)
+        windowCoordinates.moveTopLeft(QPointF(x, y));
+    if (w != -1. || h != -1.)
+        windowCoordinates.setSize(QSizeF(w, h));
+    window->setCoordinates(windowCoordinates);
+
+    auto zoomRect = window->getContent().getZoomRect();
+    if (zoom != -1.)
+        zoomRect.setSize(QSizeF(1.0 / zoom, 1.0 / zoom));
+    if (centerX != -1. || centerY != -1.)
+        zoomRect.moveCenter(QPointF(centerX, centerY));
+    window->getContent().setZoomRect(zoomRect);
+
+    return window;
+}
+
+bool State::legacyLoadXML(const QString& filename)
+{
+    try
+    {
+        XmlParser parser{filename};
+
+        int version = INVALID_FILE_VERSION;
+        parser.get("string(/state/version)", version);
+        if (version != LEGACY_FILE_VERSION)
+        {
+            print_log(LOG_DEBUG, LOG_GENERAL,
+                      "not a legacy state file. version: %i, legacy: %i",
+                      version, LEGACY_FILE_VERSION);
+            return false;
+        }
+
+        int numContentWindows = 0;
+        parser.get("string(count(//state/ContentWindow))", numContentWindows);
+
+        ContentWindowPtrs contentWindows;
+        contentWindows.reserve(numContentWindows);
+        for (int i = 1; i <= numContentWindows; ++i)
+            contentWindows.emplace_back(_loadWindow(parser, i));
+
+        auto& group = _scene->getGroup(0);
+        group.setContentWindows(contentWindows);
+        // Preserve appearence of legacy sessions.
+        group.setCoordinates(UNIT_RECTF);
+        _version = LEGACY_FILE_VERSION;
+
+        return true;
+    }
+    catch (const std::runtime_error&)
+    {
+        print_log(LOG_DEBUG, LOG_GENERAL, "Not a valid legacy session: '%s'",
+                  filename.toLocal8Bit().constData());
+    }
+    return false;
 }

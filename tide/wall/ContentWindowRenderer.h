@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,87 +37,55 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef WALLSCENERENDERER_H
-#define WALLSCENERENDERER_H
+#ifndef CONTENTWINDOWRENDERER_H
+#define CONTENTWINDOWRENDERER_H
 
 #include "types.h"
 
-#include "BackgroundRenderer.h"
-#include "WallRenderContext.h"
-
-#include <QtCore/QMap>
-#include <QtCore/QObject>
-#include <QtCore/QUuid>
-
-class QQuickItem;
+#include <QQmlContext>
+#include <QQmlEngine>
+#include <QQuickItem>
 
 /**
- * Renders the scene content on the wall.
+ * Provide a Qml representation of a ContentWindow on the Wall.
  */
-class WallSceneRenderer : public QObject
+class ContentWindowRenderer : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY(WallSceneRenderer)
+    Q_DISABLE_COPY(ContentWindowRenderer)
 
 public:
-    /**
-     * Constructor.
-     * @param context for rendering Qml elements.
-     * @param parentItem to attach to.
-     */
-    WallSceneRenderer(WallRenderContext context, QQuickItem& parentItem);
-
+    /** Constructor. */
+    ContentWindowRenderer(std::unique_ptr<ContentSynchronizer> synchronizer,
+                          ContentWindowPtr contentWindow,
+                          QQuickItem& parentItem, QQmlContext* parentContext,
+                          bool isBackground = false);
     /** Destructor. */
-    ~WallSceneRenderer();
+    ~ContentWindowRenderer();
 
-    /** Set background content. */
-    void setBackground(BackgroundPtr background);
+    /** Update the qml object with a new data model. */
+    void update(ContentWindowPtr contentWindow, const QRectF& visibleArea);
 
-    /** Set the DisplayGroup to render, replacing the previous one. */
-    void setDisplayGroup(DisplayGroupPtr displayGroup);
-
-    /** Set different touchpoint's markers. */
-    void setMarkers(MarkersPtr markers);
-
-    /** Set different options used for rendering. */
-    void setRenderingOptions(OptionsPtr options);
-
-    /** Set the ScreenLock replacing the previous one. */
-    void setScreenLock(ScreenLockPtr lock);
-
-    /** Set status used to notify about inactivity timeout. */
-    void setCountdownStatus(CountdownStatusPtr status);
-
-    /** @return true if the renderer requires a redraw. */
-    bool needRedraw() const;
-
-public slots:
-    /** Increment number of rendered/swapped frames for FPS display. */
-    void updateRenderedFrames();
+    /** Get the QML item. */
+    QQuickItem* getQuickItem();
 
 private:
-    WallRenderContext _context;
-    QQmlContext& _qmlContext;
+    ContentSynchronizerSharedPtr _synchronizer;
+    ContentWindowPtr _contentWindow;
 
-    QQuickItem* _sceneItem = nullptr; // child qobject of contentItem()
+    std::unique_ptr<QQmlContext> _windowContext;
+    std::unique_ptr<QQuickItem> _windowItem;
 
-    BackgroundPtr _background;
-    CountdownStatusPtr _countdownStatus;
-    DisplayGroupPtr _displayGroup;
-    MarkersPtr _markers;
-    OptionsPtr _options;
-    ScreenLockPtr _screenLock;
+    std::map<uint, TilePtr> _tiles;
+    TilePtr _zoomContextTile;
 
-    std::unique_ptr<BackgroundRenderer> _backgroundRenderer;
-    std::unique_ptr<DisplayGroupRenderer> _displayGroupRenderer;
-
-    void _setContextProperties();
-    void _createSceneItem(QQuickItem& parentItem);
-    void _createGroupRenderer();
-
-    void _setBackground(const Background& background);
-    bool _hasBackgroundChanged(const QString& newUri) const;
-    void _adjustBackgroundTo(const DisplayGroup& displayGroup);
+    void _addTile(TilePtr tile);
+    QQuickItem* _getZoomContextParentItem() const;
+    void _updateZoomContextTile(bool visible);
+    void _addZoomContextTile();
+    void _removeZoomContextTile();
+    void _removeTile(uint tileIndex);
+    void _updateTile(uint tileIndex, const QRect& coordinates);
 };
 
 #endif

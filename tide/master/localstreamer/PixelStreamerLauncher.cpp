@@ -119,8 +119,8 @@ PixelStreamerLauncher::PixelStreamerLauncher(PixelStreamWindowManager& manager,
             Qt::QueuedConnection);
 }
 
-void PixelStreamerLauncher::openWebBrowser(QPointF pos, QSize size,
-                                           const QString url,
+void PixelStreamerLauncher::openWebbrowser(const uint surfaceIndex, QPointF pos,
+                                           QSize size, const QString url,
                                            const ushort debugPort)
 {
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
@@ -130,17 +130,23 @@ void PixelStreamerLauncher::openWebBrowser(QPointF pos, QSize size,
         size = _config.webbrowser.defaultSize;
 
     const auto uri = QUuid::createUuid().toString();
-    _windowManager.openWindow(uri, pos, size, StreamType::WEBBROWSER);
+    _windowManager.openWindow(surfaceIndex, uri, pos, size,
+                              StreamType::WEBBROWSER);
 
     auto& content = _windowManager.getWindow(uri)->getContent();
     auto& webbrowser = dynamic_cast<WebbrowserContent&>(content);
     webbrowser.setUrl(url);
     launch(webbrowser, debugPort);
 #else
+    Q_UNUSED(surfaceIndex);
     Q_UNUSED(pos);
     Q_UNUSED(size);
     Q_UNUSED(url);
     Q_UNUSED(debugPort);
+    print_log(
+        LOG_INFO, LOG_GENERAL,
+        "Can't browse url '%s', Tide was compiled without webbrowser support",
+        url.toLocal8Bit().constData());
 #endif
 }
 
@@ -168,7 +174,7 @@ void PixelStreamerLauncher::openLauncher()
 
     const auto pos = _getLauncherPos();
     const auto size = _getLauncherSize();
-    _windowManager.openWindow(uri, pos, size, StreamType::LAUNCHER);
+    _windowManager.openWindow(0, uri, pos, size, StreamType::LAUNCHER);
 
     CommandLineOptions options;
     options.streamId = launcherUri;
@@ -185,14 +191,15 @@ void PixelStreamerLauncher::openLauncher()
     _startProcess(uri, command, env);
 }
 
-void PixelStreamerLauncher::openWhiteboard()
+void PixelStreamerLauncher::openWhiteboard(const uint surfaceIndex)
 {
     static int whiteboardCounter = 0;
     const auto uri = QString("Whiteboard%1").arg(whiteboardCounter++);
     const auto centerPos = _getDefaultWindowPosition();
     const auto size = _config.whiteboard.defaultSize;
 
-    _windowManager.openWindow(uri, centerPos, size, StreamType::WHITEBOARD);
+    _windowManager.openWindow(surfaceIndex, uri, centerPos, size,
+                              StreamType::WHITEBOARD);
 
     CommandLineOptions options;
     options.streamId = uri;
@@ -204,11 +211,11 @@ void PixelStreamerLauncher::openWhiteboard()
 
 QSize PixelStreamerLauncher::_getLauncherSize() const
 {
-    const auto width = 0.25 * getSurface().getTotalWidth();
+    const auto width = 0.25 * getSurfaceConfig().getTotalWidth();
     const auto size = QSize(width, 0.9 * width);
 
     const auto minSize = QSize{100, 100};
-    const auto maxSize = 0.9 * getSurface().getTotalSize();
+    const auto maxSize = 0.9 * getSurfaceConfig().getTotalSize();
 
     return geometry::constrain(size, minSize, maxSize).toSize();
 }
@@ -216,15 +223,15 @@ QSize PixelStreamerLauncher::_getLauncherSize() const
 QPointF PixelStreamerLauncher::_getLauncherPos() const
 {
     // Position for "standard" walls, slightly above the middle
-    const auto x = 0.25 * getSurface().getTotalWidth();
-    const auto y = 0.35 * getSurface().getTotalHeight();
+    const auto x = 0.25 * getSurfaceConfig().getTotalWidth();
+    const auto y = 0.35 * getSurfaceConfig().getTotalHeight();
 
     auto rect = QRectF{QPointF(), _getLauncherSize()};
     rect.moveCenter({x, y});
 
     // If the wall is not tall enough, center vertically to fit
-    if (rect.top() < 0.05 * getSurface().getTotalHeight())
-        rect.moveCenter({x, 0.5 * getSurface().getTotalHeight()});
+    if (rect.top() < 0.05 * getSurfaceConfig().getTotalHeight())
+        rect.moveCenter({x, 0.5 * getSurfaceConfig().getTotalHeight()});
 
     return rect.center();
 }
@@ -236,8 +243,8 @@ void PixelStreamerLauncher::_dereferenceProcess(const QString uri)
 
 QPointF PixelStreamerLauncher::_getDefaultWindowPosition() const
 {
-    return {0.5 * getSurface().getTotalWidth(),
-            0.35 * getSurface().getTotalHeight()};
+    return {0.5 * getSurfaceConfig().getTotalWidth(),
+            0.35 * getSurfaceConfig().getTotalHeight()};
 }
 
 void PixelStreamerLauncher::_startProcess(const QString& uri,
@@ -248,7 +255,7 @@ void PixelStreamerLauncher::_startProcess(const QString& uri,
     emit start(command, QDir::currentPath(), env);
 }
 
-const Surface& PixelStreamerLauncher::getSurface() const
+const SurfaceConfig& PixelStreamerLauncher::getSurfaceConfig() const
 {
     return _config.surfaces[0];
 }

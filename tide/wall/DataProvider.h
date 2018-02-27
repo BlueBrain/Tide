@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -77,18 +77,11 @@ public:
         const ContentWindow& window, deflect::View view);
 
     /**
-     * Update the data sources with information from a new set of windows.
+     * Update the data sources with information from a new scene.
      *
-     * @param windows with updated information for the movies/pdfs/streams.
+     * @param scene with updated information for the movies/pdfs/streams.
      */
-    void updateDataSources(const ContentWindowPtrs& windows);
-
-    /**
-     * Update the data sources for the background content.
-     *
-     * @param background to add or remove.
-     */
-    void updateDataSource(BackgroundPtr background);
+    void updateDataSources(const Scene& scene);
 
     /**
      * Synchronize the swap of Tiles just before rendering for movies/streams.
@@ -118,17 +111,18 @@ private:
     using Watcher = QFutureWatcher<void>;
     QList<Watcher*> _watchers;
 
+#if TIDE_ENABLE_MOVIE_SUPPORT
+    std::map<QUuid, std::shared_ptr<MovieUpdater>> _movieSources;
+#endif
+    std::map<QString, std::shared_ptr<PixelStreamUpdater>> _streamSources;
+
     std::map<QUuid, std::weak_ptr<ImageSource>> _imageSources;
 #if TIDE_USE_TIFF
     std::map<QUuid, std::weak_ptr<ImagePyramidDataSource>> _imagePyrSources;
 #endif
-#if TIDE_ENABLE_MOVIE_SUPPORT
-    std::map<QUuid, std::weak_ptr<MovieUpdater>> _movieSources;
-#endif
 #if TIDE_ENABLE_PDF_SUPPORT
     std::map<QUuid, std::weak_ptr<PDFTiler>> _pdfSources;
 #endif
-    std::map<QString, std::weak_ptr<PixelStreamUpdater>> _streamSources;
     std::map<QUuid, std::weak_ptr<SVGTiler>> _svgSources;
 
     void _updateDataSource(const Content& content, const QUuid& id);
@@ -137,13 +131,15 @@ private:
     using TileUpdateList = std::vector<TileUpdateInfo>;
     std::map<uint, TileUpdateList> _tileImageRequests;
 
-    BackgroundPtr _background;
-
     using DataSourcePtr = std::shared_ptr<DataSource>;
     void _processTileImageRequests(DataSourcePtr source);
 
-    std::shared_ptr<PixelStreamUpdater> _getStreamSource(
-        const ContentWindow& window);
+#if TIDE_ENABLE_MOVIE_SUPPORT
+    std::shared_ptr<MovieUpdater> _getOrCreateMovieSource(const QString& uri,
+                                                          const QUuid& id);
+#endif
+    std::shared_ptr<PixelStreamUpdater> _getOrCreateStreamSource(
+        const QString& uri);
     void _load(DataSourcePtr source, const TileUpdateList& tileList);
     void _handleFinished();
     std::unique_ptr<ContentSynchronizer> _makeSynchronizer(

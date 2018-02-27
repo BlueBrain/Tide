@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -63,9 +63,8 @@ public:
 public slots:
     void requestRender();
 
-    void updateBackground(BackgroundPtr background);
     void updateCountdownStatus(CountdownStatusPtr status);
-    void updateDisplayGroup(DisplayGroupPtr displayGroup);
+    void updateScene(ScenePtr scene);
     void updateLock(ScreenLockPtr lock);
     void updateMarkers(MarkersPtr markers);
     void updateOptions(OptionsPtr options);
@@ -81,9 +80,8 @@ private:
     WallToWallChannel& _wallChannel;
     std::unique_ptr<SwapSynchronizer> _swapSynchronizer;
 
-    SwapSyncObject<BackgroundPtr> _syncBackground;
     SwapSyncObject<CountdownStatusPtr> _syncCountdownStatus;
-    SwapSyncObject<DisplayGroupPtr> _syncDisplayGroup;
+    SwapSyncObject<ScenePtr> _syncScene;
     SwapSyncObject<ScreenLockPtr> _syncLock;
     SwapSyncObject<MarkersPtr> _syncMarkers;
     SwapSyncObject<OptionsPtr> _syncOptions;

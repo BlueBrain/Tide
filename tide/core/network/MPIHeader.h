@@ -48,7 +48,7 @@ enum class MPIMessageType
     NONE,
     FRAME_CLOCK,
     QUIT,
-    DISPLAYGROUP,
+    SCENE,
     PIXELSTREAM,
     OPTIONS,
     MARKERS,
@@ -59,7 +59,6 @@ enum class MPIMessageType
     COUNTDOWN_STATUS,
     PIXELSTREAM_CLOSE,
     LOCK,
-    BACKGROUND,
     CONFIG
 };
 

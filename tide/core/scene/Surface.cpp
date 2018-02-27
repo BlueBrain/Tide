@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,62 +37,47 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "MasterSceneRenderer.h"
+#include "Surface.h"
 
-#include "MasterDisplayGroupRenderer.h"
-#include "control/DisplayGroupController.h"
-#include "qmlUtils.h"
-#include "scene/DisplayGroup.h"
+IMPLEMENT_SERIALIZE_FOR_XML(Surface)
 
-#include <QQmlContext>
-#include <QQmlEngine>
-
-namespace
-{
-const QUrl QML_SCENE_URL("qrc:/qml/master/MasterScene.qml");
-}
-
-MasterSceneRenderer::MasterSceneRenderer(DisplayGroupPtr group,
-                                         QQmlEngine& engine,
-                                         QQuickItem& parentItem)
+Surface::Surface(DisplayGroupPtr group)
     : _group{group}
-    , _groupController{new DisplayGroupController{*_group}}
 {
-    _setContextProperties(*engine.rootContext());
-    _createSceneItem(engine, parentItem);
-    _createGroupRenderer(engine);
 }
 
-MasterSceneRenderer::~MasterSceneRenderer()
+Surface::Surface(DisplayGroupPtr group, BackgroundPtr background)
+    : _group{group}
+    , _background{background}
 {
-    _displayGroupRenderer.reset();
-
-    if (_sceneItem)
-    {
-        _sceneItem->setParentItem(nullptr);
-        delete _sceneItem;
-        _sceneItem = nullptr;
-    }
 }
 
-void MasterSceneRenderer::_setContextProperties(QQmlContext& context)
+DisplayGroup& Surface::getGroup()
 {
-    // SideControl buttons need a displaygroup and groupcontroller
-    context.setContextProperty("displaygroup", _group.get());
-    context.setContextProperty("groupcontroller", _groupController.get());
+    return *_group;
 }
 
-void MasterSceneRenderer::_createSceneItem(QQmlEngine& engine,
-                                           QQuickItem& parentItem)
+const DisplayGroup& Surface::getGroup() const
 {
-    _sceneItem = qml::makeItem(engine, QML_SCENE_URL);
-    _sceneItem->setParentItem(&parentItem);
-    connect(_sceneItem, SIGNAL(openLauncher()), this, SIGNAL(openLauncher()));
+    return *_group;
 }
 
-void MasterSceneRenderer::_createGroupRenderer(QQmlEngine& engine)
+DisplayGroupPtr Surface::getGroupPtr() const
 {
-    _displayGroupRenderer =
-        std::make_unique<MasterDisplayGroupRenderer>(_group, engine,
-                                                     *_sceneItem);
+    return _group;
+}
+
+Background& Surface::getBackground()
+{
+    return *_background;
+}
+
+const Background& Surface::getBackground() const
+{
+    return *_background;
+}
+
+BackgroundPtr Surface::getBackgroundPtr() const
+{
+    return _background;
 }

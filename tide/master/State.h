@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
 /*                          Daniel Nachbaur <daniel.nachbaur@epfl.ch>*/
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
@@ -43,7 +43,7 @@
 
 #include "types.h"
 
-#include "scene/DisplayGroup.h" // member, needed for serialization
+#include "scene/Scene.h" // member, needed for serialization
 #include "serialization/includes.h"
 
 /**
@@ -56,7 +56,8 @@ enum StateVersion
     LEGACY_FILE_VERSION = 1,
     FIRST_PIXEL_COORDINATES_FILE_VERSION = 2,
     WINDOW_TITLES_VERSION = 3,
-    FOCUS_MODE_VERSION = 4
+    FOCUS_MODE_VERSION = 4,
+    SCENE_VERSION = 5
 };
 
 /**
@@ -68,29 +69,30 @@ enum StateVersion
 class State
 {
 public:
-    /** Default constructor */
+    /** Default constructor. */
     State();
+
     /**
-     * Constructor
-     * @param displayGroup the DisplayGroup to serialize
+     * Constructor.
+     * @param scene to serialize.
      */
-    State(DisplayGroupPtr displayGroup);
+    State(ScenePtr scene);
+
+    /** @return the version that was last used for loading or saving. */
+    StateVersion getVersion() const;
+
+    /** @return the scene object. */
+    ScenePtr getScene();
 
     /**
      * Load content windows stored in the given XML file.
-     * @return success if the legacy state file could be loaded
+     * @return success if the legacy state file could be loaded.
      */
     bool legacyLoadXML(const QString& filename);
 
-    /** Get the version that was last used for loading or saving. */
-    StateVersion getVersion() const;
-
-    /** Get the DisplayGroup. */
-    DisplayGroupPtr getDisplayGroup();
-
 private:
-    DisplayGroupPtr _displayGroup;
-    StateVersion _version;
+    StateVersion _version = INVALID_FILE_VERSION;
+    ScenePtr _scene;
 
     friend class boost::serialization::access;
 
@@ -99,25 +101,34 @@ private:
     {
         _version = static_cast<StateVersion>(version);
 
-        if (version < FIRST_PIXEL_COORDINATES_FILE_VERSION)
-            _displayGroup->setCoordinates(UNIT_RECTF);
-
         // clang-format off
-        if (version < WINDOW_TITLES_VERSION)
+        if (version < SCENE_VERSION)
         {
-            ContentWindowPtrs contentWindows;
-            ar & boost::serialization::make_nvp("contentWindows",
-                                                contentWindows);
-            _displayGroup->setContentWindows(contentWindows);
+            auto group = DisplayGroup::create(QSize());
+            if (version < FIRST_PIXEL_COORDINATES_FILE_VERSION)
+                group->setCoordinates(UNIT_RECTF);
+
+            if (version < WINDOW_TITLES_VERSION)
+            {
+                ContentWindowPtrs contentWindows;
+                ar & boost::serialization::make_nvp("contentWindows",
+                                                    contentWindows);
+                group->setContentWindows(contentWindows);
+            }
+            else
+            {
+                ar & boost::serialization::make_nvp("displayGroup", group);
+            }
+            _scene = Scene::create(std::move(group));
         }
         else
         {
-            ar & boost::serialization::make_nvp("displayGroup", _displayGroup);
+            ar & boost::serialization::make_nvp("scene", _scene);
         }
         // clang-format on
     }
 };
 
-BOOST_CLASS_VERSION(State, FOCUS_MODE_VERSION)
+BOOST_CLASS_VERSION(State, SCENE_VERSION)
 
 #endif

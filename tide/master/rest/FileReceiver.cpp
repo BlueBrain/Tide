@@ -1,7 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -66,7 +66,7 @@ inline QString _urlDecode(const QString& filename)
 
 QString _getAvailableFileName(const QFileInfo& fileInfo)
 {
-    QString filename = fileInfo.fileName();
+    auto filename = fileInfo.fileName();
 
     int nSuffix = 0;
     while (QFile(QDir::tempPath() + "/" + filename).exists())
@@ -87,6 +87,28 @@ std::future<http::Response> _makeResponse(const http::Code code,
 }
 }
 
+struct FileReceiver::UploadParameters
+{
+    UploadParameters() = default;
+    UploadParameters(const QJsonObject& obj)
+        : filename{obj["filename"].toString()}
+        , surfaceIndex{static_cast<uint>(obj["surfaceIndex"].toInt())}
+        , position{obj["x"].toDouble(), obj["y"].toDouble()}
+    {
+    }
+    QString filename;
+    uint surfaceIndex = 0;
+    QPointF position;
+};
+
+FileReceiver::FileReceiver()
+{
+}
+
+FileReceiver::~FileReceiver()
+{
+}
+
 std::future<http::Response> FileReceiver::prepareUpload(
     const http::Request& request)
 {
@@ -94,23 +116,21 @@ std::future<http::Response> FileReceiver::prepareUpload(
     if (obj.empty())
         return make_ready_response(http::Code::BAD_REQUEST);
 
-    const auto filename = obj["filename"].toString();
-    if (filename.contains('/'))
+    const auto params = UploadParameters{obj};
+    if (params.filename.contains('/'))
         return make_ready_response(http::Code::NOT_SUPPORTED);
 
-    const auto position = QPointF{obj["x"].toDouble(), obj["y"].toDouble()};
-
-    const QFileInfo fileInfo(filename);
-    const QString fileSuffix = fileInfo.suffix();
+    const auto fileInfo = QFileInfo(params.filename);
+    const auto fileSuffix = fileInfo.suffix();
     if (fileSuffix.isEmpty() || fileInfo.baseName().isEmpty())
         return make_ready_response(http::Code::NOT_SUPPORTED);
 
-    const QStringList& filters = ContentFactory::getSupportedExtensions();
+    const auto& filters = ContentFactory::getSupportedExtensions();
     if (!filters.contains(fileSuffix.toLower()))
         return make_ready_response(http::Code::NOT_SUPPORTED);
 
     const auto name = _getAvailableFileName(fileInfo);
-    _preparedPaths[name] = position;
+    _preparedPaths[name] = params;
     return _makeResponse(http::Code::OK, "url", _urlEncode(name));
 }
 
@@ -118,13 +138,14 @@ std::future<http::Response> FileReceiver::handleUpload(
     const http::Request& request)
 {
     const auto name = _urlDecode(QString::fromStdString(request.path));
-    if (!_preparedPaths.contains(name))
+    if (!_preparedPaths.count(name))
         return _makeResponse(http::Code::FORBIDDEN, "info",
                              "upload not prepared");
 
     const auto filePath = QDir::tempPath() + "/" + name;
-    const auto position = _preparedPaths[name];
-    _preparedPaths.remove(name);
+
+    const auto params = _preparedPaths[name];
+    _preparedPaths.erase(name);
 
     QFile file(filePath);
     if (!file.open(QIODevice::WriteOnly) ||
@@ -141,22 +162,24 @@ std::future<http::Response> FileReceiver::handleUpload(
               filePath.toLocal8Bit().constData());
 
     auto promise = std::make_shared<std::promise<Response>>();
-    emit open(filePath, position, [promise, filePath](const bool success) {
-        if (success)
-        {
-            print_log(LOG_INFO, LOG_REST, "file uploaded and saved as: %s",
+    emit open(
+        params.surfaceIndex, filePath, params.position,
+        [promise, filePath](const bool success) {
+            if (success)
+            {
+                print_log(LOG_INFO, LOG_REST, "file uploaded and saved as: %s",
+                          filePath.toLocal8Bit().constData());
+                promise->set_value(Response{http::Code::CREATED, "info", "OK"});
+                return;
+            }
+
+            QFile(filePath).remove();
+
+            print_log(LOG_ERROR, LOG_REST,
+                      "file uploaded but could not be opened: %s",
                       filePath.toLocal8Bit().constData());
-            promise->set_value(Response{http::Code::CREATED, "info", "OK"});
-            return;
-        }
-
-        QFile(filePath).remove();
-
-        print_log(LOG_ERROR, LOG_REST,
-                  "file uploaded but could not be opened: %s",
-                  filePath.toLocal8Bit().constData());
-        promise->set_value(Response{http::Code::NOT_SUPPORTED, "info",
-                                    "file could not be opened"});
-    });
+            promise->set_value(Response{http::Code::NOT_SUPPORTED, "info",
+                                        "file could not be opened"});
+        });
     return promise->get_future();
 }

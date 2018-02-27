@@ -52,7 +52,7 @@
             "bezelWidth": -60,
             "displayHeight": 540,
             "displayWidth": 960,
-            "numScreensX": 2
+            "screenCountX": 2
         }
     ]
 }

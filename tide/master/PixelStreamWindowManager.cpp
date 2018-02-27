@@ -1,7 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>     */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Daniel Nachbaur <daniel.nachbaur@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -50,47 +50,13 @@
 #include "scene/ContentWindow.h"
 #include "scene/DisplayGroup.h"
 #include "scene/PixelStreamContent.h"
+#include "scene/Scene.h"
 #include <deflect/EventReceiver.h>
 #include <deflect/Frame.h>
 
 namespace
 {
 const QSize EMPTY_STREAM_SIZE(640, 480);
-}
-
-PixelStreamWindowManager::PixelStreamWindowManager(DisplayGroup& displayGroup)
-    : _displayGroup(displayGroup)
-{
-    connect(&displayGroup, &DisplayGroup::contentWindowRemoved, this,
-            &PixelStreamWindowManager::_onWindowRemoved);
-    connect(&displayGroup, &DisplayGroup::contentWindowAdded, this,
-            &PixelStreamWindowManager::_onWindowAdded);
-}
-
-ContentWindowPtr PixelStreamWindowManager::getWindow(const QString& uri) const
-{
-    const auto it = _streamWindows.find(uri);
-    return it != _streamWindows.end()
-               ? _displayGroup.getContentWindow(it->second)
-               : ContentWindowPtr();
-}
-
-void PixelStreamWindowManager::hideWindow(const QString& uri)
-{
-    if (auto window = getWindow(uri))
-        window->setState(ContentWindow::HIDDEN);
-}
-
-void PixelStreamWindowManager::showWindow(const QString& uri)
-{
-    auto window = getWindow(uri);
-    if (!window)
-        return;
-
-    window->setState(ContentWindow::NONE);
-    if (_autoFocusNewWindows)
-        DisplayGroupController{_displayGroup}.focus(window->getID());
-}
 
 bool _isLauncher(const QString& uri)
 {
@@ -109,25 +75,64 @@ ContentWindowPtr _makeStreamWindow(const QString& uri, const QSize& size,
                                                        : ContentWindow::DEFAULT;
     return std::make_shared<ContentWindow>(std::move(content), type);
 }
+}
 
-void PixelStreamWindowManager::openWindow(const QString& uri,
+PixelStreamWindowManager::PixelStreamWindowManager(Scene& scene)
+    : _scene(scene)
+{
+    for (const auto& surface : scene.getSurfaces())
+        _monitor(surface.getGroup());
+}
+
+ContentWindowPtr PixelStreamWindowManager::getWindow(const QString& uri) const
+{
+    const auto it = _streamWindows.find(uri);
+    if (it != _streamWindows.end())
+        return _scene.findWindow(it->second);
+
+    return ContentWindowPtr();
+}
+
+void PixelStreamWindowManager::hideWindow(const QString& uri)
+{
+    if (auto window = getWindow(uri))
+        window->setState(ContentWindow::HIDDEN);
+}
+
+void PixelStreamWindowManager::showWindow(const QString& uri)
+{
+    if (!_streamWindows.count(uri))
+        return;
+
+    auto windowGroup = _scene.findWindowAndGroup(_streamWindows.at(uri));
+    auto& window = windowGroup.first;
+    auto& group = windowGroup.second;
+
+    window.setState(ContentWindow::NONE);
+    if (_autoFocusNewWindows)
+        DisplayGroupController{group}.focus(window.getID());
+}
+
+void PixelStreamWindowManager::openWindow(const uint surfaceIndex,
+                                          const QString& uri,
                                           const QPointF& pos, const QSize& size,
                                           const StreamType stream)
 {
-    if (_isWindowOpen(uri))
+    if (_isWindowOpen(uri) || surfaceIndex >= _scene.getSurfaces().size())
         return;
 
     print_log(LOG_INFO, LOG_STREAM, "opening pixel stream window: '%s'",
               uri.toLocal8Bit().constData());
 
     auto window = _makeStreamWindow(uri, size, stream);
+    auto& group = _scene.getGroup(surfaceIndex);
 
-    ContentWindowController controller{*window, _displayGroup};
+    ContentWindowController controller{*window, group};
     controller.resize(size.isValid() ? size : EMPTY_STREAM_SIZE);
-    controller.moveCenterTo(!pos.isNull() ? pos : _displayGroup.center());
+    controller.moveCenterTo(!pos.isNull() ? pos : group.center());
 
     window->setState(ContentWindow::HIDDEN);
-    _displayGroup.addContentWindow(window);
+    group.addContentWindow(window);
 
     // external streams are shown once we receive proper sizes
     if (stream != StreamType::EXTERNAL)
@@ -149,16 +154,26 @@ void PixelStreamWindowManager::handleStreamStart(const QString uri)
     // external streams and launcher don't have a window yet, create one now
     const auto streamType =
         (_isLauncher(uri)) ? StreamType::LAUNCHER : StreamType::EXTERNAL;
-    openWindow(uri, QPointF(), QSize(), streamType);
+    openWindow(0, uri, QPointF(), QSize(), streamType);
 }
 
 void PixelStreamWindowManager::handleStreamEnd(const QString uri)
 {
     print_log(LOG_INFO, LOG_STREAM, "closing pixel stream window: '%s'",
               uri.toLocal8Bit().constData());
+    try
+    {
+        if (!_streamWindows.count(uri))
+            return;
 
-    if (auto window = getWindow(uri))
-        DisplayGroupController{_displayGroup}.remove(window->getID());
+        auto windowGroup = _scene.findWindowAndGroup(_streamWindows.at(uri));
+        const auto& window = windowGroup.first;
+        auto& group = windowGroup.second;
+        DisplayGroupController{group}.remove(window.getID());
+    }
+    catch (const window_not_found_error&)
+    {
+    }
 }
 
 void PixelStreamWindowManager::registerEventReceiver(
@@ -192,40 +207,23 @@ void PixelStreamWindowManager::registerEventReceiver(
     success->set_value(false);
 }
 
-void PixelStreamWindowManager::_updateWindowSize(ContentWindowPtr window,
-                                                 const QSize size)
-{
-    bool emitOpen = false;
-
-    // External streamers might not have reported an initial size yet
-    if (window->getContent().getDimensions().isEmpty())
-    {
-        emitOpen = true;
-
-        const auto target = ContentWindowController::Coordinates::STANDARD;
-        ContentWindowController controller{*window, _displayGroup, target};
-        controller.resize(size, CENTER);
-    }
-
-    if (size == window->getContent().getDimensions())
-        return;
-
-    window->getContent().setDimensions(size);
-    if (window->isFocused())
-        DisplayGroupController{_displayGroup}.updateFocusedWindowsCoordinates();
-
-    if (emitOpen)
-        emit externalStreamOpening(window->getContent().getURI());
-}
-
 void PixelStreamWindowManager::updateStreamDimensions(deflect::FramePtr frame)
 {
-    auto window = getWindow(frame->uri);
-    if (!window)
-        return;
+    try
+    {
+        const auto& uri = frame->uri;
+        if (!_streamWindows.count(uri))
+            return;
 
-    const auto size = frame->computeDimensions();
-    _updateWindowSize(window, size);
+        auto windowGroup = _scene.findWindowAndGroup(_streamWindows.at(uri));
+        auto& window = windowGroup.first;
+        auto& group = windowGroup.second;
+        const auto size = frame->computeDimensions();
+        _updateWindowSize(window, group, size);
+    }
+    catch (const window_not_found_error&)
+    {
+    }
 }
 
 void PixelStreamWindowManager::sendDataToWindow(const QString uri,
@@ -252,17 +250,34 @@ void PixelStreamWindowManager::setAutoFocusNewWindows(const bool set)
 void PixelStreamWindowManager::updateSizeHints(const QString uri,
                                                const deflect::SizeHints hints)
 {
-    auto window = getWindow(uri);
-    if (!window)
-        return;
+    try
+    {
+        if (!_streamWindows.count(uri))
+            return;
 
-    window->getContent().setSizeHints(hints);
+        auto windowGroup = _scene.findWindowAndGroup(_streamWindows.at(uri));
+        auto& window = windowGroup.first;
+        auto& group = windowGroup.second;
 
-    const QSize size(hints.preferredWidth, hints.preferredHeight);
-    if (size.isEmpty() || !window->getContent().getDimensions().isEmpty())
-        return;
+        window.getContent().setSizeHints(hints);
 
-    _updateWindowSize(window, size);
+        const QSize size(hints.preferredWidth, hints.preferredHeight);
+        if (size.isEmpty() || !window.getContent().getDimensions().isEmpty())
+            return;
+
+        _updateWindowSize(window, group, size);
+    }
+    catch (const window_not_found_error&)
+    {
+    }
+}
+
+void PixelStreamWindowManager::_monitor(const DisplayGroup& group)
+{
+    connect(&group, &DisplayGroup::contentWindowRemoved, this,
+            &PixelStreamWindowManager::_onWindowRemoved);
+    connect(&group, &DisplayGroup::contentWindowAdded, this,
+            &PixelStreamWindowManager::_onWindowAdded);
 }
 
 bool PixelStreamWindowManager::_isWindowOpen(const QString& uri) const
@@ -291,4 +306,31 @@ void PixelStreamWindowManager::_onWindowRemoved(ContentWindowPtr window)
     const auto& uri = window->getContent().getURI();
     _streamWindows.erase(uri);
     emit streamWindowClosed(uri);
+}
+
+void PixelStreamWindowManager::_updateWindowSize(ContentWindow& window,
+                                                 DisplayGroup& group,
+                                                 const QSize size)
+{
+    bool emitOpen = false;
+
+    // External streamers might not have reported an initial size yet
+    if (window.getContent().getDimensions().isEmpty())
+    {
+        emitOpen = true;
+
+        const auto target = ContentWindowController::Coordinates::STANDARD;
+        ContentWindowController controller{window, group, target};
+        controller.resize(size, CENTER);
+    }
+
+    if (size == window.getContent().getDimensions())
+        return;
+
+    window.getContent().setDimensions(size);
+    if (window.isFocused())
+        DisplayGroupController{group}.updateFocusedWindowsCoordinates();
+
+    if (emitOpen)
+        emit externalStreamOpening(window.getContent().getURI());
 }

@@ -44,8 +44,10 @@
 #include "control/ContentWindowController.h"
 #include "scene/ContentFactory.h"
 #include "scene/DisplayGroup.h"
+#include "scene/Scene.h"
 #include "json/json.h"
 #include "json/serialization.h"
+#include "json/templates.h"
 
 #include <tide/master/version.h>
 
@@ -110,28 +112,29 @@ QJsonObject serialize(const DisplayGroup& group)
     return QJsonObject{{"windows", windows}};
 }
 
+QJsonObject serialize(const Surface& surface)
+{
+    return serialize(surface.getGroup());
+}
+
+QJsonArray serialize(const Scene& scene)
+{
+    return serialize(scene.getSurfaces());
+}
+
 QJsonObject serializeForRest(const Configuration& config)
 {
-    const auto& surface = config.surfaces[0];
+    std::vector<QSize> surfaceSizes;
+    for (const auto& surface : config.surfaces)
+        surfaceSizes.emplace_back(surface.getTotalSize());
 
     QJsonObject configObject{
         {"hostname", QHostInfo::localHostName()},
         {"version", QString::fromStdString(tide::Version::getString())},
         {"revision", QString::number(tide::Version::getRevision(), 16)},
         {"startTime", _applicationStartTime},
-        {"wallSize", serializeAsObject(surface.getTotalSize())},
-        {"dimensions",
-         QJsonObject{{"screenCountX", (int)surface.screenCountX},
-                     {"screenCountY", (int)surface.screenCountY},
-                     {"bezelWidth", surface.bezelWidth},
-                     {"bezelHeight", surface.bezelHeight},
-                     {"displayWidth", (int)surface.displayWidth},
-                     {"displayHeight", (int)surface.displayHeight},
-                     {"screenWidth", (int)surface.getScreenWidth()},
-                     {"screenHeight", (int)surface.getScreenHeight()},
-                     {"displaysPerScreenX", (int)surface.displaysPerScreenX},
-                     {"displaysPerScreenY", (int)surface.displaysPerScreenY}}},
-        {"background", serialize(*config.background)},
+        {"surfaceSizes", serialize(surfaceSizes)},
+        {"surfaces", serialize(config.surfaces)},
         {"contentDir", config.folders.contents},
         {"sessionDir", config.folders.sessions},
         {"name", config.settings.infoName},

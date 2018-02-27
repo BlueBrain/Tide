@@ -1,4 +1,5 @@
 "use strict";
+var activeSurfaceIndex = 0;
 var bezelWidth;
 var bezelHeight;
 var displaysPerScreenX;
@@ -142,7 +143,8 @@ function boostrapUpload() {
 
 function browse() {
   var url = $('#browseUrlInput').val();
-  sendAppJsonRpc("browse", {"uri": (url)}, updateWall);
+  var params = {"uri": (url), "surfaceIndex": activeSurfaceIndex};
+  sendAppJsonRpc("browse", params, updateWall);
   $('#browseUrlInput').val("");
   $("#appsButton").click();
 }
@@ -223,7 +225,7 @@ function createFocusButton(tile) {
   focusButton.onclick = function (event) {
     event.stopImmediatePropagation();
     if (!focus)
-      sendSceneJsonRpc("focus-windows", {}, updateWall);
+      sendSceneJsonRpc("focus-windows", getSurfaceParams(), updateWall);
     else {
       tile.selected = false;
       sendSceneJsonRpc("unfocus-window", getIdAsObject(tile), updateWall);
@@ -407,13 +409,15 @@ function getFileSystemContent(path) {
             },
             function (isConfirm) {
               if (isConfirm) {
-                sendAppJsonRpc("open", {"uri": data.path}, updateWall);
+                var params = {"uri": data.path, "surfaceIndex": activeSurfaceIndex};
+                sendAppJsonRpc("open", params, updateWall);
                 $('#fsMenu').hide()
               }
             });
         }
         else {
-          sendAppJsonRpc("open", {"uri": data.path}, updateWall);
+          var params = {"uri": data.path, "surfaceIndex": activeSurfaceIndex};
+          sendAppJsonRpc("open", params, updateWall);
           $('#fsMenu').treeview('toggleNodeSelected', [data.nodeId, {silent: true}]);
         }
       }
@@ -423,7 +427,8 @@ function getFileSystemContent(path) {
       }
       // REGULAR FILE
       else {
-        sendAppJsonRpc("open", {"uri": data.path}, updateWall);
+        var params = {"uri": data.path, "surfaceIndex": activeSurfaceIndex};
+        sendAppJsonRpc("open", params, updateWall);
         $('#fsMenu').treeview('toggleNodeSelected', [data.nodeId, {silent: true}]);
       }
     })
@@ -499,6 +504,20 @@ function getSessionFolderContent() {
     })
   };
   xhr.send(null);
+}
+
+function getSurfaceParams()
+{
+    return {"surfaceIndex": activeSurfaceIndex};
+}
+
+function getUrlParam(name) {
+    var results = new RegExp('[\?&]' + name + '=([^&#]*)')
+                      .exec(window.location.href);
+    if (results) {
+        return results[1];
+    }
+    return 0;
 }
 
 function handleDragLeave(evt) {
@@ -602,16 +621,27 @@ function init() {
   xhr.open("GET", restUrl + "config", true);
   xhr.onload = function () {
     var config = JSON.parse(xhr.responseText)["config"];
-    wallWidth = config["wallSize"]["width"];
-    wallHeight = config["wallSize"]["height"];
-    screenCountX = config["dimensions"]["screenCountX"];
-    screenCountY = config["dimensions"]["screenCountY"];
-    bezelWidth = config["dimensions"]["bezelWidth"];
-    bezelHeight = config["dimensions"]["bezelHeight"];
-    displaysPerScreenX = config["dimensions"]["displaysPerScreenX"];
-    displaysPerScreenY = config["dimensions"]["displaysPerScreenY"];
-    displayWidth = config["dimensions"]["displayWidth"];
-    displayHeight = config["dimensions"]["displayHeight"];
+
+    activeSurfaceIndex = parseInt(getUrlParam('surface')) || 0;
+    if (activeSurfaceIndex >= config["surfaceSizes"].length) {
+        swal("No such surface: " + activeSurfaceIndex,
+             "Surface 0 will be shown instead");
+        activeSurfaceIndex = 0;
+    }
+
+    var surfaceSize = config["surfaceSizes"][activeSurfaceIndex];
+    wallWidth = surfaceSize[0];
+    wallHeight = surfaceSize[1];
+    var surface = config["surfaces"][activeSurfaceIndex];
+    screenCountX = surface["screenCountX"];
+    screenCountY = surface["screenCountY"];
+    bezelWidth = surface["bezelWidth"];
+    bezelHeight = surface["bezelHeight"];
+    displaysPerScreenX = surface["displaysPerScreenX"];
+    displaysPerScreenY = surface["displaysPerScreenY"];
+    displayWidth = surface["displayWidth"];
+    displayHeight = surface["displayHeight"];
+    var backgroundColor = surface["background"]["color"];
 
     if(config["name"] !== "")
       document.title = config["name"];
@@ -624,7 +654,7 @@ function init() {
       filters[i] = filters[i].replace(/\*/g, "");
     $("#file-select").attr("accept", filters);
     var wall = $("#wall");
-    wall.css("background-color", config["background"]["color"]);
+    wall.css("background-color", backgroundColor);
     wall.css("width", wallWidth).css("height", wallHeight);
 
     $('#wallWrapper').click(function(){
@@ -634,7 +664,7 @@ function init() {
 
     wall.click(function () {
       if (windowList.length > 0) {
-        sendSceneJsonRpc("deselect-windows", {}, updateWall);
+        sendSceneJsonRpc("deselect-windows", getSurfaceParams(), updateWall);
       }
     })
 
@@ -667,11 +697,11 @@ function init() {
   };
   xhr.send(null);
   $("#exitFullscreenButton").on("click", function () {
-    sendSceneJsonRpc("exit-fullscreen", {}, updateWall);
+    sendSceneJsonRpc("exit-fullscreen", getSurfaceParams(), updateWall);
     removeCurtain(fullscreenCurtain);
   });
   $("#closeAllButton").on("click", function () {
-    sendSceneJsonRpc("clear", {}, updateWall);
+    sendSceneJsonRpc("clear", getSurfaceParams(), updateWall);
   });
 }
 
@@ -711,7 +741,7 @@ function markAsUnselected(tile) {
 }
 
 function openWhiteboard() {
-  sendAppJsonRpc("whiteboard", {}, updateWall);
+  sendAppJsonRpc("whiteboard", getSurfaceParams(), updateWall);
   $("#appsButton").click();
 }
 
@@ -988,13 +1018,13 @@ function setCurtain(type) {
   curtain.click(function (event) {
     event.stopImmediatePropagation();
     if (fullscreen && focus) {
-      sendSceneJsonRpc("exit-fullscreen", {}, updateWall);
+      sendSceneJsonRpc("exit-fullscreen", getSurfaceParams(), updateWall);
     }
     if (focus && !fullscreen) {
-      sendSceneJsonRpc("unfocus-windows", {}, updateWall);
+      sendSceneJsonRpc("unfocus-windows", getSurfaceParams(), updateWall);
     }
     if (fullscreen && !focus) {
-      sendSceneJsonRpc("exit-fullscreen", {}, updateWall);
+      sendSceneJsonRpc("exit-fullscreen", getSurfaceParams(), updateWall);
       removeCurtain(fullscreenCurtain);
     }
   });
@@ -1254,7 +1284,7 @@ function updateWall() {
   xhr.open("GET", restUrl + "windows", true);
   xhr.onload = function () {
     if (xhr.status === 200) {
-      var jsonList = JSON.parse(xhr.responseText)["windows"];
+      var jsonList = JSON.parse(xhr.responseText)[activeSurfaceIndex]["windows"];
 
       // Check if a window has been removed on the wall
       checkForRemoved();

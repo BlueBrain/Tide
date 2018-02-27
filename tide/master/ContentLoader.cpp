@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -48,11 +48,27 @@
 #include <QDir>
 #include <cmath>
 
-#include <cmath>
-
-ContentLoader::ContentLoader(DisplayGroupPtr displayGroup)
+ContentLoader::ContentLoader(DisplayGroup& displayGroup)
     : _displayGroup(displayGroup)
 {
+}
+
+bool ContentLoader::loadOrMoveToFront(const QString& uri,
+                                      const QPointF& windowCenterPosition)
+{
+    if (uri.isEmpty())
+        return false;
+
+    if (auto window = findWindow(uri))
+    {
+        _displayGroup.moveToFront(window);
+        return true;
+    }
+
+    if (QDir{uri}.exists())
+        return loadDir(uri);
+
+    return load(uri, windowCenterPosition);
 }
 
 bool ContentLoader::load(const QString& filename,
@@ -78,7 +94,7 @@ bool ContentLoader::load(const QString& filename,
     }
 
     ContentWindowPtr contentWindow(new ContentWindow(std::move(content)));
-    ContentWindowController controller(*contentWindow, *_displayGroup);
+    ContentWindowController controller(*contentWindow, _displayGroup);
 
     if (windowSize.isValid())
         controller.resize(windowSize);
@@ -86,11 +102,11 @@ bool ContentLoader::load(const QString& filename,
         controller.adjustSize(SIZE_1TO1_FITTING);
 
     if (windowCenterPosition.isNull())
-        controller.moveCenterTo(_displayGroup->getCoordinates().center());
+        controller.moveCenterTo(_displayGroup.getCoordinates().center());
     else
         controller.moveCenterTo(windowCenterPosition);
 
-    _displayGroup->addContentWindow(contentWindow);
+    _displayGroup.addContentWindow(contentWindow);
 
     return true;
 }
@@ -120,8 +136,8 @@ size_t ContentLoader::loadDir(const QString& dirName, QSize gridSize)
     if (gridSize.isEmpty())
         gridSize = _estimateGridSize(list.size());
 
-    const QSizeF win(_displayGroup->width() / (qreal)gridSize.width(),
-                     _displayGroup->height() / (qreal)gridSize.height());
+    const QSizeF win(_displayGroup.width() / (qreal)gridSize.width(),
+                     _displayGroup.height() / (qreal)gridSize.height());
 
     int contentIndex = 0;
     for (const auto& fileinfo : list)
@@ -148,7 +164,7 @@ size_t ContentLoader::loadDir(const QString& dirName, QSize gridSize)
 
 bool ContentLoader::isAlreadyOpen(const QString& filename) const
 {
-    for (const auto& window : _displayGroup->getContentWindows())
+    for (const auto& window : _displayGroup.getContentWindows())
     {
         if (window->getContent().getURI() == filename)
             return true;
@@ -158,7 +174,7 @@ bool ContentLoader::isAlreadyOpen(const QString& filename) const
 
 ContentWindowPtr ContentLoader::findWindow(const QString& filename) const
 {
-    for (const auto& window : _displayGroup->getContentWindows())
+    for (const auto& window : _displayGroup.getContentWindows())
     {
         if (window->getContent().getURI() == filename)
             return window;

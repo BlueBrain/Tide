@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -44,7 +44,7 @@
 
 #include <QQuickItem>
 
-class QmlWindowRenderer;
+class ContentWindowRenderer;
 struct WallRenderContext;
 
 /**
@@ -59,7 +59,7 @@ public:
     ~BackgroundRenderer();
 
 private:
-    std::unique_ptr<QmlWindowRenderer> _renderer;
+    std::unique_ptr<ContentWindowRenderer> _renderer;
 };
 
 #endif

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -40,7 +40,7 @@
 #ifndef RESTINTERFACE_H
 #define RESTINTERFACE_H
 
-#include "AppController.h"
+#include "rest/AppRemoteController.h"
 #include "types.h"
 
 /**
@@ -62,12 +62,12 @@ public:
      *
      * @param port for listening to REST requests
      * @param options the application's options to expose in the interface
-     * @param group DisplayGroup exposed via the interface
+     * @param scene Scene exposed via the interface
      * @param config the application's configuration
      * @throw std::runtime_error if the port is already in use or a connection
      *        issue occured.
      */
-    RestInterface(uint16_t port, OptionsPtr options, DisplayGroup& group,
+    RestInterface(uint16_t port, OptionsPtr options, Scene& scene,
                   Configuration& config);
 
     /** Out-of-line destructor. */
@@ -76,7 +76,7 @@ public:
     /** Expose the statistics gathered by the given logging utility. */
     void exposeStatistics(const LoggingUtility& logger) const;
 
-    const AppController& getAppController() const;
+    const AppRemoteController& getAppRemoteController() const;
 
     /** Prevent modifying the wall via the interface. */
     void lock(bool lock);

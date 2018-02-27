@@ -46,6 +46,11 @@
 
 IMPLEMENT_SERIALIZE_FOR_XML(DisplayGroup)
 
+DisplayGroupPtr DisplayGroup::create(const QSizeF& size)
+{
+    return DisplayGroupPtr{new DisplayGroup{size}};
+}
+
 DisplayGroup::DisplayGroup()
 {
 }
@@ -61,7 +66,7 @@ DisplayGroup::~DisplayGroup()
 
 void DisplayGroup::addContentWindow(ContentWindowPtr window)
 {
-    for (ContentWindowPtr existingWindow : _contentWindows)
+    for (const auto& existingWindow : _contentWindows)
     {
         if (window->getID() == existingWindow->getID())
         {
@@ -138,7 +143,7 @@ const ContentWindowPtrs& DisplayGroup::getContentWindows() const
 
 ContentWindowPtr DisplayGroup::getContentWindow(const QUuid& id) const
 {
-    for (ContentWindowPtr window : _contentWindows)
+    for (auto&& window : _contentWindows)
     {
         if (window->getID() == id)
             return window;

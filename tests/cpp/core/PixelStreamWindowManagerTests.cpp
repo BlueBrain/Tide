@@ -1,7 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
-/*                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>     */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/*                          Daniel Nachbaur <daniel.nachbaur@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -47,9 +47,9 @@
 #include "PixelStreamWindowManager.h"
 #include "control/PixelStreamController.h"
 #include "scene/ContentWindow.h"
-#include "scene/DisplayGroup.h"
 #include "scene/Options.h"
 #include "scene/PixelStreamContent.h"
+#include "scene/Scene.h"
 
 #include "MinimalGlobalQtApp.h"
 BOOST_GLOBAL_FIXTURE(MinimalGlobalQtApp);
@@ -90,14 +90,14 @@ public:
 
 BOOST_AUTO_TEST_CASE(testNoStreamerWindowCreation)
 {
-    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
-    PixelStreamWindowManager windowManager(*displayGroup);
+    auto scene = Scene::create(wallSize);
+    PixelStreamWindowManager windowManager(*scene);
 
     const QString uri = CONTENT_URI;
     const QPointF pos(testWindowPos);
     const QSize size(testWindowSize);
 
-    windowManager.openWindow(uri, pos, size);
+    windowManager.openWindow(0, uri, pos, size);
     ContentWindowPtr window = windowManager.getWindow(uri);
     BOOST_REQUIRE(window);
 
@@ -113,9 +113,9 @@ BOOST_AUTO_TEST_CASE(testNoStreamerWindowCreation)
 
 BOOST_AUTO_TEST_CASE(testEventReceiver)
 {
-    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
-    PixelStreamWindowManager windowManager(*displayGroup);
-    windowManager.openWindow(CONTENT_URI, testWindowPos, testWindowSize);
+    auto scene = Scene::create(wallSize);
+    PixelStreamWindowManager windowManager(*scene);
+    windowManager.openWindow(0, CONTENT_URI, testWindowPos, testWindowSize);
     ContentWindowPtr window = windowManager.getWindow(CONTENT_URI);
     BOOST_REQUIRE(window);
 
@@ -149,19 +149,20 @@ BOOST_AUTO_TEST_CASE(testEventReceiver)
 
 BOOST_AUTO_TEST_CASE(testExplicitWindowCreation)
 {
-    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
-    PixelStreamWindowManager windowManager(*displayGroup);
+    auto scene = Scene::create(wallSize);
+    PixelStreamWindowManager windowManager(*scene);
+    auto& group = scene->getGroup(0);
 
     const QString uri = CONTENT_URI;
     const QPointF pos(testWindowPos);
     const QSize size(testWindowSize);
 
-    windowManager.openWindow(uri, pos, size);
+    windowManager.openWindow(0, uri, pos, size);
     ContentWindowPtr window = windowManager.getWindow(uri);
     BOOST_REQUIRE(window);
 
     BOOST_CHECK_EQUAL(window, windowManager.getWindow(uri));
-    BOOST_CHECK_EQUAL(window, displayGroup->getContentWindow(window->getID()));
+    BOOST_CHECK_EQUAL(window, group.getContentWindow(window->getID()));
 
     windowManager.handleStreamStart(uri);
     BOOST_CHECK_EQUAL(window, windowManager.getWindow(uri));
@@ -182,13 +183,14 @@ BOOST_AUTO_TEST_CASE(testExplicitWindowCreation)
 
     windowManager.handleStreamEnd(uri);
     BOOST_CHECK(!windowManager.getWindow(uri));
-    BOOST_CHECK(!displayGroup->getContentWindow(window->getID()));
+    BOOST_CHECK(!group.getContentWindow(window->getID()));
 }
 
 BOOST_AUTO_TEST_CASE(testImplicitWindowCreation)
 {
-    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
-    PixelStreamWindowManager windowManager(*displayGroup);
+    auto scene = Scene::create(wallSize);
+    PixelStreamWindowManager windowManager(*scene);
+    auto& group = scene->getGroup(0);
 
     const QString uri = CONTENT_URI;
     // window will be positioned centerred
@@ -198,7 +200,7 @@ BOOST_AUTO_TEST_CASE(testImplicitWindowCreation)
     windowManager.handleStreamStart(uri);
     ContentWindowPtr window = windowManager.getWindow(uri);
     BOOST_REQUIRE(window);
-    BOOST_CHECK_EQUAL(window, displayGroup->getContentWindow(window->getID()));
+    BOOST_CHECK_EQUAL(window, group.getContentWindow(window->getID()));
 
     const auto& content = window->getContent();
     BOOST_CHECK(content.getURI() == uri);
@@ -223,13 +225,14 @@ BOOST_AUTO_TEST_CASE(testImplicitWindowCreation)
 
     windowManager.handleStreamEnd(uri);
     BOOST_CHECK(!windowManager.getWindow(uri));
-    BOOST_CHECK(!displayGroup->getContentWindow(window->getID()));
+    BOOST_CHECK(!group.getContentWindow(window->getID()));
 }
 
 BOOST_AUTO_TEST_CASE(testSizeHints)
 {
-    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
-    PixelStreamWindowManager windowManager(*displayGroup);
+    auto scene = Scene::create(wallSize);
+    PixelStreamWindowManager windowManager(*scene);
+
     const QString uri = CONTENT_URI;
     windowManager.handleStreamStart(uri);
     ContentWindowPtr window = windowManager.getWindow(uri);
@@ -260,8 +263,8 @@ BOOST_AUTO_TEST_CASE(testSizeHints)
 
 BOOST_AUTO_TEST_CASE(hideAndShowWindow)
 {
-    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
-    PixelStreamWindowManager windowManager(*displayGroup);
+    auto scene = Scene::create(wallSize);
+    PixelStreamWindowManager windowManager(*scene);
 
     const QString uri = CONTENT_URI;
     windowManager.handleStreamStart(uri);
@@ -279,8 +282,8 @@ BOOST_AUTO_TEST_CASE(hideAndShowWindow)
 
 BOOST_AUTO_TEST_CASE(hideAndShowPanel)
 {
-    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
-    PixelStreamWindowManager windowManager(*displayGroup);
+    auto scene = Scene::create(wallSize);
+    PixelStreamWindowManager windowManager(*scene);
 
     const QString uri = PANEL_URI;
     windowManager.handleStreamStart(uri);
@@ -307,8 +310,8 @@ BOOST_AUTO_TEST_CASE(hideAndShowPanel)
 
 BOOST_AUTO_TEST_CASE(check_external_stream_opening_after_sizehints)
 {
-    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
-    PixelStreamWindowManager windowManager(*displayGroup);
+    auto scene = Scene::create(wallSize);
+    PixelStreamWindowManager windowManager(*scene);
 
     bool externalStreamOpened = false;
 
@@ -341,8 +344,8 @@ BOOST_AUTO_TEST_CASE(check_external_stream_opening_after_sizehints)
 
 BOOST_AUTO_TEST_CASE(check_external_stream_opening_after_firstframe)
 {
-    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
-    PixelStreamWindowManager windowManager(*displayGroup);
+    auto scene = Scene::create(wallSize);
+    PixelStreamWindowManager windowManager(*scene);
 
     bool externalStreamOpened = false;
 
@@ -380,8 +383,8 @@ BOOST_AUTO_TEST_CASE(check_external_stream_opening_after_firstframe)
 
 BOOST_AUTO_TEST_CASE(resize_external_stream)
 {
-    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
-    PixelStreamWindowManager windowManager(*displayGroup);
+    auto scene = Scene::create(wallSize);
+    PixelStreamWindowManager windowManager(*scene);
 
     bool externalStreamOpened = false;
 
@@ -430,8 +433,8 @@ BOOST_AUTO_TEST_CASE(resize_external_stream)
 
 BOOST_AUTO_TEST_CASE(check_local_stream_opening)
 {
-    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
-    PixelStreamWindowManager windowManager(*displayGroup);
+    auto scene = Scene::create(wallSize);
+    PixelStreamWindowManager windowManager(*scene);
 
     bool externalStreamOpened = false;
 

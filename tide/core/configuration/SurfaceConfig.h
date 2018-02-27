@@ -37,10 +37,12 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef SURFACE_H
-#define SURFACE_H
+#ifndef SURFACECONFIG_H
+#define SURFACECONFIG_H
 
 #include "types.h"
+
+#include "scene/Background.h"
 
 /**
  * A uniform display surface, composed of identical displays of the same size.
@@ -48,7 +50,7 @@
  * The surface can optionally be subdivided in regular sub-groups of displays
  * called screens, in reference to the logical X screen used for rendering.
  */
-struct Surface
+struct SurfaceConfig
 {
     uint displayWidth = 0;       // width of a display in pixels
     uint displayHeight = 0;      // height of a display in pixels
@@ -58,6 +60,9 @@ struct Surface
     uint screenCountY = 1;       // number of screens along the y axis
     int bezelWidth = 0;  // horizontal padding between two screens in pixels
     int bezelHeight = 0; // vertical padding between two screens in pixels
+
+    /** Background content and color. */
+    BackgroundPtr background = Background::create();
 
     /** @return the width of a screen in pixels. */
     uint getScreenWidth() const;

@@ -41,12 +41,11 @@
 
 #include "configuration/Configuration.h"
 #include "network/MPIChannel.h"
-#include "scene/Background.h"
 #include "scene/ContentWindow.h"
 #include "scene/CountdownStatus.h"
-#include "scene/DisplayGroup.h"
 #include "scene/Markers.h"
 #include "scene/Options.h"
+#include "scene/Scene.h"
 #include "scene/ScreenLock.h"
 #include "serialization/utils.h"
 #include "json/serialization.h"
@@ -72,11 +71,7 @@ Configuration WallFromMasterChannel::receiveConfiguration()
     const auto mh = _mpiChannel->receiveHeader(RANK0);
     if (mh.type != MPIMessageType::CONFIG)
         throw std::logic_error("Configuation object expected from master");
-
-    _buffer.setSize(mh.size);
-    _mpiChannel->receiveBroadcast(_buffer.data(), _buffer.size(), RANK0);
-    const auto data = QByteArray::fromRawData(_buffer.data(), _buffer.size());
-    return json::unpack<Configuration>(data);
+    return receiveJsonBroadcast<Configuration>(mh.size);
 }
 
 void WallFromMasterChannel::processMessages()
@@ -90,11 +85,8 @@ void WallFromMasterChannel::receiveMessage()
     const auto mh = _mpiChannel->receiveHeader(RANK0);
     switch (mh.type)
     {
-    case MPIMessageType::BACKGROUND:
-        emit received(receiveQObjectBroadcast<BackgroundPtr>(mh.size));
-        break;
-    case MPIMessageType::DISPLAYGROUP:
-        emit received(receiveQObjectBroadcast<DisplayGroupPtr>(mh.size));
+    case MPIMessageType::SCENE:
+        emit received(receiveQObjectBroadcast<ScenePtr>(mh.size));
         break;
     case MPIMessageType::OPTIONS:
         emit received(receiveQObjectBroadcast<OptionsPtr>(mh.size));
@@ -110,13 +102,13 @@ void WallFromMasterChannel::receiveMessage()
         break;
     case MPIMessageType::PIXELSTREAM:
 #if BOOST_VERSION >= 106000
-        emit received(receiveBroadcast<deflect::FramePtr>(mh.size));
+        emit received(receiveBinaryBroadcast<deflect::FramePtr>(mh.size));
 #else
         // WAR missing support for std::shared_ptr
         // The copy of the Frame object is not too expensive because its
         // Segments are QByteArray (implicitly shared).
         emit received(std::make_shared<deflect::Frame>(
-            receiveBroadcast<deflect::Frame>(mh.size)));
+            receiveBinaryBroadcast<deflect::Frame>(mh.size)));
 #endif
         break;
     case MPIMessageType::IMAGE:
@@ -134,18 +126,31 @@ void WallFromMasterChannel::receiveMessage()
     }
 }
 
-template <typename T>
-T WallFromMasterChannel::receiveBroadcast(const size_t messageSize)
+void WallFromMasterChannel::receiveBroadcast(const size_t messageSize)
 {
     _buffer.setSize(messageSize);
     _mpiChannel->receiveBroadcast(_buffer.data(), messageSize, RANK0);
+}
+
+template <typename T>
+T WallFromMasterChannel::receiveBinaryBroadcast(const size_t messageSize)
+{
+    receiveBroadcast(messageSize);
     return serialization::get<T>(_buffer);
+}
+
+template <typename T>
+T WallFromMasterChannel::receiveJsonBroadcast(const size_t messageSize)
+{
+    receiveBroadcast(messageSize);
+    const auto data = QByteArray::fromRawData(_buffer.data(), _buffer.size());
+    return json::unpack<T>(data);
 }
 
 template <typename T>
 T WallFromMasterChannel::receiveQObjectBroadcast(const size_t messageSize)
 {
-    auto qobject = receiveBroadcast<T>(messageSize);
+    auto qobject = receiveBinaryBroadcast<T>(messageSize);
     qobject->moveToThread(QApplication::instance()->thread());
     return qobject;
 }
