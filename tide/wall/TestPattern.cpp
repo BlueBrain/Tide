@@ -75,7 +75,7 @@ std::string to_string(const bool value)
 }
 
 TestPattern::TestPattern(const WallConfiguration& config,
-                         const Surface& surface, const Screen& screen,
+                         const SurfaceConfig& surface, const Screen& screen,
                          QQuickItem& parent_)
     : QQuickPaintedItem(&parent_)
     , _wallSize(surface.getTotalSize())

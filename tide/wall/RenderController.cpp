@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -45,8 +45,8 @@
 #include "network/WallToWallChannel.h"
 #include "scene/Background.h"
 #include "scene/CountdownStatus.h"
-#include "scene/DisplayGroup.h"
 #include "scene/Options.h"
+#include "scene/Scene.h"
 #include "scene/ScreenLock.h"
 
 RenderController::RenderController(std::vector<WallWindow*> windows,
@@ -56,21 +56,20 @@ RenderController::RenderController(std::vector<WallWindow*> windows,
     : _windows{std::move(windows)}
     , _provider{provider}
     , _wallChannel{wallChannel}
-    , _syncBackground(Background::create())
     , _syncCountdownStatus{std::make_shared<CountdownStatus>()}
-    , _syncDisplayGroup{std::make_shared<DisplayGroup>(QSize())}
+    , _syncScene{Scene::create(QSize())}
     , _syncLock(ScreenLock::create())
     , _syncOptions{Options::create()}
 {
-    _syncBackground.setCallback([this](BackgroundPtr background) {
-        _provider.updateDataSource(background);
+    _syncScene.setCallback([this](ScenePtr scene) {
+        _provider.updateDataSources(*scene);
+        const auto& surfaces = scene->getSurfaces();
         for (auto window : _windows)
-            window->setBackground(background);
-    });
-    _syncDisplayGroup.setCallback([this](DisplayGroupPtr group) {
-        _provider.updateDataSources(group->getContentWindows());
-        for (auto window : _windows)
-            window->setDisplayGroup(group);
+        {
+            const auto& surface = surfaces[window->getSurfaceIndex()];
+            window->setDisplayGroup(surface.getGroupPtr());
+            window->setBackground(surface.getBackgroundPtr());
+        }
     });
     _syncLock.setCallback([this](ScreenLockPtr lock) {
         for (auto window : _windows)
@@ -188,21 +187,15 @@ bool RenderController::_syncAndRenderWindows(const bool grab)
     return _wallChannel.allReady(!_needRedraw);
 }
 
-void RenderController::updateBackground(BackgroundPtr background)
-{
-    _syncBackground.update(background);
-    requestRender();
-}
-
 void RenderController::updateCountdownStatus(CountdownStatusPtr status)
 {
     _syncCountdownStatus.update(status);
     requestRender();
 }
 
-void RenderController::updateDisplayGroup(DisplayGroupPtr displayGroup)
+void RenderController::updateScene(ScenePtr scene)
 {
-    _syncDisplayGroup.update(displayGroup);
+    _syncScene.update(scene);
     requestRender();
 }
 
@@ -238,9 +231,8 @@ void RenderController::updateQuit()
 
 void RenderController::_synchronizeObjects(const SyncFunction& versionCheckFunc)
 {
-    _syncBackground.sync(versionCheckFunc);
     _syncCountdownStatus.sync(versionCheckFunc);
-    _syncDisplayGroup.sync(versionCheckFunc);
+    _syncScene.sync(versionCheckFunc);
     _syncLock.sync(versionCheckFunc);
     _syncMarkers.sync(versionCheckFunc);
     _syncOptions.sync(versionCheckFunc);

@@ -44,12 +44,13 @@
 #include "HtmlContent.h"
 #include "LoggingUtility.h"
 #include "RestServer.h"
-#include "SceneController.h"
+#include "SceneRemoteController.h"
 #include "ThumbnailCache.h"
 #include "configuration/Configuration.h"
 #include "log.h"
 #include "rest/serialization.h"
 #include "scene/ContentFactory.h"
+#include "scene/Scene.h"
 #include "json/serialization.h"
 // include last
 #include "rest/templates.h"
@@ -91,14 +92,14 @@ std::string to_json(const Configuration& config)
 class RestInterface::Impl
 {
 public:
-    Impl(const uint16_t port, OptionsPtr options_, DisplayGroup& group,
+    Impl(const uint16_t port, OptionsPtr options_, Scene& scene,
          const Configuration& config, const bool locked)
         : server{port}
         , options{options_}
         , size{config.surfaces[0].getTotalSize()}
-        , thumbnailCache{group}
-        , appController{config}
-        , sceneController{group}
+        , thumbnailCache{scene}
+        , appRemoteController{config}
+        , sceneRemoteController{scene}
         , contentBrowser{config.folders.contents,
                          ContentFactory::getSupportedFilesFilter()}
         , sessionBrowser{config.folders.sessions, QStringList{"*.dcx"}}
@@ -127,8 +128,8 @@ public:
     OptionsPtr options;
     QSize size;
     ThumbnailCache thumbnailCache;
-    AppController appController;
-    SceneController sceneController;
+    AppRemoteController appRemoteController;
+    SceneRemoteController sceneRemoteController;
     FileBrowser contentBrowser;
     FileBrowser sessionBrowser;
     FileReceiver fileReceiver;
@@ -137,30 +138,30 @@ public:
 };
 
 RestInterface::RestInterface(const uint16_t port, OptionsPtr options,
-                             DisplayGroup& group, Configuration& config)
-    : _impl(new Impl(port, options, group, config, false))
+                             Scene& scene, Configuration& config)
+    : _impl(new Impl(port, options, scene, config, false))
 {
     put_log(LOG_INFO, LOG_REST, "listening to REST messages on TCP port %hu",
             _impl->server.getPort());
 
     QObject::connect(&_impl->fileReceiver, &FileReceiver::open,
-                     &_impl->appController, &AppController::open);
+                     &_impl->appRemoteController, &AppRemoteController::open);
 
     auto& server = _impl->server;
 
-    jsonrpc::connect(server, "tide/application", _impl->appController);
-    jsonrpc::connect(server, "tide/controller", _impl->sceneController);
+    jsonrpc::connect(server, "tide/application", _impl->appRemoteController);
+    jsonrpc::connect(server, "tide/controller", _impl->sceneRemoteController);
 
     static tide::Version version;
     server.handleGET("tide/version", version);
-    server.handleGET("tide/background", *config.background);
-    server.handlePUT("tide/background", *config.background);
+    server.handleGET("tide/background", *config.surfaces[0].background);
+    server.handlePUT("tide/background", *config.surfaces[0].background);
     server.handleGET("tide/config", config);
     server.handleGET("tide/lock", _impl->lockState);
     server.handleGET("tide/size", _impl->size);
     server.handleGET("tide/options", *_impl->options);
     server.handlePUT("tide/options", *_impl->options);
-    server.handleGET("tide/windows", group);
+    server.handleGET("tide/windows", scene);
 
     using namespace std::placeholders;
 
@@ -191,9 +192,9 @@ void RestInterface::exposeStatistics(const LoggingUtility& logger) const
     _impl->server.handleGET("tide/stats", logger);
 }
 
-const AppController& RestInterface::getAppController() const
+const AppRemoteController& RestInterface::getAppRemoteController() const
 {
-    return _impl->appController;
+    return _impl->appRemoteController;
 }
 
 void RestInterface::lock(const bool lock_)

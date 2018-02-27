@@ -40,12 +40,11 @@
 #include "MasterToWallChannel.h"
 
 #include "network/MPIChannel.h"
-#include "scene/Background.h"
 #include "scene/ContentWindow.h"
 #include "scene/CountdownStatus.h"
-#include "scene/DisplayGroup.h"
 #include "scene/Markers.h"
 #include "scene/Options.h"
+#include "scene/Scene.h"
 #include "scene/ScreenLock.h"
 #include "serialization/utils.h"
 #include "json/serialization.h"
@@ -75,14 +74,9 @@ void MasterToWallChannel::broadcastAsync(const T& object,
                               Q_ARG(std::string, data));
 }
 
-void MasterToWallChannel::sendAsync(BackgroundPtr background)
+void MasterToWallChannel::sendAsync(ScenePtr scene)
 {
-    broadcastAsync(background, MPIMessageType::BACKGROUND);
-}
-
-void MasterToWallChannel::sendAsync(DisplayGroupPtr displayGroup)
-{
-    broadcastAsync(displayGroup, MPIMessageType::DISPLAYGROUP);
+    broadcastAsync(scene, MPIMessageType::SCENE);
 }
 
 void MasterToWallChannel::sendAsync(OptionsPtr options)

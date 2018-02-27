@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,8 +39,8 @@
 
 #include "BackgroundRenderer.h"
 
+#include "ContentWindowRenderer.h"
 #include "DataProvider.h"
-#include "QmlWindowRenderer.h"
 #include "VisibilityHelper.h"
 #include "WallRenderContext.h"
 #include "geometry.h"
@@ -60,8 +60,9 @@ BackgroundRenderer::BackgroundRenderer(const Background& background,
     window->setCoordinates(geometry::adjustAndCenter(*window, wallRect));
     auto sync = context.provider.createSynchronizer(*window, context.view);
 
-    _renderer.reset(new QmlWindowRenderer(std::move(sync), window, parentItem,
-                                          context.engine.rootContext(), true));
+    _renderer.reset(
+        new ContentWindowRenderer(std::move(sync), window, parentItem,
+                                  context.engine.rootContext(), true));
 
     DisplayGroup emptyGroup(context.screenRect.size());
     const VisibilityHelper helper(emptyGroup, context.screenRect);

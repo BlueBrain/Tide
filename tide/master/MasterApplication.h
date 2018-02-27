@@ -45,15 +45,10 @@
 
 #include <deflect/qt/OffscreenQuickView.h>
 
-#if TIDE_ENABLE_PLANAR_CONTROLLER
-#include "ScreenController.h"
-#endif
-
 #include <QApplication>
-#include <QFutureWatcher>
 #include <QThread>
 
-class MasterSceneRenderer;
+class MasterSurfaceRenderer;
 class MasterQuickView;
 class MasterToWallChannel;
 class MasterToForkerChannel;
@@ -62,6 +57,8 @@ class MasterWindow;
 class PixelStreamerLauncher;
 class PixelStreamWindowManager;
 class RestInterface;
+class SceneController;
+class ScreenController;
 class ScreenshotAssembler;
 class LoggingUtility;
 /**
@@ -85,14 +82,14 @@ public:
                       MPIChannelPtr worldChannel, MPIChannelPtr forkChannel);
 
     /** Destructor */
-    virtual ~MasterApplication();
+    ~MasterApplication();
 
     /**
      * Load a session.
      * @param sessionFile a .dcx session file
      * @param callback an optional callback to return the result of the action
      */
-    void load(QString sessionFile, BoolCallback callback = BoolCallback());
+    void load(const QString& sessionFile);
 
 private:
     std::unique_ptr<Configuration> _config;
@@ -103,15 +100,16 @@ private:
     QThread _mpiSendThread;
     QThread _mpiReceiveThread;
 
-    DisplayGroupPtr _displayGroup;
+    ScenePtr _scene;
     ScreenLockPtr _lock;
     MarkersPtr _markers;
     OptionsPtr _options;
     std::unique_ptr<InactivityTimer> _inactivityTimer;
+    std::unique_ptr<SceneController> _sceneController;
 
     std::unique_ptr<MasterWindow> _masterWindow;
     std::unique_ptr<deflect::qt::OffscreenQuickView> _offscreenQuickView;
-    std::unique_ptr<MasterSceneRenderer> _sceneRenderer;
+    std::unique_ptr<MasterSurfaceRenderer> _offscreenSurfaceRenderer;
 
     std::unique_ptr<deflect::Server> _deflectServer;
     std::unique_ptr<PixelStreamerLauncher> _pixelStreamerLauncher;
@@ -126,16 +124,7 @@ private:
     std::unique_ptr<ScreenController> _screenController;
 #endif
 
-    QFutureWatcher<DisplayGroupConstPtr> _loadSessionOp;
-    QFutureWatcher<bool> _saveSessionOp;
-    BoolCallback _loadSessionCallback;
-    BoolCallback _saveSessionCallback;
-
     std::unique_ptr<ScreenshotAssembler> _screenshotAssembler;
-    QString _screenshotFilename;
-
-    void _open(QString uri, QPointF coords, BoolCallback callback);
-    void _save(QString sessionFile, BoolCallback callback);
 
     void _init();
     void _initMasterWindow();
@@ -146,12 +135,12 @@ private:
     void _initRestInterface();
 #endif
 #if TIDE_ENABLE_PLANAR_CONTROLLER
-    void _initPlanarController();
+    void _initScreenController();
 #endif
     void _suspend();
     void _resume();
-    void _apply(DisplayGroupConstPtr group);
-    void _deleteTempContentFile(ContentWindowPtr window);
+
+    void _takeScreenshot(uint surfaceIndex, QString filename);
 
     bool notify(QObject* receiver, QEvent* event) final;
     void _handle(const QTouchEvent* event);

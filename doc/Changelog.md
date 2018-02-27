@@ -3,6 +3,10 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [237](https://github.com/BlueBrain/Tide/pull/237):
+  Support for multiple rendering surfaces, each with its own background and set
+  of contents. This enables Tide to drive complex visualization installations
+  composed of separate wall and floor projection systems, for example.
 * [236](https://github.com/BlueBrain/Tide/pull/236):
   A new .json configuration file format replaces the old .xml configurations.
   Those are now deprecated and support for xml will be removed in the future

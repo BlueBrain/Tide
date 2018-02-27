@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -38,6 +38,21 @@
 /*********************************************************************/
 
 #include "Markers.h"
+
+MarkersPtr Markers::create(const size_t surfaceIndex)
+{
+    return MarkersPtr{new Markers{surfaceIndex}};
+}
+
+Markers::Markers(const size_t surfaceIndex)
+    : _surfaceIndex{surfaceIndex}
+{
+}
+
+size_t Markers::getSurfaceIndex() const
+{
+    return _surfaceIndex;
+}
 
 QVariant Markers::data(const QModelIndex& index_, const int role) const
 {

@@ -89,7 +89,7 @@ BOOST_AUTO_TEST_CASE(test_configuration_file_empty)
                       std::invalid_argument);
 }
 
-void testReferenceSurface(const Surface& surface)
+void testReferenceSurface(const SurfaceConfig& surface)
 {
     BOOST_CHECK_EQUAL(surface.displayWidth, 1920);
     BOOST_CHECK_EQUAL(surface.displayHeight, 1080);
@@ -186,7 +186,7 @@ BOOST_AUTO_TEST_CASE(test_minimal_configuration_default_values)
 
 BOOST_AUTO_TEST_CASE(test_surface_default_values)
 {
-    const auto surface = json::create<Surface>(QJsonObject());
+    const auto surface = json::create<SurfaceConfig>(QJsonObject());
 
     BOOST_CHECK_EQUAL(surface.displayWidth, 0);
     BOOST_CHECK_EQUAL(surface.displayHeight, 0);
@@ -329,7 +329,7 @@ BOOST_FIXTURE_TEST_CASE_TEMPLATE(test_reference_configuration, F, Fixtures, F)
                       "/nfs4/bbp.epfl.ch/media/DisplayWall/whiteboard/");
     BOOST_CHECK_EQUAL(config.whiteboard.defaultSize, QSize(1570, 1240));
 
-    const auto& background = *config.background;
+    const auto& background = *config.surfaces[0].background;
     BOOST_CHECK(background.getColor() == QColor("#242424"));
     BOOST_CHECK_EQUAL(background.getUri(), "wall.png");
 
@@ -355,11 +355,11 @@ BOOST_FIXTURE_TEST_CASE_TEMPLATE(test_save_configuration, F, Fixtures, F)
 {
     {
         Configuration config(F::filename);
-        config.background->setColor(QColor("#123456"));
+        config.surfaces[0].background->setColor(QColor("#123456"));
         BOOST_CHECK(config.save(F::savedFilename));
     }
 
     // Check reloading
     const Configuration config(F::savedFilename);
-    BOOST_CHECK(config.background->getColor() == QColor("#123456"));
+    BOOST_CHECK(config.surfaces[0].background->getColor() == QColor("#123456"));
 }

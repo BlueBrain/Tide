@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
@@ -52,17 +52,10 @@ namespace
 const QSize thumbnailSize{512, 512};
 }
 
-ThumbnailCache::ThumbnailCache(const DisplayGroup& displayGroup)
+ThumbnailCache::ThumbnailCache(const Scene& scene)
 {
-    QObject::connect(&displayGroup, &DisplayGroup::contentWindowAdded,
-                     [this](ContentWindowPtr window) {
-                         _cacheThumbnail(window);
-                     });
-
-    QObject::connect(&displayGroup, &DisplayGroup::contentWindowRemoved,
-                     [this](ContentWindowPtr window) {
-                         _thumbnailCache.remove(window->getID());
-                     });
+    for (const auto& surface : scene.getSurfaces())
+        _monitor(surface.getGroup());
 }
 
 std::future<http::Response> ThumbnailCache::getThumbnail(
@@ -76,6 +69,19 @@ std::future<http::Response> ThumbnailCache::getThumbnail(
         return make_ready_response(http::Code::NO_CONTENT);
 
     return make_ready_response(http::Code::OK, image.result(), "image/png");
+}
+
+void ThumbnailCache::_monitor(const DisplayGroup& group)
+{
+    QObject::connect(&group, &DisplayGroup::contentWindowAdded,
+                     [this](ContentWindowPtr window) {
+                         _cacheThumbnail(window);
+                     });
+
+    QObject::connect(&group, &DisplayGroup::contentWindowRemoved,
+                     [this](ContentWindowPtr window) {
+                         _thumbnailCache.remove(window->getID());
+                     });
 }
 
 void ThumbnailCache::_cacheThumbnail(ContentWindowPtr window)

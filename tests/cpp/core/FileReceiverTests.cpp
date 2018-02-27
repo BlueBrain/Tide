@@ -1,7 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -57,8 +57,9 @@ using namespace rockets;
 
 namespace
 {
-const QString imageUri("wall.png");
-const QPointF expectedPosition(25.0, 17.4);
+const QString imageUri{"wall.png"};
+const QPointF expectedPosition{25.0, 17.4};
+const uint expectedSurfaceIndex{1};
 
 std::string _readImageFile(const QString& filename)
 {
@@ -70,8 +71,8 @@ std::string _readImageFile(const QString& filename)
 http::Request _makeFileRequest(const QString& filename)
 {
     http::Request request;
-    request.body = json::dump(
-        QJsonObject{{"filename", filename}, {"x", 25.0}, {"y", 17.4}});
+    request.body = json::dump(QJsonObject{
+        {"filename", filename}, {"surfaceIndex", 1}, {"x", 25.0}, {"y", 17.4}});
     return request;
 }
 
@@ -105,26 +106,22 @@ inline QString _tempFile(const QString& filename)
 struct OpenListener
 {
     bool open = false;
+    uint openSurfaceIndex = 999999;
     QString openUri;
     QPointF openPosition;
 
+    OpenListener() = default;
     OpenListener(FileReceiver& fileReceiver)
     {
-        auto openCallback = [this](const QString uri, const QPointF pos,
-                                   BoolCallback callback) {
+        auto openCallback = [this](const uint surfaceIndex, const QString uri,
+                                   const QPointF pos, BoolCallback callback) {
             open = true;
+            openSurfaceIndex = surfaceIndex;
             openUri = uri;
             openPosition = pos;
             callback(true);
         };
         QObject::connect(&fileReceiver, &FileReceiver::open, openCallback);
-    }
-
-    void reset()
-    {
-        open = false;
-        openUri = QString();
-        openPosition = QPointF();
     }
 };
 }
@@ -174,6 +171,7 @@ BOOST_AUTO_TEST_CASE(testUploadFileWithSpecialCharacters)
     BOOST_CHECK_EQUAL(dataResponse.code, 201);
     BOOST_CHECK_EQUAL(listener.open, true);
     BOOST_CHECK_EQUAL(listener.openUri, _tempFile(imageName));
+    BOOST_CHECK_EQUAL(listener.openSurfaceIndex, expectedSurfaceIndex);
     BOOST_CHECK_EQUAL(listener.openPosition, expectedPosition);
     BOOST_CHECK(QFile(_tempFile(imageName)).exists());
 
@@ -231,6 +229,7 @@ BOOST_AUTO_TEST_CASE(testUploadFileWithoutPosition)
     BOOST_CHECK_EQUAL(dataResponse.code, 201);
     BOOST_CHECK_EQUAL(listener.open, true);
     BOOST_CHECK_EQUAL(listener.openUri, _tempFile(imageName));
+    BOOST_CHECK_EQUAL(listener.openSurfaceIndex, 0);
     BOOST_CHECK_EQUAL(listener.openPosition, QPointF());
     BOOST_CHECK(QFile(_tempFile(imageName)).exists());
 
@@ -262,11 +261,12 @@ BOOST_AUTO_TEST_CASE(testUploadFileTwice)
     BOOST_CHECK_EQUAL(dataResponse1.code, 201);
     BOOST_CHECK_EQUAL(listener.open, true);
     BOOST_CHECK_EQUAL(listener.openUri, _tempFile(receivedUri1));
+    BOOST_CHECK_EQUAL(listener.openSurfaceIndex, 1);
     BOOST_CHECK_EQUAL(listener.openPosition, expectedPosition);
     BOOST_REQUIRE(QFile(_tempFile(receivedUri1)).exists());
 
     // reset
-    listener.reset();
+    listener = OpenListener();
 
     // Check can't upload same data again
     const auto response = fileReceiver.handleUpload(dataRequest1).get();
@@ -290,6 +290,7 @@ BOOST_AUTO_TEST_CASE(testUploadFileTwice)
     BOOST_CHECK_EQUAL(dataResponse2.code, 201);
     BOOST_CHECK_EQUAL(listener.open, true);
     BOOST_CHECK_EQUAL(listener.openUri, _tempFile(receivedUri2));
+    BOOST_CHECK_EQUAL(listener.openSurfaceIndex, 1);
     BOOST_CHECK_EQUAL(listener.openPosition, expectedPosition);
     BOOST_CHECK(QFile(_tempFile(receivedUri2)).exists());
 

@@ -37,67 +37,67 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef JSON_SERIALIZATION_H
-#define JSON_SERIALIZATION_H
+#include "MasterSurfaceRenderer.h"
 
-#include "types.h"
+#include "MasterDisplayGroupRenderer.h"
+#include "control/DisplayGroupController.h"
+#include "qmlUtils.h"
+#include "scene/Scene.h"
 
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QUuid>
+#include <QQmlContext>
+#include <QQmlEngine>
 
-struct Screen;
-
-namespace json
+namespace
 {
-/** @name Helpers for QUuid (strip '{}' in JSON form). */
-//@{
-QString url_encode(const QUuid& uuid);
-QUuid url_decode(const QString& uuid);
-//@}
-
-/** @name Serialize custom enum types as JSON value. */
-//@{
-QJsonValue serialize(SwapSync result);
-QJsonValue serialize(deflect::View result);
-//@}
-
-/** @name Get a value as a specific type. */
-//@{
-void deserialize(const QJsonValue& value, bool& result);
-void deserialize(const QJsonValue& value, int& result);
-void deserialize(const QJsonValue& value, uint& result);
-void deserialize(const QJsonValue& value, ushort& result);
-void deserialize(const QJsonValue& value, double& result);
-void deserialize(const QJsonValue& value, QString& result);
-void deserialize(const QJsonValue& value, SwapSync& result);
-void deserialize(const QJsonValue& value, deflect::View& result);
-//@}
-
-/** @name JSON serialization of objects. */
-//@{
-QJsonArray serialize(const QSize& size);
-QJsonObject serializeAsObject(const QSize& size);
-QJsonObject serialize(const Background& background);
-QJsonObject serialize(const Options& options);
-QJsonObject serialize(const Configuration& config);
-QJsonObject serialize(const Process& process);
-QJsonObject serialize(const Screen& screen);
-QJsonObject serialize(const SurfaceConfig& surface);
-//@}
-
-/** @name JSON deserialization of objects. */
-//@{
-bool deserialize(const QJsonValue& value, QSize& size);
-bool deserialize(const QJsonArray& array, QSize& size);
-bool deserialize(const QJsonObject& object, QSize& size);
-bool deserialize(const QJsonObject& object, Background& background);
-bool deserialize(const QJsonObject& object, Options& options);
-bool deserialize(const QJsonObject& object, Configuration& config);
-bool deserialize(const QJsonObject& object, Process& process);
-bool deserialize(const QJsonObject& object, Screen& screen);
-bool deserialize(const QJsonObject& object, SurfaceConfig& surface);
-//@}
+const QUrl QML_CONTROL_SURFACE_URL("qrc:/qml/master/MasterSurface.qml");
+const QUrl QML_BASIC_SURFACE_URL("qrc:/qml/core/BasicSurface.qml");
 }
 
-#endif
+MasterSurfaceRenderer::MasterSurfaceRenderer(const size_t surfaceIndex,
+                                             DisplayGroupPtr group,
+                                             QQmlEngine& engine,
+                                             QQuickItem& parentItem)
+    : _group{group}
+    , _groupController{new DisplayGroupController{*_group}}
+{
+    if (surfaceIndex == 0)
+    {
+        _setContextProperties(*engine.rootContext());
+        _createSurfaceItem(engine);
+    }
+    else
+        _createBasicSurfaceItem(engine);
+
+    _surfaceItem->setParentItem(&parentItem);
+    _createGroupRenderer(engine);
+}
+
+MasterSurfaceRenderer::~MasterSurfaceRenderer()
+{
+}
+
+void MasterSurfaceRenderer::_setContextProperties(QQmlContext& context)
+{
+    // SideControl buttons need a displaygroup and groupcontroller
+    context.setContextProperty("displaygroup", _group.get());
+    context.setContextProperty("groupcontroller", _groupController.get());
+}
+
+void MasterSurfaceRenderer::_createSurfaceItem(QQmlEngine& engine)
+{
+    _surfaceItem = qml::makeItem(engine, QML_CONTROL_SURFACE_URL);
+    connect(_surfaceItem.get(), SIGNAL(openLauncher()), this,
+            SIGNAL(openLauncher()));
+}
+
+void MasterSurfaceRenderer::_createBasicSurfaceItem(QQmlEngine& engine)
+{
+    _surfaceItem = qml::makeItem(engine, QML_BASIC_SURFACE_URL);
+}
+
+void MasterSurfaceRenderer::_createGroupRenderer(QQmlEngine& engine)
+{
+    _displayGroupRenderer =
+        std::make_unique<MasterDisplayGroupRenderer>(_group, engine,
+                                                     *_surfaceItem);
+}

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
@@ -41,6 +41,7 @@
 #include "LoggingUtility.h"
 
 #include "scene/ContentWindow.h"
+#include "scene/Scene.h"
 
 #include <chrono>
 
@@ -69,6 +70,12 @@ const auto windowModeChanged = "mode changed";
 const auto windowStateChanged = "state changed";
 const auto windowMovedToFront = "contentWindowMovedToFront";
 const auto windowRemoved = "contentWindowRemoved";
+}
+
+void LoggingUtility::monitor(const Scene& scene)
+{
+    for (const auto& surface : scene.getSurfaces())
+        _monitor(surface.getGroup());
 }
 
 size_t LoggingUtility::getWindowCount() const
@@ -141,6 +148,18 @@ void LoggingUtility::logContentWindowRemoved()
 {
     _decrementWindowCount();
     _logInteraction(windowRemoved);
+}
+
+void LoggingUtility::_monitor(const DisplayGroup& group)
+{
+    connect(&group, &DisplayGroup::contentWindowAdded, this,
+            &LoggingUtility::logContentWindowAdded);
+
+    connect(&group, &DisplayGroup::contentWindowRemoved, this,
+            &LoggingUtility::logContentWindowRemoved);
+
+    connect(&group, &DisplayGroup::contentWindowMovedToFront, this,
+            &LoggingUtility::logContentWindowMovedToFront);
 }
 
 void LoggingUtility::logScreenStateChanged(const ScreenState state)

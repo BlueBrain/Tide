@@ -47,6 +47,8 @@
 #include <string>
 
 #define MEGABYTE 1000000
+#define GIGABYTE (1000 * MEGABYTE)
+#define BITS 8
 #define RANK0 0
 
 // Example ways to run this program:
@@ -143,6 +145,9 @@ int main(int argc, char** argv)
         std::cout << "Time per object: " << time / counter << std::endl;
         std::cout << "Throughput [Mbytes/sec]: "
                   << counter * serializedData.size() / time / MEGABYTE
+                  << std::endl;
+        std::cout << "Throughput [Gbit/sec]: "
+                  << counter * serializedData.size() * BITS / time / GIGABYTE
                   << std::endl;
     }
 

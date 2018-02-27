@@ -1,6 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2011-2012, The University of Texas at Austin.       */
-/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael.Dumusc@epfl.ch                   */
 /*                          Daniel.Nachbaur@epfl.ch                  */
 /* All rights reserved.                                              */
@@ -79,7 +79,9 @@ class DisplayGroup : public Rectangle,
                    hasVisiblePanelsChanged)
 
 public:
-    /** Constructor */
+    static DisplayGroupPtr create(const QSizeF& size);
+
+    /** Constructor (deprecated, use create instead). */
     DisplayGroup(const QSizeF& size);
 
     /** Destructor */

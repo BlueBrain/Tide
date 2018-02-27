@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,52 +38,58 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "Surface.h"
+#ifndef APPCONTROLLER_H
+#define APPCONTROLLER_H
 
-uint Surface::getScreenWidth() const
+#include "types.h"
+
+#include <rockets/jsonrpc/receiver.h>
+
+#include <QObject>
+
+/**
+ * Remote controller for the application using JSON-RPC.
+ */
+class AppRemoteController : public QObject, private rockets::jsonrpc::Receiver
 {
-    return displayWidth * displaysPerScreenX +
-           ((displaysPerScreenX - 1) * bezelWidth);
-}
+    Q_OBJECT
 
-uint Surface::getScreenHeight() const
-{
-    return displayHeight * displaysPerScreenY +
-           ((displaysPerScreenY - 1) * bezelHeight);
-}
+public:
+    /**
+     * Construct an application controller.
+     *
+     * @param config the application configuration.
+     */
+    AppRemoteController(const Configuration& config);
 
-QRect Surface::getScreenRect(const QPoint& tileIndex) const
-{
-    if (tileIndex.x() < 0 || tileIndex.x() >= (int)screenCountX ||
-        tileIndex.y() < 0 || tileIndex.y() >= (int)screenCountY)
-    {
-        throw std::invalid_argument("tile index does not exist");
-    }
+    using rockets::jsonrpc::Receiver::process;
 
-    const int xPos = tileIndex.x() * (getScreenWidth() + bezelWidth);
-    const int yPos = tileIndex.y() * (getScreenHeight() + bezelHeight);
+signals:
+    /** Open a content. */
+    void open(uint surfaceIndex, QString uri, QPointF coords,
+              BoolCallback callback);
 
-    return QRect(xPos, yPos, getScreenWidth(), getScreenHeight());
-}
+    /** Load a session. */
+    void load(QString uri, BoolCallback callback);
 
-uint Surface::getTotalWidth() const
-{
-    return screenCountX * getScreenWidth() + (screenCountX - 1) * bezelWidth;
-}
+    /** Save a session to the given file. */
+    void save(QString uri, BoolCallback callback);
 
-uint Surface::getTotalHeight() const
-{
-    return screenCountY * getScreenHeight() + (screenCountY - 1) * bezelHeight;
-}
+    /** Browse a website. */
+    void browse(uint surfaceIndex, QPointF pos, QSize size, QString url,
+                ushort debugPort);
 
-QSize Surface::getTotalSize() const
-{
-    return QSize(getTotalWidth(), getTotalHeight());
-}
+    /** Open a whiteboard. */
+    void openWhiteboard(uint surfaceIndex);
 
-double Surface::getAspectRatio() const
-{
-    if (getTotalHeight() == 0)
-        return 0.0;
-    return double(getTotalWidth()) / getTotalHeight();
-}
+    /** Take a screenshot. */
+    void takeScreenshot(uint surfaceIndex, QString filename);
+
+    /** Power off the screens. */
+    void powerOff();
+
+    /** Exit the application. */
+    void exit();
+};
+
+#endif

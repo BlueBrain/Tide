@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -69,14 +69,19 @@ public slots:
     /** Revert to the previous settings and close the widget */
     void reject() override;
 
+    /** Set the active surface to edit. */
+    void setActiveSurface(uint surfaceIndex);
+
 private slots:
     void _chooseColor();
     void _openBackgroundContent();
     void _removeBackground();
 
 private:
+    Background& _background();
+
     Configuration& _configuration;
-    Background& _background;
+    uint _surfaceIndex = 0;
 
     QLabel* _colorLabel;
     QLabel* _backgroundLabel;

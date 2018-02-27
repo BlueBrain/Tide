@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -57,7 +57,21 @@ public:
      *
      * @param displayGroup The target DisplayGroup for displaying the content.
      */
-    ContentLoader(DisplayGroupPtr displayGroup);
+    ContentLoader(DisplayGroup& displayGroup);
+
+    /**
+     * Try to load a uri (filename or directory).
+     *
+     * If the content is already open, move it to the front.
+     *
+     * @param uri of a file or a directory
+     * @param windowCenterPosition The point around which to center the window.
+     *        If empty (default), the  window is automatically centered in the
+     *        DisplayGroup.
+     * @return true on success.
+     */
+    bool loadOrMoveToFront(const QString& uri,
+                           const QPointF& windowCenterPosition = QPointF());
 
     /**
      * Load a Content from a file and create a window for it.
@@ -65,7 +79,7 @@ public:
      * @param filename The content file to open.
      * @param windowCenterPosition The point around which to center the window.
      *        If empty (default), the  window is automatically centered on the
-     *        displayWall.
+     *        DisplayGroup.
      * @param windowSize The size of the window. If empty, the size of the
      *        window is automatically adjusted to its content dimensions.
      * @return true if operation was successful, false otherwise.
@@ -103,7 +117,7 @@ public:
     ContentWindowPtr findWindow(const QString& filename) const;
 
 private:
-    DisplayGroupPtr _displayGroup;
+    DisplayGroup& _displayGroup;
 };
 
 #endif

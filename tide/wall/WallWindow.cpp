@@ -43,7 +43,7 @@
 #include "TestPattern.h"
 #include "WallConfiguration.h"
 #include "WallRenderContext.h"
-#include "WallSceneRenderer.h"
+#include "WallRenderer.h"
 #include "log.h"
 #include "qmlUtils.h"
 #include "scene/Background.h"
@@ -72,6 +72,7 @@ WallWindow::WallWindow(const WallConfiguration& config, const uint windowIndex,
     _quickRendererThread->setObjectName("Render #" + windowNumber);
 
     const auto& currentScreen = config.screens.at(windowIndex);
+    _surfaceIndex = currentScreen.surfaceIndex;
 
     if (auto qscreen = screens::find(currentScreen.display))
         setScreen(qscreen);
@@ -102,6 +103,11 @@ WallWindow::~WallWindow()
     _quickRendererThread->wait();
 }
 
+size_t WallWindow::getSurfaceIndex() const
+{
+    return _surfaceIndex;
+}
+
 void WallWindow::setSwapSynchronizer(SwapSynchronizer* synchronizer)
 {
     _synchronizer = synchronizer;
@@ -114,7 +120,7 @@ bool WallWindow::isInitialized() const
 
 bool WallWindow::needRedraw() const
 {
-    return _sceneRenderer->needRedraw();
+    return _renderer->needRedraw();
 }
 
 void WallWindow::exposeEvent(QExposeEvent*)
@@ -155,7 +161,7 @@ void WallWindow::_startQuick(const WallConfiguration& config,
 
                 _quickRenderer->context()->swapBuffers(this);
                 _quickRenderer->context()->functions()->glFlush();
-                QMetaObject::invokeMethod(_sceneRenderer.get(),
+                QMetaObject::invokeMethod(_renderer.get(),
                                           "updateRenderedFrames",
                                           Qt::QueuedConnection);
                 if (_grabImage)
@@ -176,10 +182,11 @@ void WallWindow::_startQuick(const WallConfiguration& config,
     const auto screenRect = surface.getScreenRect(currentScreen.globalIndex);
     const auto wallSize = surface.getTotalSize();
     const auto view = currentScreen.stereoMode;
+    const auto surfaceIndex = currentScreen.surfaceIndex;
 
-    WallRenderContext context{*_qmlEngine, _provider, wallSize, screenRect,
-                              view};
-    _sceneRenderer.reset(new WallSceneRenderer(context, *contentItem()));
+    WallRenderContext context{*_qmlEngine, _provider, wallSize,
+                              screenRect,  view,      surfaceIndex};
+    _renderer.reset(new WallRenderer(context, *contentItem()));
 
     _testPattern.reset(
         new TestPattern(config, surface, currentScreen, *contentItem()));
@@ -197,31 +204,31 @@ void WallWindow::render(const bool grab)
 void WallWindow::setBackground(BackgroundPtr background)
 {
     setColor(background->getColor());
-    _sceneRenderer->setBackground(background);
+    _renderer->setBackground(background);
 }
 
 void WallWindow::setDisplayGroup(DisplayGroupPtr displayGroup)
 {
-    _sceneRenderer->setDisplayGroup(displayGroup);
+    _renderer->setDisplayGroup(displayGroup);
 }
 
 void WallWindow::setScreenLock(ScreenLockPtr lock)
 {
-    _sceneRenderer->setScreenLock(lock);
+    _renderer->setScreenLock(lock);
 }
 
 void WallWindow::setCountdownStatus(CountdownStatusPtr status)
 {
-    _sceneRenderer->setCountdownStatus(status);
+    _renderer->setCountdownStatus(status);
 }
 
 void WallWindow::setMarkers(MarkersPtr markers)
 {
-    _sceneRenderer->setMarkers(markers);
+    _renderer->setMarkers(markers);
 }
 
 void WallWindow::setRenderOptions(OptionsPtr options)
 {
     _testPattern->setVisible(options->getShowTestPattern());
-    _sceneRenderer->setRenderingOptions(options);
+    _renderer->setRenderingOptions(options);
 }

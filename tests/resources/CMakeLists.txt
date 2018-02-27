@@ -1,4 +1,3 @@
-
 # Copyright (c) 2013-2018, EPFL/Blue Brain Project
 #                          Daniel Nachbaur <daniel.nachbaur@epfl.ch>
 #                          Raphael Dumusc <raphael.dumusc@epfl.ch>

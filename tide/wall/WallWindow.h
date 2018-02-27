@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -66,6 +66,9 @@ public:
 
     ~WallWindow();
 
+    /** @return the index of the surface that the window belongs to. */
+    size_t getSurfaceIndex() const;
+
     /**
      * Set a swap synchronizer.
      *
@@ -112,6 +115,8 @@ private:
 
     DataProvider& _provider;
 
+    size_t _surfaceIndex = 0;
+
     std::unique_ptr<QQuickRenderControl> _renderControl;
     SwapSynchronizer* _synchronizer = nullptr;
     bool _rendererInitialized = false;
@@ -120,7 +125,7 @@ private:
     std::unique_ptr<deflect::qt::QuickRenderer> _quickRenderer;
     std::unique_ptr<QThread> _quickRendererThread;
     std::unique_ptr<QQmlEngine> _qmlEngine;
-    std::unique_ptr<WallSceneRenderer> _sceneRenderer;
+    std::unique_ptr<WallRenderer> _renderer;
     std::unique_ptr<TestPattern> _testPattern;
 };
 

@@ -74,15 +74,17 @@ public:
 
 public slots:
     /**
-     * Open a WebBrowser.
+     * Open a Webbrowser.
      *
+     * @param surfaceIndex The surface on which to open the window.
      * @param pos The position of the center of the browser window.
      *        If pos.isNull(), the window is centered on the DisplayWall.
      * @param size The initial size of the viewport of the webbrowser in pixels.
      * @param url The webpage to open.
      * @param debugPort Optional port to enable Chromium's remote debugging.
      */
-    void openWebBrowser(QPointF pos, QSize size, QString url, ushort debugPort);
+    void openWebbrowser(uint surfaceIndex, QPointF pos, QSize size, QString url,
+                        ushort debugPort);
 
     /** Start a webbrowser for an existing window. */
     void launch(const WebbrowserContent& webbrowser, ushort debugPort = 0u);
@@ -91,7 +93,7 @@ public slots:
     void openLauncher();
 
     /** Open the Qml whiteboard. */
-    void openWhiteboard();
+    void openWhiteboard(uint surfaceIndex);
 
 signals:
     /** Request the launch of a command in a working directory and given ENV. */
@@ -109,7 +111,7 @@ private:
     QPointF _getDefaultWindowPosition() const;
     void _startProcess(const QString& uri, const QString& command,
                        const QStringList& env);
-    const Surface& getSurface() const;
+    const SurfaceConfig& getSurfaceConfig() const;
 };
 
 #endif

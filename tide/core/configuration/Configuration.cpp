@@ -96,9 +96,9 @@ Screen parseScreen(XmlParser& parser, const int screenIndex,
     return screen;
 }
 
-Surface parseSurface(XmlParser& parser)
+SurfaceConfig parseSurface(XmlParser& parser)
 {
-    Surface surface;
+    SurfaceConfig surface;
     parser.get(dimensionsUri.arg("numScreensX"), surface.screenCountX);
     parser.get(dimensionsUri.arg("numScreensY"), surface.screenCountY);
     parser.get(dimensionsUri.arg("displayWidth"), surface.displayWidth);
@@ -109,6 +109,13 @@ Surface parseSurface(XmlParser& parser)
                surface.displaysPerScreenX);
     parser.get(dimensionsUri.arg("displaysPerScreenY"),
                surface.displaysPerScreenY);
+
+    QString backgroundUri;
+    if (parser.get(uri.arg("background", "uri"), backgroundUri))
+        surface.background->setUri(backgroundUri);
+    QColor backgroundColor;
+    if (parser.get(uri.arg("background", "color"), backgroundColor))
+        surface.background->setColor(backgroundColor);
 
     if (surface.displaysPerScreenY == 0 || surface.displaysPerScreenX == 0)
         throw std::invalid_argument("displaysPerScreenX/Y cannot be 0");
@@ -198,13 +205,6 @@ void Configuration::_loadXml()
     for (auto i = 0; i < processCount; ++i)
         processes.emplace_back(parseProcess(parser, i));
 
-    QString backgroundUri;
-    if (parser.get(uri.arg("background", "uri"), backgroundUri))
-        background->setUri(backgroundUri);
-    QColor backgroundColor;
-    if (parser.get(uri.arg("background", "color"), backgroundColor))
-        background->setColor(backgroundColor);
-
     parser.get(uri.arg("setup", "swapsync"), global.swapsync);
     parser.get(uri.arg("masterProcess", "headless"), master.headless);
     parser.get(uri.arg("masterProcess", "host"), master.hostname);
@@ -243,7 +243,18 @@ bool Configuration::_saveJson(const QString& filename) const
     try
     {
         auto config = json::read(_filename);
-        config["background"] = json::serialize(*background);
+
+        auto jsonSurfaces = config["surfaces"].toArray();
+        if (static_cast<uint>(jsonSurfaces.size()) != surfaces.size())
+            return false;
+
+        for (auto i = 0u; i < surfaces.size(); ++i)
+        {
+            auto surface = jsonSurfaces[i].toObject();
+            surface["background"] = json::serialize(*surfaces[i].background);
+            jsonSurfaces[i] = surface;
+        }
+        config["surfaces"] = jsonSurfaces;
         json::write(config, filename);
         return true;
     }
@@ -274,8 +285,8 @@ bool Configuration::_saveXml(const QString& filename) const
         bg = doc.createElement("background");
         root.appendChild(bg);
     }
-    bg.setAttribute("uri", background->getUri());
-    bg.setAttribute("color", background->getColor().name());
+    bg.setAttribute("uri", surfaces[0].background->getUri());
+    bg.setAttribute("color", surfaces[0].background->getColor().name());
 
     QFile outfile(filename);
     if (!outfile.open(QIODevice::WriteOnly | QIODevice::Text))

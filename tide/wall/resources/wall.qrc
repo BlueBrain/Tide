@@ -6,7 +6,9 @@
         <file>PowerOffCountdown.qml</file>
         <file>TouchPointMarker.qml</file>
         <file>WallContentWindow.qml</file>
-        <file>WallScene.qml</file>
+        <file>WallBasicSurface.qml</file>
+        <file>WallControlSurface.qml</file>
+        <file>WallSurfaceElements.qml</file>
         <file>ZoomContext.qml</file>
     </qresource>
 </RCC>

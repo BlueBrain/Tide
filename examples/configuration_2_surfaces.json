@@ -1,0 +1,47 @@
+{
+    "background": {
+        "color": "#00e6ff"
+    },
+    "master": {
+        "display": ":0",
+        "host": "localhost"
+    },
+    "processes": [
+        {
+            "host": "localhost",
+            "screens": [
+                {
+                    "display": ":0"
+                }
+            ]
+        },
+        {
+            "host": "localhost",
+            "screens": [
+                {
+                    "display": ":0",
+                    "surface": 1,
+                    "y": 640
+                }
+            ]
+        }
+    ],
+    "surfaces": [
+        {
+            "background": {
+                "color": "#73d216",
+                "uri": ""
+            },
+            "displayHeight": 600,
+            "displayWidth": 600
+        },
+        {
+            "background": {
+                "color": "#75507b",
+                "uri": ""
+            },
+            "displayHeight": 400,
+            "displayWidth": 1200
+        }
+    ]
+}

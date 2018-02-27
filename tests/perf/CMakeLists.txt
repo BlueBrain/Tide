@@ -1,7 +1,6 @@
-
 # Copyright (c) 2013-2014, EPFL/Blue Brain Project
-#                     Daniel Nachbaur <daniel.nachbaur@epfl.ch>
-#                     Raphael Dumusc <raphael.dumusc@epfl.ch>
+#                          Daniel Nachbaur <daniel.nachbaur@epfl.ch>
+#                          Raphael Dumusc <raphael.dumusc@epfl.ch>
 #
 # Generates executables for the performance tests.
 

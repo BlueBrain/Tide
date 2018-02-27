@@ -1,7 +1,4 @@
 {
-    "background": {
-        "color": "#00f5ff"
-    },
     "master": {
         "display": ":0",
         "host": "localhost"
@@ -84,10 +81,13 @@
     ],
     "surfaces": [
         {
+            "background": {
+                "color": "#00f5ff"
+            },
             "displayHeight": 400,
             "displayWidth": 400,
-            "numScreensX": 2,
-            "numScreensY": 2
+            "screenCountX": 2,
+            "screenCountY": 2
         }
     ]
 }

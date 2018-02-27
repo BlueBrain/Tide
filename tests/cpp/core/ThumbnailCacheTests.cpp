@@ -72,9 +72,10 @@ std::string _getTestThumbnail()
 
 BOOST_AUTO_TEST_CASE(testWindowInfo)
 {
-    DisplayGroupPtr group(new DisplayGroup(wallSize));
+    auto group = DisplayGroup::create(wallSize);
+    auto scene = Scene::create(group);
 
-    ThumbnailCache cache{*group};
+    ThumbnailCache cache{*scene};
 
     auto content = ContentFactory::getContent(imageUri);
     auto window = std::make_shared<ContentWindow>(std::move(content));

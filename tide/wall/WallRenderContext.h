@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -55,15 +55,17 @@ struct WallRenderContext
     QSize wallSize;         //< The total size of the wall
     QRect screenRect;       //< The area of the wall visible in this window
     deflect::View view;     //< The view to use for stereo contents
+    size_t surfaceIndex;    //< The index of the surface
 
     WallRenderContext(QQmlEngine& engine_, DataProvider& provider_,
                       const QSize& wallSize_, const QRect& screenRect_,
-                      deflect::View view_)
+                      deflect::View view_, const size_t surfaceIndex_)
         : engine{engine_}
         , provider{provider_}
         , wallSize{wallSize_}
         , screenRect{screenRect_}
         , view{view_}
+        , surfaceIndex{surfaceIndex_}
     {
     }
 };

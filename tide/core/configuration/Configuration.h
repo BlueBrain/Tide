@@ -42,8 +42,7 @@
 
 #include "configuration/Process.h"
 #include "configuration/Screen.h"
-#include "configuration/Surface.h"
-#include "scene/Background.h"
+#include "configuration/SurfaceConfig.h"
 
 /**
  * The Configuration manages all the parameters needed to setup the processes.
@@ -64,13 +63,10 @@ public:
     Configuration(const QString& filename);
 
     /** The list of display surfaces. */
-    std::vector<Surface> surfaces;
+    std::vector<SurfaceConfig> surfaces;
 
     /** The list of render processes. */
     std::vector<Process> processes;
-
-    /** Background content and color. */
-    BackgroundPtr background = Background::create();
 
     struct Folders
     {

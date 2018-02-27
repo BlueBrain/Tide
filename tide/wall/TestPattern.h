@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -61,7 +61,7 @@ public:
      * @param screen The screen on which this pattern is rendered.
      * @param parent The parent object which renders this test pattern.
      */
-    TestPattern(const WallConfiguration& config, const Surface& surface,
+    TestPattern(const WallConfiguration& config, const SurfaceConfig& surface,
                 const Screen& screen, QQuickItem& parent);
 
     /** Render the test pattern. */

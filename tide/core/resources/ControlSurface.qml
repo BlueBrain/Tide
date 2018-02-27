@@ -3,8 +3,6 @@ import Tide 1.0
 import "qrc:/qml/core/style.js" as Style
 
 Item {
-    id: sceneitem
-
     property alias sideControl: sideControl
     property alias streamNotificationArea: streamNotificationArea
 

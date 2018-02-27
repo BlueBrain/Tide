@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -46,7 +46,7 @@
 #include "types.h"
 
 /**
- * Helper class to store a session to a state file and restore it later.
+ * Helper class to save a scene to a file and restore it later.
  */
 class StateSerializationHelper
 {
@@ -54,14 +54,14 @@ public:
     /**
      * Constructor
      *
-     * @param group The group to be saved, or used as a reference for loading.
+     * @param scene The scene to be saved, or used as a reference for loading.
      */
-    StateSerializationHelper(DisplayGroupPtr group);
+    StateSerializationHelper(ScenePtr scene);
 
     /**
-     * Save the state of the application.
+     * Save the scene to a file.
      *
-     * @param filename The .dcx file to save the state. The extension will be
+     * @param filename The .dcx file to save the scene. The extension will be
      *        automatically added if it is missing.
      * @param uploadDir folder to move content to (uploaded via web interface.)
      * @param generatePreview Also generate a .dcxpreview thumbnail image.
@@ -70,14 +70,14 @@ public:
                        bool generatePreview = true);
 
     /**
-     * Load the state from a given xml file.
+     * Load a scene from a file.
      *
-     * @return the loaded display group on success, nullptr on failure.
+     * @return the loaded scene on success, nullptr on failure.
      */
-    QFuture<DisplayGroupConstPtr> load(const QString& filename) const;
+    QFuture<SceneConstPtr> load(const QString& filename) const;
 
 private:
-    DisplayGroupPtr _displayGroup;
+    ScenePtr _scene;
     QString _uploadDir;
 };
 

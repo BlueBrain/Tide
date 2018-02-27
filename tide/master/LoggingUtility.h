@@ -53,6 +53,12 @@ class LoggingUtility : public QObject
     Q_OBJECT
 
 public:
+    /**
+     * Monitor changes to the Scene.
+     * @param scene to monitor.
+     */
+    void monitor(const Scene& scene);
+
     /** @name Number of open windows. */
     //@{
     /** @return the number of currently open windows. */
@@ -114,6 +120,7 @@ private:
     ScreenState _screenState = ScreenState::UNDEF;
     QString _screenStateModificationTime;
 
+    void _monitor(const DisplayGroup& group);
     void _incrementWindowCount();
     void _decrementWindowCount();
     void _logInteraction(const QString& name);

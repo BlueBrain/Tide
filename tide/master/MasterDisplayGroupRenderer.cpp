@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -71,14 +71,7 @@ MasterDisplayGroupRenderer::MasterDisplayGroupRenderer(DisplayGroupPtr group,
 
 MasterDisplayGroupRenderer::~MasterDisplayGroupRenderer()
 {
-    _displayGroup->disconnect(this);
-
-    if (_displayGroupItem)
-    {
-        _displayGroupItem->setParentItem(nullptr);
-        delete _displayGroupItem;
-        _displayGroupItem = nullptr;
-    }
+    _displayGroup->disconnect(this); // prevent race conditions
 }
 
 void MasterDisplayGroupRenderer::_setContextProperties()
@@ -126,31 +119,25 @@ void MasterDisplayGroupRenderer::_add(ContentWindowPtr window)
 
     auto windowItem =
         qml::makeItem(_engine, QML_CONTENTWINDOW_URL, windowContext);
-    windowContext->setParent(windowItem);
+    windowContext->setParent(windowItem.get());
 
-    // Store a reference to the window and add it to the scene
+    windowItem->setParentItem(_displayGroupItem.get());
+
     const auto& id = window->getID();
-    _uuidToWindowMap[id] = qobject_cast<QQuickItem*>(windowItem);
-    _uuidToWindowMap[id]->setParentItem(_displayGroupItem);
+    _uuidToWindowMap.emplace(id, std::move(windowItem));
 }
 
 void MasterDisplayGroupRenderer::_remove(ContentWindowPtr contentWindow)
 {
-    const auto& id = contentWindow->getID();
-    if (!_uuidToWindowMap.contains(id))
-        return;
-
-    QQuickItem* itemToRemove = _uuidToWindowMap[id];
-    _uuidToWindowMap.remove(id);
-    delete itemToRemove;
+    _uuidToWindowMap.erase(contentWindow->getID());
 }
 
 void MasterDisplayGroupRenderer::_moveToFront(ContentWindowPtr contentWindow)
 {
     const auto& id = contentWindow->getID();
-    if (!_uuidToWindowMap.contains(id))
+    auto itemToRaise = _uuidToWindowMap.find(id);
+    if (itemToRaise == _uuidToWindowMap.end())
         return;
 
-    QQuickItem* itemToRaise = _uuidToWindowMap[id];
-    itemToRaise->stackAfter(_displayGroupItem->childItems().last());
+    itemToRaise->second->stackAfter(_displayGroupItem->childItems().last());
 }

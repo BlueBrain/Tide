@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -127,6 +127,6 @@ void DisplayGroupRenderer::_createWindowQmlItem(ContentWindowPtr window)
     const auto& id = window->getID();
     auto sync = _context.provider.createSynchronizer(*window, _context.view);
     _windowItems[id].reset(
-        new QmlWindowRenderer(std::move(sync), std::move(window),
-                              *_displayGroupItem, _qmlContext.get()));
+        new ContentWindowRenderer(std::move(sync), std::move(window),
+                                  *_displayGroupItem, _qmlContext.get()));
 }

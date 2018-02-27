@@ -1,7 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
-/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -38,83 +37,86 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "AppController.h"
+#ifndef WALLRENDERER_H
+#define WALLRENDERER_H
 
-#include "config.h"
-#include "configuration/Configuration.h"
-#include "json/json.h"
+#include "types.h"
 
-#include <QDir>
-#include <QJsonObject>
+#include "BackgroundRenderer.h"
+#include "WallRenderContext.h"
 
-using namespace rockets;
+#include <QtCore/QMap>
+#include <QtCore/QObject>
+#include <QtCore/QUuid>
 
-namespace
+class QQuickItem;
+
+/**
+ * Renders all contents on the wall.
+ */
+class WallRenderer : public QObject
 {
-QString _makeAbsPath(const QString& baseDir, const QString& uri)
-{
-    return QDir::isRelativePath(uri) ? baseDir + "/" + uri : uri;
-}
-} // anonymous namespace
+    Q_OBJECT
+    Q_DISABLE_COPY(WallRenderer)
 
-template <typename Obj>
-bool from_json(Obj& object, const std::string& json)
-{
-    return object.fromJson(json::parse(json));
-}
+public:
+    /**
+     * Constructor.
+     * @param context for rendering Qml elements.
+     * @param parentItem to attach to.
+     */
+    WallRenderer(WallRenderContext context, QQuickItem& parentItem);
 
-struct Uri
-{
-    QString uri;
+    /** Destructor. */
+    ~WallRenderer();
 
-    bool fromJson(const QJsonObject& object)
-    {
-        uri = object["uri"].toString();
-        return !uri.isNull();
-    }
+    /** Set background content. */
+    void setBackground(BackgroundPtr background);
+
+    /** Set the DisplayGroup to render, replacing the previous one. */
+    void setDisplayGroup(DisplayGroupPtr displayGroup);
+
+    /** Set different touchpoint's markers. */
+    void setMarkers(MarkersPtr markers);
+
+    /** Set different options used for rendering. */
+    void setRenderingOptions(OptionsPtr options);
+
+    /** Set the ScreenLock replacing the previous one. */
+    void setScreenLock(ScreenLockPtr lock);
+
+    /** Set status used to notify about inactivity timeout. */
+    void setCountdownStatus(CountdownStatusPtr status);
+
+    /** @return true if the renderer requires a redraw. */
+    bool needRedraw() const;
+
+public slots:
+    /** Increment number of rendered/swapped frames for FPS display. */
+    void updateRenderedFrames();
+
+private:
+    WallRenderContext _context;
+    QQmlContext& _qmlContext;
+
+    BackgroundPtr _background;
+    CountdownStatusPtr _countdownStatus;
+    DisplayGroupPtr _displayGroup;
+    MarkersPtr _markers;
+    OptionsPtr _options;
+    ScreenLockPtr _screenLock;
+
+    std::unique_ptr<QQuickItem> _surfaceItem;
+    std::unique_ptr<BackgroundRenderer> _backgroundRenderer;
+    std::unique_ptr<DisplayGroupRenderer> _displayGroupRenderer;
+
+    void _setContextProperties();
+    void _createSurfaceItem(QQuickItem& parentItem);
+    void _createGroupRenderer();
+
+    void _setBackground(const Background& background);
+    bool _hasBackgroundChanged(const QString& newUri) const;
+    void _adjustBackgroundTo(const DisplayGroup& displayGroup);
 };
 
-jsonrpc::Response makeJsonRpcResponse(const bool success)
-{
-    return success ? jsonrpc::Response{"\"OK\""}
-                   : jsonrpc::Response{
-                         jsonrpc::Response::Error{"operation failed", -1}};
-}
-
-AppController::AppController(const Configuration& config)
-{
-    const auto& contentsDir = config.folders.contents;
-    const auto& sessionsDir = config.folders.sessions;
-
-    bindAsync<Uri>("open", [this, contentsDir](Uri uri,
-                                               jsonrpc::AsyncResponse respond) {
-        auto boolCallback = [respond](const bool result) {
-            respond(makeJsonRpcResponse(result));
-        };
-        emit open(_makeAbsPath(contentsDir, uri.uri), QPointF(), boolCallback);
-    });
-    bindAsync<Uri>("load", [this, sessionsDir](Uri uri,
-                                               jsonrpc::AsyncResponse respond) {
-        auto boolCallback = [respond](const bool result) {
-            respond(makeJsonRpcResponse(result));
-        };
-        emit load(_makeAbsPath(sessionsDir, uri.uri), boolCallback);
-    });
-    bindAsync<Uri>("save", [this, sessionsDir](Uri uri,
-                                               jsonrpc::AsyncResponse respond) {
-        auto boolCallback = [respond](const bool result) {
-            respond(makeJsonRpcResponse(result));
-        };
-        emit save(_makeAbsPath(sessionsDir, uri.uri), boolCallback);
-    });
-
-    using rpc = jsonrpc::Receiver; // Disambiguating from QObject::connect
-    rpc::connect<Uri>("browse", [this](Uri uri) { emit browse(uri.uri); });
-    rpc::connect<Uri>("screenshot",
-                      [this](Uri uri) { emit takeScreenshot(uri.uri); });
-    rpc::connect("whiteboard", [this] { emit openWhiteboard(); });
-    rpc::connect("exit", [this] { emit exit(); });
-#if TIDE_ENABLE_PLANAR_CONTROLLER
-    rpc::connect("poweroff", [this] { emit powerOff(); });
 #endif
-}

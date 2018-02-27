@@ -3,23 +3,13 @@ import Tide 1.0
 import "qrc:/qml/core/."
 import "qrc:/qml/core/style.js" as Style
 
-Scene {
+Item {
+    property int frames: 0
+
     PowerOffCountdown {
         anchors.fill: parent
         z: Style.countdownZorder
     }
-
-    Clock {
-        anchors.top: parent.top
-        anchors.right: parent.right
-        anchors.topMargin: 0.5 * width
-        anchors.rightMargin: 0.5 * width
-        visible: options.showClock
-        displayedHeight: parent.height * Style.clockScale
-        z: Style.overlayZorder
-    }
-
-    property int frames: 0
 
     Timer {
         id: fpsTimer

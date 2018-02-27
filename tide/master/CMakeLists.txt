@@ -24,6 +24,7 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   control/LayoutEngine.h
   control/LayoutPolicy.h
   control/PixelStreamController.h
+  control/SceneController.h
   control/ZoomController.h
   FileInfoHelper.h
   InactivityTimer.h
@@ -35,7 +36,7 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   LoggingUtility.h
   MasterApplication.h
   MasterDisplayGroupRenderer.h
-  MasterSceneRenderer.h
+  MasterSurfaceRenderer.h
   multitouch/DoubleTapDetector.h
   multitouch/MathUtils.h
   multitouch/MultitouchArea.h
@@ -72,6 +73,7 @@ list(APPEND TIDEMASTER_SOURCES
   control/LayoutEngine.cpp
   control/LayoutPolicy.cpp
   control/PixelStreamController.cpp
+  control/SceneController.cpp
   control/ZoomController.cpp
   InactivityTimer.cpp
   localstreamer/HtmlSelectReplacer.cpp
@@ -82,7 +84,7 @@ list(APPEND TIDEMASTER_SOURCES
   LoggingUtility.cpp
   MasterApplication.cpp
   MasterDisplayGroupRenderer.cpp
-  MasterSceneRenderer.cpp
+  MasterSurfaceRenderer.cpp
   multitouch/DoubleTapDetector.cpp
   multitouch/MathUtils.cpp
   multitouch/MultitouchArea.cpp
@@ -139,7 +141,7 @@ set(TIDEMASTER_INCLUDE_NAME tide/master)
 
 if(TIDE_ENABLE_REST_INTERFACE)
   list(APPEND TIDEMASTER_PUBLIC_HEADERS
-    rest/AppController.h
+    rest/AppRemoteController.h
     rest/FileBrowser.h
     rest/FileReceiver.h
     rest/HtmlContent.h
@@ -147,12 +149,12 @@ if(TIDE_ENABLE_REST_INTERFACE)
     rest/RestInterface.h
     rest/RestServer.h
     rest/ThumbnailCache.h
-    rest/SceneController.h
+    rest/SceneRemoteController.h
     rest/serialization.h
     rest/templates.h
   )
   list(APPEND TIDEMASTER_SOURCES
-    rest/AppController.cpp
+    rest/AppRemoteController.cpp
     rest/FileBrowser.cpp
     rest/FileReceiver.cpp
     rest/HtmlContent.cpp
@@ -160,7 +162,7 @@ if(TIDE_ENABLE_REST_INTERFACE)
     rest/RestInterface.cpp
     rest/RestServer.cpp
     rest/ThumbnailCache.cpp
-    rest/SceneController.cpp
+    rest/SceneRemoteController.cpp
     rest/serialization.cpp
   )
   list(APPEND TIDEMASTER_LINK_LIBRARIES PRIVATE Rockets)

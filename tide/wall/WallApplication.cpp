@@ -49,6 +49,7 @@
 #include "network/WallFromMasterChannel.h"
 #include "network/WallToMasterChannel.h"
 #include "network/WallToWallChannel.h"
+#include "scene/Scene.h"
 #include "scene/VectorialContent.h"
 
 #include <stdexcept>
@@ -83,7 +84,7 @@ WallApplication::WallApplication(int& argc_, char** argv_,
     _initWallWindows(config.global.swapsync);
     _initMPIConnection();
 
-    _renderController->updateBackground(config.background);
+    _renderController->updateScene(Scene::create(config.surfaces));
 }
 
 WallApplication::~WallApplication()
@@ -148,11 +149,8 @@ void WallApplication::_initMPIConnection()
             _renderController.get(),
             &RenderController::updateRequestScreenshot);
 
-    connect(_fromMasterChannel.get(), SIGNAL(received(BackgroundPtr)),
-            _renderController.get(), SLOT(updateBackground(BackgroundPtr)));
-
-    connect(_fromMasterChannel.get(), SIGNAL(received(DisplayGroupPtr)),
-            _renderController.get(), SLOT(updateDisplayGroup(DisplayGroupPtr)));
+    connect(_fromMasterChannel.get(), SIGNAL(received(ScenePtr)),
+            _renderController.get(), SLOT(updateScene(ScenePtr)));
 
     connect(_fromMasterChannel.get(), SIGNAL(received(OptionsPtr)),
             _renderController.get(), SLOT(updateOptions(OptionsPtr)));

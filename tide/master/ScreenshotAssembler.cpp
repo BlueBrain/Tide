@@ -41,12 +41,17 @@
 
 #include <QPainter>
 
-ScreenshotAssembler::ScreenshotAssembler(const Surface& surface)
+ScreenshotAssembler::ScreenshotAssembler(const SurfaceConfig& surface)
     : _surface(surface)
     , _screenshot{_surface.getTotalSize(), QImage::Format_RGB32}
 {
     const auto count = _surface.screenCountX * _surface.screenCountY;
     _imagesReceived.resize(count, false);
+}
+
+bool ScreenshotAssembler::isComplete() const
+{
+    return _complete;
 }
 
 void ScreenshotAssembler::addImage(const QImage image, const QPoint index)
@@ -57,11 +62,20 @@ void ScreenshotAssembler::addImage(const QImage image, const QPoint index)
 
     const auto source = index.x() + index.y() * _surface.screenCountX;
     _imagesReceived[source] = true;
+    _complete = false;
+
+    if (_hasReceivedAllImages())
+    {
+        _complete = true;
+        std::fill(_imagesReceived.begin(), _imagesReceived.end(), false);
+        emit screenshotComplete(_screenshot);
+    }
+}
+
+bool ScreenshotAssembler::_hasReceivedAllImages() const
+{
     for (const auto& received : _imagesReceived)
         if (!received)
-            return;
-
-    std::fill(_imagesReceived.begin(), _imagesReceived.end(), false);
-
-    emit screenshotComplete(_screenshot);
+            return false;
+    return true;
 }
