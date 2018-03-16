@@ -349,20 +349,22 @@ DisplayGroupPtr createTestDisplayGroup()
     return displayGroup;
 }
 
-void cleanupTestDir()
+inline auto listFiles(const QString& dir)
 {
-    const QStringList files =
-        QDir(TEST_DIR).entryList(QDir::NoDotAndDotDot | QDir::Files);
-    foreach (QString file, files)
-        QFile::remove(TEST_DIR + "/" + file);
+    return QDir{dir}.entryList(QDir::NoDotAndDotDot | QDir::Files);
+}
+
+void cleanup(const QString& dir)
+{
+    for (const auto& file : listFiles(dir))
+        QFile::remove(dir + "/" + file);
 }
 
 BOOST_AUTO_TEST_CASE(testStateSerializationToFile)
 {
     // 1) Setup
-    QDir dir;
-    if (!dir.mkdir(TEST_DIR))
-        cleanupTestDir();
+    if (!QDir().mkdir(TEST_DIR))
+        cleanup(TEST_DIR);
     // empty folders contain 2 elements: '.' and '..'
     BOOST_REQUIRE_EQUAL(QDir(TEST_DIR).count(), 2);
 
@@ -371,8 +373,7 @@ BOOST_AUTO_TEST_CASE(testStateSerializationToFile)
     StateSerializationHelper helper(Scene::create(displayGroup));
     BOOST_CHECK(helper.save(TEST_DIR + "/test.dcx").result());
 
-    const auto files =
-        QDir(TEST_DIR).entryList(QDir::NoDotAndDotDot | QDir::Files);
+    const auto files = listFiles(TEST_DIR);
     BOOST_CHECK_EQUAL(files.size(), 2);
     BOOST_CHECK(files.contains("test.dcx"));
     BOOST_CHECK(files.contains("test.dcxpreview"));
@@ -401,17 +402,16 @@ BOOST_AUTO_TEST_CASE(testStateSerializationToFile)
 
 BOOST_AUTO_TEST_CASE(testStateSerializationUploadedToFile)
 {
-    // 1) Setup
-    QDir dir;
-    if (!dir.mkdir(TEST_DIR))
-        cleanupTestDir();
+    const auto tempDir = QDir::tempPath();
+    const auto uploadDir = QDir{TEST_DIR}.absolutePath() + "/";
 
-    QDir uploadDir(TEST_DIR);
-    QDir tempDir(QDir::tempPath());
+    // 1) Setup
+    if (!QDir().mkdir(uploadDir))
+        cleanup(uploadDir);
 
     // 2) Create new file and put it into system temp folder
-    const QString newValidFile("uploaded.png");
-    const QString newValidUri = QDir::tempPath() + "/" + newValidFile;
+    const auto uploadedFile = QString{"uploaded.png"};
+    const auto newValidUri = tempDir + "/" + uploadedFile;
     QFile::copy(VALID_TEXTURE_URI, newValidUri);
 
     // 3) Test saving
@@ -422,37 +422,30 @@ BOOST_AUTO_TEST_CASE(testStateSerializationUploadedToFile)
     auto contentWindow = std::make_shared<ContentWindow>(std::move(content));
     displayGroup->addContentWindow(contentWindow);
     StateSerializationHelper helper{Scene::create(displayGroup)};
-    BOOST_CHECK(helper.save(TEST_DIR + "/test.dcx", TEST_DIR).result());
-    QDir sessionDir(TEST_DIR + "/test");
-    QStringList tempDirFiles =
-        tempDir.entryList(QDir::NoDotAndDotDot | QDir::Files);
-    BOOST_CHECK(!tempDirFiles.contains(newValidFile));
+    BOOST_CHECK(
+        helper.save(uploadDir + "test.dcx", tempDir, uploadDir).result());
+    const auto savedSessionDir = uploadDir + "test/";
 
-    QStringList uploadDirFiles =
-        uploadDir.entryList(QDir::NoDotAndDotDot | QDir::Files);
-    QStringList sessionFiles =
-        sessionDir.entryList(QDir::NoDotAndDotDot | QDir::Files);
-
-    BOOST_CHECK(sessionFiles.contains(newValidFile));
-    BOOST_CHECK(uploadDirFiles.contains("test.dcx"));
-    BOOST_CHECK(uploadDirFiles.contains("test.dcxpreview"));
-    BOOST_CHECK(contentWindow->getContent().getURI() ==
-                TEST_DIR + "/test/" + "uploaded.png");
+    BOOST_CHECK(!listFiles(tempDir).contains(uploadedFile));
+    BOOST_CHECK(listFiles(savedSessionDir).contains(uploadedFile));
+    BOOST_CHECK(listFiles(uploadDir).contains("test.dcx"));
+    BOOST_CHECK(listFiles(uploadDir).contains("test.dcxpreview"));
+    BOOST_CHECK_EQUAL(contentWindow->getContent().getURI(),
+                      savedSessionDir + uploadedFile);
 
     // 4) Add another file with the same name and test saving
     QFile::copy(VALID_TEXTURE_URI, newValidUri);
     content = ContentFactory::getContent(newValidUri);
-    ContentWindowPtr newContentWindow(new ContentWindow(std::move(content)));
+    auto newContentWindow = std::make_shared<ContentWindow>(std::move(content));
     displayGroup->addContentWindow(newContentWindow);
-    BOOST_CHECK(helper.save(TEST_DIR + "/test.dcx", TEST_DIR).result());
-    uploadDirFiles = uploadDir.entryList(QDir::NoDotAndDotDot | QDir::Files);
-    sessionFiles = sessionDir.entryList(QDir::NoDotAndDotDot | QDir::Files);
+    BOOST_CHECK(
+        helper.save(uploadDir + "test.dcx", tempDir, uploadDir).result());
 
-    BOOST_CHECK(!tempDirFiles.contains(newValidFile));
-    BOOST_CHECK(sessionFiles.contains("uploaded.png"));
-    BOOST_CHECK(sessionFiles.contains("uploaded_1.png"));
-    BOOST_CHECK(newContentWindow->getContent().getURI() ==
-                TEST_DIR + "/test/" + "uploaded_1.png");
+    BOOST_CHECK(!listFiles(tempDir).contains(uploadedFile));
+    BOOST_CHECK(listFiles(savedSessionDir).contains(uploadedFile));
+    BOOST_CHECK(listFiles(savedSessionDir).contains("uploaded_1.png"));
+    BOOST_CHECK_EQUAL(newContentWindow->getContent().getURI(),
+                      savedSessionDir + "uploaded_1.png");
 
-    uploadDir.removeRecursively();
+    QDir{uploadDir}.removeRecursively();
 }

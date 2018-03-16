@@ -121,6 +121,7 @@ private:
 
     QString _contentFolder;
     QString _sessionFolder;
+    QString _tmpDir;
     QString _uploadDir;
 };
 

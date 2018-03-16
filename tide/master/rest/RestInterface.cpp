@@ -103,6 +103,7 @@ public:
         , contentBrowser{config.folders.contents,
                          ContentFactory::getSupportedFilesFilter()}
         , sessionBrowser{config.folders.sessions, QStringList{"*.dcx"}}
+        , fileReceiver{config.folders.tmp}
         , htmlContent{server}
         , lockState{locked}
     {

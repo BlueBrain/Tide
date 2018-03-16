@@ -40,6 +40,7 @@
 
 #include "FileReceiver.h"
 
+#include "StateSerializationHelper.h"
 #include "log.h"
 #include "scene/ContentFactory.h"
 #include "json/json.h"
@@ -62,20 +63,6 @@ inline QString _urlEncode(const QString& filename)
 inline QString _urlDecode(const QString& filename)
 {
     return QUrl(filename).fileName(QUrl::FullyDecoded);
-}
-
-QString _getAvailableFileName(const QFileInfo& fileInfo)
-{
-    auto filename = fileInfo.fileName();
-
-    int nSuffix = 0;
-    while (QFile(QDir::tempPath() + "/" + filename).exists())
-    {
-        filename = QString("%1_%2.%3")
-                       .arg(fileInfo.baseName(), QString::number(++nSuffix),
-                            fileInfo.suffix());
-    }
-    return filename;
 }
 
 std::future<http::Response> _makeResponse(const http::Code code,
@@ -101,7 +88,8 @@ struct FileReceiver::UploadParameters
     QPointF position;
 };
 
-FileReceiver::FileReceiver()
+FileReceiver::FileReceiver(const QString& tmpDir)
+    : _tmpDir{tmpDir}
 {
 }
 
@@ -129,7 +117,10 @@ std::future<http::Response> FileReceiver::prepareUpload(
     if (!filters.contains(fileSuffix.toLower()))
         return make_ready_response(http::Code::NOT_SUPPORTED);
 
-    const auto name = _getAvailableFileName(fileInfo);
+    const auto name = QFileInfo{
+        StateSerializationHelper::findAvailableFilePath(
+            params.filename,
+            _tmpDir)}.fileName();
     _preparedPaths[name] = params;
     return _makeResponse(http::Code::OK, "url", _urlEncode(name));
 }
@@ -142,7 +133,7 @@ std::future<http::Response> FileReceiver::handleUpload(
         return _makeResponse(http::Code::FORBIDDEN, "info",
                              "upload not prepared");
 
-    const auto filePath = QDir::tempPath() + "/" + name;
+    const auto filePath = _tmpDir + "/" + name;
 
     const auto params = _preparedPaths[name];
     _preparedPaths.erase(name);
