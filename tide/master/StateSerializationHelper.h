@@ -63,10 +63,13 @@ public:
      *
      * @param filename The .dcx file to save the scene. The extension will be
      *        automatically added if it is missing.
+     * @param tmpDir The folder where temporary documents are stored, used for
+     *        relocating them to the uploadDir
      * @param uploadDir folder to move content to (uploaded via web interface.)
      * @param generatePreview Also generate a .dcxpreview thumbnail image.
      */
-    QFuture<bool> save(QString filename, const QString& uploadDir = QString(),
+    QFuture<bool> save(QString filename, const QString& tmpDir = QString(),
+                       const QString& uploadDir = QString(),
                        bool generatePreview = true);
 
     /**
@@ -75,6 +78,16 @@ public:
      * @return the loaded scene on success, nullptr on failure.
      */
     QFuture<SceneConstPtr> load(const QString& filename) const;
+
+    /**
+     * Find an available filename by appending "_[n]" if needed to the filename.
+     *
+     * @param filename the desired filename.
+     * @param dstDir the target directory.
+     * @return the full path to the next filename that is available.
+     */
+    static QString findAvailableFilePath(const QString& filename,
+                                         const QString& dstDir);
 
 private:
     ScenePtr _scene;

@@ -65,7 +65,7 @@ class FileReceiver : public QObject
     Q_OBJECT
 
 public:
-    FileReceiver();
+    FileReceiver(const QString& tmpDir);
     ~FileReceiver();
 
     using Response = rockets::http::Response;
@@ -94,6 +94,7 @@ signals:
               BoolCallback callback);
 
 private:
+    QString _tmpDir;
     struct UploadParameters;
     std::map<QString, UploadParameters> _preparedPaths;
 };

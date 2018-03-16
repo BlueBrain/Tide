@@ -80,6 +80,7 @@ MasterWindow::MasterWindow(ScenePtr scene_, OptionsPtr options,
 #endif
     , _contentFolder(config.folders.contents)
     , _sessionFolder(config.folders.sessions)
+    , _tmpDir(config.folders.tmp)
     , _uploadDir(config.folders.upload)
 {
     _backgroundWidget->setModal(true);
@@ -487,7 +488,7 @@ void MasterWindow::_saveSession()
 
     _sessionFolder = QFileInfo(filename).absoluteDir().path();
     _saveSessionOp.setFuture(
-        StateSerializationHelper(_scene).save(filename, _uploadDir));
+        StateSerializationHelper(_scene).save(filename, _tmpDir, _uploadDir));
 }
 
 void MasterWindow::_loadSession(const QString& filename)

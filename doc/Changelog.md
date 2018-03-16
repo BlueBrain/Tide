@@ -3,6 +3,11 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [238](https://github.com/BlueBrain/Tide/pull/238):
+  The location for temporary contents uploaded through the web interface is
+  configurable. This is particularly useful in setups with multiple machines,
+  where temporary files must be stored on a shared file system instead of /tmp
+  on the master server for render clients to be able to access them.
 * [237](https://github.com/BlueBrain/Tide/pull/237):
   Support for multiple rendering surfaces, each with its own background and set
   of contents. This enables Tide to drive complex visualization installations

@@ -106,7 +106,8 @@ void SceneController::save(const QString& sessionFile, BoolCallback callback)
     _saveSessionCallback = callback;
 
     StateSerializationHelper helper(_scene.shared_from_this());
-    _saveSessionOp.setFuture(helper.save(sessionFile, _folders.upload));
+    _saveSessionOp.setFuture(
+        helper.save(sessionFile, _folders.tmp, _folders.upload));
 }
 
 void SceneController::hideLauncher()

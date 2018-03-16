@@ -128,7 +128,7 @@ struct OpenListener
 
 BOOST_AUTO_TEST_CASE(testUnsupportedFileType)
 {
-    FileReceiver fileReceiver;
+    FileReceiver fileReceiver{QDir::tempPath()};
 
     const auto urlRequest = _makeFileRequest("wall.xyz");
     const auto response = fileReceiver.prepareUpload(urlRequest).get();
@@ -137,7 +137,7 @@ BOOST_AUTO_TEST_CASE(testUnsupportedFileType)
 
 BOOST_AUTO_TEST_CASE(testOnlyFileExtensionWithNoName)
 {
-    FileReceiver fileReceiver;
+    FileReceiver fileReceiver{QDir::tempPath()};
 
     const auto urlRequest = _makeFileRequest(".png");
     const auto response = fileReceiver.prepareUpload(urlRequest).get();
@@ -146,7 +146,7 @@ BOOST_AUTO_TEST_CASE(testOnlyFileExtensionWithNoName)
 
 BOOST_AUTO_TEST_CASE(testUploadFileWithSpecialCharacters)
 {
-    FileReceiver fileReceiver;
+    FileReceiver fileReceiver{QDir::tempPath()};
 
     OpenListener listener{fileReceiver};
 
@@ -181,7 +181,7 @@ BOOST_AUTO_TEST_CASE(testUploadFileWithSpecialCharacters)
 
 BOOST_AUTO_TEST_CASE(testUnhandledOpenSignal)
 {
-    FileReceiver fileReceiver;
+    FileReceiver fileReceiver{QDir::tempPath()};
 
     const auto imageName = "other.png";
     const auto type = http::Header::CONTENT_TYPE;
@@ -207,7 +207,7 @@ BOOST_AUTO_TEST_CASE(testUnhandledOpenSignal)
 
 BOOST_AUTO_TEST_CASE(testUploadFileWithoutPosition)
 {
-    FileReceiver fileReceiver;
+    FileReceiver fileReceiver{QDir::tempPath()};
 
     OpenListener listener{fileReceiver};
 
@@ -239,7 +239,7 @@ BOOST_AUTO_TEST_CASE(testUploadFileWithoutPosition)
 
 BOOST_AUTO_TEST_CASE(testUploadFileTwice)
 {
-    FileReceiver fileReceiver;
+    FileReceiver fileReceiver{QDir::tempPath()};
 
     OpenListener listener{fileReceiver};
 

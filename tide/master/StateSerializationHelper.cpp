@@ -52,12 +52,6 @@
 namespace
 {
 const QString SESSION_FILE_EXTENSION(".dcx");
-}
-
-StateSerializationHelper::StateSerializationHelper(ScenePtr scene)
-    : _scene(scene)
-{
-}
 
 bool _canBeRestored(const CONTENT_TYPE type)
 {
@@ -68,22 +62,15 @@ bool _canBeRestored(const CONTENT_TYPE type)
     return true;
 }
 
-void _relocateTempContent(ContentWindow& window, const QString& dstDir)
+void _relocateContent(ContentWindow& window, const QString& tmpDir,
+                      const QString& dstDir)
 {
     const auto& uri = window.getContent().getURI();
-    if (!uri.startsWith(QDir::tempPath()))
+    if (!uri.startsWith(tmpDir))
         return;
 
-    const QFileInfo file(uri);
-    auto newUri = dstDir + "/" + file.fileName();
-
-    int nameSuffix = 0;
-    while (QFile(newUri).exists())
-    {
-        newUri = QString("%1/%2_%3.%4")
-                     .arg(dstDir, file.baseName(),
-                          QString::number(++nameSuffix), file.suffix());
-    }
+    const auto newUri =
+        StateSerializationHelper::findAvailableFilePath(uri, dstDir);
     if (!QDir().rename(uri, newUri))
     {
         print_log(LOG_WARN, LOG_CONTENT, "Failed to move %s to : %s",
@@ -94,7 +81,8 @@ void _relocateTempContent(ContentWindow& window, const QString& dstDir)
     window.setContent(ContentFactory::getContent(newUri));
 }
 
-void _relocateTempContent(DisplayGroup& group, const QString& dstDir)
+void _relocateTempContents(DisplayGroup& group, const QString& tmpDir,
+                           const QString& dstDir)
 {
     if (QDir{dstDir}.exists())
     {
@@ -114,12 +102,12 @@ void _relocateTempContent(DisplayGroup& group, const QString& dstDir)
     for (const auto& window : group.getContentWindows())
     {
         const auto& uri = window->getContent().getURI();
-        if (QFileInfo{uri}.absolutePath() == QDir::tempPath())
+        if (QFileInfo{uri}.absolutePath() == tmpDir)
             windowsToRelocate.push_back(window);
     }
     for (const auto& window : windowsToRelocate)
     {
-        _relocateTempContent(*window, dstDir);
+        _relocateContent(*window, tmpDir, dstDir);
         // Remove the window and add back a copy of it to ensure that the wall
         // processes use the new URI to access the file.
         // Note: the content must be relocated before removing the window,
@@ -129,10 +117,11 @@ void _relocateTempContent(DisplayGroup& group, const QString& dstDir)
     }
 }
 
-void _relocateTempContent(Scene& scene, const QString& dstDir)
+void _relocateTempContents(Scene& scene, const QString& tmpDir,
+                           const QString& dstDir)
 {
     for (auto i = 0u; i < scene.getSurfaceCount(); ++i)
-        _relocateTempContent(scene.getGroup(i), dstDir);
+        _relocateTempContents(scene.getGroup(i), tmpDir, dstDir);
 }
 
 bool _validateContent(const ContentWindowPtr& window)
@@ -232,6 +221,12 @@ void _adjust(Scene& scene, const Scene& currentScene)
     for (auto i = 0u; i < max; ++i)
         _adjust(scene.getGroup(i), currentScene.getGroup(i));
 }
+}
+
+StateSerializationHelper::StateSerializationHelper(ScenePtr scene)
+    : _scene(scene)
+{
+}
 
 SceneConstPtr _load(const QString& filename, SceneConstPtr referenceScene)
 {
@@ -312,6 +307,7 @@ void _filterContents(Scene& scene)
 }
 
 QFuture<bool> StateSerializationHelper::save(QString filename,
+                                             const QString& tmpDir,
                                              const QString& uploadDir,
                                              const bool generatePreview)
 {
@@ -328,7 +324,7 @@ QFuture<bool> StateSerializationHelper::save(QString filename,
     if (!uploadDir.isEmpty())
     {
         const auto sessionName = QFileInfo{filename}.baseName();
-        _relocateTempContent(*_scene, uploadDir + "/" + sessionName);
+        _relocateTempContents(*_scene, tmpDir, uploadDir + "/" + sessionName);
     }
 
     // Important: use xml archive not binary as they use different code paths
@@ -345,4 +341,21 @@ QFuture<bool> StateSerializationHelper::save(QString filename,
 
         return true;
     });
+}
+
+QString StateSerializationHelper::findAvailableFilePath(const QString& filename,
+                                                        const QString& dstDir)
+{
+    const auto file = QFileInfo(filename);
+    const auto dir = QDir(dstDir).absolutePath();
+
+    auto newUri = dir + "/" + file.fileName();
+    auto nameSuffix = 0;
+    while (QFile(newUri).exists())
+    {
+        newUri = QString("%1/%2_%3.%4")
+                     .arg(dir, file.baseName(), QString::number(++nameSuffix),
+                          file.suffix());
+    }
+    return newUri;
 }
