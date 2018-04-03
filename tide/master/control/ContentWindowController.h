@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -51,7 +51,8 @@ enum SizeState
     SIZE_1TO1_FITTING,
     SIZE_LARGE,
     SIZE_FULLSCREEN,
-    SIZE_FULLSCREEN_MAX
+    SIZE_FULLSCREEN_MAX,
+    SIZE_FULLSCREEN_1TO1
 };
 
 /** Window point, used for affine transforms of the window. */
@@ -75,10 +76,10 @@ public:
      */
     enum class Coordinates
     {
-        STANDARD,   // window standard mode coordinates
-        FOCUSED,    // window focused mode coordinates
-        FULLSCREEN, // window fullscreen mode coordinates
-        AUTO        // window current mode's coordinates
+        STANDARD,   // standard coordinates
+        FOCUSED,    // focused coordinates
+        FULLSCREEN, // fullscreen coordinates
+        AUTO        // current window mode's coordinates
     };
 
     /**
@@ -103,8 +104,6 @@ public:
     /** Adjust the window coordinates to match the desired state. */
     void adjustSize(const SizeState state);
 
-    /** Adjust the window coordinates to match the Content dimensions. */
-    Q_INVOKABLE void adjustSizeOneToOne() { adjustSize(SIZE_1TO1); }
     /** Toggle between SIZE_FULLSCREEN and SIZE_FULLSCREEN_MAX. */
     Q_INVOKABLE void toogleFullscreenMaxSize();
 

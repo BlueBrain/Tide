@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /*                          Daniel.Nachbaur@epfl.ch                  */
 /* All rights reserved.                                              */
@@ -197,6 +197,17 @@ void ContentWindowController::adjustSize(const SizeState state)
         content.resetZoom();
 
         auto size = geometry::getExpandedSize(content, _displayGroup);
+        constrainSize(size);
+        _apply(_getCenteredCoordinates(size));
+    }
+    break;
+
+    case SIZE_FULLSCREEN_1TO1:
+    {
+        auto& content = _contentWindow.getContent();
+        content.resetZoom();
+
+        auto size = QSizeF{content.getPreferredDimensions()};
         constrainSize(size);
         _apply(_getCenteredCoordinates(size));
     }

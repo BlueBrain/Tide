@@ -232,10 +232,7 @@ BaseContentWindow {
         OneToOneControlButton {
             MultitouchArea {
                 anchors.fill: parent
-                onTap: {
-                    controller.adjustSizeOneToOne()
-                    contentwindow.content.resetZoom()
-                }
+                onTap: groupcontroller.adjustSizeOneToOne(contentwindow.id)
             }
         }
         FullscreenControlButton {

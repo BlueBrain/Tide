@@ -3,6 +3,11 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [239](https://github.com/BlueBrain/Tide/pull/239):
+  The behavior of the 1:1 button changed for contents that would exceed
+  the surface dimensions in 1:1 size. Previously such windows were hard
+  to minimize / close again. Being in fullscreen (with the desired 1:1 size)
+  gives an easy way to exit and restore the window to a minimized size.
 * [238](https://github.com/BlueBrain/Tide/pull/238):
   The location for temporary contents uploaded through the web interface is
   configurable. This is particularly useful in setups with multiple machines,

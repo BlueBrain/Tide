@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -73,6 +73,9 @@ public:
     /** Leave fullscreen mode, restoring the window to its previous state. */
     Q_INVOKABLE void exitFullscreen();
 
+    /** Adjust a window's coordinates to match the Content dimensions. */
+    Q_INVOKABLE void adjustSizeOneToOne(const QUuid& id);
+
     /** Focus a window. */
     Q_INVOKABLE bool focus(const QUuid& id);
 
@@ -121,6 +124,7 @@ private:
     /** Extend the DisplayGroup surface, keeping the windows centered. */
     void _extend(const QSizeF& newSize);
 
+    void _showFullscreen(ContentWindowPtr window, bool oneToOne);
     qreal _estimateAspectRatio() const;
     void _readjustToNewZoomLevel(ContentWindow& window);
 };

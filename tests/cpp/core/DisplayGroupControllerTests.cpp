@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -63,7 +63,7 @@ struct Fixture
     Fixture() { displayGroup->addContentWindow(window); }
     ContentWindowPtr window{new ContentWindow{makeDummyContent()}};
     Content& content{window->getContent()};
-    DisplayGroupPtr displayGroup{new DisplayGroup{WALL_SIZE}};
+    DisplayGroupPtr displayGroup{DisplayGroup::create(WALL_SIZE)};
     DisplayGroupController controller{*displayGroup};
 };
 
@@ -98,4 +98,59 @@ BOOST_FIXTURE_TEST_CASE(testShowWindowFullscreenAndExit, Fixture)
     BOOST_CHECK_EQUAL(window->y(), 150);
     BOOST_CHECK_EQUAL(window->width(), CONTENT_SIZE.width() / 2);
     BOOST_CHECK_EQUAL(window->height(), CONTENT_SIZE.height() / 4);
+}
+
+BOOST_FIXTURE_TEST_CASE(testAdjustSizeOneToOne, Fixture)
+{
+    window->setWidth(CONTENT_SIZE.width() / 2);
+    window->setHeight(CONTENT_SIZE.height() / 4);
+    content.setZoomRect(QRectF(0.2, 0.2, 0.7, 0.7));
+
+    const auto center = window->getDisplayCoordinates().center();
+
+    controller.adjustSizeOneToOne(window->getID());
+
+    BOOST_CHECK(!window->isFullscreen());
+    const auto& coord = window->getDisplayCoordinates();
+    BOOST_CHECK_EQUAL(coord.center().x(), center.x());
+    BOOST_CHECK_EQUAL(coord.center().y(), center.y());
+    BOOST_CHECK_EQUAL(coord.width(), CONTENT_SIZE.width());
+    BOOST_CHECK_EQUAL(coord.height(), CONTENT_SIZE.height());
+    BOOST_CHECK_EQUAL(content.getZoomRect(), UNIT_RECTF);
+}
+
+BOOST_FIXTURE_TEST_CASE(testAdjustSizeOneToOneHugeContent, Fixture)
+{
+    const auto hugeSize = WALL_SIZE * 2;
+    content.setDimensions(hugeSize.toSize());
+
+    BOOST_REQUIRE_EQUAL(content.getZoomRect(), UNIT_RECTF);
+    BOOST_REQUIRE(!window->isFullscreen());
+    BOOST_REQUIRE_EQUAL(window->size(), CONTENT_SIZE);
+
+    window->setX(100);
+    window->setY(150);
+    window->setWidth(320);
+    window->setHeight(460);
+    content.setZoomRect(QRectF(0.2, 0.2, 0.7, 0.7));
+
+    controller.adjustSizeOneToOne(window->getID());
+
+    BOOST_CHECK(window->isFullscreen());
+    BOOST_CHECK_EQUAL(displayGroup->getFullscreenWindow(), window.get());
+    const auto& coord = window->getDisplayCoordinates();
+    BOOST_CHECK_EQUAL(coord.center().x(), WALL_SIZE.width() / 2);
+    BOOST_CHECK_EQUAL(coord.center().y(), WALL_SIZE.height() / 2);
+    BOOST_CHECK_EQUAL(coord.width(), hugeSize.width());
+    BOOST_CHECK_EQUAL(coord.height(), hugeSize.height());
+    BOOST_CHECK_EQUAL(content.getZoomRect(), UNIT_RECTF);
+
+    controller.exitFullscreen();
+
+    BOOST_CHECK(!window->isFullscreen());
+    BOOST_CHECK_EQUAL(content.getZoomRect(), QRectF(0.2, 0.2, 0.7, 0.7));
+    BOOST_CHECK_EQUAL(window->x(), 100);
+    BOOST_CHECK_EQUAL(window->y(), 150);
+    BOOST_CHECK_EQUAL(window->width(), 320);
+    BOOST_CHECK_EQUAL(window->height(), 460);
 }
