@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -46,6 +46,14 @@
 
 #include <QTransform>
 
+namespace
+{
+bool _exceeds(const auto& size, const auto& other)
+{
+    return size.width() > other.width() && size.height() > other.height();
+}
+}
+
 DisplayGroupController::DisplayGroupController(DisplayGroup& group)
     : _group(group)
 {
@@ -82,20 +90,11 @@ void DisplayGroupController::removeWindowLater(const QUuid windowId)
 
 bool DisplayGroupController::showFullscreen(const QUuid& id)
 {
-    ContentWindowPtr window = _group.getContentWindow(id);
+    auto window = _group.getContentWindow(id);
     if (!window)
         return false;
 
-    exitFullscreen();
-
-    window->backupModeAndZoom();
-
-    const auto target = ContentWindowController::Coordinates::FULLSCREEN;
-    ContentWindowController controller(*window, _group, target);
-    controller.adjustSize(SizeState::SIZE_FULLSCREEN);
-
-    window->setMode(ContentWindow::WindowMode::FULLSCREEN);
-    _group.setFullscreenWindow(window);
+    _showFullscreen(window, false);
     return true;
 }
 
@@ -110,6 +109,21 @@ void DisplayGroupController::exitFullscreen()
 
     if (!window->isFocused())
         window->setSelected(false);
+}
+
+void DisplayGroupController::adjustSizeOneToOne(const QUuid& id)
+{
+    auto window = _group.getContentWindow(id);
+    if (!window)
+        return;
+
+    if (_exceeds(window->getContent().getPreferredDimensions(), _group))
+        _showFullscreen(window, true);
+    else
+    {
+        ContentWindowController{*window, _group}.adjustSize(SIZE_1TO1);
+        window->getContent().resetZoom();
+    }
 }
 
 bool DisplayGroupController::focus(const QUuid& id)
@@ -268,6 +282,21 @@ void DisplayGroupController::_extend(const QSizeF& newSize)
         QTransform::fromTranslate(offset.width(), offset.height());
     for (ContentWindowPtr window : _group.getContentWindows())
         window->setCoordinates(t.mapRect(window->getCoordinates()));
+}
+
+void DisplayGroupController::_showFullscreen(ContentWindowPtr window,
+                                             const bool oneToOne)
+{
+    exitFullscreen();
+
+    window->backupModeAndZoom();
+
+    const auto target = ContentWindowController::Coordinates::FULLSCREEN;
+    ContentWindowController controller(*window, _group, target);
+    controller.adjustSize(oneToOne ? SIZE_FULLSCREEN_1TO1 : SIZE_FULLSCREEN);
+
+    window->setMode(ContentWindow::WindowMode::FULLSCREEN);
+    _group.setFullscreenWindow(window);
 }
 
 qreal DisplayGroupController::_estimateAspectRatio() const
