@@ -73,11 +73,12 @@
     <button class="menuButton" id="uploadButton">UPLOAD</button>
     <button class="menuButton" id="closeAllButton">CLOSE ALL</button>
     <button class="menuButton" id="exitFullscreenButton" >EXIT FULLSCREEN</button>
+    <button class="menuButton" id="optionsButton">OPTIONS</button>
     <button id="refreshButton" onclick="updateWall()">REFRESH</button>
     <button id="autoRefreshButton" onclick="autoRefresh()">AUTO-REFRESH</button>
     <button id="showBezelButton" onclick="showBezels()">BEZELS</button>
-    <button class="menuButton" id="optionsButton">OPTIONS</button>
-    <button class="menuButton" id="infoButton">INFO</button>
+    <button id="infoButton">INFO</button>
+    <button id="contentsButton">CONTENTS</button>
   </div>
 
   <div id="wall">
@@ -86,12 +87,14 @@
         <img src="img/lock.svg" height="50%" id="wallLockImg">
       </div>
   </div>
-
-  <iframe name="frame"></iframe>
 </div>
 <div id="infoBox">
   <img id="screenIcon" class="infoIcon" height="25"/>
   <img id="lockIcon" class="infoIcon" height="20" />
 </div>
+
+<div id="contentsDialog" title="Contents">
+</div>
+
 </body>
 </html>

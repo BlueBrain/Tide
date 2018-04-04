@@ -49,8 +49,23 @@ function autoRefresh() {
   }
 }
 
-function bootstrapMenus() {
+function bootstrapContentsDialog() {
+  $("#contentsDialog").dialog({
+    modal: true,
+    autoOpen: false,
+    width: 'auto',
+    open: function() {
+      $('.ui-widget-overlay').bind('click', function() {
+        $('#contentsDialog').dialog('close');
+      });
+    }
+  });
+  $("#contentsButton").on("click", function() {
+    $("#contentsDialog").dialog("open");
+  });
+}
 
+function bootstrapMenus() {
   $("#addButton").click(function (e) {
     $("#uploadMenu,#sessionMenu,#optionsMenu,#appsMenu,#infoMenu").each(function () {
       $(this).hide("puff", showEffectSpeed);
@@ -129,7 +144,7 @@ function bootstrapMenus() {
   getOptions();
 }
 
-function boostrapUpload() {
+function bootstrapUpload() {
   var wall = document.getElementById('wall');
   wall.addEventListener('dragover', handleDragOver, false);
   wall.addEventListener('dragleave', handleDragLeave, false);
@@ -199,19 +214,8 @@ function createButton(type, tile) {
 function createCloseButton(tile) {
   var closeButton = createButton("closeButton", tile);
   closeButton.onclick = function (event) {
-    if (locked)
-      return;
     event.stopImmediatePropagation();
-    windowList.splice(windowList.findIndex(function (element) {
-      return element.uuid === tile.uuid;
-    }), 1);
-    if (tile.focus)
-      sendSceneJsonRpc("unfocus-window", getIdAsObject(tile), function () {
-        sendSceneJsonRpc("close-window", getIdAsObject(tile), updateWall);
-      });
-    else
-      sendSceneJsonRpc("close-window", getIdAsObject(tile), updateWall);
-    $('#' + tile.uuid).remove();
+    sendSceneJsonRpc("close-window", getIdAsObject(tile), updateWall);
   };
   var icon = document.createElement("img");
   icon.src = closeImageUrl;
@@ -221,15 +225,12 @@ function createCloseButton(tile) {
 
 function createFocusButton(tile) {
   var focusButton = createButton("focusButton", tile);
-  focusButton.style.visibility = tile.selected ? "visible" : "hidden";
   focusButton.onclick = function (event) {
     event.stopImmediatePropagation();
-    if (!focus)
-      sendSceneJsonRpc("focus-windows", getSurfaceParams(), updateWall);
-    else {
-      tile.selected = false;
+    if (focus)
       sendSceneJsonRpc("unfocus-window", getIdAsObject(tile), updateWall);
-    }
+    else
+      sendSceneJsonRpc("focus-windows", getSurfaceParams(), updateWall);
   };
   var icon = document.createElement("img");
   icon.src = focusImageUrl;
@@ -238,11 +239,11 @@ function createFocusButton(tile) {
 }
 
 function createFullscreenButton(tile) {
-  var fullscreenButton = createButton("fsButton", tile);
-  fullscreenButton.style.visibility = tile.mode === modeFullscreen ? "hidden" : "";
+  var fullscreenButton = createButton("fullscreenButton", tile);
+  fullscreenButton.style.visibility = tile.fullscreen ? "hidden" : "";
   fullscreenButton.onclick = function (event) {
-    sendSceneJsonRpc("move-window-to-fullscreen", getIdAsObject(tile), updateWall);
     event.stopImmediatePropagation();
+    sendSceneJsonRpc("move-window-to-fullscreen", getIdAsObject(tile), updateWall);
   };
   var icon = document.createElement("img");
   icon.src = fullscreenImageUrl;
@@ -256,7 +257,6 @@ function createWindow(tile) {
   var windowDiv = document.createElement("div");
   $("#wall").append(windowDiv);
   windowDiv.id = tile.uuid;
-
   windowDiv.className = "windowDiv";
   windowDiv.title = tile.title;
   $(this).animate({
@@ -279,18 +279,6 @@ function createWindow(tile) {
 
   setHandles(tile);
 
-  if (tile.mode === modeFocus)
-    disableHandles();
-  if (tile.mode === modeFullscreen)
-    disableHandlesForFullscreen(tile);
-
-  if (tile.selected)
-    markAsSelected(tile);
-  if (tile.focus)
-    markAsFocused(tile);
-  if (tile.fullscreen)
-    markAsFullscreen(tile);
-
   $('#' + tile.uuid).bind('mousewheel DOMMouseScroll', _.throttle(function (event) {
       return resizeOnWheelEvent(event, tile)
     }, zoomInterval)
@@ -305,43 +293,27 @@ function createWindow(tile) {
     }
     event.stopImmediatePropagation();
   };
-  updateTile(tile);
+
+  updateWindow(tile);
 }
 
-function disableHandles() {
-  var draggableObj = $('.ui-draggable');
-  draggableObj.draggable('disable');
-  draggableObj.resizable('disable');
-  draggableObj.removeClass('active').addClass('inactive');
+function displayWallLock() {
+  var wallLock = $("#wallLock");
+  wallLock.clearQueue();
+  wallLock.fadeTo(100, 1).css("background-color", "grey").fadeTo(1000, 0.0);
 }
 
-function disableHandlesForFullscreen(tile) {
-  $('.ui-draggable').draggable('disable');
-  $('.ui-resizable').resizable('disable');
-  var draggableObj = $('#' + tile.uuid);
-
-  if (tile.height > wallHeight && tile.width > wallWidth)
-    draggableObj.draggable('enable');
-  else if (tile.height > wallHeight)
-    draggableObj.draggable({axis: "y"}).draggable('enable');
-  else if (tile.width > wallWidth)
-    draggableObj.draggable({axis: "x"}).draggable('enable');
-  draggableObj.removeClass('active').addClass('inactive');
-}
-
-function enableControls(tile) {
-  $('#' + tile.uuid).removeClass("windowFullscreen");
-  $('#fsButton' + tile.uuid).css("visibility", "visible");
-  $('#sb' + tile.uuid).css("visibility", "visible");
+function showControls(tile) {
   $('#closeButton' + tile.uuid).css("visibility", "visible");
+  $('#fullscreenButton' + tile.uuid).css("visibility", "visible");
+  var focusButtonVisible = tile.selected ? "visible" : "hidden";
+  $('#focusButton' + tile.uuid).css("visibility", focusButtonVisible);
 }
 
-function enableHandles() {
-  var draggableObj = $('.ui-draggable');
-  draggableObj.draggable('enable');
-  draggableObj.resizable('enable');
-  draggableObj.draggable({axis: false});
-  draggableObj.removeClass('inactive').addClass('active');
+function hideControls(tile) {
+  $('#closeButton' + tile.uuid).css("visibility", "hidden");
+  $('#fullscreenButton' + tile.uuid).css("visibility", "hidden");
+  $('#focusButton' + tile.uuid).css("visibility", "hidden");
 }
 
 function getFileSystemContent(path) {
@@ -614,7 +586,7 @@ function handleUpload(evt) {
 }
 
 function init() {
-  boostrapUpload();
+  bootstrapUpload();
   bootstrapMenus();
 
   var xhr = new XMLHttpRequest();
@@ -643,7 +615,7 @@ function init() {
     displayHeight = surface["displayHeight"];
     var backgroundColor = surface["background"]["color"];
 
-    if(config["name"] !== "")
+    if (config["name"] !== "")
       document.title = config["name"];
 
     setScale();
@@ -703,6 +675,8 @@ function init() {
   $("#closeAllButton").on("click", function () {
     sendSceneJsonRpc("clear", getSurfaceParams(), updateWall);
   });
+
+  bootstrapContentsDialog();
 }
 
 function isBezelVisible(){
@@ -718,16 +692,47 @@ function getIdAsObject(tile) {
   return {"id": tile.uuid}
 }
 
+function markAsStandard(tile) {
+  var tileDiv = $('#' + tile.uuid);
+  tileDiv.draggable('enable');
+  tileDiv.draggable({axis: false});
+  tileDiv.resizable('enable');
+  tileDiv.removeClass("windowFullscreen");
+
+  showControls(tile);
+}
+
 function markAsFocused(tile) {
-  $('#' + tile.uuid).css("z-index", zIndexFocus).css("border", "0px").addClass("windowSelected");
-  $('#focusButton' + tile.uuid).css("visibility", "visible")
+  var tileDiv = $('#' + tile.uuid);
+  tileDiv.draggable('disable');
+  tileDiv.resizable('disable');
+  tileDiv.removeClass('active').addClass('inactive');
+  tileDiv.removeClass("windowFullscreen");
+  tileDiv.css("z-index", zIndexFocus).css("border", "0px");
+  $('#focusButton' + tile.uuid).css("visibility", "visible");
+
+  showControls(tile);
 }
 
 function markAsFullscreen(tile) {
-  $('#' + tile.uuid).css("z-index", zIndexFullscreen).addClass("windowFullscreen");
-  $('#closeButton' + tile.uuid).css("visibility", "hidden");
-  $('#fsButton' + tile.uuid).css("visibility", "hidden");
-  $('#focusButton' + tile.uuid).css("visibility", "hidden");
+  var tileDiv = $('#' + tile.uuid);
+
+  tileDiv.resizable('disable');
+
+  if (tile.height > wallHeight && tile.width > wallWidth)
+    tileDiv.draggable('enable');
+  else if (tile.height > wallHeight)
+    tileDiv.draggable({axis: "y"}).draggable('enable');
+  else if (tile.width > wallWidth)
+    tileDiv.draggable({axis: "x"}).draggable('enable');
+  else
+    tileDiv.draggable('disable');
+
+  tileDiv.removeClass('active').addClass('inactive');
+  tileDiv.css("z-index", zIndexFullscreen);
+  tileDiv.addClass("windowFullscreen");
+
+  hideControls(tile);
 }
 
 function markAsSelected(tile) {
@@ -738,6 +743,12 @@ function markAsSelected(tile) {
 function markAsUnselected(tile) {
   $('#' + tile.uuid).removeClass('windowSelected');
   $('#focusButton' + tile.uuid).css("visibility", "hidden")
+}
+
+function markAsLocked(tile) {
+  var tileDiv = $('#' + tile.uuid);
+  tileDiv.draggable('disable');
+  tileDiv.resizable('disable');
 }
 
 function openWhiteboard() {
@@ -825,7 +836,7 @@ function sendSceneJsonRpc(method, parameters, callback) {
 
 function sendJsonRpc(endpoint, method, parameters, callback) {
   if (typeof sendJsonRpc.counter == 'undefined') {
-      sendJsonRpc.counter = 0;
+    sendJsonRpc.counter = 0;
   }
   var jsonrpc = {"jsonrpc": "2.0", "method": method, "params": parameters, "id": sendJsonRpc.counter++};
   request("POST", endpoint, JSON.stringify(jsonrpc), function (response) {
@@ -842,6 +853,11 @@ function sendJsonRpc(endpoint, method, parameters, callback) {
 
 function request(method, command, parameters, callback)
 {
+  if (locked) {
+    displayWallLock();
+    return;
+  }
+
   var xhr = new XMLHttpRequest();
   xhr.open(method, restUrl + command, true);
   xhr.responseType = "json";
@@ -854,11 +870,10 @@ function request(method, command, parameters, callback)
     if (xhr.status === 400)
       alertPopup("Something went wrong", "Issue at: " + restUrl + command);
     else if (xhr.status === 403) {
-      if (!locked) {
-        location.reload();
-      }
+      if (locked)
+        displayWallLock();
       else
-        $("#wallLock").show().fadeTo(100, 1).css("background-color", "grey").fadeTo(1000, 0.0)
+        location.reload();
     }
     if (xhr.readyState === XMLHttpRequest.DONE && (xhr.status === 200 || xhr.status === 403)) {
       if (callback !== null)
@@ -872,8 +887,9 @@ function request(method, command, parameters, callback)
 
 function resizeOnWheelEvent(event, tile) {
   // do nothing if a window is in focus mode
-  if (focus && !fullscreen)
+  if (tile.focus && !tile.fullscreen)
     return;
+
   var oldWidth = $('#' + tile.uuid).width() / zoomScale;
   var oldHeight = $('#' + tile.uuid).height() / zoomScale;
   var incrementSize = wallHeight / 10;
@@ -1245,6 +1261,16 @@ function stickToBezel(event, bezel) {
   }
 }
 
+function updateContentsDialog(windowList) {
+  var contentsLinksHtml = windowList.map(function (window) {
+    return "<a href='file://" + window.uri + "'>" + window.uri + "</a>";
+  }).join("<br/>");
+  var downloadData = "data:text/html," + contentsLinksHtml;
+  var downloadLink = '<a download="contents.html" href="' + downloadData + '">Export</a>';
+  var htmlContent = contentsLinksHtml + "<br/><br/>" + downloadLink;
+  $("#contentsDialog").html(htmlContent);
+}
+
 function updateOptions() {
   var options = [];
   var xhr = new XMLHttpRequest();
@@ -1262,7 +1288,7 @@ function updateOptions() {
   xhr.send(null);
 }
 
-function updateTile(tile) {
+function updateWindow(tile) {
   var windowDiv = $('#' + tile.uuid);
   // don't use minHeight, minWitdh and zIndex from REST interface for focused window
   // or zIndex for fullscreen window
@@ -1274,98 +1300,84 @@ function updateTile(tile) {
   windowDiv.css("height", tile.height);
   windowDiv.css("width", tile.width);
   windowDiv.css("visibility", tile.visible ? "visible" : "hidden");
+
+  if (tile.selected)
+    markAsSelected(tile);
+  else
+    markAsUnselected(tile);
+
+  if (tile.focus)
+    markAsFocused(tile);
+  else if (tile.fullscreen)
+    markAsFullscreen(tile);
+  else
+    markAsStandard(tile);
+
+  if (locked)
+    markAsLocked(tile);
 }
 
 function updateWall() {
-  enableHandles();
-  fullscreen = false;
-  focus = false;
   var xhr = new XMLHttpRequest();
   xhr.open("GET", restUrl + "windows", true);
   xhr.onload = function () {
     if (xhr.status === 200) {
       var jsonList = JSON.parse(xhr.responseText)[activeSurfaceIndex]["windows"];
 
-      // Check if a window has been removed on the wall
-      checkForRemoved();
+      updateContentsDialog(jsonList);
 
-      var jsonUuidList = jsonList.map(function (element) {
+      var jsonUuids = jsonList.map(function (element) {
         return element.uuid;
       });
-      var windowUuidList = windowList.map(function (element) {
+      var windowUuids = windowList.map(function (element) {
         return element.uuid;
       });
+      closeRemovedWindows(jsonUuids, windowUuids);
 
-      // Loop through data from rest api to add new windows and modify exisiting if different
-      for (var i = 0; i < jsonUuidList.length; i++) {
-        if (jsonList[i].mode == modeFocus)
+      focus = false;
+      fullscreen = false;
+
+      // Add new windows and updated exisiting ones if they have changed
+      for (var i = 0; i < jsonList.length; ++i) {
+        var window = jsonList[i];
+        if (window.focus)
           focus = true;
-        if (jsonList[i].mode == modeFullscreen)
+        if (window.fullscreen)
           fullscreen = true;
 
-        //Window missing. Create it.
-        if (windowUuidList.indexOf(jsonUuidList[i]) === -1)
-          createWindow(jsonList[i]);
-
+        var tileIndex = windowUuids.indexOf(window.uuid);
+        if (tileIndex === -1) {
+          createWindow(window);
+        }
         else {
-          var tile = windowList[windowUuidList.indexOf(jsonUuidList[i])];
-          //If window has been updated, modify its properties
-          if (!checkIfEqual(jsonList[i], tile)) {
-
-            copy(jsonList[i], tile);
-            updateTile(tile);
-
-            if (tile.mode === modeFocus)
-              disableHandles();
-            if (tile.mode === modeFullscreen)
-              disableHandlesForFullscreen(tile);
-
-            if (tile.selected)
-              markAsSelected(tile);
-            else
-              markAsUnselected(tile);
-
-            if (tile.focus)
-              markAsFocused(tile);
-
-            if (tile.fullscreen)
-              markAsFullscreen(tile);
-            else
-              enableControls(tile);
+          var tile = windowList[tileIndex];
+          if (!checkIfEqual(window, tile)) {
+            copy(window, tile);
+            updateWindow(tile);
           }
         }
       }
+
+      if (fullscreen)
+        setCurtain(fullscreenCurtain);
+      else
+        removeCurtain(fullscreenCurtain);
+
+      if (focus)
+        setCurtain(focusCurtain);
+      else
+        removeCurtain(focusCurtain);
     }
 
-    function checkForRemoved() {
-      var json = jsonList.map(function (element) {
-        return element.uuid;
-      });
-      var list = windowList.map(function (element) {
-        return element.uuid;
-      });
-      for (var i = 0; i < list.length; i++) {
-        if (json.indexOf(list[i]) === -1) {
+    function closeRemovedWindows(jsonUuids, windowUuids) {
+      for (var i = 0; i < windowUuids.length; ++i) {
+        if (jsonUuids.indexOf(windowUuids[i]) === -1) {
           windowList.splice(windowList.findIndex(function (element) {
-            return element.uuid === list[i];
+            return element.uuid === windowUuids[i];
           }), 1);
-          $('#' + list[i]).remove();
+          $('#' + windowUuids[i]).remove();
         }
       }
-    }
-
-    if (fullscreen)
-      setCurtain(fullscreenCurtain);
-    else
-      removeCurtain(fullscreenCurtain);
-
-    if (focus)
-      setCurtain(focusCurtain);
-    else
-      removeCurtain(focusCurtain);
-
-    if (locked) {
-      disableHandles();
     }
   };
   xhr.send(null);
@@ -1377,31 +1389,25 @@ function updateWall() {
   lockCheck.open("GET", restUrl + "lock", true);
   lockCheck.onload = function () {
     var lock = JSON.parse(lockCheck.responseText);
-    locked = lock["locked"];
-    var draggableObj = $('.ui-draggable');
+    var newLockStatus = lock["locked"];
+    if (newLockStatus === locked)
+      return;
 
-    if (lock["locked"]) {
-      $('#wallLock').show()
-      $('.windowDiv').on('mousedown', function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-      });
-      draggableObj.draggable('disable');
-      draggableObj.resizable('disable');
-      $(".menuButton").prop("disabled", true)
+    locked = newLockStatus;
+    if (locked) {
+      $('#wallLock').show();
       $("#lockIcon").attr("src", lockImageUrl);
+      $(".menuButton").prop("disabled", true);
     }
     else {
-      $('#wallLock').hide()
-      if (!fullscreen) {
-        draggableObj.draggable('enable');
-        draggableObj.resizable('enable');
-      }
+      $('#wallLock').hide();
       $("#lockIcon").attr("src", unlockImageUrl);
-      $(".menuButton").prop("disabled", false)
+      $(".menuButton").prop("disabled", false);
     }
+    // update all windows to disable or re-enable the draggable / resizable behaviour
+    for (var i = 0; i < windowList.length; ++i)
+      updateWindow(windowList[i]);
   };
-
   lockCheck.send(null);
 
   var screenCheck = new XMLHttpRequest();
