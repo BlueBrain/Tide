@@ -181,6 +181,11 @@ SceneRemoteController::SceneRemoteController(Scene& scene)
         try
         {
             auto windowAndGroup = _scene.findWindowPtrAndGroup(params.id);
+            if (windowAndGroup.first->isFocused())
+            {
+                DisplayGroupController controller{windowAndGroup.second};
+                controller.unfocus(params.id);
+            }
             windowAndGroup.second.removeContentWindow(windowAndGroup.first);
             return ok;
         }
