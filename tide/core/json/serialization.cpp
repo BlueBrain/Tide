@@ -176,6 +176,7 @@ QJsonObject serialize(const Options& options)
         {"clock", options.getShowClock()},
         {"contentTiles", options.getShowContentTiles()},
         {"controlArea", options.getShowControlArea()},
+        {"filePaths", options.getShowFilePaths()},
         {"statistics", options.getShowStatistics()},
         {"testPattern", options.getShowTestPattern()},
         {"touchPoints", options.getShowTouchPoints()},
@@ -334,9 +335,9 @@ bool deserialize(const QJsonObject& object, Options& options)
     if (value.isBool())
         options.setShowControlArea(value.toBool());
 
-    value = object["clock"];
+    value = object["filePaths"];
     if (value.isBool())
-        options.setShowClock(value.toBool());
+        options.setShowFilePaths(value.toBool());
 
     value = object["statistics"];
     if (value.isBool())

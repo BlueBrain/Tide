@@ -4,8 +4,10 @@ Changelog {#changelog}
 # Release 1.5 (git master)
 
 * [241](https://github.com/BlueBrain/Tide/pull/241):
-  Small bugfixes for the web interface, new "contents" dialog to help locate
-  open files.
+  New option to display the file paths in the window title bars.
+  Web interface:
+  - New "contents" dialog to help finding the location of open files.
+  - Small bugfixes.
 * [239](https://github.com/BlueBrain/Tide/pull/239):
   The behavior of the 1:1 button changed for contents that would exceed
   the surface dimensions in 1:1 size. Previously such windows were hard

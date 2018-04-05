@@ -65,6 +65,7 @@ class Content : public QObject
     Q_OBJECT
     Q_DISABLE_COPY(Content)
 
+    Q_PROPERTY(QString uri READ getURI CONSTANT)
     Q_PROPERTY(QString title READ getTitle NOTIFY titleChanged)
     Q_PROPERTY(QSize size READ getDimensions NOTIFY dimensionsChanged)
     Q_PROPERTY(qreal aspectRatio READ getAspectRatio CONSTANT)

@@ -1,6 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2011-2012, The University of Texas at Austin.       */
-/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael.Dumusc@epfl.ch                   */
 /*                          Daniel.Nachbaur@epfl.ch                  */
 /* All rights reserved.                                              */
@@ -67,6 +67,8 @@ class Options : public QObject, public std::enable_shared_from_this<Options>
     Q_PROPERTY(bool showControlArea READ getShowControlArea NOTIFY
                    showControlAreaChanged)
     Q_PROPERTY(
+        bool showFilePaths READ getShowFilePaths NOTIFY showFilePathsChanged)
+    Q_PROPERTY(
         bool showStatistics READ getShowStatistics NOTIFY showStatisticsChanged)
     Q_PROPERTY(bool showTouchPoints READ getShowTouchPoints NOTIFY
                    showTouchPointsChanged)
@@ -87,6 +89,7 @@ public:
     bool getShowClock() const;
     bool getShowContentTiles() const;
     bool getShowControlArea() const;
+    bool getShowFilePaths() const;
     bool getShowStatistics() const;
     bool getShowTestPattern() const;
     bool getShowTouchPoints() const;
@@ -103,6 +106,7 @@ public slots:
     void setShowClock(bool set);
     void setShowContentTiles(bool set);
     void setShowControlArea(bool set);
+    void setShowFilePaths(bool set);
     void setShowStatistics(bool set);
     void setShowTestPattern(bool set);
     void setShowTouchPoints(bool set);
@@ -119,6 +123,7 @@ signals:
     void showContentTilesChanged(bool set);
     void showClockChanged(bool set);
     void showControlAreaChanged(bool set);
+    void showFilePathsChanged(bool set);
     void showStatisticsChanged(bool set);
     void showTestPatternChanged(bool set);
     void showTouchPointsChanged(bool set);
@@ -144,6 +149,7 @@ private:
         ar & _showClock;
         ar & _showContentTiles;
         ar & _showControlArea;
+        ar & _showFilePaths;
         ar & _showStreamingStatistics;
         ar & _showTouchPoints;
         ar & _showTestPattern;
@@ -158,6 +164,7 @@ private:
     bool _showClock = false;
     bool _showContentTiles = false;
     bool _showControlArea = true;
+    bool _showFilePaths = false;
     bool _showStreamingStatistics = false;
     bool _showTestPattern = false;
     bool _showTouchPoints = true;

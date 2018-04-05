@@ -1,6 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2011-2012, The University of Texas at Austin.       */
-/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael.Dumusc@epfl.ch                   */
 /*                          Daniel.Nachbaur@epfl.ch                  */
 /* All rights reserved.                                              */
@@ -64,6 +64,11 @@ bool Options::getShowContentTiles() const
 bool Options::getShowControlArea() const
 {
     return _showControlArea;
+}
+
+bool Options::getShowFilePaths() const
+{
+    return _showFilePaths;
 }
 
 bool Options::getShowStatistics() const
@@ -143,6 +148,16 @@ void Options::setShowControlArea(const bool set)
 
     _showControlArea = set;
     emit showControlAreaChanged(set);
+    emit updated(shared_from_this());
+}
+
+void Options::setShowFilePaths(const bool set)
+{
+    if (_showFilePaths == set)
+        return;
+
+    _showFilePaths = set;
+    emit showFilePathsChanged(set);
     emit updated(shared_from_this());
 }
 
