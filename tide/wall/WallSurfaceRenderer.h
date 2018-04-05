@@ -37,27 +37,25 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef WALLRENDERER_H
-#define WALLRENDERER_H
+#ifndef WALLSURFACERENDERER_H
+#define WALLSURFACERENDERER_H
 
 #include "types.h"
 
 #include "BackgroundRenderer.h"
 #include "WallRenderContext.h"
 
-#include <QtCore/QMap>
-#include <QtCore/QObject>
-#include <QtCore/QUuid>
+#include <QObject>
 
 class QQuickItem;
 
 /**
- * Renders all contents on the wall.
+ * Render a surface in Qml in the wall application.
  */
-class WallRenderer : public QObject
+class WallSurfaceRenderer : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY(WallRenderer)
+    Q_DISABLE_COPY(WallSurfaceRenderer)
 
 public:
     /**
@@ -65,10 +63,10 @@ public:
      * @param context for rendering Qml elements.
      * @param parentItem to attach to.
      */
-    WallRenderer(WallRenderContext context, QQuickItem& parentItem);
+    WallSurfaceRenderer(WallRenderContext context, QQuickItem& parentItem);
 
     /** Destructor. */
-    ~WallRenderer();
+    ~WallSurfaceRenderer();
 
     /** Set background content. */
     void setBackground(BackgroundPtr background);

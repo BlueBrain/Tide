@@ -125,7 +125,7 @@ private:
     std::unique_ptr<deflect::qt::QuickRenderer> _quickRenderer;
     std::unique_ptr<QThread> _quickRendererThread;
     std::unique_ptr<QQmlEngine> _qmlEngine;
-    std::unique_ptr<WallRenderer> _renderer;
+    std::unique_ptr<WallSurfaceRenderer> _surfaceRenderer;
     std::unique_ptr<TestPattern> _testPattern;
 };
 

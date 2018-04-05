@@ -14,6 +14,7 @@ Item {
 
     StreamNotificationArea {
         id: streamNotificationArea
+        z: Style.streamNotificationZorder
         anchors.top: parent.verticalCenter
         anchors.left: parent.left
     }

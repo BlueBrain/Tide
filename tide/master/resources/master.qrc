@@ -1,12 +1,11 @@
 <RCC>
     <qresource prefix="/"/>
     <qresource prefix="/qml/master">
+        <file>GUIRoot.qml</file>
         <file>MasterContentWindow.qml</file>
         <file>MasterDisplayGroup.qml</file>
-        <file>MasterSurface.qml</file>
+        <file>MasterControlSurface.qml</file>
         <file>OffscreenRoot.qml</file>
-        <file>Root.qml</file>
-        <file>Wall.qml</file>
     </qresource>
     <qresource prefix="/html">
         <file>css/bootstrap.min.css</file>

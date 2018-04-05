@@ -3,10 +3,13 @@ import Tide 1.0
 import "qrc:/qml/core/."
 import "qrc:/qml/core/style.js" as Style
 
-Item {
-    property alias frames: wallsurface.frames
+BasicSurface {
+    property alias frames: walloverlay.frames
 
-    WallSurfaceElements {
-        id: wallsurface
+    WallOverlay {
+        id: walloverlay
+        anchors.fill: parent
+        z: Style.overlayZorder
+        showClock: false
     }
 }

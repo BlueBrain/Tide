@@ -37,7 +37,7 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "WallRenderer.h"
+#include "WallSurfaceRenderer.h"
 
 #include "DataProvider.h"
 #include "DisplayGroupRenderer.h"
@@ -56,11 +56,12 @@
 
 namespace
 {
-const QUrl QML_BASIC_SURFACE_URL("qrc:/qml/wall/WallBasicSurface.qml");
 const QUrl QML_CONTROL_SURFACE_URL("qrc:/qml/wall/WallControlSurface.qml");
+const QUrl QML_BASIC_SURFACE_URL("qrc:/qml/wall/WallBasicSurface.qml");
 }
 
-WallRenderer::WallRenderer(WallRenderContext context, QQuickItem& parentItem)
+WallSurfaceRenderer::WallSurfaceRenderer(WallRenderContext context,
+                                         QQuickItem& parentItem)
     : _context{std::move(context)}
     , _qmlContext{*_context.engine.rootContext()}
     , _background{Background::create()}
@@ -75,22 +76,22 @@ WallRenderer::WallRenderer(WallRenderContext context, QQuickItem& parentItem)
     _createGroupRenderer();
 }
 
-WallRenderer::~WallRenderer()
+WallSurfaceRenderer::~WallSurfaceRenderer()
 {
 }
 
-void WallRenderer::setBackground(BackgroundPtr background)
+void WallSurfaceRenderer::setBackground(BackgroundPtr background)
 {
     _setBackground(*background);
     _background = std::move(background);
 }
 
-bool WallRenderer::needRedraw() const
+bool WallSurfaceRenderer::needRedraw() const
 {
     return _options->getShowStatistics() || _options->getShowClock();
 }
 
-void WallRenderer::setDisplayGroup(DisplayGroupPtr displayGroup)
+void WallSurfaceRenderer::setDisplayGroup(DisplayGroupPtr displayGroup)
 {
     _qmlContext.setContextProperty("displaygroup", displayGroup.get());
     _displayGroup = displayGroup;
@@ -98,7 +99,7 @@ void WallRenderer::setDisplayGroup(DisplayGroupPtr displayGroup)
     _displayGroupRenderer->setDisplayGroup(displayGroup);
 }
 
-void WallRenderer::setMarkers(MarkersPtr markers)
+void WallSurfaceRenderer::setMarkers(MarkersPtr markers)
 {
     if (markers->getSurfaceIndex() != _context.surfaceIndex)
         return;
@@ -107,32 +108,32 @@ void WallRenderer::setMarkers(MarkersPtr markers)
     _markers = std::move(markers); // Retain the new Markers
 }
 
-void WallRenderer::setRenderingOptions(OptionsPtr options)
+void WallSurfaceRenderer::setRenderingOptions(OptionsPtr options)
 {
     _qmlContext.setContextProperty("options", options.get());
     _surfaceItem->setVisible(!options->getShowTestPattern());
     _options = std::move(options); // Retain the new Options
 }
 
-void WallRenderer::setScreenLock(ScreenLockPtr lock)
+void WallSurfaceRenderer::setScreenLock(ScreenLockPtr lock)
 {
     _qmlContext.setContextProperty("lock", lock.get());
     _screenLock = std::move(lock); // Retain the new ScreenLock
 }
 
-void WallRenderer::setCountdownStatus(CountdownStatusPtr status)
+void WallSurfaceRenderer::setCountdownStatus(CountdownStatusPtr status)
 {
     _qmlContext.setContextProperty("countdownStatus", status.get());
     _countdownStatus = std::move(status);
 }
 
-void WallRenderer::updateRenderedFrames()
+void WallSurfaceRenderer::updateRenderedFrames()
 {
     const int frames = _surfaceItem->property("frames").toInt();
     _surfaceItem->setProperty("frames", frames + 1);
 }
 
-void WallRenderer::_setContextProperties()
+void WallSurfaceRenderer::_setContextProperties()
 {
     _qmlContext.setContextProperty("countdownStatus", _countdownStatus.get());
     _qmlContext.setContextProperty("displaygroup", _displayGroup.get());
@@ -141,7 +142,7 @@ void WallRenderer::_setContextProperties()
     _qmlContext.setContextProperty("lock", _screenLock.get());
 }
 
-void WallRenderer::_createSurfaceItem(QQuickItem& parentItem)
+void WallSurfaceRenderer::_createSurfaceItem(QQuickItem& parentItem)
 {
     if (_context.surfaceIndex == 0)
         _surfaceItem = qml::makeItem(_context.engine, QML_CONTROL_SURFACE_URL);
@@ -153,13 +154,13 @@ void WallRenderer::_createSurfaceItem(QQuickItem& parentItem)
     _surfaceItem->setParentItem(&parentItem);
 }
 
-void WallRenderer::_createGroupRenderer()
+void WallSurfaceRenderer::_createGroupRenderer()
 {
     _displayGroupRenderer =
         std::make_unique<DisplayGroupRenderer>(_context, *_surfaceItem);
 }
 
-void WallRenderer::_setBackground(const Background& background)
+void WallSurfaceRenderer::_setBackground(const Background& background)
 {
     const auto content = background.getContent();
 
@@ -171,7 +172,7 @@ void WallRenderer::_setBackground(const Background& background)
                                                  *_surfaceItem);
 }
 
-bool WallRenderer::_hasBackgroundChanged(const QString& newUri) const
+bool WallSurfaceRenderer::_hasBackgroundChanged(const QString& newUri) const
 {
     return newUri != _background->getUri();
 }

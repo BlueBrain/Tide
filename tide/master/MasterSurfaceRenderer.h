@@ -72,7 +72,7 @@ private:
     std::unique_ptr<MasterDisplayGroupRenderer> _displayGroupRenderer;
 
     void _setContextProperties(QQmlContext& context);
-    void _createSurfaceItem(QQmlEngine& engine);
+    void _createControlSurfaceItem(QQmlEngine& engine);
     void _createBasicSurfaceItem(QQmlEngine& engine);
     void _createGroupRenderer(QQmlEngine& engine);
 };

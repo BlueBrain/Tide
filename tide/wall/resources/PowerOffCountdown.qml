@@ -7,6 +7,16 @@ Rectangle {
     id: countdown
     color: Style.focusContextColor
 
+    Text {
+        text: "Touch to prevent sleep!"
+        font.pointSize: Math.max(1.0, parent.height * Style.countdownTextScale)
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.horizontalCenter: parent.horizontalCenter
+        color: "white"
+        style: Text.Outline
+        styleColor: "black"
+    }
+
     states: [
         State {
             name: "hidden"
@@ -46,15 +56,4 @@ Rectangle {
             }
         }
     ]
-
-    Text {
-        text: "Touch to prevent sleep!"
-        visible: countdownStatus.active
-        font.pointSize: countdown.height * Style.countdownTextScale
-        anchors.verticalCenter: parent.verticalCenter
-        anchors.horizontalCenter: parent.horizontalCenter
-        color: "white"
-        style: Text.Outline
-        styleColor: "black"
-    }
 }

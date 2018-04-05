@@ -10,7 +10,6 @@ ListView {
 
     width: childrenRect.width
     height: itemHeight * 10
-    z: Style.streamNotificationZorder
     spacing: 3
     model: lock.streamList
 

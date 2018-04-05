@@ -17,8 +17,6 @@ var fullscreenBackgroundZorder = 198;
 var fullscreenZorder = 199;
 var streamNotificationZorder = 200;
 var sideControlZorder = 201;
-var countdownZorder = 202;
-
 var overlayZorder = 1000;
 
 var focusContextColor = "black"

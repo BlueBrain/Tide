@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -42,15 +42,15 @@
 
 #include "types.h"
 
+#include <QQuickView>
+
 class MasterSurfaceRenderer;
 
-#include <QGesture>
-#include <QGestureEvent>
-#include <QQuickView>
-#include <QUuid>
-
 /**
- * A qml view of a single surface of the display wall inside the master window.
+ * A scaled view of a full surface to be displayed inside the master window.
+ *
+ * The surface is rendered centered with some padding inside the QQuickView and
+ * also shows the screens and bezels.
  */
 class MasterQuickView : public QQuickView
 {
@@ -65,12 +65,6 @@ public:
     /** Destructor */
     ~MasterQuickView();
 
-    /** Get the wall qml item. */
-    QQuickItem* wallItem();
-
-    /** Map a normalized touch event on the wall to this view's coordinates. */
-    QPointF mapToWallPos(const QPointF& normalizedPos) const;
-
 signals:
     /** @name Emitted when a user interactacts with the mouse. */
     //@{
@@ -79,14 +73,15 @@ signals:
     void mouseReleased(QPointF pos);
     //@}
 
+    /** Emitted when a user clicks the launcher button. */
     void openLauncher();
 
 private:
-    /** Re-implement QWindow event to capture tab key. */
     bool event(QEvent* event) final;
     void _mapTouchEvent(QTouchEvent* event);
+    QPointF _mapToQmlSurfacePos(const QPointF& normalizedPos) const;
 
-    QQuickItem* _wallItem = nullptr;
+    QQuickItem* _surfaceItem = nullptr;
     std::unique_ptr<MasterSurfaceRenderer> _surfaceRenderer;
 };
 
