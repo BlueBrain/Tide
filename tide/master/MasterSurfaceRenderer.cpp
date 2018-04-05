@@ -49,7 +49,7 @@
 
 namespace
 {
-const QUrl QML_CONTROL_SURFACE_URL("qrc:/qml/master/MasterSurface.qml");
+const QUrl QML_CONTROL_SURFACE_URL("qrc:/qml/master/MasterControlSurface.qml");
 const QUrl QML_BASIC_SURFACE_URL("qrc:/qml/core/BasicSurface.qml");
 }
 
@@ -63,7 +63,7 @@ MasterSurfaceRenderer::MasterSurfaceRenderer(const size_t surfaceIndex,
     if (surfaceIndex == 0)
     {
         _setContextProperties(*engine.rootContext());
-        _createSurfaceItem(engine);
+        _createControlSurfaceItem(engine);
     }
     else
         _createBasicSurfaceItem(engine);
@@ -83,7 +83,7 @@ void MasterSurfaceRenderer::_setContextProperties(QQmlContext& context)
     context.setContextProperty("groupcontroller", _groupController.get());
 }
 
-void MasterSurfaceRenderer::_createSurfaceItem(QQmlEngine& engine)
+void MasterSurfaceRenderer::_createControlSurfaceItem(QQmlEngine& engine)
 {
     _surfaceItem = qml::makeItem(engine, QML_CONTROL_SURFACE_URL);
     connect(_surfaceItem.get(), SIGNAL(openLauncher()), this,

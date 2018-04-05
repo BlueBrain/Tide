@@ -50,8 +50,8 @@
 
 namespace
 {
-const QUrl QML_ROOT_COMPONENT("qrc:/qml/master/Root.qml");
-const QString WALL_OBJECT_NAME("Wall");
+const QUrl QML_ROOT_COMPONENT("qrc:/qml/master/GUIRoot.qml");
+const QString SURFACE_OBJECT_NAME("Surface");
 }
 
 MasterQuickView::MasterQuickView(const SurfaceConfig& surface,
@@ -67,19 +67,19 @@ MasterQuickView::MasterQuickView(const SurfaceConfig& surface,
 
     setSource(QML_ROOT_COMPONENT);
 
-    _wallItem = rootObject()->findChild<QQuickItem*>(WALL_OBJECT_NAME);
-    _wallItem->setProperty("numberOfTilesX", surface.screenCountX);
-    _wallItem->setProperty("numberOfTilesY", surface.screenCountY);
-    _wallItem->setProperty("bezelWidth", surface.bezelWidth);
-    _wallItem->setProperty("bezelHeight", surface.bezelHeight);
-    _wallItem->setProperty("screenWidth", surface.getScreenWidth());
-    _wallItem->setProperty("screenHeight", surface.getScreenHeight());
-    _wallItem->setProperty("wallWidth", surface.getTotalWidth());
-    _wallItem->setProperty("wallHeight", surface.getTotalHeight());
+    _surfaceItem = rootObject()->findChild<QQuickItem*>(SURFACE_OBJECT_NAME);
+    _surfaceItem->setProperty("numberOfTilesX", surface.screenCountX);
+    _surfaceItem->setProperty("numberOfTilesY", surface.screenCountY);
+    _surfaceItem->setProperty("bezelWidth", surface.bezelWidth);
+    _surfaceItem->setProperty("bezelHeight", surface.bezelHeight);
+    _surfaceItem->setProperty("screenWidth", surface.getScreenWidth());
+    _surfaceItem->setProperty("screenHeight", surface.getScreenHeight());
+    _surfaceItem->setProperty("surfaceWidth", surface.getTotalWidth());
+    _surfaceItem->setProperty("surfaceHeight", surface.getTotalHeight());
 
     _surfaceRenderer =
         std::make_unique<MasterSurfaceRenderer>(surfaceIndex, group, *engine(),
-                                                *_wallItem);
+                                                *_surfaceItem);
 
     connect(_surfaceRenderer.get(), &MasterSurfaceRenderer::openLauncher, this,
             &MasterQuickView::openLauncher);
@@ -87,24 +87,6 @@ MasterQuickView::MasterQuickView(const SurfaceConfig& surface,
 
 MasterQuickView::~MasterQuickView()
 {
-}
-
-QQuickItem* MasterQuickView::wallItem()
-{
-    return _wallItem;
-}
-
-QPointF MasterQuickView::mapToWallPos(const QPointF& normalizedPos) const
-{
-    const auto scale = QQmlProperty::read(_wallItem, "scale").toFloat();
-    const auto offsetX = QQmlProperty::read(_wallItem, "offsetX").toFloat();
-    const auto offsetY = QQmlProperty::read(_wallItem, "offsetY").toFloat();
-
-    const auto screenPosX =
-        normalizedPos.x() * _wallItem->width() * scale + offsetX;
-    const auto screenPosY =
-        normalizedPos.y() * _wallItem->height() * scale + offsetY;
-    return {screenPosX, screenPosY};
 }
 
 bool MasterQuickView::event(QEvent* evt)
@@ -129,21 +111,21 @@ bool MasterQuickView::event(QEvent* evt)
     {
         QMouseEvent* e = static_cast<QMouseEvent*>(evt);
         if (e->button() == Qt::LeftButton)
-            emit mousePressed(_wallItem->mapFromScene(e->localPos()));
+            emit mousePressed(_surfaceItem->mapFromScene(e->localPos()));
         break;
     }
     case QEvent::MouseMove:
     {
         QMouseEvent* e = static_cast<QMouseEvent*>(evt);
         if (e->buttons() & Qt::LeftButton)
-            emit mouseMoved(_wallItem->mapFromScene(e->localPos()));
+            emit mouseMoved(_surfaceItem->mapFromScene(e->localPos()));
         break;
     }
     case QEvent::MouseButtonRelease:
     {
         QMouseEvent* e = static_cast<QMouseEvent*>(evt);
         if (e->button() == Qt::LeftButton)
-            emit mouseReleased(_wallItem->mapFromScene(e->localPos()));
+            emit mouseReleased(_surfaceItem->mapFromScene(e->localPos()));
         break;
     }
     case QEvent::TouchBegin:
@@ -164,6 +146,19 @@ void MasterQuickView::_mapTouchEvent(QTouchEvent* event)
     for (const auto& point : event->touchPoints())
     {
         auto& p = const_cast<QTouchEvent::TouchPoint&>(point);
-        p.setPos(mapToWallPos(point.normalizedPos()));
+        p.setPos(_mapToQmlSurfacePos(point.normalizedPos()));
     }
+}
+
+QPointF MasterQuickView::_mapToQmlSurfacePos(const QPointF& normalizedPos) const
+{
+    const auto scale = QQmlProperty::read(_surfaceItem, "scale").toFloat();
+    const auto offsetX = QQmlProperty::read(_surfaceItem, "offsetX").toFloat();
+    const auto offsetY = QQmlProperty::read(_surfaceItem, "offsetY").toFloat();
+
+    const auto screenPosX =
+        normalizedPos.x() * _surfaceItem->width() * scale + offsetX;
+    const auto screenPosY =
+        normalizedPos.y() * _surfaceItem->height() * scale + offsetY;
+    return {screenPosX, screenPosY};
 }

@@ -3,12 +3,13 @@
         <file>error.png</file>
     </qresource>
     <qresource prefix="/qml/wall">
+        <file>FpsCounter.qml</file>
         <file>PowerOffCountdown.qml</file>
         <file>TouchPointMarker.qml</file>
         <file>WallContentWindow.qml</file>
         <file>WallBasicSurface.qml</file>
         <file>WallControlSurface.qml</file>
-        <file>WallSurfaceElements.qml</file>
+        <file>WallOverlay.qml</file>
         <file>ZoomContext.qml</file>
     </qresource>
 </RCC>

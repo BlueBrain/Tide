@@ -142,7 +142,7 @@ class SwapSynchronizer;
 class TestPattern;
 class Tile;
 struct WallConfiguration;
-class WallRenderer;
+class WallSurfaceRenderer;
 class WallToWallChannel;
 class WallWindow;
 class WebbrowserContent;

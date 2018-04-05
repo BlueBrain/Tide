@@ -4,19 +4,12 @@ import "qrc:/qml/core/."
 import "qrc:/qml/core/style.js" as Style
 
 ControlSurface {
-    property alias frames: wallsurface.frames
+    property alias frames: walloverlay.frames
 
-    Clock {
-        anchors.top: parent.top
-        anchors.right: parent.right
-        anchors.topMargin: 0.5 * width
-        anchors.rightMargin: 0.5 * width
-        visible: options.showClock
-        displayedHeight: parent.height * Style.clockScale
+    WallOverlay {
+        id: walloverlay
+        anchors.fill: parent
         z: Style.overlayZorder
-    }
-
-    WallSurfaceElements {
-        id: wallsurface
+        showClock: true
     }
 }

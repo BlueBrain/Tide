@@ -43,7 +43,7 @@
 #include "TestPattern.h"
 #include "WallConfiguration.h"
 #include "WallRenderContext.h"
-#include "WallRenderer.h"
+#include "WallSurfaceRenderer.h"
 #include "log.h"
 #include "qmlUtils.h"
 #include "scene/Background.h"
@@ -120,7 +120,7 @@ bool WallWindow::isInitialized() const
 
 bool WallWindow::needRedraw() const
 {
-    return _renderer->needRedraw();
+    return _surfaceRenderer->needRedraw();
 }
 
 void WallWindow::exposeEvent(QExposeEvent*)
@@ -161,7 +161,7 @@ void WallWindow::_startQuick(const WallConfiguration& config,
 
                 _quickRenderer->context()->swapBuffers(this);
                 _quickRenderer->context()->functions()->glFlush();
-                QMetaObject::invokeMethod(_renderer.get(),
+                QMetaObject::invokeMethod(_surfaceRenderer.get(),
                                           "updateRenderedFrames",
                                           Qt::QueuedConnection);
                 if (_grabImage)
@@ -186,7 +186,7 @@ void WallWindow::_startQuick(const WallConfiguration& config,
 
     WallRenderContext context{*_qmlEngine, _provider, wallSize,
                               screenRect,  view,      surfaceIndex};
-    _renderer.reset(new WallRenderer(context, *contentItem()));
+    _surfaceRenderer.reset(new WallSurfaceRenderer(context, *contentItem()));
 
     _testPattern.reset(
         new TestPattern(config, surface, currentScreen, *contentItem()));
@@ -204,31 +204,31 @@ void WallWindow::render(const bool grab)
 void WallWindow::setBackground(BackgroundPtr background)
 {
     setColor(background->getColor());
-    _renderer->setBackground(background);
+    _surfaceRenderer->setBackground(background);
 }
 
 void WallWindow::setDisplayGroup(DisplayGroupPtr displayGroup)
 {
-    _renderer->setDisplayGroup(displayGroup);
+    _surfaceRenderer->setDisplayGroup(displayGroup);
 }
 
 void WallWindow::setScreenLock(ScreenLockPtr lock)
 {
-    _renderer->setScreenLock(lock);
+    _surfaceRenderer->setScreenLock(lock);
 }
 
 void WallWindow::setCountdownStatus(CountdownStatusPtr status)
 {
-    _renderer->setCountdownStatus(status);
+    _surfaceRenderer->setCountdownStatus(status);
 }
 
 void WallWindow::setMarkers(MarkersPtr markers)
 {
-    _renderer->setMarkers(markers);
+    _surfaceRenderer->setMarkers(markers);
 }
 
 void WallWindow::setRenderOptions(OptionsPtr options)
 {
     _testPattern->setVisible(options->getShowTestPattern());
-    _renderer->setRenderingOptions(options);
+    _surfaceRenderer->setRenderingOptions(options);
 }
