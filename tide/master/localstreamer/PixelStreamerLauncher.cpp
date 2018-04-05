@@ -182,6 +182,11 @@ void PixelStreamerLauncher::openLauncher()
     options.height = size.height();
     options.contentsDir = _config.folders.contents;
     options.sessionsDir = _config.folders.sessions;
+    options.webservicePort = _config.master.webservicePort;
+    options.demoServiceImageDir = _config.launcher.demoServiceImageDir;
+    options.demoServiceUrl = _config.launcher.demoServiceUrl;
+    options.showPowerButton = !_config.master.planarSerialPort.isEmpty();
+
     const auto command = _getLauncherCommand(options.getCommandLine());
 
     QStringList env;

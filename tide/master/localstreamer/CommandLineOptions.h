@@ -68,9 +68,14 @@ public:
     /** Get the command line arguments in list format. */
     QStringList getCommandLineArguments() const;
 
+    // All
     QString streamId;
+
+    // Launcher and webbrowser
     uint width = 0;
     uint height = 0;
+
+    // Webbrowser only
     QString url;
 
     // Launcher only
