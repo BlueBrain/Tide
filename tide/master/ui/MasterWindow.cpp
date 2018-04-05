@@ -253,6 +253,16 @@ void MasterWindow::_setupMasterWindowUI()
     connect(_options.get(), &Options::showControlAreaChanged,
             showControlAreaAction, &QAction::setChecked);
 
+    // show file paths action
+    auto showFilePathsAction = new QAction("File Paths", this);
+    showFilePathsAction->setStatusTip("Show full file paths in the title bar");
+    showFilePathsAction->setCheckable(true);
+    showFilePathsAction->setChecked(_options->getShowFilePaths());
+    connect(showFilePathsAction, &QAction::toggled, _options.get(),
+            &Options::setShowFilePaths);
+    connect(_options.get(), &Options::showFilePathsChanged, showFilePathsAction,
+            &QAction::setChecked);
+
     // show streaming statistics action
     auto showStatisticsAction = new QAction("Statistics", this);
     showStatisticsAction->setStatusTip("Show statistics");
@@ -337,6 +347,7 @@ void MasterWindow::_setupMasterWindowUI()
     viewMenu->addAction(showClockAction);
     viewMenu->addAction(showContentTilesAction);
     viewMenu->addAction(showControlAreaAction);
+    viewMenu->addAction(showFilePathsAction);
     viewMenu->addAction(showStatisticsAction);
     viewMenu->addAction(showTestPatternAction);
     viewMenu->addAction(showTouchPoints);

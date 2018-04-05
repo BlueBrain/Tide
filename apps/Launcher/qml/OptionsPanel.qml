@@ -36,6 +36,12 @@ DefaultPanel {
             style: checkboxScalingStyle
         }
         CheckBox {
+            id: filePaths
+            text: "File paths"
+            onClicked: buttonClicked("filePaths", checked)
+            style: checkboxScalingStyle
+        }
+        CheckBox {
             id: autoFocusStreamers
             text: "Auto-Focus Streamers"
             onClicked: buttonClicked("autoFocusStreamers", checked)
@@ -136,6 +142,7 @@ DefaultPanel {
     function updateCheckboxes(options) {
         windowBorders.checked = options.windowBorders
         windowTitles.checked = options.windowTitles
+        filePaths.checked = options.filePaths
         autoFocusStreamers.checked = options.autoFocusStreamers
         statistics.checked = options.statistics
         clock.checked = options.clock

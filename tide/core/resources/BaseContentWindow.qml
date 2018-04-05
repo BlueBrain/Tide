@@ -62,8 +62,9 @@ Rectangle {
 
                     FontLoader { id: gothamBook; source: "qrc:/fonts/Gotham-Book.otf"; name: "qrc::gotham-book" }
 
-                    elide: Text.ElideRight
-                    text: contentwindow.content.title
+                    fontSizeMode: options.showFilePaths ? Text.Fit : Text.FixedSize
+                    elide: options.showFilePaths ? Text.ElideLeft : Text.ElideRight
+                    text: options.showFilePaths ? contentwindow.content.uri : contentwindow.content.title
                     font { family: "qrc::gotham-book"; pixelSize: Style.windowTitleFontSize }
                 }
             }

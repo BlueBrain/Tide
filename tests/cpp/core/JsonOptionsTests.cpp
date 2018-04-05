@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -54,6 +54,7 @@ const std::string defaultJson{
     "clock": false,
     "contentTiles": false,
     "controlArea": true,
+    "filePaths": false,
     "statistics": false,
     "testPattern": false,
     "touchPoints": true,
@@ -77,6 +78,7 @@ const std::string allValuesChangedJson{
     "clock": true,
     "contentTiles": true,
     "controlArea": false,
+    "filePaths": true,
     "statistics": true,
     "testPattern": true,
     "touchPoints": false,
