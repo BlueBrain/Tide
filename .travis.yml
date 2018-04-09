@@ -19,8 +19,10 @@ before_install:
   - brew outdated cmake || brew upgrade cmake
   - brew install gcc || brew link --overwrite gcc
   - brew install cppcheck doxygen ninja
-  - brew install ffmpeg jpeg-turbo mpich qt5
-  - brew install poppler --with-qt5
+  - brew install ffmpeg jpeg-turbo qt5
+  - brew install openmpi
+  - brew install python@2 || brew link --overwrite python@2 # fix poppler dependency install
+  - brew install poppler --with-qt
   - brew install openssl #libwebsockets 2.0.2 has issues, build manually
 script:
   - export CPATH=$(brew --prefix openssl)/include
