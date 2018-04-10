@@ -1,7 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
-/*                          Ahmet Bilgili <ahmet.bilgili@epfl.ch>    */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -38,33 +37,88 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef LAUNCHER_H
-#define LAUNCHER_H
+#ifndef FOLDERMODEL_H
+#define FOLDERMODEL_H
 
-#include "tide/master/FileInfoHelper.h"
-
-#include <deflect/qt/QmlStreamer.h>
-
-#include <memory>
-
-#include <QApplication>
+#include <QFileSystemModel>
 
 /**
- * Separate application which streams the Qml launcher using deflect::Qt API.
+ * Expose the files of a folder to Qml.
+ *
+ * This is a replacement for Qt.labs.folderlistmodel for which the caseSensitive
+ * property is not working.
+ *
+ * Note: QFileSystemModel requires a QApplication (QGuiApplication segfaults)!
+ * https://bugreports.qt.io/browse/QTBUG-32768
  */
-class Launcher : public QApplication
+class FolderModel : public QFileSystemModel
 {
     Q_OBJECT
+    Q_PROPERTY(QString rootFolder READ getRootFolder WRITE setRootFolder NOTIFY
+                   rootFolderChanged)
+    Q_PROPERTY(QStringList nameFilters READ getNameFilters WRITE setNameFilters
+                   NOTIFY nameFiltersChanged)
+    Q_PROPERTY(SortCategory sortCategory READ getSortCategory WRITE
+                   setSortCategory NOTIFY sortCategoryChanged)
+    Q_PROPERTY(SortOrder sortOrder READ getSortOrder WRITE setSortOrder NOTIFY
+                   sortOrderChanged)
 
 public:
-    Launcher(int& argc, char* argv[]);
-    ~Launcher();
+    FolderModel();
+
+    enum SortCategory
+    {
+        Name,
+        Size,
+        Date
+    };
+    Q_ENUMS(SortCategory)
+
+    enum SortOrder
+    {
+        Ascending,
+        Descending
+    };
+    Q_ENUMS(SortOrder)
+
+    enum FolderModelRoles
+    {
+        fileName = Qt::UserRole,
+        filePath,
+        fileSize,
+        fileModified,
+        fileIsDir
+    };
+    QHash<int, QByteArray> roleNames() const override;
+    QVariant data(const QModelIndex& index, const int role) const override;
+
+    Q_INVOKABLE QModelIndex getPathIndex(const QString& path) const;
+    Q_INVOKABLE QString getParentFolder() const;
+
+    QString getRootFolder() const;
+    QStringList getNameFilters() const;
+    SortCategory getSortCategory() const;
+    SortOrder getSortOrder() const;
+
+public slots:
+    void setRootFolder(QString rootfolder);
+    void setNameFilters(QStringList nameFilters);
+    void setSortCategory(SortCategory sortCategory);
+    void setSortOrder(SortOrder sortOrder);
+
+signals:
+    void rootFolderChanged(QString rootfolder);
+    void nameFiltersChanged(QStringList nameFilters);
+    void sortCategoryChanged(SortCategory sortCategory);
+    void sortOrderChanged(SortOrder sortOrder);
 
 private:
-    bool event(QEvent* event) final;
+    void _updateSorting();
+    int _getQtSortCategory() const;
+    Qt::SortOrder _getQtSortOrder() const;
 
-    std::unique_ptr<deflect::qt::QmlStreamer> _qmlStreamer;
-    FileInfoHelper _fileInfoHelper;
+    SortCategory _sortCategory = FolderModel::SortCategory::Name;
+    SortOrder _sortOrder = FolderModel::SortOrder::Ascending;
 };
 
 #endif

@@ -11,6 +11,7 @@
         <file>qml/LaunchMenu.qml</file>
         <file>qml/OptionsPanel.qml</file>
         <file>qml/SavePanel.qml</file>
+        <file>qml/ScrollBar.qml</file>
     </qresource>
     <qresource prefix="/">
         <file>images/book.svg</file>

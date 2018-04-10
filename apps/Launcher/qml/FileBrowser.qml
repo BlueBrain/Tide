@@ -1,10 +1,12 @@
-// Copyright (c) 2015-2016, EPFL/Blue Brain Project
+// Copyright (c) 2015-2018, EPFL/Blue Brain Project
 //                          Raphael Dumusc <raphael.dumusc@epfl.ch>
 //                          Ahmet Bilgili <ahmet.bilgili@epfl.ch>
 
 import QtQuick 2.4
-import QtQuick.Controls 1.0
-import Qt.labs.folderlistmodel 2.0
+import QtQuick.Controls 1.3
+import QtQml.Models 2.1
+
+import Launcher 1.0
 import "style.js" as Style
 
 Rectangle {
@@ -14,10 +16,11 @@ Rectangle {
 
     property string rootfolder: ""
     property alias nameFilters: folders.nameFilters // list<string>
-    property alias currentFolder: folders.folder
+    property alias currentFolder: folders.rootFolder
     property alias titleBarHeight: titleBar.height
     property int itemSize: height * Style.fileBrowserItemSizeRel
     property real textPixelSize: itemSize * Style.fileBrowserTextSizeRelToItem
+    property real textColumnSize: textPixelSize * 10
 
     signal itemSelected(string file)
 
@@ -30,31 +33,23 @@ Rectangle {
 
     function selectFile(file) {
         if (file !== "")
-            itemSelected(file)
+            itemSelected(file);
     }
 
     function goDown(path) {
-        folders.folder = path;
+        folders.rootFolder = path;
     }
 
     function goUp() {
-        var path = folders.parentFolder;
-        if (path.toString().length === 0 || path.toString() === 'file:' ||
-                folders.folder.toString() === folders.constRootFolder)
-            return;
-        folders.folder = path;
+        if (folders.rootFolder !== fileBrowser.rootfolder)
+            folders.rootFolder = folders.getParentFolder();
     }
 
-    function openCurrentItem(filePath, fileIsDir) {
-        var path = "file://";
-        if (filePath.length > 2 && filePath[1] === ':')
-            path += '/';
-        path += filePath;
-
+    function openItem(filePath, fileIsDir) {
         if (fileIsDir)
-            goDown(path);
+            goDown(filePath);
         else
-            selectFile(path.replace("file://", ""));
+            selectFile(filePath);
     }
 
     function humanReadableFileSize(bytes, si) {
@@ -81,15 +76,14 @@ Rectangle {
         return Qt.formatDate(date, "dd MMM yyyy");
     }
 
-    FolderListModel {
+    FolderModel {
         id: folders
-        rootFolder: "file:" + fileBrowser.rootfolder
-        folder: "file:" + fileBrowser.rootfolder
-        showDirsFirst: true
-        showDotAndDotDot: false
-        // Extra property needed to silence Qml warning:
-        // "[...] depends on non-NOTIFYable properties: [...] rootFolder"
-        readonly property string constRootFolder: "file://" + fileBrowser.rootfolder
+        rootFolder: fileBrowser.rootfolder
+        function toggleSortOrder() {
+            sortOrder = (sortOrder == FolderModel.Ascending) ?
+                FolderModel.Descending : FolderModel.Ascending;
+        }
+        property string sortIcon: sortOrder == FolderModel.Ascending ? "▲" : "▼"
     }
 
     Component {
@@ -132,7 +126,7 @@ Rectangle {
                 running: false
                 from: Style.fileBrowserBlinkColor
                 to: "transparent"
-                onStopped: fileBrowser.openCurrentItem(filePath, fileIsDir)
+                onStopped: fileBrowser.openItem(filePath, fileIsDir)
             }
         }
     }
@@ -148,8 +142,27 @@ Rectangle {
 
         cellWidth: itemSize * 1.33
         cellHeight: cellWidth
-        model: folders
-        delegate: gridFileDelegate
+        model: DelegateModel {
+            id: gridDelegateModel
+            model: folders
+            rootIndex: folders.getPathIndex(folders.rootFolder)
+
+            Connections {
+                target: folders
+                onRootFolderChanged: rootIndex = folders.getPathIndex(folders.rootFolder)
+            }
+
+            // Mysterious hack to prevent rootIndex from being reset
+            // asynchronously when using a QFileSystemModel:
+            // http://lists.qt-project.org/pipermail/interest/2015-August/018369.html
+            onRootIndexChanged: {
+                rootIndex = folders.getPathIndex(folders.rootFolder)
+            }
+            delegate: gridFileDelegate
+        }
+
+        ScrollBar {
+        }
     }
 
     Component {
@@ -157,7 +170,7 @@ Rectangle {
         Rectangle {
             id: wrapper
             width: parent.width
-            height: 0.5 * itemSize
+            height: itemSize * Style.fileBrowserListItemRelSize
             color: "transparent"
 
             FileBrowserImage {
@@ -172,9 +185,10 @@ Rectangle {
                 text: fileName
                 anchors.left: fileimage.right
                 anchors.leftMargin: font.pixelSize
-                anchors.verticalCenter: parent.verticalCenter
                 anchors.right: sizeText.left
                 elide: Text.ElideMiddle
+
+                anchors.verticalCenter: parent.verticalCenter
                 font.bold: true
                 font.pixelSize: textPixelSize
                 color: Style.fileBrowserTextColor
@@ -184,9 +198,9 @@ Rectangle {
                 id: sizeText
                 text: humanReadableFileSize(fileSize, true)
                 anchors.right: modifiedText.left
-                anchors.rightMargin: font.pixelSize
-                anchors.verticalCenter: parent.verticalCenter
                 visible: !fileIsDir
+
+                anchors.verticalCenter: parent.verticalCenter
                 font.bold: true
                 font.pixelSize: textPixelSize
                 color: Style.fileBrowserTextColor
@@ -196,9 +210,10 @@ Rectangle {
                 id: modifiedText
                 text: humanReadableModificationDate(fileModified)
                 anchors.right: wrapper.right
-                anchors.verticalCenter: parent.verticalCenter
-                width: 10 * font.pixelSize
+                width: textColumnSize
                 horizontalAlignment: Text.AlignRight
+
+                anchors.verticalCenter: parent.verticalCenter
                 font.bold: true
                 font.pixelSize: textPixelSize
                 color: Style.fileBrowserTextColor
@@ -216,22 +231,147 @@ Rectangle {
                 running: false
                 from: Style.fileBrowserBlinkColor
                 to: "transparent"
-                onStopped: fileBrowser.openCurrentItem(filePath, fileIsDir)
+                onStopped: fileBrowser.openItem(filePath, fileIsDir)
             }
         }
     }
 
-    ListView {
-        id: listview
+    Item {
+        id: listviewTable
         anchors.top: titleBar.bottom
         anchors.bottom: parent.bottom
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.margins: itemSize * Style.mainPanelRelMargin
+        anchors.topMargin: 0
         visible: listViewButton.checked
-        model: folders
-        spacing: anchors.margins
-        delegate: listFileDelegate
+
+        ListView {
+            id: listview
+            anchors.top: sortBar.bottom
+            anchors.bottom: parent.bottom
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.rightMargin: 2 * scrollBar.width
+            spacing: itemSize * Style.fileBrowserListItemSpacing
+            clip: true
+
+            model: DelegateModel {
+                id: listDelegateModel
+                model: folders
+                rootIndex: folders.getPathIndex(folders.rootFolder)
+
+                Connections {
+                    target: folders
+                    onRootFolderChanged: rootIndex = folders.getPathIndex(folders.rootFolder)
+                }
+
+                // Mysterious hack to prevent rootIndex from being reset
+                // asynchronously when using a QFileSystemModel:
+                // http://lists.qt-project.org/pipermail/interest/2015-August/018369.html
+                onRootIndexChanged: {
+                    rootIndex = folders.getPathIndex(folders.rootFolder)
+                }
+                delegate: listFileDelegate
+            }
+
+            section.property: folders.sortCategory == FolderModel.Name ? "fileName" : ""
+            section.criteria: ViewSection.FirstCharacter
+            section.delegate: Item {
+                width: parent.width
+                height: 1.5 * textPixelSize
+                Text {
+                    text: section
+                    font.bold: true
+                    font.capitalization: Font.Capitalize
+                    font.pixelSize: textPixelSize
+                }
+            }
+        }
+
+        ScrollBar {
+            id: scrollBar
+            anchors.top: listview.top
+            flickable: listview
+        }
+
+        Rectangle {
+            id: sortBar
+            height: titleBar.height / 2
+            anchors.left: parent.left
+            anchors.right: parent.right
+            color: Style.fileBrowserBackgroundColor
+
+            Text {
+                id: nameText
+                property bool active: folders.sortCategory == FolderModel.Name
+                text: (active ? folders.sortIcon + " " : "") + "name"
+                horizontalAlignment: Text.AlignHCenter
+                anchors.left: sortBar.left
+                anchors.right: sizeText.left
+
+                anchors.verticalCenter: parent.verticalCenter
+                font.bold: true
+                font.pixelSize: textPixelSize
+                color: Style.fileBrowserTextColor
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        if (parent.active)
+                            folders.toggleSortOrder();
+                        else
+                            folders.sortCategory = FolderModel.Name;
+                    }
+                }
+            }
+            Text {
+                id: sizeText
+                property bool active: folders.sortCategory == FolderModel.Size
+                text: (active ? folders.sortIcon + " " : "") + "size"
+                anchors.right: modifiedText.left
+                width: textColumnSize
+                horizontalAlignment: Text.AlignHCenter
+
+                anchors.verticalCenter: parent.verticalCenter
+                font.bold: true
+                font.pixelSize: textPixelSize
+                color: Style.fileBrowserTextColor
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        if (parent.active)
+                            folders.toggleSortOrder();
+                        else
+                            folders.sortCategory = FolderModel.Size;
+                    }
+                }
+            }
+            Text {
+                id: modifiedText
+                property bool active: folders.sortCategory == FolderModel.Date
+                text: (active ? folders.sortIcon + " " : "") + "modified"
+                anchors.right: sortBar.right
+                width: textColumnSize
+                horizontalAlignment: Text.AlignHCenter
+
+                anchors.verticalCenter: parent.verticalCenter
+                font.bold: true
+                font.pixelSize: textPixelSize
+                color: Style.fileBrowserTextColor
+
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        if (parent.active)
+                            folders.toggleSortOrder();
+                        else
+                            folders.sortCategory = FolderModel.Date;
+                    }
+                }
+            }
+        }
     }
 
     Rectangle {
@@ -280,7 +420,7 @@ Rectangle {
             color: Style.fileBrowserTextColor
             font.pixelSize: 0.5 * height
             verticalAlignment: Text.AlignVCenter
-            text: folders.folder.toString().replace(folders.constRootFolder+"/", "")
+            text: folders.rootFolder.replace(fileBrowser.rootFolder+"/", "")
             elide: Text.ElideMiddle
             Behavior on color { PropertyAnimation{ }}
         }
@@ -298,6 +438,12 @@ Rectangle {
                 checked: !listViewMode
                 height: parent.height
                 icon: "qrc:/images/gridview.svg"
+                onCheckedChanged: {
+                    if (checked) {
+                        folders.sortCategory = FolderModel.Name;
+                        folders.sortOrder = FolderModel.Ascending;
+                    }
+                }
             }
             FileBrowserViewButton {
                 id: listViewButton
@@ -309,11 +455,11 @@ Rectangle {
         states: [
             State {
                 name: "showRootPath"
-                when: folders.folder.toString() === folders.constRootFolder
+                when: folders.rootFolder === fileBrowser.rootfolder
                 PropertyChanges {
                     target: titleText
                     color: Style.fileBrowserDiscreteTextColor
-                    text: folders.constRootFolder.replace("file://", "")
+                    text: folders.rootFolder.replace("file://", "")
                 }
                 AnchorChanges { target: titleText; anchors.left: titleBar.left }
                 PropertyChanges {
