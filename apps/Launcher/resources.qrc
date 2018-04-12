@@ -2,6 +2,8 @@
     <qresource prefix="/qml">
         <file>qml/style.js</file>
         <file>qml/main.qml</file>
+        <file>qml/Curtain.qml</file>
+        <file>qml/CurtainDialog.qml</file>
         <file>qml/DefaultPanel.qml</file>
         <file>qml/DemoLauncher/DemoLauncher.qml</file>
         <file>qml/DemoLauncher/RenderingResourcesManager.js</file>

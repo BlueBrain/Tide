@@ -50,11 +50,9 @@ FolderModel::FolderModel()
 
 QHash<int, QByteArray> FolderModel::roleNames() const
 {
-    return {{fileName, "fileName"},
-            {filePath, "filePath"},
-            {fileSize, "fileSize"},
-            {fileModified, "fileModified"},
-            {fileIsDir, "fileIsDir"}};
+    return {{fileName, "fileName"},   {filePath, "filePath"},
+            {fileSize, "fileSize"},   {fileModified, "fileModified"},
+            {fileIsDir, "fileIsDir"}, {filesInDir, "filesInDir"}};
 }
 
 QVariant FolderModel::data(const QModelIndex& index, const int role) const
@@ -71,6 +69,17 @@ QVariant FolderModel::data(const QModelIndex& index, const int role) const
         return fileInfo(index).lastModified().toString();
     case fileIsDir:
         return isDir(index);
+    case filesInDir:
+    {
+        const auto info = fileInfo(index);
+        if (!info.isDir())
+            return 0;
+
+        auto dir = QDir{info.absoluteFilePath()};
+        dir.setFilter(QDir::Files);
+        dir.setNameFilters(nameFilters());
+        return dir.count();
+    }
     }
     return QVariant();
 }

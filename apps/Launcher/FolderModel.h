@@ -87,7 +87,8 @@ public:
         filePath,
         fileSize,
         fileModified,
-        fileIsDir
+        fileIsDir,
+        filesInDir
     };
     QHash<int, QByteArray> roleNames() const override;
     QVariant data(const QModelIndex& index, const int role) const override;

@@ -1,4 +1,4 @@
-// Copyright (c) 2016, EPFL/Blue Brain Project
+// Copyright (c) 2016-2018, EPFL/Blue Brain Project
 //                          Raphael Dumusc <raphael.dumusc@epfl.ch>
 
 import QtQuick 2.4
@@ -67,6 +67,7 @@ Rectangle {
             nameFilters: filesFilter
             listViewMode: useListViewMode
             onListViewModeChanged: useListViewMode = listViewMode
+            allowOpeningFolder: true
         }
     }
 

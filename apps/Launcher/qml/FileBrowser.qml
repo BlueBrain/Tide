@@ -14,17 +14,22 @@ Rectangle {
 
     color: Style.fileBrowserBackgroundColor
 
+    signal itemSelected(string file)
+
+    // options
     property string rootfolder: ""
     property alias nameFilters: folders.nameFilters // list<string>
+    property alias listViewMode: listViewButton.checked
+    property bool allowOpeningFolder: false
+
+    // infos
     property alias currentFolder: folders.rootFolder
     property alias titleBarHeight: titleBar.height
+
+    // internal
     property int itemSize: height * Style.fileBrowserItemSizeRel
     property real textPixelSize: itemSize * Style.fileBrowserTextSizeRelToItem
     property real textColumnSize: textPixelSize * 10
-
-    signal itemSelected(string file)
-
-    property alias listViewMode: listViewButton.checked
 
     Connections {
         target: deflectgestures
@@ -119,6 +124,11 @@ Rectangle {
                 anchors.fill: parent
                 onPressed: wrapper.GridView.view.currentIndex = index
                 onClicked: clickAnimation.start()
+                onPressAndHold: {
+                    if (fileBrowser.allowOpeningFolder && fileIsDir && filesInDir > 0) {
+                        curtain.showDialog(filesInDir, filePath);
+                    }
+                }
             }
 
             ColorAnimation on color {
@@ -224,6 +234,11 @@ Rectangle {
                 anchors.fill: parent
                 onPressed: wrapper.ListView.view.currentIndex = index
                 onClicked: clickAnimation.start()
+                onPressAndHold: {
+                    if (fileBrowser.allowOpeningFolder && fileIsDir && filesInDir > 0) {
+                        curtain.showDialog(filesInDir, filePath);
+                    }
+                }
             }
 
             ColorAnimation on color {
@@ -471,6 +486,33 @@ Rectangle {
         transitions: Transition {
             // smoothly reanchor titleText and move into new position
             AnchorAnimation { easing.type: Easing.OutQuad }
+        }
+    }
+
+    Curtain {
+        id: curtain
+
+        function showDialog(itemCount, folderToOpen) {
+            dialog.itemCount = itemCount;
+            dialog.folderToOpen = folderToOpen;
+            open = true;
+        }
+
+        CurtainDialog {
+            id: dialog
+            property int itemCount: 0
+            property string folderToOpen: ""
+
+            textInfo: "Do you want to open all the supported files in this folder?"
+            textAccept: "open " + itemCount + " items"
+
+            onAccepted: {
+                fileBrowser.itemSelected(folderToOpen);
+                curtain.open = false;
+            }
+            onRejected: {
+                curtain.open = false;
+            }
         }
     }
 }
