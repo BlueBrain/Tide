@@ -137,7 +137,7 @@ Rectangle {
         anchors.bottom: parent.bottom
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.margins: itemSize * Style.mainPanelRelMargin
+        anchors.leftMargin: itemSize * Style.mainPanelRelMargin
         visible: gridViewButton.checked
 
         cellWidth: itemSize * 1.33
@@ -242,8 +242,6 @@ Rectangle {
         anchors.bottom: parent.bottom
         anchors.left: parent.left
         anchors.right: parent.right
-        anchors.margins: itemSize * Style.mainPanelRelMargin
-        anchors.topMargin: 0
         visible: listViewButton.checked
 
         ListView {
@@ -252,7 +250,8 @@ Rectangle {
             anchors.bottom: parent.bottom
             anchors.left: parent.left
             anchors.right: parent.right
-            anchors.rightMargin: 2 * scrollBar.width
+            anchors.rightMargin: scrollBar.visible ? 0.5 * scrollBar.width + anchors.leftMargin : anchors.leftMargin
+            anchors.leftMargin: itemSize * Style.mainPanelRelMargin
             spacing: itemSize * Style.fileBrowserListItemSpacing
             clip: true
 
@@ -292,14 +291,15 @@ Rectangle {
         ScrollBar {
             id: scrollBar
             anchors.top: listview.top
+            anchors.right: parent.right
             flickable: listview
         }
 
         Rectangle {
             id: sortBar
             height: titleBar.height / 2
-            anchors.left: parent.left
-            anchors.right: parent.right
+            anchors.left: listview.left
+            anchors.right: listview.right
             color: Style.fileBrowserBackgroundColor
 
             Text {
@@ -331,7 +331,7 @@ Rectangle {
                 text: (active ? folders.sortIcon + " " : "") + "size"
                 anchors.right: modifiedText.left
                 width: textColumnSize
-                horizontalAlignment: Text.AlignHCenter
+                horizontalAlignment: Text.AlignRight
 
                 anchors.verticalCenter: parent.verticalCenter
                 font.bold: true
@@ -354,7 +354,7 @@ Rectangle {
                 text: (active ? folders.sortIcon + " " : "") + "modified"
                 anchors.right: sortBar.right
                 width: textColumnSize
-                horizontalAlignment: Text.AlignHCenter
+                horizontalAlignment: Text.AlignRight
 
                 anchors.verticalCenter: parent.verticalCenter
                 font.bold: true
@@ -420,7 +420,7 @@ Rectangle {
             color: Style.fileBrowserTextColor
             font.pixelSize: 0.5 * height
             verticalAlignment: Text.AlignVCenter
-            text: folders.rootFolder.replace(fileBrowser.rootFolder+"/", "")
+            text: folders.rootFolder.replace(fileBrowser.rootfolder+"/", "")
             elide: Text.ElideMiddle
             Behavior on color { PropertyAnimation{ }}
         }

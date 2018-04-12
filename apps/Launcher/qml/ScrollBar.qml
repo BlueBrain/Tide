@@ -13,7 +13,7 @@ Rectangle {
     anchors.top: parent.top
     anchors.bottom: parent.bottom
     anchors.right: parent.right
-    width: 0.025 * parent.width
+    width: 0.03 * parent.width
     radius: 0.5 * width
     color: "lightgrey"
     visible: flickable.visibleArea.heightRatio < 1.0
