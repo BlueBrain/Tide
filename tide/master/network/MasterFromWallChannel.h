@@ -45,6 +45,7 @@
 #include "network/ReceiveBuffer.h"
 #include "types.h"
 
+#include <QImage> // needed by moc compiler on Travis OSX
 #include <QObject>
 
 /**

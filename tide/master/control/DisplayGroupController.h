@@ -43,6 +43,7 @@
 #include "types.h"
 
 #include <QObject>
+#include <QUuid> // needed by moc compiler on Travis OSX
 
 /** Controller for rescaling and adjusting DisplayGroup. */
 class DisplayGroupController : public QObject
