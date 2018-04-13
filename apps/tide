@@ -20,7 +20,7 @@ def using_virtualGL():
             'SSH_CLIENT' in os.environ
 
 # http://nullege.com/codes/search/distutils.spawn.find_executable
-def find_executable( executable, path=None ):
+def find_executable(executable, path=None):
     """Tries to find 'executable' in the directories listed in 'path'.
 
     A string listing directories separated by 'os.pathsep'; defaults to
@@ -168,7 +168,10 @@ elif IS_MPICH3:
     EXPORT_ENV_VAR = '-env {0} {1}'
     mpi_args += '-genvlist LD_LIBRARY_PATH'
 else: # OpenMPI
-    MPI_SPECIAL_FLAGS = '-x IPATH_NO_CPUAFFINITY=1'
+    # oversubscribe is needed with OpenMPI 3.x otherwise the process fails with:
+    # "All nodes which are allocated for this job are already filled."
+    # It does not cause problems with older versions (1.10).
+    MPI_SPECIAL_FLAGS = '-x IPATH_NO_CPUAFFINITY=1 --oversubscribe'
     if os.getenv("LD_LIBRARY_PATH"): # set and not empty
         MPI_SPECIAL_FLAGS += ' -x LD_LIBRARY_PATH'
     MPI_GLOBAL_HOST_LIST = '-host'
