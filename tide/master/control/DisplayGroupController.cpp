@@ -48,10 +48,9 @@
 
 namespace
 {
-bool _exceeds(const auto& size, const auto& other)
-{
+static auto _exceeds = [](const auto& size, const auto& other) {
     return size.width() > other.width() && size.height() > other.height();
-}
+};
 }
 
 DisplayGroupController::DisplayGroupController(DisplayGroup& group)
