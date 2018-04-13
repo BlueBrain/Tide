@@ -1,7 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
-/*                     Ahmet Bilgili <ahmet.bilgili@epfl.ch>         */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/*                          Ahmet Bilgili <ahmet.bilgili@epfl.ch>    */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -40,12 +40,15 @@
 
 #include "Launcher.h"
 
+#include "FolderModel.h"
+
 #include "tide/core/scene/ContentFactory.h"
 #include "tide/core/thumbnail/ThumbnailProvider.h"
 
 #include "tide/master/localstreamer/CommandLineOptions.h"
 #include "tide/master/localstreamer/QmlKeyInjector.h"
 
+#include <QDirModel>
 #include <QHostInfo>
 #include <QQmlContext>
 
@@ -57,8 +60,10 @@ const QString thumbnailProviderId("thumbnail");
 }
 
 Launcher::Launcher(int& argc, char* argv[])
-    : QGuiApplication(argc, argv)
+    : QApplication(argc, argv)
 {
+    qmlRegisterType<FolderModel>("Launcher", 1, 0, "FolderModel");
+
     const CommandLineOptions options(argc, argv);
 
     const auto deflectStreamId = options.streamId.toStdString();
@@ -72,31 +77,29 @@ Launcher::Launcher(int& argc, char* argv[])
 
     // General setup
     item->setProperty("restPort", options.webservicePort);
+    item->setProperty("powerButtonVisible", options.showPowerButton);
     if (options.width)
         item->setProperty("width", options.width);
     if (options.height)
         item->setProperty("height", options.height);
 
     // FileBrowser setup
-    const auto filters = ContentFactory::getSupportedFilesFilter();
-    item->setProperty("filesFilter", filters);
+    item->setProperty("filesFilter", ContentFactory::getSupportedFilesFilter());
     item->setProperty("rootFilesFolder", options.contentsDir);
     item->setProperty("rootSessionsFolder", options.sessionsDir);
 
-    QQmlEngine* engine = _qmlStreamer->getQmlEngine();
+    auto engine = _qmlStreamer->getQmlEngine();
+    engine->rootContext()->setContextProperty("fileInfo", &_fileInfoHelper);
 #if TIDE_ASYNC_THUMBNAIL_PROVIDER
     engine->addImageProvider(thumbnailProviderId, new AsyncThumbnailProvider);
 #else
     engine->addImageProvider(thumbnailProviderId, new ThumbnailProvider);
 #endif
-    engine->rootContext()->setContextProperty("fileInfo", &_fileInfoHelper);
 
     // DemoLauncher setup
     item->setProperty("demoServiceUrl", options.demoServiceUrl);
     item->setProperty("demoServiceImageFolder", options.demoServiceImageDir);
     item->setProperty("demoServiceDeflectHost", QHostInfo::localHostName());
-    if (options.showPowerButton)
-        item->setProperty("powerButtonVisible", true);
 }
 
 Launcher::~Launcher()

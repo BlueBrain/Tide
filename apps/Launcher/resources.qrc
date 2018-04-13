@@ -2,6 +2,8 @@
     <qresource prefix="/qml">
         <file>qml/style.js</file>
         <file>qml/main.qml</file>
+        <file>qml/Curtain.qml</file>
+        <file>qml/CurtainDialog.qml</file>
         <file>qml/DefaultPanel.qml</file>
         <file>qml/DemoLauncher/DemoLauncher.qml</file>
         <file>qml/DemoLauncher/RenderingResourcesManager.js</file>
@@ -11,6 +13,7 @@
         <file>qml/LaunchMenu.qml</file>
         <file>qml/OptionsPanel.qml</file>
         <file>qml/SavePanel.qml</file>
+        <file>qml/ScrollBar.qml</file>
     </qresource>
     <qresource prefix="/">
         <file>images/book.svg</file>

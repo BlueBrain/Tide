@@ -1,12 +1,14 @@
-# Copyright (c) 2016-2017, EPFL/Blue Brain Project
+# Copyright (c) 2016-2018, EPFL/Blue Brain Project
 #                          Ahmet Bilgili <ahmet.bilgili@epfl.ch>
 #                          Raphael Dumusc <raphael.dumusc@epfl.ch>
 
 set(TIDELAUNCHER_HEADERS
+  FolderModel.h
   Launcher.h
 )
 
 set(TIDELAUNCHER_SOURCES
+  FolderModel.cpp
   Launcher.cpp
   main.cpp
   resources.qrc

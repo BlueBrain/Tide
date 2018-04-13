@@ -3,6 +3,12 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [243](https://github.com/BlueBrain/Tide/pull/243):
+  The Launcher has an improved file browser:
+  - case-insensitive sorting.
+  - list view: sorting by name, size or modification date.
+  - scroll bar for faster navigation.
+  - tap-and-hold on a folder to open all the files in it.
 * [241](https://github.com/BlueBrain/Tide/pull/241):
   New option to display the file paths in the window title bars.
   Web interface:
