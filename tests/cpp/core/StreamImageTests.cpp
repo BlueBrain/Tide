@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -42,8 +42,8 @@
 
 #include "StreamImage.h"
 
-#include <deflect/Frame.h>
-#include <deflect/SegmentDecoder.h>
+#include <deflect/server/Frame.h>
+#include <deflect/server/TileDecoder.h>
 
 namespace
 {
@@ -53,46 +53,46 @@ const std::vector<uint8_t> expectedU(8 * 8, 28);
 const std::vector<uint8_t> expectedV(8 * 8, 79);
 }
 
-deflect::FramePtr createRgbaTestFrame(const QSize& size)
+deflect::server::FramePtr createRgbaTestFrame(const QSize& size)
 {
-    deflect::FramePtr frame(new deflect::Frame);
-    deflect::Segment segment;
+    deflect::server::FramePtr frame(new deflect::server::Frame);
+    deflect::server::Tile tile;
 
-    segment.parameters.x = 10;
-    segment.parameters.y = -20;
-    segment.parameters.width = size.width();
-    segment.parameters.height = size.height();
+    tile.x = 10;
+    tile.y = -20;
+    tile.width = size.width();
+    tile.height = size.height();
+    tile.format = deflect::Format::rgba;
+    tile.imageData.append(QByteArray(size.width() * size.height() * 4, 17));
 
-    segment.parameters.dataType = deflect::DataType::rgba;
-    segment.imageData.append(QByteArray(size.width() * size.height() * 4, 17));
-
-    frame->segments.push_back(segment);
+    frame->tiles.push_back(tile);
     return frame;
 }
 
-deflect::FramePtr createYuvTestFrame(const QSize& size, const int subsamp)
+deflect::server::FramePtr createYuvTestFrame(const QSize& size,
+                                             const int subsamp)
 {
-    deflect::FramePtr frame(new deflect::Frame);
-    deflect::Segment segment;
+    deflect::server::FramePtr frame(new deflect::server::Frame);
+    deflect::server::Tile tile;
 
-    segment.parameters.x = 10;
-    segment.parameters.y = -20;
-    segment.parameters.width = size.width();
-    segment.parameters.height = size.height();
+    tile.x = 10;
+    tile.y = -20;
+    tile.width = size.width();
+    tile.height = size.height();
 
-    segment.parameters.dataType = deflect::DataType::yuv444;
+    tile.format = deflect::Format::yuv444;
     if (subsamp == 1)
-        segment.parameters.dataType = deflect::DataType::yuv422;
+        tile.format = deflect::Format::yuv422;
     else if (subsamp == 2)
-        segment.parameters.dataType = deflect::DataType::yuv420;
+        tile.format = deflect::Format::yuv420;
 
     const auto ySize = size.width() * size.height();
     const auto uvSize = ySize >> subsamp;
-    segment.imageData.append(QByteArray(ySize, 92));  // Y
-    segment.imageData.append(QByteArray(uvSize, 28)); // U
-    segment.imageData.append(QByteArray(uvSize, 79)); // V
+    tile.imageData.append(QByteArray(ySize, 92));  // Y
+    tile.imageData.append(QByteArray(uvSize, 28)); // U
+    tile.imageData.append(QByteArray(uvSize, 79)); // V
 
-    frame->segments.push_back(segment);
+    frame->tiles.push_back(tile);
     return frame;
 }
 

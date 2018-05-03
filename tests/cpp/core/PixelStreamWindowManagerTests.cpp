@@ -41,8 +41,8 @@
 #define BOOST_TEST_MODULE PixelStreamWindowManagerTests
 #include <boost/test/unit_test.hpp>
 
-#include <deflect/EventReceiver.h>
-#include <deflect/Frame.h>
+#include <deflect/server/EventReceiver.h>
+#include <deflect/server/Frame.h>
 
 #include "PixelStreamWindowManager.h"
 #include "control/PixelStreamController.h"
@@ -66,18 +66,18 @@ const QSize testFrameSize(600, 500);
 const QSize testFrameSize2(700, 600);
 }
 
-deflect::FramePtr createTestFrame(const QSize& size)
+deflect::server::FramePtr createTestFrame(const QSize& size)
 {
-    deflect::FramePtr frame(new deflect::Frame);
+    deflect::server::FramePtr frame(new deflect::server::Frame);
     frame->uri = CONTENT_URI;
-    deflect::Segment segment;
-    segment.parameters.width = size.width();
-    segment.parameters.height = size.height();
-    frame->segments.push_back(segment);
+    deflect::server::Tile tile;
+    tile.width = size.width();
+    tile.height = size.height();
+    frame->tiles.push_back(tile);
     return frame;
 }
 
-class DummyEventReceiver : public deflect::EventReceiver
+class DummyEventReceiver : public deflect::server::EventReceiver
 {
 public:
     DummyEventReceiver()
@@ -365,13 +365,13 @@ BOOST_AUTO_TEST_CASE(check_external_stream_opening_after_firstframe)
 
     const QSize expectedDimension{400, 300};
 
-    deflect::Segment segment;
-    segment.parameters.width = expectedDimension.width();
-    segment.parameters.height = expectedDimension.height();
+    deflect::server::Tile tile;
+    tile.width = expectedDimension.width();
+    tile.height = expectedDimension.height();
 
-    deflect::FramePtr frame(new deflect::Frame);
+    deflect::server::FramePtr frame(new deflect::server::Frame);
     frame->uri = uri;
-    frame->segments.push_back(segment);
+    frame->tiles.push_back(tile);
     windowManager.updateStreamDimensions(frame);
     BOOST_CHECK_EQUAL(externalStreamOpened, true);
     BOOST_CHECK(window->isHidden());
@@ -417,13 +417,13 @@ BOOST_AUTO_TEST_CASE(resize_external_stream)
         expectedDimension);
 
     const QSize newDimension{200, 200};
-    deflect::Segment segment;
-    segment.parameters.width = newDimension.width();
-    segment.parameters.height = newDimension.height();
+    deflect::server::Tile tile;
+    tile.width = newDimension.width();
+    tile.height = newDimension.height();
 
-    deflect::FramePtr frame(new deflect::Frame);
+    deflect::server::FramePtr frame(new deflect::server::Frame);
     frame->uri = uri;
-    frame->segments.push_back(segment);
+    frame->tiles.push_back(tile);
     windowManager.updateStreamDimensions(frame);
 
     BOOST_CHECK_EQUAL(

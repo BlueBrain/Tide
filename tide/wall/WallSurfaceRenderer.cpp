@@ -49,7 +49,7 @@
 #include "scene/Options.h"
 #include "scene/ScreenLock.h"
 
-#include <deflect/Frame.h>
+#include <deflect/server/Frame.h>
 
 #include <QQmlContext>
 #include <QQuickItem>

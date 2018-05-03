@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -43,29 +43,29 @@
 #include "tide/core/data/Image.h"
 #include "tide/wall/PixelStreamAssembler.h"
 
-#include <deflect/Frame.h>
-#include <deflect/SegmentDecoder.h>
+#include <deflect/server/Frame.h>
+#include <deflect/server/TileDecoder.h>
 
 #include <cmath> //std::ceil
 
 namespace
 {
-const int SEGMENT_SIZE = 64;
+const int TILE_SIZE = 64;
 const int IMAGE_WIDTH = 642;
 const int IMAGE_HEIGHT = 914;
 
-deflect::DataType getDataType(const int subsamp)
+deflect::Format getFormat(const int subsamp)
 {
     switch (subsamp)
     {
     case -1:
-        return deflect::DataType::rgba;
+        return deflect::Format::rgba;
     case 0:
-        return deflect::DataType::yuv444;
+        return deflect::Format::yuv444;
     case 1:
-        return deflect::DataType::yuv422;
+        return deflect::Format::yuv422;
     case 2:
-        return deflect::DataType::yuv420;
+        return deflect::Format::yuv420;
     default:
         throw std::runtime_error("Invalid subsampling");
     }
@@ -200,22 +200,23 @@ void flipRowOrder(QByteArray& buffer, const QSize& size, const int bpp)
     buffer = copy;
 }
 
-deflect::Segment createSegment(const QRect& region, const TestImage& testImage,
-                               const deflect::RowOrder rowOrder)
+deflect::server::Tile createTile(const QRect& region,
+                                 const TestImage& testImage,
+                                 const deflect::RowOrder rowOrder)
 {
-    deflect::Segment segment;
-    segment.parameters.dataType = getDataType(testImage.subsamp);
-    segment.parameters.x = region.x();
-    segment.parameters.y = region.y();
-    segment.parameters.width = region.width();
-    segment.parameters.height = region.height();
-    segment.rowOrder = rowOrder;
+    deflect::server::Tile tile;
+    tile.format = getFormat(testImage.subsamp);
+    tile.x = region.x();
+    tile.y = region.y();
+    tile.width = region.width();
+    tile.height = region.height();
+    tile.rowOrder = rowOrder;
 
     if (testImage.subsamp == -1)
     {
-        segment.imageData = copyRegion(testImage.rgba, IMAGE_WIDTH, region, 4);
+        tile.imageData = copyRegion(testImage.rgba, IMAGE_WIDTH, region, 4);
         if (rowOrder == deflect::RowOrder::bottom_up)
-            flipRowOrder(segment.imageData, region.size(), 4);
+            flipRowOrder(tile.imageData, region.size(), 4);
     }
     else
     {
@@ -234,40 +235,40 @@ deflect::Segment createSegment(const QRect& region, const TestImage& testImage,
             flipRowOrder(uBuffer, uvSize, 1);
             flipRowOrder(vBuffer, uvSize, 1);
         }
-        segment.imageData.append(yBuffer);
-        segment.imageData.append(uBuffer);
-        segment.imageData.append(vBuffer);
+        tile.imageData.append(yBuffer);
+        tile.imageData.append(uBuffer);
+        tile.imageData.append(vBuffer);
     }
 
-    return segment;
+    return tile;
 }
 
-deflect::FramePtr createTestFrame(const QSize& size, const TestImage& testImage,
-                                  const deflect::RowOrder rowOrder)
+deflect::server::FramePtr createTestFrame(const QSize& size,
+                                          const TestImage& testImage,
+                                          const deflect::RowOrder rowOrder)
 {
-    deflect::FramePtr frame(new deflect::Frame);
+    deflect::server::FramePtr frame(new deflect::server::Frame);
 
-    const int segmentsX = std::ceil(float(size.width()) / SEGMENT_SIZE);
-    const int segmentsY = std::ceil(float(size.height()) / SEGMENT_SIZE);
+    const int tilesX = std::ceil(float(size.width()) / TILE_SIZE);
+    const int tilesY = std::ceil(float(size.height()) / TILE_SIZE);
 
-    auto borderX = size.width() % SEGMENT_SIZE;
+    auto borderX = size.width() % TILE_SIZE;
     if (borderX == 0)
-        borderX = SEGMENT_SIZE;
+        borderX = TILE_SIZE;
 
-    auto borderY = size.height() % SEGMENT_SIZE;
+    auto borderY = size.height() % TILE_SIZE;
     if (borderY == 0)
-        borderY = SEGMENT_SIZE;
+        borderY = TILE_SIZE;
 
-    for (int y = 0; y < segmentsY; ++y)
+    for (int y = 0; y < tilesY; ++y)
     {
-        for (int x = 0; x < segmentsX; ++x)
+        for (int x = 0; x < tilesX; ++x)
         {
-            const QPoint pos{x * SEGMENT_SIZE, y * SEGMENT_SIZE};
-            const QSize segSize{x < segmentsX - 1 ? SEGMENT_SIZE : borderX,
-                                y < segmentsY - 1 ? SEGMENT_SIZE : borderY};
+            const QPoint pos{x * TILE_SIZE, y * TILE_SIZE};
+            const QSize segSize{x < tilesX - 1 ? TILE_SIZE : borderX,
+                                y < tilesY - 1 ? TILE_SIZE : borderY};
             const QRect region{pos, segSize};
-            frame->segments.push_back(
-                createSegment(region, testImage, rowOrder));
+            frame->tiles.push_back(createTile(region, testImage, rowOrder));
         }
     }
     return frame;
@@ -347,7 +348,7 @@ BOOST_AUTO_TEST_CASE(testAssembleStreamImageYUVandRGBA)
                 createTestFrame({IMAGE_WIDTH, IMAGE_HEIGHT}, image, rowOrder);
             const auto textureFormat = getTextureFormat(subsamp);
 
-            BOOST_REQUIRE_EQUAL(frame->segments.size(), 11 * 15);
+            BOOST_REQUIRE_EQUAL(frame->tiles.size(), 11 * 15);
             BOOST_REQUIRE_EQUAL(frame->computeDimensions(),
                                 QSize(IMAGE_WIDTH, IMAGE_HEIGHT));
             BOOST_REQUIRE_NO_THROW(PixelStreamAssembler{frame});
@@ -375,7 +376,7 @@ BOOST_AUTO_TEST_CASE(testAssembleStreamImageYUVandRGBA)
                                            IMAGE_HEIGHT - 512));
 
             // Check images
-            deflect::SegmentDecoder decoder;
+            deflect::server::TileDecoder decoder;
             const auto image0 = assembler.getTileImage(0, decoder);
             BOOST_CHECK_EQUAL(image0->getWidth(), 512);
             BOOST_CHECK_EQUAL(image0->getHeight(), 512);

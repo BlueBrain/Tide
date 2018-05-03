@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -45,39 +45,35 @@
 #include "log.h"
 #include "network/WallToWallChannel.h"
 
-#include <deflect/Frame.h>
-#include <deflect/SegmentDecoder.h>
+#include <deflect/server/Frame.h>
+#include <deflect/server/TileDecoder.h>
 
 #include <QImage>
 #include <QThreadStorage>
 
 namespace
 {
-void _splitByView(const deflect::Segments& segments,
-                  deflect::Segments& leftOrMono, deflect::Segments& right)
+void _splitByView(const deflect::server::Tiles& tiles,
+                  deflect::server::Tiles& leftOrMono,
+                  deflect::server::Tiles& right)
 {
-    std::partition_copy(segments.begin(), segments.end(),
-                        std::back_inserter(right),
-                        std::back_inserter(leftOrMono),
-                        [](const deflect::Segment& segment) {
-                            return segment.view == deflect::View::right_eye;
+    std::partition_copy(tiles.begin(), tiles.end(), std::back_inserter(right),
+                        std::back_inserter(leftOrMono), [](const auto& tile) {
+                            return tile.view == deflect::View::right_eye;
                         });
     assert(right.empty() || right.size() == leftOrMono.size());
 }
 
-void _sortByPosition(deflect::Segments& segments)
+void _sortByPosition(deflect::server::Tiles& tiles)
 {
-    std::sort(segments.begin(), segments.end(),
-              [](const deflect::Segment& s1, const deflect::Segment& s2) {
-                  return (s1.parameters.y == s2.parameters.y
-                              ? s1.parameters.x < s2.parameters.x
-                              : s1.parameters.y < s2.parameters.y);
-              });
+    std::sort(tiles.begin(), tiles.end(), [](const auto& t1, const auto& t2) {
+        return (t1.y == t2.y ? t1.x < t2.x : t1.y < t2.y);
+    });
 }
 }
 
 PixelStreamUpdater::PixelStreamUpdater()
-    : _headerDecoder{new deflect::SegmentDecoder}
+    : _headerDecoder{new deflect::server::TileDecoder}
 {
     _swapSyncFrame.setCallback(std::bind(&PixelStreamUpdater::_onFrameSwapped,
                                          this, std::placeholders::_1));
@@ -123,15 +119,15 @@ ImagePtr PixelStreamUpdater::getTileImage(const uint tileIndex,
     const QReadLocker frameLock(&_frameMutex);
 
     const bool rightEye = view == deflect::View::right_eye;
-    const bool rightFrame = rightEye && !_frameRight->segments.empty();
+    const bool rightFrame = rightEye && !_frameRight->tiles.empty();
     const auto& processor = rightFrame ? _processRight : _processorLeft;
 
     // turbojpeg handles need to be per thread, and this function may be
     // called from multiple threads
-    static QThreadStorage<deflect::SegmentDecoder> segmentDecoders;
+    static QThreadStorage<deflect::server::TileDecoder> tileDecoders;
     try
     {
-        return processor->getTileImage(tileIndex, segmentDecoders.localData());
+        return processor->getTileImage(tileIndex, tileDecoders.localData());
     }
     catch (const std::runtime_error& e)
     {
@@ -162,21 +158,21 @@ void PixelStreamUpdater::getNextFrame()
     _readyToSwap = true;
 }
 
-void PixelStreamUpdater::updatePixelStream(deflect::FramePtr frame)
+void PixelStreamUpdater::updatePixelStream(deflect::server::FramePtr frame)
 {
     _swapSyncFrame.update(frame);
 }
 
-void PixelStreamUpdater::_onFrameSwapped(deflect::FramePtr frame)
+void PixelStreamUpdater::_onFrameSwapped(deflect::server::FramePtr frame)
 {
     _readyToSwap = false;
 
-    auto leftOrMono = std::make_shared<deflect::Frame>();
-    auto right = std::make_shared<deflect::Frame>();
+    auto leftOrMono = std::make_shared<deflect::server::Frame>();
+    auto right = std::make_shared<deflect::server::Frame>();
 
-    _splitByView(frame->segments, leftOrMono->segments, right->segments);
-    _sortByPosition(leftOrMono->segments);
-    _sortByPosition(right->segments);
+    _splitByView(frame->tiles, leftOrMono->tiles, right->tiles);
+    _sortByPosition(leftOrMono->tiles);
+    _sortByPosition(right->tiles);
 
     {
         const QWriteLocker frameLock(&_frameMutex);
@@ -193,12 +189,12 @@ void PixelStreamUpdater::_createFrameProcessors()
 {
     try
     {
-        if (!_frameLeftOrMono->segments.empty())
+        if (!_frameLeftOrMono->tiles.empty())
             _processorLeft.reset(new PixelStreamAssembler(_frameLeftOrMono));
         else
             _processorLeft.reset();
 
-        if (!_frameRight->segments.empty())
+        if (!_frameRight->tiles.empty())
             _processRight.reset(new PixelStreamAssembler(_frameRight));
         else
             _processRight.reset();

@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -57,10 +57,10 @@ public:
      * @param tileIndex for the target image.
      * @param decoder for jpeg decompression.
      * @return the assembled image.
-     * @throw std::runtime_error on segment decoding error.
+     * @throw std::runtime_error on tile decoding error.
      */
     virtual ImagePtr getTileImage(uint tileIndex,
-                                  deflect::SegmentDecoder& decoder) = 0;
+                                  deflect::server::TileDecoder& decoder) = 0;
 
     /** @return the rectangle of the tile. */
     virtual QRect getTileRect(uint tileIndex) const = 0;
@@ -69,8 +69,8 @@ public:
     virtual Indices computeVisibleSet(const QRectF& visibleTilesArea) const = 0;
 
 protected:
-    /** @return the coordinates of the segment as a QRect. */
-    QRect toRect(const deflect::SegmentParameters& params) const;
+    /** @return the coordinates of the tile as a QRect. */
+    QRect toRect(const deflect::server::Tile& tile) const;
 };
 
 #endif

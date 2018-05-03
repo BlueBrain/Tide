@@ -111,7 +111,7 @@ private:
     std::unique_ptr<deflect::qt::OffscreenQuickView> _offscreenQuickView;
     std::unique_ptr<MasterSurfaceRenderer> _offscreenSurfaceRenderer;
 
-    std::unique_ptr<deflect::Server> _deflectServer;
+    std::unique_ptr<deflect::server::Server> _deflectServer;
     std::unique_ptr<PixelStreamerLauncher> _pixelStreamerLauncher;
     std::unique_ptr<PixelStreamWindowManager> _pixelStreamWindowManager;
 

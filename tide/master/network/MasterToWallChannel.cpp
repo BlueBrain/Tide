@@ -50,7 +50,7 @@
 #include "json/serialization.h"
 #include "json/templates.h"
 
-#include <deflect/Frame.h>
+#include <deflect/server/Frame.h>
 
 MasterToWallChannel::MasterToWallChannel(MPIChannelPtr mpiChannel)
     : _mpiChannel(mpiChannel)
@@ -99,9 +99,9 @@ void MasterToWallChannel::sendAsync(MarkersPtr markers)
     broadcastAsync(markers, MPIMessageType::MARKERS);
 }
 
-void MasterToWallChannel::sendFrame(deflect::FramePtr frame)
+void MasterToWallChannel::sendFrame(deflect::server::FramePtr frame)
 {
-    assert(!frame->segments.empty() && "received an empty frame");
+    assert(!frame->tiles.empty() && "received an empty frame");
 #if BOOST_VERSION >= 106000
     broadcast(frame, MPIMessageType::PIXELSTREAM);
 #else

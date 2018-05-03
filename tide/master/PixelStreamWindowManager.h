@@ -132,14 +132,14 @@ public:
      * @param success promise that will receive the success of the operation
      */
     void registerEventReceiver(QString uri, bool exclusive,
-                               deflect::EventReceiver* receiver,
-                               deflect::BoolPromisePtr success);
+                               deflect::server::EventReceiver* receiver,
+                               deflect::server::BoolPromisePtr success);
 
     /**
      * Update the dimension of the content according to the stream's dimension
      * @param frame the new stream frame to check its dimension
      */
-    void updateStreamDimensions(deflect::FramePtr frame);
+    void updateStreamDimensions(deflect::server::FramePtr frame);
 
     /**
      * Update the size hints for the content, sent by the streamer.
@@ -184,7 +184,8 @@ signals:
      * For external streamers, the requestFrame signal comes from the Wall
      * processes when the window has been opened. For local streamers, however,
      * the window is opened before the deflect::Stream is started so the
-     * deflect::FrameDispatcher discards it and no frames would be displayed
+     * deflect::server::FrameDispatcher discards it and no frames would be
+     * displayed
      * otherwise.
      *
      * @param uri the URI of the streamer

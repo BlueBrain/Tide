@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,14 +39,13 @@
 
 #include "PixelStreamProcessor.h"
 
-#include <deflect/SegmentParameters.h>
+#include <deflect/server/Tile.h>
 
 PixelStreamProcessor::~PixelStreamProcessor()
 {
 }
 
-QRect PixelStreamProcessor::toRect(
-    const deflect::SegmentParameters& params) const
+QRect PixelStreamProcessor::toRect(const deflect::server::Tile& tile) const
 {
-    return QRect(params.x, params.y, params.width, params.height);
+    return QRect(tile.x, tile.y, tile.width, tile.height);
 }

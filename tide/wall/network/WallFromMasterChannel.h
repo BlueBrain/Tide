@@ -104,7 +104,7 @@ signals:
      * Emitted when a new PixelStream frame was recieved.
      * @param frame The frame that was received.
      */
-    void received(deflect::FramePtr frame);
+    void received(deflect::server::FramePtr frame);
 
     /**
      * Emitted when a screenshot was requested.

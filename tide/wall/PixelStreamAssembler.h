@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -44,24 +44,24 @@
 
 #include "PixelStreamProcessor.h"
 
-#include <deflect/Frame.h>
+#include <deflect/server/Frame.h>
 
 /**
- * Assemble small frame segments (e.g. 64x64) into 512x512 ones.
+ * Assemble small frame tiles (e.g. 64x64) into 512x512 ones.
  */
 class PixelStreamAssembler : public PixelStreamProcessor
 {
 public:
     /**
      * Create an assembler for the frame.
-     * @param frame to assemble with segments sorted left-right + top-bottom.
+     * @param frame to assemble with tiles sorted left-right + top-bottom.
      * @throw std::runtime_error if the frame cannot be assembled.
      */
-    PixelStreamAssembler(deflect::FramePtr frame);
+    PixelStreamAssembler(deflect::server::FramePtr frame);
 
     /** @copydoc PixelStreamProcessor::getTileImage */
     ImagePtr getTileImage(uint tileIndex,
-                          deflect::SegmentDecoder& decoder) final;
+                          deflect::server::TileDecoder& decoder) final;
 
     /** @copydoc PixelStreamProcessor::getTileRect */
     QRect getTileRect(uint tileIndex) const final;
@@ -70,9 +70,9 @@ public:
     Indices computeVisibleSet(const QRectF& visibleTilesArea) const final;
 
 private:
-    deflect::FramePtr _frame;
+    deflect::server::FramePtr _frame;
     QSize _frameSize;
-    deflect::FramePtr _assembledFrame;
+    deflect::server::FramePtr _assembledFrame;
 
     bool _canAssemble() const;
 
@@ -83,7 +83,7 @@ private:
 
     Indices _findSourceTiles(uint tileIndex) const;
     void _decodeSourceTiles(const Indices& indices,
-                            deflect::SegmentDecoder& decoder);
+                            deflect::server::TileDecoder& decoder);
     void _assembleTargetTile(uint tileIndex, const Indices& indices);
 };
 

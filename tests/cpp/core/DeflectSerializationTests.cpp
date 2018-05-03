@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -46,45 +46,52 @@ namespace ut = boost::unit_test;
 
 #include <iostream>
 
-BOOST_AUTO_TEST_CASE(testSegementParametersSerialization)
+BOOST_AUTO_TEST_CASE(testTileSerialization)
 {
-    deflect::SegmentParameters params;
-    params.x = 212;
-    params.y = 365;
-    params.height = 32;
-    params.width = 78;
-    params.dataType = deflect::DataType::rgba;
+    deflect::server::Tile tile;
+    tile.x = 212;
+    tile.y = 365;
+    tile.height = 32;
+    tile.width = 78;
+    tile.imageData = "Z&*#HUIRB";
+    tile.format = deflect::Format::rgba;
+    tile.rowOrder = deflect::RowOrder::top_down;
+    tile.view = deflect::View::side_by_side;
 
     // serialize
     std::stringstream stream;
     {
         boost::archive::binary_oarchive oa(stream);
-        oa << params;
+        oa << tile;
     }
 
     // deserialize
-    deflect::SegmentParameters paramsDeserialized;
+    deflect::server::Tile tileDeserialized;
     {
         boost::archive::binary_iarchive ia(stream);
-        ia >> paramsDeserialized;
+        ia >> tileDeserialized;
     }
 
-    BOOST_CHECK_EQUAL(params.x, paramsDeserialized.x);
-    BOOST_CHECK_EQUAL(params.y, paramsDeserialized.y);
-    BOOST_CHECK_EQUAL(params.height, paramsDeserialized.height);
-    BOOST_CHECK_EQUAL(params.width, paramsDeserialized.width);
-    BOOST_CHECK_EQUAL((int)params.dataType, (int)paramsDeserialized.dataType);
+    BOOST_CHECK_EQUAL(tile.x, tileDeserialized.x);
+    BOOST_CHECK_EQUAL(tile.y, tileDeserialized.y);
+    BOOST_CHECK_EQUAL(tile.height, tileDeserialized.height);
+    BOOST_CHECK_EQUAL(tile.width, tileDeserialized.width);
+    BOOST_CHECK_EQUAL(tile.imageData.toStdString(),
+                      tileDeserialized.imageData.toStdString());
+    BOOST_CHECK_EQUAL((int)tile.format, (int)tileDeserialized.format);
+    BOOST_CHECK_EQUAL((int)tile.rowOrder, (int)tileDeserialized.rowOrder);
+    BOOST_CHECK_EQUAL((int)tile.view, (int)tileDeserialized.view);
 }
 
 BOOST_AUTO_TEST_CASE(testFrameSerialization)
 {
-    deflect::Frame frame;
-    frame.segments.push_back(deflect::Segment());
-    frame.segments.push_back(deflect::Segment());
+    deflect::server::Frame frame;
+    frame.tiles.push_back(deflect::server::Tile());
+    frame.tiles.push_back(deflect::server::Tile());
     frame.uri = "SomeUri";
 
-    frame.segments[0].view = deflect::View::right_eye;
-    frame.segments[1].view = deflect::View::left_eye;
+    frame.tiles[0].view = deflect::View::right_eye;
+    frame.tiles[1].view = deflect::View::left_eye;
 
     // serialize
     std::stringstream stream;
@@ -94,17 +101,17 @@ BOOST_AUTO_TEST_CASE(testFrameSerialization)
     }
 
     // deserialize
-    deflect::Frame frameDeserialized;
+    deflect::server::Frame frameDeserialized;
     {
         boost::archive::binary_iarchive ia(stream);
         ia >> frameDeserialized;
     }
 
-    BOOST_CHECK_EQUAL(frame.segments.size(), frameDeserialized.segments.size());
+    BOOST_CHECK_EQUAL(frame.tiles.size(), frameDeserialized.tiles.size());
     BOOST_CHECK_EQUAL(frame.uri.toStdString(),
                       frameDeserialized.uri.toStdString());
-    BOOST_CHECK_EQUAL((int)frame.segments[0].view,
-                      (int)frameDeserialized.segments[0].view);
-    BOOST_CHECK_EQUAL((int)frame.segments[1].view,
-                      (int)frameDeserialized.segments[1].view);
+    BOOST_CHECK_EQUAL((int)frame.tiles[0].view,
+                      (int)frameDeserialized.tiles[0].view);
+    BOOST_CHECK_EQUAL((int)frame.tiles[1].view,
+                      (int)frameDeserialized.tiles[1].view);
 }

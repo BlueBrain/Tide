@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -52,11 +52,11 @@ public:
      * Construct a processor that does not modify the pixel stream.
      * @param frame to decode and expose.
      */
-    PixelStreamPassthrough(deflect::FramePtr frame);
+    PixelStreamPassthrough(deflect::server::FramePtr frame);
 
     /** @copydoc PixelStreamProcessor::getTileImage */
     ImagePtr getTileImage(uint tileIndex,
-                          deflect::SegmentDecoder& decoder) final;
+                          deflect::server::TileDecoder& decoder) final;
 
     /** @copydoc PixelStreamProcessor::getTileRect */
     QRect getTileRect(uint tileIndex) const final;
@@ -65,7 +65,7 @@ public:
     Indices computeVisibleSet(const QRectF& visibleTilesArea) const final;
 
 private:
-    deflect::FramePtr _frame;
+    deflect::server::FramePtr _frame;
 };
 
 #endif

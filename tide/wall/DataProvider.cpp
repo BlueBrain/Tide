@@ -62,7 +62,7 @@
 #include "scene/PDFContent.h"
 #endif
 
-#include <deflect/Frame.h>
+#include <deflect/server/Frame.h>
 
 #include <QtConcurrent>
 
@@ -246,7 +246,7 @@ void DataProvider::loadAsync(TilePtr tile, deflect::View view)
     _tileImageRequests[tile->getId()].emplace_back(tile, view);
 }
 
-void DataProvider::setNewFrame(deflect::FramePtr frame)
+void DataProvider::setNewFrame(deflect::server::FramePtr frame)
 {
     if (!_streamSources.count(frame->uri))
         return;

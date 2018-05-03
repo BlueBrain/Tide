@@ -95,7 +95,7 @@ public slots:
     void loadAsync(TilePtr tile, deflect::View view);
 
     /** Add a new frame. */
-    void setNewFrame(deflect::FramePtr frame);
+    void setNewFrame(deflect::server::FramePtr frame);
 
 signals:
     /** Emitted to request a new frame after a successful swap. */

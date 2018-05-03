@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -94,7 +94,7 @@ public:
 
 public slots:
     /** Update the appropriate PixelStream with the given frame. */
-    void updatePixelStream(deflect::FramePtr frame);
+    void updatePixelStream(deflect::server::FramePtr frame);
 
 signals:
     /** Emitted when a new picture has become available. */
@@ -104,16 +104,16 @@ signals:
     void requestFrame(QString uri);
 
 private:
-    SwapSyncObject<deflect::FramePtr> _swapSyncFrame;
-    deflect::FramePtr _frameLeftOrMono;
-    deflect::FramePtr _frameRight;
-    std::unique_ptr<deflect::SegmentDecoder> _headerDecoder;
+    SwapSyncObject<deflect::server::FramePtr> _swapSyncFrame;
+    deflect::server::FramePtr _frameLeftOrMono;
+    deflect::server::FramePtr _frameRight;
+    std::unique_ptr<deflect::server::TileDecoder> _headerDecoder;
     std::unique_ptr<PixelStreamProcessor> _processorLeft;
     std::unique_ptr<PixelStreamProcessor> _processRight;
     mutable QReadWriteLock _frameMutex;
     bool _readyToSwap = true;
 
-    void _onFrameSwapped(deflect::FramePtr frame);
+    void _onFrameSwapped(deflect::server::FramePtr frame);
     void _createFrameProcessors();
 };
 

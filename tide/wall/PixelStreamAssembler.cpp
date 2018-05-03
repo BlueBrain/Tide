@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -42,7 +42,7 @@
 #include "StreamImage.h"
 #include "log.h"
 
-#include <deflect/SegmentDecoder.h>
+#include <deflect/server/TileDecoder.h>
 
 #include <cmath> //std::ceil
 
@@ -55,13 +55,13 @@ bool _isValidSize(const uint32_t size)
     return size < targetTileSize && targetTileSize % size == 0;
 }
 
-bool _isValidSubtile(const deflect::SegmentParameters& segment)
+bool _isValidSubtile(const deflect::server::Tile& tile)
 {
-    return _isValidSize(segment.width) && _isValidSize(segment.height);
+    return _isValidSize(tile.width) && _isValidSize(tile.height);
 }
 }
 
-PixelStreamAssembler::PixelStreamAssembler(deflect::FramePtr frame)
+PixelStreamAssembler::PixelStreamAssembler(deflect::server::FramePtr frame)
     : _frame{frame}
     , _frameSize{_frame->computeDimensions()}
 {
@@ -71,8 +71,8 @@ PixelStreamAssembler::PixelStreamAssembler(deflect::FramePtr frame)
     _initTargetFrame();
 }
 
-ImagePtr PixelStreamAssembler::getTileImage(const uint tileIndex,
-                                            deflect::SegmentDecoder& decoder)
+ImagePtr PixelStreamAssembler::getTileImage(
+    const uint tileIndex, deflect::server::TileDecoder& decoder)
 {
     const auto sourceTiles = _findSourceTiles(tileIndex);
 
@@ -112,55 +112,53 @@ Indices PixelStreamAssembler::computeVisibleSet(
 
 bool PixelStreamAssembler::_canAssemble() const
 {
-    const auto& sortedSegments = _frame->segments;
-    if (sortedSegments.size() <= 1)
+    const auto& sortedTiles = _frame->tiles;
+    if (sortedTiles.size() <= 1)
         return false;
 
-    const auto& firstSegment = sortedSegments[0].parameters;
+    const auto& firstTile = sortedTiles[0];
 
-    if (!_isValidSubtile(firstSegment))
+    if (!_isValidSubtile(firstTile))
         return false;
 
-    const auto tileWidth = firstSegment.width;
-    const auto tileHeight = firstSegment.height;
+    const auto tileWidth = firstTile.width;
+    const auto tileHeight = firstTile.height;
 
     uint currentX = 0;
     uint currentY = 0;
     bool eol = false;
 
-    for (const auto& segment : sortedSegments)
+    for (const auto& tile : sortedTiles)
     {
-        const auto& seg = segment.parameters;
-
-        if (seg.y != currentY)
+        if (tile.y != currentY)
         {
-            if (!eol || seg.y != currentY + tileHeight)
+            if (!eol || tile.y != currentY + tileHeight)
                 return false;
             // Next line
-            currentY = seg.y;
+            currentY = tile.y;
             currentX = 0;
             eol = false;
         }
 
-        if (seg.height != tileHeight)
+        if (tile.height != tileHeight)
         {
-            if (currentY + seg.height != (uint)_frameSize.height())
+            if (currentY + tile.height != (uint)_frameSize.height())
                 return false;
         }
 
-        if (seg.x != currentX)
+        if (tile.x != currentX)
             return false;
 
-        if (seg.width != tileWidth ||
+        if (tile.width != tileWidth ||
             currentX + tileWidth >= (uint)_frameSize.width())
         {
-            if (seg.x + seg.width != (uint)_frameSize.width())
+            if (tile.x + tile.width != (uint)_frameSize.width())
                 return false;
 
             eol = true;
         }
 
-        currentX += seg.width;
+        currentX += tile.width;
     }
     return true;
 }
@@ -177,18 +175,18 @@ uint PixelStreamAssembler::_getTilesY() const
 
 void PixelStreamAssembler::_initTargetFrame()
 {
-    _assembledFrame.reset(new deflect::Frame);
+    _assembledFrame.reset(new deflect::server::Frame);
 
     const auto tilesCount = _getTilesX() * _getTilesY();
-    auto& segments = _assembledFrame->segments;
-    segments.resize(tilesCount);
+    auto& tiles = _assembledFrame->tiles;
+    tiles.resize(tilesCount);
     for (size_t i = 0; i < tilesCount; ++i)
     {
         const auto tileRect = getTileRect(i);
-        segments[i].parameters.width = tileRect.width();
-        segments[i].parameters.height = tileRect.height();
-        segments[i].parameters.x = tileRect.x();
-        segments[i].parameters.y = tileRect.y();
+        tiles[i].width = tileRect.width();
+        tiles[i].height = tileRect.height();
+        tiles[i].x = tileRect.x();
+        tiles[i].y = tileRect.y();
     }
 }
 
@@ -196,27 +194,26 @@ Indices PixelStreamAssembler::_findSourceTiles(const uint tileIndex) const
 {
     Indices indices;
     const auto tileRect = getTileRect(tileIndex);
-    for (size_t i = 0; i < _frame->segments.size(); ++i)
+    for (size_t i = 0; i < _frame->tiles.size(); ++i)
     {
-        const auto segmentRect = toRect(_frame->segments.at(i).parameters);
-        if (tileRect.intersects(segmentRect))
+        if (tileRect.intersects(toRect(_frame->tiles.at(i))))
             indices.insert(i);
     }
     return indices;
 }
 
-void PixelStreamAssembler::_decodeSourceTiles(const Indices& indices,
-                                              deflect::SegmentDecoder& decoder)
+void PixelStreamAssembler::_decodeSourceTiles(
+    const Indices& indices, deflect::server::TileDecoder& decoder)
 {
     for (auto i : indices)
     {
-        auto& segment = _frame->segments.at(i);
+        auto& tile = _frame->tiles.at(i);
 
-        if (segment.parameters.dataType == deflect::DataType::jpeg)
+        if (tile.format == deflect::Format::jpeg)
 #ifndef DEFLECT_USE_LEGACY_LIBJPEGTURBO
-            decoder.decodeToYUV(segment);
+            decoder.decodeToYUV(tile);
 #else
-            decoder.decode(segment);
+            decoder.decode(tile);
 #endif
     }
 }
@@ -224,14 +221,14 @@ void PixelStreamAssembler::_decodeSourceTiles(const Indices& indices,
 void PixelStreamAssembler::_assembleTargetTile(const uint tileIndex,
                                                const Indices& indices)
 {
-    auto& target = _assembledFrame->segments[tileIndex];
+    auto& target = _assembledFrame->tiles[tileIndex];
     if (!target.imageData.isEmpty())
         return;
 
-    const auto type = _frame->segments[*indices.begin()].parameters.dataType;
+    const auto format = _frame->tiles[*indices.begin()].format;
 
     StreamImage image{_assembledFrame, tileIndex};
-    target.parameters.dataType = type;
+    target.format = format;
     const auto dataSize =
         image.getDataSize(0) + image.getDataSize(1) + image.getDataSize(2);
     target.imageData.resize(dataSize);

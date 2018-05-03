@@ -51,7 +51,7 @@
 #include "json/serialization.h"
 #include "json/templates.h"
 
-#include <deflect/Frame.h>
+#include <deflect/server/Frame.h>
 
 #include <QApplication>
 
@@ -102,13 +102,14 @@ void WallFromMasterChannel::receiveMessage()
         break;
     case MPIMessageType::PIXELSTREAM:
 #if BOOST_VERSION >= 106000
-        emit received(receiveBinaryBroadcast<deflect::FramePtr>(mh.size));
+        emit received(
+            receiveBinaryBroadcast<deflect::server::FramePtr>(mh.size));
 #else
         // WAR missing support for std::shared_ptr
         // The copy of the Frame object is not too expensive because its
-        // Segments are QByteArray (implicitly shared).
-        emit received(std::make_shared<deflect::Frame>(
-            receiveBinaryBroadcast<deflect::Frame>(mh.size)));
+        // Tiles' imageData are QByteArray (implicitly shared).
+        emit received(std::make_shared<deflect::server::Frame>(
+            receiveBinaryBroadcast<deflect::server::Frame>(mh.size)));
 #endif
         break;
     case MPIMessageType::IMAGE:

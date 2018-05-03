@@ -41,7 +41,7 @@
 #ifndef TYPES_H
 #define TYPES_H
 
-#include <deflect/types.h>
+#include <deflect/server/types.h>
 
 #include <QRectF>
 #include <QString>

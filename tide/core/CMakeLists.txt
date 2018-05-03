@@ -5,7 +5,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 set(TIDECORE_LINK_LIBRARIES
   PUBLIC
-    Deflect
+    DeflectServer
     Qt5::Core
     Qt5::Qml
     Qt5::Quick

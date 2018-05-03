@@ -106,7 +106,7 @@ public slots:
      * Send pixel stream frame to the wall processes.
      * @param frame The frame to send
      */
-    void sendFrame(deflect::FramePtr frame);
+    void sendFrame(deflect::server::FramePtr frame);
 
     /**
      * Send the configuration to the wall processes.
