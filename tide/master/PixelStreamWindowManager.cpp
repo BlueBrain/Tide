@@ -51,8 +51,9 @@
 #include "scene/DisplayGroup.h"
 #include "scene/PixelStreamContent.h"
 #include "scene/Scene.h"
-#include <deflect/EventReceiver.h>
-#include <deflect/Frame.h>
+
+#include <deflect/server/EventReceiver.h>
+#include <deflect/server/Frame.h>
 
 namespace
 {
@@ -177,8 +178,9 @@ void PixelStreamWindowManager::handleStreamEnd(const QString uri)
 }
 
 void PixelStreamWindowManager::registerEventReceiver(
-    const QString uri, const bool exclusive, deflect::EventReceiver* receiver,
-    deflect::BoolPromisePtr success)
+    const QString uri, const bool exclusive,
+    deflect::server::EventReceiver* receiver,
+    deflect::server::BoolPromisePtr success)
 {
     auto window = getWindow(uri);
     if (!window)
@@ -196,7 +198,7 @@ void PixelStreamWindowManager::registerEventReceiver(
     if (!exclusive || !content.hasEventReceivers())
     {
         if (connect(&content, &PixelStreamContent::notify, receiver,
-                    &deflect::EventReceiver::processEvent))
+                    &deflect::server::EventReceiver::processEvent))
         {
             content.incrementEventReceiverCount();
             success->set_value(true);
@@ -207,7 +209,8 @@ void PixelStreamWindowManager::registerEventReceiver(
     success->set_value(false);
 }
 
-void PixelStreamWindowManager::updateStreamDimensions(deflect::FramePtr frame)
+void PixelStreamWindowManager::updateStreamDimensions(
+    deflect::server::FramePtr frame)
 {
     try
     {

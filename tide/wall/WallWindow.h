@@ -42,6 +42,8 @@
 
 #include "types.h"
 
+#include <deflect/qt/types.h>
+
 #include <QQuickWindow>
 
 class QQuickRenderControl;

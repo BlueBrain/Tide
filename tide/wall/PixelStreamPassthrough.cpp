@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -41,24 +41,24 @@
 
 #include "StreamImage.h"
 
-#include <deflect/Frame.h>
-#include <deflect/SegmentDecoder.h>
+#include <deflect/server/Frame.h>
+#include <deflect/server/TileDecoder.h>
 
-PixelStreamPassthrough::PixelStreamPassthrough(deflect::FramePtr frame)
+PixelStreamPassthrough::PixelStreamPassthrough(deflect::server::FramePtr frame)
     : _frame(frame)
 {
 }
 
-ImagePtr PixelStreamPassthrough::getTileImage(const uint tileIndex,
-                                              deflect::SegmentDecoder& decoder)
+ImagePtr PixelStreamPassthrough::getTileImage(
+    const uint tileIndex, deflect::server::TileDecoder& decoder)
 {
-    auto& segment = _frame->segments.at(tileIndex);
-    if (segment.parameters.dataType == deflect::DataType::jpeg)
+    auto& tile = _frame->tiles.at(tileIndex);
+    if (tile.format == deflect::Format::jpeg)
     {
 #ifndef DEFLECT_USE_LEGACY_LIBJPEGTURBO
-        decoder.decodeToYUV(segment);
+        decoder.decodeToYUV(tile);
 #else
-        decoder.decode(segment);
+        decoder.decode(tile);
 #endif
     }
     return std::make_shared<StreamImage>(_frame, tileIndex);
@@ -66,17 +66,16 @@ ImagePtr PixelStreamPassthrough::getTileImage(const uint tileIndex,
 
 QRect PixelStreamPassthrough::getTileRect(const uint tileIndex) const
 {
-    return toRect(_frame->segments.at(tileIndex).parameters);
+    return toRect(_frame->tiles.at(tileIndex));
 }
 
 Indices PixelStreamPassthrough::computeVisibleSet(
     const QRectF& visibleTilesArea) const
 {
     Indices visibleSet;
-    for (size_t i = 0; i < _frame->segments.size(); ++i)
+    for (size_t i = 0; i < _frame->tiles.size(); ++i)
     {
-        const auto segmentRect = toRect(_frame->segments[i].parameters);
-        if (visibleTilesArea.intersects(segmentRect))
+        if (visibleTilesArea.intersects(toRect(_frame->tiles[i])))
             visibleSet.insert(i);
     }
     return visibleSet;

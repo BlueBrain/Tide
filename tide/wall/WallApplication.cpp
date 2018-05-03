@@ -165,14 +165,16 @@ void WallApplication::_initMPIConnection()
     connect(_fromMasterChannel.get(), SIGNAL(received(MarkersPtr)),
             _renderController.get(), SLOT(updateMarkers(MarkersPtr)));
 
-    connect(_fromMasterChannel.get(), SIGNAL(received(deflect::FramePtr)),
+    connect(_fromMasterChannel.get(),
+            SIGNAL(received(deflect::server::FramePtr)),
             _renderController.get(), SLOT(requestRender()));
 
     connect(_renderController.get(), &RenderController::screenshotRendered,
             _toMasterChannel.get(), &WallToMasterChannel::sendScreenshot);
 
-    connect(_fromMasterChannel.get(), SIGNAL(received(deflect::FramePtr)),
-            _provider.get(), SLOT(setNewFrame(deflect::FramePtr)));
+    connect(_fromMasterChannel.get(),
+            SIGNAL(received(deflect::server::FramePtr)), _provider.get(),
+            SLOT(setNewFrame(deflect::server::FramePtr)));
 
     if (_wallChannel->getRank() == 0)
     {

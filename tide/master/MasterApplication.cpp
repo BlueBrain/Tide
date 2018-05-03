@@ -72,9 +72,9 @@
 #include "ScreenControllerFactory.h"
 #endif
 
-#include <deflect/EventReceiver.h>
-#include <deflect/Server.h>
 #include <deflect/qt/QuickRenderer.h>
+#include <deflect/server/EventReceiver.h>
+#include <deflect/server/Server.h>
 
 #include <QQuickRenderControl>
 #include <stdexcept>
@@ -234,7 +234,7 @@ void MasterApplication::_startDeflectServer()
         return;
     try
     {
-        _deflectServer.reset(new deflect::Server);
+        _deflectServer.reset(new deflect::server::Server);
     }
     catch (const std::runtime_error& e)
     {
@@ -243,11 +243,12 @@ void MasterApplication::_startDeflectServer()
         return;
     }
 
-    connect(_deflectServer.get(), &deflect::Server::pixelStreamOpened,
+    connect(_deflectServer.get(), &deflect::server::Server::pixelStreamOpened,
             _pixelStreamWindowManager.get(),
             &PixelStreamWindowManager::handleStreamStart);
 
-    connect(_deflectServer.get(), &deflect::Server::pixelStreamException,
+    connect(_deflectServer.get(),
+            &deflect::server::Server::pixelStreamException,
             [this](const QString uri, const QString what) {
                 print_log(LOG_WARN, LOG_STREAM,
                           "Stream '%s' encountered an exception: '%s'",
@@ -255,31 +256,31 @@ void MasterApplication::_startDeflectServer()
                           what.toLocal8Bit().constData());
             });
 
-    connect(_deflectServer.get(), &deflect::Server::pixelStreamClosed,
+    connect(_deflectServer.get(), &deflect::server::Server::pixelStreamClosed,
             _pixelStreamWindowManager.get(),
             &PixelStreamWindowManager::handleStreamEnd);
 
     connect(_pixelStreamWindowManager.get(),
             &PixelStreamWindowManager::streamWindowClosed, _deflectServer.get(),
-            &deflect::Server::closePixelStream);
+            &deflect::server::Server::closePixelStream);
 
-    connect(_deflectServer.get(), &deflect::Server::receivedFrame,
+    connect(_deflectServer.get(), &deflect::server::Server::receivedFrame,
             _pixelStreamWindowManager.get(),
             &PixelStreamWindowManager::updateStreamDimensions);
 
     connect(_pixelStreamWindowManager.get(),
             &PixelStreamWindowManager::requestFirstFrame, _deflectServer.get(),
-            &deflect::Server::requestFrame);
+            &deflect::server::Server::requestFrame);
 
-    connect(_deflectServer.get(), &deflect::Server::registerToEvents,
+    connect(_deflectServer.get(), &deflect::server::Server::registerToEvents,
             _pixelStreamWindowManager.get(),
             &PixelStreamWindowManager::registerEventReceiver);
 
-    connect(_deflectServer.get(), &deflect::Server::receivedSizeHints,
+    connect(_deflectServer.get(), &deflect::server::Server::receivedSizeHints,
             _pixelStreamWindowManager.get(),
             &PixelStreamWindowManager::updateSizeHints);
 
-    connect(_deflectServer.get(), &deflect::Server::receivedData,
+    connect(_deflectServer.get(), &deflect::server::Server::receivedData,
             _pixelStreamWindowManager.get(),
             &PixelStreamWindowManager::sendDataToWindow);
 }
@@ -340,9 +341,9 @@ void MasterApplication::_setupMPIConnections()
     {
         connect(_masterFromWallChannel.get(),
                 &MasterFromWallChannel::receivedRequestFrame,
-                _deflectServer.get(), &deflect::Server::requestFrame);
+                _deflectServer.get(), &deflect::server::Server::requestFrame);
 
-        connect(_deflectServer.get(), &deflect::Server::receivedFrame,
+        connect(_deflectServer.get(), &deflect::server::Server::receivedFrame,
                 _masterToWallChannel.get(), &MasterToWallChannel::sendFrame);
     }
 

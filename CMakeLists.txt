@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2017, EPFL/Blue Brain Project
+# Copyright (c) 2013-2018, EPFL/Blue Brain Project
 #                          Raphael Dumusc <raphael.dumusc@epfl.ch>
 
 cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
@@ -10,7 +10,6 @@ if(NOT EXISTS ${CMAKE_SOURCE_DIR}/CMake/common/Common.cmake)
   message(FATAL_ERROR "CMake/common missing, run: git submodule update --init")
 endif()
 
-set(TIDE_INCLUDE_NAME tide)
 set(TIDE_DESCRIPTION "Tiled Interactive DisplayWall Environment")
 set(TIDE_MAINTAINER "Blue Brain Project <bbp-open-source@googlegroups.com>")
 set(TIDE_VENDOR "Blue Brain Project")
@@ -26,7 +25,7 @@ set(TIDE_PORT_DEPENDS boost ffmpeg mpich-devel qt5)
 
 include(Common)
 
-set(_deflect_min_version 0.14)
+set(_deflect_min_version 1.0)
 set(_rockets_min_version 0.1)
 
 common_find_package(Boost 1.56 REQUIRED COMPONENTS program_options serialization

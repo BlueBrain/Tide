@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Daniel.Nachbaur@epfl.ch                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
@@ -43,8 +43,6 @@
 
 #include "data/YUVImage.h"
 
-#include <deflect/types.h>
-
 /**
  * Image wrapper for a pixel stream image.
  */
@@ -52,7 +50,7 @@ class StreamImage : public YUVImage
 {
 public:
     /** Constructor, stores the given deflect frame. */
-    StreamImage(deflect::FramePtr frame, uint tileIndex);
+    StreamImage(deflect::server::FramePtr frame, uint tileIndex);
 
     /** @copydoc Image::getWidth */
     int getWidth() const final;
@@ -79,7 +77,7 @@ public:
     void copy(const StreamImage& source, const QPoint& position);
 
 private:
-    const deflect::FramePtr _frame;
+    const deflect::server::FramePtr _frame;
     const uint _tileIndex;
 
     void _copy(const StreamImage& image, uint texture, const QPoint& position);

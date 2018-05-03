@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Daniel.Nachbaur@epfl.ch                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
@@ -40,11 +40,11 @@
 
 #include "StreamImage.h"
 
-#include <deflect/Frame.h>
+#include <deflect/server/Frame.h>
 
 #include <cassert>
 
-StreamImage::StreamImage(deflect::FramePtr frame, const uint tileIndex)
+StreamImage::StreamImage(deflect::server::FramePtr frame, const uint tileIndex)
     : _frame{frame}
     , _tileIndex{tileIndex}
 {
@@ -52,22 +52,22 @@ StreamImage::StreamImage(deflect::FramePtr frame, const uint tileIndex)
 
 int StreamImage::getWidth() const
 {
-    return _frame->segments.at(_tileIndex).parameters.width;
+    return _frame->tiles.at(_tileIndex).width;
 }
 
 int StreamImage::getHeight() const
 {
-    return _frame->segments.at(_tileIndex).parameters.height;
+    return _frame->tiles.at(_tileIndex).height;
 }
 
 deflect::RowOrder StreamImage::getRowOrder() const
 {
-    return _frame->segments.at(0).rowOrder;
+    return _frame->tiles.at(0).rowOrder;
 }
 
 const uint8_t* StreamImage::getData(const uint texture) const
 {
-    const auto data = _frame->segments.at(_tileIndex).imageData.constData();
+    const auto data = _frame->tiles.at(_tileIndex).imageData.constData();
     if (getFormat() == TextureFormat::rgba || texture == 0)
         return reinterpret_cast<const uint8_t*>(data);
 
@@ -87,17 +87,17 @@ const uint8_t* StreamImage::getData(const uint texture) const
 
 TextureFormat StreamImage::getFormat() const
 {
-    switch (_frame->segments.at(_tileIndex).parameters.dataType)
+    switch (_frame->tiles.at(_tileIndex).format)
     {
-    case deflect::DataType::rgba:
+    case deflect::Format::rgba:
         return TextureFormat::rgba;
-    case deflect::DataType::yuv444:
+    case deflect::Format::yuv444:
         return TextureFormat::yuv444;
-    case deflect::DataType::yuv422:
+    case deflect::Format::yuv422:
         return TextureFormat::yuv422;
-    case deflect::DataType::yuv420:
+    case deflect::Format::yuv420:
         return TextureFormat::yuv420;
-    case deflect::DataType::jpeg:
+    case deflect::Format::jpeg:
     default:
         throw std::runtime_error("StreamImage texture is not decompressed");
     }
@@ -105,14 +105,14 @@ TextureFormat StreamImage::getFormat() const
 
 ColorSpace StreamImage::getColorSpace() const
 {
-    switch (_frame->segments.at(_tileIndex).parameters.dataType)
+    switch (_frame->tiles.at(_tileIndex).format)
     {
-    case deflect::DataType::rgba:
+    case deflect::Format::rgba:
         return ColorSpace::undefined;
-    case deflect::DataType::yuv444:
-    case deflect::DataType::yuv422:
-    case deflect::DataType::yuv420:
-    case deflect::DataType::jpeg:
+    case deflect::Format::yuv444:
+    case deflect::Format::yuv422:
+    case deflect::Format::yuv420:
+    case deflect::Format::jpeg:
         return ColorSpace::yCbCrJpeg;
     default:
         throw std::runtime_error("Invalid deflect::DataType");
@@ -121,8 +121,8 @@ ColorSpace StreamImage::getColorSpace() const
 
 QPoint StreamImage::getPosition() const
 {
-    return QPoint(_frame->segments.at(_tileIndex).parameters.x,
-                  _frame->segments.at(_tileIndex).parameters.y);
+    return QPoint(_frame->tiles.at(_tileIndex).x,
+                  _frame->tiles.at(_tileIndex).y);
 }
 
 void StreamImage::copy(const StreamImage& image, const QPoint& position)
@@ -175,7 +175,7 @@ void StreamImage::_copy(const StreamImage& image, const uint texture,
 
 uint8_t* StreamImage::_getData(const uint texture)
 {
-    auto data = _frame->segments.at(_tileIndex).imageData.data();
+    auto data = _frame->tiles.at(_tileIndex).imageData.data();
     if (getFormat() == TextureFormat::rgba || texture == 0)
         return reinterpret_cast<uint8_t*>(data);
 
