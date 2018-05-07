@@ -43,14 +43,15 @@
 
 #include "types.h"
 
-#include <rockets/jsonrpc/receiver.h>
+#include <rockets/jsonrpc/asyncReceiver.h>
 
 #include <QObject>
 
 /**
  * Remote controller for the application using JSON-RPC.
  */
-class AppRemoteController : public QObject, private rockets::jsonrpc::Receiver
+class AppRemoteController : public QObject,
+                            private rockets::jsonrpc::AsyncReceiver
 {
     Q_OBJECT
 
@@ -62,7 +63,7 @@ public:
      */
     AppRemoteController(const Configuration& config);
 
-    using rockets::jsonrpc::Receiver::process;
+    using rockets::jsonrpc::AsyncReceiver::process;
 
 signals:
     /** Open a content. */
