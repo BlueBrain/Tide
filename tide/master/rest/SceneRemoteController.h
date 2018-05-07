@@ -46,12 +46,12 @@
 #include "scene/Scene.h"
 #include "types.h"
 
-#include <rockets/jsonrpc/receiver.h>
+#include <rockets/jsonrpc/asyncReceiver.h>
 
 /**
  * Remote controller for the scene windows using JSON-RPC.
  */
-class SceneRemoteController : private rockets::jsonrpc::Receiver
+class SceneRemoteController : private rockets::jsonrpc::AsyncReceiver
 {
 public:
     /**
@@ -61,7 +61,7 @@ public:
      */
     SceneRemoteController(Scene& scene);
 
-    using rockets::jsonrpc::Receiver::process;
+    using rockets::jsonrpc::AsyncReceiver::process;
 
 private:
     Scene& _scene;
