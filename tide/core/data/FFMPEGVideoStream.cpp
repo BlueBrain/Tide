@@ -99,7 +99,7 @@ PicturePtr FFMPEGVideoStream::decode(AVPacket& packet,
 int64_t FFMPEGVideoStream::decodeTimestamp(AVPacket& packet)
 {
     if (!_decodeToAvFrame(packet))
-        return int64_t(-1);
+        return AV_NOPTS_VALUE;
 
     return _frame->getTimestamp();
 }
