@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -46,8 +46,11 @@
 #include <sstream>
 #include <stdexcept>
 
+// FFMPEG 4.0
+#define HAS_FFMPEG_4_API (LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(58, 18, 100))
+
 // FFMPEG 3.1
-#define USE_NEW_FFMPEG_API (LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(57, 48, 0))
+#define HAS_FFMPEG_3_1_API (LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(57, 48, 0))
 
 // FFMPEG 2.3.x
 #define HAS_STEREO_API (LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(55, 35, 100))
@@ -77,7 +80,7 @@ FFMPEGVideoStream::FFMPEGVideoStream(AVFormatContext& avFormatContext)
 
 FFMPEGVideoStream::~FFMPEGVideoStream()
 {
-#if USE_NEW_FFMPEG_API
+#if HAS_FFMPEG_3_1_API
     avcodec_free_context(&_videoCodecContext);
 #else
     avcodec_close(_videoCodecContext);
@@ -124,15 +127,14 @@ bool FFMPEGVideoStream::_decodeToAvFrame(AVPacket& packet)
     if (!_isVideoPacket(packet))
         return false;
 
-#if USE_NEW_FFMPEG_API
+#if HAS_FFMPEG_3_1_API
     int errCode = avcodec_send_packet(_videoCodecContext, &packet);
     if (errCode < 0)
     {
         print_log(LOG_ERROR, LOG_AV,
                   "avcodec_send_packet returned error code '%i' : "
                   "'%s' in '%s'",
-                  errCode, _getAvError(errCode).c_str(),
-                  _avFormatContext.filename);
+                  errCode, _getAvError(errCode).c_str(), _getFilename());
         return false;
     }
 
@@ -142,8 +144,7 @@ bool FFMPEGVideoStream::_decodeToAvFrame(AVPacket& packet)
         print_log(LOG_ERROR, LOG_AV,
                   "avcodec_receive_frame returned error code '%i' : "
                   "'%s' in '%s'",
-                  errCode, _getAvError(errCode).c_str(),
-                  _avFormatContext.filename);
+                  errCode, _getAvError(errCode).c_str(), _getFilename());
         return false;
     }
 #else
@@ -156,7 +157,7 @@ bool FFMPEGVideoStream::_decodeToAvFrame(AVPacket& packet)
         print_log(LOG_ERROR, LOG_AV,
                   "avcodec_decode_video2 returned error code '%i' "
                   "in '%s'",
-                  errCode, _avFormatContext.filename);
+                  errCode, _getFilename());
         return false;
     }
 
@@ -167,11 +168,20 @@ bool FFMPEGVideoStream::_decodeToAvFrame(AVPacket& packet)
         print_log(LOG_VERBOSE, LOG_AV,
                   "Frame could not be decoded entirely"
                   "(may be caused by seeking) in: '%s'",
-                  _avFormatContext.filename);
+                  _getFilename());
         return false;
     }
 #endif
     return true;
+}
+
+const char* FFMPEGVideoStream::_getFilename() const
+{
+#if HAS_FFMPEG_4_API
+    return _avFormatContext.url;
+#else
+    return _avFormatContext.filename;
+#endif
 }
 
 unsigned int FFMPEGVideoStream::getWidth() const
@@ -229,7 +239,7 @@ int64_t FFMPEGVideoStream::getTimestamp(int64_t frameIndex) const
     {
         print_log(LOG_WARN, LOG_AV,
                   "Invalid index: %i - valid range: [0, %i[ in: '%s'",
-                  frameIndex, _numFrames, _avFormatContext.filename);
+                  frameIndex, _numFrames, _getFilename());
     }
     frameIndex = std::max(int64_t(0), std::min(frameIndex, _numFrames - 1));
 
@@ -261,7 +271,7 @@ bool FFMPEGVideoStream::seekToNearestFullframe(int64_t frameIndex)
     if (frameIndex < 0 || (_numFrames && frameIndex >= _numFrames))
     {
         print_log(LOG_WARN, LOG_AV, "Invalid index: %i, range [0,%d[: '%s'",
-                  frameIndex, _numFrames, _avFormatContext.filename);
+                  frameIndex, _numFrames, _getFilename());
     }
 
     frameIndex = std::max(int64_t(0), std::min(frameIndex, _numFrames - 1));
@@ -275,7 +285,7 @@ bool FFMPEGVideoStream::seekToNearestFullframe(int64_t frameIndex)
                            seek_target, seek_max, seek_flags) != 0)
     {
         print_log(LOG_ERROR, LOG_AV, "seeking error, seeking aborted in: '%s'",
-                  _avFormatContext.filename);
+                  _getFilename());
         return false;
     }
 
@@ -288,7 +298,7 @@ void FFMPEGVideoStream::_findVideoStream()
     for (unsigned int i = 0; i < _avFormatContext.nb_streams; ++i)
     {
         AVStream* stream = _avFormatContext.streams[i];
-#if USE_NEW_FFMPEG_API
+#if HAS_FFMPEG_3_1_API
         if (stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
 #else
         if (stream->codec->codec_type == AVMEDIA_TYPE_VIDEO)
@@ -306,7 +316,7 @@ void FFMPEGVideoStream::_openVideoStreamDecoder()
 {
     AVCodec* codec = nullptr;
 
-#if USE_NEW_FFMPEG_API
+#if HAS_FFMPEG_3_1_API
     if (!(codec = avcodec_find_decoder(_videoStream->codecpar->codec_id)))
         throw std::runtime_error("No decoder found for video stream");
 
