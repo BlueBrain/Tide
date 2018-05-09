@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.4.1 (git 1.4)
 
+* [245](https://github.com/BlueBrain/Tide/pull/245):
+  Fix a crash when opening movies with negative start time.
 * [215](https://github.com/BlueBrain/Tide/pull/215):
   OpenMPI: Fix export of LD_LIBRARY_PATH.
 
