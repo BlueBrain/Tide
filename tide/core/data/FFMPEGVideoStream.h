@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -156,6 +156,8 @@ private:
 
     bool _isVideoPacket(const AVPacket& packet) const;
     bool _decodeToAvFrame(AVPacket& packet);
+
+    const char* _getFilename() const;
 };
 
 #endif
