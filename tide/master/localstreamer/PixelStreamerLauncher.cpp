@@ -119,29 +119,28 @@ PixelStreamerLauncher::PixelStreamerLauncher(PixelStreamWindowManager& manager,
             Qt::QueuedConnection);
 }
 
-void PixelStreamerLauncher::openWebbrowser(const uint surfaceIndex, QPointF pos,
-                                           QSize size, const QString url,
+void PixelStreamerLauncher::openWebbrowser(const uint surfaceIndex,
+                                           const QString url, QSize size,
+                                           const QPointF pos,
                                            const ushort debugPort)
 {
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
-    if (pos.isNull())
-        pos = _getDefaultWindowPosition();
     if (size.isEmpty())
         size = _config.webbrowser.defaultSize;
 
     const auto uri = QUuid::createUuid().toString();
-    _windowManager.openWindow(surfaceIndex, uri, pos, size,
+    _windowManager.openWindow(surfaceIndex, uri, size, pos,
                               StreamType::WEBBROWSER);
 
-    auto& content = _windowManager.getWindow(uri)->getContent();
+    auto& content = _windowManager.getWindows(uri)[0]->getContent();
     auto& webbrowser = dynamic_cast<WebbrowserContent&>(content);
     webbrowser.setUrl(url);
     launch(webbrowser, debugPort);
 #else
     Q_UNUSED(surfaceIndex);
-    Q_UNUSED(pos);
-    Q_UNUSED(size);
     Q_UNUSED(url);
+    Q_UNUSED(size);
+    Q_UNUSED(pos);
     Q_UNUSED(debugPort);
     print_log(
         LOG_INFO, LOG_GENERAL,
@@ -158,26 +157,26 @@ void PixelStreamerLauncher::launch(const WebbrowserContent& webbrowser,
     const auto env = _getWebbrowserEnv(debugPort);
     _startProcess(webbrowser.getURI(), cmd, env);
 #else
-    Q_UNUSED(webbrowser)
-    Q_UNUSED(debugPort)
+    Q_UNUSED(webbrowser);
+    Q_UNUSED(debugPort);
 #endif
 }
 
 void PixelStreamerLauncher::openLauncher()
 {
-    const QString& uri = launcherUri;
+    const auto& uri = launcherUri;
     if (_processes.count(uri))
     {
-        _windowManager.showWindow(uri);
+        _windowManager.showWindows(uri);
         return;
     }
 
-    const auto pos = _getLauncherPos();
     const auto size = _getLauncherSize();
-    _windowManager.openWindow(0, uri, pos, size, StreamType::LAUNCHER);
+    const auto pos = _getLauncherPos();
+    _windowManager.openWindow(0, uri, size, pos, StreamType::LAUNCHER);
 
     CommandLineOptions options;
-    options.streamId = launcherUri;
+    options.streamId = uri;
     options.width = size.width();
     options.height = size.height();
     options.contentsDir = _config.folders.contents;
@@ -200,10 +199,9 @@ void PixelStreamerLauncher::openWhiteboard(const uint surfaceIndex)
 {
     static int whiteboardCounter = 0;
     const auto uri = QString("Whiteboard%1").arg(whiteboardCounter++);
-    const auto centerPos = _getDefaultWindowPosition();
     const auto size = _config.whiteboard.defaultSize;
 
-    _windowManager.openWindow(surfaceIndex, uri, centerPos, size,
+    _windowManager.openWindow(surfaceIndex, uri, size, QPointF(),
                               StreamType::WHITEBOARD);
 
     CommandLineOptions options;
@@ -241,15 +239,9 @@ QPointF PixelStreamerLauncher::_getLauncherPos() const
     return rect.center();
 }
 
-void PixelStreamerLauncher::_dereferenceProcess(const QString uri)
+const SurfaceConfig& PixelStreamerLauncher::getSurfaceConfig() const
 {
-    _processes.erase(uri);
-}
-
-QPointF PixelStreamerLauncher::_getDefaultWindowPosition() const
-{
-    return {0.5 * getSurfaceConfig().getTotalWidth(),
-            0.35 * getSurfaceConfig().getTotalHeight()};
+    return _config.surfaces[0];
 }
 
 void PixelStreamerLauncher::_startProcess(const QString& uri,
@@ -260,7 +252,7 @@ void PixelStreamerLauncher::_startProcess(const QString& uri,
     emit start(command, QDir::currentPath(), env);
 }
 
-const SurfaceConfig& PixelStreamerLauncher::getSurfaceConfig() const
+void PixelStreamerLauncher::_dereferenceProcess(const QString uri)
 {
-    return _config.surfaces[0];
+    _processes.erase(uri);
 }

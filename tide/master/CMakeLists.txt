@@ -23,6 +23,7 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   control/DisplayGroupController.h
   control/LayoutEngine.h
   control/LayoutPolicy.h
+  control/MultiChannelWindowController.h
   control/PixelStreamController.h
   control/SceneController.h
   control/ZoomController.h
@@ -72,6 +73,7 @@ list(APPEND TIDEMASTER_SOURCES
   control/DisplayGroupController.cpp
   control/LayoutEngine.cpp
   control/LayoutPolicy.cpp
+  control/MultiChannelWindowController.cpp
   control/PixelStreamController.cpp
   control/SceneController.cpp
   control/ZoomController.cpp

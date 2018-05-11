@@ -42,11 +42,11 @@
 #ifndef PIXEL_STREAM_CONTENT_H
 #define PIXEL_STREAM_CONTENT_H
 
-#include "Content.h"
+#include "MultiChannelContent.h"
 
 #include <deflect/Event.h>
 
-class PixelStreamContent : public Content
+class PixelStreamContent : public MultiChannelContent
 {
     Q_OBJECT
 
@@ -101,18 +101,17 @@ private:
     void serialize(Archive& ar, const unsigned int /*version*/)
     {
         // clang-format off
-        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Content);
+        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(MultiChannelContent);
         ar & _eventReceiversCount;
         // clang-format on
     }
 
-    /** Serialize for saving to an xml file */
     template <class Archive>
     void serialize_members_xml(Archive& ar, const unsigned int /*version*/)
     {
         // serialize base class information (with NVP for xml archives)
         // clang-format off
-        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Content);
+        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Content); // old xml format
         // clang-format on
     }
 

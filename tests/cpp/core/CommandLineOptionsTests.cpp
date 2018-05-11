@@ -53,8 +53,8 @@ BOOST_AUTO_TEST_CASE(testCommandLineDefaults)
 
     BOOST_CHECK(!options.getHelp());
     BOOST_CHECK_EQUAL(options.streamId, "");
-    BOOST_CHECK_EQUAL(options.height, 0);
     BOOST_CHECK_EQUAL(options.width, 0);
+    BOOST_CHECK_EQUAL(options.height, 0);
     BOOST_CHECK_EQUAL(options.url, "");
     BOOST_CHECK_EQUAL(options.contentsDir, "");
     BOOST_CHECK_EQUAL(options.sessionsDir, "");
@@ -70,9 +70,9 @@ BOOST_AUTO_TEST_CASE(testCommandLineDefaults)
 void setOptionParameters(CommandLineOptions& options)
 {
     options.streamId = "MyStreamer";
-    options.url = "http://www.perdu.com";
-    options.height = 640;
     options.width = 480;
+    options.height = 640;
+    options.url = "http://www.perdu.com";
     options.contentsDir = "/var/contents";
     options.sessionsDir = "/var/sessions";
     options.webservicePort = 8888;
@@ -86,9 +86,9 @@ void checkOptionParameters(const CommandLineOptions& options)
 {
     BOOST_CHECK(!options.getHelp());
     BOOST_CHECK_EQUAL(options.streamId, "MyStreamer");
-    BOOST_CHECK_EQUAL(options.url, "http://www.perdu.com");
-    BOOST_CHECK_EQUAL(options.height, 640);
     BOOST_CHECK_EQUAL(options.width, 480);
+    BOOST_CHECK_EQUAL(options.height, 640);
+    BOOST_CHECK_EQUAL(options.url, "http://www.perdu.com");
     BOOST_CHECK_EQUAL(options.contentsDir, "/var/contents");
     BOOST_CHECK_EQUAL(options.sessionsDir, "/var/sessions");
     BOOST_CHECK_EQUAL(options.webservicePort, 8888);
@@ -98,7 +98,9 @@ void checkOptionParameters(const CommandLineOptions& options)
     BOOST_CHECK_EQUAL(options.saveDir, "/tmp/whiteboards");
 
     BOOST_CHECK_EQUAL(options.getCommandLine().toStdString(),
-                      "--streamid MyStreamer --width 480 --height 640 "
+                      "--streamid MyStreamer "
+                      "--width 480 "
+                      "--height 640 "
                       "--url http://www.perdu.com "
                       "--contentsDir /var/contents "
                       "--sessionsDir /var/sessions "

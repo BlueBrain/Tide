@@ -62,9 +62,9 @@ void CommandLineOptions::parse(const int argc, char** argv)
         return;
 
     streamId = vm["streamid"].as<std::string>().c_str();
-    url = vm["url"].as<std::string>().c_str();
     width = vm["width"].as<unsigned int>();
     height = vm["height"].as<unsigned int>();
+    url = vm["url"].as<std::string>().c_str();
     contentsDir = vm["contentsDir"].as<std::string>().c_str();
     sessionsDir = vm["sessionsDir"].as<std::string>().c_str();
     webservicePort = vm["webservicePort"].as<uint16_t>();

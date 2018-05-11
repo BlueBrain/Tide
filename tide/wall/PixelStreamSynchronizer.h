@@ -59,9 +59,10 @@ public:
      * @param updater The shared pixel stream data source.
      * @param view which the data source provides. Left and right views also
      *        include mono contents.
+     * @param channel of the stream to display
      */
     PixelStreamSynchronizer(std::shared_ptr<PixelStreamUpdater> updater,
-                            deflect::View view);
+                            deflect::View view, uint channel);
     ~PixelStreamSynchronizer();
 
     /** @copydoc ContentSynchronizer::update */

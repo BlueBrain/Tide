@@ -119,7 +119,7 @@ void WebbrowserWidget::accept()
 {
     const QSize dimensions(_widthSpinBox->value(), _heightSpinBox->value());
     const auto debugPort = (ushort)_debugPortSpinBox->value();
-    emit openWebBrowser(QPointF(), dimensions, _urlLineEdit->text(), debugPort);
+    emit openWebBrowser(_urlLineEdit->text(), dimensions, debugPort);
 
     QDialog::accept();
 }

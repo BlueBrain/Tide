@@ -45,6 +45,8 @@
 #include <deflect/server/Frame.h>
 
 #include "PixelStreamWindowManager.h"
+#include "config.h"
+#include "control/DisplayGroupController.h"
 #include "control/PixelStreamController.h"
 #include "scene/ContentWindow.h"
 #include "scene/Options.h"
@@ -64,16 +66,38 @@ const QSize testWindowSize(500, 400);
 const QPointF testWindowPos(400.0, 300.0);
 const QSize testFrameSize(600, 500);
 const QSize testFrameSize2(700, 600);
+
+deflect::SizeHints makeSizeHints(const QSize& size)
+{
+    deflect::SizeHints hints;
+    hints.preferredWidth = size.width();
+    hints.preferredHeight = size.height();
+    return hints;
 }
 
-deflect::server::FramePtr createTestFrame(const QSize& size)
+deflect::server::Tile createTile(const QSize& size, const uint channel)
 {
-    deflect::server::FramePtr frame(new deflect::server::Frame);
-    frame->uri = CONTENT_URI;
     deflect::server::Tile tile;
     tile.width = size.width();
     tile.height = size.height();
-    frame->tiles.push_back(tile);
+    tile.channel = channel;
+    return tile;
+}
+
+deflect::server::FramePtr createTestFrame(const QSize& size,
+                                          const QString& uri = CONTENT_URI)
+{
+    auto frame = std::make_shared<deflect::server::Frame>();
+    frame->uri = uri;
+    frame->tiles.push_back(createTile(size, 0));
+    return frame;
+}
+
+deflect::server::FramePtr createTestFrame(const QSize& channel0Size,
+                                          const QSize& channel1Size)
+{
+    auto frame = createTestFrame(channel0Size);
+    frame->tiles.push_back(createTile(channel1Size, 1));
     return frame;
 }
 
@@ -87,36 +111,60 @@ public:
     virtual void processEvent(deflect::Event /*event*/) { success = true; }
     bool success;
 };
+}
 
 BOOST_AUTO_TEST_CASE(testNoStreamerWindowCreation)
 {
     auto scene = Scene::create(wallSize);
     PixelStreamWindowManager windowManager(*scene);
 
-    const QString uri = CONTENT_URI;
-    const QPointF pos(testWindowPos);
-    const QSize size(testWindowSize);
+    const auto& uri = CONTENT_URI;
 
-    windowManager.openWindow(0, uri, pos, size);
-    ContentWindowPtr window = windowManager.getWindow(uri);
+    windowManager.openWindow(0, uri, testWindowSize, testWindowPos);
+    ContentWindowPtr window = windowManager.getWindows(uri)[0];
     BOOST_REQUIRE(window);
 
-    BOOST_CHECK_EQUAL(window, windowManager.getWindow(uri));
+    BOOST_CHECK_EQUAL(window, windowManager.getWindows(uri)[0]);
 
     const QRectF& coords = window->getCoordinates();
-    BOOST_CHECK_EQUAL(coords.center(), pos);
-    BOOST_CHECK_EQUAL(coords.size(), size);
+    BOOST_CHECK_EQUAL(coords.size(), testWindowSize);
+    BOOST_CHECK_EQUAL(coords.center(), testWindowPos);
 
     windowManager.handleStreamEnd(uri);
-    BOOST_CHECK(!windowManager.getWindow(uri));
+    BOOST_CHECK(windowManager.getWindows(uri).empty());
+}
+
+BOOST_AUTO_TEST_CASE(requestFirstFrameSignalIsEmittedOnlyForAlreadyOpenWindows)
+{
+    auto scene = Scene::create(wallSize);
+    PixelStreamWindowManager windowManager(*scene);
+
+    uint requestFirstFrameEmitted = 0;
+    QObject::connect(&windowManager,
+                     &PixelStreamWindowManager::requestFirstFrame,
+                     [&requestFirstFrameEmitted]() {
+                         ++requestFirstFrameEmitted;
+                     });
+
+    windowManager.openWindow(0, CONTENT_URI, testWindowSize, testWindowPos);
+
+    BOOST_CHECK(!requestFirstFrameEmitted);
+
+    windowManager.handleStreamStart("ExternalStream");
+
+    BOOST_CHECK(!requestFirstFrameEmitted);
+
+    windowManager.handleStreamStart(CONTENT_URI);
+
+    BOOST_CHECK(requestFirstFrameEmitted == 1);
 }
 
 BOOST_AUTO_TEST_CASE(testEventReceiver)
 {
     auto scene = Scene::create(wallSize);
     PixelStreamWindowManager windowManager(*scene);
-    windowManager.openWindow(0, CONTENT_URI, testWindowPos, testWindowSize);
-    ContentWindowPtr window = windowManager.getWindow(CONTENT_URI);
+    windowManager.openWindow(0, CONTENT_URI, testWindowSize, testWindowPos);
+    ContentWindowPtr window = windowManager.getWindows(CONTENT_URI)[0];
     BOOST_REQUIRE(window);
 
     auto& content = dynamic_cast<PixelStreamContent&>(window->getContent());
@@ -153,36 +201,34 @@ BOOST_AUTO_TEST_CASE(testExplicitWindowCreation)
     PixelStreamWindowManager windowManager(*scene);
     auto& group = scene->getGroup(0);
 
-    const QString uri = CONTENT_URI;
-    const QPointF pos(testWindowPos);
-    const QSize size(testWindowSize);
+    const auto& uri = CONTENT_URI;
 
-    windowManager.openWindow(0, uri, pos, size);
-    ContentWindowPtr window = windowManager.getWindow(uri);
+    windowManager.openWindow(0, uri, testWindowSize, testWindowPos);
+    ContentWindowPtr window = windowManager.getWindows(uri)[0];
     BOOST_REQUIRE(window);
 
-    BOOST_CHECK_EQUAL(window, windowManager.getWindow(uri));
+    BOOST_CHECK_EQUAL(window, windowManager.getWindows(uri)[0]);
     BOOST_CHECK_EQUAL(window, group.getContentWindow(window->getID()));
 
     windowManager.handleStreamStart(uri);
-    BOOST_CHECK_EQUAL(window, windowManager.getWindow(uri));
+    BOOST_CHECK_EQUAL(window, windowManager.getWindows(uri)[0]);
 
     const auto& content = window->getContent();
     BOOST_CHECK_EQUAL(content.getURI(), uri);
     BOOST_CHECK_EQUAL(content.getType(), CONTENT_TYPE_PIXEL_STREAM);
 
     const QRectF& coords = window->getCoordinates();
-    BOOST_CHECK_EQUAL(coords.center(), pos);
-    BOOST_CHECK_EQUAL(coords.size(), size);
+    BOOST_CHECK_EQUAL(coords.size(), testWindowSize);
+    BOOST_CHECK_EQUAL(coords.center(), testWindowPos);
 
     // Check that the window is NOT resized to the first frame dimensions
-    windowManager.updateStreamDimensions(createTestFrame(testFrameSize));
+    windowManager.updateStreamWindows(createTestFrame(testFrameSize));
     BOOST_CHECK_EQUAL(content.getDimensions(), testFrameSize);
-    BOOST_CHECK_EQUAL(coords.center(), pos);
-    BOOST_CHECK_EQUAL(coords.size(), size);
+    BOOST_CHECK_EQUAL(coords.size(), testWindowSize);
+    BOOST_CHECK_EQUAL(coords.center(), testWindowPos);
 
     windowManager.handleStreamEnd(uri);
-    BOOST_CHECK(!windowManager.getWindow(uri));
+    BOOST_CHECK(windowManager.getWindows(uri).empty());
     BOOST_CHECK(!group.getContentWindow(window->getID()));
 }
 
@@ -192,14 +238,14 @@ BOOST_AUTO_TEST_CASE(testImplicitWindowCreation)
     PixelStreamWindowManager windowManager(*scene);
     auto& group = scene->getGroup(0);
 
-    const QString uri = CONTENT_URI;
-    // window will be positioned centerred
-    const QPointF pos(wallSize.width() * 0.5, wallSize.height() * 0.5);
-    const QSize size(defaultPixelStreamWindowSize);
+    const auto& uri = CONTENT_URI;
+    // window will be positioned centered
+    const auto pos = QPointF(wallSize.width() * 0.5, wallSize.height() * 0.5);
+    const auto size = QSize(defaultPixelStreamWindowSize);
 
     windowManager.handleStreamStart(uri);
-    ContentWindowPtr window = windowManager.getWindow(uri);
-    BOOST_REQUIRE(window);
+    BOOST_REQUIRE(windowManager.getWindows(uri).size() == 1);
+    auto window = windowManager.getWindows(uri)[0];
     BOOST_CHECK_EQUAL(window, group.getContentWindow(window->getID()));
 
     const auto& content = window->getContent();
@@ -207,24 +253,24 @@ BOOST_AUTO_TEST_CASE(testImplicitWindowCreation)
     BOOST_CHECK_EQUAL(content.getType(), CONTENT_TYPE_PIXEL_STREAM);
     BOOST_CHECK_EQUAL(content.getDimensions(), UNDEFINED_SIZE);
 
-    const QRectF& coords = window->getCoordinates();
+    const auto& coords = window->getCoordinates();
     BOOST_CHECK_EQUAL(coords.center(), pos);
     BOOST_CHECK_EQUAL(coords.size(), size);
 
     // Check that the window is resized to the first frame dimensions
-    windowManager.updateStreamDimensions(createTestFrame(testFrameSize));
+    windowManager.updateStreamWindows(createTestFrame(testFrameSize));
     BOOST_CHECK_EQUAL(content.getDimensions(), testFrameSize);
     BOOST_CHECK_EQUAL(coords.center(), pos);
     BOOST_CHECK_EQUAL(coords.size(), testFrameSize);
 
     // Check that the window is NOT resized to the next frame dimensions
-    windowManager.updateStreamDimensions(createTestFrame(testFrameSize2));
+    windowManager.updateStreamWindows(createTestFrame(testFrameSize2));
     BOOST_CHECK_EQUAL(content.getDimensions(), testFrameSize2);
     BOOST_CHECK_EQUAL(coords.center(), pos);
     BOOST_CHECK_EQUAL(coords.size(), testFrameSize);
 
     windowManager.handleStreamEnd(uri);
-    BOOST_CHECK(!windowManager.getWindow(uri));
+    BOOST_CHECK(windowManager.getWindows(uri).empty());
     BOOST_CHECK(!group.getContentWindow(window->getID()));
 }
 
@@ -233,9 +279,9 @@ BOOST_AUTO_TEST_CASE(testSizeHints)
     auto scene = Scene::create(wallSize);
     PixelStreamWindowManager windowManager(*scene);
 
-    const QString uri = CONTENT_URI;
+    const auto& uri = CONTENT_URI;
     windowManager.handleStreamStart(uri);
-    ContentWindowPtr window = windowManager.getWindow(uri);
+    auto window = windowManager.getWindows(uri)[0];
     const auto& content = window->getContent();
 
     BOOST_CHECK_EQUAL(content.getDimensions(), QSizeF());
@@ -261,22 +307,22 @@ BOOST_AUTO_TEST_CASE(testSizeHints)
     BOOST_CHECK_EQUAL(content.getPreferredDimensions(), preferredSize);
 }
 
-BOOST_AUTO_TEST_CASE(hideAndShowWindow)
+BOOST_AUTO_TEST_CASE(hideAndShowWindows)
 {
     auto scene = Scene::create(wallSize);
     PixelStreamWindowManager windowManager(*scene);
 
     const QString uri = CONTENT_URI;
     windowManager.handleStreamStart(uri);
-    ContentWindowPtr window = windowManager.getWindow(uri);
+    ContentWindowPtr window = windowManager.getWindows(uri)[0];
 
     BOOST_REQUIRE(window->isHidden());
     BOOST_REQUIRE(!window->isPanel());
 
-    windowManager.showWindow(uri);
+    windowManager.showWindows(uri);
     BOOST_CHECK(!window->isHidden());
 
-    windowManager.hideWindow(uri);
+    windowManager.hideWindows(uri);
     BOOST_CHECK(window->isHidden());
 }
 
@@ -285,170 +331,311 @@ BOOST_AUTO_TEST_CASE(hideAndShowPanel)
     auto scene = Scene::create(wallSize);
     PixelStreamWindowManager windowManager(*scene);
 
-    const QString uri = PANEL_URI;
+    const auto& uri = PANEL_URI;
+    windowManager.openWindow(0, uri, testFrameSize, QPointF(),
+                             StreamType::LAUNCHER);
     windowManager.handleStreamStart(uri);
-    ContentWindowPtr panel = windowManager.getWindow(uri);
+    auto panel = windowManager.getWindows(uri)[0];
 
     BOOST_REQUIRE(panel->isPanel());
     BOOST_REQUIRE(!panel->isHidden());
 
-    windowManager.hideWindow(uri);
+    windowManager.hideWindows(uri);
     BOOST_CHECK(panel->isHidden());
-    windowManager.showWindow(uri);
+    windowManager.showWindows(uri);
     BOOST_CHECK(!panel->isHidden());
 
     auto promise = std::make_shared<std::promise<bool>>();
     DummyEventReceiver receiver;
     windowManager.registerEventReceiver(uri, false, &receiver, promise);
 
-    windowManager.hideWindow(uri);
+    windowManager.hideWindows(uri);
     BOOST_CHECK(panel->isHidden());
 
-    windowManager.showWindow(uri);
+    windowManager.showWindows(uri);
     BOOST_CHECK(!panel->isHidden());
 }
 
-BOOST_AUTO_TEST_CASE(check_external_stream_opening_after_sizehints)
+struct SingleSurface
 {
-    auto scene = Scene::create(wallSize);
-    PixelStreamWindowManager windowManager(*scene);
+    ScenePtr scene = Scene::create(wallSize);
+    PixelStreamWindowManager windowManager{*scene};
 
     bool externalStreamOpened = false;
 
-    QObject::connect(&windowManager,
-                     &PixelStreamWindowManager::externalStreamOpening,
-                     [&externalStreamOpened]() {
-                         externalStreamOpened = true;
-                     });
+    SingleSurface()
+    {
+        QObject::connect(&windowManager,
+                         &PixelStreamWindowManager::externalStreamOpening,
+                         [this]() { externalStreamOpened = true; });
+    }
+};
 
-    const QString uri = CONTENT_URI;
+BOOST_FIXTURE_TEST_CASE(external_stream_signal_open_after_sizehints,
+                        SingleSurface)
+{
+    const auto& uri = CONTENT_URI;
     windowManager.handleStreamStart(uri);
-    ContentWindowPtr window = windowManager.getWindow(uri);
 
-    // external streamer will be opened when provided with proper size
-    BOOST_CHECK_EQUAL(externalStreamOpened, false);
+    const auto window = windowManager.getWindows(uri)[0];
+
+    BOOST_CHECK(!externalStreamOpened);
     BOOST_CHECK(window->isHidden());
 
-    const QSize expectedDimension{400, 300};
+    const auto expectedDimensions = QSize{400, 300};
+    windowManager.updateSizeHints(uri, makeSizeHints(expectedDimensions));
 
-    deflect::SizeHints hints;
-    hints.preferredWidth = expectedDimension.width();
-    hints.preferredHeight = expectedDimension.height();
-    windowManager.updateSizeHints(uri, hints);
-    BOOST_CHECK_EQUAL(externalStreamOpened, true);
-
-    BOOST_CHECK_EQUAL(
-        windowManager.getWindow(uri)->getContent().getDimensions(),
-        expectedDimension);
+    BOOST_CHECK(externalStreamOpened);
+    BOOST_CHECK(window->isHidden());
+    BOOST_CHECK_EQUAL(window->getContent().getDimensions(), expectedDimensions);
 }
 
-BOOST_AUTO_TEST_CASE(check_external_stream_opening_after_firstframe)
+BOOST_FIXTURE_TEST_CASE(check_external_stream_signal_open_after_firstframe,
+                        SingleSurface)
 {
-    auto scene = Scene::create(wallSize);
-    PixelStreamWindowManager windowManager(*scene);
-
-    bool externalStreamOpened = false;
-
-    QObject::connect(&windowManager,
-                     &PixelStreamWindowManager::externalStreamOpening,
-                     [&externalStreamOpened]() {
-                         externalStreamOpened = true;
-                     });
-
-    const QString uri = CONTENT_URI;
+    const auto& uri = CONTENT_URI;
     windowManager.handleStreamStart(uri);
-    ContentWindowPtr window = windowManager.getWindow(uri);
 
-    // external streamer will be opened when provided with proper size
+    const auto window = windowManager.getWindows(uri)[0];
+
     BOOST_CHECK_EQUAL(externalStreamOpened, false);
     BOOST_CHECK(window->isHidden());
 
-    const QSize expectedDimension{400, 300};
+    const auto expectedDimensions = QSize{400, 300};
+    windowManager.updateStreamWindows(createTestFrame(expectedDimensions));
 
-    deflect::server::Tile tile;
-    tile.width = expectedDimension.width();
-    tile.height = expectedDimension.height();
-
-    deflect::server::FramePtr frame(new deflect::server::Frame);
-    frame->uri = uri;
-    frame->tiles.push_back(tile);
-    windowManager.updateStreamDimensions(frame);
     BOOST_CHECK_EQUAL(externalStreamOpened, true);
     BOOST_CHECK(window->isHidden());
-
-    BOOST_CHECK_EQUAL(
-        windowManager.getWindow(uri)->getContent().getDimensions(),
-        expectedDimension);
+    BOOST_CHECK_EQUAL(window->getContent().getDimensions(), expectedDimensions);
 }
 
-BOOST_AUTO_TEST_CASE(resize_external_stream)
+BOOST_FIXTURE_TEST_CASE(stream_content_size_adjusts_to_frame_size,
+                        SingleSurface)
 {
-    auto scene = Scene::create(wallSize);
-    PixelStreamWindowManager windowManager(*scene);
-
-    bool externalStreamOpened = false;
-
-    const QString uri = CONTENT_URI;
-    QObject::connect(&windowManager,
-                     &PixelStreamWindowManager::externalStreamOpening,
-                     [&externalStreamOpened, &windowManager, uri]() {
-                         externalStreamOpened = true;
-                         windowManager.showWindow(uri);
-                     });
-
+    const auto& uri = CONTENT_URI;
     windowManager.handleStreamStart(uri);
-    ContentWindowPtr window = windowManager.getWindow(uri);
 
-    // external streamer will be opened when provided with proper size
-    BOOST_CHECK_EQUAL(externalStreamOpened, false);
-    BOOST_CHECK(window->isHidden());
+    const auto window = windowManager.getWindows(uri)[0];
+    const auto& content = window->getContent();
 
-    const QSize expectedDimension{400, 300};
+    const auto expectedDimensions = QSize{400, 300};
+    windowManager.updateSizeHints(uri, makeSizeHints(expectedDimensions));
 
-    deflect::SizeHints hints;
-    hints.preferredWidth = expectedDimension.width();
-    hints.preferredHeight = expectedDimension.height();
-    windowManager.updateSizeHints(uri, hints);
-    BOOST_CHECK_EQUAL(externalStreamOpened, true);
-    BOOST_CHECK(!window->isHidden());
+    BOOST_REQUIRE_EQUAL(content.getDimensions(), expectedDimensions);
 
-    BOOST_CHECK_EQUAL(
-        windowManager.getWindow(uri)->getContent().getDimensions(),
-        expectedDimension);
+    const auto newDimensions = QSize{200, 200};
+    windowManager.updateStreamWindows(createTestFrame(newDimensions));
 
-    const QSize newDimension{200, 200};
-    deflect::server::Tile tile;
-    tile.width = newDimension.width();
-    tile.height = newDimension.height();
+    BOOST_CHECK_EQUAL(content.getDimensions(), newDimensions);
 
-    deflect::server::FramePtr frame(new deflect::server::Frame);
-    frame->uri = uri;
-    frame->tiles.push_back(tile);
-    windowManager.updateStreamDimensions(frame);
+    const auto newDimensions2 = QSize{400, 300};
+    windowManager.updateStreamWindows(createTestFrame(newDimensions2));
 
-    BOOST_CHECK_EQUAL(
-        windowManager.getWindow(uri)->getContent().getDimensions(),
-        newDimension);
+    BOOST_CHECK_EQUAL(content.getDimensions(), newDimensions2);
 }
 
-BOOST_AUTO_TEST_CASE(check_local_stream_opening)
+BOOST_FIXTURE_TEST_CASE(local_streams_open_without_validation_signal,
+                        SingleSurface)
 {
-    auto scene = Scene::create(wallSize);
-    PixelStreamWindowManager windowManager(*scene);
+    windowManager.openWindow(0, PANEL_URI, testFrameSize, QPointF(),
+                             StreamType::LAUNCHER);
+    windowManager.handleStreamStart(PANEL_URI);
 
-    bool externalStreamOpened = false;
+    const auto webbrowserUri = "Webbrowser_0";
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT
+    const auto type = StreamType::WEBBROWSER;
+#else
+    const auto type = StreamType::WHITEBOARD;
+#endif
 
-    QObject::connect(&windowManager,
-                     &PixelStreamWindowManager::externalStreamOpening,
-                     [&externalStreamOpened]() {
-                         externalStreamOpened = true;
-                     });
+    windowManager.openWindow(0, webbrowserUri, testFrameSize, QPointF(), type);
+    windowManager.handleStreamStart(webbrowserUri);
 
-    const QString uri = PANEL_URI;
-    windowManager.handleStreamStart(uri);
+    const auto whiteboardUri = "Whiteboard_0";
+    windowManager.openWindow(0, whiteboardUri, testFrameSize, QPointF(),
+                             StreamType::WHITEBOARD);
+    windowManager.handleStreamStart(whiteboardUri);
 
-    ContentWindowPtr window = windowManager.getWindow(uri);
+    BOOST_CHECK(!externalStreamOpened);
+    BOOST_CHECK(!windowManager.getWindows(PANEL_URI).at(0)->isHidden());
+    BOOST_CHECK(!windowManager.getWindows(webbrowserUri).at(0)->isHidden());
+    BOOST_CHECK(!windowManager.getWindows(whiteboardUri).at(0)->isHidden());
+}
 
-    BOOST_CHECK_EQUAL(externalStreamOpened, false);
-    BOOST_CHECK(!window->isHidden());
+BOOST_FIXTURE_TEST_CASE(
+    multi_channel_stream_shows_first_channel_on_single_surface, SingleSurface)
+{
+    windowManager.handleStreamStart(CONTENT_URI);
+    const auto frame = createTestFrame(testFrameSize, testFrameSize2);
+    windowManager.updateStreamWindows(frame);
+
+    BOOST_REQUIRE(externalStreamOpened);
+
+    const auto window = windowManager.getWindows(CONTENT_URI)[0];
+    const auto& content =
+        dynamic_cast<const PixelStreamContent&>(window->getContent());
+
+    BOOST_CHECK_EQUAL(content.getURI(), CONTENT_URI);
+    BOOST_CHECK_EQUAL(content.getChannel(), 0);
+    BOOST_CHECK_EQUAL(content.getDimensions(), testFrameSize);
+}
+
+struct MultiSurface
+{
+    DisplayGroupPtr group0 = DisplayGroup::create(wallSize);
+    DisplayGroupPtr group1 = DisplayGroup::create(wallSize);
+    DisplayGroupPtr group2 = DisplayGroup::create(wallSize);
+    ScenePtr scene = Scene::create({group0, group1, group2});
+    PixelStreamWindowManager windowManager{*scene};
+
+    uint externalStreamsOpened = 0u;
+
+    MultiSurface()
+    {
+        QObject::connect(&windowManager,
+                         &PixelStreamWindowManager::externalStreamOpening,
+                         [this]() { ++externalStreamsOpened; });
+    }
+};
+
+BOOST_FIXTURE_TEST_CASE(display_local_stream_on_secondary_surfaces,
+                        MultiSurface)
+{
+    const auto webbrowserUri = "Webbrowser_0";
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT
+    const auto type = StreamType::WEBBROWSER;
+#else
+    const auto type = StreamType::WHITEBOARD;
+#endif
+
+    windowManager.openWindow(1, webbrowserUri, testFrameSize, QPointF(), type);
+
+    BOOST_REQUIRE(group0->getContentWindows().empty());
+    BOOST_REQUIRE(group1->getContentWindows().size() == 1);
+    BOOST_REQUIRE(group2->getContentWindows().empty());
+    const auto whiteboardUri = "Whiteboard_0";
+
+    windowManager.openWindow(2, whiteboardUri, testFrameSize, QPointF(),
+                             StreamType::WHITEBOARD);
+
+    BOOST_REQUIRE(group0->getContentWindows().empty());
+    BOOST_REQUIRE(group1->getContentWindows().size() == 1);
+    BOOST_REQUIRE(group2->getContentWindows().size() == 1);
+
+    BOOST_CHECK_EQUAL(group1->getContentWindows()[0].get(),
+                      windowManager.getWindows(webbrowserUri).at(0).get());
+
+    BOOST_CHECK_EQUAL(group2->getContentWindows()[0].get(),
+                      windowManager.getWindows(whiteboardUri).at(0).get());
+
+    windowManager.updateStreamWindows(
+        createTestFrame(testFrameSize, webbrowserUri));
+    windowManager.updateStreamWindows(
+        createTestFrame(testFrameSize, whiteboardUri));
+
+    BOOST_CHECK(group0->getContentWindows().empty());
+    BOOST_CHECK(group1->getContentWindows().size() == 1);
+    BOOST_CHECK(group2->getContentWindows().size() == 1);
+
+    BOOST_CHECK(!externalStreamsOpened);
+}
+
+BOOST_FIXTURE_TEST_CASE(multi_channel_stream_opens_on_multiple_surfaces,
+                        MultiSurface)
+{
+    windowManager.handleStreamStart(CONTENT_URI);
+
+    BOOST_REQUIRE(group0->getContentWindows().size() == 1);
+    BOOST_CHECK(group1->getContentWindows().empty());
+    BOOST_CHECK(group2->getContentWindows().empty());
+
+    const auto frame = createTestFrame(testFrameSize, testFrameSize2);
+    windowManager.updateStreamWindows(frame);
+
+    BOOST_CHECK_EQUAL(externalStreamsOpened, 1);
+
+    BOOST_REQUIRE(group0->getContentWindows().size() == 1);
+    BOOST_REQUIRE(group1->getContentWindows().size() == 1);
+    BOOST_CHECK(group2->getContentWindows().empty());
+
+    const auto& window0 = *group0->getContentWindows()[0];
+    const auto& window1 = *group1->getContentWindows()[0];
+    const auto& c0 = window0.getContent();
+    const auto& c1 = window1.getContent();
+    const auto& content0 = dynamic_cast<const PixelStreamContent&>(c0);
+    const auto& content1 = dynamic_cast<const PixelStreamContent&>(c1);
+
+    BOOST_CHECK(window0.isHidden());
+    BOOST_CHECK(window1.isHidden());
+
+    BOOST_CHECK_EQUAL(content0.getURI(), CONTENT_URI);
+    BOOST_CHECK_EQUAL(content1.getURI(), CONTENT_URI);
+
+    BOOST_CHECK_EQUAL(content0.getChannel(), 0);
+    BOOST_CHECK_EQUAL(content1.getChannel(), 1);
+
+    BOOST_CHECK_EQUAL(content0.getDimensions(), testFrameSize);
+    BOOST_CHECK_EQUAL(content1.getDimensions(), testFrameSize2);
+
+    windowManager.showWindows(CONTENT_URI);
+
+    BOOST_CHECK(!window0.isHidden());
+    BOOST_CHECK(!window1.isHidden());
+
+    // New frame updates the size of the first window and closes the second
+    windowManager.updateStreamWindows(createTestFrame(testFrameSize2));
+
+    BOOST_REQUIRE(group0->getContentWindows().size() == 1);
+    BOOST_CHECK(group1->getContentWindows().empty());
+    BOOST_CHECK(group2->getContentWindows().empty());
+
+    BOOST_CHECK_EQUAL(content0.getURI(), CONTENT_URI);
+    BOOST_CHECK_EQUAL(content0.getChannel(), 0);
+    BOOST_CHECK_EQUAL(content0.getDimensions(), testFrameSize2);
+
+    windowManager.handleStreamEnd(CONTENT_URI);
+
+    BOOST_CHECK(group0->getContentWindows().empty());
+    BOOST_CHECK(group1->getContentWindows().empty());
+    BOOST_CHECK(group2->getContentWindows().empty());
+}
+
+BOOST_FIXTURE_TEST_CASE(multi_channel_stream_goes_fullscreen_on_all_surfaces,
+                        MultiSurface)
+{
+    windowManager.handleStreamStart(CONTENT_URI);
+    const auto frame = createTestFrame(testFrameSize, testFrameSize2);
+    windowManager.updateStreamWindows(frame);
+    windowManager.showWindows(CONTENT_URI);
+
+    BOOST_REQUIRE(group0->getContentWindows().size() == 1);
+    BOOST_REQUIRE(group1->getContentWindows().size() == 1);
+
+    const auto& window0 = *group0->getContentWindows()[0];
+    const auto& window1 = *group1->getContentWindows()[0];
+
+    DisplayGroupController{*group0}.showFullscreen(window0.getID());
+    BOOST_CHECK(window0.isFullscreen());
+    BOOST_CHECK(window1.isFullscreen());
+
+    DisplayGroupController{*group1}.exitFullscreen();
+    BOOST_CHECK(!window0.isFullscreen());
+    BOOST_CHECK(!window1.isFullscreen());
+}
+
+BOOST_FIXTURE_TEST_CASE(multi_channel_stream_closes_on_all_surfaces,
+                        MultiSurface)
+{
+    windowManager.handleStreamStart(CONTENT_URI);
+    const auto frame = createTestFrame(testFrameSize, testFrameSize2);
+    windowManager.updateStreamWindows(frame);
+    windowManager.showWindows(CONTENT_URI);
+
+    BOOST_REQUIRE(group1->getContentWindows().size() == 1);
+
+    const auto& window1 = *group1->getContentWindows()[0];
+    DisplayGroupController{*group1}.remove(window1.getID());
+
+    BOOST_CHECK(group0->getContentWindows().empty());
+    BOOST_CHECK(group1->getContentWindows().empty());
 }

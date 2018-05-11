@@ -42,12 +42,19 @@
 
 #include "types.h"
 
+#include "PixelStreamChannelAssembler.h"
 #include "PixelStreamProcessor.h"
 
 #include <deflect/server/Frame.h>
 
+#include <map>
+
 /**
  * Assemble small frame tiles (e.g. 64x64) into 512x512 ones.
+ *
+ * This class operates on all the channels of the frame. The tile indices are
+ * global for the frame, i.e. individual channels are mapped to contiguous,
+ * non-overlapping sets of indices by computeVisibleSet().
  */
 class PixelStreamAssembler : public PixelStreamProcessor
 {
@@ -67,24 +74,28 @@ public:
     QRect getTileRect(uint tileIndex) const final;
 
     /** @copydoc PixelStreamProcessor::computeVisibleSet */
-    Indices computeVisibleSet(const QRectF& visibleTilesArea) const final;
+    Indices computeVisibleSet(const QRectF& visibleArea,
+                              uint channel) const final;
 
 private:
-    deflect::server::FramePtr _frame;
-    QSize _frameSize;
-    deflect::server::FramePtr _assembledFrame;
+    struct Channel
+    {
+        mutable PixelStreamChannelAssembler assembler;
+        const size_t offset = 0;
+        const size_t tilesCount = 0;
 
-    bool _canAssemble() const;
+        Channel(deflect::server::FramePtr frame, const uint channel,
+                const size_t offset_)
+            : assembler(frame, channel)
+            , offset{offset_}
+            , tilesCount{assembler.getTilesCount()}
+        {
+        }
+    };
+    std::vector<Channel> _channels;
 
-    uint _getTilesX() const;
-    uint _getTilesY() const;
-
-    void _initTargetFrame();
-
-    Indices _findSourceTiles(uint tileIndex) const;
-    void _decodeSourceTiles(const Indices& indices,
-                            deflect::server::TileDecoder& decoder);
-    void _assembleTargetTile(uint tileIndex, const Indices& indices);
+    bool _parseChannels(deflect::server::FramePtr frame);
+    const Channel& _getChannel(uint tileIndex) const;
 };
 
 #endif

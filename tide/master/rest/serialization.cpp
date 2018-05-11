@@ -42,6 +42,7 @@
 #include "LoggingUtility.h"
 #include "configuration/Configuration.h"
 #include "control/ContentWindowController.h"
+#include "localstreamer/PixelStreamerLauncher.h"
 #include "scene/ContentFactory.h"
 #include "scene/DisplayGroup.h"
 #include "scene/Scene.h"
@@ -104,7 +105,7 @@ QJsonObject serialize(const DisplayGroup& group)
     QJsonArray windows;
     for (const auto& window : group.getContentWindows())
     {
-        if (window->getContent().getURI() == "Launcher")
+        if (window->getContent().getURI() == PixelStreamerLauncher::launcherUri)
             continue;
 
         windows.append(serialize(window, group));

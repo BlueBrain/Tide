@@ -266,7 +266,7 @@ void MasterApplication::_startDeflectServer()
 
     connect(_deflectServer.get(), &deflect::server::Server::receivedFrame,
             _pixelStreamWindowManager.get(),
-            &PixelStreamWindowManager::updateStreamDimensions);
+            &PixelStreamWindowManager::updateStreamWindows);
 
     connect(_pixelStreamWindowManager.get(),
             &PixelStreamWindowManager::requestFirstFrame, _deflectServer.get(),
@@ -325,7 +325,7 @@ void MasterApplication::_setupMPIConnections()
 
     connect(_lock.get(), &ScreenLock::streamAccepted,
             _pixelStreamWindowManager.get(),
-            &PixelStreamWindowManager::showWindow);
+            &PixelStreamWindowManager::showWindows);
 
     connect(_lock.get(), &ScreenLock::streamRejected,
             _pixelStreamWindowManager.get(),

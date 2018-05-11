@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,84 +37,76 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef PIXELSTREAMUPDATER_H
-#define PIXELSTREAMUPDATER_H
+#ifndef MULTI_CHANNEL_CONTENT_H
+#define MULTI_CHANNEL_CONTENT_H
 
-#include "types.h"
-
-#include "DataSource.h"
-#include "SwapSyncObject.h"
-
-#include <QObject>
-#include <QReadWriteLock>
-
-class PixelStreamProcessor;
+#include "Content.h"
 
 /**
- * Synchronize the update of PixelStreams and send new frame requests.
+ * Abstract class for multi-channel contents.
  */
-class PixelStreamUpdater : public QObject, public DataSource
+class MultiChannelContent : public Content
 {
     Q_OBJECT
-    Q_DISABLE_COPY(PixelStreamUpdater)
 
 public:
-    /** Constructor. */
-    PixelStreamUpdater();
-
-    /** Destructor. */
-    ~PixelStreamUpdater();
-
-    /** @copydoc DataSource::isDynamic */
-    bool isDynamic() const final { return true; }
     /**
-     * @copydoc DataSource::getTileImage
-     * threadsafe
+     * Constructor.
+     * @param uri The content identifier.
      */
-    ImagePtr getTileImage(uint tileIndex, deflect::View view) const final;
+    MultiChannelContent(const QString& uri);
 
-    /** @copydoc DataSource::getTileRect */
-    QRect getTileRect(uint tileIndex) const final;
+    /** @return the channel of the derived content to render. */
+    uint getChannel() const;
 
-    /** @copydoc DataSource::getTilesArea */
-    QSize getTilesArea(uint lod, uint channel) const final;
+    /** Select which channel of the derived content to render. */
+    void setChannel(uint channel);
 
-    /** @copydoc DataSource::computeVisibleSet */
-    Indices computeVisibleSet(const QRectF& visibleTilesArea, uint lod,
-                              uint channel) const final;
-
-    /** @copydoc DataSource::getMaxLod */
-    uint getMaxLod() const final;
-
-    /** Allow advancing to the next frame of the stream (flow control). */
-    void getNextFrame();
-
-    /** Synchronize the advance to the next frame of the stream. */
-    void synchronizeFrameAdvance(WallToWallChannel& channel);
-
-public slots:
-    /** Update the appropriate PixelStream with the given frame. */
-    void updatePixelStream(deflect::server::FramePtr frame);
-
-signals:
-    /** Emitted when a new picture has become available. */
-    void pictureUpdated();
-
-    /** Emitted to request a new frame after a successful swap. */
-    void requestFrame(QString uri);
+protected:
+    // Default constructor required for boost::serialization
+    MultiChannelContent() = default;
 
 private:
-    SwapSyncObject<deflect::server::FramePtr> _swapSyncFrame;
-    deflect::server::FramePtr _frameLeftOrMono;
-    deflect::server::FramePtr _frameRight;
-    std::unique_ptr<deflect::server::TileDecoder> _headerDecoder;
-    std::unique_ptr<PixelStreamProcessor> _processorLeft;
-    std::unique_ptr<PixelStreamProcessor> _processRight;
-    mutable QReadWriteLock _frameMutex;
-    bool _readyToSwap = true;
+    friend class boost::serialization::access;
 
-    void _onFrameSwapped(deflect::server::FramePtr frame);
-    void _createFrameProcessors();
+    /** Serialize for sending to Wall applications. */
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int /*version*/)
+    {
+        // clang-format off
+        ar & boost::serialization::base_object<Content>(*this);
+        ar & _channel;
+        // clang-format on
+    }
+
+    template <class Archive>
+    void serialize_members_xml(Archive& ar, const unsigned int /*version*/)
+    {
+        // serialize base class information (with NVP for xml archives)
+        // clang-format off
+        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Content);
+        // clang-format on
+    }
+
+    /** Loading from xml. */
+    void serialize_for_xml(boost::archive::xml_iarchive& ar,
+                           const unsigned int version)
+    {
+        serialize_members_xml(ar, version);
+    }
+
+    /** Saving to xml. */
+    void serialize_for_xml(boost::archive::xml_oarchive& ar,
+                           const unsigned int version)
+    {
+        serialize_members_xml(ar, version);
+    }
+
+    uint _channel = 0;
 };
+
+DECLARE_SERIALIZE_FOR_XML(MultiChannelContent)
+
+BOOST_CLASS_EXPORT_KEY(MultiChannelContent)
 
 #endif

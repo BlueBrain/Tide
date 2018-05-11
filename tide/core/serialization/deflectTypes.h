@@ -68,8 +68,9 @@ void save(Archive& ar, const deflect::server::Tile& tile, const unsigned int)
     ar & tile.width;
     ar & tile.height;
     ar & tile.format;
-    ar & tile.view;
     ar & tile.rowOrder;
+    ar & tile.view;
+    ar & tile.channel;
 
     int size = tile.imageData.size();
     ar & size;
@@ -88,8 +89,9 @@ void load(Archive& ar, deflect::server::Tile& tile, const unsigned int)
     ar & tile.width;
     ar & tile.height;
     ar & tile.format;
-    ar & tile.view;
     ar & tile.rowOrder;
+    ar & tile.view;
+    ar & tile.channel;
 
     int size = 0;
     ar & size;

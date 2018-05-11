@@ -41,15 +41,18 @@
 
 #include "data/QtImage.h"
 
-ImagePtr CachedDataSource::getTileImage(const uint tileId, deflect::View) const
+ImagePtr CachedDataSource::getTileImage(const uint tileId,
+                                        const deflect::View view) const
 {
+    Q_UNUSED(view);
+
     {
         const QMutexLocker lock(&_mutex);
         if (_cache.contains(tileId))
             return std::make_shared<QtImage>(_cache[tileId]);
     }
 
-    const QImage image = getCachableTileImage(tileId);
+    const auto image = getCachableTileImage(tileId);
     if (!image.isNull())
     {
         const QMutexLocker lock(&_mutex);

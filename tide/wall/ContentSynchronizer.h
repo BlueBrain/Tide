@@ -86,7 +86,7 @@ public:
     /** @return true if tiles are ready to be swapped. */
     virtual bool canSwapTiles() const = 0;
 
-    /** The total area covered by the tiles (may depend on current LOD). */
+    /** @return the total area covered by the tiles. */
     virtual QSize getTilesArea() const = 0;
 
     /** Get statistics about this Content. */

@@ -45,6 +45,7 @@
 #include "network/WallToWallChannel.h"
 #include "scene/Background.h"
 #include "scene/ContentWindow.h"
+#include "scene/MultiChannelContent.h"
 #include "scene/Scene.h"
 
 #include "BasicSynchronizer.h"
@@ -243,7 +244,7 @@ void DataProvider::loadAsync(TilePtr tile, deflect::View view)
     // Group the requests for a single tile from multiple WallWindows for the
     // data source currently being processed.
     // This ensures that getTileImage is never called more than once per Tile.
-    _tileImageRequests[tile->getId()].emplace_back(tile, view);
+    _tileImageRequests[tile->getId()].push_back({tile, view});
 }
 
 void DataProvider::setNewFrame(deflect::server::FramePtr frame)
@@ -339,9 +340,10 @@ void DataProvider::_processTileImageRequests(DataSourcePtr source)
         _watchers.append(watcher);
         connect(watcher, &Watcher::finished, this,
                 &DataProvider::_handleFinished);
-        const auto& tilesToUpdate = tileRequest.second;
         watcher->setFuture(QtConcurrent::run(
-            [this, source, tilesToUpdate] { _load(source, tilesToUpdate); }));
+            [ this, source, tilesToUpdate = tileRequest.second ] {
+                _load(source, tilesToUpdate);
+            }));
     }
     _tileImageRequests.clear();
 }
@@ -385,9 +387,9 @@ void DataProvider::_load(DataSourcePtr source, const TileUpdateList& tiles)
 
     for (const auto& it : tiles)
     {
-        if (auto tile = it.first.lock())
+        if (auto tile = it.tile.lock())
         {
-            const auto view = it.second;
+            const auto view = it.view;
             const auto id = tile->getId();
             if (!image[view])
             {
@@ -457,8 +459,11 @@ std::unique_ptr<ContentSynchronizer> DataProvider::_makeSynchronizer(
     case CONTENT_TYPE_PIXEL_STREAM:
     case CONTENT_TYPE_WEBBROWSER:
     {
-        auto source = _streamSources.at(window.getContent().getURI());
-        return std::make_unique<PixelStreamSynchronizer>(source, view);
+        const auto& content = window.getContent();
+        auto source = _streamSources.at(content.getURI());
+        const auto channel =
+            static_cast<const MultiChannelContent&>(content).getChannel();
+        return std::make_unique<PixelStreamSynchronizer>(source, view, channel);
     }
     case CONTENT_TYPE_SVG:
     {

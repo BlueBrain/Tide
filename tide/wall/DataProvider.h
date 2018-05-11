@@ -127,7 +127,11 @@ private:
 
     void _updateDataSource(const Content& content, const QUuid& id);
 
-    using TileUpdateInfo = std::pair<TileWeakPtr, deflect::View>;
+    struct TileUpdateInfo
+    {
+        TileWeakPtr tile;
+        deflect::View view;
+    };
     using TileUpdateList = std::vector<TileUpdateInfo>;
     std::map<uint, TileUpdateList> _tileImageRequests;
 

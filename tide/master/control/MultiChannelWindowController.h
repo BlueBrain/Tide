@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,84 +37,47 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef PIXELSTREAMUPDATER_H
-#define PIXELSTREAMUPDATER_H
+#ifndef MULTI_CHANNEL_WINDOW_CONTROLLER_H
+#define MULTI_CHANNEL_WINDOW_CONTROLLER_H
 
 #include "types.h"
 
-#include "DataSource.h"
-#include "SwapSyncObject.h"
-
 #include <QObject>
-#include <QReadWriteLock>
-
-class PixelStreamProcessor;
 
 /**
- * Synchronize the update of PixelStreams and send new frame requests.
+ * Monitor the Scene to apply window operations such as fullscreen / exit
+ * fullscreen / close to windows on all surfaces for multi-channel contents.
  */
-class PixelStreamUpdater : public QObject, public DataSource
+class MultiChannelWindowController : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY(PixelStreamUpdater)
+    Q_DISABLE_COPY(MultiChannelWindowController)
 
 public:
-    /** Constructor. */
-    PixelStreamUpdater();
-
-    /** Destructor. */
-    ~PixelStreamUpdater();
-
-    /** @copydoc DataSource::isDynamic */
-    bool isDynamic() const final { return true; }
     /**
-     * @copydoc DataSource::getTileImage
-     * threadsafe
+     * Handle multi-channel content window operations on all surfaces.
+     *
+     * @param scene to control.
      */
-    ImagePtr getTileImage(uint tileIndex, deflect::View view) const final;
+    MultiChannelWindowController(Scene& scene);
 
-    /** @copydoc DataSource::getTileRect */
-    QRect getTileRect(uint tileIndex) const final;
-
-    /** @copydoc DataSource::getTilesArea */
-    QSize getTilesArea(uint lod, uint channel) const final;
-
-    /** @copydoc DataSource::computeVisibleSet */
-    Indices computeVisibleSet(const QRectF& visibleTilesArea, uint lod,
-                              uint channel) const final;
-
-    /** @copydoc DataSource::getMaxLod */
-    uint getMaxLod() const final;
-
-    /** Allow advancing to the next frame of the stream (flow control). */
-    void getNextFrame();
-
-    /** Synchronize the advance to the next frame of the stream. */
-    void synchronizeFrameAdvance(WallToWallChannel& channel);
-
-public slots:
-    /** Update the appropriate PixelStream with the given frame. */
-    void updatePixelStream(deflect::server::FramePtr frame);
-
-signals:
-    /** Emitted when a new picture has become available. */
-    void pictureUpdated();
-
-    /** Emitted to request a new frame after a successful swap. */
-    void requestFrame(QString uri);
+    void closeSingleWindow(const QString& uri, const QUuid& windowId);
+    void closeAllWindows(const QString& uri);
 
 private:
-    SwapSyncObject<deflect::server::FramePtr> _swapSyncFrame;
-    deflect::server::FramePtr _frameLeftOrMono;
-    deflect::server::FramePtr _frameRight;
-    std::unique_ptr<deflect::server::TileDecoder> _headerDecoder;
-    std::unique_ptr<PixelStreamProcessor> _processorLeft;
-    std::unique_ptr<PixelStreamProcessor> _processRight;
-    mutable QReadWriteLock _frameMutex;
-    bool _readyToSwap = true;
+    Scene& _scene;
+    std::map<QString, std::set<QUuid>> _contentToWindowsMap;
 
-    void _onFrameSwapped(deflect::server::FramePtr frame);
-    void _createFrameProcessors();
+    void _monitor(const DisplayGroup& group);
+    void _onWindowAdded(ContentWindowPtr window);
+    void _onWindowRemoved(ContentWindowPtr window);
+
+    void _changeFullscreenModeForAllWindows(const QString& uri,
+                                            bool fullscreenMode);
+    void _changeFullscreenMode(const QUuid& windowId, bool fullscreenMode);
+
+    void _closeAll(const std::set<QUuid> windows);
+    void _close(const QUuid& windowId);
 };
 
 #endif

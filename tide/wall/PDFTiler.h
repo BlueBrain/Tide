@@ -65,8 +65,8 @@ public:
     QRect getTileRect(uint tileId) const final;
 
     /** @copydoc DataSource::computeVisibleSet */
-    Indices computeVisibleSet(const QRectF& visibleTilesArea,
-                              uint lod) const final;
+    Indices computeVisibleSet(const QRectF& visibleTilesArea, uint lod,
+                              uint channel) const final;
 
     /**
      * @copydoc CachedDataSource::getCachableTileImage

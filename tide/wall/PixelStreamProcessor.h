@@ -65,8 +65,9 @@ public:
     /** @return the rectangle of the tile. */
     virtual QRect getTileRect(uint tileIndex) const = 0;
 
-    /** @return the list of visible tile for the given area. */
-    virtual Indices computeVisibleSet(const QRectF& visibleTilesArea) const = 0;
+    /** @return the list of visible tiles for the given area. */
+    virtual Indices computeVisibleSet(const QRectF& visibleArea,
+                                      uint channel) const = 0;
 
 protected:
     /** @return the coordinates of the tile as a QRect. */

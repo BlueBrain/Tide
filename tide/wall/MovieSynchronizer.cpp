@@ -104,7 +104,7 @@ void MovieSynchronizer::swapTiles()
 
 QSize MovieSynchronizer::getTilesArea() const
 {
-    return getDataSource().getTilesArea(0);
+    return getDataSource().getTilesArea(0, 0);
 }
 
 QString MovieSynchronizer::getStatistics() const

@@ -62,7 +62,10 @@ public:
     /** @copydoc ContentSynchronizer::updateTiles */
     void updateTiles() override;
 
-    /** @copydoc ContentSynchronizer::getTilesArea */
+    /**
+     * @return the total area covered by the tiles (depends on current LOD
+     *         and channel).
+     */
     QSize getTilesArea() const override;
 
     /** @copydoc ContentSynchronizer::getStatistics */

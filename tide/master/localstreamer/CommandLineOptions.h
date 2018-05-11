@@ -70,8 +70,6 @@ public:
 
     // All
     QString streamId;
-
-    // Launcher and webbrowser
     uint width = 0;
     uint height = 0;
 

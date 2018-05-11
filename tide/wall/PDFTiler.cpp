@@ -83,12 +83,15 @@ void PDFTiler::update(const PDFContent& content)
 }
 
 Indices PDFTiler::computeVisibleSet(const QRectF& visibleTilesArea,
-                                    const uint lod) const
+                                    const uint lod, const uint channel) const
 {
     const auto pageOffset = getPreviewTileId();
     Indices offsetSet;
-    for (auto tileId : LodTiler::computeVisibleSet(visibleTilesArea, lod))
+    for (auto tileId :
+         LodTiler::computeVisibleSet(visibleTilesArea, lod, channel))
+    {
         offsetSet.insert(tileId + pageOffset);
+    }
     return offsetSet;
 }
 

@@ -60,7 +60,7 @@ public:
 
 signals:
     /** Emitted when users want to open a webbrowser. */
-    void openWebBrowser(QPointF pos, QSize size, QString url, ushort debugPort);
+    void openWebBrowser(QString url, QSize size, ushort debugPort);
 
 public slots:
     /** Store the new settings and close the widget */
