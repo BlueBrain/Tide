@@ -41,7 +41,7 @@
         {
             "displayHeight": 216,
             "displayWidth": 1536,
-            "numScreensY": 3
+            "screenCountY": 3
         }
     ]
 }
