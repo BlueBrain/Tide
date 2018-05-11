@@ -87,7 +87,7 @@ void BasicSynchronizer::swapTiles()
 
 QSize BasicSynchronizer::getTilesArea() const
 {
-    return getDataSource().getTilesArea(0);
+    return getDataSource().getTilesArea(0, 0);
 }
 
 QString BasicSynchronizer::getStatistics() const

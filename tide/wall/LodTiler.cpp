@@ -54,14 +54,16 @@ QRect LodTiler::getTileRect(const uint tileId) const
     return _lodTool.getTileCoord(tileId);
 }
 
-QSize LodTiler::getTilesArea(const uint lod) const
+QSize LodTiler::getTilesArea(const uint lod, const uint channel) const
 {
+    Q_UNUSED(channel);
     return _lodTool.getTilesArea(lod);
 }
 
 Indices LodTiler::computeVisibleSet(const QRectF& visibleTilesArea,
-                                    const uint lod) const
+                                    const uint lod, const uint channel) const
 {
+    Q_UNUSED(channel);
     return _lodTool.getVisibleTiles(visibleTilesArea, lod);
 }
 
@@ -74,7 +76,7 @@ QRectF LodTiler::getNormalizedTileRect(const uint tileId) const
 {
     const QRectF tile(getTileRect(tileId));
     const uint lod = _lodTool.getTileIndex(tileId).lod;
-    const QSize area = getTilesArea(lod);
+    const QSize area = getTilesArea(lod, 0);
 
     const auto t =
         QTransform::fromScale(1.0 / area.width(), 1.0 / area.height());

@@ -64,10 +64,12 @@ void _splitByView(const deflect::server::Tiles& tiles,
     assert(right.empty() || right.size() == leftOrMono.size());
 }
 
-void _sortByPosition(deflect::server::Tiles& tiles)
+void _sortByChannelAndPosition(deflect::server::Tiles& tiles)
 {
     std::sort(tiles.begin(), tiles.end(), [](const auto& t1, const auto& t2) {
-        return (t1.y == t2.y ? t1.x < t2.x : t1.y < t2.y);
+        return t1.channel == t2.channel
+                   ? (t1.y == t2.y ? t1.x < t2.x : t1.y < t2.y)
+                   : t1.channel < t2.channel;
     });
 }
 }
@@ -81,29 +83,6 @@ PixelStreamUpdater::PixelStreamUpdater()
 
 PixelStreamUpdater::~PixelStreamUpdater()
 {
-}
-
-void PixelStreamUpdater::synchronizeFrameAdvance(WallToWallChannel& channel)
-{
-    if (!_readyToSwap)
-        return;
-
-    const auto versionCheckFunc = std::bind(&WallToWallChannel::checkVersion,
-                                            &channel, std::placeholders::_1);
-    _swapSyncFrame.sync(versionCheckFunc);
-}
-
-QRect PixelStreamUpdater::getTileRect(const uint tileIndex) const
-{
-    return _processorLeft->getTileRect(tileIndex);
-}
-
-QSize PixelStreamUpdater::getTilesArea(const uint lod) const
-{
-    Q_UNUSED(lod);
-    if (!_frameLeftOrMono)
-        return QSize();
-    return _frameLeftOrMono->computeDimensions();
 }
 
 ImagePtr PixelStreamUpdater::getTileImage(const uint tileIndex,
@@ -137,15 +116,29 @@ ImagePtr PixelStreamUpdater::getTileImage(const uint tileIndex,
     }
 }
 
+QRect PixelStreamUpdater::getTileRect(const uint tileIndex) const
+{
+    return _processorLeft->getTileRect(tileIndex);
+}
+
+QSize PixelStreamUpdater::getTilesArea(const uint lod, const uint channel) const
+{
+    Q_UNUSED(lod);
+    if (!_frameLeftOrMono)
+        return QSize();
+    return _frameLeftOrMono->computeDimensions(channel);
+}
+
 Indices PixelStreamUpdater::computeVisibleSet(const QRectF& visibleTilesArea,
-                                              const uint lod) const
+                                              const uint lod,
+                                              const uint channel) const
 {
     Q_UNUSED(lod);
 
     if (!_frameLeftOrMono || visibleTilesArea.isEmpty())
         return Indices{};
 
-    return _processorLeft->computeVisibleSet(visibleTilesArea);
+    return _processorLeft->computeVisibleSet(visibleTilesArea, channel);
 }
 
 uint PixelStreamUpdater::getMaxLod() const
@@ -156,6 +149,16 @@ uint PixelStreamUpdater::getMaxLod() const
 void PixelStreamUpdater::getNextFrame()
 {
     _readyToSwap = true;
+}
+
+void PixelStreamUpdater::synchronizeFrameAdvance(WallToWallChannel& channel)
+{
+    if (!_readyToSwap)
+        return;
+
+    const auto versionCheckFunc = std::bind(&WallToWallChannel::checkVersion,
+                                            &channel, std::placeholders::_1);
+    _swapSyncFrame.sync(versionCheckFunc);
 }
 
 void PixelStreamUpdater::updatePixelStream(deflect::server::FramePtr frame)
@@ -171,8 +174,8 @@ void PixelStreamUpdater::_onFrameSwapped(deflect::server::FramePtr frame)
     auto right = std::make_shared<deflect::server::Frame>();
 
     _splitByView(frame->tiles, leftOrMono->tiles, right->tiles);
-    _sortByPosition(leftOrMono->tiles);
-    _sortByPosition(right->tiles);
+    _sortByChannelAndPosition(leftOrMono->tiles);
+    _sortByChannelAndPosition(right->tiles);
 
     {
         const QWriteLocker frameLock(&_frameMutex);

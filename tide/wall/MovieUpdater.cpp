@@ -108,10 +108,25 @@ QRect MovieUpdater::getTileRect(const uint tileIndex) const
     return QRect(0, 0, _ffmpegMovie->getWidth(), _ffmpegMovie->getHeight());
 }
 
-QSize MovieUpdater::getTilesArea(const uint lod) const
+QSize MovieUpdater::getTilesArea(const uint lod, const uint channel) const
 {
     Q_UNUSED(lod);
+    Q_UNUSED(channel);
+
     return getTileRect(0).size();
+}
+
+Indices MovieUpdater::computeVisibleSet(const QRectF& visibleTilesArea,
+                                        const uint lod,
+                                        const uint channel) const
+{
+    Q_UNUSED(lod);
+    Q_UNUSED(channel);
+
+    if (visibleTilesArea.isEmpty())
+        return Indices();
+
+    return {0};
 }
 
 ImagePtr MovieUpdater::getTileImage(const uint tileIndex,
@@ -161,17 +176,6 @@ ImagePtr MovieUpdater::getTileImage(const uint tileIndex,
     }
     _pictureLeftOrMono = image;
     return image;
-}
-
-Indices MovieUpdater::computeVisibleSet(const QRectF& visibleTilesArea,
-                                        const uint lod) const
-{
-    Q_UNUSED(lod);
-
-    if (visibleTilesArea.isEmpty())
-        return Indices();
-
-    return {0};
 }
 
 uint MovieUpdater::getMaxLod() const

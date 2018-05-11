@@ -62,11 +62,12 @@ void TiledSynchronizer::onSwapReady(TilePtr tile)
 void TiledSynchronizer::updateTiles()
 {
     const auto& source = getDataSource();
-    Indices visibleSet = source.computeVisibleSet(_visibleTilesArea, _lod);
+    auto visibleSet =
+        source.computeVisibleSet(_visibleTilesArea, _lod, _channel);
     visibleSet = set_difference(visibleSet, _ignoreSet);
 
-    const Indices addedTiles = set_difference(visibleSet, _visibleSet);
-    const Indices removedTiles = set_difference(_visibleSet, visibleSet);
+    const auto addedTiles = set_difference(visibleSet, _visibleSet);
+    const auto removedTiles = set_difference(_visibleSet, visibleSet);
 
     for (auto i : addedTiles)
     {
@@ -77,7 +78,7 @@ void TiledSynchronizer::updateTiles()
 
     if (_updateExistingTiles)
     {
-        const Indices currentTiles = set_difference(_visibleSet, removedTiles);
+        const auto currentTiles = set_difference(_visibleSet, removedTiles);
         for (auto i : currentTiles)
             emit updateTile(i, source.getTileRect(i));
     }

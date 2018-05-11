@@ -157,6 +157,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   scene/ErrorContent.h
   scene/KeyboardState.h
   scene/Markers.h
+  scene/MultiChannelContent.h
   scene/Options.h
   scene/PixelStreamContent.h
   scene/Rectangle.h
@@ -219,6 +220,7 @@ list(APPEND TIDECORE_SOURCES
   scene/ErrorContent.cpp
   scene/KeyboardState.cpp
   scene/Markers.cpp
+  scene/MultiChannelContent.cpp
   scene/Options.cpp
   scene/PixelStreamContent.cpp
   scene/Rectangle.cpp

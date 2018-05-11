@@ -75,11 +75,11 @@ public:
     QRect getTileRect(uint tileIndex) const final;
 
     /** @copydoc DataSource::getTilesArea */
-    QSize getTilesArea(uint lod) const final;
+    QSize getTilesArea(uint lod, uint channel) const final;
 
     /** @copydoc DataSource::computeVisibleSet */
-    Indices computeVisibleSet(const QRectF& visibleTilesArea,
-                              uint lod) const final;
+    Indices computeVisibleSet(const QRectF& visibleTilesArea, uint lod,
+                              uint channel) const final;
 
     /** @copydoc DataSource::getMaxLod */
     uint getMaxLod() const final;

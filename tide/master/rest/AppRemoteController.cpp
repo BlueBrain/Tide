@@ -147,7 +147,7 @@ AppRemoteController::AppRemoteController(const Configuration& config)
     rpc::connect<BrowseParams>("browse", [this, defaultUrl](auto params) {
         if (params.uri.isEmpty())
             params.uri = defaultUrl;
-        emit this->browse(params.surfaceIndex, QPointF(), QSize(), params.uri,
+        emit this->browse(params.surfaceIndex, params.uri, QSize(), QPointF(),
                           0);
     });
     rpc::connect<UriAndSurface>("screenshot", [this](const auto params) {

@@ -45,12 +45,15 @@
 #include "scene/ContentWindow.h"
 
 PixelStreamSynchronizer::PixelStreamSynchronizer(
-    std::shared_ptr<PixelStreamUpdater> updater, const deflect::View view)
+    std::shared_ptr<PixelStreamUpdater> updater, const deflect::View view,
+    const uint channel)
     : TiledSynchronizer(TileSwapPolicy::SwapTilesSynchronously)
     , _updater{std::move(updater)}
     , _view{view}
 {
     _updater->synchronizers.insert(this);
+
+    _channel = channel;
 
     connect(_updater.get(), &PixelStreamUpdater::pictureUpdated, this,
             &PixelStreamSynchronizer::_onPictureUpdated);
@@ -94,7 +97,7 @@ void PixelStreamSynchronizer::swapTiles()
     _fpsCounter.tick();
     emit statisticsChanged();
 
-    _tilesArea = _updater->getTilesArea(0);
+    _tilesArea = _updater->getTilesArea(0, _channel);
     emit tilesAreaChanged();
 }
 

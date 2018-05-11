@@ -55,9 +55,11 @@ QRect ImageSource::getTileRect(const uint tileIndex) const
     return QRect(QPoint(0, 0), _imageSize);
 }
 
-QSize ImageSource::getTilesArea(const uint lod) const
+QSize ImageSource::getTilesArea(const uint lod, const uint channel) const
 {
     Q_UNUSED(lod);
+    Q_UNUSED(channel);
+
     return _imageSize;
 }
 
@@ -74,9 +76,10 @@ QImage ImageSource::getCachableTileImage(const uint tileIndex) const
 }
 
 Indices ImageSource::computeVisibleSet(const QRectF& visibleTilesArea,
-                                       const uint lod) const
+                                       const uint lod, const uint channel) const
 {
     Q_UNUSED(lod);
+    Q_UNUSED(channel);
 
     if (visibleTilesArea.isEmpty())
         return Indices();

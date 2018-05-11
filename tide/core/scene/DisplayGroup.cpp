@@ -1,6 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2011-2012, The University of Texas at Austin.       */
-/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael.Dumusc@epfl.ch                   */
 /*                          Daniel.Nachbaur@epfl.ch                  */
 /* All rights reserved.                                              */
@@ -85,7 +85,13 @@ void DisplayGroup::addContentWindow(ContentWindowPtr window)
         emit hasVisiblePanelsChanged();
     }
 
-    emit(contentWindowAdded(window));
+    if (window->isFocused())
+    {
+        _focusedWindows.insert(window);
+        emit hasFocusedWindowsChanged();
+    }
+
+    emit contentWindowAdded(window);
     _sendDisplayGroup();
 }
 
@@ -156,19 +162,7 @@ void DisplayGroup::setContentWindows(ContentWindowPtrs windows)
     clear();
 
     for (const auto& window : windows)
-    {
         addContentWindow(window);
-        if (window->isFocused())
-            _focusedWindows.insert(window);
-        if (window->isPanel())
-            _panels.insert(window);
-    }
-    if (!_focusedWindows.empty())
-        emit hasFocusedWindowsChanged();
-    if (!_panels.empty())
-        emit hasVisiblePanelsChanged();
-
-    _sendDisplayGroup();
 }
 
 void DisplayGroup::clear()

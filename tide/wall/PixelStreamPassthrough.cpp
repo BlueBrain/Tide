@@ -69,13 +69,14 @@ QRect PixelStreamPassthrough::getTileRect(const uint tileIndex) const
     return toRect(_frame->tiles.at(tileIndex));
 }
 
-Indices PixelStreamPassthrough::computeVisibleSet(
-    const QRectF& visibleTilesArea) const
+Indices PixelStreamPassthrough::computeVisibleSet(const QRectF& visibleArea,
+                                                  const uint channel) const
 {
     Indices visibleSet;
     for (size_t i = 0; i < _frame->tiles.size(); ++i)
     {
-        if (visibleTilesArea.intersects(toRect(_frame->tiles[i])))
+        const auto& tile = _frame->tiles[i];
+        if (tile.channel == channel && visibleArea.intersects(toRect(tile)))
             visibleSet.insert(i);
     }
     return visibleSet;

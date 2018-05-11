@@ -52,7 +52,7 @@ const QString ICON_KEYBOARD("qrc:///img/keyboard.svg");
 
 PixelStreamContent::PixelStreamContent(const QString& uri, const QSize& size,
                                        const bool keyboard)
-    : Content{uri}
+    : MultiChannelContent{uri}
     , _hasKeyboardAction{keyboard}
 {
     setDimensions(size);

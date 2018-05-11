@@ -85,7 +85,7 @@ void LodSynchronizer::updateTiles()
 
 QSize LodSynchronizer::getTilesArea() const
 {
-    return getDataSource().getTilesArea(_lod);
+    return getDataSource().getTilesArea(_lod, _channel);
 }
 
 QString LodSynchronizer::getStatistics() const
@@ -109,7 +109,7 @@ void LodSynchronizer::update(const ContentWindow& window,
 {
     const ZoomHelper helper(window);
     const auto lod = _getLod(helper.getContentRect().size().toSize());
-    const auto tilesSurface = getDataSource().getTilesArea(lod);
+    const auto tilesSurface = getDataSource().getTilesArea(lod, _channel);
     const auto visibleTilesArea = helper.toTilesArea(visibleArea, tilesSurface);
 
     if (!forceUpdate && visibleTilesArea == _visibleTilesArea && lod == _lod)
@@ -139,12 +139,12 @@ const DataSource& LodSynchronizer::getDataSource() const
 uint LodSynchronizer::_getLod(const QSize& targetDisplaySize) const
 {
     uint lod = 0;
-    QSize nextLOD = getDataSource().getTilesArea(1);
+    QSize nextLOD = getDataSource().getTilesArea(1, 0);
     const uint maxLod = getDataSource().getMaxLod();
     while (targetDisplaySize.width() < nextLOD.width() &&
            targetDisplaySize.height() < nextLOD.height() && lod < maxLod)
     {
-        nextLOD = getDataSource().getTilesArea(++lod + 1);
+        nextLOD = getDataSource().getTilesArea(++lod + 1, 0);
     }
     return lod;
 }

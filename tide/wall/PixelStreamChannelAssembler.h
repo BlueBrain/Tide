@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,84 +37,68 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef PIXELSTREAMUPDATER_H
-#define PIXELSTREAMUPDATER_H
+#ifndef PIXELSTREAMCHANNELASSEMBLER_H
+#define PIXELSTREAMCHANNELASSEMBLER_H
 
 #include "types.h"
 
-#include "DataSource.h"
-#include "SwapSyncObject.h"
+#include "PixelStreamProcessor.h"
 
-#include <QObject>
-#include <QReadWriteLock>
-
-class PixelStreamProcessor;
+#include <deflect/server/Frame.h>
 
 /**
- * Synchronize the update of PixelStreams and send new frame requests.
+ * Assemble small frame tiles (e.g. 64x64) into 512x512 ones.
+ *
+ * This class operates on a single channel of a frame.
+ *
+ * The tile indices returned by computeVisibleSet() and taken by getTileRect() /
+ * getTileImage() are specific to the current channel, i.e. they are in the
+ * range [0; getTilesCount()-1].
  */
-class PixelStreamUpdater : public QObject, public DataSource
+class PixelStreamChannelAssembler : public PixelStreamProcessor
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(PixelStreamUpdater)
-
 public:
-    /** Constructor. */
-    PixelStreamUpdater();
-
-    /** Destructor. */
-    ~PixelStreamUpdater();
-
-    /** @copydoc DataSource::isDynamic */
-    bool isDynamic() const final { return true; }
     /**
-     * @copydoc DataSource::getTileImage
-     * threadsafe
+     * Create an assembler for one channel of the frame.
+     * @param frame to assemble with tiles sorted by channel and in left-right +
+     *        top-bottom order.
+     * @param channel target channel to assemble.
+     * @throw std::runtime_error if the frame's channel cannot be assembled.
      */
-    ImagePtr getTileImage(uint tileIndex, deflect::View view) const final;
+    PixelStreamChannelAssembler(deflect::server::FramePtr frame, uint channel);
 
-    /** @copydoc DataSource::getTileRect */
+    /** @copydoc PixelStreamProcessor::getTileImage */
+    ImagePtr getTileImage(uint tileIndex,
+                          deflect::server::TileDecoder& decoder) final;
+
+    /** @copydoc PixelStreamProcessor::getTileRect */
     QRect getTileRect(uint tileIndex) const final;
 
-    /** @copydoc DataSource::getTilesArea */
-    QSize getTilesArea(uint lod, uint channel) const final;
-
-    /** @copydoc DataSource::computeVisibleSet */
-    Indices computeVisibleSet(const QRectF& visibleTilesArea, uint lod,
+    /** @copydoc PixelStreamProcessor::computeVisibleSet */
+    Indices computeVisibleSet(const QRectF& visibleArea,
                               uint channel) const final;
 
-    /** @copydoc DataSource::getMaxLod */
-    uint getMaxLod() const final;
-
-    /** Allow advancing to the next frame of the stream (flow control). */
-    void getNextFrame();
-
-    /** Synchronize the advance to the next frame of the stream. */
-    void synchronizeFrameAdvance(WallToWallChannel& channel);
-
-public slots:
-    /** Update the appropriate PixelStream with the given frame. */
-    void updatePixelStream(deflect::server::FramePtr frame);
-
-signals:
-    /** Emitted when a new picture has become available. */
-    void pictureUpdated();
-
-    /** Emitted to request a new frame after a successful swap. */
-    void requestFrame(QString uri);
+    /** @return the number of tiles in the assembled image. */
+    uint getTilesCount() const;
 
 private:
-    SwapSyncObject<deflect::server::FramePtr> _swapSyncFrame;
-    deflect::server::FramePtr _frameLeftOrMono;
-    deflect::server::FramePtr _frameRight;
-    std::unique_ptr<deflect::server::TileDecoder> _headerDecoder;
-    std::unique_ptr<PixelStreamProcessor> _processorLeft;
-    std::unique_ptr<PixelStreamProcessor> _processRight;
-    mutable QReadWriteLock _frameMutex;
-    bool _readyToSwap = true;
+    deflect::server::FramePtr _frame;
+    QSize _frameSize;
+    uint _channel;
+    size_t _begin, _end;
+    deflect::server::FramePtr _assembledFrame;
 
-    void _onFrameSwapped(deflect::server::FramePtr frame);
-    void _createFrameProcessors();
+    bool _canAssemble() const;
+
+    uint _getTilesX() const;
+    uint _getTilesY() const;
+
+    void _initTargetFrame();
+
+    Indices _findSourceTiles(uint tileIndex) const;
+    void _decodeSourceTiles(const Indices& indices,
+                            deflect::server::TileDecoder& decoder);
+    void _assembleTargetTile(uint tileIndex, const Indices& indices);
 };
 
 #endif

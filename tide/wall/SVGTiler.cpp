@@ -55,7 +55,8 @@ SVGTiler::SVGTiler(const QString& uri)
 {
 }
 
-ImagePtr SVGTiler::getTileImage(const uint tileId, deflect::View view) const
+ImagePtr SVGTiler::getTileImage(const uint tileId,
+                                const deflect::View view) const
 {
 #if !(TIDE_USE_CAIRO && TIDE_USE_RSVG)
     if (!contains(tileId))

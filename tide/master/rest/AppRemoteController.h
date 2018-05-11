@@ -77,7 +77,7 @@ signals:
     void save(QString uri, BoolCallback callback);
 
     /** Browse a website. */
-    void browse(uint surfaceIndex, QPointF pos, QSize size, QString url,
+    void browse(uint surfaceIndex, QString url, QSize size, QPointF pos,
                 ushort debugPort);
 
     /** Open a whiteboard. */

@@ -39,202 +39,72 @@
 
 #include "PixelStreamAssembler.h"
 
-#include "StreamImage.h"
-#include "log.h"
-
-#include <deflect/server/TileDecoder.h>
-
-#include <cmath> //std::ceil
-
 namespace
 {
-const uint32_t targetTileSize = 512;
-
-bool _isValidSize(const uint32_t size)
+Indices _mapToGlobalIndices(const Indices& perChannelIndices,
+                            const size_t channelOffset)
 {
-    return size < targetTileSize && targetTileSize % size == 0;
-}
-
-bool _isValidSubtile(const deflect::server::Tile& tile)
-{
-    return _isValidSize(tile.width) && _isValidSize(tile.height);
+    Indices globalIndices;
+    for (auto index : perChannelIndices)
+        globalIndices.insert(index + channelOffset);
+    return globalIndices;
 }
 }
 
 PixelStreamAssembler::PixelStreamAssembler(deflect::server::FramePtr frame)
-    : _frame{frame}
-    , _frameSize{_frame->computeDimensions()}
 {
-    if (!_canAssemble())
+    if (!_parseChannels(frame))
         throw std::runtime_error("This frame cannot be assembled");
-
-    _initTargetFrame();
 }
 
 ImagePtr PixelStreamAssembler::getTileImage(
-    const uint tileIndex, deflect::server::TileDecoder& decoder)
+    uint tileIndex, deflect::server::TileDecoder& decoder)
 {
-    const auto sourceTiles = _findSourceTiles(tileIndex);
-
-    _decodeSourceTiles(sourceTiles, decoder);
-    _assembleTargetTile(tileIndex, sourceTiles);
-
-    return std::make_shared<StreamImage>(_assembledFrame, tileIndex);
+    const auto& channel = _getChannel(tileIndex);
+    return channel.assembler.getTileImage(tileIndex - channel.offset, decoder);
 }
 
 QRect PixelStreamAssembler::getTileRect(const uint tileIndex) const
 {
-    const uint tilesX = _getTilesX();
-    const uint tilesY = _getTilesY();
-    const uint x = tileIndex % tilesX;
-    const uint y = tileIndex / tilesX;
-    const uint paddingX = _frameSize.width() % targetTileSize;
-    const uint paddingY = _frameSize.height() % targetTileSize;
-    const uint w =
-        (x < tilesX - 1) || paddingX == 0 ? targetTileSize : paddingX;
-    const uint h =
-        (y < tilesY - 1) || paddingY == 0 ? targetTileSize : paddingY;
-    return QRect(x * targetTileSize, y * targetTileSize, w, h);
+    const auto& channel = _getChannel(tileIndex);
+    return channel.assembler.getTileRect(tileIndex - channel.offset);
 }
 
-Indices PixelStreamAssembler::computeVisibleSet(
-    const QRectF& visibleTilesArea) const
+Indices PixelStreamAssembler::computeVisibleSet(const QRectF& visibleArea,
+                                                const uint channelIndex) const
 {
-    Indices visibleSet;
-    const auto tilesCount = _getTilesX() * _getTilesY();
-    for (uint tileIndex = 0; tileIndex < tilesCount; ++tileIndex)
-    {
-        if (visibleTilesArea.intersects(getTileRect(tileIndex)))
-            visibleSet.insert(tileIndex);
-    }
-    return visibleSet;
+    const auto& channel = _channels.at(channelIndex);
+    const auto indices =
+        channel.assembler.computeVisibleSet(visibleArea, channelIndex);
+    return _mapToGlobalIndices(indices, channel.offset);
 }
 
-bool PixelStreamAssembler::_canAssemble() const
+bool PixelStreamAssembler::_parseChannels(deflect::server::FramePtr frame)
 {
-    const auto& sortedTiles = _frame->tiles;
-    if (sortedTiles.size() <= 1)
+    if (frame->tiles.empty())
         return false;
 
-    const auto& firstTile = sortedTiles[0];
-
-    if (!_isValidSubtile(firstTile))
-        return false;
-
-    const auto tileWidth = firstTile.width;
-    const auto tileHeight = firstTile.height;
-
-    uint currentX = 0;
-    uint currentY = 0;
-    bool eol = false;
-
-    for (const auto& tile : sortedTiles)
+    size_t tileIndexOffset = 0;
+    for (const auto& tile : frame->tiles)
     {
-        if (tile.y != currentY)
+        const auto channelIndex = tile.channel;
+        if (channelIndex == _channels.size())
         {
-            if (!eol || tile.y != currentY + tileHeight)
-                return false;
-            // Next line
-            currentY = tile.y;
-            currentX = 0;
-            eol = false;
+            _channels.emplace_back(frame, channelIndex, tileIndexOffset);
+            tileIndexOffset += _channels.back().tilesCount;
         }
-
-        if (tile.height != tileHeight)
-        {
-            if (currentY + tile.height != (uint)_frameSize.height())
-                return false;
-        }
-
-        if (tile.x != currentX)
+        else if (channelIndex != _channels.size() - 1)
             return false;
-
-        if (tile.width != tileWidth ||
-            currentX + tileWidth >= (uint)_frameSize.width())
-        {
-            if (tile.x + tile.width != (uint)_frameSize.width())
-                return false;
-
-            eol = true;
-        }
-
-        currentX += tile.width;
     }
     return true;
 }
 
-uint PixelStreamAssembler::_getTilesX() const
+const PixelStreamAssembler::Channel& PixelStreamAssembler::_getChannel(
+    const uint tileIndex) const
 {
-    return std::ceil(float(_frameSize.width()) / targetTileSize);
-}
+    for (const auto& channel : _channels)
+        if (tileIndex < channel.offset + channel.tilesCount)
+            return channel;
 
-uint PixelStreamAssembler::_getTilesY() const
-{
-    return std::ceil(float(_frameSize.height()) / targetTileSize);
-}
-
-void PixelStreamAssembler::_initTargetFrame()
-{
-    _assembledFrame.reset(new deflect::server::Frame);
-
-    const auto tilesCount = _getTilesX() * _getTilesY();
-    auto& tiles = _assembledFrame->tiles;
-    tiles.resize(tilesCount);
-    for (size_t i = 0; i < tilesCount; ++i)
-    {
-        const auto tileRect = getTileRect(i);
-        tiles[i].width = tileRect.width();
-        tiles[i].height = tileRect.height();
-        tiles[i].x = tileRect.x();
-        tiles[i].y = tileRect.y();
-    }
-}
-
-Indices PixelStreamAssembler::_findSourceTiles(const uint tileIndex) const
-{
-    Indices indices;
-    const auto tileRect = getTileRect(tileIndex);
-    for (size_t i = 0; i < _frame->tiles.size(); ++i)
-    {
-        if (tileRect.intersects(toRect(_frame->tiles.at(i))))
-            indices.insert(i);
-    }
-    return indices;
-}
-
-void PixelStreamAssembler::_decodeSourceTiles(
-    const Indices& indices, deflect::server::TileDecoder& decoder)
-{
-    for (auto i : indices)
-    {
-        auto& tile = _frame->tiles.at(i);
-
-        if (tile.format == deflect::Format::jpeg)
-#ifndef DEFLECT_USE_LEGACY_LIBJPEGTURBO
-            decoder.decodeToYUV(tile);
-#else
-            decoder.decode(tile);
-#endif
-    }
-}
-
-void PixelStreamAssembler::_assembleTargetTile(const uint tileIndex,
-                                               const Indices& indices)
-{
-    auto& target = _assembledFrame->tiles[tileIndex];
-    if (!target.imageData.isEmpty())
-        return;
-
-    const auto format = _frame->tiles[*indices.begin()].format;
-
-    StreamImage image{_assembledFrame, tileIndex};
-    target.format = format;
-    const auto dataSize =
-        image.getDataSize(0) + image.getDataSize(1) + image.getDataSize(2);
-    target.imageData.resize(dataSize);
-    for (auto i : indices)
-    {
-        const auto tile = StreamImage{_frame, (uint)i};
-        image.copy(tile, tile.getPosition() - image.getPosition());
-    }
+    throw std::out_of_range("tileIndex is out of range");
 }

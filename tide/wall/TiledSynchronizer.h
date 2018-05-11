@@ -86,6 +86,7 @@ protected:
     //@{
     uint _lod = 0; /**< LOD used to obtain the list of visible tiles from the
                         data source. */
+    uint _channel = 0; /**< Channel used to obtain the list of visible tiles. */
     QRectF _visibleTilesArea; /**< Area used to obtain the list of visible tiles
                                    from the data source. */
     Indices _ignoreSet; /**< Tiles to be ignored; must be managed manually. */

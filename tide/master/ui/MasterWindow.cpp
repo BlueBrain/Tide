@@ -87,9 +87,9 @@ MasterWindow::MasterWindow(ScenePtr scene_, OptionsPtr options,
 
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
     connect(_webbrowserWidget, &WebbrowserWidget::openWebBrowser,
-            [this](QPointF pos, QSize size, QString url, ushort debugPort) {
-                emit openWebBrowser(_getActiveSceneIndex(), pos, size, url,
-                                    debugPort);
+            [this](QString url, QSize size, ushort debugPort) {
+                emit openWebBrowser(_getActiveSceneIndex(), url, size,
+                                    QPointF(), debugPort);
             });
 #endif
 

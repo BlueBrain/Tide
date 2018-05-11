@@ -41,6 +41,7 @@
 #ifndef PIXEL_STREAM_WINDOW_MANAGER_H
 #define PIXEL_STREAM_WINDOW_MANAGER_H
 
+#include "control/MultiChannelWindowController.h"
 #include "scene/ContentType.h"
 #include "types.h"
 
@@ -71,37 +72,39 @@ public:
 
     /**
      * @param uri the URI of streamer
-     * @return the associated window of the given streamer. Can be NULL.
+     * @return the associated windows of the given streamer. Can be empty.
      * @note this function is public only for the purpose of unit testing.
      * @internal
      */
-    ContentWindowPtr getWindow(const QString& uri) const;
+    ContentWindowPtrs getWindows(const QString& uri) const;
 
     /**
      * Hide the associated content window of the stream.
      *
      * @param uri the URI of the streamer
      */
-    void hideWindow(const QString& uri);
+    void hideWindows(const QString& uri);
 
     /**
-     * Show the associated content window of the stream.
+     * Show the associated content windows of the stream.
      *
      * @param uri the URI of the streamer
      */
-    void showWindow(const QString& uri);
+    void showWindows(const QString& uri);
 
     /**
      * Open a window for a new PixelStream.
      *
+     * @param surfaceIndex the surface on which to open the window.
      * @param uri the URI of the streamer
+     * @param size the desired size of the window in pixels.
      * @param pos the desired position for the center of the window in pixels.
      *        If pos.isNull(), the window is centered on the DisplayGroup.
-     * @param size the desired size of the window in pixels.
      * @param stream the type of stream for the window.
+     * @throw std::logic_error is size is null and stream is not EXTERNAL.
      */
-    void openWindow(uint surfaceIndex, const QString& uri, const QPointF& pos,
-                    const QSize& size,
+    void openWindow(uint surfaceIndex, const QString& uri, const QSize& size,
+                    const QPointF& pos = QPointF(),
                     StreamType stream = StreamType::EXTERNAL);
 
     /** Check if new windows open in focus mode. */
@@ -139,7 +142,7 @@ public:
      * Update the dimension of the content according to the stream's dimension
      * @param frame the new stream frame to check its dimension
      */
-    void updateStreamDimensions(deflect::server::FramePtr frame);
+    void updateStreamWindows(deflect::server::FramePtr frame);
 
     /**
      * Update the size hints for the content, sent by the streamer.
@@ -185,8 +188,7 @@ signals:
      * processes when the window has been opened. For local streamers, however,
      * the window is opened before the deflect::Stream is started so the
      * deflect::server::FrameDispatcher discards it and no frames would be
-     * displayed
-     * otherwise.
+     * displayed otherwise.
      *
      * @param uri the URI of the streamer
      */
@@ -194,15 +196,36 @@ signals:
 
 private:
     Scene& _scene;
-    std::map<QString, QUuid> _streamWindows;
+    MultiChannelWindowController _windowController{_scene};
+
+    struct WindowInfo
+    {
+        QUuid uuid;
+        uint channel = 0;
+    };
+    using SurfaceToWindowMap = std::map<uint, WindowInfo>;
+
+    struct StreamInfo
+    {
+        SurfaceToWindowMap windows;
+    };
+    std::map<QString, StreamInfo> _streams;
     bool _autoFocusNewWindows = true;
 
-    void _monitor(const DisplayGroup& group);
-    bool _isWindowOpen(const QString& uri) const;
-    void _onWindowAdded(ContentWindowPtr window);
-    void _onWindowRemoved(ContentWindowPtr window);
+    void _monitor(const DisplayGroup& group, uint surfaceIndex);
+    void _show(ContentWindow& window);
+    bool _isWindowOpen(const QString& uri, uint surfaceIndex) const;
+    bool _isStreamVisible(const QString& uri) const;
+    bool _isValid(const uint surfaceIndex) const;
+    void _focus(const ContentWindow& window);
+    void _onWindowAdded(ContentWindowPtr window, uint surfaceIndex);
+    void _onWindowRemoved(ContentWindowPtr window, uint surfaceIndex);
+    void _closeWindowsWithoutAChannel(const QString& uri,
+                                      const std::set<uint8_t>& channels);
     void _updateWindowSize(ContentWindow& window, DisplayGroup& group,
-                           QSize size);
+                           const QSize& size);
+    void _resizeInPlace(ContentWindow& window, const DisplayGroup& group,
+                        const QSize& size);
 };
 
 #endif

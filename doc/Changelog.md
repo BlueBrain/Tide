@@ -3,6 +3,9 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [255](https://github.com/BlueBrain/Tide/pull/255):
+  Support multi-channel Deflect streams. Each channel is rendered on a separate
+  surface if the installation has multiple surfaces.
 * [254](https://github.com/BlueBrain/Tide/pull/254):
   Display the original title / file path of contents that fail to be restored
   from a session.

@@ -66,6 +66,7 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   network/WallToMasterChannel.h
   network/WallToWallChannel.h
   PixelStreamAssembler.h
+  PixelStreamChannelAssembler.h
   PixelStreamProcessor.h
   PixelStreamPassthrough.h
   PixelStreamSynchronizer.h
@@ -115,6 +116,7 @@ list(APPEND TIDEWALL_SOURCES
   network/WallToMasterChannel.cpp
   network/WallToWallChannel.cpp
   PixelStreamAssembler.cpp
+  PixelStreamChannelAssembler.cpp
   PixelStreamProcessor.cpp
   PixelStreamPassthrough.cpp
   PixelStreamSynchronizer.cpp

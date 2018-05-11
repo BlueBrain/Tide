@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -61,12 +61,12 @@ public:
     /** Get the coordinates of a tile. */
     virtual QRect getTileRect(uint tileId) const = 0;
 
-    /** @return the image size for the requested lod. */
-    virtual QSize getTilesArea(uint lod) const = 0;
+    /** @return the image size for the requested lod and channel. */
+    virtual QSize getTilesArea(uint lod, uint channel) const = 0;
 
     /** Compute the indices of the tiles which are visible in the given area. */
-    virtual Indices computeVisibleSet(const QRectF& visibleTilesArea,
-                                      uint lod) const = 0;
+    virtual Indices computeVisibleSet(const QRectF& visibleTilesArea, uint lod,
+                                      uint channel) const = 0;
 
     /** @return the max LOD level (top of pyramid, lowest resolution). */
     virtual uint getMaxLod() const = 0;

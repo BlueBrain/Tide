@@ -62,7 +62,8 @@ public:
     QRect getTileRect(uint tileIndex) const final;
 
     /** @copydoc PixelStreamProcessor::computeVisibleSet */
-    Indices computeVisibleSet(const QRectF& visibleTilesArea) const final;
+    Indices computeVisibleSet(const QRectF& visibleArea,
+                              uint channel) const final;
 
 private:
     deflect::server::FramePtr _frame;
