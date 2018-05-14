@@ -279,4 +279,4 @@ START_CMD = '%s %s %s %s' % (MPIRUN_CMD, mpi_args, HOST_LIST, RUN_COMMANDS)
 if args.printcmd:
     print(START_CMD)
 else:
-    subprocess.call(shlex.split(START_CMD))
+    exit(subprocess.call(shlex.split(START_CMD)))
