@@ -23,20 +23,9 @@ before_install:
   - brew install openmpi
   - brew install python@2 || brew link --overwrite python@2 # fix poppler dependency install
   - brew install poppler --with-qt
-  - brew install openssl #libwebsockets 2.0.2 has issues, build manually
+  - brew install libwebsockets openssl
 script:
   - export CPATH=$(brew --prefix openssl)/include
-  - export OPENSSL_ROOT_DIR=$(brew --prefix openssl)
-  - git clone https://github.com/warmcat/libwebsockets.git
-  - cd libwebsockets
-  - git checkout v2.3.0
-  - mkdir build && cd build
-  - cmake -GNinja .. -DCMAKE_INSTALL_PREFIX=install -DCMAKE_BUILD_TYPE=Release -DLWS_STATIC_PIC=ON
-  - ninja install
-  - export PATH=$PWD/install/bin:$PATH
-  - export LD_LIBRARY_PATH=$PWD/install/lib:$LD_LIBRARY_PATH
-  - export CMAKE_PREFIX_PATH=$PWD/install/:$CMAKE_PREFIX_PATH
-  - cd ../../
   - mkdir $BUILD_TYPE
   - cd $BUILD_TYPE
   - cmake -GNinja -DCLONE_SUBPROJECTS=ON -DCMAKE_INSTALL_PREFIX=$PWD/install -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
