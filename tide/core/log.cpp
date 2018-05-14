@@ -100,9 +100,9 @@ void put_log(const int level, const std::string& facility, const char* format,
             << "{" << facility << "} " << log_string;
 
     if (level < LOG_ERROR)
-        std::cerr << message.str() << std::endl;
-    else
         std::cout << message.str() << std::endl;
+    else
+        std::cerr << message.str() << std::endl;
 }
 
 #if TIDE_ENABLE_MOVIE_SUPPORT
