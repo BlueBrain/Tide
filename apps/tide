@@ -145,10 +145,12 @@ if args.mpiargs:
 else:
     mpi_args = ''
 
-# mpiexec has a different commandline syntax for MVAPICH, MPICH2, and OpenMPI
+# mpiexec has a different commandline syntax for each distribution
 IS_MVAPICH = distutils.spawn.find_executable('mpiname')
 IS_MPICH2 = distutils.spawn.find_executable('mpich2version')
 IS_MPICH3 = distutils.spawn.find_executable('mpichversion')
+IS_INTELMPI = distutils.spawn.find_executable('mpitune')
+
 if IS_MVAPICH:
     MPI_SPECIAL_FLAGS = '-env MV2_ENABLE_AFFINITY 0 -env IPATH_NO_CPUAFFINITY 1'
     MPI_GLOBAL_HOST_LIST = '-hosts'
@@ -167,6 +169,12 @@ elif IS_MPICH3:
     MPI_PER_NODE_HOST = None
     EXPORT_ENV_VAR = '-env {0} {1}'
     mpi_args += '-genvlist LD_LIBRARY_PATH'
+elif IS_INTELMPI:
+    MPI_SPECIAL_FLAGS = ''
+    MPI_GLOBAL_HOST_LIST = '-hosts'
+    MPI_PER_NODE_HOST = '-host'
+    EXPORT_ENV_VAR = '-env {0} {1}'
+    mpi_args += '-genvlist LD_LIBRARY_PATH -binding pin=0'
 else: # OpenMPI
     # oversubscribe is needed with OpenMPI 3.x otherwise the process fails with:
     # "All nodes which are allocated for this job are already filled."

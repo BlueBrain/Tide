@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [249](https://github.com/BlueBrain/Tide/pull/249):
+  Intel MPI support in *tide* script.
 * [243](https://github.com/BlueBrain/Tide/pull/243):
   The Launcher has an improved file browser:
   - case-insensitive sorting.
