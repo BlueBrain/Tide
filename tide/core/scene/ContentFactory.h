@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -54,7 +54,8 @@ public:
 
     /** Special case: PixelStreamContent type cannot be derived from its uri. */
     static ContentPtr getPixelStreamContent(
-        const QString& uri, StreamType stream = StreamType::EXTERNAL);
+        const QString& uri, const QSize& size,
+        StreamType stream = StreamType::EXTERNAL);
 
     /** Get a Content object representing a loading error. */
     static ContentPtr getErrorContent(const QSize& size = QSize());

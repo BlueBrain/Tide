@@ -51,8 +51,8 @@ const bool showKeyboardAction = false;
 const QString title{"Web Browser"};
 }
 
-WebbrowserContent::WebbrowserContent(const QString& uri)
-    : PixelStreamContent(uri, showKeyboardAction)
+WebbrowserContent::WebbrowserContent(const QString& uri, const QSize& size)
+    : PixelStreamContent(uri, size, showKeyboardAction)
 {
 }
 

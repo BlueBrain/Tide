@@ -56,8 +56,9 @@ public:
     /**
      * Constructor.
      * @param uri The unique stream identifier.
+     * @param size The initial size of the Webbrowser.
      */
-    explicit WebbrowserContent(const QString& uri);
+    WebbrowserContent(const QString& uri, const QSize& size);
 
     /** Get the content type **/
     CONTENT_TYPE getType() const final;

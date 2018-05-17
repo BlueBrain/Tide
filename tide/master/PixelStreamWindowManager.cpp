@@ -67,11 +67,7 @@ bool _isLauncher(const QString& uri)
 ContentWindowPtr _makeStreamWindow(const QString& uri, const QSize& size,
                                    const StreamType stream)
 {
-    auto content = ContentFactory::getPixelStreamContent(uri, stream);
-
-    if (size.isValid())
-        content->setDimensions(size);
-
+    auto content = ContentFactory::getPixelStreamContent(uri, size, stream);
     const auto type = (stream == StreamType::LAUNCHER) ? ContentWindow::PANEL
                                                        : ContentWindow::DEFAULT;
     return std::make_shared<ContentWindow>(std::move(content), type);

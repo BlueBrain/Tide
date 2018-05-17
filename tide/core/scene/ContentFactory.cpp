@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -96,6 +96,19 @@ ContentPtr _makeContent(const QString& uri)
         return nullptr;
     }
 }
+
+class ErrorContent : public TextureContent
+{
+public:
+    ErrorContent(const QSize& size)
+        : TextureContent(ERROR_IMAGE_FILENAME)
+    {
+        if (!size.isEmpty())
+            setDimensions(size);
+        else
+            readMetadata();
+    }
+};
 }
 
 CONTENT_TYPE ContentFactory::getContentTypeForFile(const QString& uri)
@@ -159,12 +172,13 @@ ContentPtr ContentFactory::getContent(const QString& uri)
 }
 
 ContentPtr ContentFactory::getPixelStreamContent(const QString& uri,
-                                                 StreamType stream)
+                                                 const QSize& size,
+                                                 const StreamType stream)
 {
     if (stream == StreamType::WEBBROWSER)
     {
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
-        return ContentPtr(new WebbrowserContent(uri));
+        return std::make_unique<WebbrowserContent>(uri, size);
 #else
         Q_UNUSED(uri);
         throw std::runtime_error("Tide compiled without WebbrowserContent!");
@@ -173,18 +187,13 @@ ContentPtr ContentFactory::getPixelStreamContent(const QString& uri,
     else
     {
         const auto keyboard = stream == StreamType::EXTERNAL;
-        return ContentPtr(new PixelStreamContent(uri, keyboard));
+        return std::make_unique<PixelStreamContent>(uri, size, keyboard);
     }
 }
 
 ContentPtr ContentFactory::getErrorContent(const QSize& size)
 {
-    ContentPtr content(new TextureContent(ERROR_IMAGE_FILENAME));
-    if (!size.isEmpty())
-        content->setDimensions(size);
-    else
-        content->readMetadata();
-    return content;
+    return std::make_unique<ErrorContent>(size);
 }
 
 const QStringList& ContentFactory::getSupportedExtensions()

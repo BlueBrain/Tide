@@ -86,10 +86,9 @@ ScenePtr makeTestScene()
 
 State makeTestStateCopy()
 {
-    DummyContent* dummyContent = new DummyContent(DUMMY_URI);
+    auto dummyContent = new DummyContent(CONTENT_SIZE, DUMMY_URI);
     ContentPtr content(dummyContent);
     dummyContent->dummyParam_ = DUMMY_PARAM_VALUE;
-    content->setDimensions(CONTENT_SIZE);
     auto window = std::make_shared<ContentWindow>(std::move(content));
 
     auto displayGroup = DisplayGroup::create(wallSize);
