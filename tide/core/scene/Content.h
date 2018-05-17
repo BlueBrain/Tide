@@ -65,14 +65,18 @@ class Content : public QObject
     Q_OBJECT
     Q_DISABLE_COPY(Content)
 
+    // These properties are read-only on master and wall
     Q_PROPERTY(QString uri READ getURI CONSTANT)
     Q_PROPERTY(QString title READ getTitle NOTIFY titleChanged)
-    Q_PROPERTY(QSize size READ getDimensions NOTIFY dimensionsChanged)
-    Q_PROPERTY(qreal aspectRatio READ getAspectRatio CONSTANT)
     Q_PROPERTY(bool hasFixedAspectRatio READ hasFixedAspectRatio CONSTANT)
-    Q_PROPERTY(QRectF zoomRect READ getZoomRect CONSTANT)
-    Q_PROPERTY(ContentActionsModel* actions READ getActions CONSTANT)
     Q_PROPERTY(QString qmlControls READ getQmlControls CONSTANT)
+
+    // These properties can be constant because they are only accessed on wall
+    Q_PROPERTY(qreal aspectRatio READ getAspectRatio CONSTANT)
+    Q_PROPERTY(QRectF zoomRect READ getZoomRect CONSTANT)
+
+    // These properties are written by master and read on wall
+    Q_PROPERTY(ContentActionsModel* actions READ getActions CONSTANT)
     Q_PROPERTY(KeyboardState* keyboard READ getKeyboardState CONSTANT)
     Q_PROPERTY(Interaction interactionPolicy READ getInteractionPolicy NOTIFY
                    interactionPolicyChanged)
@@ -185,17 +189,17 @@ signals:
     void titleChanged(QString title);
     void interactionPolicyChanged();
     void captureInteractionChanged();
-    void dimensionsChanged();
     //@}
 
     /** Emitted by any Content subclass when its state has been modified */
     void modified();
 
 protected:
-    friend class boost::serialization::access;
-
     // Default constructor required for boost::serialization
     Content();
+
+private:
+    friend class boost::serialization::access;
 
     /** Serialize for sending to Wall applications. */
     template <class Archive>
@@ -249,11 +253,11 @@ protected:
 
     QString _uri;
     QSize _size;
-    QRectF _zoomRect;
-    ContentActionsModel _actions;
-    KeyboardState _keyboardState;
+    QRectF _zoomRect{UNIT_RECTF};
     deflect::SizeHints _sizeHints;
-    bool _captureInteraction;
+    bool _captureInteraction{false};
+    ContentActionsModel _actions{this};
+    KeyboardState _keyboardState{this};
 
     static qreal _maxScale;
 };

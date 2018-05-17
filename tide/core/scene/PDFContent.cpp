@@ -72,11 +72,11 @@ CONTENT_TYPE PDFContent::getType() const
 
 bool PDFContent::readMetadata()
 {
-    const PDF pdf(_uri);
+    const PDF pdf(getURI());
     if (!pdf.isValid())
         return false;
 
-    _size = pdf.getSize();
+    setDimensions(pdf.getSize());
     _pageCount = pdf.getPageCount();
     _pageNumber = std::min(_pageNumber, _pageCount - 1);
 

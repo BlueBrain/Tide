@@ -70,7 +70,7 @@ BOOST_AUTO_TEST_CASE(testWebbrowserHistory)
 
 BOOST_AUTO_TEST_CASE(testDefaultState)
 {
-    const WebbrowserContent content{"Webbrowser_1"};
+    const WebbrowserContent content{"Webbrowser_1", QSize(640, 480)};
 
     BOOST_CHECK_EQUAL(content.getType(), CONTENT_TYPE_WEBBROWSER);
     BOOST_CHECK_EQUAL(content.getURI(), "Webbrowser_1");
@@ -82,18 +82,19 @@ BOOST_AUTO_TEST_CASE(testDefaultState)
     BOOST_CHECK_EQUAL(content.getUrl(), "");
     BOOST_CHECK_EQUAL(content.getPage(), 0);
     BOOST_CHECK_EQUAL(content.getPageCount(), 0);
+    BOOST_CHECK_EQUAL(content.getDimensions(), QSize(640, 480));
 }
 
 BOOST_AUTO_TEST_CASE(testSetters)
 {
-    WebbrowserContent content{"Webbrowser_1"};
+    WebbrowserContent content{"Webbrowser_1", QSize()};
     content.setUrl("some_url");
     BOOST_CHECK_EQUAL(content.getUrl(), "some_url");
 }
 
 BOOST_AUTO_TEST_CASE(testDataSerialization)
 {
-    WebbrowserContent content{"Webbrowser_1"};
+    WebbrowserContent content{"Webbrowser_1", QSize()};
     content.setUrl("erase_me");
 
     const auto data = WebbrowserContent::serializeData(history, "Some Title");
@@ -110,7 +111,7 @@ BOOST_AUTO_TEST_CASE(testBinarySerialization)
 {
     using WebbrowserContentPtr = std::shared_ptr<WebbrowserContent>;
 
-    WebbrowserContentPtr source{new WebbrowserContent{"Webbrowser_1"}};
+    WebbrowserContentPtr source{new WebbrowserContent{"Webbrowser_1", QSize()}};
     source->parseData(WebbrowserContent::serializeData(history, "Some Title"));
     // Set url resets history
     source->setUrl("some_url");

@@ -77,7 +77,7 @@ bool MovieContent::readMetadata()
     if (!movie.isValid())
         return false;
 
-    _size = QSize(movie.getWidth(), movie.getHeight());
+    setDimensions(QSize(movie.getWidth(), movie.getHeight()));
     _duration = movie.getDuration();
     return true;
 }
@@ -177,5 +177,5 @@ void MovieContent::_createActions()
             &MovieContent::_pause);
     connect(playPauseAction.get(), &ContentAction::unchecked, this,
             &MovieContent::_play);
-    _actions.add(std::move(playPauseAction));
+    getActions()->add(std::move(playPauseAction));
 }

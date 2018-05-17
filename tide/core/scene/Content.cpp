@@ -49,19 +49,11 @@ qreal Content::_maxScale = 3.0;
 
 Content::Content(const QString& uri)
     : _uri(uri)
-    , _zoomRect(UNIT_RECTF)
-    , _actions(this)
-    , _keyboardState(this)
-    , _captureInteraction(false)
 {
     _init();
 }
 
 Content::Content()
-    : _zoomRect(UNIT_RECTF)
-    , _actions(this)
-    , _keyboardState(this)
-    , _captureInteraction(false)
 {
     _init();
 }
@@ -198,7 +190,6 @@ void Content::setDimensions(const QSize& dimensions)
         return;
 
     _size = dimensions;
-    emit dimensionsChanged();
     emit modified();
 }
 

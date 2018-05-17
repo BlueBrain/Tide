@@ -54,9 +54,10 @@ public:
     /**
      * Constructor.
      * @param uri The unique stream identifier.
+     * @param size The initial size of the stream.
      * @param keyboard Show the keyboard action.
      */
-    explicit PixelStreamContent(const QString& uri, bool keyboard);
+    PixelStreamContent(const QString& uri, const QSize& size, bool keyboard);
 
     /** Get the content type **/
     CONTENT_TYPE getType() const override;

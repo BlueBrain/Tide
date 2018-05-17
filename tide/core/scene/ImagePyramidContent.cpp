@@ -57,7 +57,7 @@ bool ImagePyramidContent::readMetadata()
 {
     try
     {
-        _size = TiffPyramidReader{_uri}.getImageSize();
+        setDimensions(TiffPyramidReader{getURI()}.getImageSize());
     }
     catch (...)
     {

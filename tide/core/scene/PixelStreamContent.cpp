@@ -50,10 +50,12 @@ namespace
 const QString ICON_KEYBOARD("qrc:///img/keyboard.svg");
 }
 
-PixelStreamContent::PixelStreamContent(const QString& uri, const bool keyboard)
+PixelStreamContent::PixelStreamContent(const QString& uri, const QSize& size,
+                                       const bool keyboard)
     : Content{uri}
     , _hasKeyboardAction{keyboard}
 {
+    setDimensions(size);
     _createActions();
 }
 
@@ -96,9 +98,9 @@ void PixelStreamContent::_createActions()
     keyboardAction->setCheckable(true);
     keyboardAction->setIcon(ICON_KEYBOARD);
     keyboardAction->setIconChecked(ICON_KEYBOARD);
-    connect(keyboardAction.get(), &ContentAction::triggered, &_keyboardState,
+    connect(keyboardAction.get(), &ContentAction::triggered, getKeyboardState(),
             &KeyboardState::setVisible);
-    connect(&_keyboardState, &KeyboardState::visibleChanged,
+    connect(getKeyboardState(), &KeyboardState::visibleChanged,
             keyboardAction.get(), &ContentAction::setChecked);
-    _actions.add(std::move(keyboardAction));
+    getActions()->add(std::move(keyboardAction));
 }

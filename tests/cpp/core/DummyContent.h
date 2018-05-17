@@ -50,7 +50,12 @@ public:
     {
     }
 
-    DummyContent(const QSize& dimensions) { setDimensions(dimensions); }
+    DummyContent(const QSize& dimensions, const QString& uri = QString())
+        : Content(uri)
+    {
+        setDimensions(dimensions);
+    }
+
     CONTENT_TYPE getType() const final { return type; }
     bool readMetadata() final { return true; }
     bool hasFixedAspectRatio() const final { return fixedAspectRatio; }
