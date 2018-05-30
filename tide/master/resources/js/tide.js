@@ -875,6 +875,9 @@ function request(method, command, parameters, callback)
       else
         location.reload();
     }
+    else if (xhr.status === 502) {
+      alertPopup("Something went wrong", "A proxy error (502) occured for: " + restUrl + command);
+    }
     if (xhr.readyState === XMLHttpRequest.DONE && (xhr.status === 200 || xhr.status === 403)) {
       if (callback !== null)
         callback(xhr.response);
@@ -946,26 +949,31 @@ function saveSession() {
       showCancelButton: true
     },
     function () {
+      swal({
+        title: "Saving session, please wait...",
+        text: "Your session is being saved as: " + uri,
+        confirmButtonColor: "#014f86"
+      });
       sendAppJsonRpc("save", params, function(){
+        swal({
+          type: "success",
+          title: "Saved!",
+          text: "Your session has been saved as: " + uri,
+          confirmButtonText: "OK",
+          confirmButtonColor: "#014f86"
+        }, function () {
+          $('#sessionNameInput').val("");
+          $("#sessionMenu").toggle("puff", showEffectSpeed);
+          $("#sessionButton").toggleClass("buttonPressed");
+        });
         getSessionFolderContent();
         updateWall(); // contents may have been relocated changing some window UUIDs
-      });
-      swal({
-        title: "Saved!",
-        text: "Your session has been saved as: " + uri,
-        type: "success",
-        confirmButtonText: "OK",
-        confirmButtonColor: "#014f86"
-      }, function () {
-        $('#sessionNameInput').val("");
-        $("#sessionMenu").toggle("puff", showEffectSpeed);
-        $("#sessionButton").toggleClass("buttonPressed");
       });
     });
 }
 
 function setBezels() {
-  if (bezelHeight <= 0 && bezelWidth <= 0){
+  if (bezelHeight <= 0 && bezelWidth <= 0) {
     $("#showBezelButton").remove();
     return;
   }
