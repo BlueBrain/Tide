@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [250](https://github.com/BlueBrain/Tide/pull/250):
+  Web interface shows better messages when saving sessions.
 * [249](https://github.com/BlueBrain/Tide/pull/249):
   Intel MPI support in *tide* script.
 * [243](https://github.com/BlueBrain/Tide/pull/243):
