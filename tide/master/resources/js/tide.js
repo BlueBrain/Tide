@@ -466,6 +466,7 @@ function getSessionFolderContent() {
       if (!data.dir) {
         $("#wall").css("opacity", 0.2);
         sendAppJsonRpc("load", {"uri": data.text}, function () {
+          $("#sessionNameInput").val(data.text);
           $("#sessionMenu").toggle("puff", showEffectSpeed);
           $("#sessionButton").toggleClass("buttonPressed");
           $('#sessionTree').treeview('toggleNodeSelected', [data.nodeId, {silent: true}]);
