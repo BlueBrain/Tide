@@ -51,6 +51,7 @@ int main(int argc, char** argv)
 
     // Load virtualkeyboard input context plugin
     qputenv("QT_IM_MODULE", QByteArray("virtualkeyboard"));
+    QGuiApplication::setAttribute(Qt::AA_ShareOpenGLContexts);
 
     std::unique_ptr<Launcher> launcher;
     try

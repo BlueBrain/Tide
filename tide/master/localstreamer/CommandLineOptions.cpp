@@ -69,7 +69,6 @@ void CommandLineOptions::parse(const int argc, char** argv)
     sessionsDir = vm["sessionsDir"].as<std::string>().c_str();
     webservicePort = vm["webservicePort"].as<uint16_t>();
     demoServiceUrl = vm["demoServiceUrl"].as<std::string>().c_str();
-    demoServiceImageDir = vm["demoServiceImageDir"].as<std::string>().c_str();
     showPowerButton = vm["showPowerButton"].as<bool>();
     saveDir = vm["saveDir"].as<std::string>().c_str();
 }
@@ -96,8 +95,6 @@ void CommandLineOptions::_fillDesc()
          "launcher: port where the master application's webservice is running")
         ("demoServiceUrl", po::value<std::string>()->default_value(""),
          "launcher: url for the demo service")
-        ("demoServiceImageDir", po::value<std::string>()->default_value(""),
-         "launcher: folder for the images for the demo service")
         ("showPowerButton", po::bool_switch()->default_value(false),
          "launcher: show the power button")
         ("saveDir", po::value<std::string>()->default_value(""),
@@ -147,9 +144,6 @@ QStringList CommandLineOptions::getCommandLineArguments() const
 
     if (!demoServiceUrl.isEmpty())
         arguments << "--demoServiceUrl" << demoServiceUrl;
-
-    if (!demoServiceImageDir.isEmpty())
-        arguments << "--demoServiceImageDir" << demoServiceImageDir;
 
     if (showPowerButton)
         arguments << "--showPowerButton";

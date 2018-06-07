@@ -98,7 +98,6 @@ Launcher::Launcher(int& argc, char* argv[])
 
     // DemoLauncher setup
     item->setProperty("demoServiceUrl", options.demoServiceUrl);
-    item->setProperty("demoServiceImageFolder", options.demoServiceImageDir);
     item->setProperty("demoServiceDeflectHost", QHostInfo::localHostName());
 }
 

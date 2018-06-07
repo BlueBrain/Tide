@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [258](https://github.com/BlueBrain/Tide/pull/258):
+  Previous demo launcher replaced with a web ui version
 * [256](https://github.com/BlueBrain/Tide/pull/256):
   Add "dimensions" property in surface configuration to let UI elements scale
   to real-world sizes (in meters). Currently used for the Launcher only.

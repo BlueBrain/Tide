@@ -5,8 +5,6 @@
         <file>qml/Curtain.qml</file>
         <file>qml/CurtainDialog.qml</file>
         <file>qml/DefaultPanel.qml</file>
-        <file>qml/DemoLauncher/DemoLauncher.qml</file>
-        <file>qml/DemoLauncher/RenderingResourcesManager.js</file>
         <file>qml/FileBrowser.qml</file>
         <file>qml/FileBrowserImage.qml</file>
         <file>qml/FileBrowserViewButton.qml</file>

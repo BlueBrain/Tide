@@ -183,7 +183,6 @@ void PixelStreamerLauncher::openLauncher()
     options.contentsDir = _config.folders.contents;
     options.sessionsDir = _config.folders.sessions;
     options.webservicePort = _config.master.webservicePort;
-    options.demoServiceImageDir = _config.launcher.demoServiceImageDir;
     options.demoServiceUrl = _config.launcher.demoServiceUrl;
     options.showPowerButton = !_config.master.planarSerialPort.isEmpty();
 

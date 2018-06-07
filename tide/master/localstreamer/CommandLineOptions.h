@@ -81,7 +81,6 @@ public:
     QString sessionsDir;
     uint16_t webservicePort = 0;
     QString demoServiceUrl;
-    QString demoServiceImageDir;
     bool showPowerButton = false;
 
     // whiteboard only

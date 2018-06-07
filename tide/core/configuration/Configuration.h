@@ -96,8 +96,6 @@ public:
         /** URL of Rendering Resources Manager's API for the demo service. */
         QString demoServiceUrl;
 
-        /** Image folder for the demo service. */
-        QString demoServiceImageDir;
     } launcher;
 
     struct Master
