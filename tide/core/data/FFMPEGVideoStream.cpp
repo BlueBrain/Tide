@@ -209,7 +209,7 @@ bool FFMPEGVideoStream::isStereo() const
 
 double FFMPEGVideoStream::getDuration() const
 {
-    return std::max(_frameDurationInSeconds * _numFrames, 0.0);
+    return std::max(_frameDurationInSeconds * (_numFrames - 1), 0.0);
 }
 
 double FFMPEGVideoStream::getFrameDuration() const
@@ -266,16 +266,8 @@ double FFMPEGVideoStream::getPositionInSec(const int64_t timestamp) const
     return _frameDurationInSeconds * getFrameIndex(timestamp);
 }
 
-bool FFMPEGVideoStream::seekToNearestFullframe(int64_t frameIndex)
+bool FFMPEGVideoStream::seekToNearestFullframe(const int64_t frameIndex)
 {
-    if (frameIndex < 0 || (_numFrames && frameIndex >= _numFrames))
-    {
-        print_log(LOG_WARN, LOG_AV, "Invalid index: %i, range [0,%d[: '%s'",
-                  frameIndex, _numFrames, _getFilename());
-    }
-
-    frameIndex = std::max(int64_t(0), std::min(frameIndex, _numFrames - 1));
-
     const int64_t seek_target = getTimestamp(frameIndex);
     const int64_t seek_min = INT64_MIN;
     const int64_t seek_max = INT64_MAX;
@@ -381,7 +373,7 @@ void FFMPEGVideoStream::_generateSeekingParameters()
     if (_numFrames <= 0)
         throw std::runtime_error("cannot determine number of frames");
 
-    _frameDuration = double(duration) / double(_numFrames);
+    _frameDuration = double(duration) / double(_numFrames - 1);
 
     const auto frameDurationUnits = double(timeBase.num) / double(timeBase.den);
     _frameDurationInSeconds = _frameDuration * frameDurationUnits;
