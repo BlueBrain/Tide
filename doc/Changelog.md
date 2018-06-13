@@ -3,6 +3,9 @@ Changelog {#changelog}
 
 # Release 1.4.1 (git 1.4)
 
+* [252](https://github.com/BlueBrain/Tide/pull/252):
+  - Fix movie duration calculation.
+  - Fix occasional crash when generating thumbnails for small movies.
 * [245](https://github.com/BlueBrain/Tide/pull/245):
   Fix a crash when opening movies with negative start time.
 * [215](https://github.com/BlueBrain/Tide/pull/215):
