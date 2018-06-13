@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [253](https://github.com/BlueBrain/Tide/pull/253):
+  Fix occasional crash when generating thumbnails for small movies.
 * [250](https://github.com/BlueBrain/Tide/pull/250):
   Web interface shows better messages when saving sessions.
 * [249](https://github.com/BlueBrain/Tide/pull/249):
