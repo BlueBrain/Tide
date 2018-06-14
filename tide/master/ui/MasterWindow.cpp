@@ -93,15 +93,13 @@ MasterWindow::MasterWindow(ScenePtr scene_, OptionsPtr options,
             });
 #endif
 
-    connect(&_loadSessionOp, &QFutureWatcher<SceneConstPtr>::finished,
-            [this]() {
-                if (auto scene = _loadSessionOp.result())
-                    emit sessionLoaded(scene);
-                else
-                    QMessageBox::warning(this, "Error",
-                                         "Could not load session file.",
-                                         QMessageBox::Ok, QMessageBox::Ok);
-            });
+    connect(&_loadSessionOp, &QFutureWatcher<ScenePtr>::finished, [this]() {
+        if (auto scene = _loadSessionOp.result())
+            emit sessionLoaded(scene);
+        else
+            QMessageBox::warning(this, "Error", "Could not load session file.",
+                                 QMessageBox::Ok, QMessageBox::Ok);
+    });
 
     connect(&_saveSessionOp, &QFutureWatcher<bool>::finished, [this]() {
         if (!_saveSessionOp.result())

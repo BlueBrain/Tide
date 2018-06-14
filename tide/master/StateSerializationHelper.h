@@ -77,7 +77,7 @@ public:
      *
      * @return the loaded scene on success, nullptr on failure.
      */
-    QFuture<SceneConstPtr> load(const QString& filename) const;
+    QFuture<ScenePtr> load(const QString& filename) const;
 
     /**
      * Find an available filename by appending "_[n]" if needed to the filename.

@@ -154,6 +154,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   scene/CountdownStatus.h
   scene/DisplayGroup.h
   scene/DynamicTextureContent.h
+  scene/ErrorContent.h
   scene/KeyboardState.h
   scene/Markers.h
   scene/Options.h
@@ -215,6 +216,7 @@ list(APPEND TIDECORE_SOURCES
   scene/CountdownStatus.cpp
   scene/DisplayGroup.cpp
   scene/DynamicTextureContent.cpp
+  scene/ErrorContent.cpp
   scene/KeyboardState.cpp
   scene/Markers.cpp
   scene/Options.cpp

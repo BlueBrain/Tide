@@ -80,7 +80,7 @@ private:
     Scene& _scene;
     Configuration::Folders _folders;
 
-    QFutureWatcher<SceneConstPtr> _loadSessionOp;
+    QFutureWatcher<ScenePtr> _loadSessionOp;
     QFutureWatcher<bool> _saveSessionOp;
     BoolCallback _loadSessionCallback;
     BoolCallback _saveSessionCallback;

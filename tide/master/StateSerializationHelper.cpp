@@ -44,6 +44,7 @@
 #include "control/DisplayGroupController.h"
 #include "log.h"
 #include "scene/ContentFactory.h"
+#include "scene/ErrorContent.h"
 #include "scene/Scene.h"
 #include "serialization/utils.h"
 
@@ -60,6 +61,16 @@ bool _canBeRestored(const CONTENT_TYPE type)
         return false;
 
     return true;
+}
+
+bool _isErrorContent(const Content& content)
+{
+    return !!dynamic_cast<const ErrorContent*>(&content);
+}
+
+bool _canBeSaved(const Content& content)
+{
+    return _canBeRestored(content.getType()) && !_isErrorContent(content);
 }
 
 void _relocateContent(ContentWindow& window, const QString& tmpDir,
@@ -176,8 +187,7 @@ bool _validateContent(const ContentWindowPtr& window)
     {
         print_log(LOG_WARN, LOG_CONTENT, "'%s' could not be restored!",
                   content->getURI().toLocal8Bit().constData());
-        const auto& size = content->getDimensions();
-        auto errorContent = ContentFactory::getErrorContent(size);
+        auto errorContent = ContentFactory::getErrorContent(*content);
         errorContent->moveToThread(window->thread());
         window->setContent(std::move(errorContent));
     }
@@ -228,14 +238,14 @@ StateSerializationHelper::StateSerializationHelper(ScenePtr scene)
 {
 }
 
-SceneConstPtr _load(const QString& filename, SceneConstPtr referenceScene)
+ScenePtr _load(const QString& filename, SceneConstPtr referenceScene)
 {
     State state;
     // For backward compatibility, try to load the file as a legacy xml first
     if (!state.legacyLoadXML(filename) &&
         !serialization::fromXmlFile(state, filename.toStdString()))
     {
-        return SceneConstPtr();
+        return ScenePtr();
     }
 
     auto scene = state.getScene();
@@ -263,8 +273,7 @@ SceneConstPtr _load(const QString& filename, SceneConstPtr referenceScene)
     return scene;
 }
 
-QFuture<SceneConstPtr> StateSerializationHelper::load(
-    const QString& filename) const
+QFuture<ScenePtr> StateSerializationHelper::load(const QString& filename) const
 {
     print_log(LOG_INFO, LOG_CONTENT, "Restoring session: '%s'",
               filename.toStdString().c_str());
@@ -295,7 +304,7 @@ void _filterContents(DisplayGroup& group)
     std::copy_if(windows.begin(), windows.end(),
                  std::back_inserter(filteredWindows),
                  [](const ContentWindowPtr& window) {
-                     return _canBeRestored(window->getContent().getType());
+                     return _canBeSaved(window->getContent());
                  });
     group.setContentWindows(filteredWindows);
 }

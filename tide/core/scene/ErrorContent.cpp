@@ -1,8 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael.Dumusc@epfl.ch                        */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,11 +37,26 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "DynamicTextureContent.h"
+#include "ErrorContent.h"
 
-BOOST_CLASS_EXPORT(DynamicTextureContent)
+BOOST_CLASS_EXPORT(ErrorContent)
 
-CONTENT_TYPE DynamicTextureContent::getType() const
+namespace
 {
-    return CONTENT_TYPE_DYNAMIC_TEXTURE;
+const auto ERROR_IMAGE_FILENAME = ":/img/error.png";
+}
+
+ErrorContent::ErrorContent(const QString& uri, const QSize& size)
+    : TextureContent(ERROR_IMAGE_FILENAME)
+    , _originalUri{uri}
+{
+    if (!size.isEmpty())
+        setDimensions(size);
+    else
+        readMetadata();
+}
+
+QString ErrorContent::getFilePath() const
+{
+    return _originalUri;
 }

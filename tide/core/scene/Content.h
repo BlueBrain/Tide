@@ -67,6 +67,7 @@ class Content : public QObject
 
     // These properties are read-only on master and wall
     Q_PROPERTY(QString uri READ getURI CONSTANT)
+    Q_PROPERTY(QString filePath READ getFilePath CONSTANT)
     Q_PROPERTY(QString title READ getTitle NOTIFY titleChanged)
     Q_PROPERTY(bool hasFixedAspectRatio READ hasFixedAspectRatio CONSTANT)
     Q_PROPERTY(QString qmlControls READ getQmlControls CONSTANT)
@@ -104,6 +105,9 @@ public:
 
     /** Get the content type **/
     virtual CONTENT_TYPE getType() const = 0;
+
+    /** @return the full path to the content file. */
+    virtual QString getFilePath() const;
 
     /** Get the title of the content */
     virtual QString getTitle() const;

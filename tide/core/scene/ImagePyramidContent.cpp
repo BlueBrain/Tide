@@ -41,7 +41,7 @@
 
 #include "data/TiffPyramidReader.h"
 
-BOOST_CLASS_EXPORT_GUID(ImagePyramidContent, "ImagePyramidContent")
+BOOST_CLASS_EXPORT(ImagePyramidContent)
 
 ImagePyramidContent::ImagePyramidContent(const QString& uri)
     : Content(uri)

@@ -67,11 +67,12 @@ public:
 
     static const QStringList& getSupportedExtensions();
 
+protected:
+    TextureContent() = default; // required for boost::serialization
+
 private:
     friend class boost::serialization::access;
 
-    // Default constructor required for boost::serialization
-    TextureContent() {}
     template <class Archive>
     void serialize(Archive& ar, const unsigned int)
     {
@@ -81,5 +82,8 @@ private:
         // clang-format on
     }
 };
+
+// Need to be in header for serialization of derived class ErrorContent
+BOOST_CLASS_EXPORT_KEY(TextureContent)
 
 #endif

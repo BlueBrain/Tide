@@ -43,7 +43,7 @@
 
 #include <QImageReader>
 
-BOOST_CLASS_EXPORT_GUID(TextureContent, "TextureContent")
+BOOST_CLASS_EXPORT_IMPLEMENT(TextureContent)
 
 TextureContent::TextureContent(const QString& uri)
     : Content(uri)
