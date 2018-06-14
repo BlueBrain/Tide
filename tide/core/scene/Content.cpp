@@ -77,9 +77,14 @@ const QString& Content::getURI() const
     return _uri;
 }
 
+QString Content::getFilePath() const
+{
+    return getURI();
+}
+
 QString Content::getTitle() const
 {
-    return getURI().section("/", -1, -1);
+    return getFilePath().section("/", -1, -1);
 }
 
 QSize Content::getDimensions() const

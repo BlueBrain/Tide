@@ -45,7 +45,7 @@
 
 #include <QFileInfo>
 
-BOOST_CLASS_EXPORT_GUID(SVGContent, "SVGContent")
+BOOST_CLASS_EXPORT(SVGContent)
 
 SVGContent::SVGContent(const QString& uri)
     : VectorialContent(uri)

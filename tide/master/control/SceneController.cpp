@@ -60,16 +60,15 @@ SceneController::SceneController(Scene& scene_,
                 &SceneController::_deleteTempContentFile);
     }
 
-    connect(&_loadSessionOp, &QFutureWatcher<SceneConstPtr>::finished,
-            [this]() {
-                auto scene = _loadSessionOp.result();
-                if (scene)
-                    apply(scene);
+    connect(&_loadSessionOp, &QFutureWatcher<ScenePtr>::finished, [this]() {
+        auto scene = _loadSessionOp.result();
+        if (scene)
+            apply(scene);
 
-                if (_loadSessionCallback)
-                    _loadSessionCallback(scene != nullptr);
-                _loadSessionCallback = nullptr;
-            });
+        if (_loadSessionCallback)
+            _loadSessionCallback(scene != nullptr);
+        _loadSessionCallback = nullptr;
+    });
 
     connect(&_saveSessionOp, &QFutureWatcher<bool>::finished, [this]() {
         if (_saveSessionCallback)

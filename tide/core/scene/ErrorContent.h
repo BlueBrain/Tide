@@ -1,8 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael.Dumusc@epfl.ch                        */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,11 +37,45 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "DynamicTextureContent.h"
+#ifndef ERROR_CONTENT_H
+#define ERROR_CONTENT_H
 
-BOOST_CLASS_EXPORT(DynamicTextureContent)
+#include "TextureContent.h"
 
-CONTENT_TYPE DynamicTextureContent::getType() const
+/**
+ * A placeholder to replace a Content that can no longer be restored from file.
+ *
+ * Error contents are not kept when saving the session again.
+ */
+class ErrorContent : public TextureContent
 {
-    return CONTENT_TYPE_DYNAMIC_TEXTURE;
-}
+public:
+    /**
+     * Constructor.
+     * @param uri The uri of the original content.
+     * @param size The size of the original content.
+     */
+    ErrorContent(const QString& uri, const QSize& size);
+
+    /** @return the uri of the original content. */
+    QString getFilePath() const override;
+
+private:
+    QString _originalUri;
+
+    friend class boost::serialization::access;
+
+    ErrorContent() = default; // required for boost::serialization
+
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int)
+    {
+        // serialize base class information (with NVP for xml archives)
+        // clang-format off
+        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(TextureContent);
+        ar & boost::serialization::make_nvp("originalUri", _originalUri);
+        // clang-format on
+    }
+};
+
+#endif

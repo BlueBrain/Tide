@@ -79,6 +79,6 @@ private:
     }
 };
 
-BOOST_CLASS_EXPORT_GUID(DummyContent, "DummyContent")
+BOOST_CLASS_EXPORT(DummyContent)
 
 #endif

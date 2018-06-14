@@ -77,7 +77,7 @@ ContentPtr _loadContent(XmlParser& parser, const QString& index)
     if (parser.get(query.arg(index, "URI"), uri))
         content = ContentFactory::getContent(uri);
     if (!content)
-        content = ContentFactory::getErrorContent();
+        content = ContentFactory::getErrorContent(uri);
 
     return content;
 }

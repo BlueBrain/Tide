@@ -76,7 +76,7 @@ signals:
     void openWhiteboard(uint surfaceIndex);
 
     /** Emitted when a session has been successfully loaded. */
-    void sessionLoaded(SceneConstPtr group);
+    void sessionLoaded(ScenePtr group);
 
 protected:
     /** @name Drag events re-implemented from QMainWindow */
@@ -112,7 +112,7 @@ private:
     ScenePtr _scene;
     OptionsPtr _options;
 
-    QFutureWatcher<SceneConstPtr> _loadSessionOp;
+    QFutureWatcher<ScenePtr> _loadSessionOp;
     QFutureWatcher<bool> _saveSessionOp;
 
     BackgroundWidget* _backgroundWidget; // child QObject

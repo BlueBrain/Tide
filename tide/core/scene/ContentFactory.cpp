@@ -43,6 +43,10 @@
 #include "log.h"
 
 #include "Content.h"
+#include "ErrorContent.h"
+#include "PixelStreamContent.h"
+#include "SVGContent.h"
+#include "TextureContent.h"
 #if TIDE_USE_TIFF
 #include "ImagePyramidContent.h"
 #include "data/TiffPyramidReader.h"
@@ -53,9 +57,6 @@
 #if TIDE_ENABLE_PDF_SUPPORT
 #include "PDFContent.h"
 #endif
-#include "PixelStreamContent.h"
-#include "SVGContent.h"
-#include "TextureContent.h"
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
 #include "WebbrowserContent.h"
 #endif
@@ -64,8 +65,6 @@
 #include <QFileInfo>
 #include <QImageReader>
 #include <QTextStream>
-
-#define ERROR_IMAGE_FILENAME ":/img/error.png"
 
 namespace
 {
@@ -96,19 +95,6 @@ ContentPtr _makeContent(const QString& uri)
         return nullptr;
     }
 }
-
-class ErrorContent : public TextureContent
-{
-public:
-    ErrorContent(const QSize& size)
-        : TextureContent(ERROR_IMAGE_FILENAME)
-    {
-        if (!size.isEmpty())
-            setDimensions(size);
-        else
-            readMetadata();
-    }
-};
 }
 
 CONTENT_TYPE ContentFactory::getContentTypeForFile(const QString& uri)
@@ -191,9 +177,17 @@ ContentPtr ContentFactory::getPixelStreamContent(const QString& uri,
     }
 }
 
-ContentPtr ContentFactory::getErrorContent(const QSize& size)
+ContentPtr ContentFactory::getErrorContent(const Content& content)
 {
-    return std::make_unique<ErrorContent>(size);
+    const auto& uri = content.getURI();
+    const auto& size = content.getDimensions();
+
+    return std::make_unique<ErrorContent>(uri, size);
+}
+
+ContentPtr ContentFactory::getErrorContent(const QString& uri)
+{
+    return std::make_unique<ErrorContent>(uri, QSize());
 }
 
 const QStringList& ContentFactory::getSupportedExtensions()

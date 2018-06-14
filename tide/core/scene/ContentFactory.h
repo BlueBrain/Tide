@@ -58,7 +58,10 @@ public:
         StreamType stream = StreamType::EXTERNAL);
 
     /** Get a Content object representing a loading error. */
-    static ContentPtr getErrorContent(const QSize& size = QSize());
+    static ContentPtr getErrorContent(const Content& content);
+
+    /** For legacy sessions; deprecated. */
+    static ContentPtr getErrorContent(const QString& uri);
 
     /** Get all the supported file extensions. */
     static const QStringList& getSupportedExtensions();

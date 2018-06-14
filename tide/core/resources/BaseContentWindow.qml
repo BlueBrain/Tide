@@ -64,7 +64,7 @@ Rectangle {
 
                     fontSizeMode: options.showFilePaths ? Text.Fit : Text.FixedSize
                     elide: options.showFilePaths ? Text.ElideLeft : Text.ElideRight
-                    text: options.showFilePaths ? contentwindow.content.uri : contentwindow.content.title
+                    text: options.showFilePaths ? contentwindow.content.filePath : contentwindow.content.title
                     font { family: "qrc::gotham-book"; pixelSize: Style.windowTitleFontSize }
                 }
             }

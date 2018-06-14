@@ -3,6 +3,9 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [254](https://github.com/BlueBrain/Tide/pull/254):
+  Display the original title / file path of contents that fail to be restored
+  from a session.
 * [253](https://github.com/BlueBrain/Tide/pull/253):
   Fix occasional crash when generating thumbnails for small movies.
 * [250](https://github.com/BlueBrain/Tide/pull/250):
