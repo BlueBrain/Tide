@@ -49,7 +49,7 @@
 
 namespace
 {
-const SurfaceConfig referenceSurface{1920, 1080, 2, 1, 2, 3, 14, 12};
+const SurfaceConfig referenceSurface{1920, 1080, 2, 1, 2, 3, 14, 12, QSizeF()};
 const QString referenceScreenshot{"./reference_screenshot.png"};
 }
 

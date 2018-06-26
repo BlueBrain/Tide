@@ -60,6 +60,7 @@ struct SurfaceConfig
     uint screenCountY = 1;       // number of screens along the y axis
     int bezelWidth = 0;  // horizontal padding between two screens in pixels
     int bezelHeight = 0; // vertical padding between two screens in pixels
+    QSizeF dimensions;   // physical dimensions in meters
 
     /** Background content and color. */
     BackgroundPtr background = Background::create();
@@ -87,6 +88,9 @@ struct SurfaceConfig
 
     /** @return aspect ratio of the surface, including bezels. */
     double getAspectRatio() const;
+
+    /** @return the size in pixels of an area in meters. */
+    QSize toPixelSize(const QSizeF& sizeInMeters) const;
 };
 
 #endif

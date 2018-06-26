@@ -126,6 +126,8 @@ private:
 
     std::unique_ptr<ScreenshotAssembler> _screenshotAssembler;
 
+    void _validateConfig();
+
     void _init();
     void _initMasterWindow();
     void _initOffscreenView();

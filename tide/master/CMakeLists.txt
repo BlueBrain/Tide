@@ -29,8 +29,9 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   control/ZoomController.h
   FileInfoHelper.h
   InactivityTimer.h
-  localstreamer/HtmlSelectReplacer.h
   localstreamer/CommandLineOptions.h
+  localstreamer/HtmlSelectReplacer.h
+  localstreamer/LauncherPlacer.h
   localstreamer/PixelStreamerLauncher.h
   localstreamer/ProcessForker.h
   localstreamer/QmlKeyInjector.h
@@ -80,6 +81,7 @@ list(APPEND TIDEMASTER_SOURCES
   InactivityTimer.cpp
   localstreamer/HtmlSelectReplacer.cpp
   localstreamer/CommandLineOptions.cpp
+  localstreamer/LauncherPlacer.cpp
   localstreamer/PixelStreamerLauncher.cpp
   localstreamer/ProcessForker.cpp
   localstreamer/QmlKeyInjector.cpp

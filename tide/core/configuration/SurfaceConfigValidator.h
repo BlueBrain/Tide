@@ -37,62 +37,34 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "SurfaceConfig.h"
+#ifndef SURFACECONFIGVALIDATOR_H
+#define SURFACECONFIGVALIDATOR_H
 
-uint SurfaceConfig::getScreenWidth() const
+#include "types.h"
+
+#include "configuration/SurfaceConfig.h"
+
+class dimensions_mismatch : public std::runtime_error
 {
-    return displayWidth * displaysPerScreenX +
-           ((displaysPerScreenX - 1) * bezelWidth);
-}
+    using runtime_error::runtime_error;
+};
 
-uint SurfaceConfig::getScreenHeight() const
+/**
+ * A validator for consistency of the surface configuation parameters.
+ */
+class SurfaceConfigValidator
 {
-    return displayHeight * displaysPerScreenY +
-           ((displaysPerScreenY - 1) * bezelHeight);
-}
+public:
+    SurfaceConfigValidator(const SurfaceConfig& surface);
 
-QRect SurfaceConfig::getScreenRect(const QPoint& tileIndex) const
-{
-    if (tileIndex.x() < 0 || tileIndex.x() >= (int)screenCountX ||
-        tileIndex.y() < 0 || tileIndex.y() >= (int)screenCountY)
-    {
-        throw std::invalid_argument("tile index does not exist");
-    }
+    /**
+     * Validate that the dimensions (if set) match the pixel aspect ratio.
+     * @throw dimensions_mismatch if the dimensions are incorrect.
+     */
+    void validateDimensions() const;
 
-    const int xPos = tileIndex.x() * (getScreenWidth() + bezelWidth);
-    const int yPos = tileIndex.y() * (getScreenHeight() + bezelHeight);
+private:
+    const SurfaceConfig& _surface;
+};
 
-    return QRect(xPos, yPos, getScreenWidth(), getScreenHeight());
-}
-
-uint SurfaceConfig::getTotalWidth() const
-{
-    return screenCountX * getScreenWidth() + (screenCountX - 1) * bezelWidth;
-}
-
-uint SurfaceConfig::getTotalHeight() const
-{
-    return screenCountY * getScreenHeight() + (screenCountY - 1) * bezelHeight;
-}
-
-QSize SurfaceConfig::getTotalSize() const
-{
-    return QSize(getTotalWidth(), getTotalHeight());
-}
-
-double SurfaceConfig::getAspectRatio() const
-{
-    if (getTotalHeight() == 0)
-        return 0.0;
-    return double(getTotalWidth()) / getTotalHeight();
-}
-
-QSize SurfaceConfig::toPixelSize(const QSizeF& sizeInMeters) const
-{
-    if (dimensions.isEmpty())
-        return QSize();
-
-    return QSize(sizeInMeters.width() / dimensions.width() * getTotalWidth(),
-                 sizeInMeters.height() / dimensions.height() *
-                     getTotalHeight());
-}
+#endif

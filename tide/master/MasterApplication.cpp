@@ -46,6 +46,7 @@
 #include "QmlTypeRegistration.h"
 #include "ScreenshotAssembler.h"
 #include "configuration/Configuration.h"
+#include "configuration/SurfaceConfigValidator.h"
 #include "control/SceneController.h"
 #include "localstreamer/PixelStreamerLauncher.h"
 #include "log.h"
@@ -106,6 +107,7 @@ MasterApplication::MasterApplication(int& argc_, char** argv_,
     setAttribute(Qt::AA_SynthesizeTouchForUnhandledMouseEvents, false);
     setAttribute(Qt::AA_SynthesizeMouseForUnhandledTouchEvents, false);
 
+    _validateConfig();
     _init();
 
     _masterToWallChannel->send(*_config);
@@ -134,6 +136,22 @@ MasterApplication::~MasterApplication()
 void MasterApplication::load(const QString& sessionFile)
 {
     _sceneController->load(sessionFile, BoolCallback());
+}
+
+void MasterApplication::_validateConfig()
+{
+    for (const auto& surface : _config->surfaces)
+    {
+        try
+        {
+            SurfaceConfigValidator{surface}.validateDimensions();
+        }
+        catch (const dimensions_mismatch& e)
+        {
+            put_log(LOG_WARN, LOG_GENERAL, "Check your configuration: %s",
+                    e.what());
+        }
+    }
 }
 
 void MasterApplication::_init()

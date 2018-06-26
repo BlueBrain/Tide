@@ -42,9 +42,9 @@
 #include "config.h"
 
 #include "CommandLineOptions.h"
+#include "LauncherPlacer.h"
 #include "PixelStreamWindowManager.h"
 #include "configuration/Configuration.h"
-#include "geometry.h"
 #include "log.h"
 #include "scene/ContentType.h"
 #include "scene/ContentWindow.h"
@@ -62,9 +62,9 @@ const QString LAUNCHER_BIN("tideLauncher.exe");
 const QString WEBBROWSER_BIN("tideWebbrowser.exe");
 const QString WHITEBOARD_BIN("tideWhiteboard.exe");
 #else
-const QString WHITEBOARD_BIN("tideWhiteboard");
 const QString LAUNCHER_BIN("tideLauncher");
 const QString WEBBROWSER_BIN("tideWebbrowser");
+const QString WHITEBOARD_BIN("tideWhiteboard");
 #endif
 }
 
@@ -171,8 +171,9 @@ void PixelStreamerLauncher::openLauncher()
         return;
     }
 
-    const auto size = _getLauncherSize();
-    const auto pos = _getLauncherPos();
+    const auto rect = LauncherPlacer{_config.surfaces[0]}.getCoordinates();
+    const auto size = rect.size();
+    const auto pos = rect.center();
     _windowManager.openWindow(0, uri, size, pos, StreamType::LAUNCHER);
 
     CommandLineOptions options;
@@ -210,38 +211,6 @@ void PixelStreamerLauncher::openWhiteboard(const uint surfaceIndex)
     const auto command = _getWhiteboardCommand(options.getCommandLine());
 
     _startProcess(uri, command, {});
-}
-
-QSize PixelStreamerLauncher::_getLauncherSize() const
-{
-    const auto width = 0.25 * getSurfaceConfig().getTotalWidth();
-    const auto size = QSize(width, 0.9 * width);
-
-    const auto minSize = QSize{100, 100};
-    const auto maxSize = 0.9 * getSurfaceConfig().getTotalSize();
-
-    return geometry::constrain(size, minSize, maxSize).toSize();
-}
-
-QPointF PixelStreamerLauncher::_getLauncherPos() const
-{
-    // Position for "standard" walls, slightly above the middle
-    const auto x = 0.25 * getSurfaceConfig().getTotalWidth();
-    const auto y = 0.35 * getSurfaceConfig().getTotalHeight();
-
-    auto rect = QRectF{QPointF(), _getLauncherSize()};
-    rect.moveCenter({x, y});
-
-    // If the wall is not tall enough, center vertically to fit
-    if (rect.top() < 0.05 * getSurfaceConfig().getTotalHeight())
-        rect.moveCenter({x, 0.5 * getSurfaceConfig().getTotalHeight()});
-
-    return rect.center();
-}
-
-const SurfaceConfig& PixelStreamerLauncher::getSurfaceConfig() const
-{
-    return _config.surfaces[0];
 }
 
 void PixelStreamerLauncher::_startProcess(const QString& uri,

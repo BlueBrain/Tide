@@ -37,62 +37,41 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "SurfaceConfig.h"
+#ifndef LAUNCHERPLACER_H
+#define LAUNCHERPLACER_H
 
-uint SurfaceConfig::getScreenWidth() const
+#include "types.h"
+
+#include <QPointF>
+#include <QSize>
+
+/**
+ * Determine the placement of the Launcher on a Surface.
+ */
+class LauncherPlacer
 {
-    return displayWidth * displaysPerScreenX +
-           ((displaysPerScreenX - 1) * bezelWidth);
-}
+public:
+    /**
+     * Constructor.
+     * @param surface on which to place the launcher.
+     */
+    LauncherPlacer(const SurfaceConfig& surface);
 
-uint SurfaceConfig::getScreenHeight() const
-{
-    return displayHeight * displaysPerScreenY +
-           ((displaysPerScreenY - 1) * bezelHeight);
-}
+    QRect getCoordinates() const;
 
-QRect SurfaceConfig::getScreenRect(const QPoint& tileIndex) const
-{
-    if (tileIndex.x() < 0 || tileIndex.x() >= (int)screenCountX ||
-        tileIndex.y() < 0 || tileIndex.y() >= (int)screenCountY)
-    {
-        throw std::invalid_argument("tile index does not exist");
-    }
+private:
+    const SurfaceConfig& _surface;
 
-    const int xPos = tileIndex.x() * (getScreenWidth() + bezelWidth);
-    const int yPos = tileIndex.y() * (getScreenHeight() + bezelHeight);
+    QSize _getSize() const;
+    QSize _getDefaultSizePx() const;
+    QSize _getMaxSizePx() const;
 
-    return QRect(xPos, yPos, getScreenWidth(), getScreenHeight());
-}
+    QRectF _getCoordinatesForStandardWall() const;
+    bool _launcherIsTooHigh(const QRectF& rect) const;
+    bool _surfaceLikelyDoesNotStartFromTheFloor() const;
+    bool _exceedsTopMargin(const QRectF& rect) const;
+    void _centerAboveMiddleOfSurface(QRectF& rect) const;
+    void _centerVertically(QRectF& rect) const;
+};
 
-uint SurfaceConfig::getTotalWidth() const
-{
-    return screenCountX * getScreenWidth() + (screenCountX - 1) * bezelWidth;
-}
-
-uint SurfaceConfig::getTotalHeight() const
-{
-    return screenCountY * getScreenHeight() + (screenCountY - 1) * bezelHeight;
-}
-
-QSize SurfaceConfig::getTotalSize() const
-{
-    return QSize(getTotalWidth(), getTotalHeight());
-}
-
-double SurfaceConfig::getAspectRatio() const
-{
-    if (getTotalHeight() == 0)
-        return 0.0;
-    return double(getTotalWidth()) / getTotalHeight();
-}
-
-QSize SurfaceConfig::toPixelSize(const QSizeF& sizeInMeters) const
-{
-    if (dimensions.isEmpty())
-        return QSize();
-
-    return QSize(sizeInMeters.width() / dimensions.width() * getTotalWidth(),
-                 sizeInMeters.height() / dimensions.height() *
-                     getTotalHeight());
-}
+#endif

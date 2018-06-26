@@ -155,17 +155,17 @@ public:
     } whiteboard;
 
     /**
-     * Save the configuration to the current file.
+     * Save background changes to the current file.
      * @return true on success, false on failure.
      */
-    bool save() const;
+    bool saveBackgroundChanges() const;
 
     /**
-     * Save a copy of the configuration to the specified file.
+     * Save background changes to the specified file.
      * @param filename destination file.
      * @return true on success, false on failure.
      */
-    bool save(const QString& filename) const;
+    bool saveBackgroundChanges(const QString& filename) const;
 
     /** @return a default configuration, useful for comparing default values. */
     static Configuration defaults();

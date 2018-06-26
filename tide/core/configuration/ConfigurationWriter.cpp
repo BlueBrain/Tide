@@ -37,62 +37,86 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "SurfaceConfig.h"
+#include "ConfigurationWriter.h"
 
-uint SurfaceConfig::getScreenWidth() const
-{
-    return displayWidth * displaysPerScreenX +
-           ((displaysPerScreenX - 1) * bezelWidth);
-}
+#include "Configuration.h"
+#include "json/json.h"
+#include "json/serialization.h"
+#include "json/templates.h"
 
-uint SurfaceConfig::getScreenHeight() const
+namespace
 {
-    return displayHeight * displaysPerScreenY +
-           ((displaysPerScreenY - 1) * bezelHeight);
-}
+// Forward-declare
+QJsonObject removeDefaultValues(const QJsonObject& object,
+                                const QJsonObject& defaultObject);
 
-QRect SurfaceConfig::getScreenRect(const QPoint& tileIndex) const
+QJsonArray removeDefaultValues(const QJsonArray& array,
+                               const QJsonArray& defaultArray)
 {
-    if (tileIndex.x() < 0 || tileIndex.x() >= (int)screenCountX ||
-        tileIndex.y() < 0 || tileIndex.y() >= (int)screenCountY)
+    // Two cases: array of objects or array of values
+    if (defaultArray[0].isObject())
     {
-        throw std::invalid_argument("tile index does not exist");
+        // assume defaultArray contains a single reference object and filter
+        // individual objects
+        const auto refObject = defaultArray[0].toObject();
+        QJsonArray min;
+        for (auto i = 0; i < array.size(); ++i)
+            min.append(QJsonValue(
+                removeDefaultValues(array[i].toObject(), refObject)));
+        return min;
     }
-
-    const int xPos = tileIndex.x() * (getScreenWidth() + bezelWidth);
-    const int yPos = tileIndex.y() * (getScreenHeight() + bezelHeight);
-
-    return QRect(xPos, yPos, getScreenWidth(), getScreenHeight());
+    else if (!defaultArray[0].isArray())
+    {
+        // return full array of values if there is a difference, else nothing
+        for (auto i = 0; i < array.size(); ++i)
+        {
+            if (array[i] != defaultArray[i])
+                return array;
+        }
+    }
+    return QJsonArray();
 }
 
-uint SurfaceConfig::getTotalWidth() const
+QJsonObject removeDefaultValues(const QJsonObject& object,
+                                const QJsonObject& defaultObject)
 {
-    return screenCountX * getScreenWidth() + (screenCountX - 1) * bezelWidth;
+    QJsonObject min;
+    for (auto it = defaultObject.begin(); it != defaultObject.end(); ++it)
+    {
+        if (it.value().isObject())
+        {
+            auto tmp = removeDefaultValues(object[it.key()].toObject(),
+                                           it.value().toObject());
+            if (!tmp.isEmpty())
+                min[it.key()] = tmp;
+        }
+        else if (it.value().isArray())
+        {
+            auto tmp = removeDefaultValues(object[it.key()].toArray(),
+                                           it.value().toArray());
+            if (!tmp.isEmpty())
+                min[it.key()] = tmp;
+        }
+        else if (object[it.key()] != it.value())
+            min[it.key()] = object[it.key()];
+    }
+    return min;
+}
 }
 
-uint SurfaceConfig::getTotalHeight() const
+ConfigurationWriter::ConfigurationWriter(const Configuration& config)
+    : _config{config}
 {
-    return screenCountY * getScreenHeight() + (screenCountY - 1) * bezelHeight;
 }
 
-QSize SurfaceConfig::getTotalSize() const
+void ConfigurationWriter::write(const QString& filename,
+                                const Format format) const
 {
-    return QSize(getTotalWidth(), getTotalHeight());
-}
-
-double SurfaceConfig::getAspectRatio() const
-{
-    if (getTotalHeight() == 0)
-        return 0.0;
-    return double(getTotalWidth()) / getTotalHeight();
-}
-
-QSize SurfaceConfig::toPixelSize(const QSizeF& sizeInMeters) const
-{
-    if (dimensions.isEmpty())
-        return QSize();
-
-    return QSize(sizeInMeters.width() / dimensions.width() * getTotalWidth(),
-                 sizeInMeters.height() / dimensions.height() *
-                     getTotalHeight());
+    auto jsonObject = json::serialize(_config);
+    if (format == Format::minimal)
+    {
+        const auto defaults = json::serialize(Configuration::defaults());
+        jsonObject = removeDefaultValues(jsonObject, defaults);
+    }
+    json::write(jsonObject, filename);
 }

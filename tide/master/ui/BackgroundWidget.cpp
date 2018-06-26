@@ -108,7 +108,7 @@ BackgroundWidget::BackgroundWidget(Configuration& configuration,
 
 void BackgroundWidget::accept()
 {
-    if (_configuration.save())
+    if (_configuration.saveBackgroundChanges())
     {
         _previousColor = _background().getColor();
         _previousBackgroundURI = _background().getUri();
@@ -119,8 +119,8 @@ void BackgroundWidget::accept()
     {
         QMessageBox messageBox;
         messageBox.setText(
-            "An error occured while saving the configuration "
-            "xml file. Changes cannot be saved.");
+            "An error occured while saving the configuration file."
+            "Changes could not be saved.");
         messageBox.exec();
     }
 }

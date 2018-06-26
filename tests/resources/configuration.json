@@ -127,6 +127,10 @@
             },
             "bezelHeight": 12,
             "bezelWidth": 14,
+            "dimensions": [
+                3.5,
+                1.9
+            ],
             "displayHeight": 1080,
             "displayWidth": 1920,
             "displaysPerScreenX": 2,

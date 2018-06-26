@@ -123,9 +123,11 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   yuv.h
   ZoomHelper.h
   configuration/Configuration.h
+  configuration/ConfigurationWriter.h
   configuration/Process.h
   configuration/Screen.h
   configuration/SurfaceConfig.h
+  configuration/SurfaceConfigValidator.h
   configuration/XmlParser.h
   data/Image.h
   data/QtImage.h
@@ -193,7 +195,9 @@ list(APPEND TIDECORE_SOURCES
   yuv.cpp
   ZoomHelper.cpp
   configuration/Configuration.cpp
+  configuration/ConfigurationWriter.cpp
   configuration/SurfaceConfig.cpp
+  configuration/SurfaceConfigValidator.cpp
   configuration/XmlParser.cpp
   data/QtImage.cpp
   data/SVG.cpp
