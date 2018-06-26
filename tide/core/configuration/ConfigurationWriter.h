@@ -37,62 +37,36 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "SurfaceConfig.h"
+#ifndef CONFIGURATION_WRITER_H
+#define CONFIGURATION_WRITER_H
 
-uint SurfaceConfig::getScreenWidth() const
-{
-    return displayWidth * displaysPerScreenX +
-           ((displaysPerScreenX - 1) * bezelWidth);
-}
+#include "types.h"
 
-uint SurfaceConfig::getScreenHeight() const
+/**
+ * Write Configuration to file.
+ */
+class ConfigurationWriter
 {
-    return displayHeight * displaysPerScreenY +
-           ((displaysPerScreenY - 1) * bezelHeight);
-}
-
-QRect SurfaceConfig::getScreenRect(const QPoint& tileIndex) const
-{
-    if (tileIndex.x() < 0 || tileIndex.x() >= (int)screenCountX ||
-        tileIndex.y() < 0 || tileIndex.y() >= (int)screenCountY)
+public:
+    /** The format for saving the file. */
+    enum class Format
     {
-        throw std::invalid_argument("tile index does not exist");
-    }
+        full,   //< save all values
+        minimal //< only save non-default values
+    };
 
-    const int xPos = tileIndex.x() * (getScreenWidth() + bezelWidth);
-    const int yPos = tileIndex.y() * (getScreenHeight() + bezelHeight);
+    ConfigurationWriter(const Configuration& config);
 
-    return QRect(xPos, yPos, getScreenWidth(), getScreenHeight());
-}
+    /**
+     * Save the configuration to the specified file.
+     * @param filename destination json file.
+     * @param format of the json file.
+     * @throw std::runtime_error on failure.
+     */
+    void write(const QString& filename, Format format) const;
 
-uint SurfaceConfig::getTotalWidth() const
-{
-    return screenCountX * getScreenWidth() + (screenCountX - 1) * bezelWidth;
-}
+private:
+    const Configuration& _config;
+};
 
-uint SurfaceConfig::getTotalHeight() const
-{
-    return screenCountY * getScreenHeight() + (screenCountY - 1) * bezelHeight;
-}
-
-QSize SurfaceConfig::getTotalSize() const
-{
-    return QSize(getTotalWidth(), getTotalHeight());
-}
-
-double SurfaceConfig::getAspectRatio() const
-{
-    if (getTotalHeight() == 0)
-        return 0.0;
-    return double(getTotalWidth()) / getTotalHeight();
-}
-
-QSize SurfaceConfig::toPixelSize(const QSizeF& sizeInMeters) const
-{
-    if (dimensions.isEmpty())
-        return QSize();
-
-    return QSize(sizeInMeters.width() / dimensions.width() * getTotalWidth(),
-                 sizeInMeters.height() / dimensions.height() *
-                     getTotalHeight());
-}
+#endif

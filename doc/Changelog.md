@@ -3,6 +3,9 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [256](https://github.com/BlueBrain/Tide/pull/256):
+  Add "dimensions" property in surface configuration to let UI elements scale
+  to real-world sizes (in meters). Currently used for the Launcher only.
 * [255](https://github.com/BlueBrain/Tide/pull/255):
   Support multi-channel Deflect streams. Each channel is rendered on a separate
   surface if the installation has multiple surfaces.

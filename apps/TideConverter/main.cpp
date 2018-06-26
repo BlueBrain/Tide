@@ -39,8 +39,7 @@
 
 #include "tide/core/CommandLineParser.h"
 #include "tide/core/configuration/Configuration.h"
-#include "tide/core/json/serialization.h"
-#include "tide/core/json/templates.h"
+#include "tide/core/configuration/ConfigurationWriter.h"
 
 #include <QCoreApplication>
 
@@ -68,63 +67,6 @@ public:
     bool full() const { return vm["full"].as<bool>(); }
 };
 
-// Forward-declare
-QJsonObject removeDefaultValues(const QJsonObject& object,
-                                const QJsonObject& defaultObject);
-
-QJsonArray removeDefaultValues(const QJsonArray& array,
-                               const QJsonArray& defaultArray)
-{
-    // Two cases: array of objects or array of values
-    if (defaultArray[0].isObject())
-    {
-        // assume defaultArray contains a single reference object and filter
-        // individual objects
-        const auto refObject = defaultArray[0].toObject();
-        QJsonArray min;
-        for (auto i = 0; i < array.size(); ++i)
-            min.append(QJsonValue(
-                removeDefaultValues(array[i].toObject(), refObject)));
-        return min;
-    }
-    else if (!defaultArray[0].isArray())
-    {
-        // return full array of values if there is a difference, else nothing
-        for (auto i = 0; i < array.size(); ++i)
-        {
-            if (array[i] != defaultArray[i])
-                return array;
-        }
-    }
-    return QJsonArray();
-}
-
-QJsonObject removeDefaultValues(const QJsonObject& object,
-                                const QJsonObject& defaultObject)
-{
-    QJsonObject min;
-    for (auto it = defaultObject.begin(); it != defaultObject.end(); ++it)
-    {
-        if (it.value().isObject())
-        {
-            auto tmp = removeDefaultValues(object[it.key()].toObject(),
-                                           it.value().toObject());
-            if (!tmp.isEmpty())
-                min[it.key()] = tmp;
-        }
-        else if (it.value().isArray())
-        {
-            auto tmp = removeDefaultValues(object[it.key()].toArray(),
-                                           it.value().toArray());
-            if (!tmp.isEmpty())
-                min[it.key()] = tmp;
-        }
-        else if (object[it.key()] != it.value())
-            min[it.key()] = object[it.key()];
-    }
-    return min;
-}
-
 int main(int argc, char* argv[])
 {
     COMMAND_LINE_PARSER_CHECK(ConverterOptions, "tideConverter");
@@ -134,11 +76,10 @@ int main(int argc, char* argv[])
     try
     {
         const auto config = Configuration{commandLine.input().c_str()};
-        const auto defaultConfig = json::serialize(Configuration::defaults());
-        auto jsonObject = json::serialize(config);
-        if (!commandLine.full())
-            jsonObject = removeDefaultValues(jsonObject, defaultConfig);
-        json::write(jsonObject, commandLine.output().c_str());
+        const auto writer = ConfigurationWriter{config};
+        using Format = ConfigurationWriter::Format;
+        const auto format = commandLine.full() ? Format::full : Format::minimal;
+        writer.write(commandLine.output().c_str(), format);
         return EXIT_SUCCESS;
     }
     catch (const std::runtime_error&)

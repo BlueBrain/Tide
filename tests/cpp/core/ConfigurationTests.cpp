@@ -43,6 +43,7 @@
 
 #include "WallConfiguration.h"
 #include "configuration/Configuration.h"
+#include "configuration/ConfigurationWriter.h"
 #include "scene/Background.h"
 #include "json/serialization.h"
 #include "json/templates.h"
@@ -103,6 +104,8 @@ void testReferenceSurface(const SurfaceConfig& surface)
     BOOST_CHECK_EQUAL(surface.bezelWidth, 14);
     BOOST_CHECK_EQUAL(surface.bezelHeight, 12);
 
+    BOOST_CHECK_EQUAL(surface.dimensions, QSizeF(3.5, 1.9));
+
     BOOST_CHECK_EQUAL(surface.getScreenWidth(), 3854);
     BOOST_CHECK_EQUAL(surface.getScreenHeight(), 1080);
 
@@ -132,6 +135,11 @@ void testReferenceSurface(const SurfaceConfig& surface)
     BOOST_CHECK_EQUAL(surface.getTotalSize(), QSize(7722, 3264));
 
     BOOST_CHECK_EQUAL(surface.getAspectRatio(), 7722.0 / 3264.0);
+
+    BOOST_CHECK_EQUAL(surface.toPixelSize(surface.dimensions),
+                      surface.getTotalSize());
+    BOOST_CHECK_EQUAL(surface.toPixelSize(QSizeF(1.0, 1.0)), QSize(2206, 1717));
+    BOOST_CHECK_EQUAL(surface.toPixelSize(QSizeF(0.5, 0.25)), QSize(1103, 429));
 }
 
 BOOST_AUTO_TEST_CASE(test_minimal_configuration_default_values)
@@ -175,6 +183,9 @@ BOOST_AUTO_TEST_CASE(test_minimal_configuration_default_values)
     BOOST_CHECK_EQUAL(surface.bezelWidth, 0);
     BOOST_CHECK_EQUAL(surface.bezelHeight, 0);
 
+    BOOST_CHECK_EQUAL(surface.dimensions, QSizeF());
+    BOOST_CHECK(!surface.toPixelSize(QSizeF(1.0, 1.0)).isValid());
+
     BOOST_CHECK_EQUAL(surface.getTotalWidth(), 1920);
     BOOST_CHECK_EQUAL(surface.getTotalHeight(), 1080);
     BOOST_CHECK_EQUAL(surface.getTotalSize(), QSize(1920, 1080));
@@ -199,6 +210,8 @@ BOOST_AUTO_TEST_CASE(test_surface_default_values)
 
     BOOST_CHECK_EQUAL(surface.bezelWidth, 0);
     BOOST_CHECK_EQUAL(surface.bezelHeight, 0);
+
+    BOOST_CHECK_EQUAL(surface.dimensions, QSizeF());
 
     BOOST_CHECK_EQUAL(surface.getScreenWidth(), 0);
     BOOST_CHECK_EQUAL(surface.getScreenHeight(), 0);
@@ -279,6 +292,8 @@ BOOST_AUTO_TEST_CASE(test_stereo_configuration)
 
     BOOST_CHECK_EQUAL(surface.screenCountX, 2);
     BOOST_CHECK_EQUAL(surface.screenCountY, 1);
+
+    BOOST_CHECK_EQUAL(surface.dimensions, QSizeF());
 }
 
 struct FixtureXml
@@ -291,12 +306,16 @@ struct FixtureJson
     const QString filename{CONFIG_TEST_FILENAME_JSON};
     const QString savedFilename{"./configuration_modified.json"};
 };
+struct FixtureXmlToJson
+{
+    const QString filename{CONFIG_TEST_FILENAME};
+    const QString savedFilenameFull{"./configuration_full.json"};
+    const QString savedFilenameMinimal{"./configuration_minimal.json"};
+};
 using Fixtures = boost::mpl::vector<FixtureXml, FixtureJson>;
 
-BOOST_FIXTURE_TEST_CASE_TEMPLATE(test_reference_configuration, F, Fixtures, F)
+void testReferenceConfig(const Configuration& config)
 {
-    const Configuration config(F::filename);
-
     BOOST_CHECK_EQUAL(config.master.headless, true);
     BOOST_CHECK_EQUAL(config.master.planarSerialPort, "/dev/ttyS0");
     BOOST_CHECK_EQUAL(config.master.webservicePort, 10000);
@@ -351,15 +370,35 @@ BOOST_FIXTURE_TEST_CASE_TEMPLATE(test_reference_configuration, F, Fixtures, F)
     }
 }
 
-BOOST_FIXTURE_TEST_CASE_TEMPLATE(test_save_configuration, F, Fixtures, F)
+BOOST_FIXTURE_TEST_CASE_TEMPLATE(test_reference_configuration, F, Fixtures, F)
+{
+    const Configuration config(F::filename);
+    testReferenceConfig(config);
+}
+
+BOOST_FIXTURE_TEST_CASE_TEMPLATE(test_save_background_changes, F, Fixtures, F)
 {
     {
         Configuration config(F::filename);
         config.surfaces[0].background->setColor(QColor("#123456"));
-        BOOST_CHECK(config.save(F::savedFilename));
+        BOOST_CHECK(config.saveBackgroundChanges(F::savedFilename));
     }
 
     // Check reloading
     const Configuration config(F::savedFilename);
     BOOST_CHECK(config.surfaces[0].background->getColor() == QColor("#123456"));
+}
+
+BOOST_FIXTURE_TEST_CASE(test_convert_xml_configuration_to_json,
+                        FixtureXmlToJson)
+{
+    {
+        const auto config = Configuration{filename};
+        const auto writer = ConfigurationWriter{config};
+        using Fmt = ConfigurationWriter::Format;
+        BOOST_CHECK_NO_THROW(writer.write(savedFilenameFull, Fmt::full));
+        BOOST_CHECK_NO_THROW(writer.write(savedFilenameMinimal, Fmt::minimal));
+    }
+    testReferenceConfig(Configuration(savedFilenameFull));
+    testReferenceConfig(Configuration(savedFilenameMinimal));
 }

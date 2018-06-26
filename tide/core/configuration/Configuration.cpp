@@ -109,6 +109,9 @@ SurfaceConfig parseSurface(XmlParser& parser)
                surface.displaysPerScreenX);
     parser.get(dimensionsUri.arg("displaysPerScreenY"),
                surface.displaysPerScreenY);
+    parser.get(dimensionsUri.arg("physicalWidth"), surface.dimensions.rwidth());
+    parser.get(dimensionsUri.arg("physicalHeight"),
+               surface.dimensions.rheight());
 
     QString backgroundUri;
     if (parser.get(uri.arg("background", "uri"), backgroundUri))
@@ -174,12 +177,12 @@ Configuration::Configuration(const QString& filename)
     _setDefaults();
 }
 
-bool Configuration::save() const
+bool Configuration::saveBackgroundChanges() const
 {
-    return save(_filename);
+    return saveBackgroundChanges(_filename);
 }
 
-bool Configuration::save(const QString& filename) const
+bool Configuration::saveBackgroundChanges(const QString& filename) const
 {
     return _isXml() ? _saveXml(filename) : _saveJson(filename);
 }

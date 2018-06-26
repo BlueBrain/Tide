@@ -37,62 +37,89 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "SurfaceConfig.h"
+#include "LauncherPlacer.h"
 
-uint SurfaceConfig::getScreenWidth() const
+#include "configuration/SurfaceConfig.h"
+#include "geometry.h"
+
+namespace
 {
-    return displayWidth * displaysPerScreenX +
-           ((displaysPerScreenX - 1) * bezelWidth);
+const auto dimensionsInMeters = QSizeF{0.8, 0.72};
+const auto aspectRatio =
+    dimensionsInMeters.width() / dimensionsInMeters.height();
+const auto minSizePx = QSize{256, 256};
+const auto maxSizePx = QSize{1920, 1920};
+const auto defaultRelHeight = 0.5;
+const auto maxRelSize = 0.9;
+const auto minRelTopMargin = (1.0 - maxRelSize) * 0.5;
 }
 
-uint SurfaceConfig::getScreenHeight() const
+LauncherPlacer::LauncherPlacer(const SurfaceConfig& surface)
+    : _surface(surface)
 {
-    return displayHeight * displaysPerScreenY +
-           ((displaysPerScreenY - 1) * bezelHeight);
 }
 
-QRect SurfaceConfig::getScreenRect(const QPoint& tileIndex) const
+QRect LauncherPlacer::getCoordinates() const
 {
-    if (tileIndex.x() < 0 || tileIndex.x() >= (int)screenCountX ||
-        tileIndex.y() < 0 || tileIndex.y() >= (int)screenCountY)
-    {
-        throw std::invalid_argument("tile index does not exist");
-    }
+    auto rect = _getCoordinatesForStandardWall();
 
-    const int xPos = tileIndex.x() * (getScreenWidth() + bezelWidth);
-    const int yPos = tileIndex.y() * (getScreenHeight() + bezelHeight);
+    if (_launcherIsTooHigh(rect))
+        _centerVertically(rect);
 
-    return QRect(xPos, yPos, getScreenWidth(), getScreenHeight());
+    return rect.toRect();
 }
 
-uint SurfaceConfig::getTotalWidth() const
+QSize LauncherPlacer::_getSize() const
 {
-    return screenCountX * getScreenWidth() + (screenCountX - 1) * bezelWidth;
+    auto size = _surface.toPixelSize(dimensionsInMeters);
+    if (size.isEmpty())
+        size = _getDefaultSizePx();
+
+    return geometry::constrain(size, minSizePx, _getMaxSizePx()).toSize();
 }
 
-uint SurfaceConfig::getTotalHeight() const
+QSize LauncherPlacer::_getDefaultSizePx() const
 {
-    return screenCountY * getScreenHeight() + (screenCountY - 1) * bezelHeight;
+    const auto height = defaultRelHeight * _surface.getTotalHeight();
+    return QSize(height * aspectRatio, height);
 }
 
-QSize SurfaceConfig::getTotalSize() const
+QSize LauncherPlacer::_getMaxSizePx() const
 {
-    return QSize(getTotalWidth(), getTotalHeight());
+    const auto maxSize = maxRelSize * _surface.getTotalSize();
+    if (maxSize.width() < maxSizePx.width())
+        return maxSize;
+    return maxSizePx;
 }
 
-double SurfaceConfig::getAspectRatio() const
+QRectF LauncherPlacer::_getCoordinatesForStandardWall() const
 {
-    if (getTotalHeight() == 0)
-        return 0.0;
-    return double(getTotalWidth()) / getTotalHeight();
+    auto rect = QRectF{QPointF(), _getSize()};
+    _centerAboveMiddleOfSurface(rect);
+    return rect;
 }
 
-QSize SurfaceConfig::toPixelSize(const QSizeF& sizeInMeters) const
+bool LauncherPlacer::_launcherIsTooHigh(const QRectF& rect) const
 {
-    if (dimensions.isEmpty())
-        return QSize();
+    return _exceedsTopMargin(rect) || _surfaceLikelyDoesNotStartFromTheFloor();
+}
 
-    return QSize(sizeInMeters.width() / dimensions.width() * getTotalWidth(),
-                 sizeInMeters.height() / dimensions.height() *
-                     getTotalHeight());
+bool LauncherPlacer::_exceedsTopMargin(const QRectF& rect) const
+{
+    return rect.top() < minRelTopMargin * _surface.getTotalHeight();
+}
+
+bool LauncherPlacer::_surfaceLikelyDoesNotStartFromTheFloor() const
+{
+    return _surface.dimensions.isValid() && _surface.dimensions.height() < 1.6;
+}
+
+void LauncherPlacer::_centerAboveMiddleOfSurface(QRectF& rect) const
+{
+    rect.moveCenter({0.9 * rect.width(), 0.35 * _surface.getTotalHeight()});
+}
+
+void LauncherPlacer::_centerVertically(QRectF& rect) const
+{
+    rect.moveCenter({0.9 * rect.width(), 0.5 * _surface.getTotalHeight()});
 }

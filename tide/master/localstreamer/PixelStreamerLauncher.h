@@ -104,10 +104,6 @@ private:
     const Configuration& _config;
     std::set<QString> _processes;
 
-    QSize _getLauncherSize() const;
-    QPointF _getLauncherPos() const;
-    const SurfaceConfig& getSurfaceConfig() const;
-
     void _startProcess(const QString& uri, const QString& command,
                        const QStringList& env);
     void _dereferenceProcess(QString uri);

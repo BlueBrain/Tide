@@ -77,6 +77,7 @@ void deserialize(const QJsonValue& value, deflect::View& result);
 /** @name JSON serialization of objects. */
 //@{
 QJsonArray serialize(const QSize& size);
+QJsonArray serialize(const QSizeF& size);
 QJsonObject serializeAsObject(const QSize& size);
 QJsonObject serialize(const Background& background);
 QJsonObject serialize(const Options& options);
@@ -89,8 +90,11 @@ QJsonObject serialize(const SurfaceConfig& surface);
 /** @name JSON deserialization of objects. */
 //@{
 bool deserialize(const QJsonValue& value, QSize& size);
+bool deserialize(const QJsonValue& value, QSizeF& size);
 bool deserialize(const QJsonArray& array, QSize& size);
+bool deserialize(const QJsonArray& array, QSizeF& size);
 bool deserialize(const QJsonObject& object, QSize& size);
+bool deserialize(const QJsonObject& object, QSizeF& size);
 bool deserialize(const QJsonObject& object, Background& background);
 bool deserialize(const QJsonObject& object, Options& options);
 bool deserialize(const QJsonObject& object, Configuration& config);

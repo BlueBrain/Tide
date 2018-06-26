@@ -37,62 +37,44 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "SurfaceConfig.h"
+#include "SurfaceConfigValidator.h"
 
-uint SurfaceConfig::getScreenWidth() const
+#include <cmath>
+
+namespace
 {
-    return displayWidth * displaysPerScreenX +
-           ((displaysPerScreenX - 1) * bezelWidth);
+const auto maxError = 0.01;
+const auto errorMessage = QString(
+    "The aspect ratio of the surface in pixels (%1 x %2) -> %3 "
+    "does not match that of the dimensions in meters (%4 x %5) -> %6");
+
+inline double _getAspectRatio(const QSizeF& size)
+{
+    return size.width() / size.height();
+}
 }
 
-uint SurfaceConfig::getScreenHeight() const
+SurfaceConfigValidator::SurfaceConfigValidator(const SurfaceConfig& surface)
+    : _surface{surface}
 {
-    return displayHeight * displaysPerScreenY +
-           ((displaysPerScreenY - 1) * bezelHeight);
 }
 
-QRect SurfaceConfig::getScreenRect(const QPoint& tileIndex) const
+void SurfaceConfigValidator::validateDimensions() const
 {
-    if (tileIndex.x() < 0 || tileIndex.x() >= (int)screenCountX ||
-        tileIndex.y() < 0 || tileIndex.y() >= (int)screenCountY)
+    if (_surface.dimensions.isEmpty())
+        return;
+
+    const auto dimensionsAR = _getAspectRatio(_surface.dimensions);
+    const auto pixelsAR = _surface.getAspectRatio();
+
+    if (std::abs(dimensionsAR - pixelsAR) > maxError)
     {
-        throw std::invalid_argument("tile index does not exist");
+        throw dimensions_mismatch(errorMessage.arg(_surface.getTotalWidth())
+                                      .arg(_surface.getTotalHeight())
+                                      .arg(pixelsAR)
+                                      .arg(_surface.dimensions.width())
+                                      .arg(_surface.dimensions.height())
+                                      .arg(dimensionsAR)
+                                      .toStdString());
     }
-
-    const int xPos = tileIndex.x() * (getScreenWidth() + bezelWidth);
-    const int yPos = tileIndex.y() * (getScreenHeight() + bezelHeight);
-
-    return QRect(xPos, yPos, getScreenWidth(), getScreenHeight());
-}
-
-uint SurfaceConfig::getTotalWidth() const
-{
-    return screenCountX * getScreenWidth() + (screenCountX - 1) * bezelWidth;
-}
-
-uint SurfaceConfig::getTotalHeight() const
-{
-    return screenCountY * getScreenHeight() + (screenCountY - 1) * bezelHeight;
-}
-
-QSize SurfaceConfig::getTotalSize() const
-{
-    return QSize(getTotalWidth(), getTotalHeight());
-}
-
-double SurfaceConfig::getAspectRatio() const
-{
-    if (getTotalHeight() == 0)
-        return 0.0;
-    return double(getTotalWidth()) / getTotalHeight();
-}
-
-QSize SurfaceConfig::toPixelSize(const QSizeF& sizeInMeters) const
-{
-    if (dimensions.isEmpty())
-        return QSize();
-
-    return QSize(sizeInMeters.width() / dimensions.width() * getTotalWidth(),
-                 sizeInMeters.height() / dimensions.height() *
-                     getTotalHeight());
 }

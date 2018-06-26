@@ -157,6 +157,11 @@ QJsonArray serialize(const QSize& size)
     return QJsonArray{{size.width(), size.height()}};
 }
 
+QJsonArray serialize(const QSizeF& size)
+{
+    return QJsonArray{{size.width(), size.height()}};
+}
+
 QJsonObject serializeAsObject(const QSize& size)
 {
     return QJsonObject{{"width", size.width()}, {"height", size.height()}};
@@ -254,10 +259,22 @@ QJsonObject serialize(const SurfaceConfig& surface)
         {"screenCountY", static_cast<int>(surface.screenCountY)},
         {"bezelWidth", surface.bezelWidth},
         {"bezelHeight", surface.bezelHeight},
-        {"background", serialize(*surface.background)}};
+        {"background", serialize(*surface.background)},
+        {"dimensions", serialize(surface.dimensions)}};
 }
 
 bool deserialize(const QJsonValue& value, QSize& size)
+{
+    if (value.isArray())
+        return deserialize(value.toArray(), size);
+
+    if (value.isObject())
+        return deserialize(value.toObject(), size);
+
+    return false;
+}
+
+bool deserialize(const QJsonValue& value, QSizeF& size)
 {
     if (value.isArray())
         return deserialize(value.toArray(), size);
@@ -278,12 +295,31 @@ bool deserialize(const QJsonArray& array, QSize& size)
     return false;
 }
 
+bool deserialize(const QJsonArray& array, QSizeF& size)
+{
+    if (array.size() == 2 && array[0].isDouble() && array[1].isDouble())
+    {
+        size = QSizeF{array[0].toDouble(), array[1].toDouble()};
+        return true;
+    }
+    return false;
+}
+
 bool deserialize(const QJsonObject& object, QSize& size)
 {
     if (!object["width"].isDouble() || !object["height"].isDouble())
         return false;
 
     size = QSize{object["width"].toInt(), object["height"].toInt()};
+    return true;
+}
+
+bool deserialize(const QJsonObject& object, QSizeF& size)
+{
+    if (!object["width"].isDouble() || !object["height"].isDouble())
+        return false;
+
+    size = QSizeF{object["width"].toDouble(), object["height"].toDouble()};
     return true;
 }
 
@@ -454,6 +490,7 @@ bool deserialize(const QJsonObject& object, SurfaceConfig& surface)
     deserialize(object["background"].toObject(), *surface.background);
     deserialize(object["bezelWidth"], surface.bezelWidth);
     deserialize(object["bezelHeight"], surface.bezelHeight);
+    deserialize(object["dimensions"], surface.dimensions);
     deserialize(object["displayWidth"], surface.displayWidth);
     deserialize(object["displayHeight"], surface.displayHeight);
     deserialize(object["displaysPerScreenX"], surface.displaysPerScreenX);

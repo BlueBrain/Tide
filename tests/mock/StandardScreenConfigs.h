@@ -37,62 +37,69 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "SurfaceConfig.h"
+#ifndef TIDEMOCK_STANDARDSCREENCONFIGS_H
+#define TIDEMOCK_STANDARDSCREENCONFIGS_H
 
-uint SurfaceConfig::getScreenWidth() const
+#include "configuration/SurfaceConfig.h"
+
+inline SurfaceConfig standardWall()
 {
-    return displayWidth * displaysPerScreenX +
-           ((displaysPerScreenX - 1) * bezelWidth);
+    SurfaceConfig surface;
+    surface.displayWidth = 7716;
+    surface.displayHeight = 3264;
+    return surface;
 }
 
-uint SurfaceConfig::getScreenHeight() const
+inline SurfaceConfig standardWallWithDimension()
 {
-    return displayHeight * displaysPerScreenY +
-           ((displaysPerScreenY - 1) * bezelHeight);
+    auto surface = standardWall();
+    surface.dimensions = QSizeF{4 * 1.215, 3 * 0.686}; // 4x3 LX55HDS-L-ERO
+    return surface;
 }
 
-QRect SurfaceConfig::getScreenRect(const QPoint& tileIndex) const
+inline SurfaceConfig narrowWall()
 {
-    if (tileIndex.x() < 0 || tileIndex.x() >= (int)screenCountX ||
-        tileIndex.y() < 0 || tileIndex.y() >= (int)screenCountY)
-    {
-        throw std::invalid_argument("tile index does not exist");
-    }
-
-    const int xPos = tileIndex.x() * (getScreenWidth() + bezelWidth);
-    const int yPos = tileIndex.y() * (getScreenHeight() + bezelHeight);
-
-    return QRect(xPos, yPos, getScreenWidth(), getScreenHeight());
+    SurfaceConfig surface;
+    surface.displayWidth = 5784;
+    surface.displayHeight = 3264;
+    return surface;
 }
 
-uint SurfaceConfig::getTotalWidth() const
+inline SurfaceConfig narrowWallWithDimension()
 {
-    return screenCountX * getScreenWidth() + (screenCountX - 1) * bezelWidth;
+    auto surface = narrowWall();
+    surface.dimensions = QSizeF{3 * 1.215, 3 * 0.686}; // 3x3 LX55HDS-L-ERO
+    return surface;
 }
 
-uint SurfaceConfig::getTotalHeight() const
+inline SurfaceConfig wideThinWall()
 {
-    return screenCountY * getScreenHeight() + (screenCountY - 1) * bezelHeight;
+    SurfaceConfig surface;
+    surface.displayWidth = 7720;
+    surface.displayHeight = 2160;
+    return surface;
 }
 
-QSize SurfaceConfig::getTotalSize() const
+inline SurfaceConfig wideThinWallWithDimension()
 {
-    return QSize(getTotalWidth(), getTotalHeight());
+    auto surface = wideThinWall();
+    surface.dimensions = QSizeF{2 * 2.159 + 0.03, 1.214}; // 2x1 UR9851
+    return surface;
 }
 
-double SurfaceConfig::getAspectRatio() const
+inline SurfaceConfig largeProjectionSurface()
 {
-    if (getTotalHeight() == 0)
-        return 0.0;
-    return double(getTotalWidth()) / getTotalHeight();
+    SurfaceConfig surface;
+    surface.displayWidth = 11940;
+    surface.displayHeight = 3424;
+    return surface;
 }
 
-QSize SurfaceConfig::toPixelSize(const QSizeF& sizeInMeters) const
+inline SurfaceConfig largeProjectionSurfaceWithDimensions()
 {
-    if (dimensions.isEmpty())
-        return QSize();
-
-    return QSize(sizeInMeters.width() / dimensions.width() * getTotalWidth(),
-                 sizeInMeters.height() / dimensions.height() *
-                     getTotalHeight());
+    auto surface = largeProjectionSurface();
+    surface.dimensions = QSizeF{8.0, 2.3};
+    return surface;
 }
+
+#endif
