@@ -18,7 +18,7 @@ before_install:
   - brew update
   - brew outdated cmake || brew upgrade cmake
   - brew install gcc || brew link --overwrite gcc
-  - brew install cppcheck doxygen ninja
+  - brew install doxygen ninja
   - brew install ffmpeg jpeg-turbo qt5
   - brew install openmpi
   - brew install python@2 || brew link --overwrite python@2 # fix poppler dependency install
