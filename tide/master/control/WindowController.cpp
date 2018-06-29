@@ -153,6 +153,14 @@ void WindowController::scale(const QPointF& center, const double pixelDelta)
     _resize(center, newSize);
 }
 
+void WindowController::scale(const QPointF& center, const QPointF& pixelDelta)
+{
+    const auto sign = pixelDelta.x() + pixelDelta.y() > 0.0 ? 1.0 : -1.0;
+    const auto delta = std::sqrt(pixelDelta.x() * pixelDelta.x() +
+                                 pixelDelta.y() * pixelDelta.y());
+    scale(center, sign * delta);
+}
+
 void WindowController::adjustSize(const SizeState state)
 {
     switch (state)
@@ -224,6 +232,11 @@ void WindowController::toogleFullscreenMaxSize()
         adjustSize(SizeState::SIZE_FULLSCREEN);
     else
         adjustSize(SizeState::SIZE_FULLSCREEN_MAX);
+}
+
+void WindowController::toggleSelected()
+{
+    _window.setSelected(!_window.isSelected());
 }
 
 void WindowController::moveTo(const QPointF& position, const WindowPoint handle)

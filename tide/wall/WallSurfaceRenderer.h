@@ -68,13 +68,10 @@ public:
     /** Destructor. */
     ~WallSurfaceRenderer();
 
-    /** Set background content. */
-    void setBackground(BackgroundPtr background);
+    /** Set the Surface to render, replacing the previous one. */
+    void setSurface(SurfacePtr surface);
 
-    /** Set the DisplayGroup to render, replacing the previous one. */
-    void setDisplayGroup(DisplayGroupPtr displayGroup);
-
-    /** Set different touchpoint's markers. */
+    /** Set the touchpoint's markers. */
     void setMarkers(MarkersPtr markers);
 
     /** Set different options used for rendering. */
@@ -83,7 +80,7 @@ public:
     /** Set the ScreenLock replacing the previous one. */
     void setScreenLock(ScreenLockPtr lock);
 
-    /** Set status used to notify about inactivity timeout. */
+    /** Set countdown status used to display the inactivity timeout. */
     void setCountdownStatus(CountdownStatusPtr status);
 
     /** @return true if the renderer requires a redraw. */
@@ -97,9 +94,8 @@ private:
     WallRenderContext _context;
     QQmlContext& _qmlContext;
 
-    BackgroundPtr _background;
+    SurfacePtr _surface;
     CountdownStatusPtr _countdownStatus;
-    DisplayGroupPtr _displayGroup;
     MarkersPtr _markers;
     OptionsPtr _options;
     ScreenLockPtr _screenLock;

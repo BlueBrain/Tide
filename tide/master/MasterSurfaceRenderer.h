@@ -55,8 +55,8 @@ class MasterSurfaceRenderer : public QObject
 
 public:
     /** Constructor. */
-    MasterSurfaceRenderer(size_t surfaceIndex, DisplayGroupPtr group,
-                          QQmlEngine& engine, QQuickItem& parentItem);
+    MasterSurfaceRenderer(Surface& surface, QQmlEngine& engine,
+                          QQuickItem& parentItem);
 
     /** Destructor */
     ~MasterSurfaceRenderer();
@@ -66,12 +66,14 @@ signals:
     void openLauncher();
 
 private:
+    Surface& _surface;
     DisplayGroupPtr _group;
     std::unique_ptr<DisplayGroupController> _groupController;
     std::unique_ptr<QQuickItem> _surfaceItem;
     std::unique_ptr<MasterDisplayGroupRenderer> _displayGroupRenderer;
 
     void _setContextProperties(QQmlContext& context);
+    void _setControlSurfaceContextProperties(QQmlContext& context);
     void _createControlSurfaceItem(QQmlEngine& engine);
     void _createBasicSurfaceItem(QQmlEngine& engine);
     void _createGroupRenderer(QQmlEngine& engine);

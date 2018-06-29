@@ -9,6 +9,7 @@ DisplayGroup {
     showFocusContext: false
 
     MultitouchArea {
+        id: backgroundTap
         anchors.fill: parent
         referenceItem: displaygroupitem
 
@@ -16,10 +17,14 @@ DisplayGroup {
         onTouchStarted: blockTap = false
         onTapAndHold: {
             blockTap = true
+            contextmenu.position = pos
+            contextmenu.visible = true
         }
         onTap: {
-            if (!blockTap)
+            if (!blockTap) {
                 groupcontroller.deselectAll()
+                contextmenu.visible = false
+            }
         }
     }
 

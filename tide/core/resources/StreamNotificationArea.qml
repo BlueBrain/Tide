@@ -6,7 +6,7 @@ import "qrc:/qml/core/style.js" as Style
 ListView {
     property Component buttonDelegate: Item {
     }
-    property int itemHeight: Style.streamNotificationAreaBannerRelHeight * displaygroup.height
+    property int itemHeight: Style.streamNotificationAreaBannerRelHeight * parent.height
 
     width: childrenRect.width
     height: itemHeight * 10

@@ -5,7 +5,7 @@ SideButton {
     id: sideControl
     color: Style.sideButtonColor
     height: Style.sideButtonRelHeight * displaygroup.height
-    property real innerMargin: 0.15
+    property real innerMargin: Style.sideButtonInnerMargin
     delegateHeight: (1.0 - innerMargin) * 2.5 * width
 
     property Component buttonDelegate: Item {
@@ -26,16 +26,8 @@ SideButton {
                 sourceComponent: buttonDelegate
             }
         }
-        Item {
+        HorizontalButtonSeparator {
             width: parent.width
-            height: 0.5 * parent.width
-            Text {
-                font.pixelSize: parent.height
-                anchors.top: parent.top
-                anchors.topMargin: -0.4 * font.pixelSize
-                text: "........."
-                anchors.horizontalCenter: parent.horizontalCenter
-            }
         }
         Item {
             id: bottomItem
@@ -48,14 +40,10 @@ SideButton {
                 orientation: ListView.Vertical
                 interactive: false // disable flickable behaviour
                 visible: count > 0
-                delegate: WindowControlsDelegate {
+                delegate: ContentActionButton {
                     width: bottomItem.width
                     height: bottomItem.height
                     imageRelSize: 1.0 // remove padding
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: action.trigger()
-                    }
                 }
                 model: displaygroup.fullscreenWindow ? displaygroup.fullscreenWindow.content.actions : undefined
             }

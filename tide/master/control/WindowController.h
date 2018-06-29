@@ -99,12 +99,16 @@ public:
 
     /** Scale the window by the given pixel delta (around the given center). */
     Q_INVOKABLE void scale(const QPointF& center, double pixelDelta);
+    Q_INVOKABLE void scale(const QPointF& center, const QPointF& pixelDelta);
 
     /** Adjust the window coordinates to match the desired state. */
     void adjustSize(const SizeState state);
 
     /** Toggle between SIZE_FULLSCREEN and SIZE_FULLSCREEN_MAX. */
     Q_INVOKABLE void toogleFullscreenMaxSize();
+
+    /** Toggle the selected state of the window. */
+    Q_INVOKABLE void toggleSelected();
 
     /** Move the window to the desired position. */
     Q_INVOKABLE void moveTo(const QPointF& position,

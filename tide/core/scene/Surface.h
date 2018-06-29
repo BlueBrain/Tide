@@ -41,6 +41,7 @@
 #define SURFACE_H
 
 #include "Background.h"
+#include "ContextMenu.h"
 #include "DisplayGroup.h"
 #include "serialization/includes.h"
 #include "types.h"
@@ -54,8 +55,10 @@ class Surface : public QObject
     Q_DISABLE_COPY(Surface)
 
 public:
-    Surface(DisplayGroupPtr group);
-    Surface(DisplayGroupPtr group, BackgroundPtr background);
+    Surface(size_t index, DisplayGroupPtr group);
+    Surface(size_t index, DisplayGroupPtr group, BackgroundPtr background);
+
+    size_t getIndex() const;
 
     DisplayGroup& getGroup();
     const DisplayGroup& getGroup() const;
@@ -64,6 +67,8 @@ public:
     Background& getBackground();
     const Background& getBackground() const;
     BackgroundPtr getBackgroundPtr() const;
+
+    ContextMenu& getContextMenu();
 
     /**
      * Move this object and its member QObjects to the given QThread.
@@ -90,6 +95,7 @@ private:
         // clang-format off
         ar & _group;
         ar & _background;
+        ar & _contextMenu;
         // clang-format on
     }
 
@@ -116,8 +122,10 @@ private:
         serialize_members_xml(ar, version);
     }
 
+    size_t _index = 0u;
     DisplayGroupPtr _group;
     BackgroundPtr _background = Background::create();
+    ContextMenuPtr _contextMenu = ContextMenu::create();
 
     void _forwardModifiedSignals();
 };

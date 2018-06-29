@@ -77,6 +77,8 @@ class DisplayGroup : public Rectangle,
                    hasFullscreenWindowsChanged)
     Q_PROPERTY(bool hasVisiblePanels READ hasVisiblePanels NOTIFY
                    hasVisiblePanelsChanged)
+    Q_PROPERTY(QStringList selectedUris READ getSelectedUris NOTIFY
+                   selectedUrisChanged)
 
 public:
     static DisplayGroupPtr create(const QSizeF& size);
@@ -149,6 +151,12 @@ public:
     /** Get the set of panels. */
     const WindowSet& getPanels() const;
 
+    /** Get the set of selected windows. */
+    WindowSet getSelectedWindows() const;
+
+    /** @return the URIs of the selected windows. */
+    QStringList getSelectedUris() const;
+
     /**
      * Move this object and its member QObjects to the given QThread.
      *
@@ -174,14 +182,10 @@ signals:
 
     /** @name QProperty notifiers */
     //@{
-    /** Notifier for the hasFocusedWindows property. */
     void hasFocusedWindowsChanged();
-
-    /** Notifier for the hasFullscreenWindows property. */
     void hasFullscreenWindowsChanged();
-
-    /** Notifier for the hasVisiblePanels property. */
     void hasVisiblePanelsChanged();
+    void selectedUrisChanged();
     //@}
 
 private:

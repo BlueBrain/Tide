@@ -43,6 +43,7 @@
 #include "configuration/SurfaceConfig.h"
 #include "scene/Options.h"
 #include "scene/ScreenLock.h"
+#include "scene/Surface.h"
 
 #include <QQmlContext>
 #include <QQmlProperty>
@@ -54,9 +55,8 @@ const QUrl QML_ROOT_COMPONENT("qrc:/qml/master/GUIRoot.qml");
 const QString SURFACE_OBJECT_NAME("Surface");
 }
 
-MasterQuickView::MasterQuickView(const SurfaceConfig& surface,
-                                 const size_t surfaceIndex,
-                                 DisplayGroupPtr group, OptionsPtr options,
+MasterQuickView::MasterQuickView(const SurfaceConfig& surfaceConfig,
+                                 Surface& surface, OptionsPtr options,
                                  ScreenLockPtr lock)
 {
     setResizeMode(QQuickView::SizeRootObjectToView);
@@ -68,17 +68,17 @@ MasterQuickView::MasterQuickView(const SurfaceConfig& surface,
     setSource(QML_ROOT_COMPONENT);
 
     _surfaceItem = rootObject()->findChild<QQuickItem*>(SURFACE_OBJECT_NAME);
-    _surfaceItem->setProperty("numberOfTilesX", surface.screenCountX);
-    _surfaceItem->setProperty("numberOfTilesY", surface.screenCountY);
-    _surfaceItem->setProperty("bezelWidth", surface.bezelWidth);
-    _surfaceItem->setProperty("bezelHeight", surface.bezelHeight);
-    _surfaceItem->setProperty("screenWidth", surface.getScreenWidth());
-    _surfaceItem->setProperty("screenHeight", surface.getScreenHeight());
-    _surfaceItem->setProperty("surfaceWidth", surface.getTotalWidth());
-    _surfaceItem->setProperty("surfaceHeight", surface.getTotalHeight());
+    _surfaceItem->setProperty("numberOfTilesX", surfaceConfig.screenCountX);
+    _surfaceItem->setProperty("numberOfTilesY", surfaceConfig.screenCountY);
+    _surfaceItem->setProperty("bezelWidth", surfaceConfig.bezelWidth);
+    _surfaceItem->setProperty("bezelHeight", surfaceConfig.bezelHeight);
+    _surfaceItem->setProperty("screenWidth", surfaceConfig.getScreenWidth());
+    _surfaceItem->setProperty("screenHeight", surfaceConfig.getScreenHeight());
+    _surfaceItem->setProperty("surfaceWidth", surfaceConfig.getTotalWidth());
+    _surfaceItem->setProperty("surfaceHeight", surfaceConfig.getTotalHeight());
 
     _surfaceRenderer =
-        std::make_unique<MasterSurfaceRenderer>(surfaceIndex, group, *engine(),
+        std::make_unique<MasterSurfaceRenderer>(surface, *engine(),
                                                 *_surfaceItem);
 
     connect(_surfaceRenderer.get(), &MasterSurfaceRenderer::openLauncher, this,

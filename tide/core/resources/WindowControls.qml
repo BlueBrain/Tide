@@ -3,7 +3,8 @@ import Tide 1.0
 import "style.js" as Style
 
 Rectangle {
-    property alias listview: buttons
+    property alias buttons: buttons
+    property alias fixedButtons: buttons.headerItem
     property bool contentActionsVisible: true
 
     id: windowControls
@@ -22,27 +23,14 @@ Rectangle {
     ListView {
         id: buttons
         width: Style.buttonsSize
-        property int fixed_buttons_count: window.isPanel ? 1 : 4
-        height: (count + fixed_buttons_count) * Style.buttonsSize
+        height: (count + headerItem.buttonCount) * Style.buttonsSize
         anchors.centerIn: parent
         orientation: ListView.Vertical
-        header: fixedButtonsDelegate
+        header: FixedControlButtons {
+        }
         interactive: false // disable flickable behaviour
 
-        Component {
-            id: fixedButtonsDelegate
-            Column {
-                CloseControlButton {
-                }
-                OneToOneControlButton {
-                }
-                FullscreenControlButton {
-                }
-                FocusControlButton {
-                }
-            }
-        }
-        delegate: WindowControlsDelegate {
+        delegate: ContentActionButton {
         }
         model: contentActionsVisible ? window.content.actions : undefined
     }
@@ -52,10 +40,6 @@ Rectangle {
             name: "focus_mode"
             when: window.focused
             extend: "opaque"
-            PropertyChanges {
-                target: buttons
-                fixed_buttons_count: 3
-            }
         },
         State {
             name: "opaque"

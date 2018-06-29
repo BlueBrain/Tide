@@ -78,7 +78,9 @@ public:
      * @return the surface for a certain surface index
      * @throw invalid_surface_index
      */
+    Surface& getSurface(size_t surfaceIndex);
     const Surface& getSurface(size_t surfaceIndex) const;
+    SurfacePtr getSurfacePtr(size_t surfaceIndex) const;
 
     /** @return the surfaces that are part of the scene. */
     auto getSurfaces() { return makeIterable(_surfaces); }

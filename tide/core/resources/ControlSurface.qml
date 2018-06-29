@@ -5,6 +5,7 @@ import "qrc:/qml/core/style.js" as Style
 Item {
     property alias sideControl: sideControl
     property alias streamNotificationArea: streamNotificationArea
+    property alias contextMenu: contextMenu
 
     SideControl {
         id: sideControl
@@ -17,5 +18,14 @@ Item {
         z: Style.streamNotificationZorder
         anchors.top: parent.verticalCenter
         anchors.left: parent.left
+    }
+
+    ContextMenu {
+        id: contextMenu
+        z: Style.sideControlZorder
+
+        x: contextmenu.position.x
+        y: contextmenu.position.y
+        visible: contextmenu.visible
     }
 }

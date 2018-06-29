@@ -66,13 +66,20 @@ public:
      *
      * Only one window can be fullscreen at a time. If another window was
      * already fullscreen it will be restored to its previous state.
-     * @param id window identifier
-     * @return false if the window with id does not exist
+     * @param id window identifier.
+     * @return false if the window with id does not exist.
      */
     Q_INVOKABLE bool showFullscreen(const QUuid& id);
 
     /** Leave fullscreen mode, restoring the window to its previous state. */
     Q_INVOKABLE void exitFullscreen();
+
+    /**
+     * Toggle the fullscreen state of a window.
+     * @param id window identifier.
+     * @return false if the window with id does not exist.
+     */
+    Q_INVOKABLE bool toggleFullscreen(const QUuid& id);
 
     /** Adjust a window's coordinates to match the Content dimensions. */
     Q_INVOKABLE void adjustSizeOneToOne(const QUuid& id);
@@ -86,8 +93,14 @@ public:
     /** Focus all selected windows. */
     Q_INVOKABLE void focusSelected();
 
+    /** Focus all windows. */
+    Q_INVOKABLE void focusAll();
+
     /** Unfocus all focused windows. */
     Q_INVOKABLE void unfocusAll();
+
+    /** Toggle focus of all windows. */
+    Q_INVOKABLE void toggleFocusAll();
 
     /** Deselect all selected windows. */
     Q_INVOKABLE void deselectAll();
@@ -121,6 +134,9 @@ public:
 
 private:
     DisplayGroup& _group;
+
+    void _focus(const WindowSet& windows);
+    void _prepareFocusedCoordinates(const WindowSet& windows);
 
     /** Extend the DisplayGroup surface, keeping the windows centered. */
     void _extend(const QSizeF& newSize);

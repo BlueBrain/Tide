@@ -43,17 +43,25 @@
 
 IMPLEMENT_SERIALIZE_FOR_XML(Surface)
 
-Surface::Surface(DisplayGroupPtr group)
-    : _group{group}
+Surface::Surface(const size_t index, DisplayGroupPtr group)
+    : _index{index}
+    , _group{group}
 {
     _forwardModifiedSignals();
 }
 
-Surface::Surface(DisplayGroupPtr group, BackgroundPtr background)
-    : _group{group}
+Surface::Surface(const size_t index, DisplayGroupPtr group,
+                 BackgroundPtr background)
+    : _index{index}
+    , _group{group}
     , _background{background}
 {
     _forwardModifiedSignals();
+}
+
+size_t Surface::getIndex() const
+{
+    return _index;
 }
 
 DisplayGroup& Surface::getGroup()
@@ -86,12 +94,18 @@ BackgroundPtr Surface::getBackgroundPtr() const
     return _background;
 }
 
+ContextMenu& Surface::getContextMenu()
+{
+    return *_contextMenu;
+}
+
 TIDE_DISABLE_WARNING_SHADOW
 void Surface::moveToThread(QThread* thread)
 {
     QObject::moveToThread(thread);
     _group->moveToThread(thread);
     _background->moveToThread(thread);
+    _contextMenu->moveToThread(thread);
 }
 TIDE_DISABLE_WARNING_SHADOW_END
 
@@ -99,4 +113,6 @@ void Surface::_forwardModifiedSignals()
 {
     connect(_group.get(), &DisplayGroup::modified, this, &Surface::modified);
     connect(_background.get(), &Background::updated, this, &Surface::modified);
+    connect(_contextMenu.get(), &ContextMenu::modified, this,
+            &Surface::modified);
 }

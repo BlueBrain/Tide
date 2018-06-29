@@ -89,7 +89,7 @@ void DisplayGroupController::removeLater(const QUuid windowId)
 bool DisplayGroupController::showFullscreen(const QUuid& id)
 {
     auto window = _group.getWindow(id);
-    if (!window)
+    if (!window || window->isPanel())
         return false;
 
     _showFullscreen(window, false);
@@ -107,6 +107,19 @@ void DisplayGroupController::exitFullscreen()
 
     if (!window->isFocused())
         window->setSelected(false);
+}
+
+bool DisplayGroupController::toggleFullscreen(const QUuid& id)
+{
+    if (auto window = _group.getFullscreenWindow())
+    {
+        if (window->getID() == id)
+        {
+            exitFullscreen();
+            return true;
+        }
+    }
+    return showFullscreen(id);
 }
 
 void DisplayGroupController::adjustSizeOneToOne(const QUuid& id)
@@ -131,11 +144,10 @@ bool DisplayGroupController::focus(const QUuid& id)
         _group.getFocusedWindows().count(window))
         return false;
 
-    // Update focused windows coordinates BEFORE adding it for proper transition
+    // Update coordinates BEFORE focusing window for proper transition
     auto focusedWindows = _group.getFocusedWindows();
-
     focusedWindows.insert(window);
-    AutomaticLayout{_group}.updateFocusedCoord(focusedWindows);
+    _prepareFocusedCoordinates(focusedWindows);
 
     _group.addFocusedWindow(window);
     return true;
@@ -157,18 +169,12 @@ bool DisplayGroupController::unfocus(const QUuid& id)
 
 void DisplayGroupController::focusSelected()
 {
-    unfocusAll(); // ensure precondition, but should already be empty
+    _focus(_group.getSelectedWindows());
+}
 
-    auto focusedWindows = WindowSet{};
-
-    for (const auto& window : _group.getWindows())
-        if (window->isSelected())
-            focusedWindows.insert(window);
-
-    // Update focused coordinates BEFORE adding windows for proper transition
-    AutomaticLayout{_group}.updateFocusedCoord(focusedWindows);
-    for (const auto& window : focusedWindows)
-        _group.addFocusedWindow(window);
+void DisplayGroupController::focusAll()
+{
+    _focus({_group.getWindows().begin(), _group.getWindows().end()});
 }
 
 void DisplayGroupController::unfocusAll()
@@ -182,6 +188,14 @@ void DisplayGroupController::unfocusAll()
     }
 
     updateFocusedWindowsCoordinates();
+}
+
+void DisplayGroupController::toggleFocusAll()
+{
+    if (_group.hasFocusedWindows())
+        unfocusAll();
+    else
+        focusAll();
 }
 
 void DisplayGroupController::deselectAll()
@@ -267,6 +281,23 @@ QRectF DisplayGroupController::estimateSurface() const
 void DisplayGroupController::updateFocusedWindowsCoordinates()
 {
     AutomaticLayout{_group}.updateFocusedCoord(_group.getFocusedWindows());
+}
+
+void DisplayGroupController::_focus(const WindowSet& windows)
+{
+    unfocusAll(); // ensure precondition, but should already be empty
+
+    // Update focused coordinates BEFORE focusing windows for proper transition
+    _prepareFocusedCoordinates(windows);
+
+    for (const auto& window : windows)
+        _group.addFocusedWindow(window);
+}
+
+void DisplayGroupController::_prepareFocusedCoordinates(
+    const WindowSet& windows)
+{
+    AutomaticLayout{_group}.updateFocusedCoord(windows);
 }
 
 void DisplayGroupController::_extend(const QSizeF& newSize)

@@ -75,6 +75,9 @@ private:
     using QmlWindowPtr = std::shared_ptr<WindowRenderer>;
     QMap<QUuid, QmlWindowPtr> _windowItems;
 
+    void _updateWindowItems(const DisplayGroup& displayGroup);
+    void _removeOldWindows(const QSet<QUuid>& updatedWindows);
+    void _workAroundOpacityIssue();
     void _createDisplayGroupQmlItem(QQuickItem& parentItem);
     void _createWindowQmlItem(WindowPtr window);
 };

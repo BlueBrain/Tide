@@ -59,10 +59,8 @@ Item {
                     image: "qrc:/img/right_arrow.svg"
                     opacity: addressBar.text.length > 0 ? Style.buttonsEnabledOpacity :
                                                           Style.buttonsDisabledOpacity
-                    MouseArea {
-                        anchors.fill: parent
-                        onClicked: addressBarTextEntered(addressBar.text)
-                    }
+                    enabled: true
+                    onClicked: addressBarTextEntered(addressBar.text)
                 }
             }
         }
