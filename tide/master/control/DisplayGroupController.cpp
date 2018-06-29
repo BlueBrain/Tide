@@ -187,7 +187,7 @@ void DisplayGroupController::unfocusAll()
 
 void DisplayGroupController::deselectAll()
 {
-    for (const auto& window : _group.getContentWindows())
+    for (auto&& window : _group.getContentWindows())
         window->setSelected(false);
 }
 
@@ -211,7 +211,7 @@ void DisplayGroupController::scale(const QSizeF& factor)
 {
     const QTransform t = QTransform::fromScale(factor.width(), factor.height());
 
-    for (ContentWindowPtr window : _group.getContentWindows())
+    for (auto&& window : _group.getContentWindows())
         window->setCoordinates(t.mapRect(window->getCoordinates()));
 
     _group.setCoordinates(t.mapRect(_group.getCoordinates()));
@@ -246,7 +246,7 @@ void DisplayGroupController::denormalize(const QSizeF& targetSize)
 
 void DisplayGroupController::adjustWindowsAspectRatioToContent()
 {
-    for (ContentWindowPtr window : _group.getContentWindows())
+    for (auto&& window : _group.getContentWindows())
     {
         QSizeF exactSize = window->getContent().getDimensions();
         exactSize.scale(window->getCoordinates().size(), Qt::KeepAspectRatio);
@@ -257,9 +257,9 @@ void DisplayGroupController::adjustWindowsAspectRatioToContent()
 
 QRectF DisplayGroupController::estimateSurface() const
 {
-    QRectF area(UNIT_RECTF);
-    for (ContentWindowPtr contentWindow : _group.getContentWindows())
-        area = area.united(contentWindow->getCoordinates());
+    auto area = UNIT_RECTF;
+    for (const auto& window : _group.getContentWindows())
+        area = area.united(window->getCoordinates());
     area.setTopLeft(QPointF(0.0, 0.0));
 
     return area;
@@ -272,14 +272,13 @@ void DisplayGroupController::updateFocusedWindowsCoordinates()
 
 void DisplayGroupController::_extend(const QSizeF& newSize)
 {
-    const QSizeF offset = 0.5 * (newSize - _group.getCoordinates().size());
+    const auto offset = 0.5 * (newSize - _group.getCoordinates().size());
 
     _group.setWidth(newSize.width());
     _group.setHeight(newSize.height());
 
-    const QTransform t =
-        QTransform::fromTranslate(offset.width(), offset.height());
-    for (ContentWindowPtr window : _group.getContentWindows())
+    const auto t = QTransform::fromTranslate(offset.width(), offset.height());
+    for (auto&& window : _group.getContentWindows())
         window->setCoordinates(t.mapRect(window->getCoordinates()));
 }
 
@@ -301,7 +300,7 @@ void DisplayGroupController::_showFullscreen(ContentWindowPtr window,
 qreal DisplayGroupController::_estimateAspectRatio() const
 {
     qreal averageAR = 0.0;
-    for (auto window : _group.getContentWindows())
+    for (const auto& window : _group.getContentWindows())
     {
         const qreal windowAR = window->width() / window->height();
         averageAR += window->getContent().getAspectRatio() / windowAR;

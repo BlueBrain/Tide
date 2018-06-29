@@ -37,81 +37,21 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef JSON_TEMPLATES_H
-#define JSON_TEMPLATES_H
+#ifndef COMPILER_MACROS_H
+#define COMPILER_MACROS_H
 
-#include "json/json.h"
+// clang-format off
 
-/**
- * JSON templated helper functions.
- *
- * Must be inluded after all (de)serialize() definitions.
- */
-namespace json
-{
-/** Serialize a collection of objects to a JSON array. */
-template <typename IterableT>
-QJsonArray serialize(const IterableT& collection)
-{
-    QJsonArray array;
-    for (const auto& item : collection)
-        array.append(serialize(item));
-    return array;
-}
+#define TIDE_DISABLE_WARNING_SHADOW \
+    _Pragma("GCC diagnostic push") \
+    _Pragma("GCC diagnostic ignored \"-Wshadow\"") \
+    _Pragma("clang diagnostic push") \
+    _Pragma("clang diagnostic ignored \"-Wshadow\"")
 
-/** @return json text representation of a serializable object. */
-template <typename SerializableT>
-std::string dump(const SerializableT& object)
-{
-    return dump(serialize(object));
-}
+#define TIDE_DISABLE_WARNING_SHADOW_END \
+    _Pragma("GCC diagnostic pop") \
+    _Pragma("clang diagnostic pop")
 
-/** @return binary json representation of a serializable object. */
-template <typename SerializableT>
-QByteArray pack(const SerializableT& object)
-{
-    return pack(serialize(object));
-}
-
-// forward-declare
-template <typename DeserializableT>
-DeserializableT create(const QJsonObject& object);
-
-/** Deserialize a vector of objects from a JSON array. */
-template <typename T>
-void deserialize(const QJsonValue& value, std::vector<T>& result)
-{
-    if (!value.isUndefined())
-    {
-        std::vector<T> tmp;
-        for (const auto& surface : value.toArray())
-            tmp.emplace_back(create<T>(surface.toObject()));
-        result = std::move(tmp);
-    }
-}
-
-/** @return deserializable object parsed from a JSON object. */
-template <typename DeserializableT>
-DeserializableT create(const QJsonObject& object)
-{
-    DeserializableT tmp;
-    deserialize(object, tmp);
-    return tmp;
-}
-
-/** Deserialize an object from a JSON text representation. */
-template <typename DeserializableT>
-bool deserialize(const std::string& json, DeserializableT& object)
-{
-    return deserialize(parse(json), object);
-}
-
-/** Deserialize an object from a binary JSON representation. */
-template <typename DeserializableT>
-DeserializableT unpack(const QByteArray& binaryData)
-{
-    return create<DeserializableT>(unpack(binaryData));
-}
-}
+// clang-format on
 
 #endif

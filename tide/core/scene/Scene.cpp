@@ -40,6 +40,7 @@
 #include "Scene.h"
 
 #include "configuration/SurfaceConfig.h"
+#include "utils/compilerMacros.h"
 
 ScenePtr Scene::create(const QSize& size)
 {
@@ -65,8 +66,8 @@ Scene::Scene(const std::vector<SurfaceConfig>& surfaces)
 {
     for (const auto& surface : surfaces)
     {
-        _surfaces.emplace_back(DisplayGroup::create(surface.getTotalSize()),
-                               surface.background);
+        _surfaces.emplace_back(std::make_shared<Surface>(
+            DisplayGroup::create(surface.getTotalSize()), surface.background));
     }
     _forwardSceneModifiedSignals();
 }
@@ -74,7 +75,7 @@ Scene::Scene(const std::vector<SurfaceConfig>& surfaces)
 Scene::Scene(const std::vector<DisplayGroupPtr>& groups)
 {
     for (const auto& group : groups)
-        _surfaces.emplace_back(group);
+        _surfaces.emplace_back(std::make_shared<Surface>(group));
 
     _forwardSceneModifiedSignals();
 }
@@ -82,7 +83,7 @@ Scene::Scene(const std::vector<DisplayGroupPtr>& groups)
 Scene::~Scene()
 {
     for (auto&& surface : _surfaces)
-        surface.getGroup().setParent(nullptr); // avoid double deletion
+        surface->getGroup().setParent(nullptr); // avoid double deletion
 }
 
 size_t Scene::getSurfaceCount() const
@@ -90,9 +91,12 @@ size_t Scene::getSurfaceCount() const
     return _surfaces.size();
 }
 
-const std::vector<Surface>& Scene::getSurfaces() const
+const Surface& Scene::getSurface(const size_t surfaceIndex) const
 {
-    return _surfaces;
+    if (surfaceIndex >= _surfaces.size())
+        throw invalid_surface_index_error("no surface with this index");
+
+    return *_surfaces.at(surfaceIndex);
 }
 
 DisplayGroup& Scene::getGroup(const size_t surfaceIndex)
@@ -100,7 +104,7 @@ DisplayGroup& Scene::getGroup(const size_t surfaceIndex)
     if (surfaceIndex >= _surfaces.size())
         throw invalid_surface_index_error("no group for this surface");
 
-    return _surfaces[surfaceIndex].getGroup();
+    return _surfaces[surfaceIndex]->getGroup();
 }
 
 const DisplayGroup& Scene::getGroup(const size_t surfaceIndex) const
@@ -108,13 +112,13 @@ const DisplayGroup& Scene::getGroup(const size_t surfaceIndex) const
     if (surfaceIndex >= _surfaces.size())
         throw invalid_surface_index_error("no group for this surface");
 
-    return _surfaces[surfaceIndex].getGroup();
+    return _surfaces[surfaceIndex]->getGroup();
 }
 
 ContentWindowPtrs Scene::getContentWindows() const
 {
     ContentWindowPtrs windows;
-    for (const auto& surface : _surfaces)
+    for (const auto& surface : getSurfaces())
     {
         const auto& list = surface.getGroup().getContentWindows();
         windows.insert(windows.end(), list.begin(), list.end());
@@ -122,25 +126,21 @@ ContentWindowPtrs Scene::getContentWindows() const
     return windows;
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wshadow"
+TIDE_DISABLE_WARNING_SHADOW
 void Scene::moveToThread(QThread* thread)
 {
     QObject::moveToThread(thread);
-    for (auto&& surface : _surfaces)
+    for (auto&& surface : getSurfaces())
     {
         surface.getGroup().moveToThread(thread);
         surface.getBackground().moveToThread(thread);
     }
 }
-#pragma GCC diagnostic pop
-#pragma clang diagnostic pop
+TIDE_DISABLE_WARNING_SHADOW_END
 
 ContentWindowPtr Scene::findWindow(const QUuid& id) const
 {
-    for (const auto& surface : _surfaces)
+    for (const auto& surface : getSurfaces())
     {
         if (auto window = surface.getGroup().getContentWindow(id))
             return window;
@@ -151,7 +151,7 @@ ContentWindowPtr Scene::findWindow(const QUuid& id) const
 std::pair<ContentWindow&, DisplayGroup&> Scene::findWindowAndGroup(
     const QUuid& id)
 {
-    for (auto&& surface : _surfaces)
+    for (auto&& surface : getSurfaces())
     {
         if (auto window = surface.getGroup().getContentWindow(id))
             return {*window, surface.getGroup()};
@@ -162,7 +162,7 @@ std::pair<ContentWindow&, DisplayGroup&> Scene::findWindowAndGroup(
 std::pair<ContentWindowPtr, DisplayGroup&> Scene::findWindowPtrAndGroup(
     const QUuid& id)
 {
-    for (auto&& surface : _surfaces)
+    for (auto&& surface : getSurfaces())
     {
         if (auto window = surface.getGroup().getContentWindow(id))
             return {window, surface.getGroup()};
@@ -172,13 +172,8 @@ std::pair<ContentWindowPtr, DisplayGroup&> Scene::findWindowPtrAndGroup(
 
 void Scene::_forwardSceneModifiedSignals()
 {
-    for (auto&& surface : _surfaces)
-    {
-        connect(&surface.getGroup(), &DisplayGroup::modified, this,
-                &Scene::_sendScene);
-        connect(&surface.getBackground(), &Background::updated, this,
-                &Scene::_sendScene);
-    }
+    for (auto&& surface : getSurfaces())
+        connect(&surface, &Surface::modified, this, &Scene::_sendScene);
 }
 
 void Scene::_sendScene()

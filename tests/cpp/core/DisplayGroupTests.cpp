@@ -85,36 +85,36 @@ BOOST_AUTO_TEST_CASE(testWindowZorder)
     auto window1 = std::make_shared<ContentWindow>(makeDummyContent());
     auto window2 = std::make_shared<ContentWindow>(makeDummyContent());
 
-    DisplayGroupPtr group = std::make_shared<DisplayGroup>(wallSize);
+    auto group = std::make_shared<DisplayGroup>(wallSize);
     BOOST_REQUIRE(group->isEmpty());
 
-    BOOST_CHECK_EQUAL(group->getZindex(window0), -1);
-    BOOST_CHECK_EQUAL(group->getZindex(window1), -1);
-    BOOST_CHECK_EQUAL(group->getZindex(window2), -1);
+    BOOST_CHECK_EQUAL(group->getZindex(window0->getID()), -1);
+    BOOST_CHECK_EQUAL(group->getZindex(window1->getID()), -1);
+    BOOST_CHECK_EQUAL(group->getZindex(window2->getID()), -1);
 
     group->addContentWindow(window0);
     group->addContentWindow(window1);
 
-    BOOST_CHECK_EQUAL(group->getZindex(window0), 0);
-    BOOST_CHECK_EQUAL(group->getZindex(window1), 1);
-    BOOST_CHECK_EQUAL(group->getZindex(window2), -1);
+    BOOST_CHECK_EQUAL(group->getZindex(window0->getID()), 0);
+    BOOST_CHECK_EQUAL(group->getZindex(window1->getID()), 1);
+    BOOST_CHECK_EQUAL(group->getZindex(window2->getID()), -1);
 
     group->addContentWindow(window2);
 
-    BOOST_CHECK_EQUAL(group->getZindex(window2), 2);
+    BOOST_CHECK_EQUAL(group->getZindex(window2->getID()), 2);
 
     group->moveToFront(window1);
-    BOOST_CHECK_EQUAL(group->getZindex(window0), 0);
-    BOOST_CHECK_EQUAL(group->getZindex(window2), 1);
-    BOOST_CHECK_EQUAL(group->getZindex(window1), 2);
+    BOOST_CHECK_EQUAL(group->getZindex(window0->getID()), 0);
+    BOOST_CHECK_EQUAL(group->getZindex(window2->getID()), 1);
+    BOOST_CHECK_EQUAL(group->getZindex(window1->getID()), 2);
 
     group->moveToFront(window0);
-    BOOST_CHECK_EQUAL(group->getZindex(window2), 0);
-    BOOST_CHECK_EQUAL(group->getZindex(window1), 1);
-    BOOST_CHECK_EQUAL(group->getZindex(window0), 2);
+    BOOST_CHECK_EQUAL(group->getZindex(window2->getID()), 0);
+    BOOST_CHECK_EQUAL(group->getZindex(window1->getID()), 1);
+    BOOST_CHECK_EQUAL(group->getZindex(window0->getID()), 2);
 
     group->removeContentWindow(window1);
-    BOOST_CHECK_EQUAL(group->getZindex(window2), 0);
-    BOOST_CHECK_EQUAL(group->getZindex(window0), 1);
-    BOOST_CHECK_EQUAL(group->getZindex(window1), -1);
+    BOOST_CHECK_EQUAL(group->getZindex(window2->getID()), 0);
+    BOOST_CHECK_EQUAL(group->getZindex(window0->getID()), 1);
+    BOOST_CHECK_EQUAL(group->getZindex(window1->getID()), -1);
 }

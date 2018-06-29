@@ -105,7 +105,7 @@ QRectF VisibilityHelper::getVisibleArea(const ContentWindow& window) const
         return _globalToWindowCoordinates(area, windowCoords);
 
     bool isAbove = false;
-    for (auto win : _displayGroup.getContentWindows())
+    for (const auto& win : _displayGroup.getContentWindows())
     {
         if (win->getID() == window.getID() && !window.isPanel())
         {

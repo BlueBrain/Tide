@@ -81,12 +81,15 @@ void SceneController::open(const uint surfaceIndex, const QString& uri,
                            const QPointF& coords, BoolCallback callback)
 {
     auto success = false;
-    if (surfaceIndex < _scene.getSurfaces().size())
+    try
     {
         auto loader = ContentLoader{_scene.getGroup(surfaceIndex)};
         success = loader.loadOrMoveToFront(uri, coords);
     }
-
+    catch (const invalid_surface_index_error& e)
+    {
+        put_log(LOG_DEBUG, "%s: %d", e.what(), surfaceIndex);
+    }
     if (callback)
         callback(success);
 }
@@ -124,7 +127,7 @@ std::unique_ptr<ContentWindowController> SceneController::getController(
 void SceneController::apply(SceneConstPtr scene)
 {
     const auto max =
-        std::min(scene->getSurfaces().size(), _scene.getSurfaces().size());
+        std::min(scene->getSurfaceCount(), _scene.getSurfaceCount());
 
     for (auto i = 0u; i < max; ++i)
     {

@@ -48,8 +48,11 @@
 /**
  * A uniform display surface, containing (currently) one DisplayGroup.
  */
-class Surface
+class Surface : public QObject
 {
+    Q_OBJECT
+    Q_DISABLE_COPY(Surface)
+
 public:
     Surface(DisplayGroupPtr group);
     Surface(DisplayGroupPtr group, BackgroundPtr background);
@@ -62,6 +65,19 @@ public:
     Background& getBackground();
     const Background& getBackground() const;
     BackgroundPtr getBackgroundPtr() const;
+
+    /**
+     * Move this object and its member QObjects to the given QThread.
+     *
+     * This intentionally shadows the default QObject::moveToThread to include
+     * member QObjects which are stored using shared_ptr and thus can't be made
+     * direct children of this class.
+     * @param thread the target thread.
+     */
+    void moveToThread(QThread* thread);
+
+signals:
+    void modified();
 
 private:
     friend class boost::serialization::access;
@@ -101,6 +117,8 @@ private:
 
     DisplayGroupPtr _group;
     BackgroundPtr _background = Background::create();
+
+    void _forwardModifiedSignals();
 };
 
 DECLARE_SERIALIZE_FOR_XML(Surface)

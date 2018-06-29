@@ -43,6 +43,7 @@
 
 #include "ContentWindow.h"
 #include "log.h"
+#include "utils/compilerMacros.h"
 
 IMPLEMENT_SERIALIZE_FOR_XML(DisplayGroup)
 
@@ -194,10 +195,12 @@ void DisplayGroup::clear()
         removeContentWindow(window);
 }
 
-int DisplayGroup::getZindex(ContentWindowPtr window) const
+int DisplayGroup::getZindex(const QUuid& id) const
 {
-    const auto it =
-        std::find(_contentWindows.begin(), _contentWindows.end(), window);
+    const auto it = std::find_if(_contentWindows.begin(), _contentWindows.end(),
+                                 [&id](const auto& window) {
+                                     return window->getID() == id;
+                                 });
     return it == _contentWindows.end() ? -1 : it - _contentWindows.begin();
 }
 
@@ -255,18 +258,14 @@ const ContentWindowSet& DisplayGroup::getPanels() const
     return _panels;
 }
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wshadow"
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wshadow"
+TIDE_DISABLE_WARNING_SHADOW
 void DisplayGroup::moveToThread(QThread* thread)
 {
     QObject::moveToThread(thread);
     for (auto& window : _contentWindows)
         window->moveToThread(thread);
 }
-#pragma GCC diagnostic pop
-#pragma clang diagnostic pop
+TIDE_DISABLE_WARNING_SHADOW_END
 
 ContentWindow* DisplayGroup::getFullscreenWindow() const
 {

@@ -88,5 +88,4 @@ BOOST_AUTO_TEST_CASE(testSerializeDisplayGroup)
     BOOST_CHECK_EQUAL(uuid, contentWindow->getID().toString());
     BOOST_CHECK_EQUAL(window.value("x").toInt(), 64);
     BOOST_CHECK_EQUAL(window.value("y").toInt(), 79);
-    BOOST_CHECK_EQUAL(window.value("z").toInt(99), 0);
 }

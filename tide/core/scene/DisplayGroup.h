@@ -119,11 +119,11 @@ public:
 
     /**
      * Get the z index of a window
-     * @param window which is part of the DisplayGroup
-     * @return the z value of the window, or -1 if it is not part of the
+     * @param id of a window which is part of the DisplayGroup
+     * @return the z index of the window, or -1 if it is not part of the
      *         DisplayGroup
      */
-    int getZindex(ContentWindowPtr window) const;
+    int getZindex(const QUuid& id) const;
 
     /** Are there focused windows. */
     bool hasFocusedWindows() const;

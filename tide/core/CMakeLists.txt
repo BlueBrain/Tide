@@ -184,6 +184,8 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   thumbnail/ThumbnailGeneratorFactory.h
   thumbnail/ThumbnailGenerator.h
   thumbnail/ThumbnailProvider.h
+  utils/compilerMacros.h
+  utils/IterableSmartPtrCollection.h
 )
 
 list(APPEND TIDECORE_SOURCES

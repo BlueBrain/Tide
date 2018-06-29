@@ -100,9 +100,8 @@ bool _isStreamType(const CONTENT_TYPE type)
 PixelStreamWindowManager::PixelStreamWindowManager(Scene& scene)
     : _scene(scene)
 {
-    const auto& surfaces = scene.getSurfaces();
-    for (auto i = 0u; i < surfaces.size(); ++i)
-        _monitor(surfaces[i].getGroup(), i);
+    for (auto i = 0u; i < scene.getSurfaceCount(); ++i)
+        _monitor(scene.getSurface(i).getGroup(), i);
 }
 
 ContentWindowPtrs PixelStreamWindowManager::getWindows(const QString& uri) const
