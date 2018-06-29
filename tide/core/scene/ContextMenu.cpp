@@ -37,58 +37,70 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef SCENECONTROLLER_H
-#define SCENECONTROLLER_H
+#include "ContextMenu.h"
 
-#include "types.h"
-
-#include "configuration/Configuration.h"
-#include "control/WindowController.h"
-
-#include <QFutureWatcher>
-#include <QObject>
-
-/**
- * Controller for all Scene operations.
- */
-class SceneController : public QObject
+ContextMenuPtr ContextMenu::create()
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(SceneController);
+    return ContextMenuPtr{new ContextMenu()};
+}
 
-public:
-    /** Constructor */
-    SceneController(Scene& scene, const Configuration::Folders& folders);
+const QPointF& ContextMenu::getPosition() const
+{
+    return _pos;
+}
 
-    Q_INVOKABLE void paste(const QStringList& uris);
+void ContextMenu::setPosition(const QPointF& pos)
+{
+    if (pos == _pos)
+        return;
 
-    void open(uint surfaceIndex, const QString& uri, const QPointF& coords,
-              BoolCallback callback);
-    void load(const QString& sessionFile, BoolCallback callback);
-    void save(const QString& sessionFile, BoolCallback callback);
+    _pos = pos;
+    emit positionChanged();
+    emit modified(shared_from_this());
+}
 
-    /** Replace the contents by that of another scene. */
-    void apply(SceneConstPtr scene);
+bool ContextMenu::isVisible() const
+{
+    return _visible;
+}
 
-    /** Hide the Launcher. */
-    void hideLauncher();
+bool ContextMenu::isPasteVisible() const
+{
+    return _pasteVisible;
+}
 
-    std::unique_ptr<WindowController> getController(const QUuid& winId);
+QStringList ContextMenu::getCopiedUris() const
+{
+    return QStringList::fromStdList(_copiedUris);
+}
 
-signals:
-    void startWebbrowser(const WebbrowserContent& browser);
+void ContextMenu::setVisible(const bool visible)
+{
+    if (_visible == visible)
+        return;
 
-private:
-    Scene& _scene;
-    Configuration::Folders _folders;
+    _visible = visible;
+    emit visibleChanged(visible);
+    emit modified(shared_from_this());
+}
 
-    QFutureWatcher<ScenePtr> _loadSessionOp;
-    QFutureWatcher<bool> _saveSessionOp;
-    BoolCallback _loadSessionCallback;
-    BoolCallback _saveSessionCallback;
+void ContextMenu::setPasteVisible(const bool visible)
+{
+    if (_pasteVisible == visible)
+        return;
 
-    void _restoreWebbrowsers(const Scene& scene);
-    void _deleteTempContentFile(WindowPtr window);
-};
+    _pasteVisible = visible;
+    emit pasteVisibleChanged(visible);
+    emit modified(shared_from_this());
+}
 
-#endif
+void ContextMenu::setCopiedUris(const QStringList& copiedUris)
+{
+    auto uris = copiedUris.toStdList();
+    if (_copiedUris == uris)
+        return;
+
+    _copiedUris = std::move(uris);
+    emit copiedUrisChanged();
+    emit modified(shared_from_this());
+}

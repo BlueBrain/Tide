@@ -64,11 +64,7 @@ RenderController::RenderController(std::vector<WallWindow*> windows,
     _syncScene.setCallback([this](ScenePtr scene) {
         _provider.updateDataSources(*scene);
         for (auto window : _windows)
-        {
-            const auto& surface = scene->getSurface(window->getSurfaceIndex());
-            window->setDisplayGroup(surface.getGroupPtr());
-            window->setBackground(surface.getBackgroundPtr());
-        }
+            window->setSurface(scene->getSurfacePtr(window->getSurfaceIndex()));
     });
     _syncLock.setCallback([this](ScreenLockPtr lock) {
         for (auto window : _windows)

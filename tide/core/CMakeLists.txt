@@ -152,6 +152,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   scene/ContentFactory.h
   scene/Content.h
   scene/ContentType.h
+  scene/ContextMenu.h
   scene/CountdownStatus.h
   scene/DisplayGroup.h
   scene/DynamicTextureContent.h
@@ -219,6 +220,7 @@ list(APPEND TIDECORE_SOURCES
   scene/Content.cpp
   scene/ContentFactory.cpp
   scene/ContentType.cpp
+  scene/ContextMenu.cpp
   scene/CountdownStatus.cpp
   scene/DisplayGroup.cpp
   scene/DynamicTextureContent.cpp

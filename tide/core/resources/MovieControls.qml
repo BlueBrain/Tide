@@ -1,6 +1,5 @@
-// Copyright (c) 2016, EPFL/Blue Brain Project
+// Copyright (c) 2016-2018, EPFL/Blue Brain Project
 //                          Raphael Dumusc <raphael.dumusc@epfl.ch>
-
 import QtQuick 2.0
 import QtQuick.Controls 1.2
 import QtQuick.Controls.Styles 1.2
@@ -8,7 +7,7 @@ import Tide 1.0
 import "style.js" as Style
 
 Item {
-    property bool isWall: (typeof contentsync !== "undefined")
+    property bool isMaster: (typeof contentsync === "undefined")
 
     ListView {
         id: buttons
@@ -16,16 +15,9 @@ Item {
         width: count * height
         orientation: ListView.Horizontal
         interactive: false // disable flickable behaviour
-        delegate: ControlButton {
+        delegate: ContentActionButton {
             height: buttons.height
             width: height
-            image: action.checked ? action.iconChecked : action.icon
-            opacity: action.enabled ? Style.buttonsEnabledOpacity : Style.buttonsDisabledOpacity
-            MouseArea {
-                visible: !isWall
-                anchors.fill: parent
-                onClicked: action.trigger()
-            }
         }
         model: window.content.actions
     }
@@ -35,15 +27,15 @@ Item {
         anchors.left: buttons.right
         anchors.margins: Style.windowBorderWidth
         anchors.verticalCenter: parent.verticalCenter
-        enabled: !isWall
-        value: isWall ? contentsync.sliderPosition :
-                        window.content.position / window.content.duration
+        enabled: isMaster
+        value: isMaster ? window.content.position
+                          / window.content.duration : contentsync.sliderPosition
         onValueChanged: {
-            if (!isWall)
+            if (isMaster)
                 window.content.position = value * window.content.duration
         }
         onPressedChanged: {
-            if (!isWall)
+            if (isMaster)
                 window.content.skipping = pressed
         }
         style: SliderStyle {
@@ -54,8 +46,7 @@ Item {
             }
             handle: Rectangle {
                 anchors.centerIn: parent
-                color: window.content.skipping ? Style.highlightColor :
-                                                        Style.contrastColor
+                color: window.content.skipping ? Style.highlightColor : Style.contrastColor
                 implicitWidth: Style.movieControlsHandleDiameter
                 implicitHeight: Style.movieControlsHandleDiameter
                 radius: 0.5 * Style.movieControlsHandleDiameter

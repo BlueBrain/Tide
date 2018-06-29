@@ -1,6 +1,7 @@
 import QtQuick 2.0
+import Tide 1.0
 
 ControlButton {
     image: "qrc:///img/focus.svg"
-    visible: !window.isPanel
+    // no default onClicked: button used in multiple places
 }

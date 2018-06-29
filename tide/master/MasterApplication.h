@@ -131,6 +131,8 @@ private:
     void _init();
     void _initMasterWindow();
     void _initOffscreenView();
+    void _setContextProperties(QQmlContext& context);
+
     void _startDeflectServer();
     void _setupMPIConnections();
 #if TIDE_ENABLE_REST_INTERFACE

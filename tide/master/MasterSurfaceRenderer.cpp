@@ -53,16 +53,18 @@ const QUrl QML_CONTROL_SURFACE_URL("qrc:/qml/master/MasterControlSurface.qml");
 const QUrl QML_BASIC_SURFACE_URL("qrc:/qml/core/BasicSurface.qml");
 }
 
-MasterSurfaceRenderer::MasterSurfaceRenderer(const size_t surfaceIndex,
-                                             DisplayGroupPtr group,
+MasterSurfaceRenderer::MasterSurfaceRenderer(Surface& surface,
                                              QQmlEngine& engine,
                                              QQuickItem& parentItem)
-    : _group{group}
+    : _surface{surface}
+    , _group{surface.getGroupPtr()}
     , _groupController{new DisplayGroupController{*_group}}
 {
-    if (surfaceIndex == 0)
+    _setContextProperties(*engine.rootContext());
+
+    if (surface.getIndex() == 0)
     {
-        _setContextProperties(*engine.rootContext());
+        _setControlSurfaceContextProperties(*engine.rootContext());
         _createControlSurfaceItem(engine);
     }
     else
@@ -77,6 +79,12 @@ MasterSurfaceRenderer::~MasterSurfaceRenderer()
 }
 
 void MasterSurfaceRenderer::_setContextProperties(QQmlContext& context)
+{
+    context.setContextProperty("contextmenu", &_surface.getContextMenu());
+}
+
+void MasterSurfaceRenderer::_setControlSurfaceContextProperties(
+    QQmlContext& context)
 {
     // SideControl buttons need a displaygroup and groupcontroller
     context.setContextProperty("displaygroup", _group.get());

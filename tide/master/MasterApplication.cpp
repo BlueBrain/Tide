@@ -210,6 +210,8 @@ void MasterApplication::_initMasterWindow()
             _sceneController.get(), &SceneController::apply);
 
     auto view = _masterWindow->getQuickView();
+    _setContextProperties(*view->engine()->rootContext());
+
     connect(view, &MasterQuickView::mousePressed, [this](const QPointF pos) {
         _markers->addMarker(MOUSE_MARKER_ID, pos);
     });
@@ -234,16 +236,23 @@ void MasterApplication::_initOffscreenView()
     _offscreenQuickView->load(QML_OFFSCREEN_ROOT_COMPONENT).wait();
     _offscreenQuickView->resize(_config->surfaces[0].getTotalSize());
 
-    auto group = _scene->getGroup(0).shared_from_this();
+    auto& surface = _scene->getSurface(0);
     auto engine = _offscreenQuickView->getEngine();
     auto item = _offscreenQuickView->getRootItem();
 
+    _setContextProperties(*engine->rootContext());
+
     _offscreenSurfaceRenderer.reset(
-        new MasterSurfaceRenderer{0, group, *engine, *item});
+        new MasterSurfaceRenderer{surface, *engine, *item});
 
     connect(_offscreenSurfaceRenderer.get(),
             &MasterSurfaceRenderer::openLauncher, _pixelStreamerLauncher.get(),
             &PixelStreamerLauncher::openLauncher);
+}
+
+void MasterApplication::_setContextProperties(QQmlContext& context)
+{
+    context.setContextProperty("scenecontroller", _sceneController.get());
 }
 
 void MasterApplication::_startDeflectServer()

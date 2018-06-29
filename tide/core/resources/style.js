@@ -29,6 +29,7 @@ var countdownTransitionTime = 1500;
 
 var sideButtonColor = activeColor
 var sideButtonRelHeight = 0.3
+var sideButtonInnerMargin = 0.15
 var streamNotificationAreaBannerRelHeight = 0.04
 
 var fpsX = 10;
@@ -42,6 +43,7 @@ var countdownTextScale = 0.045;
 
 // Content windows
 var buttonsSize = 130;
+var buttonsMargin = 10;
 var buttonsImageRelSize = 0.75;
 var buttonsEnabledOpacity = 100;
 var buttonsDisabledOpacity = 20;

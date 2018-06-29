@@ -19,7 +19,7 @@ Rectangle {
     property alias resizeCirclesDelegate: resizeCircles.delegate
     property alias titleBar: titleBar
     property alias virtualKeyboard: virtualKeyboard
-    property alias windowControlsList: windowControls.listview
+    property alias windowControlButtons: windowControls.buttons
 
     border.color: Style.windowBorderDefaultColor
     border.width: options.showWindowBorders && !isBackground ? Style.windowBorderWidth : 0

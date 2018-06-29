@@ -111,7 +111,11 @@ void DisplayGroup::remove(WindowPtr window)
     // disconnect any existing connections with the window
     disconnect(window.get(), 0, this, 0);
 
-    emit(windowRemoved(window));
+    emit windowRemoved(window);
+
+    if (window->isSelected())
+        emit selectedUrisChanged();
+
     _sendDisplayGroup();
 }
 
@@ -262,6 +266,28 @@ const WindowSet& DisplayGroup::getPanels() const
     return _panels;
 }
 
+WindowSet DisplayGroup::getSelectedWindows() const
+{
+    auto selectedWindows = WindowSet{};
+
+    for (const auto& window : _windows)
+        if (window->isSelected() && !window->isPanel())
+            selectedWindows.insert(window);
+
+    return selectedWindows;
+}
+
+QStringList DisplayGroup::getSelectedUris() const
+{
+    auto uris = QStringList{};
+
+    for (const auto& window : _windows)
+        if (window->isSelected() && !window->isPanel())
+            uris.push_back(window->getContent().getURI());
+
+    return uris;
+}
+
 TIDE_DISABLE_WARNING_SHADOW
 void DisplayGroup::moveToThread(QThread* thread)
 {
@@ -301,4 +327,7 @@ void DisplayGroup::_watchChanges(Window& window)
     if (window.isPanel())
         connect(&window, &Window::hiddenChanged, this,
                 &DisplayGroup::hasVisiblePanelsChanged);
+    else
+        connect(&window, &Window::selectedChanged, this,
+                &DisplayGroup::selectedUrisChanged);
 }

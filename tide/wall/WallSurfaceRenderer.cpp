@@ -48,6 +48,7 @@
 #include "scene/Markers.h"
 #include "scene/Options.h"
 #include "scene/ScreenLock.h"
+#include "scene/Surface.h"
 
 #include <deflect/server/Frame.h>
 
@@ -64,9 +65,8 @@ WallSurfaceRenderer::WallSurfaceRenderer(WallRenderContext context,
                                          QQuickItem& parentItem)
     : _context{std::move(context)}
     , _qmlContext{*_context.engine.rootContext()}
-    , _background{Background::create()}
+    , _surface{new Surface{0, DisplayGroup::create(QSize(1, 1))}}
     , _countdownStatus{new CountdownStatus}
-    , _displayGroup{DisplayGroup::create(QSize(1, 1))}
     , _markers{Markers::create(_context.surfaceIndex)}
     , _options{Options::create()}
     , _screenLock{ScreenLock::create()}
@@ -80,23 +80,15 @@ WallSurfaceRenderer::~WallSurfaceRenderer()
 {
 }
 
-void WallSurfaceRenderer::setBackground(BackgroundPtr background)
+void WallSurfaceRenderer::setSurface(SurfacePtr surface)
 {
-    _setBackground(*background);
-    _background = std::move(background);
-}
+    _setBackground(surface->getBackground());
+    _qmlContext.setContextProperty("contextmenu", &surface->getContextMenu());
+    // SideControls need a displaygroup
+    _qmlContext.setContextProperty("displaygroup", &surface->getGroup());
 
-bool WallSurfaceRenderer::needRedraw() const
-{
-    return _options->getShowStatistics() || _options->getShowClock();
-}
-
-void WallSurfaceRenderer::setDisplayGroup(DisplayGroupPtr displayGroup)
-{
-    _qmlContext.setContextProperty("displaygroup", displayGroup.get());
-    _displayGroup = displayGroup;
-
-    _displayGroupRenderer->setDisplayGroup(displayGroup);
+    _displayGroupRenderer->setDisplayGroup(surface->getGroupPtr());
+    _surface = std::move(surface);
 }
 
 void WallSurfaceRenderer::setMarkers(MarkersPtr markers)
@@ -127,6 +119,11 @@ void WallSurfaceRenderer::setCountdownStatus(CountdownStatusPtr status)
     _countdownStatus = std::move(status);
 }
 
+bool WallSurfaceRenderer::needRedraw() const
+{
+    return _options->getShowStatistics() || _options->getShowClock();
+}
+
 void WallSurfaceRenderer::updateRenderedFrames()
 {
     const int frames = _surfaceItem->property("frames").toInt();
@@ -135,8 +132,9 @@ void WallSurfaceRenderer::updateRenderedFrames()
 
 void WallSurfaceRenderer::_setContextProperties()
 {
+    _qmlContext.setContextProperty("contextmenu", &_surface->getContextMenu());
     _qmlContext.setContextProperty("countdownStatus", _countdownStatus.get());
-    _qmlContext.setContextProperty("displaygroup", _displayGroup.get());
+    _qmlContext.setContextProperty("displaygroup", &_surface->getGroup());
     _qmlContext.setContextProperty("markers", _markers.get());
     _qmlContext.setContextProperty("options", _options.get());
     _qmlContext.setContextProperty("lock", _screenLock.get());
@@ -174,5 +172,5 @@ void WallSurfaceRenderer::_setBackground(const Background& background)
 
 bool WallSurfaceRenderer::_hasBackgroundChanged(const QString& newUri) const
 {
-    return newUri != _background->getUri();
+    return newUri != _surface->getBackground().getUri();
 }

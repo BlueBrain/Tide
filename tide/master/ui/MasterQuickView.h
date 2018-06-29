@@ -58,9 +58,8 @@ class MasterQuickView : public QQuickView
 
 public:
     /** Constructor. */
-    MasterQuickView(const SurfaceConfig& surface, size_t surfaceIndex,
-                    DisplayGroupPtr group, OptionsPtr options,
-                    ScreenLockPtr lock);
+    MasterQuickView(const SurfaceConfig& surfaceConfig, Surface& surface,
+                    OptionsPtr options, ScreenLockPtr lock);
 
     /** Destructor */
     ~MasterQuickView();

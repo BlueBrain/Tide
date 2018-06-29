@@ -37,58 +37,90 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef SCENECONTROLLER_H
-#define SCENECONTROLLER_H
+#ifndef CONTEXTMENU_H
+#define CONTEXTMENU_H
 
+#include "serialization/includes.h"
 #include "types.h"
 
-#include "configuration/Configuration.h"
-#include "control/WindowController.h"
-
-#include <QFutureWatcher>
 #include <QObject>
 
 /**
- * Controller for all Scene operations.
+ * A menu for displaying a set of contextual actions on the wall.
  */
-class SceneController : public QObject
+class ContextMenu : public QObject,
+                    public std::enable_shared_from_this<ContextMenu>
 {
     Q_OBJECT
-    Q_DISABLE_COPY(SceneController);
+    Q_DISABLE_COPY(ContextMenu)
+
+    Q_PROPERTY(
+        bool visible READ isVisible WRITE setVisible NOTIFY visibleChanged)
+    Q_PROPERTY(QPointF position READ getPosition WRITE setPosition NOTIFY
+                   positionChanged)
+    Q_PROPERTY(bool pasteVisible READ isPasteVisible WRITE setPasteVisible
+                   NOTIFY pasteVisibleChanged)
+    Q_PROPERTY(QStringList copiedUris READ getCopiedUris WRITE setCopiedUris
+                   NOTIFY copiedUrisChanged)
 
 public:
-    /** Constructor */
-    SceneController(Scene& scene, const Configuration::Folders& folders);
+    /** Create a shared ContextMenu. */
+    static ContextMenuPtr create();
 
-    Q_INVOKABLE void paste(const QStringList& uris);
+    /** @return the position of the menu. */
+    const QPointF& getPosition() const;
 
-    void open(uint surfaceIndex, const QString& uri, const QPointF& coords,
-              BoolCallback callback);
-    void load(const QString& sessionFile, BoolCallback callback);
-    void save(const QString& sessionFile, BoolCallback callback);
+    /** @return true if the menu is visible. */
+    bool isVisible() const;
 
-    /** Replace the contents by that of another scene. */
-    void apply(SceneConstPtr scene);
+    /** @return true if the paste action is visible. */
+    bool isPasteVisible() const;
 
-    /** Hide the Launcher. */
-    void hideLauncher();
+    /** @return the item that have been copied. */
+    QStringList getCopiedUris() const;
 
-    std::unique_ptr<WindowController> getController(const QUuid& winId);
+public slots:
+    /** @name QProperty setters */
+    //@{
+    void setVisible(bool visible);
+    void setPosition(const QPointF& pos);
+    void setPasteVisible(bool visible);
+    void setCopiedUris(const QStringList& copiedUris);
+    //@}
 
 signals:
-    void startWebbrowser(const WebbrowserContent& browser);
+    /** @name QProperty notifiers */
+    //@{
+    void visibleChanged(bool visible);
+    void positionChanged();
+    void pasteVisibleChanged(bool visible);
+    void copiedUrisChanged();
+    //@}
+
+    /** Emitted whenever the menu has changed. */
+    void modified(ContextMenuPtr);
 
 private:
-    Scene& _scene;
-    Configuration::Folders _folders;
+    friend class boost::serialization::access;
 
-    QFutureWatcher<ScenePtr> _loadSessionOp;
-    QFutureWatcher<bool> _saveSessionOp;
-    BoolCallback _loadSessionCallback;
-    BoolCallback _saveSessionCallback;
+    ContextMenu() = default;
 
-    void _restoreWebbrowsers(const Scene& scene);
-    void _deleteTempContentFile(WindowPtr window);
+    /** Serialize for sending to Wall applications. */
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int /*version*/)
+    {
+        // clang-format off
+        ar & _visible;
+        ar & _pos;
+        ar & _pasteVisible;
+        ar & _copiedUris;
+        // clang-format on
+    }
+
+    bool _visible = false;
+    QPointF _pos;
+    bool _pasteVisible = false;
+    std::list<QString> _copiedUris;
 };
 
 #endif

@@ -88,11 +88,8 @@ public:
      */
     void render(bool grab = false);
 
-    /** Set new background. */
-    void setBackground(BackgroundPtr background);
-
-    /** Set new display group. */
-    void setDisplayGroup(DisplayGroupPtr displayGroup);
+    /** Set new surface. */
+    void setSurface(SurfacePtr surface);
 
     /** Set new screen lock. */
     void setScreenLock(ScreenLockPtr lock);

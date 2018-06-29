@@ -48,6 +48,7 @@
 #include "qmlUtils.h"
 #include "scene/Background.h"
 #include "scene/Options.h"
+#include "scene/Surface.h"
 #include "screens.h"
 
 #include <deflect/qt/QuickRenderer.h>
@@ -201,15 +202,10 @@ void WallWindow::render(const bool grab)
     _quickRenderer->render();
 }
 
-void WallWindow::setBackground(BackgroundPtr background)
+void WallWindow::setSurface(SurfacePtr surface)
 {
-    setColor(background->getColor());
-    _surfaceRenderer->setBackground(background);
-}
-
-void WallWindow::setDisplayGroup(DisplayGroupPtr displayGroup)
-{
-    _surfaceRenderer->setDisplayGroup(displayGroup);
+    setColor(surface->getBackground().getColor());
+    _surfaceRenderer->setSurface(surface);
 }
 
 void WallWindow::setScreenLock(ScreenLockPtr lock)

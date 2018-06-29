@@ -28,6 +28,7 @@ ControlSurface {
             }
         }
     }
+
     streamNotificationArea.buttonDelegate: MultitouchArea {
         onTap: {
             if (buttonIndex == 0)

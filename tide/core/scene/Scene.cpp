@@ -64,18 +64,21 @@ ScenePtr Scene::create(DisplayGroupPtr group)
 
 Scene::Scene(const std::vector<SurfaceConfig>& surfaces)
 {
+    size_t index = 0;
     for (const auto& surface : surfaces)
     {
         _surfaces.emplace_back(std::make_shared<Surface>(
-            DisplayGroup::create(surface.getTotalSize()), surface.background));
+            index++, DisplayGroup::create(surface.getTotalSize()),
+            surface.background));
     }
     _forwardSceneModifiedSignals();
 }
 
 Scene::Scene(const std::vector<DisplayGroupPtr>& groups)
 {
+    size_t index = 0;
     for (const auto& group : groups)
-        _surfaces.emplace_back(std::make_shared<Surface>(group));
+        _surfaces.emplace_back(std::make_shared<Surface>(index++, group));
 
     _forwardSceneModifiedSignals();
 }
@@ -91,12 +94,28 @@ size_t Scene::getSurfaceCount() const
     return _surfaces.size();
 }
 
+Surface& Scene::getSurface(size_t surfaceIndex)
+{
+    if (surfaceIndex >= _surfaces.size())
+        throw invalid_surface_index_error("no surface with this index");
+
+    return *_surfaces.at(surfaceIndex);
+}
+
 const Surface& Scene::getSurface(const size_t surfaceIndex) const
 {
     if (surfaceIndex >= _surfaces.size())
         throw invalid_surface_index_error("no surface with this index");
 
     return *_surfaces.at(surfaceIndex);
+}
+
+SurfacePtr Scene::getSurfacePtr(size_t surfaceIndex) const
+{
+    if (surfaceIndex >= _surfaces.size())
+        throw invalid_surface_index_error("no surface with this index");
+
+    return _surfaces.at(surfaceIndex);
 }
 
 DisplayGroup& Scene::getGroup(const size_t surfaceIndex)
@@ -131,10 +150,7 @@ void Scene::moveToThread(QThread* thread)
 {
     QObject::moveToThread(thread);
     for (auto&& surface : getSurfaces())
-    {
-        surface.getGroup().moveToThread(thread);
-        surface.getBackground().moveToThread(thread);
-    }
+        surface.moveToThread(thread);
 }
 TIDE_DISABLE_WARNING_SHADOW_END
 

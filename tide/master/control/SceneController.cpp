@@ -49,6 +49,11 @@
 #include "scene/WebbrowserContent.h"
 #endif
 
+namespace
+{
+const auto surface0 = 0u;
+}
+
 SceneController::SceneController(Scene& scene_,
                                  const Configuration::Folders& folders)
     : _scene{scene_}
@@ -75,6 +80,12 @@ SceneController::SceneController(Scene& scene_,
             _saveSessionCallback(_saveSessionOp.result());
         _saveSessionCallback = nullptr;
     });
+}
+
+void SceneController::paste(const QStringList& uris)
+{
+    for (const auto& uri : uris)
+        open(surface0, uri, QPointF(), BoolCallback());
 }
 
 void SceneController::open(const uint surfaceIndex, const QString& uri,

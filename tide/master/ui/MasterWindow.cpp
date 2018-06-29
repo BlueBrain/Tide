@@ -385,11 +385,12 @@ void MasterWindow::_addSurfacesTabViews(const Configuration& config,
 {
     for (auto i = 0u; i < _scene->getSurfaceCount(); ++i)
     {
-        auto group = _scene->getGroup(i).shared_from_this();
-        const auto& surface = config.surfaces[i];
-        const auto tabTitle = QString{"Display group %1"}.arg(i);
-        auto quickView = std::make_unique<MasterQuickView>(surface, i, group,
-                                                           _options, lock);
+        auto& surface = _scene->getSurface(i);
+        const auto& surfaceConfig = config.surfaces[i];
+        const auto tabTitle = QString{"Surface %1"}.arg(i);
+        auto quickView =
+            std::make_unique<MasterQuickView>(surfaceConfig, surface, _options,
+                                              lock);
         if (i == 0)
             _quickView = quickView.get(); // keep a reference for mouse -> touch
         _addDisplayGroupTabView(std::move(quickView), tabTitle);
