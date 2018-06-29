@@ -383,7 +383,7 @@ void MasterWindow::_setupMasterWindowUI()
 void MasterWindow::_addSurfacesTabViews(const Configuration& config,
                                         ScreenLockPtr lock)
 {
-    for (auto i = 0u; i < _scene->getSurfaces().size(); ++i)
+    for (auto i = 0u; i < _scene->getSurfaceCount(); ++i)
     {
         auto group = _scene->getGroup(i).shared_from_this();
         const auto& surface = config.surfaces[i];

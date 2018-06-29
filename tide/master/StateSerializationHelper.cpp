@@ -92,6 +92,19 @@ void _relocateContent(ContentWindow& window, const QString& tmpDir,
     window.setContent(ContentFactory::getContent(newUri));
 }
 
+ContentWindowPtrs _findWindowsToRelocate(const DisplayGroup& group,
+                                         const QString& tmpDir)
+{
+    ContentWindowPtrs windowsToRelocate;
+    for (const auto& window : group.getContentWindows())
+    {
+        const auto& uri = window->getContent().getURI();
+        if (QFileInfo{uri}.absolutePath() == tmpDir)
+            windowsToRelocate.push_back(window);
+    }
+    return windowsToRelocate;
+}
+
 void _relocateTempContents(DisplayGroup& group, const QString& tmpDir,
                            const QString& dstDir)
 {
@@ -109,14 +122,7 @@ void _relocateTempContents(DisplayGroup& group, const QString& tmpDir,
         return;
     }
 
-    std::vector<ContentWindowPtr> windowsToRelocate;
-    for (const auto& window : group.getContentWindows())
-    {
-        const auto& uri = window->getContent().getURI();
-        if (QFileInfo{uri}.absolutePath() == tmpDir)
-            windowsToRelocate.push_back(window);
-    }
-    for (const auto& window : windowsToRelocate)
+    for (const auto& window : _findWindowsToRelocate(group, tmpDir))
     {
         _relocateContent(*window, tmpDir, dstDir);
         // Remove the window and add back a copy of it to ensure that the wall
@@ -131,8 +137,8 @@ void _relocateTempContents(DisplayGroup& group, const QString& tmpDir,
 void _relocateTempContents(Scene& scene, const QString& tmpDir,
                            const QString& dstDir)
 {
-    for (auto i = 0u; i < scene.getSurfaceCount(); ++i)
-        _relocateTempContents(scene.getGroup(i), tmpDir, dstDir);
+    for (auto&& surface : scene.getSurfaces())
+        _relocateTempContents(surface.getGroup(), tmpDir, dstDir);
 }
 
 bool _validateContent(const ContentWindowPtr& window)
@@ -206,8 +212,8 @@ void _validateContents(DisplayGroup& group)
 
 void _validateContents(Scene& scene)
 {
-    for (auto i = 0u; i < scene.getSurfaceCount(); ++i)
-        _validateContents(scene.getGroup(i));
+    for (auto&& surface : scene.getSurfaces())
+        _validateContents(surface.getGroup());
 }
 
 void _adjust(DisplayGroup& group, const DisplayGroup& referenceGroup)
@@ -226,7 +232,7 @@ void _adjust(DisplayGroup& group, const DisplayGroup& referenceGroup)
 void _adjust(Scene& scene, const Scene& currentScene)
 {
     const auto max =
-        std::min(scene.getSurfaces().size(), currentScene.getSurfaces().size());
+        std::min(scene.getSurfaceCount(), currentScene.getSurfaceCount());
 
     for (auto i = 0u; i < max; ++i)
         _adjust(scene.getGroup(i), currentScene.getGroup(i));
@@ -311,8 +317,8 @@ void _filterContents(DisplayGroup& group)
 
 void _filterContents(Scene& scene)
 {
-    for (auto i = 0u; i < scene.getSurfaceCount(); ++i)
-        _filterContents(scene.getGroup(i));
+    for (auto&& surface : scene.getSurfaces())
+        _filterContents(surface.getGroup());
 }
 
 QFuture<bool> StateSerializationHelper::save(QString filename,

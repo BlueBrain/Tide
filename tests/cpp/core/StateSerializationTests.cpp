@@ -157,7 +157,7 @@ BOOST_AUTO_TEST_CASE(testStateSerializationHelperReadingFromLegacyFile)
     BOOST_CHECK_NO_THROW(scene = helper.load(LEGACY_URI).result());
     BOOST_CHECK(scene);
 
-    BOOST_CHECK_EQUAL(scene->getSurfaces().size(), 1);
+    BOOST_CHECK_EQUAL(scene->getSurfaceCount(), 1);
     BOOST_CHECK_EQUAL(scene->getGroup(0).getContentWindows().size(), 1);
 }
 
@@ -250,7 +250,7 @@ BOOST_AUTO_TEST_CASE(testWhenOpeningValidStateThenContentIsLoaded)
     BOOST_REQUIRE(success);
 
     auto scene = state.getScene();
-    BOOST_CHECK_EQUAL(scene->getSurfaces().size(), 1);
+    BOOST_CHECK_EQUAL(scene->getSurfaceCount(), 1);
     const auto& windows = scene->getGroup(0).getContentWindows();
     BOOST_REQUIRE_EQUAL(windows.size(), 1);
 

@@ -1349,6 +1349,7 @@ function updateWall() {
       // Add new windows and updated exisiting ones if they have changed
       for (var i = 0; i < jsonList.length; ++i) {
         var window = jsonList[i];
+        window.z = i;
         if (window.focus)
           focus = true;
         if (window.fullscreen)

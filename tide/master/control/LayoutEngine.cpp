@@ -160,8 +160,7 @@ WindowCoordinates LayoutEngine::_getNominalCoord(
     QRectF coord(QPointF(), size);
     coord.moveCenter(QPointF(window.center().x(), wallSize.height() * 0.5));
     _constrainFullyInside(coord);
-    auto winPtr = _group.getContentWindow(window.getID());
-    return {coord, _group.getZindex(winPtr)};
+    return {coord, _group.getZindex(window.getID())};
 }
 
 void LayoutEngine::_constrainFullyInside(QRectF& window) const

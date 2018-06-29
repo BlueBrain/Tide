@@ -43,6 +43,7 @@
 #include "scene/Surface.h"
 #include "serialization/includes.h"
 #include "types.h"
+#include "utils/IterableSmartPtrCollection.h"
 
 class invalid_surface_index_error : public std::runtime_error
 {
@@ -73,9 +74,15 @@ public:
     /** @return the number of surfaces. */
     size_t getSurfaceCount() const;
 
-    /** @return the surfaces that are part of the scene. */
-    const std::vector<Surface>& getSurfaces() const;
+    /**
+     * @return the surface for a certain surface index
+     * @throw invalid_surface_index
+     */
+    const Surface& getSurface(size_t surfaceIndex) const;
 
+    /** @return the surfaces that are part of the scene. */
+    auto getSurfaces() { return makeIterable(_surfaces); }
+    auto getSurfaces() const { return makeIterable(_surfaces); }
     /**
      * @return the group for a certain surface index
      * @throw invalid_surface_index
@@ -111,7 +118,7 @@ public:
         const QUuid& id);
 
 signals:
-    /** Emitted when any value is changed by one of the setters. */
+    /** Emitted whenever an element of the scene changes. */
     void modified(ScenePtr);
 
 private:
@@ -133,7 +140,8 @@ private:
         // clang-format on
     }
 
-    std::vector<Surface> _surfaces;
+    // has to be shared_ptr because boost can't (de)serialize vector<unique_ptr>
+    std::vector<std::shared_ptr<Surface>> _surfaces;
 };
 
 #endif

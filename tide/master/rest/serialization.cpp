@@ -58,6 +58,12 @@
 namespace
 {
 const QString _applicationStartTime = QDateTime::currentDateTime().toString();
+
+QSizeF _getMinSize(const ContentWindow& window, const DisplayGroup& group)
+{
+    return ContentWindowController(const_cast<ContentWindow&>(window), group)
+        .getMinSizeAspectRatioCorrect();
+}
 }
 
 namespace
@@ -78,26 +84,27 @@ QString to_qstring(const ScreenState state)
 
 namespace json
 {
-QJsonObject serialize(ContentWindowPtr window, const DisplayGroup& group)
+QJsonObject serialize(const ContentWindow& window, const DisplayGroup& group)
 {
-    const ContentWindowController controller(*window, group);
+    const auto minSize = _getMinSize(window, group);
+    const auto coordinates = window.getDisplayCoordinates();
+
     return QJsonObject{
-        {"aspectRatio", window->getContent().getAspectRatio()},
-        {"minWidth", controller.getMinSizeAspectRatioCorrect().width()},
-        {"minHeight", controller.getMinSizeAspectRatioCorrect().height()},
-        {"width", window->getDisplayCoordinates().width()},
-        {"height", window->getDisplayCoordinates().height()},
-        {"x", window->getDisplayCoordinates().x()},
-        {"y", window->getDisplayCoordinates().y()},
-        {"z", group.getZindex(window)},
-        {"title", window->getContent().getTitle()},
-        {"mode", window->getMode()},
-        {"selected", window->isSelected()},
-        {"fullscreen", window->isFullscreen()},
-        {"focus", window->isFocused()},
-        {"uri", window->getContent().getURI()},
-        {"visible", window->getState() == ContentWindow::HIDDEN ? false : true},
-        {"uuid", json::url_encode(window->getID())}};
+        {"aspectRatio", window.getContent().getAspectRatio()},
+        {"minWidth", minSize.width()},
+        {"minHeight", minSize.height()},
+        {"width", coordinates.width()},
+        {"height", coordinates.height()},
+        {"x", coordinates.x()},
+        {"y", coordinates.y()},
+        {"title", window.getContent().getTitle()},
+        {"mode", window.getMode()},
+        {"selected", window.isSelected()},
+        {"fullscreen", window.isFullscreen()},
+        {"focus", window.isFocused()},
+        {"uri", window.getContent().getURI()},
+        {"visible", window.getState() == ContentWindow::HIDDEN ? false : true},
+        {"uuid", json::url_encode(window.getID())}};
 }
 
 QJsonObject serialize(const DisplayGroup& group)
@@ -108,7 +115,7 @@ QJsonObject serialize(const DisplayGroup& group)
         if (window->getContent().getURI() == PixelStreamerLauncher::launcherUri)
             continue;
 
-        windows.append(serialize(window, group));
+        windows.append(serialize(*window, group));
     }
     return QJsonObject{{"windows", windows}};
 }

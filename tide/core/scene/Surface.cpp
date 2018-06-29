@@ -39,17 +39,21 @@
 
 #include "Surface.h"
 
+#include "utils/compilerMacros.h"
+
 IMPLEMENT_SERIALIZE_FOR_XML(Surface)
 
 Surface::Surface(DisplayGroupPtr group)
     : _group{group}
 {
+    _forwardModifiedSignals();
 }
 
 Surface::Surface(DisplayGroupPtr group, BackgroundPtr background)
     : _group{group}
     , _background{background}
 {
+    _forwardModifiedSignals();
 }
 
 DisplayGroup& Surface::getGroup()
@@ -80,4 +84,19 @@ const Background& Surface::getBackground() const
 BackgroundPtr Surface::getBackgroundPtr() const
 {
     return _background;
+}
+
+TIDE_DISABLE_WARNING_SHADOW
+void Surface::moveToThread(QThread* thread)
+{
+    QObject::moveToThread(thread);
+    _group->moveToThread(thread);
+    _background->moveToThread(thread);
+}
+TIDE_DISABLE_WARNING_SHADOW_END
+
+void Surface::_forwardModifiedSignals()
+{
+    connect(_group.get(), &DisplayGroup::modified, this, &Surface::modified);
+    connect(_background.get(), &Background::updated, this, &Surface::modified);
 }
