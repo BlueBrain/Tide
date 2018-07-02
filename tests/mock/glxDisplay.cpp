@@ -1,7 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael.Dumusc@epfl.ch                        */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -38,15 +37,29 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "ContentWindowListWidgetItem.h"
+#include "glxDisplay.h"
 
-ContentWindowListWidgetItem::ContentWindowListWidgetItem(
-    ContentWindowPtr contentWindow)
-    : _contentWindow(contentWindow)
+#ifdef __linux__
+
+#include <X11/Xlib.h>
+
+bool hasGLXDisplay()
 {
+    Display* display = XOpenDisplay(0);
+    if (!display)
+        return false;
+    int major, event, error;
+    const bool hasGLX = XQueryExtension(display, "GLX", &major, &event, &error);
+    XCloseDisplay(display);
+    return hasGLX;
 }
 
-ContentWindowPtr ContentWindowListWidgetItem::getContentWindow() const
+#else
+
+// On other plateforms, ignore this test
+bool hasGLXDisplay()
 {
-    return _contentWindow;
+    return true;
 }
+
+#endif

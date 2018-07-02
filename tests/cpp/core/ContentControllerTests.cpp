@@ -50,7 +50,7 @@
 #include "control/PixelStreamController.h"
 #include "control/ZoomController.h"
 #include "scene/ContentFactory.h"
-#include "scene/ContentWindow.h"
+#include "scene/Window.h"
 
 namespace
 {
@@ -61,7 +61,7 @@ const int HEIGHT = 256;
 class TestController : public ContentController
 {
 public:
-    explicit TestController(ContentWindow& window)
+    explicit TestController(Window& window)
         : ContentController(window)
     {
     }
@@ -74,7 +74,7 @@ public:
 
 BOOST_AUTO_TEST_CASE(testFactoryMethod)
 {
-    ContentWindow window{std::make_unique<DummyContent>(QSize{WIDTH, HEIGHT})};
+    Window window{std::make_unique<DummyContent>(QSize{WIDTH, HEIGHT})};
 
     auto& dummyContent = dynamic_cast<DummyContent&>(window.getContent());
 
@@ -83,15 +83,14 @@ BOOST_AUTO_TEST_CASE(testFactoryMethod)
 
     dummyContent.type = CONTENT_TYPE_PIXEL_STREAM;
     BOOST_CHECK_THROW(ContentController::create(window), std::bad_cast);
-    ContentWindow streamWin(
-        ContentFactory::getPixelStreamContent("xyz", QSize()));
+    Window streamWin(ContentFactory::getPixelStreamContent("xyz", QSize()));
     BOOST_CHECK_NO_THROW(controller = ContentController::create(streamWin));
     BOOST_CHECK(dynamic_cast<PixelStreamController*>(controller.get()));
 
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
     dummyContent.type = CONTENT_TYPE_WEBBROWSER;
     BOOST_CHECK_THROW(ContentController::create(window), std::bad_cast);
-    ContentWindow webWindow(
+    Window webWindow(
         ContentFactory::getPixelStreamContent("abc", QSize(),
                                               StreamType::WEBBROWSER));
     BOOST_CHECK_NO_THROW(controller = ContentController::create(webWindow));
@@ -123,7 +122,7 @@ BOOST_AUTO_TEST_CASE(testFactoryMethod)
 
 BOOST_AUTO_TEST_CASE(testNormalizedPosition)
 {
-    ContentWindow window{std::make_unique<DummyContent>(QSize{WIDTH, HEIGHT})};
+    Window window{std::make_unique<DummyContent>(QSize{WIDTH, HEIGHT})};
 
     TestController controller(window);
     const QPointF point(WIDTH * 0.5, HEIGHT * 0.25);

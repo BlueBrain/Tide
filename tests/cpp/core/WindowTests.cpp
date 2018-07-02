@@ -37,11 +37,11 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#define BOOST_TEST_MODULE ContentWindowTests
+#define BOOST_TEST_MODULE WindowTests
 #include <boost/test/unit_test.hpp>
 
 #include "control/ZoomController.h"
-#include "scene/ContentWindow.h"
+#include "scene/Window.h"
 
 #include "MinimalGlobalQtApp.h"
 BOOST_GLOBAL_FIXTURE(MinimalGlobalQtApp);
@@ -61,28 +61,28 @@ ContentPtr makeDummyContent()
 
 BOOST_AUTO_TEST_CASE(testInitialSize)
 {
-    ContentWindow window{makeDummyContent()};
+    Window window{makeDummyContent()};
 
     const QRectF& coords = window.getCoordinates();
 
     // default 1:1 size, left-corner at the origin
     BOOST_CHECK_EQUAL(coords, QRectF(0.0, 0.0, WIDTH, HEIGHT));
-    BOOST_CHECK_EQUAL(window.getActiveHandle(), ContentWindow::NOHANDLE);
+    BOOST_CHECK_EQUAL(window.getActiveHandle(), Window::NOHANDLE);
 }
 
 BOOST_AUTO_TEST_CASE(testValidID)
 {
-    ContentWindow window{makeDummyContent()};
+    Window window{makeDummyContent()};
 
     BOOST_CHECK(window.getID() != QUuid());
 }
 
 BOOST_AUTO_TEST_CASE(testUniqueID)
 {
-    ContentWindow window1{makeDummyContent()};
+    Window window1{makeDummyContent()};
     BOOST_CHECK(window1.getID() != QUuid());
 
-    ContentWindow window2{makeDummyContent()};
+    Window window2{makeDummyContent()};
     BOOST_CHECK(window2.getID() != QUuid());
 
     BOOST_CHECK(window1.getID() != window2.getID());
@@ -92,7 +92,7 @@ BOOST_AUTO_TEST_CASE(testSetContent)
 {
     auto content = makeDummyContent();
     auto contentPtr = content.get();
-    ContentWindow window(std::move(content));
+    Window window(std::move(content));
     BOOST_CHECK_EQUAL(window.getContentPtr(), contentPtr);
 
     ContentPtr secondContent(new DummyContent);
@@ -111,7 +111,7 @@ BOOST_AUTO_TEST_CASE(testSetContent)
 
 BOOST_AUTO_TEST_CASE(testZoom)
 {
-    ContentWindow window{makeDummyContent()};
+    Window window{makeDummyContent()};
 
     auto& content = window.getContent();
 
@@ -130,31 +130,31 @@ BOOST_AUTO_TEST_CASE(testZoom)
 
 BOOST_AUTO_TEST_CASE(testWindowState)
 {
-    ContentWindow window{makeDummyContent()};
+    Window window{makeDummyContent()};
 
-    BOOST_REQUIRE_EQUAL(window.getState(), ContentWindow::NONE);
+    BOOST_REQUIRE_EQUAL(window.getState(), Window::NONE);
     BOOST_REQUIRE(!window.isHidden());
     BOOST_REQUIRE(!window.isMoving());
     BOOST_REQUIRE(!window.isResizing());
 
-    window.setState(ContentWindow::MOVING);
-    BOOST_CHECK_EQUAL(window.getState(), ContentWindow::MOVING);
+    window.setState(Window::MOVING);
+    BOOST_CHECK_EQUAL(window.getState(), Window::MOVING);
     BOOST_CHECK(window.isMoving());
 
-    window.setState(ContentWindow::RESIZING);
-    BOOST_CHECK_EQUAL(window.getState(), ContentWindow::RESIZING);
+    window.setState(Window::RESIZING);
+    BOOST_CHECK_EQUAL(window.getState(), Window::RESIZING);
     BOOST_CHECK(window.isResizing());
 
-    window.setState(ContentWindow::HIDDEN);
-    BOOST_CHECK_EQUAL(window.getState(), ContentWindow::HIDDEN);
+    window.setState(Window::HIDDEN);
+    BOOST_CHECK_EQUAL(window.getState(), Window::HIDDEN);
     BOOST_CHECK(window.isHidden());
 }
 
 BOOST_AUTO_TEST_CASE(testWindowType)
 {
-    ContentWindow defaultWindow{makeDummyContent()};
-    ContentWindow window(makeDummyContent(), ContentWindow::DEFAULT);
-    ContentWindow panel(makeDummyContent(), ContentWindow::PANEL);
+    Window defaultWindow{makeDummyContent()};
+    Window window(makeDummyContent(), Window::DEFAULT);
+    Window panel(makeDummyContent(), Window::PANEL);
 
     BOOST_CHECK_EQUAL(defaultWindow.isPanel(), false);
     BOOST_CHECK_EQUAL(window.isPanel(), false);
@@ -163,49 +163,46 @@ BOOST_AUTO_TEST_CASE(testWindowType)
 
 BOOST_AUTO_TEST_CASE(testWindowResizePolicyNonZoomableContent)
 {
-    ContentWindow window{makeDummyContent()};
+    Window window{makeDummyContent()};
     auto& content = window.getContent();
 
     // Default state
     BOOST_CHECK_EQUAL(window.getResizePolicy(),
-                      ContentWindow::ResizePolicy::KEEP_ASPECT_RATIO);
+                      Window::ResizePolicy::KEEP_ASPECT_RATIO);
 
     // Non-zoomable, fixed aspect ratio contents can't be adjusted
     static_cast<DummyContent&>(content).zoomable = false;
     BOOST_REQUIRE(content.hasFixedAspectRatio());
     auto controller = ContentController::create(window);
     BOOST_REQUIRE(!dynamic_cast<ZoomController*>(controller.get()));
-    BOOST_CHECK(
-        !window.setResizePolicy(ContentWindow::ResizePolicy::ADJUST_CONTENT));
+    BOOST_CHECK(!window.setResizePolicy(Window::ResizePolicy::ADJUST_CONTENT));
     BOOST_CHECK_EQUAL(window.getResizePolicy(),
-                      ContentWindow::ResizePolicy::KEEP_ASPECT_RATIO);
+                      Window::ResizePolicy::KEEP_ASPECT_RATIO);
 
     // Non-fixed aspect ratio contents can be adjusted
     static_cast<DummyContent&>(content).fixedAspectRatio = false;
     BOOST_REQUIRE(!content.hasFixedAspectRatio());
-    BOOST_CHECK(
-        window.setResizePolicy(ContentWindow::ResizePolicy::ADJUST_CONTENT));
+    BOOST_CHECK(window.setResizePolicy(Window::ResizePolicy::ADJUST_CONTENT));
     BOOST_CHECK_EQUAL(window.getResizePolicy(),
-                      ContentWindow::ResizePolicy::ADJUST_CONTENT);
+                      Window::ResizePolicy::ADJUST_CONTENT);
 }
 
 BOOST_AUTO_TEST_CASE(testWindowResizePolicyZoomableContent)
 {
     auto content = makeDummyContent();
     static_cast<DummyContent&>(*content).type = CONTENT_TYPE_TEXTURE;
-    ContentWindow window(std::move(content));
+    Window window(std::move(content));
 
     // Default state
     BOOST_REQUIRE_EQUAL(window.getResizePolicy(),
-                        ContentWindow::ResizePolicy::KEEP_ASPECT_RATIO);
+                        Window::ResizePolicy::KEEP_ASPECT_RATIO);
 
     // Zoomable, fixed aspect ratio contents can be adjusted
     BOOST_REQUIRE(window.getContent().hasFixedAspectRatio());
     BOOST_REQUIRE(window.getContent().canBeZoomed());
     auto controller = ContentController::create(window);
     BOOST_REQUIRE(dynamic_cast<ZoomController*>(controller.get()));
-    BOOST_CHECK(
-        window.setResizePolicy(ContentWindow::ResizePolicy::ADJUST_CONTENT));
+    BOOST_CHECK(window.setResizePolicy(Window::ResizePolicy::ADJUST_CONTENT));
     BOOST_CHECK_EQUAL(window.getResizePolicy(),
-                      ContentWindow::ResizePolicy::ADJUST_CONTENT);
+                      Window::ResizePolicy::ADJUST_CONTENT);
 }

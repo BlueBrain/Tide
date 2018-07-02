@@ -40,9 +40,9 @@
 #include "DisplayGroupController.h"
 
 #include "AutomaticLayout.h"
-#include "ContentWindowController.h"
-#include "scene/ContentWindow.h"
+#include "WindowController.h"
 #include "scene/DisplayGroup.h"
+#include "scene/Window.h"
 
 #include <QTransform>
 
@@ -60,19 +60,19 @@ DisplayGroupController::DisplayGroupController(DisplayGroup& group)
 
 void DisplayGroupController::remove(const QUuid windowId)
 {
-    auto window = _group.getContentWindow(windowId);
+    auto window = _group.getWindow(windowId);
     if (!window)
         return;
 
     const auto focused = window->isFocused();
-    _group.removeContentWindow(window);
+    _group.remove(window);
     if (focused)
         updateFocusedWindowsCoordinates();
 }
 
-void DisplayGroupController::removeWindowLater(const QUuid windowId)
+void DisplayGroupController::removeLater(const QUuid windowId)
 {
-    auto window = _group.getContentWindow(windowId);
+    auto window = _group.getWindow(windowId);
     if (!window)
         return;
 
@@ -82,14 +82,13 @@ void DisplayGroupController::removeWindowLater(const QUuid windowId)
         updateFocusedWindowsCoordinates();
     }
 
-    QMetaObject::invokeMethod(&_group, "removeContentWindow",
-                              Qt::QueuedConnection,
-                              Q_ARG(ContentWindowPtr, window));
+    QMetaObject::invokeMethod(&_group, "remove", Qt::QueuedConnection,
+                              Q_ARG(WindowPtr, window));
 }
 
 bool DisplayGroupController::showFullscreen(const QUuid& id)
 {
-    auto window = _group.getContentWindow(id);
+    auto window = _group.getWindow(id);
     if (!window)
         return false;
 
@@ -104,7 +103,7 @@ void DisplayGroupController::exitFullscreen()
         return;
 
     window->restoreModeAndZoom();
-    _group.setFullscreenWindow(ContentWindowPtr());
+    _group.setFullscreenWindow(WindowPtr());
 
     if (!window->isFocused())
         window->setSelected(false);
@@ -112,7 +111,7 @@ void DisplayGroupController::exitFullscreen()
 
 void DisplayGroupController::adjustSizeOneToOne(const QUuid& id)
 {
-    auto window = _group.getContentWindow(id);
+    auto window = _group.getWindow(id);
     if (!window)
         return;
 
@@ -120,14 +119,14 @@ void DisplayGroupController::adjustSizeOneToOne(const QUuid& id)
         _showFullscreen(window, true);
     else
     {
-        ContentWindowController{*window, _group}.adjustSize(SIZE_1TO1);
+        WindowController{*window, _group}.adjustSize(SIZE_1TO1);
         window->getContent().resetZoom();
     }
 }
 
 bool DisplayGroupController::focus(const QUuid& id)
 {
-    auto window = _group.getContentWindow(id);
+    auto window = _group.getWindow(id);
     if (!window || window->isPanel() ||
         _group.getFocusedWindows().count(window))
         return false;
@@ -144,7 +143,7 @@ bool DisplayGroupController::focus(const QUuid& id)
 
 bool DisplayGroupController::unfocus(const QUuid& id)
 {
-    auto window = _group.getContentWindow(id);
+    auto window = _group.getWindow(id);
     if (!window || !_group.getFocusedWindows().count(window))
         return false;
 
@@ -160,9 +159,9 @@ void DisplayGroupController::focusSelected()
 {
     unfocusAll(); // ensure precondition, but should already be empty
 
-    auto focusedWindows = ContentWindowSet{};
+    auto focusedWindows = WindowSet{};
 
-    for (const auto& window : _group.getContentWindows())
+    for (const auto& window : _group.getWindows())
         if (window->isSelected())
             focusedWindows.insert(window);
 
@@ -187,22 +186,22 @@ void DisplayGroupController::unfocusAll()
 
 void DisplayGroupController::deselectAll()
 {
-    for (auto&& window : _group.getContentWindows())
+    for (auto&& window : _group.getWindows())
         window->setSelected(false);
 }
 
 void DisplayGroupController::hidePanels()
 {
     for (const auto& panel : _group.getPanels())
-        panel->setState(ContentWindow::HIDDEN);
+        panel->setState(Window::HIDDEN);
 }
 
 bool DisplayGroupController::moveWindowToFront(const QUuid& id)
 {
-    const auto window = _group.getContentWindow(id);
+    const auto window = _group.getWindow(id);
     if (!window)
         return false;
-    if (window->getMode() == ContentWindow::WindowMode::STANDARD)
+    if (window->getMode() == Window::WindowMode::STANDARD)
         _group.moveToFront(window);
     return true;
 }
@@ -211,7 +210,7 @@ void DisplayGroupController::scale(const QSizeF& factor)
 {
     const QTransform t = QTransform::fromScale(factor.width(), factor.height());
 
-    for (auto&& window : _group.getContentWindows())
+    for (auto&& window : _group.getWindows())
         window->setCoordinates(t.mapRect(window->getCoordinates()));
 
     _group.setCoordinates(t.mapRect(_group.getCoordinates()));
@@ -246,7 +245,7 @@ void DisplayGroupController::denormalize(const QSizeF& targetSize)
 
 void DisplayGroupController::adjustWindowsAspectRatioToContent()
 {
-    for (auto&& window : _group.getContentWindows())
+    for (auto&& window : _group.getWindows())
     {
         QSizeF exactSize = window->getContent().getDimensions();
         exactSize.scale(window->getCoordinates().size(), Qt::KeepAspectRatio);
@@ -258,7 +257,7 @@ void DisplayGroupController::adjustWindowsAspectRatioToContent()
 QRectF DisplayGroupController::estimateSurface() const
 {
     auto area = UNIT_RECTF;
-    for (const auto& window : _group.getContentWindows())
+    for (const auto& window : _group.getWindows())
         area = area.united(window->getCoordinates());
     area.setTopLeft(QPointF(0.0, 0.0));
 
@@ -278,38 +277,38 @@ void DisplayGroupController::_extend(const QSizeF& newSize)
     _group.setHeight(newSize.height());
 
     const auto t = QTransform::fromTranslate(offset.width(), offset.height());
-    for (auto&& window : _group.getContentWindows())
+    for (auto&& window : _group.getWindows())
         window->setCoordinates(t.mapRect(window->getCoordinates()));
 }
 
-void DisplayGroupController::_showFullscreen(ContentWindowPtr window,
+void DisplayGroupController::_showFullscreen(WindowPtr window,
                                              const bool oneToOne)
 {
     exitFullscreen();
 
     window->backupModeAndZoom();
 
-    const auto target = ContentWindowController::Coordinates::FULLSCREEN;
-    ContentWindowController controller(*window, _group, target);
+    const auto target = WindowController::Coordinates::FULLSCREEN;
+    WindowController controller(*window, _group, target);
     controller.adjustSize(oneToOne ? SIZE_FULLSCREEN_1TO1 : SIZE_FULLSCREEN);
 
-    window->setMode(ContentWindow::WindowMode::FULLSCREEN);
+    window->setMode(Window::WindowMode::FULLSCREEN);
     _group.setFullscreenWindow(window);
 }
 
 qreal DisplayGroupController::_estimateAspectRatio() const
 {
     qreal averageAR = 0.0;
-    for (const auto& window : _group.getContentWindows())
+    for (const auto& window : _group.getWindows())
     {
         const qreal windowAR = window->width() / window->height();
         averageAR += window->getContent().getAspectRatio() / windowAR;
     }
-    averageAR /= _group.getContentWindows().size();
+    averageAR /= _group.getWindows().size();
     return averageAR;
 }
 
-void DisplayGroupController::_readjustToNewZoomLevel(ContentWindow& window)
+void DisplayGroupController::_readjustToNewZoomLevel(Window& window)
 {
-    ContentWindowController{window, _group}.scale(window.center(), 0.0);
+    WindowController{window, _group}.scale(window.center(), 0.0);
 }

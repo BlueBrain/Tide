@@ -41,7 +41,7 @@
 
 #include "LoggingUtility.h"
 #include "configuration/Configuration.h"
-#include "control/ContentWindowController.h"
+#include "control/WindowController.h"
 #include "localstreamer/PixelStreamerLauncher.h"
 #include "scene/ContentFactory.h"
 #include "scene/DisplayGroup.h"
@@ -59,9 +59,9 @@ namespace
 {
 const QString _applicationStartTime = QDateTime::currentDateTime().toString();
 
-QSizeF _getMinSize(const ContentWindow& window, const DisplayGroup& group)
+QSizeF _getMinSize(const Window& window, const DisplayGroup& group)
 {
-    return ContentWindowController(const_cast<ContentWindow&>(window), group)
+    return WindowController(const_cast<Window&>(window), group)
         .getMinSizeAspectRatioCorrect();
 }
 }
@@ -84,33 +84,32 @@ QString to_qstring(const ScreenState state)
 
 namespace json
 {
-QJsonObject serialize(const ContentWindow& window, const DisplayGroup& group)
+QJsonObject serialize(const Window& window, const DisplayGroup& group)
 {
     const auto minSize = _getMinSize(window, group);
     const auto coordinates = window.getDisplayCoordinates();
 
-    return QJsonObject{
-        {"aspectRatio", window.getContent().getAspectRatio()},
-        {"minWidth", minSize.width()},
-        {"minHeight", minSize.height()},
-        {"width", coordinates.width()},
-        {"height", coordinates.height()},
-        {"x", coordinates.x()},
-        {"y", coordinates.y()},
-        {"title", window.getContent().getTitle()},
-        {"mode", window.getMode()},
-        {"selected", window.isSelected()},
-        {"fullscreen", window.isFullscreen()},
-        {"focus", window.isFocused()},
-        {"uri", window.getContent().getURI()},
-        {"visible", window.getState() == ContentWindow::HIDDEN ? false : true},
-        {"uuid", json::url_encode(window.getID())}};
+    return QJsonObject{{"aspectRatio", window.getContent().getAspectRatio()},
+                       {"minWidth", minSize.width()},
+                       {"minHeight", minSize.height()},
+                       {"width", coordinates.width()},
+                       {"height", coordinates.height()},
+                       {"x", coordinates.x()},
+                       {"y", coordinates.y()},
+                       {"title", window.getContent().getTitle()},
+                       {"mode", window.getMode()},
+                       {"selected", window.isSelected()},
+                       {"fullscreen", window.isFullscreen()},
+                       {"focus", window.isFocused()},
+                       {"uri", window.getContent().getURI()},
+                       {"visible", !window.isHidden()},
+                       {"uuid", json::url_encode(window.getID())}};
 }
 
 QJsonObject serialize(const DisplayGroup& group)
 {
     QJsonArray windows;
-    for (const auto& window : group.getContentWindows())
+    for (const auto& window : group.getWindows())
     {
         if (window->getContent().getURI() == PixelStreamerLauncher::launcherUri)
             continue;

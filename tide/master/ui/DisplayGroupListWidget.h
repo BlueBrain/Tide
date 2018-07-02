@@ -46,7 +46,7 @@
 #include <QListWidget>
 
 /**
- * A list view of a DisplayGroup's ContentWindows.
+ * A list view of a DisplayGroup's Windows.
  */
 class DisplayGroupListWidget : public QListWidget
 {
@@ -62,9 +62,9 @@ public:
 private:
     DisplayGroupPtr _displayGroup;
 
-    void _addContentWindow(ContentWindowPtr window);
-    void _removeContentWindow(ContentWindowPtr window);
-    void _moveToFront(ContentWindowPtr window);
+    void _addWindow(WindowPtr window);
+    void _remove(WindowPtr window);
+    void _moveToFront(WindowPtr window);
     void _onItemClicked(QListWidgetItem* item);
 };
 

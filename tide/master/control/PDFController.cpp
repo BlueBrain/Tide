@@ -39,13 +39,13 @@
 
 #include "PDFController.h"
 
-#include "scene/ContentWindow.h"
 #include "scene/PDFContent.h"
+#include "scene/Window.h"
 
-PDFController::PDFController(ContentWindow& contentWindow)
-    : ZoomController(contentWindow)
+PDFController::PDFController(Window& window)
+    : ZoomController(window)
 {
-    assert(_contentWindow.getContent().getType() == CONTENT_TYPE_PDF);
+    assert(_window.getContent().getType() == CONTENT_TYPE_PDF);
 }
 
 void PDFController::swipeLeft()
@@ -70,5 +70,5 @@ void PDFController::nextPage()
 
 PDFContent& PDFController::_getPDFContent()
 {
-    return static_cast<PDFContent&>(_contentWindow.getContent());
+    return static_cast<PDFContent&>(_window.getContent());
 }

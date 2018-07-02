@@ -108,14 +108,6 @@ public:
      */
     bool isAlreadyOpen(const QString& filename) const;
 
-    /**
-     * Find an open window by its filename.
-     *
-     * @param filename The content file to search for.
-     * @return the window corresponding to the file if it is open or nullptr.
-     */
-    ContentWindowPtr findWindow(const QString& filename) const;
-
 private:
     DisplayGroup& _displayGroup;
 };

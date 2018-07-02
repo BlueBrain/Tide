@@ -84,7 +84,7 @@ private:
     QMap<QUuid, QFuture<std::string>> _thumbnailCache;
 
     void _monitor(const DisplayGroup& group);
-    void _cacheThumbnail(ContentWindowPtr contentWindow);
+    void _cacheThumbnail(WindowPtr window);
 };
 
 #endif

@@ -66,7 +66,7 @@ WallSurfaceRenderer::WallSurfaceRenderer(WallRenderContext context,
     , _qmlContext{*_context.engine.rootContext()}
     , _background{Background::create()}
     , _countdownStatus{new CountdownStatus}
-    , _displayGroup{new DisplayGroup{QSize(1, 1)}}
+    , _displayGroup{DisplayGroup::create(QSize(1, 1))}
     , _markers{Markers::create(_context.surfaceIndex)}
     , _options{Options::create()}
     , _screenLock{ScreenLock::create()}

@@ -55,19 +55,18 @@ public:
     AutomaticLayout(const DisplayGroup& group);
 
     /** @return the focused coordinates for the window. */
-    QRectF getFocusedCoord(const ContentWindow& window) const;
+    QRectF getFocusedCoord(const Window& window) const;
 
     /** Update the focused coordinates for the set of windows. */
-    void updateFocusedCoord(const ContentWindowSet& windows) const;
+    void updateFocusedCoord(const WindowSet& windows) const;
 
 private:
-    std::vector<ContentWindowSet> _separateContent(
-        const ContentWindowSet& windows) const;
-    qreal _getTotalArea(const ContentWindowSet& windows) const;
-    qreal _computeMaxRatio(ContentWindowPtr) const;
-    QRectF _getFocusedCoord(const ContentWindow& window,
-                            const ContentWindowSet& windows) const;
-    ContentWindowPtrs _sortByMaxRatio(const ContentWindowSet& windows) const;
+    std::vector<WindowSet> _separateContent(const WindowSet& windows) const;
+    qreal _getTotalArea(const WindowSet& windows) const;
+    qreal _computeMaxRatio(const Window& window) const;
+    QRectF _getFocusedCoord(const Window& window,
+                            const WindowSet& windows) const;
+    WindowPtrs _sortByMaxRatio(const WindowSet& windows) const;
 };
 
 #endif

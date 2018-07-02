@@ -39,11 +39,11 @@
 
 #include "ContentLoader.h"
 
-#include "control/ContentWindowController.h"
+#include "control/WindowController.h"
 #include "log.h"
 #include "scene/ContentFactory.h"
-#include "scene/ContentWindow.h"
 #include "scene/DisplayGroup.h"
+#include "scene/Window.h"
 
 #include <QDir>
 #include <cmath>
@@ -59,7 +59,7 @@ bool ContentLoader::loadOrMoveToFront(const QString& uri,
     if (uri.isEmpty())
         return false;
 
-    if (auto window = findWindow(uri))
+    if (auto window = _displayGroup.findWindow(uri))
     {
         _displayGroup.moveToFront(window);
         return true;
@@ -93,8 +93,8 @@ bool ContentLoader::load(const QString& filename,
         return false;
     }
 
-    ContentWindowPtr contentWindow(new ContentWindow(std::move(content)));
-    ContentWindowController controller(*contentWindow, _displayGroup);
+    auto window = std::make_shared<Window>(std::move(content));
+    WindowController controller(*window, _displayGroup);
 
     if (windowSize.isValid())
         controller.resize(windowSize);
@@ -106,7 +106,7 @@ bool ContentLoader::load(const QString& filename,
     else
         controller.moveCenterTo(windowCenterPosition);
 
-    _displayGroup.addContentWindow(contentWindow);
+    _displayGroup.add(window);
 
     return true;
 }
@@ -164,20 +164,5 @@ size_t ContentLoader::loadDir(const QString& dirName, QSize gridSize)
 
 bool ContentLoader::isAlreadyOpen(const QString& filename) const
 {
-    for (const auto& window : _displayGroup.getContentWindows())
-    {
-        if (window->getContent().getURI() == filename)
-            return true;
-    }
-    return false;
-}
-
-ContentWindowPtr ContentLoader::findWindow(const QString& filename) const
-{
-    for (const auto& window : _displayGroup.getContentWindows())
-    {
-        if (window->getContent().getURI() == filename)
-            return window;
-    }
-    return {};
+    return !!_displayGroup.findWindow(filename);
 }

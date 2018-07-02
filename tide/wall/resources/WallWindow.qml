@@ -3,28 +3,27 @@ import Tide 1.0
 import "qrc:/qml/core/."
 import "qrc:/qml/core/style.js" as Style
 
-BaseContentWindow {
+BaseWindow {
     id: windowRect
 
     // for contents with alpha channel such as SVG or PNG
     color: options.alphaBlending ? "transparent" :
                                    Style.transparentContentsBackgroundColor
 
-    property string imagesource: "image://texture/" + contentwindow.content.uri
+    property string imagesource: "image://texture/" + window.content.uri
 
     virtualKeyboard.onLoaded: {
         // Display keyboard state from the master processes
-        // Proxy functions are needed because contentwindow is a context
-        // property which changes constantly, so regular property bindings
-        // would be inoperant
+        // Proxy functions are needed because window is a context property which
+        // changes constantly, so regular property bindings would be inoperant
         virtualKeyboard.item.shiftActive = Qt.binding(function() {
-            return contentwindow.content.keyboard.shift
+            return window.content.keyboard.shift
         })
         virtualKeyboard.item.symbolsActive = Qt.binding(function() {
-            return contentwindow.content.keyboard.symbols
+            return window.content.keyboard.symbols
         })
         virtualKeyboard.item.activeKeyId = Qt.binding(function() {
-            return contentwindow.content.keyboard.activeKeyId
+            return window.content.keyboard.activeKeyId
         })
     }
 
@@ -50,12 +49,12 @@ BaseContentWindow {
             },
             // Apply content zoom
             Translate {
-                x: -contentwindow.content.zoomRect.x * contentArea.width
-                y: -contentwindow.content.zoomRect.y * contentArea.height
+                x: -window.content.zoomRect.x * contentArea.width
+                y: -window.content.zoomRect.y * contentArea.height
             },
             Scale {
-                xScale: 1.0 / contentwindow.content.zoomRect.width
-                yScale: 1.0 / contentwindow.content.zoomRect.height
+                xScale: 1.0 / window.content.zoomRect.width
+                yScale: 1.0 / window.content.zoomRect.height
             }
         ]
     }

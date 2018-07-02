@@ -39,21 +39,21 @@
 
 #include "ZoomHelper.h"
 
-#include "scene/ContentWindow.h"
+#include "scene/Window.h"
 
-ZoomHelper::ZoomHelper(const ContentWindow& window)
-    : _contentWindow(window)
+ZoomHelper::ZoomHelper(const Window& window)
+    : _window(window)
 {
 }
 
 QRectF ZoomHelper::getContentRect() const
 {
-    return toContentRect(_contentWindow.getContent().getZoomRect());
+    return toContentRect(_window.getContent().getZoomRect());
 }
 
 QRectF ZoomHelper::toContentRect(const QRectF& zoomRect) const
 {
-    const QRectF& window = _contentWindow.getDisplayCoordinates();
+    const QRectF& window = _window.getDisplayCoordinates();
 
     const qreal w = window.width() / zoomRect.width();
     const qreal h = window.height() / zoomRect.height();
@@ -66,7 +66,7 @@ QRectF ZoomHelper::toContentRect(const QRectF& zoomRect) const
 
 QRectF ZoomHelper::toZoomRect(const QRectF& contentRect) const
 {
-    const QRectF& window = _contentWindow.getDisplayCoordinates();
+    const QRectF& window = _window.getDisplayCoordinates();
 
     const qreal w = window.width() / contentRect.width();
     const qreal h = window.height() / contentRect.height();

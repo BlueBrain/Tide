@@ -37,8 +37,8 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef CONTENTWINDOWCONTROLLER_H
-#define CONTENTWINDOWCONTROLLER_H
+#ifndef WINDOWCONTROLLER_H
+#define WINDOWCONTROLLER_H
 
 #include "types.h"
 
@@ -65,10 +65,10 @@ enum WindowPoint
 /**
  * Controller for moving and resizing windows.
  */
-class ContentWindowController : public QObject
+class WindowController : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY(ContentWindowController)
+    Q_DISABLE_COPY(WindowController)
 
 public:
     /**
@@ -84,13 +84,12 @@ public:
 
     /**
      * Create a controller for a window.
-     * @param contentWindow the target window
-     * @param displayGroup the display group to which the window belongs
+     * @param window the target window
+     * @param group the group to which the window belongs
      * @param target the set of coordinates to modify (default: AUTO)
      */
-    ContentWindowController(ContentWindow& contentWindow,
-                            const DisplayGroup& displayGroup,
-                            Coordinates target = Coordinates::AUTO);
+    WindowController(Window& window, const DisplayGroup& group,
+                     Coordinates target = Coordinates::AUTO);
 
     /** Resize the window. */
     Q_INVOKABLE void resize(QSizeF size, WindowPoint fixedPoint = TOP_LEFT);
@@ -151,7 +150,7 @@ private:
     const QRectF& _getCoordinates() const;
     void _apply(const QRectF& coordinates);
 
-    ContentWindow& _contentWindow;
+    Window& _window;
     const DisplayGroup& _displayGroup;
     Coordinates _target;
 };

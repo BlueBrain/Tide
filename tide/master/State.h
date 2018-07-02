@@ -110,10 +110,10 @@ private:
 
             if (version < WINDOW_TITLES_VERSION)
             {
-                ContentWindowPtrs contentWindows;
+                WindowPtrs windows;
                 ar & boost::serialization::make_nvp("contentWindows",
-                                                    contentWindows);
-                group->setContentWindows(contentWindows);
+                                                    windows);
+                group->replaceWindows(windows);
             }
             else
             {

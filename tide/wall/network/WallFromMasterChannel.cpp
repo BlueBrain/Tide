@@ -41,12 +41,12 @@
 
 #include "configuration/Configuration.h"
 #include "network/MPIChannel.h"
-#include "scene/ContentWindow.h"
 #include "scene/CountdownStatus.h"
 #include "scene/Markers.h"
 #include "scene/Options.h"
 #include "scene/Scene.h"
 #include "scene/ScreenLock.h"
+#include "scene/Window.h"
 #include "serialization/utils.h"
 #include "json/serialization.h"
 #include "json/templates.h"

@@ -57,7 +57,7 @@ public:
     PDFSynchronizer(std::shared_ptr<PDFTiler> source);
 
     /** @copydoc ContentSynchronizer::update */
-    void update(const ContentWindow& window, const QRectF& visibleArea) final;
+    void update(const Window& window, const QRectF& visibleArea) final;
 
     /** @copydoc ContentSynchronizer::getStatistics */
     QString getStatistics() const final;

@@ -40,7 +40,7 @@
 #include "ContentController.h"
 
 #include "config.h"
-#include "scene/ContentWindow.h"
+#include "scene/Window.h"
 
 #if TIDE_ENABLE_PDF_SUPPORT
 #include "PDFController.h"
@@ -48,8 +48,7 @@
 #include "PixelStreamController.h"
 #include "ZoomController.h"
 
-std::unique_ptr<ContentController> ContentController::create(
-    ContentWindow& window)
+std::unique_ptr<ContentController> ContentController::create(Window& window)
 {
     switch (window.getContent().getType())
     {
@@ -74,8 +73,8 @@ std::unique_ptr<ContentController> ContentController::create(
     }
 }
 
-ContentController::ContentController(ContentWindow& window)
-    : _contentWindow(window)
+ContentController::ContentController(Window& window)
+    : _window(window)
 {
 }
 
@@ -85,6 +84,6 @@ ContentController::~ContentController()
 
 QPointF ContentController::getNormalizedPoint(const QPointF& point) const
 {
-    const QRectF& window = _contentWindow.getDisplayCoordinates();
+    const QRectF& window = _window.getDisplayCoordinates();
     return QPointF(point.x() / window.width(), point.y() / window.height());
 }

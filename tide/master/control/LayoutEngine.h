@@ -54,15 +54,15 @@ public:
     LayoutEngine(const DisplayGroup& group);
 
     /** @return the focused coordinates for the window. */
-    QRectF getFocusedCoord(const ContentWindow& window) const;
+    QRectF getFocusedCoord(const Window& window) const;
 
     /** Update the focused coordinates for the set of windows. */
-    void updateFocusedCoord(const ContentWindowSet& windows) const;
+    void updateFocusedCoord(const WindowSet& windows) const;
 
 private:
-    QRectF _getFocusedCoord(const ContentWindow& window,
-                            const ContentWindowSet& focusedWindows) const;
-    WindowCoordinates _getNominalCoord(const ContentWindow& window) const;
+    QRectF _getFocusedCoord(const Window& window,
+                            const WindowSet& focusedWindows) const;
+    WindowCoordinates _getNominalCoord(const Window& window) const;
     void _constrainFullyInside(QRectF& window) const;
     qreal _getInsideMargin() const;
 };

@@ -50,7 +50,7 @@ namespace json
 {
 /** @name JSON serialization of objects for the REST interface. */
 //@{
-QJsonObject serialize(const ContentWindow& window, const DisplayGroup& group);
+QJsonObject serialize(const Window& window, const DisplayGroup& group);
 QJsonObject serialize(const DisplayGroup& group);
 QJsonObject serialize(const Surface& surface);
 QJsonArray serialize(const Scene& scene);

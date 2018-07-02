@@ -59,7 +59,7 @@ public:
     Q_INVOKABLE void remove(QUuid windowId);
 
     /** Remove a content window later (using a Qt::QueuedConnection). */
-    Q_INVOKABLE void removeWindowLater(QUuid windowId);
+    Q_INVOKABLE void removeLater(QUuid windowId);
 
     /**
      * Show a window in fullscreen.
@@ -125,9 +125,9 @@ private:
     /** Extend the DisplayGroup surface, keeping the windows centered. */
     void _extend(const QSizeF& newSize);
 
-    void _showFullscreen(ContentWindowPtr window, bool oneToOne);
+    void _showFullscreen(WindowPtr window, bool oneToOne);
     qreal _estimateAspectRatio() const;
-    void _readjustToNewZoomLevel(ContentWindow& window);
+    void _readjustToNewZoomLevel(Window& window);
 };
 
 #endif

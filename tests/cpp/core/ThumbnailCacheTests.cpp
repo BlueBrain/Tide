@@ -78,8 +78,8 @@ BOOST_AUTO_TEST_CASE(testWindowInfo)
     ThumbnailCache cache{*scene};
 
     auto content = ContentFactory::getContent(imageUri);
-    auto window = std::make_shared<ContentWindow>(std::move(content));
-    group->addContentWindow(window);
+    auto window = std::make_shared<Window>(std::move(content));
+    group->add(window);
 
     // Thumbnail not ready yet
     auto response = cache.getThumbnail(window->getID()).get();
@@ -93,7 +93,7 @@ BOOST_AUTO_TEST_CASE(testWindowInfo)
     BOOST_CHECK_EQUAL(response.headers[rockets::http::Header::CONTENT_TYPE],
                       "image/png");
 
-    group->removeContentWindow(window);
+    group->remove(window);
     response = cache.getThumbnail(window->getID()).get();
     BOOST_CHECK_EQUAL(response.code, 404);
 }

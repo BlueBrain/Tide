@@ -4,42 +4,42 @@ import TideMaster 1.0
 import "qrc:/qml/core/."
 import "qrc:/qml/core/style.js" as Style
 
-BaseContentWindow {
+BaseWindow {
     id: windowRect
     color: "#80000000"
 
     focusEffectEnabled: false // Not useful on the master window
 
-    property bool contentActive: contentwindow.content.captureInteraction &&
-                                 contentwindow.state === ContentWindow.NONE
-    property bool windowActive: contentwindow.mode !== ContentWindow.FOCUSED
+    property bool contentActive: window.content.captureInteraction &&
+                                 window.state === Window.NONE
+    property bool windowActive: window.mode !== Window.FOCUSED
 
     function closeWindow() {
-        groupcontroller.removeWindowLater(contentwindow.id)
+        groupcontroller.removeLater(window.id)
     }
 
     function toggleSelected() {
-        if(contentwindow.isPanel)
+        if(window.isPanel)
             return
-        contentwindow.selected = !contentwindow.selected
+        window.selected = !window.selected
     }
 
     function toggleFocusMode() {
-        if(contentwindow.isPanel)
+        if(window.isPanel)
             return
-        if(contentwindow.focused)
-            groupcontroller.unfocus(contentwindow.id)
+        if(window.focused)
+            groupcontroller.unfocus(window.id)
         else
             groupcontroller.focusSelected()
     }
 
     function toggleFullscreenMode() {
-        if(contentwindow.isPanel)
+        if(window.isPanel)
             return
-        if(contentwindow.fullscreen)
+        if(window.fullscreen)
             groupcontroller.exitFullscreen()
         else
-            groupcontroller.showFullscreen(contentwindow.id)
+            groupcontroller.showFullscreen(window.id)
     }
 
     function scaleWindow(center, pixelDelta) {
@@ -49,7 +49,7 @@ BaseContentWindow {
         controller.scale(center, sign * delta)
     }
 
-    focus: contentwindow.content.captureInteraction
+    focus: window.content.captureInteraction
     Keys.onPressed: {
         contentcontroller.keyPress(event.key, event.modifiers, event.text)
         event.accepted = true;
@@ -62,19 +62,19 @@ BaseContentWindow {
     virtualKeyboard.onLoaded: {
         // Process key events
         virtualKeyboard.item.hideKeyPressed.connect(function() {
-            contentwindow.content.keyboard.visible = false
+            window.content.keyboard.visible = false
         })
         virtualKeyboard.item.keyPressed.connect(contentcontroller.keyPress)
         virtualKeyboard.item.keyReleased.connect(contentcontroller.keyRelease)
         // Distribute keyboard state to the wall processes
         // use wrapper functions because the notifyChanged signals don't include the new value
         virtualKeyboard.item.shiftActiveChanged.connect(function() {
-            contentwindow.content.keyboard.shift = virtualKeyboard.item.shiftActive
+            window.content.keyboard.shift = virtualKeyboard.item.shiftActive
         })
         virtualKeyboard.item.symbolsActiveChanged.connect(function() {
-            contentwindow.content.keyboard.symbols = virtualKeyboard.item.symbolsActive
+            window.content.keyboard.symbols = virtualKeyboard.item.symbolsActive
         })
-        virtualKeyboard.item.keyActivated.connect(contentwindow.content.keyboard.setActiveKeyId)
+        virtualKeyboard.item.keyActivated.connect(window.content.keyboard.setActiveKeyId)
     }
 
     backgroundComponent: MultitouchArea {
@@ -83,38 +83,38 @@ BaseContentWindow {
         anchors.fill: parent
         referenceItem: windowRect.parent
 
-        onTouchStarted: groupcontroller.moveWindowToFront(contentwindow.id)
+        onTouchStarted: groupcontroller.moveWindowToFront(window.id)
         onTap: if(windowActive) { toggleSelected() }
         onTapAndHold: {
-            if(contentwindow.isPanel) // force toggle
-                contentwindow.selected = !contentwindow.selected
+            if(window.isPanel) // force toggle
+                window.selected = !window.selected
         }
         onDoubleTap: (numPoints > 1) ? toggleFocusMode() : toggleFullscreenMode()
 
         onPanStarted: {
-            if(windowActive && contentwindow.state === ContentWindow.NONE)
-                contentwindow.state = ContentWindow.MOVING
+            if(windowActive && window.state === Window.NONE)
+                window.state = Window.MOVING
         }
         onPan: {
-            if(windowActive && contentwindow.state === ContentWindow.MOVING)
+            if(windowActive && window.state === Window.MOVING)
                 controller.moveBy(delta)
         }
         onPanEnded: {
-            if(windowActive && contentwindow.state === ContentWindow.MOVING)
-                contentwindow.state = ContentWindow.NONE
+            if(windowActive && window.state === Window.MOVING)
+                window.state = Window.NONE
         }
 
         onPinchStarted: {
-            if(windowActive && contentwindow.state === ContentWindow.NONE)
-                contentwindow.state = ContentWindow.RESIZING
+            if(windowActive && window.state === Window.NONE)
+                window.state = Window.RESIZING
         }
         onPinch: {
-            if(windowActive && contentwindow.state === ContentWindow.RESIZING)
+            if(windowActive && window.state === Window.RESIZING)
                 scaleWindow(pos, pixelDelta)
         }
         onPinchEnded: {
-            if(windowActive && contentwindow.state === ContentWindow.RESIZING)
-                contentwindow.state = ContentWindow.NONE
+            if(windowActive && window.state === Window.RESIZING)
+                window.state = Window.NONE
         }
     }
 
@@ -122,7 +122,7 @@ BaseContentWindow {
         id: contentInteractionArea
 
         // Explicit dimensions needed here. The item can't fill its parent
-        // because the Loader has no size in this case (see BaseContentWindow).
+        // because the Loader has no size in this case (see BaseWindow).
         width: contentArea.width
         height: contentArea.height
 
@@ -130,14 +130,14 @@ BaseContentWindow {
 
         /** Tap, pan and pinch gestures are used by either content or window. */
         onTouchStarted: {
-            groupcontroller.moveWindowToFront(contentwindow.id)
+            groupcontroller.moveWindowToFront(window.id)
             if(contentActive)
                 contentcontroller.touchBegin(pos)
         }
         onTouchEnded: {
             if(contentActive)
                 contentcontroller.touchEnd(pos)
-            contentwindow.content.captureInteraction = false
+            window.content.captureInteraction = false
         }
         onTouchPointAdded: {
             if(contentActive)
@@ -160,7 +160,7 @@ BaseContentWindow {
         onDoubleTap: {
             if(contentActive)
                 contentcontroller.doubleTap(pos, numPoints)
-            else if(contentwindow.fullscreen)
+            else if(window.fullscreen)
                 controller.toogleFullscreenMaxSize()
             else
                 (numPoints > 1) ? toggleFocusMode() : toggleFullscreenMode()
@@ -169,37 +169,37 @@ BaseContentWindow {
             if(contentActive)
                 contentcontroller.tapAndHold(pos, numPoints)
             else
-                contentwindow.content.captureInteraction = true
+                window.content.captureInteraction = true
         }
 
         onPanStarted: {
-            if(!contentActive && windowActive && contentwindow.state === ContentWindow.NONE)
-                contentwindow.state = ContentWindow.MOVING
+            if(!contentActive && windowActive && window.state === Window.NONE)
+                window.state = Window.MOVING
         }
         onPan: {
             if(contentActive)
                 contentcontroller.pan(pos, Qt.point(delta.x, delta.y), numPoints)
-            else if(windowActive && contentwindow.state === ContentWindow.MOVING && numPoints === 1)
+            else if(windowActive && window.state === Window.MOVING && numPoints === 1)
                 controller.moveBy(delta)
         }
         onPanEnded: {
-            if(!contentActive && windowActive && contentwindow.state === ContentWindow.MOVING)
-                contentwindow.state = ContentWindow.NONE
+            if(!contentActive && windowActive && window.state === Window.MOVING)
+                window.state = Window.NONE
         }
 
         onPinchStarted: {
-            if(!contentActive && windowActive && contentwindow.state === ContentWindow.NONE)
-                contentwindow.state = ContentWindow.RESIZING
+            if(!contentActive && windowActive && window.state === Window.NONE)
+                window.state = Window.RESIZING
         }
         onPinch: {
             if(contentActive)
                 contentcontroller.pinch(pos, pixelDelta)
-            else if(windowActive && contentwindow.state === ContentWindow.RESIZING)
+            else if(windowActive && window.state === Window.RESIZING)
                 scaleWindow(pos, pixelDelta)
         }
         onPinchEnded: {
-            if(!contentActive && windowActive && contentwindow.state === ContentWindow.RESIZING)
-                contentwindow.state = ContentWindow.NONE
+            if(!contentActive && windowActive && window.state === Window.RESIZING)
+                window.state = Window.NONE
         }
         /** END shared gestures. */
 
@@ -232,7 +232,7 @@ BaseContentWindow {
         OneToOneControlButton {
             MultitouchArea {
                 anchors.fill: parent
-                onTap: groupcontroller.adjustSizeOneToOne(contentwindow.id)
+                onTap: groupcontroller.adjustSizeOneToOne(window.id)
             }
         }
         FullscreenControlButton {
@@ -263,31 +263,31 @@ BaseContentWindow {
             panThreshold: 10
 
             onTouchStarted: {
-                contentwindow.activeHandle = parent.handle
-                contentwindow.state = ContentWindow.RESIZING
+                window.activeHandle = parent.handle
+                window.state = Window.RESIZING
             }
             onTapAndHold: {
-                if(contentwindow.content.hasFixedAspectRatio)
-                    contentwindow.resizePolicy = ContentWindow.ADJUST_CONTENT
+                if(window.content.hasFixedAspectRatio)
+                    window.resizePolicy = Window.ADJUST_CONTENT
                 else
-                    contentwindow.resizePolicy = ContentWindow.KEEP_ASPECT_RATIO
+                    window.resizePolicy = Window.KEEP_ASPECT_RATIO
             }
             onPan: controller.resizeRelative(delta)
             onTouchEnded: {
-                contentwindow.state = ContentWindow.NONE
-                contentwindow.activeHandle = ContentWindow.NOHANDLE
+                window.state = Window.NONE
+                window.activeHandle = Window.NOHANDLE
 
-                if(contentwindow.content.hasFixedAspectRatio)
-                    contentwindow.resizePolicy = ContentWindow.KEEP_ASPECT_RATIO
+                if(window.content.hasFixedAspectRatio)
+                    window.resizePolicy = Window.KEEP_ASPECT_RATIO
                 else
-                    contentwindow.resizePolicy = ContentWindow.ADJUST_CONTENT
+                    window.resizePolicy = Window.ADJUST_CONTENT
             }
         }
     }
 
     Text {
         visible: !parent.titleBar.visible
-        text: contentwindow.content.title
+        text: window.content.title
         font.pixelSize: 48
         width: Math.min(paintedWidth, parent.width)
         anchors.top: contentArea.top

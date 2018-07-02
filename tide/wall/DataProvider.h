@@ -74,7 +74,7 @@ public:
 
     /** @return a ContentSynchronizer for the given content. */
     std::unique_ptr<ContentSynchronizer> createSynchronizer(
-        const ContentWindow& window, deflect::View view);
+        const Window& window, deflect::View view);
 
     /**
      * Update the data sources with information from a new scene.
@@ -146,8 +146,8 @@ private:
         const QString& uri);
     void _load(DataSourcePtr source, const TileUpdateList& tileList);
     void _handleFinished();
-    std::unique_ptr<ContentSynchronizer> _makeSynchronizer(
-        const ContentWindow& window, deflect::View view);
+    std::unique_ptr<ContentSynchronizer> _makeSynchronizer(const Window& window,
+                                                           deflect::View view);
 
     template <typename DataSources>
     void _updateTiles(DataSources& dataSources);

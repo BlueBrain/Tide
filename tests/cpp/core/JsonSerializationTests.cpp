@@ -56,12 +56,12 @@ const QSize wallSize{1000, 1000};
 
 BOOST_AUTO_TEST_CASE(testSerializeDisplayGroup)
 {
-    auto group = std::make_shared<DisplayGroup>(wallSize);
+    auto group = DisplayGroup::create(wallSize);
     auto content = ContentFactory::getContent(imageUri);
     const auto contentSize = content->getDimensions();
-    auto contentWindow = std::make_shared<ContentWindow>(std::move(content));
-    contentWindow->setCoordinates({QPointF{64, 79}, contentSize});
-    group->addContentWindow(contentWindow);
+    auto window = std::make_shared<Window>(std::move(content));
+    window->setCoordinates({QPointF{64, 79}, contentSize});
+    group->add(window);
 
     const auto serializedWindows = json::dump(*group);
 
@@ -72,20 +72,20 @@ BOOST_AUTO_TEST_CASE(testSerializeDisplayGroup)
     BOOST_REQUIRE_EQUAL(windows.size(), 1);
     BOOST_REQUIRE(windows[0].isObject());
 
-    const auto window = windows[0].toObject();
-    BOOST_CHECK_EQUAL(window.value("aspectRatio").toDouble(), 2.0);
-    BOOST_CHECK_EQUAL(window.value("height").toInt(), 128);
-    BOOST_CHECK_EQUAL(window.value("width").toInt(), 256);
-    BOOST_CHECK_EQUAL(window.value("minHeight").toInt(), 300);
-    BOOST_CHECK_EQUAL(window.value("minWidth").toInt(), 600);
-    BOOST_CHECK_EQUAL(window.value("focus").toBool(true), false);
-    BOOST_CHECK_EQUAL(window.value("fullscreen").toBool(true), false);
-    BOOST_CHECK_EQUAL(window.value("selected").toBool(true), false);
-    BOOST_CHECK_EQUAL(window.value("mode").toInt(99), 0);
-    BOOST_CHECK_EQUAL(window.value("title").toString(), imageUri);
-    BOOST_CHECK_EQUAL(window.value("uri").toString(), imageUri);
-    const auto uuid = QString("{%1}").arg(window.value("uuid").toString());
-    BOOST_CHECK_EQUAL(uuid, contentWindow->getID().toString());
-    BOOST_CHECK_EQUAL(window.value("x").toInt(), 64);
-    BOOST_CHECK_EQUAL(window.value("y").toInt(), 79);
+    const auto jsonWindow = windows[0].toObject();
+    BOOST_CHECK_EQUAL(jsonWindow.value("aspectRatio").toDouble(), 2.0);
+    BOOST_CHECK_EQUAL(jsonWindow.value("height").toInt(), 128);
+    BOOST_CHECK_EQUAL(jsonWindow.value("width").toInt(), 256);
+    BOOST_CHECK_EQUAL(jsonWindow.value("minHeight").toInt(), 300);
+    BOOST_CHECK_EQUAL(jsonWindow.value("minWidth").toInt(), 600);
+    BOOST_CHECK_EQUAL(jsonWindow.value("focus").toBool(true), false);
+    BOOST_CHECK_EQUAL(jsonWindow.value("fullscreen").toBool(true), false);
+    BOOST_CHECK_EQUAL(jsonWindow.value("selected").toBool(true), false);
+    BOOST_CHECK_EQUAL(jsonWindow.value("mode").toInt(99), 0);
+    BOOST_CHECK_EQUAL(jsonWindow.value("title").toString(), imageUri);
+    BOOST_CHECK_EQUAL(jsonWindow.value("uri").toString(), imageUri);
+    const auto uuid = QString("{%1}").arg(jsonWindow.value("uuid").toString());
+    BOOST_CHECK_EQUAL(uuid, window->getID().toString());
+    BOOST_CHECK_EQUAL(jsonWindow.value("x").toInt(), 64);
+    BOOST_CHECK_EQUAL(jsonWindow.value("y").toInt(), 79);
 }

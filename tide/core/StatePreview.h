@@ -46,7 +46,7 @@
 #include <QSize>
 #include <QString>
 
-class ContentWindow;
+class Window;
 
 /**
  * A state preview is a thumbnail image saved alongside a state file.
@@ -78,13 +78,12 @@ public:
     QImage getImage() const;
 
     /**
-     * Generate the preview image from a list of ContentWindows.
+     * Generate the preview image from a list of Windows.
      * @param wallDimensions the total dimensions of the wall in pixels, used to
      *        position the contents.
-     * @param contentWindows the contents to include in the preview.
+     * @param windows the contents to include in the preview.
      */
-    void generateImage(const QSize& wallDimensions,
-                       const ContentWindowPtrs& contentWindows);
+    void generateImage(const QSize& wallDimensions, const WindowPtrs& windows);
 
     /**
      * Save the thumbnail created by generateImage() to a file.

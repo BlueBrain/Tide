@@ -43,7 +43,7 @@
 #include "tide/core/QmlTypeRegistration.h"
 
 #include "control/ContentController.h"
-#include "control/ContentWindowController.h"
+#include "control/WindowController.h"
 #include "multitouch/MultitouchArea.h"
 
 #include <QtQml>
@@ -61,9 +61,9 @@ void registerQmlTypes()
 
     qmlRegisterType<MultitouchArea>(MASTER_QML_MODULE, 1, 0, "MultitouchArea");
 
-    qmlRegisterUncreatableType<ContentWindowController>(
-        QML_MODULE, 1, 0, "ContentWindowController",
-        "ContentWindowController is exposed as a context property");
+    qmlRegisterUncreatableType<WindowController>(
+        QML_MODULE, 1, 0, "WindowController",
+        "WindowController is exposed as a context property");
     qmlRegisterUncreatableType<ContentController>(
         QML_MODULE, 1, 0, "ContentController",
         "ContentController is exposed as a context property");

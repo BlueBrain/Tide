@@ -45,7 +45,7 @@
 #include <QObject>
 
 /**
- * Handle user interaction with the Content of a ContentWindow.
+ * Handle user interaction with the Content of a Window.
  *
  * This class is abstract and should be reimplemented for the
  * different Content type.
@@ -57,10 +57,10 @@ class ContentController : public QObject
 
 public:
     /** Construct a content controller for the given window. */
-    static std::unique_ptr<ContentController> create(ContentWindow& window);
+    static std::unique_ptr<ContentController> create(Window& window);
 
     /** Construct a default content controller that does nothing. */
-    explicit ContentController(ContentWindow& window);
+    explicit ContentController(Window& window);
 
     /** Virtual destructor. */
     virtual ~ContentController();
@@ -130,7 +130,7 @@ public:
 protected:
     QPointF getNormalizedPoint(const QPointF& point) const;
 
-    ContentWindow& _contentWindow;
+    Window& _window;
 };
 
 #endif

@@ -1,6 +1,8 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2011-2012, The University of Texas at Austin.       */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael.Dumusc@epfl.ch                   */
+/*                          Daniel.Nachbaur@epfl.ch                  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,55 +39,27 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef CONTENTWINDOWRENDERER_H
-#define CONTENTWINDOWRENDERER_H
+#ifndef WINDOW_LIST_WIDGET_ITEM_H
+#define WINDOW_LIST_WIDGET_ITEM_H
 
 #include "types.h"
 
-#include <QQmlContext>
-#include <QQmlEngine>
-#include <QQuickItem>
+#include <QListWidgetItem>
 
 /**
- * Provide a Qml representation of a ContentWindow on the Wall.
+ * Represent a Window in a QListView.
  */
-class ContentWindowRenderer : public QObject
+class WindowListWidgetItem : public QListWidgetItem
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(ContentWindowRenderer)
-
 public:
     /** Constructor. */
-    ContentWindowRenderer(std::unique_ptr<ContentSynchronizer> synchronizer,
-                          ContentWindowPtr contentWindow,
-                          QQuickItem& parentItem, QQmlContext* parentContext,
-                          bool isBackground = false);
-    /** Destructor. */
-    ~ContentWindowRenderer();
+    explicit WindowListWidgetItem(WindowPtr window);
 
-    /** Update the qml object with a new data model. */
-    void update(ContentWindowPtr contentWindow, const QRectF& visibleArea);
-
-    /** Get the QML item. */
-    QQuickItem* getQuickItem();
+    /** Get the associated Window. */
+    WindowPtr getWindow() const;
 
 private:
-    ContentSynchronizerSharedPtr _synchronizer;
-    ContentWindowPtr _contentWindow;
-
-    std::unique_ptr<QQmlContext> _windowContext;
-    std::unique_ptr<QQuickItem> _windowItem;
-
-    std::map<uint, TilePtr> _tiles;
-    TilePtr _zoomContextTile;
-
-    void _addTile(TilePtr tile);
-    QQuickItem* _getZoomContextParentItem() const;
-    void _updateZoomContextTile(bool visible);
-    void _addZoomContextTile();
-    void _removeZoomContextTile();
-    void _removeTile(uint tileIndex);
-    void _updateTile(uint tileIndex, const QRect& coordinates);
+    WindowPtr _window;
 };
 
 #endif

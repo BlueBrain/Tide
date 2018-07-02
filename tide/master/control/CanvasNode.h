@@ -56,9 +56,8 @@ public:
     CanvasNode(NodePtr rootPtr, NodePtr parent, NodePtr firstChild,
                NodePtr secondChild, QRectF rect);
     CanvasNode(QRectF available_space);
-    CanvasNode(NodePtr rootPtr, NodePtr parent, ContentWindowPtr window,
-               QRectF rect);
-    bool insert(ContentWindowPtr window);
+    CanvasNode(NodePtr rootPtr, NodePtr parent, WindowPtr window, QRectF rect);
+    bool insert(WindowPtr window);
     /**
      * return true if there is an empty leaf
      */
@@ -87,18 +86,18 @@ private:
     QRectF _rectWithoutMargins(const QRectF& rect) const;
     QRectF _rectWithoutMargins(const QRectF& rect,
                                CONTENT_TYPE content_type) const;
-    bool _insertRoot(ContentWindowPtr window);
-    bool _insertTerminal(ContentWindowPtr window);
+    bool _insertRoot(WindowPtr window);
+    bool _insertTerminal(WindowPtr window);
     void _computeBoundaries(const QRectF& realSize,
                             QRectF& internalNodeBoundaries,
                             QRectF& internalFreeLeafBoundaries,
                             QRectF& externalFreeLeafBoundaries) const;
-    bool _insertSecondChild(ContentWindowPtr window);
+    bool _insertSecondChild(WindowPtr window);
     bool _chooseVerticalCut(const QRectF& realSize) const;
     void _setRect(QRectF newRect);
     void _constrainIntoRect(const QRectF& rect);
-    ContentWindowPtr content = NULL;
-    QRectF _addMargins(ContentWindowPtr window) const;
+    WindowPtr content = NULL;
+    QRectF _addMargins(WindowPtr window) const;
     QRectF _addMargins(const QRectF& rect) const;
     QRectF _addMargins(const QRectF& rect, CONTENT_TYPE type) const;
 };

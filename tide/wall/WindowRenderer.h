@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,38 +37,54 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "PDFSynchronizer.h"
+#ifndef WINDOWRENDERER_H
+#define WINDOWRENDERER_H
 
-#include "Tile.h"
+#include "types.h"
 
-PDFSynchronizer::PDFSynchronizer(std::shared_ptr<PDFTiler> source)
-    : LodSynchronizer(source)
-    , _source(std::move(source))
+#include <QQmlContext>
+#include <QQmlEngine>
+#include <QQuickItem>
+
+/**
+ * Provide a Qml representation of a Window on the Wall.
+ */
+class WindowRenderer : public QObject
 {
-    connect(_source.get(), &PDFTiler::pageChanged,
-            [this] { _pageChanged = true; });
-}
+    Q_OBJECT
+    Q_DISABLE_COPY(WindowRenderer)
 
-void PDFSynchronizer::update(const Window& window, const QRectF& visibleArea)
-{
-    LodSynchronizer::update(window, visibleArea, _pageChanged,
-                            _source->getPreviewTileId());
+public:
+    /** Constructor. */
+    WindowRenderer(std::unique_ptr<ContentSynchronizer> synchronizer,
+                   WindowPtr window, QQuickItem& parentItem,
+                   QQmlContext* parentContext, bool isBackground = false);
+    /** Destructor. */
+    ~WindowRenderer();
 
-    if (_pageChanged)
-    {
-        _pageChanged = false;
-        emit statisticsChanged();
-    }
-}
+    /** Update the qml object with a new data model. */
+    void update(WindowPtr window, const QRectF& visibleArea);
 
-QString PDFSynchronizer::getStatistics() const
-{
-    const auto pageStatistics = _source->getStatistics();
-    return LodSynchronizer::getStatistics() + QString(" ") + pageStatistics;
-}
+    /** Get the QML item. */
+    QQuickItem* getQuickItem();
 
-TilePtr PDFSynchronizer::createZoomContextTile() const
-{
-    const auto tileId = _source->getPreviewTileId();
-    return Tile::create(tileId, getDataSource().getTileRect(tileId));
-}
+private:
+    ContentSynchronizerSharedPtr _synchronizer;
+    WindowPtr _window;
+
+    std::unique_ptr<QQmlContext> _windowContext;
+    std::unique_ptr<QQuickItem> _windowItem;
+
+    std::map<uint, TilePtr> _tiles;
+    TilePtr _zoomContextTile;
+
+    void _addTile(TilePtr tile);
+    QQuickItem* _getZoomContextParentItem() const;
+    void _updateZoomContextTile(bool visible);
+    void _addZoomContextTile();
+    void _removeZoomContextTile();
+    void _removeTile(uint tileIndex);
+    void _updateTile(uint tileIndex, const QRect& coordinates);
+};
+
+#endif

@@ -31,7 +31,7 @@ Rectangle {
     y: contentArea.posY - yOffset
     width: contentArea.width + border.width * 2
     height: contentArea.height + border.width + yOffset // top + bottom padding
-    z: isBackground ? Style.backgroundZOrder : contentwindow.isPanel ? Style.panelsZorder : 0
+    z: isBackground ? Style.backgroundZOrder : window.isPanel ? Style.panelsZorder : 0
 
     Loader {
         id: backgroundLoader
@@ -51,7 +51,7 @@ Rectangle {
             Item {
                 id: titleBar
                 visible: options.showWindowTitles && !windowRect.isBackground
-                         && !contentwindow.isPanel
+                         && !window.isPanel
                 width: parent.width
                 height: Style.windowTitleHeight
                 Text {
@@ -64,7 +64,7 @@ Rectangle {
 
                     fontSizeMode: options.showFilePaths ? Text.Fit : Text.FixedSize
                     elide: options.showFilePaths ? Text.ElideLeft : Text.ElideRight
-                    text: options.showFilePaths ? contentwindow.content.filePath : contentwindow.content.title
+                    text: options.showFilePaths ? window.content.filePath : window.content.title
                     font { family: "qrc::gotham-book"; pixelSize: Style.windowTitleFontSize }
                 }
             }
@@ -73,7 +73,7 @@ Rectangle {
                 width: parent.width
                 height: Style.windowTitleHeight
                 visible: status == Loader.Ready
-                source: windowRect.isBackground ? "" : contentwindow.content.qmlControls
+                source: windowRect.isBackground ? "" : window.content.qmlControls
             }
         }
     }
@@ -85,16 +85,16 @@ Rectangle {
         color: Style.windowFocusGlowColor
         glowRadius: Style.windowFocusGlowRadius
         spread: Style.windowFocusGlowSpread
-        visible: contentwindow.content.captureInteraction &&
-                 contentwindow.state === ContentWindow.NONE
+        visible: window.content.captureInteraction &&
+                 window.state === Window.NONE
     }
 
     Rectangle {
         id: contentArea
-        property real posX: contentwindow.x
-        property real posY: contentwindow.y
-        width: contentwindow.width
-        height: contentwindow.height
+        property real posX: window.x
+        property real posY: window.y
+        width: window.width
+        height: window.height
 
         anchors.bottom: parent.bottom
         anchors.margins: windowRect.border.width
@@ -105,18 +105,18 @@ Rectangle {
         Loader {
             id: contentBackgroundLoader
             // Note: this loader can't have a size, otherwise it breaks the
-            // width/height bindings of loaded content in WallContentWindow.
+            // width/height bindings of loaded content in WallWindow.
         }
 
         Loader {
             id: virtualKeyboard
             source: "qrc:/virtualkeyboard/InputPanel.qml"
-            active: contentwindow.content.keyboard.visible
+            active: window.content.keyboard.visible
             width: Math.min(Style.keyboardMaxSizePx, Style.keyboardRelSize * parent.width)
             height: 0.25 * width
             anchors.horizontalCenter: parent.horizontalCenter
-            y: contentwindow.content.keyboard.visible ? Math.min(0.5 * parent.height, parent.height - height) : parent.height
-            opacity:  contentwindow.content.keyboard.visible ? 1.0 : 0.0
+            y: window.content.keyboard.visible ? Math.min(0.5 * parent.height, parent.height - height) : parent.height
+            opacity:  window.content.keyboard.visible ? 1.0 : 0.0
             visible: opacity > 0.0
             Behavior on y { NumberAnimation { easing.type: Easing.InOutQuad; duration: 150 }}
             Behavior on opacity { NumberAnimation { easing.type: Easing.InOutQuad; duration: 150 }}
@@ -129,9 +129,9 @@ Rectangle {
         }
         Behavior on posX {
             id: transitionBehaviour
-            enabled: contentwindow.focused ||
-                     (contentwindow.fullscreen &&
-                      contentwindow.state === ContentWindow.NONE)
+            enabled: window.focused ||
+                     (window.fullscreen &&
+                      window.state === Window.NONE)
             NumberAnimation {
                 duration: Style.focusTransitionTime
                 easing.type: Easing.InOutQuad
@@ -170,10 +170,10 @@ Rectangle {
         delegate: Triangle {
         }
         delegateOverflow: windowRect.border.width
-        visible: (contentwindow.selected || contentwindow.focused ||
-                  contentwindow.fullscreen) &&
-                 contentwindow.content.page !== undefined &&
-                 contentwindow.content.page > 0
+        visible: (window.selected || window.focused ||
+                  window.fullscreen) &&
+                 window.content.page !== undefined &&
+                 window.content.page > 0
     }
 
     SideButton {
@@ -185,10 +185,10 @@ Rectangle {
         }
         delegateOverflow: windowRect.border.width
         flipRight: true
-        visible: (contentwindow.selected || contentwindow.focused ||
-                  contentwindow.fullscreen) &&
-                 contentwindow.content.page !== undefined &&
-                 contentwindow.content.page < contentwindow.content.pageCount - 1
+        visible: (window.selected || window.focused ||
+                  window.fullscreen) &&
+                 window.content.page !== undefined &&
+                 window.content.page < window.content.pageCount - 1
     }
 
     WindowControls {
@@ -204,13 +204,13 @@ Rectangle {
     states: [
         State {
             name: "fullscreen"
-            when: contentwindow.fullscreen
+            when: window.fullscreen
             PropertyChanges {
                 target: contentArea
-                posX: contentwindow.fullscreenCoordinates.x
-                posY: contentwindow.fullscreenCoordinates.y
-                width: contentwindow.fullscreenCoordinates.width
-                height: contentwindow.fullscreenCoordinates.height
+                posX: window.fullscreenCoordinates.x
+                posY: window.fullscreenCoordinates.y
+                width: window.fullscreenCoordinates.width
+                height: window.fullscreenCoordinates.height
             }
             PropertyChanges {
                 target: windowRect
@@ -224,13 +224,13 @@ Rectangle {
         },
         State {
             name: "focused"
-            when: contentwindow.focused
+            when: window.focused
             PropertyChanges {
                 target: contentArea
-                posX: contentwindow.focusedCoordinates.x
-                posY: contentwindow.focusedCoordinates.y
-                width: contentwindow.focusedCoordinates.width
-                height: contentwindow.focusedCoordinates.height
+                posX: window.focusedCoordinates.x
+                posY: window.focusedCoordinates.y
+                width: window.focusedCoordinates.width
+                height: window.focusedCoordinates.height
             }
             PropertyChanges {
                 target: windowRect
@@ -240,7 +240,7 @@ Rectangle {
         },
         State {
             name: "selected"
-            when: contentwindow.selected
+            when: window.selected
             PropertyChanges {
                 target: windowRect
                 border.color: Style.windowBorderSelectedColor
@@ -248,7 +248,7 @@ Rectangle {
         },
         State {
             name: "moving"
-            when: contentwindow.state === ContentWindow.MOVING
+            when: window.state === Window.MOVING
             PropertyChanges {
                 target: windowRect
                 border.color: Style.windowBorderMovingColor
@@ -256,7 +256,7 @@ Rectangle {
         },
         State {
             name: "resizing"
-            when: contentwindow.state === ContentWindow.RESIZING
+            when: window.state === Window.RESIZING
             PropertyChanges {
                 target: windowRect
                 border.color: Style.windowBorderResizingColor
@@ -264,10 +264,10 @@ Rectangle {
         },
         State {
             name: "hidden"
-            when: contentwindow.state === ContentWindow.HIDDEN
+            when: window.state === Window.HIDDEN
             PropertyChanges {
                 target: contentArea
-                posX: -contentwindow.width
+                posX: -window.width
                 posY: 0.5 * displaygroup.height
                 width: 0
                 height: 0

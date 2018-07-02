@@ -65,7 +65,7 @@ public:
     ~MovieSynchronizer();
 
     /** @copydoc ContentSynchronizer::update */
-    void update(const ContentWindow& window, const QRectF& visibleArea) final;
+    void update(const Window& window, const QRectF& visibleArea) final;
 
     /** @copydoc ContentSynchronizer::updateTiles */
     void updateTiles() final;

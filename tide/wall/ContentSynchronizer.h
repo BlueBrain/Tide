@@ -67,8 +67,7 @@ public:
     virtual ~ContentSynchronizer() = default;
 
     /** Update the Content. */
-    virtual void update(const ContentWindow& window,
-                        const QRectF& visibleArea) = 0;
+    virtual void update(const Window& window, const QRectF& visibleArea) = 0;
 
     /**
      * Update the tiles.

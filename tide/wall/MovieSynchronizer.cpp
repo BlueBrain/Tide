@@ -42,7 +42,7 @@
 #include "MovieUpdater.h"
 #include "Tile.h"
 #include "ZoomHelper.h"
-#include "scene/ContentWindow.h"
+#include "scene/Window.h"
 
 MovieSynchronizer::MovieSynchronizer(std::shared_ptr<MovieUpdater> updater,
                                      const deflect::View view)
@@ -61,8 +61,7 @@ MovieSynchronizer::~MovieSynchronizer()
     _updater->synchronizers.erase(this);
 }
 
-void MovieSynchronizer::update(const ContentWindow& window,
-                               const QRectF& visibleArea)
+void MovieSynchronizer::update(const Window& window, const QRectF& visibleArea)
 {
     if (_updater->isSkipping())
         emit sliderPositionChanged();

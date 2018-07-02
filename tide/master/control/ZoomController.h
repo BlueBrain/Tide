@@ -49,7 +49,7 @@ class ZoomController : public ContentController
 {
 public:
     /** Constructor */
-    ZoomController(ContentWindow& contentWindow);
+    ZoomController(Window& window);
 
     /** Destructor */
     virtual ~ZoomController();

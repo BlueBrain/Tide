@@ -56,7 +56,6 @@ class Surface : public QObject
 public:
     Surface(DisplayGroupPtr group);
     Surface(DisplayGroupPtr group, BackgroundPtr background);
-    Surface() = default; // public for serialization of std::vector<Surface>
 
     DisplayGroup& getGroup();
     const DisplayGroup& getGroup() const;
@@ -81,6 +80,8 @@ signals:
 
 private:
     friend class boost::serialization::access;
+
+    Surface() = default;
 
     /** Serialize for sending to Wall applications. */
     template <class Archive>

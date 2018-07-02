@@ -27,7 +27,7 @@ Item {
                 onClicked: action.trigger()
             }
         }
-        model: contentwindow.content.actions
+        model: window.content.actions
     }
     Slider {
         id: progressBar
@@ -37,14 +37,14 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         enabled: !isWall
         value: isWall ? contentsync.sliderPosition :
-                        contentwindow.content.position / contentwindow.content.duration
+                        window.content.position / window.content.duration
         onValueChanged: {
             if (!isWall)
-                contentwindow.content.position = value * contentwindow.content.duration
+                window.content.position = value * window.content.duration
         }
         onPressedChanged: {
             if (!isWall)
-                contentwindow.content.skipping = pressed
+                window.content.skipping = pressed
         }
         style: SliderStyle {
             groove: Rectangle {
@@ -54,7 +54,7 @@ Item {
             }
             handle: Rectangle {
                 anchors.centerIn: parent
-                color: contentwindow.content.skipping ? Style.highlightColor :
+                color: window.content.skipping ? Style.highlightColor :
                                                         Style.contrastColor
                 implicitWidth: Style.movieControlsHandleDiameter
                 implicitHeight: Style.movieControlsHandleDiameter

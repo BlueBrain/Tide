@@ -2,9 +2,9 @@
     <qresource prefix="/"/>
     <qresource prefix="/qml/master">
         <file>GUIRoot.qml</file>
-        <file>MasterContentWindow.qml</file>
         <file>MasterDisplayGroup.qml</file>
         <file>MasterControlSurface.qml</file>
+        <file>MasterWindow.qml</file>
         <file>OffscreenRoot.qml</file>
     </qresource>
     <qresource prefix="/html">

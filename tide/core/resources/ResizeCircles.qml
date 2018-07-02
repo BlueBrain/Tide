@@ -8,17 +8,17 @@ Rectangle {
 
     property alias delegate: repeater.delegate
 
-    visible: !contentwindow.isPanel
-             && contentwindow.selected
-             && contentwindow.mode === ContentWindow.STANDARD
+    visible: !window.isPanel
+             && window.selected
+             && window.mode === Window.STANDARD
     opacity: Style.resizeCircleOpacity
 
     Repeater {
         id: repeater
-        model: [ContentWindow.TOP_LEFT, ContentWindow.TOP,
-                ContentWindow.TOP_RIGHT, ContentWindow.RIGHT,
-                ContentWindow.BOTTOM_RIGHT, ContentWindow.BOTTOM,
-                ContentWindow.BOTTOM_LEFT, ContentWindow.LEFT]
+        model: [Window.TOP_LEFT, Window.TOP,
+                Window.TOP_RIGHT, Window.RIGHT,
+                Window.BOTTOM_RIGHT, Window.BOTTOM,
+                Window.BOTTOM_LEFT, Window.LEFT]
         delegate: ResizeCircle {
         }
     }

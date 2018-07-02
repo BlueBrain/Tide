@@ -40,7 +40,7 @@
 
 #include "SceneRemoteController.h"
 
-#include "control/ContentWindowController.h"
+#include "control/WindowController.h"
 #include "json/json.h"
 #include "json/serialization.h"
 
@@ -186,7 +186,7 @@ SceneRemoteController::SceneRemoteController(Scene& scene)
                 DisplayGroupController controller{windowAndGroup.second};
                 controller.unfocus(params.id);
             }
-            windowAndGroup.second.removeContentWindow(windowAndGroup.first);
+            windowAndGroup.second.remove(windowAndGroup.first);
             return ok;
         }
         catch (const window_not_found_error&)
@@ -202,7 +202,7 @@ SceneRemoteController::SceneRemoteController(Scene& scene)
             auto& window = windowAndGroup.first;
             auto& group = windowAndGroup.second;
 
-            ContentWindowController(window, group)
+            WindowController(window, group)
                 .moveTo(params.pos, WindowPoint::TOP_LEFT);
             DisplayGroupController{group}.moveWindowToFront(params.id);
             return ok;
@@ -246,7 +246,7 @@ SceneRemoteController::SceneRemoteController(Scene& scene)
             auto& window = windowAndGroup.first;
             auto& group = windowAndGroup.second;
 
-            ContentWindowController(window, group)
+            WindowController(window, group)
                 .resize(params.size, params.fixedPoint);
             DisplayGroupController{group}.moveWindowToFront(params.id);
             return ok;

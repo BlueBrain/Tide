@@ -44,7 +44,7 @@
 
 #include <QQuickItem>
 
-class ContentWindowRenderer;
+class WindowRenderer;
 struct WallRenderContext;
 
 /**
@@ -59,7 +59,7 @@ public:
     ~BackgroundRenderer();
 
 private:
-    std::unique_ptr<ContentWindowRenderer> _renderer;
+    std::unique_ptr<WindowRenderer> _renderer;
 };
 
 #endif

@@ -44,9 +44,9 @@
 #include "log.h"
 #include "network/WallToWallChannel.h"
 #include "scene/Background.h"
-#include "scene/ContentWindow.h"
 #include "scene/MultiChannelContent.h"
 #include "scene/Scene.h"
+#include "scene/Window.h"
 
 #include "BasicSynchronizer.h"
 #include "LodSynchronizer.h"
@@ -87,7 +87,7 @@ std::shared_ptr<typename Map::mapped_type::element_type> _getOrCreate(
 
 template <typename Map>
 std::shared_ptr<typename Map::mapped_type::element_type> _getOrCreate(
-    Map& map, const ContentWindow& window)
+    Map& map, const Window& window)
 {
     const auto& id = window.getID();
     const auto& uri = window.getContent().getURI();
@@ -154,7 +154,7 @@ DataProvider::~DataProvider()
 }
 
 std::unique_ptr<ContentSynchronizer> DataProvider::createSynchronizer(
-    const ContentWindow& window, const deflect::View view)
+    const Window& window, const deflect::View view)
 {
     auto synchronizer = _makeSynchronizer(window, view);
 
@@ -187,7 +187,7 @@ void DataProvider::updateDataSources(const Scene& scene)
 #endif
     }
 
-    for (const auto& window : scene.getContentWindows())
+    for (const auto& window : scene.getWindows())
     {
         const auto& content = window->getContent();
         _updateDataSource(content, window->getID());
@@ -429,7 +429,7 @@ void DataProvider::_handleFinished()
 }
 
 std::unique_ptr<ContentSynchronizer> DataProvider::_makeSynchronizer(
-    const ContentWindow& window, const deflect::View view)
+    const Window& window, const deflect::View view)
 {
     switch (window.getContent().getType())
     {

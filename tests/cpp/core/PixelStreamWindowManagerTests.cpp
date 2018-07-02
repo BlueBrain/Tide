@@ -48,10 +48,10 @@
 #include "config.h"
 #include "control/DisplayGroupController.h"
 #include "control/PixelStreamController.h"
-#include "scene/ContentWindow.h"
 #include "scene/Options.h"
 #include "scene/PixelStreamContent.h"
 #include "scene/Scene.h"
+#include "scene/Window.h"
 
 #include "MinimalGlobalQtApp.h"
 BOOST_GLOBAL_FIXTURE(MinimalGlobalQtApp);
@@ -121,7 +121,7 @@ BOOST_AUTO_TEST_CASE(testNoStreamerWindowCreation)
     const auto& uri = CONTENT_URI;
 
     windowManager.openWindow(0, uri, testWindowSize, testWindowPos);
-    ContentWindowPtr window = windowManager.getWindows(uri)[0];
+    auto window = windowManager.getWindows(uri)[0];
     BOOST_REQUIRE(window);
 
     BOOST_CHECK_EQUAL(window, windowManager.getWindows(uri)[0]);
@@ -164,7 +164,7 @@ BOOST_AUTO_TEST_CASE(testEventReceiver)
     auto scene = Scene::create(wallSize);
     PixelStreamWindowManager windowManager(*scene);
     windowManager.openWindow(0, CONTENT_URI, testWindowSize, testWindowPos);
-    ContentWindowPtr window = windowManager.getWindows(CONTENT_URI)[0];
+    auto window = windowManager.getWindows(CONTENT_URI)[0];
     BOOST_REQUIRE(window);
 
     auto& content = dynamic_cast<PixelStreamContent&>(window->getContent());
@@ -204,11 +204,11 @@ BOOST_AUTO_TEST_CASE(testExplicitWindowCreation)
     const auto& uri = CONTENT_URI;
 
     windowManager.openWindow(0, uri, testWindowSize, testWindowPos);
-    ContentWindowPtr window = windowManager.getWindows(uri)[0];
+    auto window = windowManager.getWindows(uri)[0];
     BOOST_REQUIRE(window);
 
     BOOST_CHECK_EQUAL(window, windowManager.getWindows(uri)[0]);
-    BOOST_CHECK_EQUAL(window, group.getContentWindow(window->getID()));
+    BOOST_CHECK_EQUAL(window, group.getWindow(window->getID()));
 
     windowManager.handleStreamStart(uri);
     BOOST_CHECK_EQUAL(window, windowManager.getWindows(uri)[0]);
@@ -229,7 +229,7 @@ BOOST_AUTO_TEST_CASE(testExplicitWindowCreation)
 
     windowManager.handleStreamEnd(uri);
     BOOST_CHECK(windowManager.getWindows(uri).empty());
-    BOOST_CHECK(!group.getContentWindow(window->getID()));
+    BOOST_CHECK(!group.getWindow(window->getID()));
 }
 
 BOOST_AUTO_TEST_CASE(testImplicitWindowCreation)
@@ -246,7 +246,7 @@ BOOST_AUTO_TEST_CASE(testImplicitWindowCreation)
     windowManager.handleStreamStart(uri);
     BOOST_REQUIRE(windowManager.getWindows(uri).size() == 1);
     auto window = windowManager.getWindows(uri)[0];
-    BOOST_CHECK_EQUAL(window, group.getContentWindow(window->getID()));
+    BOOST_CHECK_EQUAL(window, group.getWindow(window->getID()));
 
     const auto& content = window->getContent();
     BOOST_CHECK(content.getURI() == uri);
@@ -271,7 +271,7 @@ BOOST_AUTO_TEST_CASE(testImplicitWindowCreation)
 
     windowManager.handleStreamEnd(uri);
     BOOST_CHECK(windowManager.getWindows(uri).empty());
-    BOOST_CHECK(!group.getContentWindow(window->getID()));
+    BOOST_CHECK(!group.getWindow(window->getID()));
 }
 
 BOOST_AUTO_TEST_CASE(testSizeHints)
@@ -312,9 +312,9 @@ BOOST_AUTO_TEST_CASE(hideAndShowWindows)
     auto scene = Scene::create(wallSize);
     PixelStreamWindowManager windowManager(*scene);
 
-    const QString uri = CONTENT_URI;
+    const auto uri = CONTENT_URI;
     windowManager.handleStreamStart(uri);
-    ContentWindowPtr window = windowManager.getWindows(uri)[0];
+    auto window = windowManager.getWindows(uri)[0];
 
     BOOST_REQUIRE(window->isHidden());
     BOOST_REQUIRE(!window->isPanel());
@@ -510,22 +510,22 @@ BOOST_FIXTURE_TEST_CASE(display_local_stream_on_secondary_surfaces,
 
     windowManager.openWindow(1, webbrowserUri, testFrameSize, QPointF(), type);
 
-    BOOST_REQUIRE(group0->getContentWindows().empty());
-    BOOST_REQUIRE(group1->getContentWindows().size() == 1);
-    BOOST_REQUIRE(group2->getContentWindows().empty());
+    BOOST_REQUIRE(group0->getWindows().empty());
+    BOOST_REQUIRE(group1->getWindows().size() == 1);
+    BOOST_REQUIRE(group2->getWindows().empty());
     const auto whiteboardUri = "Whiteboard_0";
 
     windowManager.openWindow(2, whiteboardUri, testFrameSize, QPointF(),
                              StreamType::WHITEBOARD);
 
-    BOOST_REQUIRE(group0->getContentWindows().empty());
-    BOOST_REQUIRE(group1->getContentWindows().size() == 1);
-    BOOST_REQUIRE(group2->getContentWindows().size() == 1);
+    BOOST_REQUIRE(group0->getWindows().empty());
+    BOOST_REQUIRE(group1->getWindows().size() == 1);
+    BOOST_REQUIRE(group2->getWindows().size() == 1);
 
-    BOOST_CHECK_EQUAL(group1->getContentWindows()[0].get(),
+    BOOST_CHECK_EQUAL(group1->getWindows()[0].get(),
                       windowManager.getWindows(webbrowserUri).at(0).get());
 
-    BOOST_CHECK_EQUAL(group2->getContentWindows()[0].get(),
+    BOOST_CHECK_EQUAL(group2->getWindows()[0].get(),
                       windowManager.getWindows(whiteboardUri).at(0).get());
 
     windowManager.updateStreamWindows(
@@ -533,9 +533,9 @@ BOOST_FIXTURE_TEST_CASE(display_local_stream_on_secondary_surfaces,
     windowManager.updateStreamWindows(
         createTestFrame(testFrameSize, whiteboardUri));
 
-    BOOST_CHECK(group0->getContentWindows().empty());
-    BOOST_CHECK(group1->getContentWindows().size() == 1);
-    BOOST_CHECK(group2->getContentWindows().size() == 1);
+    BOOST_CHECK(group0->getWindows().empty());
+    BOOST_CHECK(group1->getWindows().size() == 1);
+    BOOST_CHECK(group2->getWindows().size() == 1);
 
     BOOST_CHECK(!externalStreamsOpened);
 }
@@ -545,21 +545,21 @@ BOOST_FIXTURE_TEST_CASE(multi_channel_stream_opens_on_multiple_surfaces,
 {
     windowManager.handleStreamStart(CONTENT_URI);
 
-    BOOST_REQUIRE(group0->getContentWindows().size() == 1);
-    BOOST_CHECK(group1->getContentWindows().empty());
-    BOOST_CHECK(group2->getContentWindows().empty());
+    BOOST_REQUIRE(group0->getWindows().size() == 1);
+    BOOST_CHECK(group1->getWindows().empty());
+    BOOST_CHECK(group2->getWindows().empty());
 
     const auto frame = createTestFrame(testFrameSize, testFrameSize2);
     windowManager.updateStreamWindows(frame);
 
     BOOST_CHECK_EQUAL(externalStreamsOpened, 1);
 
-    BOOST_REQUIRE(group0->getContentWindows().size() == 1);
-    BOOST_REQUIRE(group1->getContentWindows().size() == 1);
-    BOOST_CHECK(group2->getContentWindows().empty());
+    BOOST_REQUIRE(group0->getWindows().size() == 1);
+    BOOST_REQUIRE(group1->getWindows().size() == 1);
+    BOOST_CHECK(group2->getWindows().empty());
 
-    const auto& window0 = *group0->getContentWindows()[0];
-    const auto& window1 = *group1->getContentWindows()[0];
+    const auto& window0 = *group0->getWindows()[0];
+    const auto& window1 = *group1->getWindows()[0];
     const auto& c0 = window0.getContent();
     const auto& c1 = window1.getContent();
     const auto& content0 = dynamic_cast<const PixelStreamContent&>(c0);
@@ -585,9 +585,9 @@ BOOST_FIXTURE_TEST_CASE(multi_channel_stream_opens_on_multiple_surfaces,
     // New frame updates the size of the first window and closes the second
     windowManager.updateStreamWindows(createTestFrame(testFrameSize2));
 
-    BOOST_REQUIRE(group0->getContentWindows().size() == 1);
-    BOOST_CHECK(group1->getContentWindows().empty());
-    BOOST_CHECK(group2->getContentWindows().empty());
+    BOOST_REQUIRE(group0->getWindows().size() == 1);
+    BOOST_CHECK(group1->getWindows().empty());
+    BOOST_CHECK(group2->getWindows().empty());
 
     BOOST_CHECK_EQUAL(content0.getURI(), CONTENT_URI);
     BOOST_CHECK_EQUAL(content0.getChannel(), 0);
@@ -595,9 +595,9 @@ BOOST_FIXTURE_TEST_CASE(multi_channel_stream_opens_on_multiple_surfaces,
 
     windowManager.handleStreamEnd(CONTENT_URI);
 
-    BOOST_CHECK(group0->getContentWindows().empty());
-    BOOST_CHECK(group1->getContentWindows().empty());
-    BOOST_CHECK(group2->getContentWindows().empty());
+    BOOST_CHECK(group0->getWindows().empty());
+    BOOST_CHECK(group1->getWindows().empty());
+    BOOST_CHECK(group2->getWindows().empty());
 }
 
 BOOST_FIXTURE_TEST_CASE(multi_channel_stream_goes_fullscreen_on_all_surfaces,
@@ -608,11 +608,11 @@ BOOST_FIXTURE_TEST_CASE(multi_channel_stream_goes_fullscreen_on_all_surfaces,
     windowManager.updateStreamWindows(frame);
     windowManager.showWindows(CONTENT_URI);
 
-    BOOST_REQUIRE(group0->getContentWindows().size() == 1);
-    BOOST_REQUIRE(group1->getContentWindows().size() == 1);
+    BOOST_REQUIRE(group0->getWindows().size() == 1);
+    BOOST_REQUIRE(group1->getWindows().size() == 1);
 
-    const auto& window0 = *group0->getContentWindows()[0];
-    const auto& window1 = *group1->getContentWindows()[0];
+    const auto& window0 = *group0->getWindows()[0];
+    const auto& window1 = *group1->getWindows()[0];
 
     DisplayGroupController{*group0}.showFullscreen(window0.getID());
     BOOST_CHECK(window0.isFullscreen());
@@ -631,11 +631,11 @@ BOOST_FIXTURE_TEST_CASE(multi_channel_stream_closes_on_all_surfaces,
     windowManager.updateStreamWindows(frame);
     windowManager.showWindows(CONTENT_URI);
 
-    BOOST_REQUIRE(group1->getContentWindows().size() == 1);
+    BOOST_REQUIRE(group1->getWindows().size() == 1);
 
-    const auto& window1 = *group1->getContentWindows()[0];
+    const auto& window1 = *group1->getWindows()[0];
     DisplayGroupController{*group1}.remove(window1.getID());
 
-    BOOST_CHECK(group0->getContentWindows().empty());
-    BOOST_CHECK(group1->getContentWindows().empty());
+    BOOST_CHECK(group0->getWindows().empty());
+    BOOST_CHECK(group1->getWindows().empty());
 }

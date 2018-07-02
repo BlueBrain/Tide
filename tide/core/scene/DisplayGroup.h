@@ -42,8 +42,8 @@
 #ifndef DISPLAYGROUP_H
 #define DISPLAYGROUP_H
 
-#include "ContentWindow.h" // member, needed for serialization
-#include "Rectangle.h"     // Base class
+#include "Rectangle.h" // Base class
+#include "Window.h"    // member, needed for serialization
 #include "serialization/includes.h"
 #include "types.h"
 
@@ -59,7 +59,7 @@ enum DisplayGroupVersion
 };
 
 /**
- * A collection of ContentWindows.
+ * A collection of Windows.
  *
  * Can be serialized and distributed to the Wall applications.
  */
@@ -73,7 +73,7 @@ class DisplayGroup : public Rectangle,
                    hasFocusedWindowsChanged)
     Q_PROPERTY(bool hasFullscreenWindows READ hasFullscreenWindows NOTIFY
                    hasFullscreenWindowsChanged)
-    Q_PROPERTY(ContentWindow* fullscreenWindow READ getFullscreenWindow NOTIFY
+    Q_PROPERTY(Window* fullscreenWindow READ getFullscreenWindow NOTIFY
                    hasFullscreenWindowsChanged)
     Q_PROPERTY(bool hasVisiblePanels READ hasVisiblePanels NOTIFY
                    hasVisiblePanelsChanged)
@@ -81,47 +81,44 @@ class DisplayGroup : public Rectangle,
 public:
     static DisplayGroupPtr create(const QSizeF& size);
 
-    /** Constructor (deprecated, use create instead). */
-    DisplayGroup(const QSizeF& size);
-
     /** Destructor */
     virtual ~DisplayGroup();
 
-    /** Add a content window. */
-    void addContentWindow(ContentWindowPtr window);
+    /** Add a window. */
+    void add(WindowPtr window);
 
-    /** Remove a content window. */
-    Q_INVOKABLE void removeContentWindow(ContentWindowPtr window);
+    /** Remove a window. */
+    Q_INVOKABLE void remove(WindowPtr window);
 
-    /** Move a content window to the front. */
-    void moveToFront(ContentWindowPtr window);
+    /** Move a window to the front. */
+    void moveToFront(WindowPtr window);
 
-    /**
-     * Is the DisplayGroup empty.
-     * @return true if the DisplayGroup has no ContentWindow, false otherwise.
-     */
+    /** @return true if the DisplayGroup has no windows, false otherwise. */
     bool isEmpty() const;
 
     /** Get all windows. */
-    const ContentWindowPtrs& getContentWindows() const;
+    const WindowPtrs& getWindows() const;
 
     /** Get a single window by its id. */
-    ContentWindowPtr getContentWindow(const QUuid& id) const;
+    WindowPtr getWindow(const QUuid& id) const;
+
+    /** Find a single window based on its filename. */
+    WindowPtr findWindow(const QString& filename) const;
 
     /**
-     * Replace the content windows.
+     * Replace the windows by a new list.
      * @param windows the list of windows to set.
      */
-    void setContentWindows(ContentWindowPtrs windows);
+    void replaceWindows(WindowPtrs windows);
 
-    /** Clear all ContentWindows. */
+    /** Remove all windows. */
     void clear();
 
     /**
-     * Get the z index of a window
-     * @param id of a window which is part of the DisplayGroup
+     * Get the z index of a window.
+     * @param id of a window which is part of the DisplayGroup.
      * @return the z index of the window, or -1 if it is not part of the
-     *         DisplayGroup
+     *         DisplayGroup.
      */
     int getZindex(const QUuid& id) const;
 
@@ -135,22 +132,22 @@ public:
     bool hasVisiblePanels() const;
 
     /** Get the fullscreen window (if any). */
-    ContentWindow* getFullscreenWindow() const;
+    Window* getFullscreenWindow() const;
 
     /** Set the fullscreen window. */
-    void setFullscreenWindow(ContentWindowPtr window);
+    void setFullscreenWindow(WindowPtr window);
 
     /** Get the set of focused windows. */
-    const ContentWindowSet& getFocusedWindows() const;
+    const WindowSet& getFocusedWindows() const;
 
     /** Add a window to the set of focused windows. */
-    void addFocusedWindow(ContentWindowPtr window);
+    void addFocusedWindow(WindowPtr window);
 
     /** Remove a window from the set of focused windows. */
-    void removeFocusedWindow(ContentWindowPtr window);
+    void removeFocusedWindow(WindowPtr window);
 
     /** Get the set of panels. */
-    const ContentWindowSet& getPanels() const;
+    const WindowSet& getPanels() const;
 
     /**
      * Move this object and its member QObjects to the given QThread.
@@ -167,13 +164,13 @@ signals:
     void modified(DisplayGroupPtr displayGroup);
 
     /** Emitted when a content window is added. */
-    void contentWindowAdded(ContentWindowPtr contentWindow);
+    void windowAdded(WindowPtr window);
 
     /** Emitted when a content window is removed. */
-    void contentWindowRemoved(ContentWindowPtr contentWindow);
+    void windowRemoved(WindowPtr window);
 
     /** Emitted when a content window is moved to the front. */
-    void contentWindowMovedToFront(ContentWindowPtr contentWindow);
+    void windowMovedToFront(WindowPtr window);
 
     /** @name QProperty notifiers */
     //@{
@@ -191,14 +188,16 @@ private:
     friend class boost::serialization::access;
 
     /** No-argument constructor required for serialization. */
-    DisplayGroup();
+    DisplayGroup() = default;
+
+    DisplayGroup(const QSizeF& size);
 
     template <class Archive>
     void serialize(Archive& ar, const unsigned int)
     {
         // clang-format off
         ar & _coordinates;
-        ar & _contentWindows;
+        ar & _windows;
         ar & _focusedWindows;
         ar & _fullscreenWindow;
         ar & _panels;
@@ -217,7 +216,7 @@ private:
             bool _titles = true;
             ar & boost::serialization::make_nvp("showWindowTitles", _titles);
         }
-        ar & boost::serialization::make_nvp("contentWindows", _contentWindows);
+        ar & boost::serialization::make_nvp("contentWindows", _windows);
         ar & boost::serialization::make_nvp("coordinates", _coordinates);
         // clang-format on
     }
@@ -227,14 +226,14 @@ private:
                            const unsigned int version)
     {
         serialize_members_xml(ar, version);
-        for (const auto& window : _contentWindows)
+        for (const auto& window : _windows)
         {
             if (window->isFocused())
                 _focusedWindows.insert(window);
             if (window->isPanel())
                 _panels.insert(window);
             // Make sure windows are not in an undefined state
-            window->setState(ContentWindow::NONE);
+            window->setState(Window::NONE);
         }
     }
 
@@ -246,12 +245,12 @@ private:
     }
 
     void _sendDisplayGroup();
-    void _watchChanges(ContentWindow& window);
+    void _watchChanges(Window& window);
 
-    ContentWindowPtrs _contentWindows;
-    ContentWindowSet _focusedWindows;
-    ContentWindowPtr _fullscreenWindow;
-    ContentWindowSet _panels;
+    WindowPtrs _windows;
+    WindowSet _focusedWindows;
+    WindowPtr _fullscreenWindow;
+    WindowSet _panels;
 };
 
 BOOST_CLASS_VERSION(DisplayGroup, FIRST_DISPLAYGROUP_VERSION)

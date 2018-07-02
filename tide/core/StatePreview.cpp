@@ -42,7 +42,7 @@
 #include <QRectF>
 
 #include "log.h"
-#include "scene/ContentWindow.h"
+#include "scene/Window.h"
 #include "thumbnail/thumbnail.h"
 
 #include <QFileInfo>
@@ -88,7 +88,7 @@ QString StatePreview::previewFilename() const
 }
 
 void StatePreview::generateImage(const QSize& wallDimensions,
-                                 const ContentWindowPtrs& contentWindows)
+                                 const WindowPtrs& windows)
 {
     const auto previewDimension =
         wallDimensions.scaled(PREVIEW_IMAGE_SIZE, Qt::KeepAspectRatio);
@@ -98,7 +98,7 @@ void StatePreview::generateImage(const QSize& wallDimensions,
 
     // Paint all Contents at their correct location
     QPainter painter{&preview};
-    for (const auto& window : contentWindows)
+    for (const auto& window : windows)
     {
         const auto ratio =
             (qreal)previewDimension.width() / (qreal)wallDimensions.width();

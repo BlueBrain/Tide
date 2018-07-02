@@ -63,10 +63,10 @@ public:
     LayoutPolicy(const DisplayGroup& group);
 
     /** @return the focused coordinates for the window. */
-    virtual QRectF getFocusedCoord(const ContentWindow& window) const = 0;
+    virtual QRectF getFocusedCoord(const Window& window) const = 0;
 
     /** Update the focused coordinates for the set of windows. */
-    virtual void updateFocusedCoord(const ContentWindowSet& windows) const = 0;
+    virtual void updateFocusedCoord(const WindowSet& windows) const = 0;
     virtual ~LayoutPolicy(){};
 
 protected:

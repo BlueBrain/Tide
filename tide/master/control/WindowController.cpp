@@ -38,12 +38,12 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "ContentWindowController.h"
+#include "WindowController.h"
 
 #include "ZoomController.h"
 #include "geometry.h"
-#include "scene/ContentWindow.h"
 #include "scene/DisplayGroup.h"
+#include "scene/Window.h"
 
 #include <cmath>
 
@@ -56,19 +56,17 @@ const qreal FITTING_SIZE_SCALE = 0.9;
 const qreal ONE_PERCENT = 0.01;
 }
 
-ContentWindowController::ContentWindowController(ContentWindow& contentWindow,
-                                                 const DisplayGroup& group,
-                                                 Coordinates target)
-    : _contentWindow(contentWindow)
+WindowController::WindowController(Window& window, const DisplayGroup& group,
+                                   const Coordinates target)
+    : _window(window)
     , _displayGroup(group)
     , _target(target)
 {
 }
 
-void ContentWindowController::resize(const QSizeF size,
-                                     const WindowPoint fixedPoint)
+void WindowController::resize(const QSizeF size, const WindowPoint fixedPoint)
 {
-    QSizeF newSize(_contentWindow.getContent().getDimensions());
+    QSizeF newSize(_window.getContent().getDimensions());
     if (newSize.isEmpty())
         newSize = size;
     else
@@ -85,49 +83,49 @@ void ContentWindowController::resize(const QSizeF size,
     }
 }
 
-void ContentWindowController::resizeRelative(const QPointF& delta)
+void WindowController::resizeRelative(const QPointF& delta)
 {
     const QRectF& coord = _getCoordinates();
 
     QPointF fixedPoint;
     QSizeF newSize = coord.size();
 
-    switch (_contentWindow.getActiveHandle())
+    switch (_window.getActiveHandle())
     {
-    case ContentWindow::TOP:
+    case Window::TOP:
         fixedPoint =
             QPointF(coord.left() + coord.width() * 0.5, coord.bottom());
         newSize += QSizeF(0, -delta.y());
         break;
-    case ContentWindow::RIGHT:
+    case Window::RIGHT:
         fixedPoint = QPointF(coord.left(), coord.top() + coord.height() * 0.5);
         newSize += QSizeF(delta.x(), 0);
         break;
-    case ContentWindow::BOTTOM:
+    case Window::BOTTOM:
         fixedPoint = QPointF(coord.left() + coord.width() * 0.5, coord.top());
         newSize += QSizeF(0, delta.y());
         break;
-    case ContentWindow::LEFT:
+    case Window::LEFT:
         fixedPoint = QPointF(coord.right(), coord.top() + coord.height() * 0.5);
         newSize += QSizeF(-delta.x(), 0);
         break;
-    case ContentWindow::TOP_LEFT:
+    case Window::TOP_LEFT:
         fixedPoint = coord.bottomRight();
         newSize += QSizeF(-delta.x(), -delta.y());
         break;
-    case ContentWindow::BOTTOM_LEFT:
+    case Window::BOTTOM_LEFT:
         fixedPoint = coord.topRight();
         newSize += QSizeF(-delta.x(), delta.y());
         break;
-    case ContentWindow::TOP_RIGHT:
+    case Window::TOP_RIGHT:
         fixedPoint = coord.bottomLeft();
         newSize += QSizeF(delta.x(), -delta.y());
         break;
-    case ContentWindow::BOTTOM_RIGHT:
+    case Window::BOTTOM_RIGHT:
         fixedPoint = coord.topLeft();
         newSize += QSizeF(delta.x(), delta.y());
         break;
-    case ContentWindow::NOHANDLE:
+    case Window::NOHANDLE:
     default:
         return;
     }
@@ -135,9 +133,9 @@ void ContentWindowController::resizeRelative(const QPointF& delta)
     // Resizing from one of the corners modifies the aspect ratio.
     // Resizing from one of the sides borders tend to let the window snap back
     // to its content's aspect ratio.
-    if (_contentWindow.getResizePolicy() == ContentWindow::KEEP_ASPECT_RATIO)
+    if (_window.getResizePolicy() == Window::KEEP_ASPECT_RATIO)
     {
-        if (_contentWindow.getContent().getZoomRect() == UNIT_RECTF)
+        if (_window.getContent().getZoomRect() == UNIT_RECTF)
             _constrainAspectRatio(newSize);
         if (_isCloseToContentAspectRatio(newSize))
             _snapToContentAspectRatio(newSize);
@@ -146,8 +144,7 @@ void ContentWindowController::resizeRelative(const QPointF& delta)
     _resize(fixedPoint, newSize);
 }
 
-void ContentWindowController::scale(const QPointF& center,
-                                    const double pixelDelta)
+void WindowController::scale(const QPointF& center, const double pixelDelta)
 {
     QSizeF newSize = _getCoordinates().size();
     newSize.scale(newSize.width() + pixelDelta, newSize.height() + pixelDelta,
@@ -156,19 +153,18 @@ void ContentWindowController::scale(const QPointF& center,
     _resize(center, newSize);
 }
 
-void ContentWindowController::adjustSize(const SizeState state)
+void WindowController::adjustSize(const SizeState state)
 {
     switch (state)
     {
     case SIZE_1TO1:
-        resize(_contentWindow.getContent().getPreferredDimensions(), CENTER);
+        resize(_window.getContent().getPreferredDimensions(), CENTER);
         break;
 
     case SIZE_1TO1_FITTING:
     {
         const QSizeF max = _displayGroup.size() * FITTING_SIZE_SCALE;
-        const QSize oneToOne =
-            _contentWindow.getContent().getPreferredDimensions();
+        const QSize oneToOne = _window.getContent().getPreferredDimensions();
         if (oneToOne.width() > max.width() || oneToOne.height() > max.height())
             resize(max, CENTER);
         else
@@ -182,7 +178,7 @@ void ContentWindowController::adjustSize(const SizeState state)
 
     case SIZE_FULLSCREEN:
     {
-        auto& content = _contentWindow.getContent();
+        auto& content = _window.getContent();
         content.resetZoom();
 
         auto size = geometry::getAdjustedSize(content, _displayGroup);
@@ -193,7 +189,7 @@ void ContentWindowController::adjustSize(const SizeState state)
 
     case SIZE_FULLSCREEN_MAX:
     {
-        auto& content = _contentWindow.getContent();
+        auto& content = _window.getContent();
         content.resetZoom();
 
         auto size = geometry::getExpandedSize(content, _displayGroup);
@@ -204,7 +200,7 @@ void ContentWindowController::adjustSize(const SizeState state)
 
     case SIZE_FULLSCREEN_1TO1:
     {
-        auto& content = _contentWindow.getContent();
+        auto& content = _window.getContent();
         content.resetZoom();
 
         auto size = QSizeF{content.getPreferredDimensions()};
@@ -218,7 +214,7 @@ void ContentWindowController::adjustSize(const SizeState state)
     }
 }
 
-void ContentWindowController::toogleFullscreenMaxSize()
+void WindowController::toogleFullscreenMaxSize()
 {
     if (!_targetIsFullscreen())
         return;
@@ -230,8 +226,7 @@ void ContentWindowController::toogleFullscreenMaxSize()
         adjustSize(SizeState::SIZE_FULLSCREEN_MAX);
 }
 
-void ContentWindowController::moveTo(const QPointF& position,
-                                     const WindowPoint handle)
+void WindowController::moveTo(const QPointF& position, const WindowPoint handle)
 {
     auto coordinates = _getCoordinates();
     switch (handle)
@@ -250,22 +245,21 @@ void ContentWindowController::moveTo(const QPointF& position,
     _apply(coordinates);
 }
 
-void ContentWindowController::moveBy(const QPointF& delta)
+void WindowController::moveBy(const QPointF& delta)
 {
     moveTo(_getCoordinates().topLeft() + delta);
 }
 
-QSizeF ContentWindowController::getMinSize() const
+QSizeF WindowController::getMinSize() const
 {
     const QSizeF wallSize = _displayGroup.size();
     if (_targetIsFullscreen())
     {
-        const QSizeF contentSize = _contentWindow.getContent().getDimensions();
+        const QSizeF contentSize = _window.getContent().getDimensions();
         return contentSize.scaled(wallSize, Qt::KeepAspectRatio);
     }
 
-    const QSizeF minContentSize =
-        _contentWindow.getContent().getMinDimensions();
+    const QSizeF minContentSize = _window.getContent().getMinDimensions();
     const QSizeF minSize(std::max(MIN_SIZE * wallSize.width(),
                                   MIN_VISIBLE_AREA_PX),
                          std::max(MIN_SIZE * wallSize.height(),
@@ -273,10 +267,9 @@ QSizeF ContentWindowController::getMinSize() const
     return std::max(minContentSize, minSize);
 }
 
-QSizeF ContentWindowController::getMinSizeAspectRatioCorrect() const
+QSizeF WindowController::getMinSizeAspectRatioCorrect() const
 {
-    const qreal contentAspectRatio =
-        _contentWindow.getContent().getAspectRatio();
+    const qreal contentAspectRatio = _window.getContent().getAspectRatio();
     const auto min = getMinSize();
     const auto max = getMaxSize();
     const auto aspectRatioCorrectSize = QSizeF(contentAspectRatio, 1.0);
@@ -285,21 +278,21 @@ QSizeF ContentWindowController::getMinSizeAspectRatioCorrect() const
     return aspectRatioCorrectSize.scaled(min, Qt::KeepAspectRatioByExpanding);
 }
 
-QSizeF ContentWindowController::getMaxSize() const
+QSizeF WindowController::getMaxSize() const
 {
-    const QRectF& zoomRect = _contentWindow.getContent().getZoomRect();
-    QSizeF maxSize = _contentWindow.getContent().getMaxDimensions();
+    const QRectF& zoomRect = _window.getContent().getZoomRect();
+    QSizeF maxSize = _window.getContent().getMaxDimensions();
     maxSize.rwidth() *= zoomRect.size().width();
     maxSize.rheight() *= zoomRect.size().height();
     return maxSize;
 }
 
-void ContentWindowController::constrainSize(QSizeF& windowSize) const
+void WindowController::constrainSize(QSizeF& windowSize) const
 {
     windowSize = geometry::constrain(windowSize, getMinSize(), getMaxSize());
 }
 
-void ContentWindowController::_resize(const QPointF& center, QSizeF size)
+void WindowController::_resize(const QPointF& center, QSizeF size)
 {
     constrainSize(size);
 
@@ -309,13 +302,13 @@ void ContentWindowController::_resize(const QPointF& center, QSizeF size)
 
     _apply(coordinates);
 
-    auto controller = ContentController::create(_contentWindow);
+    auto controller = ContentController::create(_window);
     auto zoomController = dynamic_cast<ZoomController*>(controller.get());
     if (zoomController)
         zoomController->adjustZoomToContentAspectRatio();
 }
 
-void ContentWindowController::_constrainAspectRatio(QSizeF& windowSize) const
+void WindowController::_constrainAspectRatio(QSizeF& windowSize) const
 {
     const QSizeF currentSize = _getCoordinates().size();
     const auto mode = windowSize < currentSize ? Qt::KeepAspectRatio
@@ -323,25 +316,24 @@ void ContentWindowController::_constrainAspectRatio(QSizeF& windowSize) const
     windowSize = currentSize.scaled(windowSize, mode);
 }
 
-bool ContentWindowController::_isCloseToContentAspectRatio(
+bool WindowController::_isCloseToContentAspectRatio(
     const QSizeF& windowSize) const
 {
     const qreal windowAR = windowSize.width() / windowSize.height();
-    const qreal contentAR = _contentWindow.getContent().getAspectRatio();
+    const qreal contentAR = _window.getContent().getAspectRatio();
 
     return std::fabs(windowAR - contentAR) < ONE_PERCENT;
 }
 
-void ContentWindowController::_snapToContentAspectRatio(
-    QSizeF& windowSize) const
+void WindowController::_snapToContentAspectRatio(QSizeF& windowSize) const
 {
-    const QSizeF contentSize(_contentWindow.getContent().getDimensions());
+    const QSizeF contentSize(_window.getContent().getDimensions());
     const auto mode = windowSize < contentSize ? Qt::KeepAspectRatio
                                                : Qt::KeepAspectRatioByExpanding;
     windowSize = contentSize.scaled(windowSize, mode);
 }
 
-void ContentWindowController::_constrainPosition(QRectF& window) const
+void WindowController::_constrainPosition(QRectF& window) const
 {
     const QRectF& group = _displayGroup.getCoordinates();
 
@@ -371,8 +363,7 @@ void ContentWindowController::_constrainPosition(QRectF& window) const
                         std::max(minY, std::min(window.y(), maxY))});
 }
 
-QRectF ContentWindowController::_getCenteredCoordinates(
-    const QSizeF& size) const
+QRectF WindowController::_getCenteredCoordinates(const QSizeF& size) const
 {
     const QRectF& group = _displayGroup.getCoordinates();
 
@@ -382,43 +373,43 @@ QRectF ContentWindowController::_getCenteredCoordinates(
     return coord;
 }
 
-bool ContentWindowController::_targetIsFullscreen() const
+bool WindowController::_targetIsFullscreen() const
 {
     return _target == Coordinates::FULLSCREEN ||
-           (_target == Coordinates::AUTO && _contentWindow.isFullscreen());
+           (_target == Coordinates::AUTO && _window.isFullscreen());
 }
 
-const QRectF& ContentWindowController::_getCoordinates() const
+const QRectF& WindowController::_getCoordinates() const
 {
     switch (_target)
     {
-    case ContentWindowController::Coordinates::STANDARD:
-        return _contentWindow.getCoordinates();
-    case ContentWindowController::Coordinates::FOCUSED:
-        return _contentWindow.getFocusedCoordinates();
-    case ContentWindowController::Coordinates::FULLSCREEN:
-        return _contentWindow.getFullscreenCoordinates();
-    case ContentWindowController::Coordinates::AUTO:
+    case WindowController::Coordinates::STANDARD:
+        return _window.getCoordinates();
+    case WindowController::Coordinates::FOCUSED:
+        return _window.getFocusedCoordinates();
+    case WindowController::Coordinates::FULLSCREEN:
+        return _window.getFullscreenCoordinates();
+    case WindowController::Coordinates::AUTO:
     default:
-        return _contentWindow.getDisplayCoordinates();
+        return _window.getDisplayCoordinates();
     }
 }
 
-void ContentWindowController::_apply(const QRectF& coordinates)
+void WindowController::_apply(const QRectF& coordinates)
 {
     switch (_target)
     {
-    case ContentWindowController::Coordinates::STANDARD:
-        _contentWindow.setCoordinates(coordinates);
+    case WindowController::Coordinates::STANDARD:
+        _window.setCoordinates(coordinates);
         break;
-    case ContentWindowController::Coordinates::FOCUSED:
-        _contentWindow.setFocusedCoordinates(coordinates);
+    case WindowController::Coordinates::FOCUSED:
+        _window.setFocusedCoordinates(coordinates);
         break;
-    case ContentWindowController::Coordinates::FULLSCREEN:
-        _contentWindow.setFullscreenCoordinates(coordinates);
+    case WindowController::Coordinates::FULLSCREEN:
+        _window.setFullscreenCoordinates(coordinates);
         break;
-    case ContentWindowController::Coordinates::AUTO:
-        _contentWindow.setDisplayCoordinates(coordinates);
+    case WindowController::Coordinates::AUTO:
+        _window.setDisplayCoordinates(coordinates);
         break;
     }
 }

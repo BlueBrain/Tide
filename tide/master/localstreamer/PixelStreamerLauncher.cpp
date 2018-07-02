@@ -47,7 +47,7 @@
 #include "configuration/Configuration.h"
 #include "log.h"
 #include "scene/ContentType.h"
-#include "scene/ContentWindow.h"
+#include "scene/Window.h"
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
 #include "scene/WebbrowserContent.h"
 #endif

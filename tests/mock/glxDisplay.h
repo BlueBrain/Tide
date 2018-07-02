@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -40,29 +40,6 @@
 #ifndef GLXDISPLAY_H
 #define GLXDISPLAY_H
 
-#ifdef __linux__
-
-#include <X11/Xlib.h>
-
-bool hasGLXDisplay()
-{
-    Display* display = XOpenDisplay(0);
-    if (!display)
-        return false;
-    int major, event, error;
-    const bool hasGLX = XQueryExtension(display, "GLX", &major, &event, &error);
-    XCloseDisplay(display);
-    return hasGLX;
-}
-
-#else
-
-// On other plateforms, ignore this test
-bool hasGLXDisplay()
-{
-    return true;
-}
-
-#endif
+bool hasGLXDisplay();
 
 #endif

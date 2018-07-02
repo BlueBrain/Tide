@@ -95,15 +95,15 @@ public:
 public slots:
     /** Log the event, update the counters and update the timestamp of last
      * interaction */
-    void logContentWindowAdded(ContentWindowPtr contentWindow);
+    void logWindowAdded(WindowPtr window);
 
     /** Log the event, update the counters and update the timestamp of last
      * interaction */
-    void logContentWindowMovedToFront();
+    void logWindowMovedToFront();
 
     /** Log the event, update the counters and update the timestamp of last
      * interaction */
-    void logContentWindowRemoved();
+    void logWindowRemoved();
 
     /** Log the event and update the timestamp of last power action */
     void logScreenStateChanged(ScreenState state);

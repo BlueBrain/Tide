@@ -19,13 +19,13 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   control/CanvasNode.h
   control/CanvasTree.h
   control/ContentController.h
-  control/ContentWindowController.h
   control/DisplayGroupController.h
   control/LayoutEngine.h
   control/LayoutPolicy.h
   control/MultiChannelWindowController.h
   control/PixelStreamController.h
   control/SceneController.h
+  control/WindowController.h
   control/ZoomController.h
   FileInfoHelper.h
   InactivityTimer.h
@@ -56,10 +56,9 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   State.h
   StateSerializationHelper.h
   ui/BackgroundWidget.h
-  ui/ContentWindowListWidgetItem.h
   ui/DisplayGroupListWidget.h
   ui/MasterQuickView.h
-  ui/BackgroundWidget.h
+  ui/WindowListWidgetItem.h
   ui/MasterWindow.h
 )
 
@@ -70,13 +69,13 @@ list(APPEND TIDEMASTER_SOURCES
   control/CanvasNode.cpp
   control/CanvasTree.cpp
   control/ContentController.cpp
-  control/ContentWindowController.cpp
   control/DisplayGroupController.cpp
   control/LayoutEngine.cpp
   control/LayoutPolicy.cpp
   control/MultiChannelWindowController.cpp
   control/PixelStreamController.cpp
   control/SceneController.cpp
+  control/WindowController.cpp
   control/ZoomController.cpp
   InactivityTimer.cpp
   localstreamer/HtmlSelectReplacer.cpp
@@ -106,10 +105,10 @@ list(APPEND TIDEMASTER_SOURCES
   StateSerializationHelper.cpp
   resources/master.qrc
   ui/BackgroundWidget.cpp
-  ui/ContentWindowListWidgetItem.cpp
   ui/DisplayGroupListWidget.cpp
   ui/MasterQuickView.cpp
   ui/MasterWindow.cpp
+  ui/WindowListWidgetItem.cpp
 )
 
 if(TIDE_ENABLE_WEBBROWSER_SUPPORT)

@@ -56,8 +56,7 @@ public:
     ~LodSynchronizer();
 
     /** @copydoc ContentSynchronizer::update */
-    void update(const ContentWindow& window,
-                const QRectF& visibleArea) override;
+    void update(const Window& window, const QRectF& visibleArea) override;
 
     /** @copydoc ContentSynchronizer::updateTiles */
     void updateTiles() override;
@@ -83,7 +82,7 @@ protected:
      * @param forceUpdate the tiles, e.g. if the source has changed (pdf page).
      * @param backgroundTileId to use as background tile to smooth LOD change.
      */
-    void update(const ContentWindow& window, const QRectF& visibleArea,
+    void update(const Window& window, const QRectF& visibleArea,
                 bool forceUpdate, int backgroundTileId);
 
     /** @copydoc ContentSynchronizer::getDataSource */

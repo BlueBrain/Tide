@@ -56,7 +56,7 @@ BasicSynchronizer::~BasicSynchronizer()
     _dataSource->synchronizers.erase(this);
 }
 
-void BasicSynchronizer::update(const ContentWindow& /*window*/,
+void BasicSynchronizer::update(const Window& /*window*/,
                                const QRectF& visibleArea)
 {
     if (!_tileAdded && !visibleArea.isEmpty())

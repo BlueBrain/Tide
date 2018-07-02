@@ -53,7 +53,7 @@ class PixelStreamController : public ContentController
 
 public:
     /** Constructor */
-    explicit PixelStreamController(ContentWindow& contentWindow);
+    explicit PixelStreamController(Window& window);
 
     /** @name Touch gesture handlers. */
     //@{
