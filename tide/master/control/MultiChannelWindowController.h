@@ -69,8 +69,8 @@ private:
     std::map<QString, std::set<QUuid>> _contentToWindowsMap;
 
     void _monitor(const DisplayGroup& group);
-    void _onWindowAdded(ContentWindowPtr window);
-    void _onWindowRemoved(ContentWindowPtr window);
+    void _onWindowAdded(WindowPtr window);
+    void _onWindowRemoved(WindowPtr window);
 
     void _changeFullscreenModeForAllWindows(const QString& uri,
                                             bool fullscreenMode);

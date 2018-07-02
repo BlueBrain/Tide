@@ -40,8 +40,8 @@
 
 #include "LoggingUtility.h"
 
-#include "scene/ContentWindow.h"
 #include "scene/Scene.h"
+#include "scene/Window.h"
 
 #include <chrono>
 
@@ -118,17 +118,16 @@ QString LoggingUtility::getScreenStateModificationTime() const
     return _screenStateModificationTime;
 }
 
-void LoggingUtility::logContentWindowAdded(ContentWindowPtr window)
+void LoggingUtility::logWindowAdded(WindowPtr window)
 {
-    connect(window.get(), &ContentWindow::stateChanged,
+    connect(window.get(), &Window::stateChanged,
             [this]() { _logInteraction(windowStateChanged); });
 
-    connect(window.get(), &ContentWindow::hiddenChanged,
-            [this](const bool hidden) {
-                hidden ? _decrementWindowCount() : _incrementWindowCount();
-            });
+    connect(window.get(), &Window::hiddenChanged, [this](const bool hidden) {
+        hidden ? _decrementWindowCount() : _incrementWindowCount();
+    });
 
-    connect(window.get(), &ContentWindow::modeChanged,
+    connect(window.get(), &Window::modeChanged,
             [this]() { _logInteraction(windowModeChanged); });
 
     if (!window->isHidden())
@@ -139,12 +138,12 @@ void LoggingUtility::logContentWindowAdded(ContentWindowPtr window)
     _logInteraction(windowAdded);
 }
 
-void LoggingUtility::logContentWindowMovedToFront()
+void LoggingUtility::logWindowMovedToFront()
 {
     _logInteraction(windowMovedToFront);
 }
 
-void LoggingUtility::logContentWindowRemoved()
+void LoggingUtility::logWindowRemoved()
 {
     _decrementWindowCount();
     _logInteraction(windowRemoved);
@@ -152,14 +151,14 @@ void LoggingUtility::logContentWindowRemoved()
 
 void LoggingUtility::_monitor(const DisplayGroup& group)
 {
-    connect(&group, &DisplayGroup::contentWindowAdded, this,
-            &LoggingUtility::logContentWindowAdded);
+    connect(&group, &DisplayGroup::windowAdded, this,
+            &LoggingUtility::logWindowAdded);
 
-    connect(&group, &DisplayGroup::contentWindowRemoved, this,
-            &LoggingUtility::logContentWindowRemoved);
+    connect(&group, &DisplayGroup::windowRemoved, this,
+            &LoggingUtility::logWindowRemoved);
 
-    connect(&group, &DisplayGroup::contentWindowMovedToFront, this,
-            &LoggingUtility::logContentWindowMovedToFront);
+    connect(&group, &DisplayGroup::windowMovedToFront, this,
+            &LoggingUtility::logWindowMovedToFront);
 }
 
 void LoggingUtility::logScreenStateChanged(const ScreenState state)

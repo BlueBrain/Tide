@@ -5,22 +5,22 @@ import "style.js" as Style
 Item {
     property int handle: modelData
 
-    property bool isRight: handle === ContentWindow.RIGHT
-                           || handle == ContentWindow.BOTTOM_RIGHT
-                           || handle === ContentWindow.TOP_RIGHT
-    property bool isLeft: handle === ContentWindow.LEFT
-                          || handle === ContentWindow.BOTTOM_LEFT
-                          || handle === ContentWindow.TOP_LEFT
-    property bool isTop: handle === ContentWindow.TOP
-                         || handle == ContentWindow.TOP_RIGHT
-                         || handle === ContentWindow.TOP_LEFT
-    property bool isBottom: handle === ContentWindow.BOTTOM
-                            || handle === ContentWindow.BOTTOM_LEFT
-                            || handle === ContentWindow.BOTTOM_RIGHT
+    property bool isRight: handle === Window.RIGHT
+                           || handle == Window.BOTTOM_RIGHT
+                           || handle === Window.TOP_RIGHT
+    property bool isLeft: handle === Window.LEFT
+                          || handle === Window.BOTTOM_LEFT
+                          || handle === Window.TOP_LEFT
+    property bool isTop: handle === Window.TOP
+                         || handle == Window.TOP_RIGHT
+                         || handle === Window.TOP_LEFT
+    property bool isBottom: handle === Window.BOTTOM
+                            || handle === Window.BOTTOM_LEFT
+                            || handle === Window.BOTTOM_RIGHT
 
-    property bool isActive: contentwindow.activeHandle === handle
+    property bool isActive: window.activeHandle === handle
 
-    visible: isActive || contentwindow.activeHandle === ContentWindow.NOHANDLE
+    visible: isActive || window.activeHandle === Window.NOHANDLE
 
     width: Style.resizeCircleRadius
     height: Style.resizeCircleRadius
@@ -40,7 +40,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
         color: isActive ?
-                   contentwindow.resizePolicy === ContentWindow.ADJUST_CONTENT ?
+                   window.resizePolicy === Window.ADJUST_CONTENT ?
                        Style.resizeCircleFreeResizeColor :
                        Style.resizeCircleActiveColor :
                        Style.resizeCircleInactiveColor

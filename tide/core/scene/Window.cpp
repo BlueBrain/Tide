@@ -1,6 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2011-2012, The University of Texas at Austin.       */
-/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /*                          Daniel.Nachbaur@epfl.ch                  */
 /* All rights reserved.                                              */
@@ -39,64 +39,64 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "ContentWindow.h"
+#include "Window.h"
 
-IMPLEMENT_SERIALIZE_FOR_XML(ContentWindow)
+IMPLEMENT_SERIALIZE_FOR_XML(Window)
 
-ContentWindow::ContentWindow(ContentPtr content, const WindowType type)
+Window::Window(ContentPtr content, const WindowType type)
     : _type{type}
 {
     setContent(std::move(content));
     _coordinates.setSize(_content->getDimensions());
-    connect(this, &ContentWindow::modified, [this] { ++_version; });
+    connect(this, &Window::modified, [this] { ++_version; });
 }
 
-ContentWindow::ContentWindow()
+Window::Window()
 {
-    connect(this, &ContentWindow::modified, [this] { ++_version; });
+    connect(this, &Window::modified, [this] { ++_version; });
 }
 
-ContentWindow::ContentWindow(ContentPtr content, const QUuid& uuid)
+Window::Window(ContentPtr content, const QUuid& uuid)
     : _uuid{uuid}
 {
     setContent(std::move(content));
 }
 
-ContentWindow::~ContentWindow()
+Window::~Window()
 {
     if (_content)
         _content->setParent(nullptr); // avoid double deletion
 }
 
-const QUuid& ContentWindow::getID() const
+const QUuid& Window::getID() const
 {
     return _uuid;
 }
 
-bool ContentWindow::isPanel() const
+bool Window::isPanel() const
 {
     return _type == WindowType::PANEL;
 }
 
-Content& ContentWindow::getContent()
+Content& Window::getContent()
 {
     return *_content;
 }
 
-const Content& ContentWindow::getContent() const
+const Content& Window::getContent() const
 {
     return *_content;
 }
 
-Content* ContentWindow::getContentPtr() const
+Content* Window::getContentPtr() const
 {
     return _content.get();
 }
 
-void ContentWindow::setContent(ContentPtr content)
+void Window::setContent(ContentPtr content)
 {
     if (!content)
-        throw std::invalid_argument("ContentWindow's content cannot be null");
+        throw std::invalid_argument("Window content cannot be null");
 
     content->setParent(this);
     _content = std::move(content);
@@ -106,7 +106,7 @@ void ContentWindow::setContent(ContentPtr content)
     _initContentConnections();
 }
 
-void ContentWindow::setCoordinates(const QRectF& coordinates)
+void Window::setCoordinates(const QRectF& coordinates)
 {
     if (coordinates == _coordinates)
         return;
@@ -121,12 +121,12 @@ void ContentWindow::setCoordinates(const QRectF& coordinates)
     emit modified();
 }
 
-ContentWindow::ResizeHandle ContentWindow::getActiveHandle() const
+Window::ResizeHandle Window::getActiveHandle() const
 {
     return _activeHandle;
 }
 
-void ContentWindow::setActiveHandle(const ContentWindow::ResizeHandle handle)
+void Window::setActiveHandle(const Window::ResizeHandle handle)
 {
     if (_activeHandle == handle)
         return;
@@ -136,12 +136,12 @@ void ContentWindow::setActiveHandle(const ContentWindow::ResizeHandle handle)
     emit modified();
 }
 
-ContentWindow::ResizePolicy ContentWindow::getResizePolicy() const
+Window::ResizePolicy Window::getResizePolicy() const
 {
     return _resizePolicy;
 }
 
-bool ContentWindow::setResizePolicy(const ContentWindow::ResizePolicy policy)
+bool Window::setResizePolicy(const Window::ResizePolicy policy)
 {
     if (policy == _resizePolicy)
         return true;
@@ -158,17 +158,17 @@ bool ContentWindow::setResizePolicy(const ContentWindow::ResizePolicy policy)
     return true;
 }
 
-ContentWindow::WindowState ContentWindow::getState() const
+Window::WindowState Window::getState() const
 {
-    return _windowState;
+    return _state;
 }
 
-ContentWindow::WindowMode ContentWindow::getMode() const
+Window::WindowMode Window::getMode() const
 {
     return _mode;
 }
 
-void ContentWindow::setMode(const ContentWindow::WindowMode mode)
+void Window::setMode(const Window::WindowMode mode)
 {
     if (mode == _mode)
         return;
@@ -178,22 +178,22 @@ void ContentWindow::setMode(const ContentWindow::WindowMode mode)
     emit modified();
 }
 
-bool ContentWindow::isFocused() const
+bool Window::isFocused() const
 {
     return _mode == WindowMode::FOCUSED;
 }
 
-bool ContentWindow::isFullscreen() const
+bool Window::isFullscreen() const
 {
     return _mode == WindowMode::FULLSCREEN;
 }
 
-const QRectF& ContentWindow::getFocusedCoordinates() const
+const QRectF& Window::getFocusedCoordinates() const
 {
     return _focusedCoordinates;
 }
 
-void ContentWindow::setFocusedCoordinates(const QRectF& coordinates)
+void Window::setFocusedCoordinates(const QRectF& coordinates)
 {
     if (coordinates == _focusedCoordinates)
         return;
@@ -203,12 +203,12 @@ void ContentWindow::setFocusedCoordinates(const QRectF& coordinates)
     emit modified();
 }
 
-const QRectF& ContentWindow::getFullscreenCoordinates() const
+const QRectF& Window::getFullscreenCoordinates() const
 {
     return _fullscreenCoordinates;
 }
 
-void ContentWindow::setFullscreenCoordinates(const QRectF& coordinates)
+void Window::setFullscreenCoordinates(const QRectF& coordinates)
 {
     if (coordinates == _fullscreenCoordinates)
         return;
@@ -218,7 +218,7 @@ void ContentWindow::setFullscreenCoordinates(const QRectF& coordinates)
     emit modified();
 }
 
-const QRectF& ContentWindow::getDisplayCoordinates() const
+const QRectF& Window::getDisplayCoordinates() const
 {
     switch (getMode())
     {
@@ -232,7 +232,7 @@ const QRectF& ContentWindow::getDisplayCoordinates() const
     }
 }
 
-void ContentWindow::setDisplayCoordinates(const QRectF& coordinates)
+void Window::setDisplayCoordinates(const QRectF& coordinates)
 {
     switch (getMode())
     {
@@ -249,17 +249,17 @@ void ContentWindow::setDisplayCoordinates(const QRectF& coordinates)
     }
 }
 
-bool ContentWindow::setState(const ContentWindow::WindowState state)
+bool Window::setState(const Window::WindowState state)
 {
-    if (_windowState == state)
+    if (_state == state)
         return false;
 
-    const auto prevState = _windowState;
-    _windowState = state;
+    const auto prevState = _state;
+    _state = state;
 
-    if (prevState == ContentWindow::HIDDEN)
+    if (prevState == Window::HIDDEN)
         emit hiddenChanged(false);
-    else if (state == ContentWindow::HIDDEN)
+    else if (state == Window::HIDDEN)
         emit hiddenChanged(true);
 
     emit stateChanged();
@@ -267,44 +267,44 @@ bool ContentWindow::setState(const ContentWindow::WindowState state)
     return true;
 }
 
-bool ContentWindow::isMoving() const
+bool Window::isMoving() const
 {
-    return _windowState == MOVING;
+    return _state == MOVING;
 }
 
-bool ContentWindow::isResizing() const
+bool Window::isResizing() const
 {
-    return _windowState == RESIZING;
+    return _state == RESIZING;
 }
 
-bool ContentWindow::isHidden() const
+bool Window::isHidden() const
 {
-    return _windowState == HIDDEN;
+    return _state == HIDDEN;
 }
 
-bool ContentWindow::isSelected() const
+bool Window::isSelected() const
 {
     return _selected;
 }
 
-size_t ContentWindow::getVersion() const
+size_t Window::getVersion() const
 {
     return _version;
 }
 
-void ContentWindow::backupModeAndZoom()
+void Window::backupModeAndZoom()
 {
     _backupMode = getMode();
     _backupZoom = _content->getZoomRect();
 }
 
-void ContentWindow::restoreModeAndZoom()
+void Window::restoreModeAndZoom()
 {
     setMode(_backupMode);
     _content->setZoomRect(_backupZoom);
 }
 
-void ContentWindow::setSelected(const bool value)
+void Window::setSelected(const bool value)
 {
     if (value == _selected)
         return;
@@ -314,9 +314,8 @@ void ContentWindow::setSelected(const bool value)
     emit modified();
 }
 
-void ContentWindow::_initContentConnections()
+void Window::_initContentConnections()
 {
     connect(_content.get(), &Content::modified, [this] { ++_version; });
-    connect(_content.get(), &Content::modified, this,
-            &ContentWindow::contentModified);
+    connect(_content.get(), &Content::modified, this, &Window::contentModified);
 }

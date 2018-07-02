@@ -54,7 +54,7 @@
 #include <QSize>
 
 /**
- * An abstract Content displayed in a ContentWindow.
+ * An abstract Content displayed in a Window.
  *
  * This class does not actually hold any content data because it
  * is meant to be sent through MPI to Rank>0 processes.

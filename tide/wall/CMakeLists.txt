@@ -51,7 +51,6 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   BasicSynchronizer.h
   CachedDataSource.h
   ContentSynchronizer.h
-  ContentWindowRenderer.h
   DataProvider.h
   DataSource.h
   DisplayGroupRenderer.h
@@ -96,13 +95,13 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   WallRenderContext.h
   WallSurfaceRenderer.h
   WallWindow.h
+  WindowRenderer.h
 )
 
 list(APPEND TIDEWALL_SOURCES
   BackgroundRenderer.cpp
   BasicSynchronizer.cpp
   CachedDataSource.cpp
-  ContentWindowRenderer.cpp
   DataProvider.cpp
   DisplayGroupRenderer.cpp
   ElapsedTimer.cpp
@@ -144,6 +143,7 @@ list(APPEND TIDEWALL_SOURCES
   WallConfiguration.cpp
   WallSurfaceRenderer.cpp
   WallWindow.cpp
+  WindowRenderer.cpp
   resources/wall.qrc
 )
 

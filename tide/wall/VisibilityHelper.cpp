@@ -39,8 +39,8 @@
 
 #include "VisibilityHelper.h"
 
-#include "scene/ContentWindow.h"
 #include "scene/DisplayGroup.h"
+#include "scene/Window.h"
 
 VisibilityHelper::VisibilityHelper(const DisplayGroup& displayGroup,
                                    const QRect& visibleArea)
@@ -88,7 +88,7 @@ QRectF _globalToWindowCoordinates(const QRectF& area, const QRectF& window)
     return area.translated(-window.x(), -window.y());
 }
 
-QRectF VisibilityHelper::getVisibleArea(const ContentWindow& window) const
+QRectF VisibilityHelper::getVisibleArea(const Window& window) const
 {
     const QRectF& windowCoords = window.getDisplayCoordinates();
 
@@ -105,7 +105,7 @@ QRectF VisibilityHelper::getVisibleArea(const ContentWindow& window) const
         return _globalToWindowCoordinates(area, windowCoords);
 
     bool isAbove = false;
-    for (const auto& win : _displayGroup.getContentWindows())
+    for (const auto& win : _displayGroup.getWindows())
     {
         if (win->getID() == window.getID() && !window.isPanel())
         {

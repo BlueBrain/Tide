@@ -43,7 +43,7 @@
 #include "types.h"
 
 #include "configuration/Configuration.h"
-#include "control/ContentWindowController.h"
+#include "control/WindowController.h"
 
 #include <QFutureWatcher>
 #include <QObject>
@@ -71,7 +71,7 @@ public:
     /** Hide the Launcher. */
     void hideLauncher();
 
-    std::unique_ptr<ContentWindowController> getController(const QUuid& winId);
+    std::unique_ptr<WindowController> getController(const QUuid& winId);
 
 signals:
     void startWebbrowser(const WebbrowserContent& browser);
@@ -86,7 +86,7 @@ private:
     BoolCallback _saveSessionCallback;
 
     void _restoreWebbrowsers(const Scene& scene);
-    void _deleteTempContentFile(ContentWindowPtr window);
+    void _deleteTempContentFile(WindowPtr window);
 };
 
 #endif

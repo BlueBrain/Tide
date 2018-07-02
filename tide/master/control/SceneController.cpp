@@ -56,7 +56,7 @@ SceneController::SceneController(Scene& scene_,
 {
     for (const auto& surface : _scene.getSurfaces())
     {
-        connect(&surface.getGroup(), &DisplayGroup::contentWindowRemoved, this,
+        connect(&surface.getGroup(), &DisplayGroup::windowRemoved, this,
                 &SceneController::_deleteTempContentFile);
     }
 
@@ -117,11 +117,11 @@ void SceneController::hideLauncher()
     DisplayGroupController{_scene.getGroup(0)}.hidePanels();
 }
 
-std::unique_ptr<ContentWindowController> SceneController::getController(
+std::unique_ptr<WindowController> SceneController::getController(
     const QUuid& winId)
 {
     auto res = _scene.findWindowAndGroup(winId);
-    return std::make_unique<ContentWindowController>(res.first, res.second);
+    return std::make_unique<WindowController>(res.first, res.second);
 }
 
 void SceneController::apply(SceneConstPtr scene)
@@ -132,7 +132,7 @@ void SceneController::apply(SceneConstPtr scene)
     for (auto i = 0u; i < max; ++i)
     {
         const auto& sourceGroup = scene->getGroup(i);
-        _scene.getGroup(i).setContentWindows(sourceGroup.getContentWindows());
+        _scene.getGroup(i).replaceWindows(sourceGroup.getWindows());
     }
 
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
@@ -144,7 +144,7 @@ void SceneController::_restoreWebbrowsers(const Scene& scene)
 {
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
     using WebContent = const WebbrowserContent*;
-    for (const auto& window : scene.getContentWindows())
+    for (const auto& window : scene.getWindows())
     {
         if (auto browser = dynamic_cast<WebContent>(window->getContentPtr()))
             emit startWebbrowser(*browser);
@@ -154,7 +154,7 @@ void SceneController::_restoreWebbrowsers(const Scene& scene)
 #endif
 }
 
-void SceneController::_deleteTempContentFile(ContentWindowPtr window)
+void SceneController::_deleteTempContentFile(WindowPtr window)
 {
     const auto isFile = contentTypeIsFile(window->getContent().getType());
     const auto& filename = window->getContent().getURI();

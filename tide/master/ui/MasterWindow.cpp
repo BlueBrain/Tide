@@ -50,10 +50,10 @@
 #include "log.h"
 #include "scene/Background.h"
 #include "scene/ContentFactory.h"
-#include "scene/ContentWindow.h"
 #include "scene/DisplayGroup.h"
 #include "scene/Options.h"
 #include "scene/Scene.h"
+#include "scene/Window.h"
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
 #include "WebbrowserWidget.h"
 #endif

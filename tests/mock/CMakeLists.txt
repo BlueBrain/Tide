@@ -15,9 +15,13 @@ set(TIDEMOCK_HEADERS
   QGuiAppFixture.h
 )
 
+set(TIDEMOCK_SOURCES
+  glxDisplay.cpp
+)
+
 if(TIDE_ENABLE_PLANAR_CONTROLLER)
   list(APPEND TIDEMOCK_HEADERS MockScreenController.h)
-  set(TIDEMOCK_SOURCES MockScreenController.cpp)
+  list(APPEND TIDEMOCK_SOURCES MockScreenController.cpp)
 endif()
 
 set(TIDEMOCK_LINK_LIBRARIES TideMaster)

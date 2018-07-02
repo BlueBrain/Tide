@@ -40,7 +40,7 @@
     </qresource>
     <qresource prefix="/qml/core">
         <file>style.js</file>
-        <file>BaseContentWindow.qml</file>
+        <file>BaseWindow.qml</file>
         <file>BasicSurface.qml</file>
         <file>Clock.qml</file>
         <file>CloseControlButton.qml</file>

@@ -56,8 +56,7 @@ public:
     ~BasicSynchronizer();
 
     /** @copydoc ContentSynchronizer::update */
-    void update(const ContentWindow& window,
-                const QRectF& visibleArea) override;
+    void update(const Window& window, const QRectF& visibleArea) override;
 
     /** @copydoc ContentSynchronizer::updateTiles */
     void updateTiles() override;

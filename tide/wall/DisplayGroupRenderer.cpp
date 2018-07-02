@@ -54,7 +54,7 @@ DisplayGroupRenderer::DisplayGroupRenderer(const WallRenderContext& context,
                                            QQuickItem& parentItem)
     : _context{context}
     , _qmlContext{new QQmlContext(context.engine.rootContext())}
-    , _displayGroup{new DisplayGroup(QSize())}
+    , _displayGroup{DisplayGroup::create(QSize())}
 {
     _qmlContext->setContextProperty("displaygroup", _displayGroup.get());
     _createDisplayGroupQmlItem(parentItem);
@@ -69,7 +69,7 @@ void DisplayGroupRenderer::setDisplayGroup(DisplayGroupPtr displayGroup)
     QSet<QUuid> updatedWindows;
     const QQuickItem* parentItem = nullptr;
     const VisibilityHelper helper(*displayGroup, _context.screenRect);
-    for (const auto& window : displayGroup->getContentWindows())
+    for (const auto& window : displayGroup->getWindows())
     {
         const auto& id = window->getID();
 
@@ -122,11 +122,11 @@ void DisplayGroupRenderer::_createDisplayGroupQmlItem(QQuickItem& parentItem)
     _displayGroupItem->setParentItem(&parentItem);
 }
 
-void DisplayGroupRenderer::_createWindowQmlItem(ContentWindowPtr window)
+void DisplayGroupRenderer::_createWindowQmlItem(WindowPtr window)
 {
     const auto& id = window->getID();
     auto sync = _context.provider.createSynchronizer(*window, _context.view);
     _windowItems[id].reset(
-        new ContentWindowRenderer(std::move(sync), std::move(window),
-                                  *_displayGroupItem, _qmlContext.get()));
+        new WindowRenderer(std::move(sync), std::move(window),
+                           *_displayGroupItem, _qmlContext.get()));
 }

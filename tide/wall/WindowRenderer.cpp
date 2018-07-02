@@ -37,40 +37,39 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "ContentWindowRenderer.h"
+#include "WindowRenderer.h"
 
 #include "ContentSynchronizer.h"
 #include "DataProvider.h"
 #include "PixelStreamSynchronizer.h"
 #include "Tile.h"
 #include "qmlUtils.h"
-#include "scene/ContentWindow.h"
+#include "scene/Window.h"
 
 namespace
 {
-const QUrl QML_WINDOW_URL("qrc:/qml/wall/WallContentWindow.qml");
+const QUrl QML_WINDOW_URL("qrc:/qml/wall/WallWindow.qml");
 const QString TILES_PARENT_OBJECT_NAME("TilesParent");
 const QString ZOOM_CONTEXT_PARENT_OBJECT_NAME("ZoomContextParent");
 }
 
-ContentWindowRenderer::ContentWindowRenderer(
-    std::unique_ptr<ContentSynchronizer> synchronizer,
-    ContentWindowPtr contentWindow, QQuickItem& parentItem,
-    QQmlContext* parentContext, const bool isBackground)
+WindowRenderer::WindowRenderer(
+    std::unique_ptr<ContentSynchronizer> synchronizer, WindowPtr window,
+    QQuickItem& parentItem, QQmlContext* parentContext, const bool isBackground)
     : _synchronizer(std::move(synchronizer))
-    , _contentWindow(contentWindow)
+    , _window(window)
     , _windowContext(new QQmlContext(parentContext))
 {
     connect(_synchronizer.get(), &ContentSynchronizer::addTile, this,
-            &ContentWindowRenderer::_addTile);
+            &WindowRenderer::_addTile);
     connect(_synchronizer.get(), &ContentSynchronizer::removeTile, this,
-            &ContentWindowRenderer::_removeTile);
+            &WindowRenderer::_removeTile);
     connect(_synchronizer.get(), &ContentSynchronizer::updateTile, this,
-            &ContentWindowRenderer::_updateTile);
+            &WindowRenderer::_updateTile);
     connect(_synchronizer.get(), &ContentSynchronizer::zoomContextTileChanged,
-            this, &ContentWindowRenderer::_updateZoomContextTile);
+            this, &WindowRenderer::_updateZoomContextTile);
 
-    _windowContext->setContextProperty("contentwindow", _contentWindow.get());
+    _windowContext->setContextProperty("window", _window.get());
     _windowContext->setContextProperty("contentsync", _synchronizer.get());
     _windowItem = qml::makeItem(*_windowContext->engine(), QML_WINDOW_URL,
                                 _windowContext.get());
@@ -78,7 +77,7 @@ ContentWindowRenderer::ContentWindowRenderer(
     _windowItem->setProperty("isBackground", isBackground);
 }
 
-ContentWindowRenderer::~ContentWindowRenderer()
+WindowRenderer::~WindowRenderer()
 {
     if (_zoomContextTile)
         _removeZoomContextTile();
@@ -88,24 +87,22 @@ ContentWindowRenderer::~ContentWindowRenderer()
     _tiles.clear();
 }
 
-void ContentWindowRenderer::update(ContentWindowPtr contentWindow,
-                                   const QRectF& visibleArea)
+void WindowRenderer::update(WindowPtr window, const QRectF& visibleArea)
 {
-    if (contentWindow->getVersion() != _contentWindow->getVersion())
+    if (window->getVersion() != _window->getVersion())
     {
-        _windowContext->setContextProperty("contentwindow",
-                                           contentWindow.get());
-        _contentWindow = contentWindow;
+        _windowContext->setContextProperty("window", window.get());
+        _window = window;
     }
-    _synchronizer->update(*_contentWindow, visibleArea);
+    _synchronizer->update(*_window, visibleArea);
 }
 
-QQuickItem* ContentWindowRenderer::getQuickItem()
+QQuickItem* WindowRenderer::getQuickItem()
 {
     return _windowItem.get();
 }
 
-void ContentWindowRenderer::_addTile(TilePtr tile)
+void WindowRenderer::_addTile(TilePtr tile)
 {
     connect(tile.get(), &Tile::readyToSwap, _synchronizer.get(),
             &ContentSynchronizer::onSwapReady);
@@ -125,12 +122,12 @@ void ContentWindowRenderer::_addTile(TilePtr tile)
     tile->requestNextFrame(tile);
 }
 
-QQuickItem* ContentWindowRenderer::_getZoomContextParentItem() const
+QQuickItem* WindowRenderer::_getZoomContextParentItem() const
 {
     return _windowItem->findChild<QQuickItem*>(ZOOM_CONTEXT_PARENT_OBJECT_NAME);
 }
 
-void ContentWindowRenderer::_updateZoomContextTile(const bool visible)
+void WindowRenderer::_updateZoomContextTile(const bool visible)
 {
     if (_zoomContextTile)
         _removeZoomContextTile();
@@ -139,7 +136,7 @@ void ContentWindowRenderer::_updateZoomContextTile(const bool visible)
         _addZoomContextTile();
 }
 
-void ContentWindowRenderer::_addZoomContextTile()
+void WindowRenderer::_addZoomContextTile()
 {
     auto tile = _synchronizer->createZoomContextTile();
     if (!tile)
@@ -159,13 +156,13 @@ void ContentWindowRenderer::_addZoomContextTile()
     tile->requestNextFrame(tile);
 }
 
-void ContentWindowRenderer::_removeZoomContextTile()
+void WindowRenderer::_removeZoomContextTile()
 {
     _zoomContextTile->setParentItem(nullptr);
     _zoomContextTile.reset();
 }
 
-void ContentWindowRenderer::_removeTile(const uint tileIndex)
+void WindowRenderer::_removeTile(const uint tileIndex)
 {
     auto tileIt = _tiles.find(tileIndex);
     if (tileIt == _tiles.end())
@@ -177,8 +174,7 @@ void ContentWindowRenderer::_removeTile(const uint tileIndex)
     _tiles.erase(tileIt);
 }
 
-void ContentWindowRenderer::_updateTile(const uint tileIndex,
-                                        const QRect& coordinates)
+void WindowRenderer::_updateTile(const uint tileIndex, const QRect& coordinates)
 {
     auto tileIt = _tiles.find(tileIndex);
     if (tileIt != _tiles.end())

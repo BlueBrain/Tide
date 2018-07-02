@@ -3,5 +3,5 @@ import Tide 1.0
 
 ControlButton {
     image: "qrc:///img/oneToOne.svg"
-    visible: !contentwindow.isPanel && !contentwindow.focused
+    visible: !window.isPanel && !window.focused
 }

@@ -68,14 +68,14 @@ void MultiChannelWindowController::closeSingleWindow(const QString& uri,
 
 void MultiChannelWindowController::_monitor(const DisplayGroup& group)
 {
-    connect(&group, &DisplayGroup::contentWindowAdded, this,
+    connect(&group, &DisplayGroup::windowAdded, this,
             &MultiChannelWindowController::_onWindowAdded);
 
-    connect(&group, &DisplayGroup::contentWindowRemoved, this,
+    connect(&group, &DisplayGroup::windowRemoved, this,
             &MultiChannelWindowController::_onWindowRemoved);
 }
 
-void MultiChannelWindowController::_onWindowAdded(ContentWindowPtr window)
+void MultiChannelWindowController::_onWindowAdded(WindowPtr window)
 {
     try
     {
@@ -84,8 +84,8 @@ void MultiChannelWindowController::_onWindowAdded(ContentWindowPtr window)
 
         _contentToWindowsMap[content.getURI()].insert(window->getID());
 
-        connect(window.get(), &ContentWindow::modeChanged,
-                [ this, windowWeakPtr = std::weak_ptr<ContentWindow>(window) ] {
+        connect(window.get(), &Window::modeChanged,
+                [ this, windowWeakPtr = std::weak_ptr<Window>(window) ] {
                     if (auto win = windowWeakPtr.lock())
                     {
                         _changeFullscreenModeForAllWindows(
@@ -98,7 +98,7 @@ void MultiChannelWindowController::_onWindowAdded(ContentWindowPtr window)
     }
 }
 
-void MultiChannelWindowController::_onWindowRemoved(ContentWindowPtr window)
+void MultiChannelWindowController::_onWindowRemoved(WindowPtr window)
 {
     try
     {

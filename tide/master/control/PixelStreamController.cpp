@@ -39,15 +39,15 @@
 
 #include "PixelStreamController.h"
 
-#include "scene/ContentWindow.h"
 #include "scene/PixelStreamContent.h"
+#include "scene/Window.h"
 
-PixelStreamController::PixelStreamController(ContentWindow& window)
+PixelStreamController::PixelStreamController(Window& window)
     : ContentController(window)
 {
-    connect(&window, &ContentWindow::coordinatesChanged, this,
+    connect(&window, &Window::coordinatesChanged, this,
             &PixelStreamController::_sendSizeChangedEvent);
-    connect(&window, &ContentWindow::modeChanged, this,
+    connect(&window, &Window::modeChanged, this,
             &PixelStreamController::_sendSizeChangedEvent);
 
     auto& content = dynamic_cast<PixelStreamContent&>(window.getContent());
@@ -155,7 +155,7 @@ void PixelStreamController::pinch(const QPointF position,
     deflectEvent.type = deflect::Event::EVT_PINCH;
     deflectEvent.mouseLeft = false;
 
-    const QRectF& win = _contentWindow.getDisplayCoordinates();
+    const QRectF& win = _window.getDisplayCoordinates();
     deflectEvent.dx = pixelDelta.x() / win.width();
     deflectEvent.dy = pixelDelta.y() / win.height();
 
@@ -227,7 +227,7 @@ void PixelStreamController::keyRelease(const int key, const int modifiers,
 
 void PixelStreamController::_sendSizeChangedEvent()
 {
-    const QRectF& win = _contentWindow.getDisplayCoordinates();
+    const QRectF& win = _window.getDisplayCoordinates();
 
     deflect::Event deflectEvent;
     deflectEvent.type = deflect::Event::EVT_VIEW_SIZE_CHANGED;
@@ -240,7 +240,7 @@ void PixelStreamController::_sendSizeChangedEvent()
 deflect::Event PixelStreamController::_getNormEvent(
     const QPointF& position) const
 {
-    const QRectF& win = _contentWindow.getDisplayCoordinates();
+    const QRectF& win = _window.getDisplayCoordinates();
 
     deflect::Event deflectEvent;
     deflectEvent.mouseLeft = true;

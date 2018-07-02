@@ -82,7 +82,7 @@ ContentPtr _loadContent(XmlParser& parser, const QString& index)
     return content;
 }
 
-ContentWindowPtr _loadWindow(XmlParser& parser, const int index_)
+WindowPtr _loadWindow(XmlParser& parser, const int index_)
 {
     const auto index = QString::number(index_);
 
@@ -96,7 +96,7 @@ ContentWindowPtr _loadWindow(XmlParser& parser, const int index_)
     parser.get(query.arg(index, "centerY"), centerY);
     parser.get(query.arg(index, "zoom"), zoom);
 
-    auto window = std::make_shared<ContentWindow>(_loadContent(parser, index));
+    auto window = std::make_shared<Window>(_loadContent(parser, index));
 
     auto windowCoordinates = window->getCoordinates();
     if (x != -1. || y != -1.)
@@ -131,16 +131,16 @@ bool State::legacyLoadXML(const QString& filename)
             return false;
         }
 
-        int numContentWindows = 0;
-        parser.get("string(count(//state/ContentWindow))", numContentWindows);
+        int numWindows = 0;
+        parser.get("string(count(//state/ContentWindow))", numWindows);
 
-        ContentWindowPtrs contentWindows;
-        contentWindows.reserve(numContentWindows);
-        for (int i = 1; i <= numContentWindows; ++i)
-            contentWindows.emplace_back(_loadWindow(parser, i));
+        WindowPtrs windows;
+        windows.reserve(numWindows);
+        for (int i = 1; i <= numWindows; ++i)
+            windows.emplace_back(_loadWindow(parser, i));
 
         auto& group = _scene->getGroup(0);
-        group.setContentWindows(contentWindows);
+        group.replaceWindows(windows);
         // Preserve appearence of legacy sessions.
         group.setCoordinates(UNIT_RECTF);
         _version = LEGACY_FILE_VERSION;

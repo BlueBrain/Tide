@@ -39,10 +39,10 @@
 
 #include "BackgroundRenderer.h"
 
-#include "ContentWindowRenderer.h"
 #include "DataProvider.h"
 #include "VisibilityHelper.h"
 #include "WallRenderContext.h"
+#include "WindowRenderer.h"
 #include "geometry.h"
 #include "qmlUtils.h"
 #include "scene/Background.h"
@@ -54,18 +54,17 @@ BackgroundRenderer::BackgroundRenderer(const Background& background,
 {
     auto content = background.getContent()->clone();
     const auto& uuid = background.getContentUUID();
-    auto window = std::make_shared<ContentWindow>(std::move(content), uuid);
+    auto window = std::make_shared<Window>(std::move(content), uuid);
 
     const auto wallRect = QRect{QPoint(), context.wallSize};
     window->setCoordinates(geometry::adjustAndCenter(*window, wallRect));
     auto sync = context.provider.createSynchronizer(*window, context.view);
 
-    _renderer.reset(
-        new ContentWindowRenderer(std::move(sync), window, parentItem,
-                                  context.engine.rootContext(), true));
+    _renderer.reset(new WindowRenderer(std::move(sync), window, parentItem,
+                                       context.engine.rootContext(), true));
 
-    DisplayGroup emptyGroup(context.screenRect.size());
-    const VisibilityHelper helper(emptyGroup, context.screenRect);
+    auto emptyGroup = DisplayGroup::create(context.screenRect.size());
+    const VisibilityHelper helper(*emptyGroup, context.screenRect);
     _renderer->update(window, helper.getVisibleArea(*window));
 }
 

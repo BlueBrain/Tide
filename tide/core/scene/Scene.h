@@ -91,7 +91,7 @@ public:
     const DisplayGroup& getGroup(const size_t surfaceIndex) const;
 
     /** Get all windows from all groups. */
-    ContentWindowPtrs getContentWindows() const;
+    WindowPtrs getWindows() const;
 
     /**
      * Move this object and its member QObjects to the given QThread.
@@ -104,7 +104,7 @@ public:
     void moveToThread(QThread* thread);
 
     /** Find a window by its id. */
-    ContentWindowPtr findWindow(const QUuid& id) const;
+    WindowPtr findWindow(const QUuid& id) const;
 
     /**
      * Find a window and the group it belongs to.
@@ -112,10 +112,8 @@ public:
      * @return window and group.
      * @throw window_not_found_error
      */
-    std::pair<ContentWindow&, DisplayGroup&> findWindowAndGroup(
-        const QUuid& id);
-    std::pair<ContentWindowPtr, DisplayGroup&> findWindowPtrAndGroup(
-        const QUuid& id);
+    std::pair<Window&, DisplayGroup&> findWindowAndGroup(const QUuid& id);
+    std::pair<WindowPtr, DisplayGroup&> findWindowPtrAndGroup(const QUuid& id);
 
 signals:
     /** Emitted whenever an element of the scene changes. */

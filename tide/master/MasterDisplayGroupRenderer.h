@@ -76,9 +76,9 @@ private:
     void _addWindows();
     void _watchDisplayGroupUpdates();
 
-    void _add(ContentWindowPtr contentWindow);
-    void _remove(ContentWindowPtr contentWindow);
-    void _moveToFront(ContentWindowPtr contentWindow);
+    void _add(WindowPtr window);
+    void _remove(WindowPtr window);
+    void _moveToFront(WindowPtr window);
 };
 
 #endif

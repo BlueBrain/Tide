@@ -42,7 +42,7 @@
 #include "PixelStreamUpdater.h"
 #include "Tile.h"
 #include "ZoomHelper.h"
-#include "scene/ContentWindow.h"
+#include "scene/Window.h"
 
 PixelStreamSynchronizer::PixelStreamSynchronizer(
     std::shared_ptr<PixelStreamUpdater> updater, const deflect::View view,
@@ -64,7 +64,7 @@ PixelStreamSynchronizer::~PixelStreamSynchronizer()
     _updater->synchronizers.erase(this);
 }
 
-void PixelStreamSynchronizer::update(const ContentWindow& window,
+void PixelStreamSynchronizer::update(const Window& window,
                                      const QRectF& visibleArea)
 {
     // Tiles area corresponds to Content dimensions for PixelStreams

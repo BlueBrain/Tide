@@ -50,7 +50,7 @@
 class CanvasTree
 {
 public:
-    CanvasTree(ContentWindowPtrs windowVec, const QRectF& available_space);
+    CanvasTree(WindowPtrs windows, const QRectF& availableSpace);
 
     /** Resize the tree, updating the coordinates of the windows. */
     void updateFocusCoordinates();

@@ -73,7 +73,7 @@ bool _canBeSaved(const Content& content)
     return _canBeRestored(content.getType()) && !_isErrorContent(content);
 }
 
-void _relocateContent(ContentWindow& window, const QString& tmpDir,
+void _relocateContent(Window& window, const QString& tmpDir,
                       const QString& dstDir)
 {
     const auto& uri = window.getContent().getURI();
@@ -92,11 +92,11 @@ void _relocateContent(ContentWindow& window, const QString& tmpDir,
     window.setContent(ContentFactory::getContent(newUri));
 }
 
-ContentWindowPtrs _findWindowsToRelocate(const DisplayGroup& group,
-                                         const QString& tmpDir)
+WindowPtrs _findWindowsToRelocate(const DisplayGroup& group,
+                                  const QString& tmpDir)
 {
-    ContentWindowPtrs windowsToRelocate;
-    for (const auto& window : group.getContentWindows())
+    WindowPtrs windowsToRelocate;
+    for (const auto& window : group.getWindows())
     {
         const auto& uri = window->getContent().getURI();
         if (QFileInfo{uri}.absolutePath() == tmpDir)
@@ -129,8 +129,8 @@ void _relocateTempContents(DisplayGroup& group, const QString& tmpDir,
         // processes use the new URI to access the file.
         // Note: the content must be relocated before removing the window,
         // otherwise the MasterApplication destroys the temporary file.
-        group.removeContentWindow(window);
-        group.addContentWindow(serialization::xmlCopy(window));
+        group.remove(window);
+        group.add(serialization::xmlCopy(window));
     }
 }
 
@@ -141,7 +141,7 @@ void _relocateTempContents(Scene& scene, const QString& tmpDir,
         _relocateTempContents(surface.getGroup(), tmpDir, dstDir);
 }
 
-bool _validateContent(const ContentWindowPtr& window)
+bool _validateContent(const WindowPtr& window)
 {
     auto content = window->getContentPtr();
     if (!content)
@@ -202,12 +202,12 @@ bool _validateContent(const ContentWindowPtr& window)
 
 void _validateContents(DisplayGroup& group)
 {
-    using Windows = QVector<ContentWindowPtr>;
-    auto windows = Windows::fromStdVector(group.getContentWindows());
+    using Windows = QVector<WindowPtr>;
+    auto windows = Windows::fromStdVector(group.getWindows());
 
     QtConcurrent::blockingFilter(windows, _validateContent);
 
-    group.setContentWindows(windows.toStdVector());
+    group.replaceWindows(windows.toStdVector());
 }
 
 void _validateContents(Scene& scene)
@@ -292,7 +292,7 @@ QFuture<ScenePtr> StateSerializationHelper::load(const QString& filename) const
 void _generatePreview(const Scene& scene, const QString& filename)
 {
     const auto& group = scene.getGroup(0);
-    const auto& windows = group.getContentWindows();
+    const auto& windows = group.getWindows();
     const auto size = group.size().toSize();
 
     StatePreview filePreview(filename);
@@ -302,17 +302,17 @@ void _generatePreview(const Scene& scene, const QString& filename)
 
 void _filterContents(DisplayGroup& group)
 {
-    const auto& windows = group.getContentWindows();
+    const auto& windows = group.getWindows();
 
-    ContentWindowPtrs filteredWindows;
+    WindowPtrs filteredWindows;
     filteredWindows.reserve(windows.size());
 
     std::copy_if(windows.begin(), windows.end(),
                  std::back_inserter(filteredWindows),
-                 [](const ContentWindowPtr& window) {
+                 [](const WindowPtr& window) {
                      return _canBeSaved(window->getContent());
                  });
-    group.setContentWindows(filteredWindows);
+    group.replaceWindows(filteredWindows);
 }
 
 void _filterContents(Scene& scene)

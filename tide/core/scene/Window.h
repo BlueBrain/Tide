@@ -39,8 +39,8 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef CONTENTWINDOW_H
-#define CONTENTWINDOW_H
+#ifndef WINDOW_H
+#define WINDOW_H
 
 #include "types.h"
 
@@ -56,10 +56,10 @@
  *
  * Can be serialized and distributed to the Wall applications.
  */
-class ContentWindow : public Rectangle
+class Window : public Rectangle
 {
     Q_OBJECT
-    Q_DISABLE_COPY(ContentWindow)
+    Q_DISABLE_COPY(Window)
 
     Q_PROPERTY(QUuid id READ getID CONSTANT)
     Q_PROPERTY(bool isPanel READ isPanel CONSTANT)
@@ -139,7 +139,7 @@ public:
      *        style and behaviour.
      * @note Rank0 only.
      */
-    ContentWindow(ContentPtr content, WindowType type = DEFAULT);
+    Window(ContentPtr content, WindowType type = DEFAULT);
 
     /**
      * Create a new window.
@@ -147,10 +147,10 @@ public:
      * @param uuid The unique identifier for the window.
      * @note Wall process only, for rendering background content.
      */
-    ContentWindow(ContentPtr content, const QUuid& uuid);
+    Window(ContentPtr content, const QUuid& uuid);
 
     /** Destructor. */
-    ~ContentWindow();
+    ~Window();
 
     /** @return the unique identifier for this window. */
     const QUuid& getID() const;
@@ -172,16 +172,16 @@ public:
     void setCoordinates(const QRectF& coordinates);
 
     /** @return the current active resize handle. */
-    ContentWindow::ResizeHandle getActiveHandle() const;
+    Window::ResizeHandle getActiveHandle() const;
 
     /** Get the current resize policy. */
-    ContentWindow::ResizePolicy getResizePolicy() const;
+    Window::ResizePolicy getResizePolicy() const;
 
     /** Get the current state. */
-    ContentWindow::WindowMode getMode() const;
+    Window::WindowMode getMode() const;
 
     /** Set the current mode. */
-    void setMode(const ContentWindow::WindowMode mode);
+    void setMode(const Window::WindowMode mode);
 
     /** Is the window focused. */
     bool isFocused() const;
@@ -208,7 +208,7 @@ public:
     void setDisplayCoordinates(const QRectF& coordinates);
 
     /** Get the current state. */
-    ContentWindow::WindowState getState() const;
+    Window::WindowState getState() const;
 
     /** Check if moving. */
     bool isMoving() const;
@@ -236,13 +236,13 @@ public:
 
 public slots:
     /** Set the current active resize handle. */
-    void setActiveHandle(ContentWindow::ResizeHandle handle);
+    void setActiveHandle(Window::ResizeHandle handle);
 
     /** Set the resize policy. */
-    bool setResizePolicy(ContentWindow::ResizePolicy policy);
+    bool setResizePolicy(Window::ResizePolicy policy);
 
     /** Set the current state. */
-    bool setState(const ContentWindow::WindowState state);
+    bool setState(const Window::WindowState state);
 
 signals:
     /** Emitted when the Content signals that it has been modified. */
@@ -273,7 +273,7 @@ private:
     friend class boost::serialization::access;
 
     /** No-argument constructor required for serialization. */
-    ContentWindow();
+    Window();
 
     /** Serialize for sending to Wall applications. */
     template <class Archive>
@@ -289,7 +289,7 @@ private:
         ar & _mode;
         ar & _focusedCoordinates;
         ar & _fullscreenCoordinates;
-        ar & _windowState;
+        ar & _state;
         ar & _selected;
         ar & _version;
         // clang-format on
@@ -335,7 +335,7 @@ private:
             int controlState = 0;
             ar & boost::serialization::make_nvp("controlState", controlState);
         }
-        ar & boost::serialization::make_nvp("windowState", _windowState);
+        ar & boost::serialization::make_nvp("windowState", _state);
         // clang-format on
     }
 
@@ -378,7 +378,7 @@ private:
     WindowMode _mode = WindowMode::STANDARD;
     QRectF _focusedCoordinates;
     QRectF _fullscreenCoordinates;
-    WindowState _windowState = WindowState::NONE;
+    WindowState _state = WindowState::NONE;
     bool _selected = false;
     size_t _version = 0u;
 
@@ -386,8 +386,8 @@ private:
     QRectF _backupZoom;
 };
 
-BOOST_CLASS_VERSION(ContentWindow, 3)
+BOOST_CLASS_VERSION(Window, 3)
 
-DECLARE_SERIALIZE_FOR_XML(ContentWindow)
+DECLARE_SERIALIZE_FOR_XML(Window)
 
 #endif

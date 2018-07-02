@@ -44,10 +44,10 @@
 #include "StateSerializationHelper.h"
 #include "scene/Content.h"
 #include "scene/ContentFactory.h"
-#include "scene/ContentWindow.h"
 #include "scene/DisplayGroup.h"
 #include "scene/ErrorContent.h"
 #include "scene/TextureContent.h"
+#include "scene/Window.h"
 #include "serialization/utils.h"
 #include "types.h"
 
@@ -80,18 +80,18 @@ const QString TEST_DIR = "tmp";
 const QSize VALID_TEXTURE_SIZE(256, 128);
 }
 
-ContentWindowPtr makeValidTestWindow(const QString& uri)
+WindowPtr makeValidTestWindow(const QString& uri)
 {
     auto content = ContentFactory::getContent(uri);
     BOOST_REQUIRE(content);
     BOOST_REQUIRE_EQUAL(content->getDimensions(), VALID_TEXTURE_SIZE);
-    return std::make_shared<ContentWindow>(std::move(content));
+    return std::make_shared<Window>(std::move(content));
 }
 
-ContentWindowPtr makeInvalidTestWindow(const QString& uri)
+WindowPtr makeInvalidTestWindow(const QString& uri)
 {
     auto missingContent = std::make_unique<TextureContent>(uri);
-    return std::make_shared<ContentWindow>(std::move(missingContent));
+    return std::make_shared<Window>(std::move(missingContent));
 }
 
 ScenePtr makeTestScene()
@@ -104,10 +104,10 @@ State makeTestStateCopy()
     auto dummyContent = new DummyContent(CONTENT_SIZE, DUMMY_URI);
     ContentPtr content(dummyContent);
     dummyContent->dummyParam_ = DUMMY_PARAM_VALUE;
-    auto window = std::make_shared<ContentWindow>(std::move(content));
+    auto window = std::make_shared<Window>(std::move(content));
 
     auto displayGroup = DisplayGroup::create(wallSize);
-    displayGroup->addContentWindow(window);
+    displayGroup->add(window);
 
     const auto scene = Scene::create(displayGroup);
 
@@ -119,10 +119,10 @@ BOOST_AUTO_TEST_CASE(
     testWhenStateIsSerializedAndDeserializedThenContentPropertiesArePreserved)
 {
     auto state = makeTestStateCopy();
-    auto contentWindows = state.getScene()->getGroup(0).getContentWindows();
+    auto windows = state.getScene()->getGroup(0).getWindows();
 
-    BOOST_REQUIRE_EQUAL(contentWindows.size(), 1);
-    auto& content = contentWindows[0]->getContent();
+    BOOST_REQUIRE_EQUAL(windows.size(), 1);
+    auto& content = windows[0]->getContent();
     auto& dummyContent = dynamic_cast<DummyContent&>(content);
 
     const auto dimensions = dummyContent.getDimensions();
@@ -144,9 +144,9 @@ BOOST_AUTO_TEST_CASE(testWhenOpeningValidLegacyStateThenContentIsLoaded)
 {
     State state;
     BOOST_CHECK(state.legacyLoadXML(LEGACY_URI));
-    auto contentWindows = state.getScene()->getGroup(0).getContentWindows();
+    auto windows = state.getScene()->getGroup(0).getWindows();
 
-    BOOST_REQUIRE_EQUAL(contentWindows.size(), 1);
+    BOOST_REQUIRE_EQUAL(windows.size(), 1);
 }
 
 BOOST_AUTO_TEST_CASE(testStateSerializationHelperReadingFromLegacyFile)
@@ -158,7 +158,7 @@ BOOST_AUTO_TEST_CASE(testStateSerializationHelperReadingFromLegacyFile)
     BOOST_CHECK(scene);
 
     BOOST_CHECK_EQUAL(scene->getSurfaceCount(), 1);
-    BOOST_CHECK_EQUAL(scene->getGroup(0).getContentWindows().size(), 1);
+    BOOST_CHECK_EQUAL(scene->getGroup(0).getWindows().size(), 1);
 }
 
 BOOST_AUTO_TEST_CASE(testWhenOpeningBrokenStateThenNoExceptionIsThrown)
@@ -178,7 +178,7 @@ void checkContent(const Content& content)
                       VALID_TEXTURE_URI.toStdString());
 }
 
-void checkLegacyWindow(ContentWindowPtr window)
+void checkLegacyWindow(WindowPtr window)
 {
     BOOST_CHECK_EQUAL(window->getContent().getZoomRect().width(), 1.0 / 1.5);
     BOOST_CHECK_EQUAL(window->getCoordinates(), QRectF(0.25, 0.25, 0.5, 0.5));
@@ -186,7 +186,7 @@ void checkLegacyWindow(ContentWindowPtr window)
     checkContent(window->getContent());
 }
 
-void checkWindow(ContentWindowPtr window)
+void checkWindow(WindowPtr window)
 {
     BOOST_CHECK_EQUAL(window->getContent().getZoomRect().width(), 1.0 / 1.5);
 
@@ -197,7 +197,7 @@ void checkWindow(ContentWindowPtr window)
     checkContent(window->getContent());
 }
 
-void checkWindowVersion0(ContentWindowPtr window)
+void checkWindowVersion0(WindowPtr window)
 {
     BOOST_CHECK_EQUAL(window->getContent().getZoomRect().width(), 1.0 / 1.5);
 
@@ -223,7 +223,7 @@ void checkWindowVersion0(ContentWindowPtr window)
     checkContent(window->getContent());
 }
 
-void checkWindowVersion3(ContentWindowPtr window)
+void checkWindowVersion3(WindowPtr window)
 {
     BOOST_CHECK_EQUAL(window->getContent().getZoomRect().width(), 1.0);
     BOOST_CHECK_EQUAL(window->getCoordinates(), QRectF(486, 170, 600, 300));
@@ -232,7 +232,7 @@ void checkWindowVersion3(ContentWindowPtr window)
     checkContent(window->getContent());
 }
 
-void checkWindowVersion4(ContentWindowPtr window)
+void checkWindowVersion4(WindowPtr window)
 {
     BOOST_CHECK_EQUAL(window->getContent().getZoomRect().width(), 1.0);
     BOOST_CHECK_EQUAL(window->getCoordinates(), QRectF(486, 170, 600, 300));
@@ -251,7 +251,7 @@ BOOST_AUTO_TEST_CASE(testWhenOpeningValidStateThenContentIsLoaded)
 
     auto scene = state.getScene();
     BOOST_CHECK_EQUAL(scene->getSurfaceCount(), 1);
-    const auto& windows = scene->getGroup(0).getContentWindows();
+    const auto& windows = scene->getGroup(0).getWindows();
     BOOST_REQUIRE_EQUAL(windows.size(), 1);
 
     checkLegacyWindow(windows[0]);
@@ -267,12 +267,12 @@ BOOST_AUTO_TEST_CASE(testStateSerializationHelperReadingFromVersion0File)
     BOOST_REQUIRE(scene);
 
     const auto& group = scene->getGroup(0);
-    BOOST_REQUIRE_EQUAL(group.getContentWindows().size(), 1);
+    BOOST_REQUIRE_EQUAL(group.getWindows().size(), 1);
 
     // The file contains only normalized coordinates, so all the windows have
     // to be denormalized to be adjusted to the new displaygroup.
     BOOST_REQUIRE_EQUAL(group.getCoordinates().size(), wallSize);
-    checkWindowVersion0(group.getContentWindows()[0]);
+    checkWindowVersion0(group.getWindows()[0]);
 }
 
 BOOST_AUTO_TEST_CASE(testWhenOpeningValidVersion3StateThenContentIsLoaded)
@@ -285,11 +285,11 @@ BOOST_AUTO_TEST_CASE(testWhenOpeningValidVersion3StateThenContentIsLoaded)
 
     auto scene = state.getScene();
     const auto& group = scene->getGroup(0);
-    const auto& windows = group.getContentWindows();
+    const auto& windows = group.getWindows();
     BOOST_REQUIRE_EQUAL(windows.size(), 1);
     BOOST_CHECK_EQUAL(group.getCoordinates(), QRectF(0, 0, 1536, 648));
 
-    checkWindowVersion3(group.getContentWindows()[0]);
+    checkWindowVersion3(group.getWindows()[0]);
 }
 
 BOOST_AUTO_TEST_CASE(testStateSerializationHelperReadingFromVersion3File)
@@ -303,10 +303,10 @@ BOOST_AUTO_TEST_CASE(testStateSerializationHelperReadingFromVersion3File)
 
     const auto& group = scene->getGroup(0);
 
-    BOOST_REQUIRE_EQUAL(group.getContentWindows().size(), 1);
+    BOOST_REQUIRE_EQUAL(group.getWindows().size(), 1);
     BOOST_CHECK_EQUAL(group.getCoordinates(), QRectF(QPointF(0, 0), wallSize));
 
-    checkWindowVersion3(group.getContentWindows()[0]);
+    checkWindowVersion3(group.getWindows()[0]);
 }
 
 BOOST_AUTO_TEST_CASE(
@@ -321,10 +321,10 @@ BOOST_AUTO_TEST_CASE(
 
     const auto& group = scene->getGroup(0);
 
-    BOOST_REQUIRE_EQUAL(group.getContentWindows().size(), 1);
+    BOOST_REQUIRE_EQUAL(group.getWindows().size(), 1);
     BOOST_CHECK_EQUAL(group.getCoordinates(), QRectF(QPointF(0, 0), wallSize));
 
-    checkWindowVersion3(group.getContentWindows()[0]);
+    checkWindowVersion3(group.getWindows()[0]);
 }
 
 BOOST_AUTO_TEST_CASE(testStateSerializationHelperReadingFromVersion4File)
@@ -341,11 +341,11 @@ BOOST_AUTO_TEST_CASE(testStateSerializationHelperReadingFromVersion4File)
 
     const auto& group = scene->getGroup(0);
 
-    BOOST_REQUIRE_EQUAL(group.getContentWindows().size(), 1);
+    BOOST_REQUIRE_EQUAL(group.getWindows().size(), 1);
     BOOST_CHECK_EQUAL(group.getCoordinates(), QRectF(QPointF(0, 0), wallSize));
     BOOST_CHECK_EQUAL(group.hasFocusedWindows(), true);
 
-    checkWindowVersion4(group.getContentWindows()[0]);
+    checkWindowVersion4(group.getWindows()[0]);
 }
 
 DisplayGroupPtr createTestDisplayGroup()
@@ -357,7 +357,7 @@ DisplayGroupPtr createTestDisplayGroup()
     window->getContent().setZoomRect(QRectF(0.1, 0.2, 1.0 / 1.5, 1.0 / 1.5));
 
     auto displayGroup = DisplayGroup::create(wallSize);
-    displayGroup->addContentWindow(window);
+    displayGroup->add(window);
     return displayGroup;
 }
 
@@ -412,11 +412,11 @@ BOOST_AUTO_TEST_CASE(testStateSerializationToFile)
     BOOST_REQUIRE(loadedScene);
     const auto& loadedGroup = loadedScene->getGroup(0);
 
-    BOOST_REQUIRE_EQUAL(loadedGroup.getContentWindows().size(),
-                        displayGroup->getContentWindows().size());
+    BOOST_REQUIRE_EQUAL(loadedGroup.getWindows().size(),
+                        displayGroup->getWindows().size());
     BOOST_REQUIRE_EQUAL(loadedGroup.getCoordinates(),
                         QRectF(QPointF(0, 0), wallSize));
-    checkWindow(loadedGroup.getContentWindows()[0]);
+    checkWindow(loadedGroup.getWindows()[0]);
 
     // 4) Cleanup
     cleanupTestDir();
@@ -438,8 +438,8 @@ BOOST_AUTO_TEST_CASE(testStateSerializationUploadedToFile)
 
     // 3) Test saving
     auto displayGroup = createTestDisplayGroup();
-    auto contentWindow = makeValidTestWindow(newValidUri);
-    displayGroup->addContentWindow(contentWindow);
+    auto window = makeValidTestWindow(newValidUri);
+    displayGroup->add(window);
     StateSerializationHelper helper{Scene::create(displayGroup)};
     BOOST_CHECK(
         helper.save(uploadDir + "test.dcx", tempDir, uploadDir).result());
@@ -449,20 +449,20 @@ BOOST_AUTO_TEST_CASE(testStateSerializationUploadedToFile)
     BOOST_CHECK(listFiles(savedSessionDir).contains(uploadedFile));
     BOOST_CHECK(listFiles(uploadDir).contains("test.dcx"));
     BOOST_CHECK(listFiles(uploadDir).contains("test.dcxpreview"));
-    BOOST_CHECK_EQUAL(contentWindow->getContent().getURI(),
+    BOOST_CHECK_EQUAL(window->getContent().getURI(),
                       savedSessionDir + uploadedFile);
 
     // 4) Add another file with the same name and test saving
     QFile::copy(VALID_TEXTURE_URI, newValidUri);
-    auto newContentWindow = makeValidTestWindow(newValidUri);
-    displayGroup->addContentWindow(newContentWindow);
+    auto newWindow = makeValidTestWindow(newValidUri);
+    displayGroup->add(newWindow);
     BOOST_CHECK(
         helper.save(uploadDir + "test.dcx", tempDir, uploadDir).result());
 
     BOOST_CHECK(!listFiles(tempDir).contains(uploadedFile));
     BOOST_CHECK(listFiles(savedSessionDir).contains(uploadedFile));
     BOOST_CHECK(listFiles(savedSessionDir).contains("uploaded_1.png"));
-    BOOST_CHECK_EQUAL(newContentWindow->getContent().getURI(),
+    BOOST_CHECK_EQUAL(newWindow->getContent().getURI(),
                       savedSessionDir + "uploaded_1.png");
 
     QDir{uploadDir}.removeRecursively();
@@ -475,8 +475,8 @@ BOOST_AUTO_TEST_CASE(testErrorContentWhenFileMissing)
     const auto file = TEST_DIR + "/missing_content.dcx";
 
     auto group = DisplayGroup::create(wallSize);
-    group->addContentWindow(makeInvalidTestWindow(INVALID_URI));
-    group->addContentWindow(makeValidTestWindow(VALID_TEXTURE_URI));
+    group->add(makeInvalidTestWindow(INVALID_URI));
+    group->add(makeValidTestWindow(VALID_TEXTURE_URI));
     auto scene = Scene::create(group);
 
     // 2) saving session
@@ -488,10 +488,10 @@ BOOST_AUTO_TEST_CASE(testErrorContentWhenFileMissing)
     BOOST_REQUIRE(loadedScene);
     const auto& loadedGroup = loadedScene->getGroup(0);
 
-    BOOST_REQUIRE_EQUAL(loadedGroup.getContentWindows().size(),
-                        group->getContentWindows().size());
+    BOOST_REQUIRE_EQUAL(loadedGroup.getWindows().size(),
+                        group->getWindows().size());
 
-    const auto& errorContent = loadedGroup.getContentWindows()[0]->getContent();
+    const auto& errorContent = loadedGroup.getWindows()[0]->getContent();
     {
         // WAR compiler warnings with BOOST_CHECK_NO_THROW macro
         const auto e = dynamic_cast<const ErrorContent*>(&errorContent);
@@ -501,7 +501,7 @@ BOOST_AUTO_TEST_CASE(testErrorContentWhenFileMissing)
     BOOST_CHECK_EQUAL(errorContent.getFilePath(), INVALID_URI);
     BOOST_CHECK_EQUAL(errorContent.getTitle(), "uri");
 
-    const auto& validContent = loadedGroup.getContentWindows()[1]->getContent();
+    const auto& validContent = loadedGroup.getWindows()[1]->getContent();
     BOOST_CHECK_EQUAL(validContent.getURI(), VALID_TEXTURE_URI);
     BOOST_CHECK_EQUAL(validContent.getFilePath(), VALID_TEXTURE_URI);
     BOOST_CHECK_EQUAL(validContent.getTitle(), VALID_TEXTURE_URI);
@@ -514,9 +514,8 @@ BOOST_AUTO_TEST_CASE(testErrorContentWhenFileMissing)
     BOOST_REQUIRE(loadedScene);
     const auto& loadedGroup2 = loadedScene->getGroup(0);
 
-    BOOST_REQUIRE_EQUAL(loadedGroup2.getContentWindows().size(), 1);
-    const auto& validContent2 =
-        loadedGroup2.getContentWindows()[0]->getContent();
+    BOOST_REQUIRE_EQUAL(loadedGroup2.getWindows().size(), 1);
+    const auto& validContent2 = loadedGroup2.getWindows()[0]->getContent();
     BOOST_CHECK_EQUAL(validContent2.getURI(), VALID_TEXTURE_URI);
     BOOST_CHECK_EQUAL(validContent2.getFilePath(), VALID_TEXTURE_URI);
     BOOST_CHECK_EQUAL(validContent2.getTitle(), VALID_TEXTURE_URI);

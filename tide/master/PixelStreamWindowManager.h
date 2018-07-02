@@ -76,7 +76,7 @@ public:
      * @note this function is public only for the purpose of unit testing.
      * @internal
      */
-    ContentWindowPtrs getWindows(const QString& uri) const;
+    WindowPtrs getWindows(const QString& uri) const;
 
     /**
      * Hide the associated content window of the stream.
@@ -213,18 +213,18 @@ private:
     bool _autoFocusNewWindows = true;
 
     void _monitor(const DisplayGroup& group, uint surfaceIndex);
-    void _show(ContentWindow& window);
+    void _show(Window& window);
     bool _isWindowOpen(const QString& uri, uint surfaceIndex) const;
     bool _isStreamVisible(const QString& uri) const;
     bool _isValid(const uint surfaceIndex) const;
-    void _focus(const ContentWindow& window);
-    void _onWindowAdded(ContentWindowPtr window, uint surfaceIndex);
-    void _onWindowRemoved(ContentWindowPtr window, uint surfaceIndex);
+    void _focus(const Window& window);
+    void _onWindowAdded(WindowPtr window, uint surfaceIndex);
+    void _onWindowRemoved(WindowPtr window, uint surfaceIndex);
     void _closeWindowsWithoutAChannel(const QString& uri,
                                       const std::set<uint8_t>& channels);
-    void _updateWindowSize(ContentWindow& window, DisplayGroup& group,
+    void _updateWindowSize(Window& window, DisplayGroup& group,
                            const QSize& size);
-    void _resizeInPlace(ContentWindow& window, const DisplayGroup& group,
+    void _resizeInPlace(Window& window, const DisplayGroup& group,
                         const QSize& size);
 };
 

@@ -41,7 +41,7 @@
 
 #include "CanvasTree.h"
 #include "LayoutPolicy.h"
-#include "scene/ContentWindow.h"
+#include "scene/Window.h"
 
 #include <algorithm>
 
@@ -65,8 +65,8 @@ CanvasNode::CanvasNode(QRectF available_space)
 {
 }
 
-CanvasNode::CanvasNode(NodePtr _rootPtr, NodePtr _parent,
-                       ContentWindowPtr window, QRectF rect)
+CanvasNode::CanvasNode(NodePtr _rootPtr, NodePtr _parent, WindowPtr window,
+                       QRectF rect)
     : rootPtr(_rootPtr)
     , parent(_parent)
     , content(window)
@@ -74,7 +74,7 @@ CanvasNode::CanvasNode(NodePtr _rootPtr, NodePtr _parent,
     _setRect(rect);
 }
 
-bool CanvasNode::insert(ContentWindowPtr window)
+bool CanvasNode::insert(WindowPtr window)
 {
     if (isRoot())
     {
@@ -285,7 +285,7 @@ void CanvasNode::_constrainIntoRect(const QRectF& rect)
     }
 }
 
-bool CanvasNode::_insertRoot(ContentWindowPtr window)
+bool CanvasNode::_insertRoot(WindowPtr window)
 {
     if (firstChild)
     {
@@ -355,7 +355,7 @@ void CanvasNode::_computeBoundaries(const QRectF& realSize,
 /**
  * insert a window in an empty leaf, changes the structure of the tree
  */
-bool CanvasNode::_insertTerminal(ContentWindowPtr window)
+bool CanvasNode::_insertTerminal(WindowPtr window)
 {
     if (!isFree())
     {
@@ -416,7 +416,7 @@ bool CanvasNode::_insertTerminal(ContentWindowPtr window)
 }
 
 // This method is called only by the rootNode : it creates some space
-bool CanvasNode::_insertSecondChild(ContentWindowPtr window)
+bool CanvasNode::_insertSecondChild(WindowPtr window)
 {
     auto realSize = _addMargins(window);
     if (_chooseVerticalCut(realSize))
@@ -491,7 +491,7 @@ void CanvasNode::_setRect(QRectF newRect)
     setRect(newRect.left(), newRect.top(), newRect.width(), newRect.height());
 }
 
-QRectF CanvasNode::_addMargins(const ContentWindowPtr window) const
+QRectF CanvasNode::_addMargins(const WindowPtr window) const
 {
     return _addMargins(QRectF(window->x(), window->y(), window->width(),
                               window->height()),

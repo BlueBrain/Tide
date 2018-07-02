@@ -41,8 +41,8 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "scene/ContentWindow.h"
 #include "scene/DisplayGroup.h"
+#include "scene/Window.h"
 
 #include "DummyContent.h"
 
@@ -52,54 +52,53 @@ const QSize wallSize(1000, 1000);
 const int WIDTH = 512;
 const int HEIGHT = 512;
 
-ContentPtr makeDummyContent()
+ContentPtr makeDummyContent(const QString& uri = QString())
 {
-    return std::make_unique<DummyContent>(QSize{WIDTH, HEIGHT});
+    return std::make_unique<DummyContent>(QSize{WIDTH, HEIGHT}, uri);
 }
 }
 
-BOOST_AUTO_TEST_CASE(testFocusWindows)
+BOOST_AUTO_TEST_CASE(focus_window)
 {
-    auto window = std::make_shared<ContentWindow>(makeDummyContent());
-    auto panel = std::make_shared<ContentWindow>(makeDummyContent(),
-                                                 ContentWindow::PANEL);
+    auto window = std::make_shared<Window>(makeDummyContent());
+    auto panel = std::make_shared<Window>(makeDummyContent(), Window::PANEL);
 
     BOOST_REQUIRE(!window->isFocused());
     BOOST_REQUIRE(!panel->isFocused());
 
-    DisplayGroupPtr displayGroup(new DisplayGroup(wallSize));
-    displayGroup->addContentWindow(window);
-    displayGroup->addContentWindow(panel);
-    displayGroup->addFocusedWindow(window);
+    auto group = DisplayGroup::create(wallSize);
+    group->add(window);
+    group->add(panel);
+    group->addFocusedWindow(window);
 
     BOOST_CHECK(window->isFocused());
     BOOST_CHECK(!panel->isFocused());
 
-    displayGroup->removeFocusedWindow(window);
+    group->removeFocusedWindow(window);
     BOOST_CHECK(!window->isFocused());
 }
 
-BOOST_AUTO_TEST_CASE(testWindowZorder)
+BOOST_AUTO_TEST_CASE(window_z_order)
 {
-    auto window0 = std::make_shared<ContentWindow>(makeDummyContent());
-    auto window1 = std::make_shared<ContentWindow>(makeDummyContent());
-    auto window2 = std::make_shared<ContentWindow>(makeDummyContent());
+    auto window0 = std::make_shared<Window>(makeDummyContent());
+    auto window1 = std::make_shared<Window>(makeDummyContent());
+    auto window2 = std::make_shared<Window>(makeDummyContent());
 
-    auto group = std::make_shared<DisplayGroup>(wallSize);
+    auto group = DisplayGroup::create(wallSize);
     BOOST_REQUIRE(group->isEmpty());
 
     BOOST_CHECK_EQUAL(group->getZindex(window0->getID()), -1);
     BOOST_CHECK_EQUAL(group->getZindex(window1->getID()), -1);
     BOOST_CHECK_EQUAL(group->getZindex(window2->getID()), -1);
 
-    group->addContentWindow(window0);
-    group->addContentWindow(window1);
+    group->add(window0);
+    group->add(window1);
 
     BOOST_CHECK_EQUAL(group->getZindex(window0->getID()), 0);
     BOOST_CHECK_EQUAL(group->getZindex(window1->getID()), 1);
     BOOST_CHECK_EQUAL(group->getZindex(window2->getID()), -1);
 
-    group->addContentWindow(window2);
+    group->add(window2);
 
     BOOST_CHECK_EQUAL(group->getZindex(window2->getID()), 2);
 
@@ -113,8 +112,31 @@ BOOST_AUTO_TEST_CASE(testWindowZorder)
     BOOST_CHECK_EQUAL(group->getZindex(window1->getID()), 1);
     BOOST_CHECK_EQUAL(group->getZindex(window0->getID()), 2);
 
-    group->removeContentWindow(window1);
+    group->remove(window1);
     BOOST_CHECK_EQUAL(group->getZindex(window2->getID()), 0);
     BOOST_CHECK_EQUAL(group->getZindex(window0->getID()), 1);
     BOOST_CHECK_EQUAL(group->getZindex(window1->getID()), -1);
+}
+
+BOOST_AUTO_TEST_CASE(find_window_by_filename)
+{
+    auto windowA = std::make_shared<Window>(makeDummyContent("aaa"));
+    auto windowB = std::make_shared<Window>(makeDummyContent("bbb"));
+    auto windowC = std::make_shared<Window>(makeDummyContent("ccc"));
+
+    auto group = DisplayGroup::create(wallSize);
+
+    BOOST_CHECK(!group->findWindow("aaa"));
+    BOOST_CHECK(!group->findWindow("bbb"));
+    BOOST_CHECK(!group->findWindow("ccc"));
+    BOOST_CHECK(!group->findWindow("ddd"));
+
+    group->add(windowA);
+    group->add(windowB);
+    group->add(windowC);
+
+    BOOST_CHECK(group->findWindow("aaa"));
+    BOOST_CHECK(group->findWindow("bbb"));
+    BOOST_CHECK(group->findWindow("ccc"));
+    BOOST_CHECK(!group->findWindow("ddd"));
 }

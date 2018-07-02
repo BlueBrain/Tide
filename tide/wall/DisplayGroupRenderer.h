@@ -42,8 +42,8 @@
 
 #include "types.h"
 
-#include "ContentWindowRenderer.h"
 #include "WallRenderContext.h"
+#include "WindowRenderer.h"
 
 #include <QtCore/QMap>
 #include <QtCore/QObject>
@@ -72,11 +72,11 @@ private:
     DisplayGroupPtr _displayGroup;
 
     std::unique_ptr<QQuickItem> _displayGroupItem;
-    using QmlWindowPtr = std::shared_ptr<ContentWindowRenderer>;
+    using QmlWindowPtr = std::shared_ptr<WindowRenderer>;
     QMap<QUuid, QmlWindowPtr> _windowItems;
 
     void _createDisplayGroupQmlItem(QQuickItem& parentItem);
-    void _createWindowQmlItem(ContentWindowPtr window);
+    void _createWindowQmlItem(WindowPtr window);
 };
 
 #endif

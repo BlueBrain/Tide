@@ -42,7 +42,7 @@
 #include "DataSource.h"
 #include "Tile.h"
 #include "ZoomHelper.h"
-#include "scene/ContentWindow.h"
+#include "scene/Window.h"
 
 #include <QTextStream>
 
@@ -61,8 +61,7 @@ LodSynchronizer::~LodSynchronizer()
     _source->synchronizers.erase(this);
 }
 
-void LodSynchronizer::update(const ContentWindow& window,
-                             const QRectF& visibleArea)
+void LodSynchronizer::update(const Window& window, const QRectF& visibleArea)
 {
     update(window, visibleArea, false, 0);
 }
@@ -103,9 +102,8 @@ TilePtr LodSynchronizer::createZoomContextTile() const
     return Tile::create(0, getDataSource().getTileRect(0));
 }
 
-void LodSynchronizer::update(const ContentWindow& window,
-                             const QRectF& visibleArea, const bool forceUpdate,
-                             const int backgroundTileId)
+void LodSynchronizer::update(const Window& window, const QRectF& visibleArea,
+                             const bool forceUpdate, const int backgroundTileId)
 {
     const ZoomHelper helper(window);
     const auto lod = _getLod(helper.getContentRect().size().toSize());

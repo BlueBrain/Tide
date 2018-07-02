@@ -41,8 +41,8 @@
 #include <boost/test/unit_test.hpp>
 
 #include "control/DisplayGroupController.h"
-#include "scene/ContentWindow.h"
 #include "scene/DisplayGroup.h"
+#include "scene/Window.h"
 
 #include "DummyContent.h"
 
@@ -60,8 +60,8 @@ ContentPtr makeDummyContent()
 
 struct Fixture
 {
-    Fixture() { displayGroup->addContentWindow(window); }
-    ContentWindowPtr window{new ContentWindow{makeDummyContent()}};
+    Fixture() { displayGroup->add(window); }
+    WindowPtr window{std::make_shared<Window>(makeDummyContent())};
     Content& content{window->getContent()};
     DisplayGroupPtr displayGroup{DisplayGroup::create(WALL_SIZE)};
     DisplayGroupController controller{*displayGroup};

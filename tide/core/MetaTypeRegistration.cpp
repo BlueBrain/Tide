@@ -41,7 +41,7 @@
 #include "types.h"
 
 #include "network/MPIHeader.h"
-#include "scene/ContentWindow.h"
+#include "scene/Window.h"
 
 #include <QMetaType>
 
@@ -54,12 +54,10 @@ struct MetaTypeRegistration
     {
         qRegisterMetaType<BackgroundPtr>("BackgroundPtr");
         qRegisterMetaType<BoolCallback>("BoolCallback");
-        qRegisterMetaType<ContentWindowPtr>("ContentWindowPtr");
-        qRegisterMetaType<ContentWindowPtrs>("ContentWindowPtrs");
-        qRegisterMetaType<ContentWindow::ResizeHandle>(
-            "ContentWindow::ResizeHandle");
-        qRegisterMetaType<ContentWindow::WindowState>(
-            "ContentWindow::WindowState");
+        qRegisterMetaType<WindowPtr>("WindowPtr");
+        qRegisterMetaType<WindowPtrs>("WindowPtrs");
+        qRegisterMetaType<Window::ResizeHandle>("Window::ResizeHandle");
+        qRegisterMetaType<Window::WindowState>("Window::WindowState");
         qRegisterMetaType<ContentSynchronizerSharedPtr>(
             "ContentSynchronizerSharedPtr");
         qRegisterMetaType<CountdownStatusPtr>("CountdownStatusPtr");

@@ -48,7 +48,7 @@
 class ZoomHelper
 {
 public:
-    ZoomHelper(const ContentWindow& window);
+    ZoomHelper(const Window& window);
 
     QRectF getContentRect() const;
 
@@ -59,7 +59,7 @@ public:
                        const QSize& tilesSurface) const;
 
 private:
-    const ContentWindow& _contentWindow;
+    const Window& _window;
 };
 
 #endif

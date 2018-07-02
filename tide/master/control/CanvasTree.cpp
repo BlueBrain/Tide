@@ -42,12 +42,11 @@
 #include "CanvasNode.h"
 #include "LayoutPolicy.h"
 
-CanvasTree::CanvasTree(ContentWindowPtrs windowVec,
-                       const QRectF& available_space)
-    : rootNode{std::make_shared<CanvasNode>(available_space)}
+CanvasTree::CanvasTree(WindowPtrs windows, const QRectF& availableSpace)
+    : rootNode{std::make_shared<CanvasNode>(availableSpace)}
 {
     rootNode->rootPtr = rootNode;
-    for (const auto& window : windowVec)
+    for (const auto& window : windows)
         rootNode->insert(window);
 }
 

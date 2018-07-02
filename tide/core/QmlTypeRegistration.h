@@ -41,9 +41,9 @@
 #define CORE_QMLTYPEREGISTRATION_H
 
 #include "scene/ContentActionsModel.h"
-#include "scene/ContentWindow.h"
 #include "scene/KeyboardState.h"
 #include "scene/Markers.h"
+#include "scene/Window.h"
 
 #include <QtQml>
 
@@ -62,9 +62,9 @@ void registerQmlTypes()
 
     qmlRegisterUncreatableType<Content>(
         QML_MODULE, 1, 0, "Content",
-        "Content is linked to a ContentWindow and read-only in QML");
-    qmlRegisterUncreatableType<ContentWindow>(QML_MODULE, 1, 0, "ContentWindow",
-                                              "This exports enums to QML");
+        "Content is linked to a Window and read-only in QML");
+    qmlRegisterUncreatableType<Window>(QML_MODULE, 1, 0, "Window",
+                                       "This exports enums to QML");
     qmlRegisterUncreatableType<Markers>(QML_MODULE, 1, 0, "Markers",
                                         "Markers are exposed from C++");
 }

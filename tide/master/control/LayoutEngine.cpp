@@ -39,9 +39,9 @@
 
 #include "LayoutEngine.h"
 
-#include "control/ContentWindowController.h"
-#include "scene/ContentWindow.h"
+#include "control/WindowController.h"
 #include "scene/DisplayGroup.h"
+#include "scene/Window.h"
 
 #include <QTransform>
 
@@ -91,19 +91,19 @@ QRectF _scaleAroundCenter(const QRectF& rect, const qreal factor)
     return transform.mapRect(rect);
 }
 
-QRectF LayoutEngine::getFocusedCoord(const ContentWindow& window) const
+QRectF LayoutEngine::getFocusedCoord(const Window& window) const
 {
     return _getFocusedCoord(window, _group.getFocusedWindows());
 }
 
-void LayoutEngine::updateFocusedCoord(const ContentWindowSet& windows) const
+void LayoutEngine::updateFocusedCoord(const WindowSet& windows) const
 {
     for (auto& window : windows)
         window->setFocusedCoordinates(_getFocusedCoord(*window, windows));
 }
 
-QRectF LayoutEngine::_getFocusedCoord(
-    const ContentWindow& window, const ContentWindowSet& focusedWindows) const
+QRectF LayoutEngine::_getFocusedCoord(const Window& window,
+                                      const WindowSet& focusedWindows) const
 {
     if (focusedWindows.size() < 2)
         return _getNominalCoord(window).rect;
@@ -142,8 +142,7 @@ QRectF LayoutEngine::_getFocusedCoord(
     return coord;
 }
 
-WindowCoordinates LayoutEngine::_getNominalCoord(
-    const ContentWindow& window) const
+WindowCoordinates LayoutEngine::_getNominalCoord(const Window& window) const
 {
     const qreal margin = 2.0 * _getInsideMargin();
     const QSizeF margins(margin + WINDOW_CONTROLS_MARGIN_PX, margin);
@@ -153,8 +152,8 @@ WindowCoordinates LayoutEngine::_getNominalCoord(
     QSizeF size = window.size();
     size.scale(maxSize, Qt::KeepAspectRatio);
 
-    ContentWindowController(const_cast<ContentWindow&>(window), _group,
-                            ContentWindowController::Coordinates::STANDARD)
+    WindowController(const_cast<Window&>(window), _group,
+                     WindowController::Coordinates::STANDARD)
         .constrainSize(size);
 
     QRectF coord(QPointF(), size);

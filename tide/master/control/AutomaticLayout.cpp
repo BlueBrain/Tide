@@ -40,10 +40,10 @@
 #include "AutomaticLayout.h"
 
 #include "CanvasTree.h"
-#include "control/ContentWindowController.h"
+#include "control/WindowController.h"
 #include "scene/ContentType.h"
-#include "scene/ContentWindow.h"
 #include "scene/DisplayGroup.h"
+#include "scene/Window.h"
 #include "types.h"
 
 namespace
@@ -56,18 +56,18 @@ AutomaticLayout::AutomaticLayout(const DisplayGroup& group)
 {
 }
 
-qreal AutomaticLayout::_computeMaxRatio(ContentWindowPtr window) const
+qreal AutomaticLayout::_computeMaxRatio(const Window& window) const
 {
-    return std::max(window->width() / _getAvailableSpace().width(),
-                    window->height() / _getAvailableSpace().height());
+    return std::max(window.width() / _getAvailableSpace().width(),
+                    window.height() / _getAvailableSpace().height());
 }
 
-QRectF AutomaticLayout::getFocusedCoord(const ContentWindow& window) const
+QRectF AutomaticLayout::getFocusedCoord(const Window& window) const
 {
     return _getFocusedCoord(window, _group.getFocusedWindows());
 }
 
-void AutomaticLayout::updateFocusedCoord(const ContentWindowSet& windows) const
+void AutomaticLayout::updateFocusedCoord(const WindowSet& windows) const
 {
     auto sortedWindows = _sortByMaxRatio(windows);
     auto layoutTree = CanvasTree(sortedWindows, _getAvailableSpace());
@@ -88,7 +88,7 @@ void AutomaticLayout::updateFocusedCoord(const ContentWindowSet& windows) const
     layoutTree.updateFocusCoordinates();
 }
 
-qreal AutomaticLayout::_getTotalArea(const ContentWindowSet& windows) const
+qreal AutomaticLayout::_getTotalArea(const WindowSet& windows) const
 {
     auto areaCount = qreal(0.0);
     for (const auto& window : windows)
@@ -100,24 +100,23 @@ qreal AutomaticLayout::_getTotalArea(const ContentWindowSet& windows) const
     return areaCount;
 }
 
-QRectF AutomaticLayout::_getFocusedCoord(const ContentWindow& window,
-                                         const ContentWindowSet& windows) const
+QRectF AutomaticLayout::_getFocusedCoord(const Window& window,
+                                         const WindowSet& windows) const
 {
     updateFocusedCoord(windows);
     return window.getCoordinates();
 }
 
-ContentWindowPtrs AutomaticLayout::_sortByMaxRatio(
-    const ContentWindowSet& windows) const
+WindowPtrs AutomaticLayout::_sortByMaxRatio(const WindowSet& windows) const
 {
-    std::vector<ContentWindowPtr> windowVec;
+    std::vector<WindowPtr> windowVec;
     for (auto& window : windows)
     {
         windowVec.push_back(window);
     }
     std::sort(windowVec.begin(), windowVec.end(),
-              [this](ContentWindowPtr a, ContentWindowPtr b) {
-                  return _computeMaxRatio(a) > _computeMaxRatio(b);
+              [this](WindowPtr a, WindowPtr b) {
+                  return _computeMaxRatio(*a) > _computeMaxRatio(*b);
               });
     return windowVec;
 }

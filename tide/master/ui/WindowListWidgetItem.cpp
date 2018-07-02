@@ -1,8 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2014-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael.Dumusc@epfl.ch                        */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/* Copyright (c) 2011-2012, The University of Texas at Austin.       */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael.Dumusc@epfl.ch                   */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,27 +38,14 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef CONTENT_WINDOW_LIST_WIDGET_ITEM_H
-#define CONTENT_WINDOW_LIST_WIDGET_ITEM_H
+#include "WindowListWidgetItem.h"
 
-#include "types.h"
-
-#include <QListWidgetItem>
-
-/**
- * Represent a ContentWindow in a QListView.
- */
-class ContentWindowListWidgetItem : public QListWidgetItem
+WindowListWidgetItem::WindowListWidgetItem(WindowPtr window)
+    : _window(window)
 {
-public:
-    /** Constructor. */
-    explicit ContentWindowListWidgetItem(ContentWindowPtr contentWindow);
+}
 
-    /** Get the associated ContentWindow. */
-    ContentWindowPtr getContentWindow() const;
-
-private:
-    ContentWindowPtr _contentWindow;
-};
-
-#endif
+WindowPtr WindowListWidgetItem::getWindow() const
+{
+    return _window;
+}

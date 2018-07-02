@@ -22,7 +22,7 @@ Rectangle {
     ListView {
         id: buttons
         width: Style.buttonsSize
-        property int fixed_buttons_count: contentwindow.isPanel ? 1 : 4
+        property int fixed_buttons_count: window.isPanel ? 1 : 4
         height: (count + fixed_buttons_count) * Style.buttonsSize
         anchors.centerIn: parent
         orientation: ListView.Vertical
@@ -44,13 +44,13 @@ Rectangle {
         }
         delegate: WindowControlsDelegate {
         }
-        model: contentActionsVisible ? contentwindow.content.actions : undefined
+        model: contentActionsVisible ? window.content.actions : undefined
     }
 
     states: [
         State {
             name: "focus_mode"
-            when: contentwindow.focused
+            when: window.focused
             extend: "opaque"
             PropertyChanges {
                 target: buttons
@@ -59,9 +59,9 @@ Rectangle {
         },
         State {
             name: "opaque"
-            when: contentwindow.selected &&
-                  contentwindow.state !== ContentWindow.RESIZING &&
-                  !contentwindow.fullscreen
+            when: window.selected &&
+                  window.state !== Window.RESIZING &&
+                  !window.fullscreen
             PropertyChanges {
                 target: windowControls
                 opacity: 1

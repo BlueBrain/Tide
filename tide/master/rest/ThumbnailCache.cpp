@@ -73,18 +73,16 @@ std::future<http::Response> ThumbnailCache::getThumbnail(
 
 void ThumbnailCache::_monitor(const DisplayGroup& group)
 {
-    QObject::connect(&group, &DisplayGroup::contentWindowAdded,
-                     [this](ContentWindowPtr window) {
-                         _cacheThumbnail(window);
-                     });
+    QObject::connect(&group, &DisplayGroup::windowAdded,
+                     [this](WindowPtr window) { _cacheThumbnail(window); });
 
-    QObject::connect(&group, &DisplayGroup::contentWindowRemoved,
-                     [this](ContentWindowPtr window) {
+    QObject::connect(&group, &DisplayGroup::windowRemoved,
+                     [this](WindowPtr window) {
                          _thumbnailCache.remove(window->getID());
                      });
 }
 
-void ThumbnailCache::_cacheThumbnail(ContentWindowPtr window)
+void ThumbnailCache::_cacheThumbnail(WindowPtr window)
 {
     _thumbnailCache[window->getID()] = QtConcurrent::run([window]() {
         const auto& content = window->getContent();

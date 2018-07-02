@@ -115,12 +115,12 @@ const DisplayGroup& Scene::getGroup(const size_t surfaceIndex) const
     return _surfaces[surfaceIndex]->getGroup();
 }
 
-ContentWindowPtrs Scene::getContentWindows() const
+WindowPtrs Scene::getWindows() const
 {
-    ContentWindowPtrs windows;
+    WindowPtrs windows;
     for (const auto& surface : getSurfaces())
     {
-        const auto& list = surface.getGroup().getContentWindows();
+        const auto& list = surface.getGroup().getWindows();
         windows.insert(windows.end(), list.begin(), list.end());
     }
     return windows;
@@ -138,33 +138,32 @@ void Scene::moveToThread(QThread* thread)
 }
 TIDE_DISABLE_WARNING_SHADOW_END
 
-ContentWindowPtr Scene::findWindow(const QUuid& id) const
+WindowPtr Scene::findWindow(const QUuid& id) const
 {
     for (const auto& surface : getSurfaces())
     {
-        if (auto window = surface.getGroup().getContentWindow(id))
+        if (auto window = surface.getGroup().getWindow(id))
             return window;
     }
-    return ContentWindowPtr();
+    return WindowPtr();
 }
 
-std::pair<ContentWindow&, DisplayGroup&> Scene::findWindowAndGroup(
-    const QUuid& id)
+std::pair<Window&, DisplayGroup&> Scene::findWindowAndGroup(const QUuid& id)
 {
     for (auto&& surface : getSurfaces())
     {
-        if (auto window = surface.getGroup().getContentWindow(id))
+        if (auto window = surface.getGroup().getWindow(id))
             return {*window, surface.getGroup()};
     }
     throw window_not_found_error("window not found");
 }
 
-std::pair<ContentWindowPtr, DisplayGroup&> Scene::findWindowPtrAndGroup(
+std::pair<WindowPtr, DisplayGroup&> Scene::findWindowPtrAndGroup(
     const QUuid& id)
 {
     for (auto&& surface : getSurfaces())
     {
-        if (auto window = surface.getGroup().getContentWindow(id))
+        if (auto window = surface.getGroup().getWindow(id))
             return {window, surface.getGroup()};
     }
     throw window_not_found_error("window not found");

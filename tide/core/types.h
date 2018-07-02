@@ -106,7 +106,6 @@ class Background;
 class Configuration;
 class Content;
 class ContentSynchronizer;
-class ContentWindow;
 class CountdownStatus;
 class DataProvider;
 class DataSource;
@@ -146,11 +145,11 @@ class WallSurfaceRenderer;
 class WallToWallChannel;
 class WallWindow;
 class WebbrowserContent;
+class Window;
 
 typedef std::shared_ptr<Background> BackgroundPtr;
 typedef std::unique_ptr<Content> ContentPtr;
 typedef std::shared_ptr<ContentSynchronizer> ContentSynchronizerSharedPtr;
-typedef std::shared_ptr<ContentWindow> ContentWindowPtr;
 typedef std::shared_ptr<CountdownStatus> CountdownStatusPtr;
 typedef std::shared_ptr<DisplayGroup> DisplayGroupPtr;
 typedef std::shared_ptr<Image> ImagePtr;
@@ -163,9 +162,10 @@ typedef std::shared_ptr<const Scene> SceneConstPtr;
 typedef std::shared_ptr<ScreenLock> ScreenLockPtr;
 typedef std::shared_ptr<Tile> TilePtr;
 typedef std::weak_ptr<Tile> TileWeakPtr;
+typedef std::shared_ptr<Window> WindowPtr;
 
-typedef std::set<ContentWindowPtr> ContentWindowSet;
-typedef std::vector<ContentWindowPtr> ContentWindowPtrs;
+typedef std::set<WindowPtr> WindowSet;
+typedef std::vector<WindowPtr> WindowPtrs;
 typedef std::set<size_t> Indices;
 typedef std::vector<QPointF> Positions;
 

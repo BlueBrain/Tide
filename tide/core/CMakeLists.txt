@@ -152,7 +152,6 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   scene/ContentFactory.h
   scene/Content.h
   scene/ContentType.h
-  scene/ContentWindow.h
   scene/CountdownStatus.h
   scene/DisplayGroup.h
   scene/DynamicTextureContent.h
@@ -169,6 +168,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   scene/SVGContent.h
   scene/TextureContent.h
   scene/VectorialContent.h
+  scene/Window.h
   serialization/chrono.h
   serialization/deflectTypes.h
   serialization/includes.h
@@ -219,7 +219,6 @@ list(APPEND TIDECORE_SOURCES
   scene/Content.cpp
   scene/ContentFactory.cpp
   scene/ContentType.cpp
-  scene/ContentWindow.cpp
   scene/CountdownStatus.cpp
   scene/DisplayGroup.cpp
   scene/DynamicTextureContent.cpp
@@ -236,6 +235,7 @@ list(APPEND TIDECORE_SOURCES
   scene/SVGContent.cpp
   scene/TextureContent.cpp
   scene/VectorialContent.cpp
+  scene/Window.cpp
   thumbnail/DefaultThumbnailGenerator.cpp
   thumbnail/FolderThumbnailGenerator.cpp
   thumbnail/ImageThumbnailGenerator.cpp
