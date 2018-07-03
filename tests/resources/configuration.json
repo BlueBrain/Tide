@@ -9,8 +9,7 @@
         "swapsync": "hardware"
     },
     "launcher": {
-        "demoServiceImageDir": "/nfs4/bbp.epfl.ch/visualization/demo_previews",
-        "demoServiceUrl": "https://visualization-dev.humanbrainproject.eu/rrm",
+        "demoServiceUrl": "https://bbp.epfl.ch/viz/launcher/wall?host=",
         "display": ":0"
     },
     "master": {

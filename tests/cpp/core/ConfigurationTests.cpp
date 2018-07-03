@@ -337,9 +337,7 @@ void testReferenceConfig(const Configuration& config)
 
     BOOST_CHECK_EQUAL(config.launcher.display, ":0");
     BOOST_CHECK_EQUAL(config.launcher.demoServiceUrl,
-                      "https://visualization-dev.humanbrainproject.eu/rrm");
-    BOOST_CHECK_EQUAL(config.launcher.demoServiceImageDir,
-                      "/nfs4/bbp.epfl.ch/visualization/demo_previews");
+                      "https://bbp.epfl.ch/viz/launcher/wall?host=");
 
     BOOST_CHECK_EQUAL(config.webbrowser.defaultUrl, "http://bbp.epfl.ch");
     BOOST_CHECK_EQUAL(config.webbrowser.defaultSize, QSize(1680, 1320));

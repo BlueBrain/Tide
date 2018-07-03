@@ -1,10 +1,10 @@
 // Copyright (c) 2016-2018, EPFL/Blue Brain Project
 //                          Raphael Dumusc <raphael.dumusc@epfl.ch>
+//                          Pawel Podhajski <pawel.podhajski@epfl.ch>
 
 import QtQuick 2.4
 import QtQuick.Window 2.2
-
-import "DemoLauncher"
+import QtWebEngine 1.1
 import "style.js" as Style
 
 Rectangle {
@@ -33,16 +33,24 @@ Rectangle {
             id: menu
             width: Style.menuWidth * root.width
             height: root.height
-            demoItemVisible: demoServiceUrl && demoServiceImageFolder && demoServiceDeflectHost
-            onClearSession: sendJsonRpc("controller", "clear");
-            onStartWebbrowser: sendJsonRpc("application", "browse", "");
-            onPoweroffScreens: sendJsonRpc("application", "poweroff");
-            onStartWhiteboard: sendJsonRpc("application", "whiteboard");
+            demoItemVisible: demoServiceUrl && demoServiceDeflectHost
+            onClearSession: sendJsonRpc("controller", "clear")
+            onStartWebbrowser: sendJsonRpc("application", "browse", "")
+            onPoweroffScreens: sendJsonRpc("application", "poweroff")
+            onStartWhiteboard: sendJsonRpc("application", "whiteboard")
             onShowFilesPanel: centralWidget.sourceComponent = fileBrowser
             onShowSessionsPanel: centralWidget.sourceComponent = sessionsBrowser
             onShowSaveSessionPanel: centralWidget.sourceComponent = saveSessionPanel
-            onShowDemosPanel: centralWidget.sourceComponent = demoLauncher
+            onShowDemosPanel: demoLauncherWidget.visible = true
             onShowOptionsPanel: centralWidget.sourceComponent = optionsPanel
+        }
+        Loader {
+            id: demoLauncherWidget
+            width: root.width - menu.width
+            height: root.height
+            sourceComponent: demoLauncher
+            visible: false
+            focus: true // let loaded components get focus
         }
         Loader {
             id: centralWidget
@@ -50,6 +58,7 @@ Rectangle {
             height: root.height
             sourceComponent: defaultPanel
             focus: true // let loaded components get focus
+            onSourceComponentChanged: demoLauncherWidget.visible = false
         }
     }
 
@@ -62,7 +71,7 @@ Rectangle {
     Component {
         id: fileBrowser
         FileBrowser {
-            onItemSelected: sendJsonRpc("application", "open", file);
+            onItemSelected: sendJsonRpc("application", "open", file)
             rootfolder: rootFilesFolder
             nameFilters: filesFilter
             listViewMode: useListViewMode
@@ -74,7 +83,7 @@ Rectangle {
     Component {
         id: sessionsBrowser
         FileBrowser {
-            onItemSelected: sendJsonRpc("application", "load", file);
+            onItemSelected: sendJsonRpc("application", "load", file)
             rootfolder: rootSessionsFolder
             nameFilters: ["*.dcx"]
             listViewMode: useListViewMode
@@ -87,7 +96,7 @@ Rectangle {
         SavePanel {
             rootfolder: rootSessionsFolder
             nameFilters: ["*.dcx"]
-            onSaveSession: sendJsonRpc("application", "save", filename);
+            onSaveSession: sendJsonRpc("application", "save", filename)
             listViewMode: useListViewMode
             onListViewModeChanged: useListViewMode = listViewMode
         }
@@ -104,60 +113,69 @@ Rectangle {
 
     Component {
         id: demoLauncher
-        DemoLauncher {
-            serviceUrl: demoServiceUrl
-            imagesFolder: demoServiceImageFolder
-            deflectStreamHost: demoServiceDeflectHost
+        WebEngineView {
+            id: webview
+            url: demoServiceUrl + demoServiceDeflectHost
+            anchors.fill: parent
+            onCertificateError: {
+                error.ignoreCertificateError()
+            }
         }
     }
 
     function sendJsonRpc(endpoint, action, uri) {
-        var obj = {jsonrpc: "2.0", method: action};
-        if (typeof uri !== "undefined") {
-            obj.params = {uri: uri};
+        var obj = {
+            jsonrpc: "2.0",
+            method: action
         }
-        sendRestData(endpoint, "POST", JSON.stringify(obj));
+        if (typeof uri !== "undefined") {
+            obj.params = {
+                uri: uri
+            }
+        }
+        sendRestData(endpoint, "POST", JSON.stringify(obj))
     }
 
     function makeJsonString(key, value) {
-        var obj = new Object;
-        obj[key] = value;
-        return JSON.stringify(obj);
+        var obj = new Object
+        obj[key] = value
+        return JSON.stringify(obj)
     }
 
     function sendRestOption(optionName, value) {
-        sendRestData("options", "PUT", makeJsonString(optionName, value));
+        sendRestData("options", "PUT", makeJsonString(optionName, value))
     }
 
     function sendRestData(action, method, payload, callback) {
-        var request = new XMLHttpRequest();
-        var url = "http://"+restHost+":"+restPort+"/tide/"+action;
+        var request = new XMLHttpRequest()
+        var url = "http://" + restHost + ":" + restPort + "/tide/" + action
 
-        request.onreadystatechange = function() {
-            if (request.readyState === XMLHttpRequest.DONE && request.status == 200) {
+        request.onreadystatechange = function () {
+            if (request.readyState === XMLHttpRequest.DONE
+                    && request.status == 200) {
                 if (typeof callback !== 'undefined')
-                    callback();
+                    callback()
             }
         }
-        request.open(method, url, true);
+        request.open(method, url, true)
         if (payload) {
-            request.send(payload);
-        }
-        else {
-            request.send();
+            request.send(payload)
+        } else {
+            request.send()
         }
     }
 
     function getRestOptions(callback) {
-        sendRestQuery("options", callback);
+        sendRestQuery("options", callback)
     }
 
     function sendRestQuery(action, callback) {
         var request = new XMLHttpRequest()
-        var url = "http://"+restHost+":"+restPort+"/tide/"+action;
+        var url = "http://" + restHost + ":" + restPort + "/tide/" + action
 
-        request.onreadystatechange = function() {
-            if (request.readyState === XMLHttpRequest.DONE && request.status == 200) {
+        request.onreadystatechange = function () {
+            if (request.readyState === XMLHttpRequest.DONE
+                    && request.status == 200) {
                 callback(JSON.parse(request.responseText))
             }
         }

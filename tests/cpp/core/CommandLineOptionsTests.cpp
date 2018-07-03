@@ -60,7 +60,6 @@ BOOST_AUTO_TEST_CASE(testCommandLineDefaults)
     BOOST_CHECK_EQUAL(options.sessionsDir, "");
     BOOST_CHECK_EQUAL(options.webservicePort, 0);
     BOOST_CHECK_EQUAL(options.demoServiceUrl, "");
-    BOOST_CHECK_EQUAL(options.demoServiceImageDir, "");
     BOOST_CHECK_EQUAL(options.showPowerButton, false);
     BOOST_CHECK_EQUAL(options.saveDir, "");
 
@@ -77,7 +76,6 @@ void setOptionParameters(CommandLineOptions& options)
     options.sessionsDir = "/var/sessions";
     options.webservicePort = 8888;
     options.demoServiceUrl = "http://demoservice.bbp.epfl.ch";
-    options.demoServiceImageDir = "/var/images";
     options.showPowerButton = true;
     options.saveDir = "/tmp/whiteboards";
 }
@@ -93,7 +91,6 @@ void checkOptionParameters(const CommandLineOptions& options)
     BOOST_CHECK_EQUAL(options.sessionsDir, "/var/sessions");
     BOOST_CHECK_EQUAL(options.webservicePort, 8888);
     BOOST_CHECK_EQUAL(options.demoServiceUrl, "http://demoservice.bbp.epfl.ch");
-    BOOST_CHECK_EQUAL(options.demoServiceImageDir, "/var/images");
     BOOST_CHECK_EQUAL(options.showPowerButton, true);
     BOOST_CHECK_EQUAL(options.saveDir, "/tmp/whiteboards");
 
@@ -106,7 +103,6 @@ void checkOptionParameters(const CommandLineOptions& options)
                       "--sessionsDir /var/sessions "
                       "--webservicePort 8888 "
                       "--demoServiceUrl http://demoservice.bbp.epfl.ch "
-                      "--demoServiceImageDir /var/images "
                       "--showPowerButton "
                       "--saveDir /tmp/whiteboards");
 }
