@@ -14,8 +14,6 @@ Rectangle {
     property alias contentComponent: contentBackgroundLoader.sourceComponent
     property alias contentArea: contentArea
     property alias focusEffectEnabled: focusEffect.visible
-    property alias nextButton: nextButton
-    property alias previousButton: previousButton
     property alias resizeCirclesDelegate: resizeCircles.delegate
     property alias titleBar: titleBar
     property alias virtualKeyboard: virtualKeyboard
@@ -167,7 +165,8 @@ Rectangle {
         anchors.verticalCenter: contentArea.verticalCenter
         anchors.left: contentArea.left
         color: windowRect.border.color
-        delegate: Triangle {
+        delegate: TriangleControlButton {
+            onClicked: contentcontroller.prevPage()
         }
         delegateOverflow: windowRect.border.width
         visible: (window.selected || window.focused ||
@@ -181,7 +180,8 @@ Rectangle {
         color: windowRect.border.color
         anchors.verticalCenter: contentArea.verticalCenter
         anchors.right: contentArea.right
-        delegate: Triangle {
+        delegate: TriangleControlButton {
+            onClicked: contentcontroller.nextPage()
         }
         delegateOverflow: windowRect.border.width
         flipRight: true

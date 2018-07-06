@@ -42,16 +42,14 @@ var clockScale = 0.2;  // times the height of the wall
 var countdownTextScale = 0.045;
 
 // Content windows
-var buttonsSize = 130;
-var buttonsMargin = 10;
-var buttonsImageRelSize = 0.75;
+var buttonsSize = 106;
+var buttonsMargin = 27;
+var buttonsImageRelSize = 0.85;
 var buttonsEnabledOpacity = 100;
 var buttonsDisabledOpacity = 20;
 
 var controlsDefaultColor = baseColor;
 var controlsFocusedColor = activeColor;
-var controlsBorderWidth = 3;
-var controlsRadius = 0;
 var controlsLeftMargin = 28;
 
 var keyboardRelSize = 0.8

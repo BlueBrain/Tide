@@ -22,6 +22,7 @@
         <file>play.svg</file>
         <file>right_arrow.svg</file>
         <file>tick.svg</file>
+        <file>triangle.svg</file>
         <file>unknownfile.png</file>
         <file>unlock.svg</file>
     </qresource>
@@ -67,6 +68,7 @@
         <file>SideControl.qml</file>
         <file>StreamNotificationArea.qml</file>
         <file>Triangle.qml</file>
+        <file>TriangleControlButton.qml</file>
         <file>VerticalButtonSeparator.qml</file>
         <file>WindowControls.qml</file>
     </qresource>

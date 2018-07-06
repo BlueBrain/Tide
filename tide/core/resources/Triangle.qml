@@ -2,48 +2,25 @@ import QtQuick 2.0
 import "qrc:/qml/core/style.js" as Style
 
 Canvas {
-    id: triangle
-    antialiasing: true
+    width: Style.buttonSize
+    height: 2 * width
 
-    property int triangleWidth: 0.5 * width
-    property int triangleHeight: 0.5 * height
-    property int lineWidth: 3
-    property color strokeColor: Style.contrastColor
-    property color fillColor: Style.contrastColor
-    property bool stroke: true
-    property bool fill: true
-
-    onTriangleWidthChanged: requestPaint()
-    onTriangleHeightChanged: requestPaint()
-    onLineWidthChanged: requestPaint()
-    onStrokeColorChanged: requestPaint()
-    onFillColorChanged: requestPaint()
-    onStrokeChanged: requestPaint()
-    onFillChanged: requestPaint()
+    property color color: Style.sideButtonColor
+    onColorChanged: requestPaint()
 
     onPaint: {
-        var ctx = getContext("2d")
-        ctx.save()
-        ctx.clearRect(0, 0, triangle.width, triangle.height)
-        ctx.lineWidth = triangle.lineWidth
-        ctx.strokeStyle = triangle.strokeColor
-        ctx.fillStyle = triangle.fillColor
-        ctx.lineJoin = "round"
+        var ctx = getContext("2d");
+        ctx.save();
+        ctx.clearRect(0, 0, width, height)
 
-        // translate the triangle's origin (0,0) so that it looks centered
-        ctx.translate((0.45 * (triangle.width - triangleWidth)),
-                      (0.5 * (triangle.height - triangleHeight)))
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(width, 0);
+        ctx.lineTo(width, height);
+        ctx.closePath();
+        ctx.fill();
 
-        ctx.beginPath()
-        ctx.moveTo(0, triangleHeight / 2)
-        ctx.lineTo(triangleWidth, 0)
-        ctx.lineTo(triangleWidth, triangleHeight)
-        ctx.closePath()
-
-        if(triangle.fill)
-            ctx.fill()
-        if(triangle.stroke)
-            ctx.stroke()
-        ctx.restore()
+        ctx.restore();
     }
 }
