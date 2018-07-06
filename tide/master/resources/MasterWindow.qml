@@ -199,19 +199,6 @@ BaseWindow {
         onSwipeDown: contentcontroller.swipeDown()
     }
 
-    previousButton.delegate: Triangle {
-        MultitouchArea {
-            anchors.fill: parent
-            onTap: contentcontroller.prevPage()
-        }
-    }
-    nextButton.delegate: Triangle {
-        MultitouchArea {
-            anchors.fill: parent
-            onTap: contentcontroller.nextPage()
-        }
-    }
-
     resizeCirclesDelegate: ResizeCircle {
         MultitouchArea {
             anchors.fill: parent

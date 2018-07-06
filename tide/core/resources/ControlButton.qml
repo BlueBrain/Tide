@@ -16,6 +16,7 @@ Item {
 
     width: Style.buttonsSize
     height: Style.buttonsSize
+
     Image {
         id: image
         width: parent.width * imageRelSize
@@ -35,6 +36,7 @@ Item {
             }
         }
     }
+
     Loader {
         sourceComponent: button.enabled ? touchArea : undefined
         anchors.fill: parent

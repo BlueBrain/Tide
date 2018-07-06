@@ -2,29 +2,39 @@ import QtQuick 2.0
 import Tide 1.0
 import "style.js" as Style
 
-Rectangle {
+Item {
     property alias buttons: buttons
     property alias fixedButtons: buttons.headerItem
+    property alias color: buttonsRectangle.color
     property bool contentActionsVisible: true
 
     id: windowControls
-    width: buttons.width + radius + (Style.buttonsSize * (1.0 - Style.buttonsImageRelSize))
-    height: buttons.height + (Style.buttonsSize * (1.0 - Style.buttonsImageRelSize))
-    color: Style.controlsDefaultColor
-    border.color: color
-    border.width: Style.controlsBorderWidth
-    radius: Style.controlsRadius
+    width: buttonsRectangle.width
     anchors.right: parent.left
     anchors.top: parent.top
     anchors.rightMargin: Style.controlsLeftMargin
     visible: opacity > 0
     opacity: 0
 
+    Rectangle {
+        id: buttonsRectangle
+        width: buttons.width + 2 * Style.buttonsMargin
+        height: buttons.height
+        color: Style.controlsDefaultColor
+    }
+    Triangle {
+        id: triangle
+        width: buttonsRectangle.width
+        color: buttonsRectangle.color
+        anchors.top: buttonsRectangle.bottom
+    }
     ListView {
         id: buttons
         width: Style.buttonsSize
         height: (count + headerItem.buttonCount) * Style.buttonsSize
-        anchors.centerIn: parent
+        anchors.horizontalCenter: buttonsRectangle.horizontalCenter
+        anchors.topMargin: Style.buttonsMargin
+        anchors.top: buttonsRectangle.top
         orientation: ListView.Vertical
         header: FixedControlButtons {
         }
