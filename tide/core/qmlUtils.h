@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -69,6 +69,12 @@ inline std::unique_ptr<QQuickItem> makeItem(QQmlEngine& engine, const QUrl& url,
     checkOrThrow(component);
     return std::unique_ptr<QQuickItem>{
         qobject_cast<QQuickItem*>(component.create(context))};
+}
+
+inline void setAnchorsFillParent(QQuickItem& item)
+{
+    auto anchors = qvariant_cast<QObject*>(item.property("anchors"));
+    anchors->setProperty("fill", item.property("parent"));
 }
 }
 

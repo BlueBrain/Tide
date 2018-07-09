@@ -9,16 +9,12 @@ import "style.js" as Style
 Item {
     property bool isMaster: (typeof contentsync === "undefined")
 
-    ListView {
+    height: buttons.height
+    width: parent.width
+
+    ContentActionsButtons {
         id: buttons
-        height: parent.height
-        width: count * height
         orientation: ListView.Horizontal
-        interactive: false // disable flickable behaviour
-        delegate: ContentActionButton {
-            height: buttons.height
-            width: height
-        }
         model: window.content.actions
     }
     Slider {
@@ -40,7 +36,7 @@ Item {
         }
         style: SliderStyle {
             groove: Rectangle {
-                implicitWidth: 200 // Default size
+                implicitWidth: 200 // default size (unused)
                 implicitHeight: Style.movieControlsLineThickness
                 color: Style.contrastColor
             }

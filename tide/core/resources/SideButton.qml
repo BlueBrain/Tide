@@ -2,9 +2,8 @@ import QtQuick 2.0
 import "qrc:/qml/core/style.js" as Style
 
 Canvas {
-    id: sideButton
-    width: height / Style.windowSideButtonHeight * Style.windowSideButtonWidth
-    height: Style.windowSideButtonHeight
+    width: Style.windowSideButtonWidth
+    height: width / Style.sideButtonAspectRatio
 
     property color color: Style.sideButtonColor
     onColorChanged: requestPaint()
@@ -25,7 +24,7 @@ Canvas {
         ctx.clearRect(0, 0, width, height)
 
         var verticalCenter = 0.5 * height
-        var narrowHeight = height / Style.windowSideButtonHeight * Style.windowSideButtonNarrowHeight
+        var narrowHeight = height * Style.sideButtonRelNarrowHeight
         var delta = 0.5 * narrowHeight
 
         ctx.fillStyle = color;

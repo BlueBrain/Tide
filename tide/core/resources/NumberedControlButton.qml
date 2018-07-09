@@ -6,7 +6,7 @@ ControlButton {
     Text {
         visible: parent.itemCount >= 0
         text: parent.itemCount
-        font.pixelSize: 0.4 * parent.height
+        font.pixelSize: 0.3 * parent.height
         anchors.right: parent.right
     }
 }

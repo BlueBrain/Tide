@@ -27,11 +27,6 @@ var focusTransitionTime = 500;
 var panelsAnimationTime = 300
 var countdownTransitionTime = 1500;
 
-var sideButtonColor = activeColor
-var sideButtonRelHeight = 0.3
-var sideButtonInnerMargin = 0.15
-var streamNotificationAreaBannerRelHeight = 0.04
-
 var fpsX = 10;
 var fpsY = 10;
 var fpsFontSize = 32;
@@ -41,22 +36,36 @@ var clockScale = 0.2;  // times the height of the wall
 
 var countdownTextScale = 0.045;
 
-// Content windows
+// Regular Buttons
 var buttonsSize = 106;
-var buttonsMargin = 27;
+var buttonsPadding = buttonsSize / 4;
 var buttonsImageRelSize = 0.85;
-var buttonsEnabledOpacity = 100;
-var buttonsDisabledOpacity = 20;
+var buttonsEnabledOpacity = 1.0;
+var buttonsDisabledOpacity = 0.5;
 
-var controlsDefaultColor = baseColor;
-var controlsFocusedColor = activeColor;
-var controlsLeftMargin = 28;
+// Large Buttons (surface controls, context menu)
+var buttonsSizeLarge = 1.15 * buttonsSize
+var buttonsPaddingLarge = 1.15 * buttonsPadding;
 
-var keyboardRelSize = 0.8
-var keyboardMaxSizePx = 1200;
+// Side buttons (triangular) for surface and windows
+var sideButtonColor = activeColor
+var sideButtonAspectRatio = 0.18
+var sideButtonRelNarrowHeight = 0.22
 
-var movieControlsLineThickness = 4;
-var movieControlsHandleDiameter = 34;
+// Surface controls (left-side triangle)
+var surfaceControlsColor = activeColor
+
+// Content windows
+var windowBorderWidth = 20;
+var windowBorderDefaultColor = baseColor;
+var windowBorderSelectedColor = activeColor;
+var windowBorderFocusedColor = activeColor;
+var windowBorderMovingColor = baseColor;
+var windowBorderResizingColor = baseColor;
+
+var windowTitleHeight = 100;
+var windowTitleFontSize = windowTitleHeight / 2;
+var windowTitleControlsOverlap = 10;
 
 var resizeCircleRadius = 50;
 var resizeCircleActiveColor = activeColor;
@@ -64,30 +73,27 @@ var resizeCircleFreeResizeColor = highlightColor;
 var resizeCircleInactiveColor = baseColor;
 var resizeCircleOpacity = 0.6;
 
+var controlsDefaultColor = baseColor;
+var controlsFocusedColor = activeColor;
+var controlsLeftMargin = buttonsPadding;
+
+var keyboardRelSize = 0.8
+var keyboardMaxSizePx = 1200;
+
+var windowSideButtonWidth = 64;
+
+var movieControlsHandleDiameter = buttonsSize / 3;
+var movieControlsLineThickness = movieControlsHandleDiameter / 9;
+
 var statisticsBorderMargin = 10;
 var statisticsFontSize = 24;
 var statisticsFontColor = "red";
 
 var transparentContentsBackgroundColor = "black";
 
-var windowBorderWidth = 24;
-var windowBorderDefaultColor = baseColor;
-var windowBorderSelectedColor = activeColor;
-var windowBorderFocusedColor = activeColor;
-var windowBorderMovingColor = baseColor;
-var windowBorderResizingColor = baseColor;
-
 var windowFocusGlowColor = highlightColor;
 var windowFocusGlowRadius = 15;
 var windowFocusGlowSpread = 0.2;
-
-var windowSideButtonWidth = 64;
-var windowSideButtonHeight = 360;
-var windowSideButtonNarrowHeight = 90;
-
-var windowTitleControlsOverlap = 10;
-var windowTitleFontSize = 45;
-var windowTitleHeight = 100;
 
 var zoomContextBorderColor = "white";
 var zoomContextBackgroundColor = transparentContentsBackgroundColor;
@@ -99,10 +105,10 @@ var zoomContextMaxSizeRatio = 0.75
 var zoomContextRelMargin = 0.25
 
 // Touch point markers
-var touchPointMarkerBorderColor = "red"
-var touchPointMarkerCenterColor = "white"
 var touchPointMarkerSize = 18
 var touchPointMarkerBorderSize = 2
+var touchPointMarkerBorderColor = "red"
+var touchPointMarkerCenterColor = "white"
 
 // Master window only
 var masterWindowFirstCheckerColor = "#B2C7CF"
