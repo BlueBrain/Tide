@@ -2,9 +2,9 @@ import QtQuick 2.0
 import "qrc:/qml/core/style.js" as Style
 
 Rectangle {
-    color: Style.sideButtonColor
-    height: row.height + 2 * Style.buttonsMargin
-    width: row.width + 2 * Style.buttonsMargin
+    color: Style.surfaceControlsColor
+    height: row.height + 2 * Style.buttonsPaddingLarge
+    width: row.width + 2 * Style.buttonsPaddingLarge
 
     Image {
         id: indicator
@@ -21,19 +21,22 @@ Rectangle {
     Row {
         id: row
         anchors.centerIn: parent
-        spacing: Style.buttonsMargin
+        spacing: Style.buttonsPaddingLarge
 
         FocusControlButton {
+            size: Style.buttonsSizeLarge
             onClicked: {
                 groupcontroller.toggleFocusAll()
                 contextmenu.visible = false
             }
         }
         VerticalButtonSeparator {
+            height: Style.buttonsSizeLarge
             visible: copyButton.visible
         }
         CopyControlButton {
             id: copyButton
+            size: Style.buttonsSizeLarge
             itemCount: displaygroup.selectedUris.length
             onClicked: {
                 contextmenu.copiedUris = displaygroup.selectedUris
@@ -42,10 +45,12 @@ Rectangle {
             visible: itemCount > 0
         }
         VerticalButtonSeparator {
+            height: Style.buttonsSizeLarge
             visible: pasteButton.visible
         }
         PasteControlButton {
             id: pasteButton
+            size: Style.buttonsSizeLarge
             itemCount: contextmenu.copiedUris.length
             onClicked: {
                 scenecontroller.paste(contextmenu.copiedUris)

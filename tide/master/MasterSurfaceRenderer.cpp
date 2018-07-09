@@ -49,7 +49,7 @@
 
 namespace
 {
-const QUrl QML_CONTROL_SURFACE_URL("qrc:/qml/master/MasterControlSurface.qml");
+const QUrl QML_CONTROL_SURFACE_URL("qrc:/qml/core/ControlSurface.qml");
 const QUrl QML_BASIC_SURFACE_URL("qrc:/qml/core/BasicSurface.qml");
 }
 
@@ -71,6 +71,7 @@ MasterSurfaceRenderer::MasterSurfaceRenderer(Surface& surface,
         _createBasicSurfaceItem(engine);
 
     _surfaceItem->setParentItem(&parentItem);
+    qml::setAnchorsFillParent(*_surfaceItem);
     _createGroupRenderer(engine);
 }
 

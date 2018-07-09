@@ -6,16 +6,17 @@ import "style.js" as Style
 Item {
     id: button
     property alias image: image.source
+    property real size: Style.buttonsSize
     property real imageRelSize: Style.buttonsImageRelSize
     property bool enabled: (typeof groupcontroller !== "undefined")
     property bool active: true
 
-    opacity: active ? 1.0 : 0.5
+    opacity: active ? Style.buttonsEnabledOpacity : Style.buttonsDisabledOpacity
 
     signal clicked
 
-    width: Style.buttonsSize
-    height: Style.buttonsSize
+    width: size
+    height: size
 
     Image {
         id: image

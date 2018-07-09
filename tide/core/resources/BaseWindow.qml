@@ -69,7 +69,6 @@ Rectangle {
             Loader {
                 id: controlBar
                 width: parent.width
-                height: Style.windowTitleHeight
                 visible: status == Loader.Ready
                 source: windowRect.isBackground ? "" : window.content.qmlControls
             }

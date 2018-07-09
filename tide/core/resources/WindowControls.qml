@@ -18,29 +18,27 @@ Item {
 
     Rectangle {
         id: buttonsRectangle
-        width: buttons.width + 2 * Style.buttonsMargin
+        width: buttons.width + 2 * Style.buttonsPadding
         height: buttons.height
         color: Style.controlsDefaultColor
     }
     Triangle {
         id: triangle
         width: buttonsRectangle.width
+        height: 2 * width
         color: buttonsRectangle.color
         anchors.top: buttonsRectangle.bottom
     }
-    ListView {
+
+    ContentActionsButtons {
         id: buttons
         width: Style.buttonsSize
         height: (count + headerItem.buttonCount) * Style.buttonsSize
         anchors.horizontalCenter: buttonsRectangle.horizontalCenter
-        anchors.topMargin: Style.buttonsMargin
+        anchors.topMargin: Style.buttonsPadding
         anchors.top: buttonsRectangle.top
-        orientation: ListView.Vertical
-        header: FixedControlButtons {
-        }
-        interactive: false // disable flickable behaviour
 
-        delegate: ContentActionButton {
+        header: FixedControlButtons {
         }
         model: contentActionsVisible ? window.content.actions : undefined
     }

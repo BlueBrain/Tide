@@ -2,9 +2,6 @@ import QtQuick 2.0
 import "qrc:/qml/core/style.js" as Style
 
 Canvas {
-    width: Style.buttonSize
-    height: 2 * width
-
     property color color: Style.sideButtonColor
     onColorChanged: requestPaint()
 
