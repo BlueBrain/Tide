@@ -17,10 +17,12 @@ Item {
         id: buttonShape
         width: buttons.width + 2 * Style.buttonsPaddingLarge
         color: Style.surfaceControlsColor
+        dropShadow: true
     }
     Column {
         id: buttons
         anchors.centerIn: buttonShape
+        anchors.horizontalCenterOffset: -0.5 * buttonShape.dropShadowWidth
         ExitControlButton {
             id: exitButton
             size: Style.buttonsSizeLarge
