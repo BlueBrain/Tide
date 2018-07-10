@@ -8,6 +8,9 @@ Canvas {
     property color color: Style.sideButtonColor
     onColorChanged: requestPaint()
 
+    property bool dropShadow: false
+    property real dropShadowWidth: dropShadow ? width / 20 : 0
+
     property bool flipRight: false
     anchors.verticalCenter: parent.verticalCenter
     anchors.right: flipRight ? parent.right : undefined
@@ -27,12 +30,26 @@ Canvas {
         var narrowHeight = height * Style.sideButtonRelNarrowHeight
         var delta = 0.5 * narrowHeight
 
+        if (dropShadow)
+        {
+            var dropShadowHeight = 2 * dropShadowWidth
+
+            ctx.fillStyle = "black";
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(0, height);
+            ctx.lineTo(width, verticalCenter + delta + dropShadowHeight);
+            ctx.lineTo(width, verticalCenter - delta + dropShadowHeight);
+            ctx.closePath();
+            ctx.fill();
+        }
+
         ctx.fillStyle = color;
         ctx.beginPath();
         ctx.moveTo(0, 0);
         ctx.lineTo(0, height);
-        ctx.lineTo(width, verticalCenter + delta);
-        ctx.lineTo(width, verticalCenter - delta);
+        ctx.lineTo(width - dropShadowWidth, verticalCenter + delta);
+        ctx.lineTo(width - dropShadowWidth, verticalCenter - delta);
         ctx.closePath();
         ctx.fill();
 
