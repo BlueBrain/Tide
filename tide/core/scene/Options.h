@@ -60,8 +60,7 @@ class Options : public QObject, public std::enable_shared_from_this<Options>
 
     Q_PROPERTY(bool alphaBlending READ isAlphaBlendingEnabled NOTIFY
                    alphaBlendingEnabledChanged)
-    Q_PROPERTY(bool showClock READ getShowClock WRITE setShowClock NOTIFY
-                   showClockChanged)
+    Q_PROPERTY(bool showClock READ getShowClock NOTIFY showClockChanged)
     Q_PROPERTY(bool showContentTiles READ getShowContentTiles NOTIFY
                    showContentTilesChanged)
     Q_PROPERTY(bool showControlArea READ getShowControlArea NOTIFY

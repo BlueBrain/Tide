@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,95 +37,28 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef CONTENTACTION_H
-#define CONTENTACTION_H
+#ifndef MOVIECONTROLLER_H
+#define MOVIECONTROLLER_H
 
-#include "serialization/includes.h"
-
-#include <QObject>
-#include <QUuid>
+#include "ContentController.h"
 
 /**
- * A content-specific action for use in QML by ContentActionsModel.
+ * Handle user interaction with a movie.
  */
-class ContentAction : public QObject
+class MovieController : public ContentController
 {
     Q_OBJECT
-    Q_DISABLE_COPY(ContentAction)
-
-    Q_PROPERTY(QString icon READ getIcon NOTIFY iconChanged)
-    Q_PROPERTY(
-        QString iconChecked READ getIconChecked NOTIFY iconCheckedChanged)
-    Q_PROPERTY(bool checkable READ isCheckable NOTIFY checkableChanged)
-    Q_PROPERTY(bool checked READ isChecked NOTIFY checkedChanged)
-    Q_PROPERTY(bool enabled READ isEnabled NOTIFY enabledChanged)
 
 public:
-    /** Constructor. */
-    explicit ContentAction(const QUuid& actionId = QUuid::createUuid());
+    /** Constructor */
+    MovieController(Window& window);
 
-    /** @name QProperty getters */
-    //@{
-    const QString& getIcon() const;
-    const QString& getIconChecked() const;
-    bool isCheckable() const;
-    bool isChecked() const;
-    bool isEnabled() const;
-    //@}
-
-    /** @name QProperty setters */
-    //@{
-    void setIcon(QString icon);
-    void setIconChecked(QString icon);
-    void setChecked(bool value);
-    void setCheckable(bool value);
-    void setEnabled(bool value);
-    //@}
-
-public slots:
-    /** Trigger the action. */
-    void trigger();
-
-signals:
-    /** The action has been checked. */
-    void checked();
-
-    /** The action has been unchecked. */
-    void unchecked();
-
-    /** The action has been triggered. */
-    void triggered(bool checked);
-
-    /** @name QProperty notifiers */
-    //@{
-    void iconChanged();
-    void iconCheckedChanged();
-    void checkedChanged();
-    void checkableChanged();
-    void enabledChanged();
-    //@}
+    Q_INVOKABLE void startSkipping();
+    Q_INVOKABLE void skipTo(qreal position);
+    Q_INVOKABLE void stopSkipping();
 
 private:
-    friend class boost::serialization::access;
-
-    template <class Archive>
-    void serialize(Archive& ar, const unsigned int)
-    {
-        // clang-format off
-        ar & boost::serialization::make_nvp("icon", _icon);
-        ar & boost::serialization::make_nvp("iconChecked", _iconChecked);
-        ar & boost::serialization::make_nvp("checkable", _checkable);
-        ar & boost::serialization::make_nvp("checked", _checked);
-        ar & boost::serialization::make_nvp("enabled", _enabled);
-        // clang-format on
-    }
-
-    QUuid _uuid;
-    QString _icon;
-    QString _iconChecked;
-    bool _checkable;
-    bool _checked;
-    bool _enabled;
+    MovieContent& _getMovieContent();
 };
 
 #endif

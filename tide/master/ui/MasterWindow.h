@@ -61,8 +61,7 @@ class MasterWindow : public QMainWindow
 
 public:
     /** Constructor. */
-    MasterWindow(ScenePtr scene, OptionsPtr options, ScreenLockPtr lock,
-                 Configuration& config);
+    MasterWindow(ScenePtr scene, OptionsPtr options, Configuration& config);
 
     /** @return the quick view. */
     MasterQuickView* getQuickView();
@@ -87,7 +86,7 @@ protected:
 
 private:
     void _setupMasterWindowUI();
-    void _addSurfacesTabViews(const Configuration& config, ScreenLockPtr lock);
+    void _addSurfacesTabViews(const Configuration& config);
     void _addDisplayGroupTabView(std::unique_ptr<MasterQuickView> quickView,
                                  const QString& title);
 

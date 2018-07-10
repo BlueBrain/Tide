@@ -60,7 +60,7 @@ public:
     /** Constructor */
     SceneController(Scene& scene, const Configuration::Folders& folders);
 
-    Q_INVOKABLE void paste(const QStringList& uris);
+    void openAll(const QStringList& uris);
 
     void open(uint surfaceIndex, const QString& uri, const QPointF& coords,
               BoolCallback callback);

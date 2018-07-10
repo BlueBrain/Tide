@@ -54,14 +54,10 @@ class ContextMenu : public QObject,
     Q_OBJECT
     Q_DISABLE_COPY(ContextMenu)
 
+    Q_PROPERTY(bool visible READ isVisible NOTIFY visibleChanged)
+    Q_PROPERTY(QPointF position READ getPosition NOTIFY positionChanged)
     Q_PROPERTY(
-        bool visible READ isVisible WRITE setVisible NOTIFY visibleChanged)
-    Q_PROPERTY(QPointF position READ getPosition WRITE setPosition NOTIFY
-                   positionChanged)
-    Q_PROPERTY(bool pasteVisible READ isPasteVisible WRITE setPasteVisible
-                   NOTIFY pasteVisibleChanged)
-    Q_PROPERTY(QStringList copiedUris READ getCopiedUris WRITE setCopiedUris
-                   NOTIFY copiedUrisChanged)
+        QStringList copiedUris READ getCopiedUris NOTIFY copiedUrisChanged)
 
 public:
     /** Create a shared ContextMenu. */
@@ -73,9 +69,6 @@ public:
     /** @return true if the menu is visible. */
     bool isVisible() const;
 
-    /** @return true if the paste action is visible. */
-    bool isPasteVisible() const;
-
     /** @return the item that have been copied. */
     QStringList getCopiedUris() const;
 
@@ -84,7 +77,6 @@ public slots:
     //@{
     void setVisible(bool visible);
     void setPosition(const QPointF& pos);
-    void setPasteVisible(bool visible);
     void setCopiedUris(const QStringList& copiedUris);
     //@}
 
@@ -93,7 +85,6 @@ signals:
     //@{
     void visibleChanged(bool visible);
     void positionChanged();
-    void pasteVisibleChanged(bool visible);
     void copiedUrisChanged();
     //@}
 
@@ -112,14 +103,12 @@ private:
         // clang-format off
         ar & _visible;
         ar & _pos;
-        ar & _pasteVisible;
         ar & _copiedUris;
         // clang-format on
     }
 
     bool _visible = false;
     QPointF _pos;
-    bool _pasteVisible = false;
     std::list<QString> _copiedUris;
 };
 

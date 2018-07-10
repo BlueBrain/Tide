@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -63,74 +63,122 @@ public:
     explicit ContentController(Window& window);
 
     /** Virtual destructor. */
-    virtual ~ContentController();
+    virtual ~ContentController() = default;
 
     /** @name Touch gesture handlers. */
     //@{
-    Q_INVOKABLE virtual void touchBegin(QPointF position) { Q_UNUSED(position) }
-    Q_INVOKABLE virtual void touchEnd(QPointF position) { Q_UNUSED(position) }
-    Q_INVOKABLE virtual void addTouchPoint(int id, QPointF position)
-    {
-        Q_UNUSED(id) Q_UNUSED(position)
-    }
-    Q_INVOKABLE virtual void updateTouchPoint(int id, QPointF position)
-    {
-        Q_UNUSED(id) Q_UNUSED(position)
-    }
-    Q_INVOKABLE virtual void removeTouchPoint(int id, QPointF position)
-    {
-        Q_UNUSED(id) Q_UNUSED(position)
-    }
+    Q_INVOKABLE void touchBegin(const QPointF& position);
+    Q_INVOKABLE void touchEnd(const QPointF& position);
 
-    Q_INVOKABLE virtual void tap(QPointF position, uint numPoints)
-    {
-        Q_UNUSED(position) Q_UNUSED(numPoints)
-    }
-    Q_INVOKABLE virtual void doubleTap(QPointF position, uint numPoints)
-    {
-        Q_UNUSED(position) Q_UNUSED(numPoints)
-    }
-    Q_INVOKABLE virtual void tapAndHold(QPointF position, uint numPoints)
-    {
-        Q_UNUSED(position) Q_UNUSED(numPoints)
-    }
-    Q_INVOKABLE virtual void pan(QPointF position, QPointF delta,
-                                 uint numPoints)
-    {
-        Q_UNUSED(position) Q_UNUSED(delta) Q_UNUSED(numPoints)
-    }
-    Q_INVOKABLE virtual void pinch(QPointF position, QPointF pixelDelta)
-    {
-        Q_UNUSED(position) Q_UNUSED(pixelDelta)
-    }
-    Q_INVOKABLE virtual void swipeLeft() {}
-    Q_INVOKABLE virtual void swipeRight() {}
-    Q_INVOKABLE virtual void swipeUp() {}
-    Q_INVOKABLE virtual void swipeDown() {}
+    Q_INVOKABLE void addTouchPoint(int id, const QPointF& position);
+    Q_INVOKABLE void updateTouchPoint(int id, const QPointF& position);
+    Q_INVOKABLE void removeTouchPoint(int id, const QPointF& position);
+
+    Q_INVOKABLE void tap(const QPointF& position, uint numPoints);
+    Q_INVOKABLE void doubleTap(const QPointF& position, uint numPoints);
+    Q_INVOKABLE void tapAndHold(const QPointF& position, uint numPoints);
+
+    Q_INVOKABLE void pan(const QPointF& position, const QPointF& delta,
+                         uint numPoints);
+    Q_INVOKABLE void pinch(const QPointF& position, const QPointF& pixelDelta);
+
+    Q_INVOKABLE void swipeLeft();
+    Q_INVOKABLE void swipeRight();
+    Q_INVOKABLE void swipeUp();
+    Q_INVOKABLE void swipeDown();
     //@}
 
     /** @name Keyboard event handlers. */
     //@{
-    Q_INVOKABLE virtual void keyPress(int key, int modifiers, QString text)
+    Q_INVOKABLE void keyPress(int key, int modifiers, const QString& text);
+    Q_INVOKABLE void keyRelease(int key, int modifiers, const QString& text);
+    //@}
+
+    /** @name UI event handlers. */
+    //@{
+    Q_INVOKABLE void prevPage();
+    Q_INVOKABLE void nextPage();
+    //@}
+
+protected:
+    Content& getContent();
+    const Content& getContent() const;
+    QSizeF getWindowSize() const;
+    const Window& getWindow() const;
+
+private:
+    Window& _window;
+
+    virtual void _touchBegin(const QPointF& position) { Q_UNUSED(position); }
+    virtual void _touchEnd(const QPointF& position) { Q_UNUSED(position); }
+    virtual void _addTouchPoint(int id, const QPointF& position)
     {
-        Q_UNUSED(key) Q_UNUSED(modifiers) Q_UNUSED(text)
+        Q_UNUSED(id);
+        Q_UNUSED(position);
     }
-    Q_INVOKABLE virtual void keyRelease(int key, int modifiers, QString text)
+    virtual void _updateTouchPoint(int id, const QPointF& position)
     {
-        Q_UNUSED(key) Q_UNUSED(modifiers) Q_UNUSED(text)
+        Q_UNUSED(id);
+        Q_UNUSED(position);
+    }
+    virtual void _removeTouchPoint(int id, const QPointF& position)
+    {
+        Q_UNUSED(id);
+        Q_UNUSED(position);
+    }
+
+    virtual void _tap(const QPointF& position, uint numPoints)
+    {
+        Q_UNUSED(position);
+        Q_UNUSED(numPoints);
+    }
+    virtual void _doubleTap(const QPointF& position, uint numPoints)
+    {
+        Q_UNUSED(position);
+        Q_UNUSED(numPoints);
+    }
+    virtual void _tapAndHold(const QPointF& position, uint numPoints)
+    {
+        Q_UNUSED(position);
+        Q_UNUSED(numPoints);
+    }
+    virtual void _pan(const QPointF& position, const QPointF& delta,
+                      uint numPoints)
+    {
+        Q_UNUSED(position);
+        Q_UNUSED(delta);
+        Q_UNUSED(numPoints);
+    }
+    virtual void _pinch(const QPointF& position, const QPointF& pixelDelta)
+    {
+        Q_UNUSED(position);
+        Q_UNUSED(pixelDelta);
+    }
+    virtual void _swipeLeft() {}
+    virtual void _swipeRight() {}
+    virtual void _swipeUp() {}
+    virtual void _swipeDown() {}
+    /** @name Keyboard event handlers. */
+    //@{
+    virtual void _keyPress(int key, int modifiers, const QString& text)
+    {
+        Q_UNUSED(key);
+        Q_UNUSED(modifiers);
+        Q_UNUSED(text);
+    }
+    virtual void _keyRelease(int key, int modifiers, const QString& text)
+    {
+        Q_UNUSED(key);
+        Q_UNUSED(modifiers);
+        Q_UNUSED(text);
     }
     //@}
 
     /** @name UI event handlers. */
     //@{
-    Q_INVOKABLE virtual void prevPage() {}
-    Q_INVOKABLE virtual void nextPage() {}
+    virtual void _prevPage() {}
+    virtual void _nextPage() {}
     //@}
-
-protected:
-    QPointF getNormalizedPoint(const QPointF& point) const;
-
-    Window& _window;
 };
 
 #endif

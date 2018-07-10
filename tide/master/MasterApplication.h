@@ -109,7 +109,7 @@ private:
 
     std::unique_ptr<MasterWindow> _masterWindow;
     std::unique_ptr<deflect::qt::OffscreenQuickView> _offscreenQuickView;
-    std::unique_ptr<MasterSurfaceRenderer> _offscreenSurfaceRenderer;
+    std::unique_ptr<MasterSurfaceRenderer> _surfaceRenderer;
 
     std::unique_ptr<deflect::server::Server> _deflectServer;
     std::unique_ptr<PixelStreamerLauncher> _pixelStreamerLauncher;
@@ -129,8 +129,10 @@ private:
     void _validateConfig();
 
     void _init();
+    void _initView();
     void _initMasterWindow();
     void _initOffscreenView();
+    void _createSurfaceRenderer(QQmlEngine& engine, QQuickItem& parentItem);
     void _setContextProperties(QQmlContext& context);
 
     void _startDeflectServer();

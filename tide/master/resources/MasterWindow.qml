@@ -10,26 +10,6 @@ BaseWindow {
 
     focusEffectEnabled: false // Not useful on the master window
 
-    property bool contentActive: window.content.captureInteraction
-                                 && window.state === Window.NONE
-    property bool windowActive: window.mode !== Window.FOCUSED
-
-    function toggleSelected() {
-        if (!window.isPanel) // it wouldn't be valid to check in the controller
-            controller.toggleSelected()
-    }
-
-    function toggleFocusMode() {
-        if (window.focused)
-            groupcontroller.unfocus(window.id)
-        else
-            groupcontroller.focusSelected()
-    }
-
-    function toggleFullscreenMode() {
-        groupcontroller.toggleFullscreen(window.id)
-    }
-
     focus: window.content.captureInteraction
     Keys.onPressed: {
         contentcontroller.keyPress(event.key, event.modifiers, event.text)
@@ -65,43 +45,23 @@ BaseWindow {
         anchors.fill: parent
         referenceItem: windowRect.parent
 
-        onTouchStarted: groupcontroller.moveWindowToFront(window.id)
-        onTap: if (windowActive) {
-                   toggleSelected()
-               }
-        onTapAndHold: {
-            if (window.isPanel)
-                // force toggle
-                controller.toggleSelected()
-        }
-        onDoubleTap: (numPoints > 1) ? toggleFocusMode(
-                                           ) : toggleFullscreenMode()
+        onTouchStarted: touchcontroller.onTouchStarted()
+        onTap: touchcontroller.onTap()
+        onTapAndHold: touchcontroller.onTapAndHold()
+        onDoubleTap: touchcontroller.onDoubleTap(numPoints)
 
-        onPanStarted: {
-            if (windowActive && window.state === Window.NONE)
-                window.state = Window.MOVING
-        }
-        onPan: {
-            if (windowActive && window.state === Window.MOVING)
-                controller.moveBy(delta)
-        }
-        onPanEnded: {
-            if (windowActive && window.state === Window.MOVING)
-                window.state = Window.NONE
-        }
+        onPanStarted: touchcontroller.onPanStarted()
+        onPan: touchcontroller.onPan(pos, delta, numPoints)
+        onPanEnded: touchcontroller.onPanEnded()
 
-        onPinchStarted: {
-            if (windowActive && window.state === Window.NONE)
-                window.state = Window.RESIZING
-        }
-        onPinch: {
-            if (windowActive && window.state === Window.RESIZING)
-                controller.scale(pos, pixelDelta)
-        }
-        onPinchEnded: {
-            if (windowActive && window.state === Window.RESIZING)
-                window.state = Window.NONE
-        }
+        onPinchStarted: touchcontroller.onPinchStarted()
+        onPinch: touchcontroller.onPinch(pos, pixelDelta)
+        onPinchEnded: touchcontroller.onPinchEnded()
+
+        onSwipeLeft: contentcontroller.swipeLeft()
+        onSwipeRight: contentcontroller.swipeRight()
+        onSwipeUp: contentcontroller.swipeUp()
+        onSwipeDown: contentcontroller.swipeDown()
     }
 
     contentComponent: MultitouchArea {
@@ -111,88 +71,28 @@ BaseWindow {
         // because the Loader has no size in this case (see BaseWindow).
         width: contentArea.width
         height: contentArea.height
+        referenceItem: contentArea
 
-        referenceItem: windowRect.parent
+        enabled: window.content.captureInteraction
+                 && window.state === Window.NONE
 
-        /** Tap, pan and pinch gestures are used by either content or window. */
         onTouchStarted: {
             groupcontroller.moveWindowToFront(window.id)
-            if (contentActive)
-                contentcontroller.touchBegin(pos)
+            contentcontroller.touchBegin(pos)
         }
-        onTouchEnded: {
-            if (contentActive)
-                contentcontroller.touchEnd(pos)
-            window.content.captureInteraction = false
-        }
-        onTouchPointAdded: {
-            if (contentActive)
-                contentcontroller.addTouchPoint(id, pos)
-        }
-        onTouchPointUpdated: {
-            if (contentActive)
-                contentcontroller.updateTouchPoint(id, pos)
-        }
-        onTouchPointRemoved: {
-            if (contentActive)
-                contentcontroller.removeTouchPoint(id, pos)
-        }
-        onTap: {
-            if (contentActive)
-                contentcontroller.tap(pos, numPoints)
-            else if (windowActive)
-                toggleSelected()
-        }
-        onDoubleTap: {
-            if (contentActive)
-                contentcontroller.doubleTap(pos, numPoints)
-            else if (window.fullscreen)
-                controller.toogleFullscreenMaxSize()
-            else
-                (numPoints > 1) ? toggleFocusMode() : toggleFullscreenMode()
-        }
-        onTapAndHold: {
-            if (contentActive)
-                contentcontroller.tapAndHold(pos, numPoints)
-            else
-                window.content.captureInteraction = true
-        }
+        onTouchEnded: contentcontroller.touchEnd(pos)
 
-        onPanStarted: {
-            if (!contentActive && windowActive && window.state === Window.NONE)
-                window.state = Window.MOVING
-        }
-        onPan: {
-            if (contentActive)
-                contentcontroller.pan(pos, Qt.point(delta.x, delta.y),
-                                      numPoints)
-            else if (windowActive && window.state === Window.MOVING
-                     && numPoints === 1)
-                controller.moveBy(delta)
-        }
-        onPanEnded: {
-            if (!contentActive && windowActive
-                    && window.state === Window.MOVING)
-                window.state = Window.NONE
-        }
+        onTouchPointAdded: contentcontroller.addTouchPoint(id, pos)
+        onTouchPointUpdated: contentcontroller.updateTouchPoint(id, pos)
+        onTouchPointRemoved: contentcontroller.removeTouchPoint(id, pos)
 
-        onPinchStarted: {
-            if (!contentActive && windowActive && window.state === Window.NONE)
-                window.state = Window.RESIZING
-        }
-        onPinch: {
-            if (contentActive)
-                contentcontroller.pinch(pos, pixelDelta)
-            else if (windowActive && window.state === Window.RESIZING)
-                controller.scale(pos, pixelDelta)
-        }
-        onPinchEnded: {
-            if (!contentActive && windowActive
-                    && window.state === Window.RESIZING)
-                window.state = Window.NONE
-        }
+        onTap: contentcontroller.tap(pos, numPoints)
+        onDoubleTap: contentcontroller.doubleTap(pos, numPoints)
+        onTapAndHold: contentcontroller.tapAndHold(pos, numPoints)
 
-        /** END shared gestures. */
+        onPan: contentcontroller.pan(pos, delta, numPoints)
+        onPinch: contentcontroller.pinch(pos, pixelDelta)
+
         onSwipeLeft: contentcontroller.swipeLeft()
         onSwipeRight: contentcontroller.swipeRight()
         onSwipeUp: contentcontroller.swipeUp()
@@ -205,26 +105,10 @@ BaseWindow {
             referenceItem: windowRect.parent
             panThreshold: 10
 
-            onTouchStarted: {
-                window.activeHandle = parent.handle
-                window.state = Window.RESIZING
-            }
-            onTapAndHold: {
-                if (window.content.hasFixedAspectRatio)
-                    window.resizePolicy = Window.ADJUST_CONTENT
-                else
-                    window.resizePolicy = Window.KEEP_ASPECT_RATIO
-            }
+            onTouchStarted: controller.startResizing(parent.handle)
+            onTapAndHold: controller.toggleResizeMode()
             onPan: controller.resizeRelative(delta)
-            onTouchEnded: {
-                window.state = Window.NONE
-                window.activeHandle = Window.NOHANDLE
-
-                if (window.content.hasFixedAspectRatio)
-                    window.resizePolicy = Window.KEEP_ASPECT_RATIO
-                else
-                    window.resizePolicy = Window.ADJUST_CONTENT
-            }
+            onTouchEnded: controller.stopResizing()
         }
     }
 

@@ -44,8 +44,6 @@
 
 #include <QQuickView>
 
-class MasterSurfaceRenderer;
-
 /**
  * A scaled view of a full surface to be displayed inside the master window.
  *
@@ -58,11 +56,13 @@ class MasterQuickView : public QQuickView
 
 public:
     /** Constructor. */
-    MasterQuickView(const SurfaceConfig& surfaceConfig, Surface& surface,
-                    OptionsPtr options, ScreenLockPtr lock);
+    MasterQuickView(const SurfaceConfig& surfaceConfig);
 
     /** Destructor */
     ~MasterQuickView();
+
+    /** @return the surface item. */
+    QQuickItem& getSurfaceItem();
 
 signals:
     /** @name Emitted when a user interactacts with the mouse. */
@@ -72,16 +72,12 @@ signals:
     void mouseReleased(QPointF pos);
     //@}
 
-    /** Emitted when a user clicks the launcher button. */
-    void openLauncher();
-
 private:
     bool event(QEvent* event) final;
     void _mapTouchEvent(QTouchEvent* event);
     QPointF _mapToQmlSurfacePos(const QPointF& normalizedPos) const;
 
     QQuickItem* _surfaceItem = nullptr;
-    std::unique_ptr<MasterSurfaceRenderer> _surfaceRenderer;
 };
 
 #endif

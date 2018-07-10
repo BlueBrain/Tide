@@ -56,10 +56,8 @@ class MovieContent : public Content
     Q_DISABLE_COPY(MovieContent)
 
     Q_PROPERTY(qreal duration READ getDuration CONSTANT)
-    Q_PROPERTY(qreal position READ getPosition WRITE setPosition NOTIFY
-                   positionChanged)
-    Q_PROPERTY(
-        bool skipping READ isSkipping WRITE setSkipping NOTIFY skippingChanged)
+    Q_PROPERTY(qreal position READ getPosition NOTIFY positionChanged)
+    Q_PROPERTY(bool skipping READ isSkipping NOTIFY skippingChanged)
 
 public:
     /** Create a MovieContent from the given uri. */

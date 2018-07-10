@@ -45,6 +45,7 @@
         <file>style.js</file>
         <file>BaseWindow.qml</file>
         <file>BasicSurface.qml</file>
+        <file>ClickArea.qml</file>
         <file>Clock.qml</file>
         <file>CloseControlButton.qml</file>
         <file>ContentActionButton.qml</file>

@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -47,6 +47,9 @@
 #if TIDE_ENABLE_PDF_SUPPORT
 #include "control/PDFController.h"
 #endif
+#if TIDE_ENABLE_MOVIE_SUPPORT
+#include "control/MovieController.h"
+#endif
 #include "control/PixelStreamController.h"
 #include "control/ZoomController.h"
 #include "scene/ContentFactory.h"
@@ -58,21 +61,7 @@ const int WIDTH = 512;
 const int HEIGHT = 256;
 }
 
-class TestController : public ContentController
-{
-public:
-    explicit TestController(Window& window)
-        : ContentController(window)
-    {
-    }
-
-    QPointF normalize(const QPointF& point) const
-    {
-        return getNormalizedPoint(point);
-    }
-};
-
-BOOST_AUTO_TEST_CASE(testFactoryMethod)
+BOOST_AUTO_TEST_CASE(factory_method)
 {
     Window window{std::make_unique<DummyContent>(QSize{WIDTH, HEIGHT})};
 
@@ -103,6 +92,12 @@ BOOST_AUTO_TEST_CASE(testFactoryMethod)
     BOOST_CHECK(dynamic_cast<PDFController*>(controller.get()));
 #endif
 
+#if TIDE_ENABLE_MOVIE_SUPPORT
+    dummyContent.type = CONTENT_TYPE_MOVIE;
+    controller = ContentController::create(window);
+    BOOST_CHECK(dynamic_cast<MovieController*>(controller.get()));
+#endif
+
     dummyContent.type = CONTENT_TYPE_IMAGE_PYRAMID;
     controller = ContentController::create(window);
     BOOST_CHECK(dynamic_cast<ZoomController*>(controller.get()));
@@ -118,18 +113,4 @@ BOOST_AUTO_TEST_CASE(testFactoryMethod)
     dummyContent.type = CONTENT_TYPE_MOVIE;
     controller = ContentController::create(window);
     BOOST_CHECK(dynamic_cast<ContentController*>(controller.get()));
-}
-
-BOOST_AUTO_TEST_CASE(testNormalizedPosition)
-{
-    Window window{std::make_unique<DummyContent>(QSize{WIDTH, HEIGHT})};
-
-    TestController controller(window);
-    const QPointF point(WIDTH * 0.5, HEIGHT * 0.25);
-    const QPointF zero(0.0, 0.0);
-    const QPointF one(WIDTH, HEIGHT);
-
-    BOOST_CHECK_EQUAL(controller.normalize(point), QPointF(0.5, 0.25));
-    BOOST_CHECK_EQUAL(controller.normalize(zero), QPointF(0.0, 0.0));
-    BOOST_CHECK_EQUAL(controller.normalize(one), QPointF(1.0, 1.0));
 }

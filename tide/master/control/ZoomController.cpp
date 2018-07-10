@@ -53,42 +53,11 @@ ZoomController::ZoomController(Window& window)
         throw std::invalid_argument("Content cannot be zoomed!");
 }
 
-ZoomController::~ZoomController()
-{
-}
-
-void ZoomController::pan(const QPointF position, const QPointF delta,
-                         const uint numPoints)
-{
-    Q_UNUSED(position);
-    Q_UNUSED(numPoints);
-    _moveZoomRect(delta);
-}
-
-void ZoomController::pinch(QPointF position, const QPointF pixelDelta)
-{
-    const ZoomHelper zoomHelper(_window);
-    QRectF contentRect = zoomHelper.getContentRect();
-
-    position -= _window.getDisplayCoordinates().topLeft();
-
-    const auto mode = pixelDelta.x() + pixelDelta.y() > 0
-                          ? Qt::KeepAspectRatioByExpanding
-                          : Qt::KeepAspectRatio;
-
-    QSizeF newSize = contentRect.size();
-    newSize.scale(newSize + QSizeF(pixelDelta.x(), pixelDelta.y()), mode);
-
-    contentRect =
-        geometry::resizeAroundPosition(contentRect, position, newSize);
-    _checkAndApply(zoomHelper.toZoomRect(contentRect));
-}
-
 void ZoomController::adjustZoomToContentAspectRatio()
 {
-    const ZoomHelper zoomHelper(_window);
-    QRectF contentRect = zoomHelper.getContentRect();
-    QSizeF contentSize = _window.getContent().getDimensions();
+    const auto zoomHelper = ZoomHelper{getWindow()};
+    auto contentRect = zoomHelper.getContentRect();
+    auto contentSize = QSizeF{getContent().getDimensions()};
     contentSize = contentSize / contentSize.width();
     contentSize.scale(contentRect.size(), Qt::KeepAspectRatio);
     contentRect.setSize(contentSize);
@@ -96,31 +65,56 @@ void ZoomController::adjustZoomToContentAspectRatio()
     _checkAndApply(zoomHelper.toZoomRect(contentRect));
 }
 
+void ZoomController::_pan(const QPointF& position, const QPointF& delta,
+                          const uint numPoints)
+{
+    Q_UNUSED(position);
+    Q_UNUSED(numPoints);
+    _moveZoomRect(delta);
+}
+
+void ZoomController::_pinch(const QPointF& position, const QPointF& pixelDelta)
+{
+    const auto zoomHelper = ZoomHelper{getWindow()};
+    auto contentRect = zoomHelper.getContentRect();
+
+    const auto mode = pixelDelta.x() + pixelDelta.y() > 0
+                          ? Qt::KeepAspectRatioByExpanding
+                          : Qt::KeepAspectRatio;
+
+    auto newSize = contentRect.size();
+    newSize.scale(newSize + QSizeF(pixelDelta.x(), pixelDelta.y()), mode);
+
+    contentRect =
+        geometry::resizeAroundPosition(contentRect, position, newSize);
+    _checkAndApply(zoomHelper.toZoomRect(contentRect));
+}
+
 void ZoomController::_checkAndApply(QRectF zoomRect)
 {
     _constrainZoomLevel(zoomRect);
     _constraintPosition(zoomRect);
-    _window.getContent().setZoomRect(zoomRect);
+    getContent().setZoomRect(zoomRect);
 }
 
 void ZoomController::_moveZoomRect(const QPointF& sceneDelta)
 {
-    const ZoomHelper zoomHelper(_window);
-    QRectF contentRect = zoomHelper.getContentRect();
+    const auto zoomHelper = ZoomHelper{getWindow()};
+    auto contentRect = zoomHelper.getContentRect();
     contentRect.translate(sceneDelta);
     _checkAndApply(zoomHelper.toZoomRect(contentRect));
 }
 
 void ZoomController::_constrainZoomLevel(QRectF& zoomRect) const
 {
-    const QSizeF maxZoom = _getMaxZoom();
+    const auto maxZoom = _getMaxZoom();
 
     // constrain max zoom
     if (zoomRect.width() < maxZoom.width() ||
         zoomRect.height() < maxZoom.height())
-        zoomRect = _window.getContent().getZoomRect();
+        zoomRect = getContent().getZoomRect();
 
-    const QSizeF minZoom = _getMinZoom();
+    const auto minZoom = _getMinZoom();
 
     // constrain min zoom
     if (zoomRect.width() > minZoom.width())
@@ -143,19 +137,19 @@ void ZoomController::_constraintPosition(QRectF& zoomRect) const
 
 QSizeF ZoomController::_getMaxZoom() const
 {
-    const QSizeF content(_window.getContent().getMaxDimensions());
-    const QSizeF window(_window.getDisplayCoordinates().size());
+    const auto window = getWindowSize();
+    const auto content = QSizeF(getContent().getMaxDimensions());
     return QSizeF(window.width() / content.width(),
                   window.height() / content.height());
 }
 
 QSizeF ZoomController::_getMinZoom() const
 {
-    const QSizeF window(_window.getDisplayCoordinates().size());
-    QSizeF content(_window.getContent().getDimensions());
+    const auto window = getWindowSize();
+    auto content = QSizeF(getContent().getDimensions());
     content.scale(window, Qt::KeepAspectRatioByExpanding);
-    const qreal windowAR = window.width() / window.height();
-    const qreal contentAR = content.width() / content.height();
+    const auto windowAR = window.width() / window.height();
+    const auto contentAR = content.width() / content.height();
 
     if (contentAR > windowAR)
         return QSizeF(MIN_ZOOM * window.width() / content.width(), MIN_ZOOM);

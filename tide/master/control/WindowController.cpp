@@ -64,6 +64,31 @@ WindowController::WindowController(Window& window, const DisplayGroup& group,
 {
 }
 
+void WindowController::startResizing(const Window::ResizeHandle handle)
+{
+    _window.setActiveHandle(handle);
+    _window.setState(Window::WindowState::RESIZING);
+}
+
+void WindowController::toggleResizeMode()
+{
+    if (_window.getContent().hasFixedAspectRatio())
+        _window.setResizePolicy(Window::ResizePolicy::ADJUST_CONTENT);
+    else
+        _window.setResizePolicy(Window::ResizePolicy::KEEP_ASPECT_RATIO);
+}
+
+void WindowController::stopResizing()
+{
+    _window.setState(Window::WindowState::NONE);
+    _window.setActiveHandle(Window::ResizeHandle::NOHANDLE);
+
+    if (_window.getContent().hasFixedAspectRatio())
+        _window.setResizePolicy(Window::ResizePolicy::KEEP_ASPECT_RATIO);
+    else
+        _window.setResizePolicy(Window::ResizePolicy::ADJUST_CONTENT);
+}
+
 void WindowController::resize(const QSizeF size, const WindowPoint fixedPoint)
 {
     QSizeF newSize(_window.getContent().getDimensions());
@@ -146,7 +171,7 @@ void WindowController::resizeRelative(const QPointF& delta)
 
 void WindowController::scale(const QPointF& center, const double pixelDelta)
 {
-    QSizeF newSize = _getCoordinates().size();
+    auto newSize = _getCoordinates().size();
     newSize.scale(newSize.width() + pixelDelta, newSize.height() + pixelDelta,
                   pixelDelta < 0 ? Qt::KeepAspectRatio
                                  : Qt::KeepAspectRatioByExpanding);
@@ -280,17 +305,6 @@ QSizeF WindowController::getMinSize() const
     return std::max(minContentSize, minSize);
 }
 
-QSizeF WindowController::getMinSizeAspectRatioCorrect() const
-{
-    const qreal contentAspectRatio = _window.getContent().getAspectRatio();
-    const auto min = getMinSize();
-    const auto max = getMaxSize();
-    const auto aspectRatioCorrectSize = QSizeF(contentAspectRatio, 1.0);
-    if (min > max)
-        return aspectRatioCorrectSize.scaled(max, Qt::KeepAspectRatio);
-    return aspectRatioCorrectSize.scaled(min, Qt::KeepAspectRatioByExpanding);
-}
-
 QSizeF WindowController::getMaxSize() const
 {
     const QRectF& zoomRect = _window.getContent().getZoomRect();
@@ -303,6 +317,17 @@ QSizeF WindowController::getMaxSize() const
 void WindowController::constrainSize(QSizeF& windowSize) const
 {
     windowSize = geometry::constrain(windowSize, getMinSize(), getMaxSize());
+}
+
+QSizeF WindowController::getMinSizeAspectRatioCorrect() const
+{
+    const qreal contentAspectRatio = _window.getContent().getAspectRatio();
+    const auto min = getMinSize();
+    const auto max = getMaxSize();
+    const auto aspectRatioCorrectSize = QSizeF(contentAspectRatio, 1.0);
+    if (min > max)
+        return aspectRatioCorrectSize.scaled(max, Qt::KeepAspectRatio);
+    return aspectRatioCorrectSize.scaled(min, Qt::KeepAspectRatioByExpanding);
 }
 
 void WindowController::_resize(const QPointF& center, QSizeF size)

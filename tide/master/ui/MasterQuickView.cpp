@@ -39,11 +39,7 @@
 
 #include "MasterQuickView.h"
 
-#include "MasterSurfaceRenderer.h"
 #include "configuration/SurfaceConfig.h"
-#include "scene/Options.h"
-#include "scene/ScreenLock.h"
-#include "scene/Surface.h"
 
 #include <QQmlContext>
 #include <QQmlProperty>
@@ -55,14 +51,10 @@ const QUrl QML_ROOT_COMPONENT("qrc:/qml/master/GUIRoot.qml");
 const QString SURFACE_OBJECT_NAME("Surface");
 }
 
-MasterQuickView::MasterQuickView(const SurfaceConfig& surfaceConfig,
-                                 Surface& surface, OptionsPtr options,
-                                 ScreenLockPtr lock)
+MasterQuickView::MasterQuickView(const SurfaceConfig& surfaceConfig)
 {
     setResizeMode(QQuickView::SizeRootObjectToView);
 
-    rootContext()->setContextProperty("options", options.get());
-    rootContext()->setContextProperty("lock", lock.get());
     rootContext()->setContextProperty("view", this);
 
     setSource(QML_ROOT_COMPONENT);
@@ -76,17 +68,15 @@ MasterQuickView::MasterQuickView(const SurfaceConfig& surfaceConfig,
     _surfaceItem->setProperty("screenHeight", surfaceConfig.getScreenHeight());
     _surfaceItem->setProperty("surfaceWidth", surfaceConfig.getTotalWidth());
     _surfaceItem->setProperty("surfaceHeight", surfaceConfig.getTotalHeight());
-
-    _surfaceRenderer =
-        std::make_unique<MasterSurfaceRenderer>(surface, *engine(),
-                                                *_surfaceItem);
-
-    connect(_surfaceRenderer.get(), &MasterSurfaceRenderer::openLauncher, this,
-            &MasterQuickView::openLauncher);
 }
 
 MasterQuickView::~MasterQuickView()
 {
+}
+
+QQuickItem& MasterQuickView::getSurfaceItem()
+{
+    return *_surfaceItem;
 }
 
 bool MasterQuickView::event(QEvent* evt)

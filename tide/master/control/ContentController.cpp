@@ -45,6 +45,9 @@
 #if TIDE_ENABLE_PDF_SUPPORT
 #include "PDFController.h"
 #endif
+#if TIDE_ENABLE_MOVIE_SUPPORT
+#include "MovieController.h"
+#endif
 #include "PixelStreamController.h"
 #include "ZoomController.h"
 
@@ -66,7 +69,10 @@ std::unique_ptr<ContentController> ContentController::create(Window& window)
     case CONTENT_TYPE_TEXTURE:
     case CONTENT_TYPE_SVG:
         return std::make_unique<ZoomController>(window);
+#if TIDE_ENABLE_MOVIE_SUPPORT
     case CONTENT_TYPE_MOVIE:
+        return std::make_unique<MovieController>(window);
+#endif
     case CONTENT_TYPE_ANY:
     default:
         return std::make_unique<ContentController>(window);
@@ -78,12 +84,115 @@ ContentController::ContentController(Window& window)
 {
 }
 
-ContentController::~ContentController()
+void ContentController::prevPage()
 {
+    _prevPage();
 }
 
-QPointF ContentController::getNormalizedPoint(const QPointF& point) const
+void ContentController::nextPage()
 {
-    const QRectF& window = _window.getDisplayCoordinates();
-    return QPointF(point.x() / window.width(), point.y() / window.height());
+    _nextPage();
+}
+
+void ContentController::touchBegin(const QPointF& position)
+{
+    _touchBegin(position);
+}
+
+void ContentController::touchEnd(const QPointF& position)
+{
+    _touchEnd(position);
+}
+
+void ContentController::addTouchPoint(int id, const QPointF& position)
+{
+    _addTouchPoint(id, position);
+}
+
+void ContentController::updateTouchPoint(int id, const QPointF& position)
+{
+    _updateTouchPoint(id, position);
+}
+
+void ContentController::removeTouchPoint(int id, const QPointF& position)
+{
+    _removeTouchPoint(id, position);
+}
+
+void ContentController::tap(const QPointF& position, uint numPoints)
+{
+    _tap(position, numPoints);
+}
+
+void ContentController::doubleTap(const QPointF& position, uint numPoints)
+{
+    _doubleTap(position, numPoints);
+}
+
+void ContentController::tapAndHold(const QPointF& position, uint numPoints)
+{
+    getContent().setCaptureInteraction(false);
+    _tapAndHold(position, numPoints);
+}
+
+void ContentController::pan(const QPointF& position, const QPointF& delta,
+                            uint numPoints)
+{
+    _pan(position, delta, numPoints);
+}
+
+void ContentController::pinch(const QPointF& position,
+                              const QPointF& pixelDelta)
+{
+    _pinch(position, pixelDelta);
+}
+
+void ContentController::swipeLeft()
+{
+    _swipeLeft();
+}
+
+void ContentController::swipeRight()
+{
+    _swipeRight();
+}
+
+void ContentController::swipeUp()
+{
+    _swipeUp();
+}
+
+void ContentController::swipeDown()
+{
+    _swipeDown();
+}
+
+void ContentController::keyPress(int key, int modifiers, const QString& text)
+{
+    _keyPress(key, modifiers, text);
+}
+
+void ContentController::keyRelease(int key, int modifiers, const QString& text)
+{
+    _keyRelease(key, modifiers, text);
+}
+
+QSizeF ContentController::getWindowSize() const
+{
+    return _window.getDisplayCoordinates().size();
+}
+
+Content& ContentController::getContent()
+{
+    return _window.getContent();
+}
+
+const Content& ContentController::getContent() const
+{
+    return _window.getContent();
+}
+
+const Window& ContentController::getWindow() const
+{
+    return _window;
 }

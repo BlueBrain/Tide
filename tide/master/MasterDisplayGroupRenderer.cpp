@@ -41,7 +41,7 @@
 
 #include "control/ContentController.h"
 #include "control/DisplayGroupController.h"
-#include "control/WindowController.h"
+#include "control/WindowTouchController.h"
 #include "qmlUtils.h"
 #include "scene/DisplayGroup.h"
 #include "scene/Window.h"
@@ -51,8 +51,8 @@
 
 namespace
 {
+const QUrl QML_DISPLAYGROUP_URL("qrc:/qml/core/DisplayGroup.qml");
 const QUrl QML_WINDOW_URL("qrc:/qml/master/MasterWindow.qml");
-const QUrl QML_DISPLAYGROUP_URL("qrc:/qml/master/MasterDisplayGroup.qml");
 }
 
 MasterDisplayGroupRenderer::MasterDisplayGroupRenderer(DisplayGroupPtr group,
@@ -112,6 +112,10 @@ void MasterDisplayGroupRenderer::_add(WindowPtr window)
     auto controller = new WindowController(*window, *_displayGroup);
     controller->setParent(windowContext);
     windowContext->setContextProperty("controller", controller);
+
+    auto touchController = new WindowTouchController(*window, *_displayGroup);
+    touchController->setParent(windowContext);
+    windowContext->setContextProperty("touchcontroller", touchController);
 
     auto contentController = ContentController::create(*window).release();
     contentController->setParent(windowContext);

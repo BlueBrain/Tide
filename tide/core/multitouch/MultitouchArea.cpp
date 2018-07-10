@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -92,7 +92,14 @@ MultitouchArea::MultitouchArea(QQuickItem* parent_)
     connect(&_tapAndHoldDetector, &TapAndHoldDetector::tapAndHold, this,
             &MultitouchArea::tapAndHold);
 
-    connect(&_tapDetector, &TapDetector::tap, this, &MultitouchArea::tap);
+    connect(&_tapDetector, &TapDetector::tap,
+            [this](const QPointF& pos, const uint numPoints) {
+                if (!_blockTap)
+                    emit tap(pos, numPoints);
+            });
+
+    connect(this, &MultitouchArea::touchStarted, [this] { _blockTap = false; });
+    connect(this, &MultitouchArea::tapAndHold, [this] { _blockTap = true; });
 }
 
 QQuickItem* MultitouchArea::getReferenceItem() const

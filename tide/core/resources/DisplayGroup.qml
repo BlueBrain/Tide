@@ -5,9 +5,6 @@ import "qrc:/qml/core/style.js" as Style
 Item {
     id: displaygroupitem
 
-    property alias showFocusContext: focuscontext.visible
-    property alias focusContextZorder: focuscontext.z
-
     width: displaygroup.width
     height: displaygroup.height
 
@@ -26,6 +23,18 @@ Item {
                 duration: Style.focusTransitionTime
                 easing.type: Easing.InOutQuad
             }
+        }
+        ClickArea {
+            anchors.fill: parent
+            function goToDesktop() {
+                if (displaygroup.hasFullscreenWindows)
+                    groupcontroller.exitFullscreen()
+                else if (displaygroup.hasFocusedWindows)
+                    groupcontroller.unfocusAll()
+                else if (displaygroup.hasVisiblePanels)
+                    groupcontroller.hidePanels()
+            }
+            onClicked: goToDesktop()
         }
     }
 

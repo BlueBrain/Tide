@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,45 +37,35 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "TapAndHoldDetector.h"
+#include "ContextMenuController.h"
 
-#include "MathUtils.h"
+#include "scene/ContextMenu.h"
 
-TapAndHoldDetector::TapAndHoldDetector(const uint tapAndHoldTimeoutMs,
-                                       const qreal moveThresholdPx)
-    : _moveThresholdPx(moveThresholdPx)
+ContextMenuController::ContextMenuController(ContextMenu& contextMenu)
+    : _contextMenu{contextMenu}
 {
-    _tapAndHoldTimer.setInterval(tapAndHoldTimeoutMs);
-    connect(&_tapAndHoldTimer, &QTimer::timeout, [this]() {
-        emit tapAndHold(MathUtils::computeCenter(_touchStartPos),
-                        _touchStartPos.size());
-    });
 }
 
-void TapAndHoldDetector::initGesture(const Positions& positions)
+void ContextMenuController::copy(const QStringList& uris)
 {
-    cancelGesture();
-
-    if (!positions.empty())
-    {
-        _touchStartPos = positions;
-        _tapAndHoldTimer.start();
-    }
+    _contextMenu.setCopiedUris(uris);
+    hide();
 }
 
-void TapAndHoldDetector::updateGesture(const Positions& positions)
+void ContextMenuController::paste()
 {
-    if (_tapAndHoldTimer.isActive())
-        _cancelGestureIfMoved(positions);
+    emit open(_contextMenu.getCopiedUris());
+    _contextMenu.setCopiedUris(QStringList());
+    hide();
 }
 
-void TapAndHoldDetector::cancelGesture()
+void ContextMenuController::show(const QPointF& pos)
 {
-    _tapAndHoldTimer.stop();
+    _contextMenu.setPosition(pos);
+    _contextMenu.setVisible(true);
 }
 
-void TapAndHoldDetector::_cancelGestureIfMoved(const Positions& positions)
+void ContextMenuController::hide()
 {
-    if (MathUtils::hasMoved(positions, _touchStartPos, _moveThresholdPx))
-        cancelGesture();
+    _contextMenu.setVisible(false);
 }

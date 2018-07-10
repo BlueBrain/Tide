@@ -175,10 +175,7 @@ void MasterApplication::_init()
     _pixelStreamerLauncher.reset(
         new PixelStreamerLauncher(*_pixelStreamWindowManager, *_config));
 
-    if (_config->master.headless)
-        _initOffscreenView();
-    else
-        _initMasterWindow();
+    _initView();
 
 #if TIDE_ENABLE_REST_INTERFACE
     _initRestInterface();
@@ -191,9 +188,17 @@ void MasterApplication::_init()
     _setupMPIConnections();
 }
 
+void MasterApplication::_initView()
+{
+    if (_config->master.headless)
+        _initOffscreenView();
+    else
+        _initMasterWindow();
+}
+
 void MasterApplication::_initMasterWindow()
 {
-    _masterWindow.reset(new MasterWindow(_scene, _options, _lock, *_config));
+    _masterWindow.reset(new MasterWindow(_scene, _options, *_config));
 
     connect(_masterWindow.get(), &MasterWindow::openWebBrowser,
             _pixelStreamerLauncher.get(),
@@ -207,7 +212,7 @@ void MasterApplication::_initMasterWindow()
             _sceneController.get(), &SceneController::apply);
 
     auto view = _masterWindow->getQuickView();
-    _setContextProperties(*view->engine()->rootContext());
+    _createSurfaceRenderer(*view->engine(), view->getSurfaceItem());
 
     connect(view, &MasterQuickView::mousePressed, [this](const QPointF pos) {
         _markers->addMarker(MOUSE_MARKER_ID, pos);
@@ -217,8 +222,6 @@ void MasterApplication::_initMasterWindow()
     });
     connect(view, &MasterQuickView::mouseReleased,
             [this](const QPointF) { _markers->removeMarker(MOUSE_MARKER_ID); });
-    connect(view, &MasterQuickView::openLauncher, _pixelStreamerLauncher.get(),
-            &PixelStreamerLauncher::openLauncher);
 }
 
 void MasterApplication::_initOffscreenView()
@@ -226,30 +229,33 @@ void MasterApplication::_initOffscreenView()
     _offscreenQuickView.reset(new deflect::qt::OffscreenQuickView{
         std::make_unique<QQuickRenderControl>(),
         deflect::qt::RenderMode::DISABLED});
-    _offscreenQuickView->getRootContext()->setContextProperty("options",
-                                                              _options.get());
-    _offscreenQuickView->getRootContext()->setContextProperty("lock",
-                                                              _lock.get());
     _offscreenQuickView->load(QML_OFFSCREEN_ROOT_COMPONENT).wait();
     _offscreenQuickView->resize(_config->surfaces[0].getTotalSize());
 
-    auto& surface = _scene->getSurface(0);
     auto engine = _offscreenQuickView->getEngine();
     auto item = _offscreenQuickView->getRootItem();
 
-    _setContextProperties(*engine->rootContext());
+    _createSurfaceRenderer(*engine, *item);
+}
 
-    _offscreenSurfaceRenderer.reset(
-        new MasterSurfaceRenderer{surface, *engine, *item});
+void MasterApplication::_createSurfaceRenderer(QQmlEngine& engine,
+                                               QQuickItem& parentItem)
+{
+    _setContextProperties(*engine.rootContext());
 
-    connect(_offscreenSurfaceRenderer.get(),
-            &MasterSurfaceRenderer::openLauncher, _pixelStreamerLauncher.get(),
-            &PixelStreamerLauncher::openLauncher);
+    _surfaceRenderer.reset(
+        new MasterSurfaceRenderer{_scene->getSurface(0), engine, parentItem});
+
+    connect(_surfaceRenderer.get(), &MasterSurfaceRenderer::openLauncher,
+            _pixelStreamerLauncher.get(), &PixelStreamerLauncher::openLauncher);
+    connect(_surfaceRenderer.get(), &MasterSurfaceRenderer::open,
+            _sceneController.get(), &SceneController::openAll);
 }
 
 void MasterApplication::_setContextProperties(QQmlContext& context)
 {
-    context.setContextProperty("scenecontroller", _sceneController.get());
+    context.setContextProperty("options", _options.get());
+    context.setContextProperty("lock", _lock.get());
 }
 
 void MasterApplication::_startDeflectServer()

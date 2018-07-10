@@ -138,6 +138,14 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   json/json.h
   json/serialization.h
   json/templates.h
+  multitouch/DoubleTapDetector.h
+  multitouch/MathUtils.h
+  multitouch/MultitouchArea.h
+  multitouch/PanDetector.h
+  multitouch/PinchDetector.h
+  multitouch/SwipeDetector.h
+  multitouch/TapAndHoldDetector.h
+  multitouch/TapDetector.h
   network/LocalBarrier.h
   network/MPIChannel.h
   network/MPIContext.h
@@ -208,6 +216,14 @@ list(APPEND TIDECORE_SOURCES
   data/YUVImage.cpp
   json/json.cpp
   json/serialization.cpp
+  multitouch/DoubleTapDetector.cpp
+  multitouch/MathUtils.cpp
+  multitouch/MultitouchArea.cpp
+  multitouch/PanDetector.cpp
+  multitouch/PinchDetector.cpp
+  multitouch/SwipeDetector.cpp
+  multitouch/TapAndHoldDetector.cpp
+  multitouch/TapDetector.cpp
   network/LocalBarrier.cpp
   network/MPIChannel.cpp
   network/MPIContext.cpp

@@ -70,7 +70,7 @@ const QSize DEFAULT_WINDOW_SIZE(810, 600);
 }
 
 MasterWindow::MasterWindow(ScenePtr scene_, OptionsPtr options,
-                           ScreenLockPtr lock, Configuration& config)
+                           Configuration& config)
     : QMainWindow()
     , _scene{scene_}
     , _options(options)
@@ -111,7 +111,7 @@ MasterWindow::MasterWindow(ScenePtr scene_, OptionsPtr options,
     setAcceptDrops(true);
 
     _setupMasterWindowUI();
-    _addSurfacesTabViews(config, lock);
+    _addSurfacesTabViews(config);
 
     show();
 }
@@ -380,17 +380,13 @@ void MasterWindow::_setupMasterWindowUI()
     contentsLayout->addWidget(displayGroupWidget);
 }
 
-void MasterWindow::_addSurfacesTabViews(const Configuration& config,
-                                        ScreenLockPtr lock)
+void MasterWindow::_addSurfacesTabViews(const Configuration& config)
 {
     for (auto i = 0u; i < _scene->getSurfaceCount(); ++i)
     {
-        auto& surface = _scene->getSurface(i);
         const auto& surfaceConfig = config.surfaces[i];
         const auto tabTitle = QString{"Surface %1"}.arg(i);
-        auto quickView =
-            std::make_unique<MasterQuickView>(surfaceConfig, surface, _options,
-                                              lock);
+        auto quickView = std::make_unique<MasterQuickView>(surfaceConfig);
         if (i == 0)
             _quickView = quickView.get(); // keep a reference for mouse -> touch
         _addDisplayGroupTabView(std::move(quickView), tabTitle);

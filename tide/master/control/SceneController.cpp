@@ -82,7 +82,7 @@ SceneController::SceneController(Scene& scene_,
     });
 }
 
-void SceneController::paste(const QStringList& uris)
+void SceneController::openAll(const QStringList& uris)
 {
     for (const auto& uri : uris)
         open(surface0, uri, QPointF(), BoolCallback());
