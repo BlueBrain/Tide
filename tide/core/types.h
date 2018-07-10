@@ -107,6 +107,7 @@ class Configuration;
 class Content;
 class ContentSynchronizer;
 class ContextMenu;
+class ContextMenuController;
 class CountdownStatus;
 class DataProvider;
 class DataSource;

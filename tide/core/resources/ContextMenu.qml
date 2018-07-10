@@ -27,7 +27,7 @@ Rectangle {
             size: Style.buttonsSizeLarge
             onClicked: {
                 groupcontroller.toggleFocusAll()
-                contextmenu.visible = false
+                contextmenucontroller.hide()
             }
         }
         VerticalButtonSeparator {
@@ -38,10 +38,7 @@ Rectangle {
             id: copyButton
             size: Style.buttonsSizeLarge
             itemCount: displaygroup.selectedUris.length
-            onClicked: {
-                contextmenu.copiedUris = displaygroup.selectedUris
-                contextmenu.visible = false
-            }
+            onClicked: contextmenucontroller.copy(displaygroup.selectedUris)
             visible: itemCount > 0
         }
         VerticalButtonSeparator {
@@ -52,11 +49,7 @@ Rectangle {
             id: pasteButton
             size: Style.buttonsSizeLarge
             itemCount: contextmenu.copiedUris.length
-            onClicked: {
-                scenecontroller.paste(contextmenu.copiedUris)
-                contextmenu.copiedUris = {}
-                contextmenu.visible = false
-            }
+            onClicked: contextmenucontroller.paste()
             visible: itemCount > 0
         }
     }

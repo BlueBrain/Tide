@@ -51,10 +51,10 @@ class Rectangle : public QObject
     Q_OBJECT
     Q_DISABLE_COPY(Rectangle)
 
-    Q_PROPERTY(qreal x READ x WRITE setX NOTIFY xChanged)
-    Q_PROPERTY(qreal y READ y WRITE setY NOTIFY yChanged)
-    Q_PROPERTY(qreal width READ width WRITE setWidth NOTIFY widthChanged)
-    Q_PROPERTY(qreal height READ height WRITE setHeight NOTIFY heightChanged)
+    Q_PROPERTY(qreal x READ x NOTIFY xChanged)
+    Q_PROPERTY(qreal y READ y NOTIFY yChanged)
+    Q_PROPERTY(qreal width READ width NOTIFY widthChanged)
+    Q_PROPERTY(qreal height READ height NOTIFY heightChanged)
 
 public:
     Rectangle();

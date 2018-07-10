@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,95 +37,36 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef CONTENTACTION_H
-#define CONTENTACTION_H
+#ifndef CONTEXTMENUCONTROLLER_H
+#define CONTEXTMENUCONTROLLER_H
 
-#include "serialization/includes.h"
+#include "types.h"
 
 #include <QObject>
-#include <QUuid>
 
 /**
- * A content-specific action for use in QML by ContentActionsModel.
+ * Controller for the ContextMenu.
  */
-class ContentAction : public QObject
+class ContextMenuController : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY(ContentAction)
-
-    Q_PROPERTY(QString icon READ getIcon NOTIFY iconChanged)
-    Q_PROPERTY(
-        QString iconChecked READ getIconChecked NOTIFY iconCheckedChanged)
-    Q_PROPERTY(bool checkable READ isCheckable NOTIFY checkableChanged)
-    Q_PROPERTY(bool checked READ isChecked NOTIFY checkedChanged)
-    Q_PROPERTY(bool enabled READ isEnabled NOTIFY enabledChanged)
+    Q_DISABLE_COPY(ContextMenuController);
 
 public:
-    /** Constructor. */
-    explicit ContentAction(const QUuid& actionId = QUuid::createUuid());
+    /** Constructor */
+    ContextMenuController(ContextMenu& contextMenu);
 
-    /** @name QProperty getters */
-    //@{
-    const QString& getIcon() const;
-    const QString& getIconChecked() const;
-    bool isCheckable() const;
-    bool isChecked() const;
-    bool isEnabled() const;
-    //@}
+    Q_INVOKABLE void show(const QPointF& pos);
+    Q_INVOKABLE void hide();
 
-    /** @name QProperty setters */
-    //@{
-    void setIcon(QString icon);
-    void setIconChecked(QString icon);
-    void setChecked(bool value);
-    void setCheckable(bool value);
-    void setEnabled(bool value);
-    //@}
-
-public slots:
-    /** Trigger the action. */
-    void trigger();
+    Q_INVOKABLE void copy(const QStringList& uris);
+    Q_INVOKABLE void paste();
 
 signals:
-    /** The action has been checked. */
-    void checked();
-
-    /** The action has been unchecked. */
-    void unchecked();
-
-    /** The action has been triggered. */
-    void triggered(bool checked);
-
-    /** @name QProperty notifiers */
-    //@{
-    void iconChanged();
-    void iconCheckedChanged();
-    void checkedChanged();
-    void checkableChanged();
-    void enabledChanged();
-    //@}
+    void open(const QStringList& uris);
 
 private:
-    friend class boost::serialization::access;
-
-    template <class Archive>
-    void serialize(Archive& ar, const unsigned int)
-    {
-        // clang-format off
-        ar & boost::serialization::make_nvp("icon", _icon);
-        ar & boost::serialization::make_nvp("iconChecked", _iconChecked);
-        ar & boost::serialization::make_nvp("checkable", _checkable);
-        ar & boost::serialization::make_nvp("checked", _checked);
-        ar & boost::serialization::make_nvp("enabled", _enabled);
-        // clang-format on
-    }
-
-    QUuid _uuid;
-    QString _icon;
-    QString _iconChecked;
-    bool _checkable;
-    bool _checked;
-    bool _enabled;
+    ContextMenu& _contextMenu;
 };
 
 #endif

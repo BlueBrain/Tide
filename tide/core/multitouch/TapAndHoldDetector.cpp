@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,39 +37,46 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef TAPANDHOLDDETECTOR_H
-#define TAPANDHOLDDETECTOR_H
+#include "TapAndHoldDetector.h"
 
-#include "types.h"
+#include "MathUtils.h"
 
-#include <QObject>
-#include <QTimer>
-
-/**
- * Detect TapAndHoldGestures.
- */
-class TapAndHoldDetector : public QObject
+TapAndHoldDetector::TapAndHoldDetector(const uint tapAndHoldTimeoutMs,
+                                       const qreal moveThresholdPx)
+    : _moveThresholdPx(moveThresholdPx)
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(TapAndHoldDetector)
+    _tapAndHoldTimer.setInterval(tapAndHoldTimeoutMs);
+    _tapAndHoldTimer.setSingleShot(true);
+    connect(&_tapAndHoldTimer, &QTimer::timeout, [this]() {
+        emit tapAndHold(MathUtils::computeCenter(_touchStartPos),
+                        _touchStartPos.size());
+    });
+}
 
-public:
-    TapAndHoldDetector(uint tapAndHoldTimeoutMs, qreal moveThresholdPx);
+void TapAndHoldDetector::initGesture(const Positions& positions)
+{
+    cancelGesture();
 
-    void initGesture(const Positions& positions);
-    void updateGesture(const Positions& positions);
-    void cancelGesture();
+    if (!positions.empty())
+    {
+        _touchStartPos = positions;
+        _tapAndHoldTimer.start();
+    }
+}
 
-signals:
-    /** Emitted after a prolonged non-moving touch with one or more fingers. */
-    void tapAndHold(QPointF pos, uint numPoints);
+void TapAndHoldDetector::updateGesture(const Positions& positions)
+{
+    if (_tapAndHoldTimer.isActive())
+        _cancelGestureIfMoved(positions);
+}
 
-private:
-    const qreal _moveThresholdPx;
-    QTimer _tapAndHoldTimer;
-    Positions _touchStartPos;
+void TapAndHoldDetector::cancelGesture()
+{
+    _tapAndHoldTimer.stop();
+}
 
-    void _cancelGestureIfMoved(const Positions& positions);
-};
-
-#endif
+void TapAndHoldDetector::_cancelGestureIfMoved(const Positions& positions)
+{
+    if (MathUtils::hasMoved(positions, _touchStartPos, _moveThresholdPx))
+        cancelGesture();
+}

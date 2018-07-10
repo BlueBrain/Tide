@@ -40,6 +40,7 @@
 #ifndef CORE_QMLTYPEREGISTRATION_H
 #define CORE_QMLTYPEREGISTRATION_H
 
+#include "multitouch/MultitouchArea.h"
 #include "scene/ContentActionsModel.h"
 #include "scene/KeyboardState.h"
 #include "scene/Markers.h"
@@ -59,6 +60,7 @@ void registerQmlTypes()
     qmlRegisterType<ContentActionsModel>(QML_MODULE, 1, 0,
                                          "ContentActionsModel");
     qmlRegisterType<KeyboardState>(QML_MODULE, 1, 0, "KeyboardState");
+    qmlRegisterType<MultitouchArea>(QML_MODULE, 1, 0, "MultitouchArea");
 
     qmlRegisterUncreatableType<Content>(
         QML_MODULE, 1, 0, "Content",

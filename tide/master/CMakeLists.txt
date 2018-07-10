@@ -19,6 +19,7 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   control/CanvasNode.h
   control/CanvasTree.h
   control/ContentController.h
+  control/ContextMenuController.h
   control/DisplayGroupController.h
   control/LayoutEngine.h
   control/LayoutPolicy.h
@@ -26,6 +27,7 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   control/PixelStreamController.h
   control/SceneController.h
   control/WindowController.h
+  control/WindowTouchController.h
   control/ZoomController.h
   FileInfoHelper.h
   InactivityTimer.h
@@ -39,14 +41,6 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   MasterApplication.h
   MasterDisplayGroupRenderer.h
   MasterSurfaceRenderer.h
-  multitouch/DoubleTapDetector.h
-  multitouch/MathUtils.h
-  multitouch/MultitouchArea.h
-  multitouch/PanDetector.h
-  multitouch/PinchDetector.h
-  multitouch/SwipeDetector.h
-  multitouch/TapAndHoldDetector.h
-  multitouch/TapDetector.h
   network/MasterFromWallChannel.h
   network/MasterToForkerChannel.h
   network/MasterToWallChannel.h
@@ -69,6 +63,7 @@ list(APPEND TIDEMASTER_SOURCES
   control/CanvasNode.cpp
   control/CanvasTree.cpp
   control/ContentController.cpp
+  control/ContextMenuController.cpp
   control/DisplayGroupController.cpp
   control/LayoutEngine.cpp
   control/LayoutPolicy.cpp
@@ -76,6 +71,7 @@ list(APPEND TIDEMASTER_SOURCES
   control/PixelStreamController.cpp
   control/SceneController.cpp
   control/WindowController.cpp
+  control/WindowTouchController.cpp
   control/ZoomController.cpp
   InactivityTimer.cpp
   localstreamer/HtmlSelectReplacer.cpp
@@ -88,14 +84,6 @@ list(APPEND TIDEMASTER_SOURCES
   MasterApplication.cpp
   MasterDisplayGroupRenderer.cpp
   MasterSurfaceRenderer.cpp
-  multitouch/DoubleTapDetector.cpp
-  multitouch/MathUtils.cpp
-  multitouch/MultitouchArea.cpp
-  multitouch/PanDetector.cpp
-  multitouch/PinchDetector.cpp
-  multitouch/SwipeDetector.cpp
-  multitouch/TapAndHoldDetector.cpp
-  multitouch/TapDetector.cpp
   network/MasterFromWallChannel.cpp
   network/MasterToForkerChannel.cpp
   network/MasterToWallChannel.cpp
@@ -126,6 +114,15 @@ if(TIDE_ENABLE_PDF_SUPPORT)
   )
   list(APPEND TIDEMASTER_SOURCES
     control/PDFController.cpp
+  )
+endif()
+
+if(TIDE_ENABLE_MOVIE_SUPPORT)
+  list(APPEND TIDEMASTER_PUBLIC_HEADERS
+    control/MovieController.h
+  )
+  list(APPEND TIDEMASTER_SOURCES
+    control/MovieController.cpp
   )
 endif()
 

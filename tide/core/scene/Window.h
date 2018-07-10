@@ -71,14 +71,12 @@ class Window : public Rectangle
     Q_PROPERTY(bool fullscreen READ isFullscreen NOTIFY modeChanged)
     Q_PROPERTY(QRectF fullscreenCoordinates READ getFullscreenCoordinates NOTIFY
                    fullscreenCoordinatesChanged)
-    Q_PROPERTY(
-        WindowState state READ getState WRITE setState NOTIFY stateChanged)
-    Q_PROPERTY(ResizeHandle activeHandle READ getActiveHandle WRITE
-                   setActiveHandle NOTIFY activeHandleChanged)
-    Q_PROPERTY(ResizePolicy resizePolicy READ getResizePolicy WRITE
-                   setResizePolicy NOTIFY resizePolicyChanged)
-    Q_PROPERTY(
-        bool selected READ isSelected WRITE setSelected NOTIFY selectedChanged)
+    Q_PROPERTY(WindowState state READ getState NOTIFY stateChanged)
+    Q_PROPERTY(ResizeHandle activeHandle READ getActiveHandle NOTIFY
+                   activeHandleChanged)
+    Q_PROPERTY(ResizePolicy resizePolicy READ getResizePolicy NOTIFY
+                   resizePolicyChanged)
+    Q_PROPERTY(bool selected READ isSelected NOTIFY selectedChanged)
 
 public:
     /** The current active resize handle. */
@@ -210,6 +208,9 @@ public:
     /** Get the current state. */
     Window::WindowState getState() const;
 
+    /** Check if the window is idle. */
+    bool isIdle() const;
+
     /** Check if moving. */
     bool isMoving() const;
 
@@ -234,7 +235,6 @@ public:
     /** Restore the mode and zoom rectangle (after exiting fullscreen). */
     void restoreModeAndZoom();
 
-public slots:
     /** Set the current active resize handle. */
     void setActiveHandle(Window::ResizeHandle handle);
 
@@ -242,7 +242,7 @@ public slots:
     bool setResizePolicy(Window::ResizePolicy policy);
 
     /** Set the current state. */
-    bool setState(const Window::WindowState state);
+    bool setState(Window::WindowState state);
 
 signals:
     /** Emitted when the Content signals that it has been modified. */

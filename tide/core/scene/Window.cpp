@@ -267,6 +267,11 @@ bool Window::setState(const Window::WindowState state)
     return true;
 }
 
+bool Window::isIdle() const
+{
+    return _state == NONE;
+}
+
 bool Window::isMoving() const
 {
     return _state == MOVING;

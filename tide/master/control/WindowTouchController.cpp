@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,95 +37,100 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef CONTENTACTION_H
-#define CONTENTACTION_H
+#include "WindowTouchController.h"
 
-#include "serialization/includes.h"
+#include "control/ContentController.h"
+#include "control/DisplayGroupController.h"
+#include "scene/DisplayGroup.h"
 
-#include <QObject>
-#include <QUuid>
-
-/**
- * A content-specific action for use in QML by ContentActionsModel.
- */
-class ContentAction : public QObject
+WindowTouchController::WindowTouchController(Window& window,
+                                             DisplayGroup& group)
+    : _window{window}
+    , _group{group}
+    , _controller{window, group}
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(ContentAction)
+}
 
-    Q_PROPERTY(QString icon READ getIcon NOTIFY iconChanged)
-    Q_PROPERTY(
-        QString iconChecked READ getIconChecked NOTIFY iconCheckedChanged)
-    Q_PROPERTY(bool checkable READ isCheckable NOTIFY checkableChanged)
-    Q_PROPERTY(bool checked READ isChecked NOTIFY checkedChanged)
-    Q_PROPERTY(bool enabled READ isEnabled NOTIFY enabledChanged)
+void WindowTouchController::onTouchStarted()
+{
+    DisplayGroupController{_group}.moveWindowToFront(_window.getID());
+    _window.getContent().setCaptureInteraction(false);
+}
 
-public:
-    /** Constructor. */
-    explicit ContentAction(const QUuid& actionId = QUuid::createUuid());
+void WindowTouchController::onTap()
+{
+    if (_isWindowActive() && !_window.isPanel())
+        _controller.toggleSelected();
+}
 
-    /** @name QProperty getters */
-    //@{
-    const QString& getIcon() const;
-    const QString& getIconChecked() const;
-    bool isCheckable() const;
-    bool isChecked() const;
-    bool isEnabled() const;
-    //@}
+void WindowTouchController::onTapAndHold()
+{
+    _window.getContent().setCaptureInteraction(
+        !_window.getContent().getCaptureInteraction());
 
-    /** @name QProperty setters */
-    //@{
-    void setIcon(QString icon);
-    void setIconChecked(QString icon);
-    void setChecked(bool value);
-    void setCheckable(bool value);
-    void setEnabled(bool value);
-    //@}
+    if (_window.isPanel())
+        _controller.toggleSelected(); // force toggle
+}
 
-public slots:
-    /** Trigger the action. */
-    void trigger();
-
-signals:
-    /** The action has been checked. */
-    void checked();
-
-    /** The action has been unchecked. */
-    void unchecked();
-
-    /** The action has been triggered. */
-    void triggered(bool checked);
-
-    /** @name QProperty notifiers */
-    //@{
-    void iconChanged();
-    void iconCheckedChanged();
-    void checkedChanged();
-    void checkableChanged();
-    void enabledChanged();
-    //@}
-
-private:
-    friend class boost::serialization::access;
-
-    template <class Archive>
-    void serialize(Archive& ar, const unsigned int)
+void WindowTouchController::onDoubleTap(const uint numPoints)
+{
+    if (_window.isFullscreen())
+        _controller.toogleFullscreenMaxSize();
+    else
     {
-        // clang-format off
-        ar & boost::serialization::make_nvp("icon", _icon);
-        ar & boost::serialization::make_nvp("iconChecked", _iconChecked);
-        ar & boost::serialization::make_nvp("checkable", _checkable);
-        ar & boost::serialization::make_nvp("checked", _checked);
-        ar & boost::serialization::make_nvp("enabled", _enabled);
-        // clang-format on
+        if (numPoints > 1)
+            _toggleFocusMode();
+        else
+            DisplayGroupController{_group}.toggleFullscreen(_window.getID());
     }
+}
 
-    QUuid _uuid;
-    QString _icon;
-    QString _iconChecked;
-    bool _checkable;
-    bool _checked;
-    bool _enabled;
-};
+void WindowTouchController::onPanStarted()
+{
+    if (_isWindowActive() && _window.isIdle())
+        _window.setState(Window::WindowState::MOVING);
+}
 
-#endif
+void WindowTouchController::onPan(const QPointF& /*pos*/, const QPointF& delta,
+                                  const uint numPoints)
+{
+    if (_isWindowActive() && _window.isMoving() && numPoints == 1)
+        _controller.moveBy(delta);
+}
+
+void WindowTouchController::onPanEnded()
+{
+    if (_isWindowActive() && _window.isMoving())
+        _window.setState(Window::WindowState::NONE);
+}
+
+void WindowTouchController::onPinchStarted()
+{
+    if (_isWindowActive() && _window.isIdle())
+        _window.setState(Window::WindowState::RESIZING);
+}
+
+void WindowTouchController::onPinch(const QPointF& pos, const QPointF& delta)
+{
+    if (_isWindowActive() && _window.isResizing())
+        _controller.scale(pos, delta);
+}
+
+void WindowTouchController::onPinchEnded()
+{
+    if (_isWindowActive() && _window.isResizing())
+        _window.setState(Window::WindowState::NONE);
+}
+
+void WindowTouchController::_toggleFocusMode()
+{
+    if (_window.isFocused())
+        DisplayGroupController{_group}.unfocus(_window.getID());
+    else
+        DisplayGroupController{_group}.focusSelected();
+}
+
+bool WindowTouchController::_isWindowActive() const
+{
+    return !_window.isFocused();
+}

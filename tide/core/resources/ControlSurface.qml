@@ -7,6 +7,21 @@ Item {
 
     signal openLauncher
 
+    Loader {
+        active: (typeof groupcontroller !== "undefined") // only load on master
+        anchors.fill: parent
+        sourceComponent: MultitouchArea {
+            anchors.fill: parent
+            referenceItem: controlSurface
+
+            onTapAndHold: contextmenucontroller.show(pos)
+            onTap: {
+                groupcontroller.deselectAll()
+                contextmenucontroller.hide()
+            }
+        }
+    }
+
     SideControl {
         id: sideControl
         z: Style.sideControlZorder

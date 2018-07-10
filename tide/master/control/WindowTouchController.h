@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,40 +37,52 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef TAPDETECTOR_H
-#define TAPDETECTOR_H
+#ifndef WINDOWTOUCHCONTROLLER_H
+#define WINDOWTOUCHCONTROLLER_H
 
 #include "types.h"
+
+#include "control/WindowController.h"
 
 #include <QObject>
 
 /**
- * Detect double-tap gestures.
+ * Controller for interacting with the window on a touch surface.
  */
-class TapDetector : public QObject
+class WindowTouchController : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY(TapDetector)
+    Q_DISABLE_COPY(WindowTouchController)
 
 public:
-    explicit TapDetector(qreal moveThresholdPx);
+    /**
+     * Create a touch controller for a window.
+     * @param window the target window.
+     * @param group the group to which the window belongs.
+     */
+    WindowTouchController(Window& window, DisplayGroup& group);
 
-    void initGesture(const Positions& positions);
-    void updateGesture(const Positions& positions);
-    void cancelGesture();
+    Q_INVOKABLE void onTouchStarted();
+    Q_INVOKABLE void onTap();
+    Q_INVOKABLE void onTapAndHold();
+    Q_INVOKABLE void onDoubleTap(uint numPoints);
 
-signals:
-    /** Emitted for an n-finger touch and release in-place (i.e. not a pan). */
-    void tap(QPointF pos, uint numPoints);
+    Q_INVOKABLE void onPanStarted();
+    Q_INVOKABLE void onPan(const QPointF& pos, const QPointF& delta,
+                           uint numPoints);
+    Q_INVOKABLE void onPanEnded();
+
+    Q_INVOKABLE void onPinchStarted();
+    Q_INVOKABLE void onPinch(const QPointF& pos, const QPointF& delta);
+    Q_INVOKABLE void onPinchEnded();
 
 private:
-    const qreal _moveThresholdPx;
-    QPointF _tapCenter;
-    uint _numPoints = 0;
-    Positions _touchStartPos;
-    bool _tapCanceled = false;
+    Window& _window;
+    DisplayGroup& _group;
+    WindowController _controller;
 
-    void _cancelGestureIfMoved(const Positions& positions);
+    void _toggleFocusMode();
+    bool _isWindowActive() const;
 };
 
 #endif

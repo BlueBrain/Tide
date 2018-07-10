@@ -40,6 +40,7 @@
 #include "MasterSurfaceRenderer.h"
 
 #include "MasterDisplayGroupRenderer.h"
+#include "control/ContextMenuController.h"
 #include "control/DisplayGroupController.h"
 #include "qmlUtils.h"
 #include "scene/Scene.h"
@@ -59,7 +60,12 @@ MasterSurfaceRenderer::MasterSurfaceRenderer(Surface& surface,
     : _surface{surface}
     , _group{surface.getGroupPtr()}
     , _groupController{new DisplayGroupController{*_group}}
+    , _contextMenuController{
+          new ContextMenuController{surface.getContextMenu()}}
 {
+    connect(_contextMenuController.get(), &ContextMenuController::open, this,
+            &MasterSurfaceRenderer::open);
+
     _setContextProperties(*engine.rootContext());
 
     if (surface.getIndex() == 0)
@@ -87,7 +93,10 @@ void MasterSurfaceRenderer::_setContextProperties(QQmlContext& context)
 void MasterSurfaceRenderer::_setControlSurfaceContextProperties(
     QQmlContext& context)
 {
-    // SideControl buttons need a displaygroup and groupcontroller
+    context.setContextProperty("contextmenucontroller",
+                               _contextMenuController.get());
+
+    // SideControl buttons + ContextMenu need a displaygroup and groupcontroller
     context.setContextProperty("displaygroup", _group.get());
     context.setContextProperty("groupcontroller", _groupController.get());
 }

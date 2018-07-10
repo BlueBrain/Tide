@@ -37,55 +37,93 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "ContextMenu.h"
+#define BOOST_TEST_MODULE PixelStreamControllerTests
+#include <boost/test/unit_test.hpp>
 
-ContextMenuPtr ContextMenu::create()
+#include "DummyContent.h"
+
+#include "control/PixelStreamController.h"
+#include "scene/ContentFactory.h"
+#include "scene/Window.h"
+
+namespace
 {
-    return ContextMenuPtr{new ContextMenu()};
+const int WIDTH = 512;
+const int HEIGHT = 256;
+
+inline QPointF _normalize(const QPointF& point)
+{
+    return QPointF{point.x() / WIDTH, point.y() / HEIGHT};
+}
 }
 
-const QPointF& ContextMenu::getPosition() const
+struct PixelStreamFixture
 {
-    return _pos;
+    PixelStreamFixture()
+    {
+        QObject::connect(&controller, &PixelStreamController::notify,
+                         [this](const auto& evt) { event = evt; });
+    }
+    Window window{
+        ContentFactory::getPixelStreamContent("xyz", QSize{WIDTH, HEIGHT})};
+    PixelStreamController controller{window};
+    deflect::Event event;
+
+    QPointF eventPosition() const
+    {
+        return QPointF{event.mouseX, event.mouseY};
+    }
+    QPointF eventDelta() const { return QPointF{event.dx, event.dy}; }
+};
+
+BOOST_FIXTURE_TEST_CASE(tap_event, PixelStreamFixture)
+{
+    controller.tap(QPointF{WIDTH * 0.5, HEIGHT * 0.25}, 1);
+    BOOST_CHECK(event.type == deflect::Event::EVT_CLICK);
+    BOOST_CHECK_EQUAL(event.key, 1);
+    BOOST_CHECK_EQUAL(eventPosition(), QPointF(0.5, 0.25));
+
+    controller.tap(QPointF{0.0, 0.0}, 3);
+    BOOST_CHECK(event.type == deflect::Event::EVT_CLICK);
+    BOOST_CHECK_EQUAL(event.key, 3);
+    BOOST_CHECK_EQUAL(eventPosition(), QPointF(0.0, 0.0));
+
+    controller.tap(QPointF{WIDTH, HEIGHT}, 2);
+    BOOST_CHECK(event.type == deflect::Event::EVT_CLICK);
+    BOOST_CHECK_EQUAL(event.key, 2);
+    BOOST_CHECK_EQUAL(eventPosition(), QPointF(1.0, 1.0));
 }
 
-void ContextMenu::setPosition(const QPointF& pos)
+BOOST_FIXTURE_TEST_CASE(pinch_event, PixelStreamFixture)
 {
-    if (pos == _pos)
-        return;
+    const auto pos = QPointF{WIDTH * 0.5, HEIGHT * 0.25};
+    const auto delta = QPointF{5.0, 3.0};
+    controller.pinch(pos, delta);
 
-    _pos = pos;
-    emit positionChanged();
-    emit modified(shared_from_this());
+    BOOST_CHECK(event.type == deflect::Event::EVT_PINCH);
+    BOOST_CHECK_EQUAL(eventPosition(), QPointF(0.5, 0.25));
+    BOOST_CHECK_EQUAL(eventDelta(), _normalize(delta));
 }
 
-bool ContextMenu::isVisible() const
+BOOST_FIXTURE_TEST_CASE(move_event, PixelStreamFixture)
 {
-    return _visible;
+    const auto pos = QPointF{WIDTH * 0.5, HEIGHT * 0.25};
+    const auto delta = QPointF{5.0, 3.0};
+    controller.pan(pos, delta, 1);
+
+    BOOST_CHECK(event.type == deflect::Event::EVT_MOVE);
+    BOOST_CHECK_EQUAL(eventPosition(), QPointF(0.5, 0.25));
+    BOOST_CHECK_EQUAL(eventDelta(), _normalize(delta));
 }
 
-QStringList ContextMenu::getCopiedUris() const
+BOOST_FIXTURE_TEST_CASE(pan_event, PixelStreamFixture)
 {
-    return QStringList::fromStdList(_copiedUris);
-}
+    const auto pos = QPointF{WIDTH * 0.5, HEIGHT * 0.25};
+    const auto delta = QPointF{5.0, 3.0};
+    controller.pan(pos, delta, 2);
 
-void ContextMenu::setVisible(const bool visible)
-{
-    if (_visible == visible)
-        return;
-
-    _visible = visible;
-    emit visibleChanged(visible);
-    emit modified(shared_from_this());
-}
-
-void ContextMenu::setCopiedUris(const QStringList& copiedUris)
-{
-    auto uris = copiedUris.toStdList();
-    if (_copiedUris == uris)
-        return;
-
-    _copiedUris = std::move(uris);
-    emit copiedUrisChanged();
-    emit modified(shared_from_this());
+    BOOST_CHECK(event.type == deflect::Event::EVT_PAN);
+    BOOST_CHECK_EQUAL(event.key, 2);
+    BOOST_CHECK_EQUAL(eventPosition(), QPointF(0.5, 0.25));
+    BOOST_CHECK_EQUAL(eventDelta(), _normalize(delta));
 }

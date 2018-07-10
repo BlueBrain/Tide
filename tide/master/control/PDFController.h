@@ -52,13 +52,13 @@ class PDFController : public ZoomController
 public:
     PDFController(Window& window);
 
-    void swipeLeft() override;
-    void swipeRight() override;
-
-    void prevPage() override;
-    void nextPage() override;
-
 private:
+    void _swipeLeft() override;
+    void _swipeRight() override;
+
+    void _prevPage() override;
+    void _nextPage() override;
+
     PDFContent& _getPDFContent();
 };
 

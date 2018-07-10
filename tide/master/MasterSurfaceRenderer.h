@@ -65,10 +65,14 @@ signals:
     /** Emitted when a user taps the launcher control to open it. */
     void openLauncher();
 
+    /** Emitted when users paste multiple contents. */
+    void open(const QStringList& uris);
+
 private:
     Surface& _surface;
     DisplayGroupPtr _group;
     std::unique_ptr<DisplayGroupController> _groupController;
+    std::unique_ptr<ContextMenuController> _contextMenuController;
     std::unique_ptr<QQuickItem> _surfaceItem;
     std::unique_ptr<MasterDisplayGroupRenderer> _displayGroupRenderer;
 

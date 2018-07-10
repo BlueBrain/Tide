@@ -28,11 +28,13 @@ Item {
                           / window.content.duration : contentsync.sliderPosition
         onValueChanged: {
             if (isMaster)
-                window.content.position = value * window.content.duration
+                contentcontroller.skipTo(value * window.content.duration)
         }
         onPressedChanged: {
-            if (isMaster)
-                window.content.skipping = pressed
+            if (pressed)
+                contentcontroller.startSkipping()
+            else
+                contentcontroller.stopSkipping()
         }
         style: SliderStyle {
             groove: Rectangle {

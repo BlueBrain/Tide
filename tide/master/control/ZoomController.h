@@ -51,19 +51,17 @@ public:
     /** Constructor */
     ZoomController(Window& window);
 
-    /** Destructor */
-    virtual ~ZoomController();
-
-    /** @name Touch gesture handlers. */
-    //@{
-    void pan(QPointF position, QPointF delta, uint numPoints) override;
-    void pinch(QPointF position, QPointF pixelDelta) override;
-    //@}
-
     /** Adjust the zoom of the window to the aspect ratio of the content. */
     void adjustZoomToContentAspectRatio();
 
 private:
+    /** @name Touch gesture handlers. */
+    //@{
+    void _pan(const QPointF& position, const QPointF& delta,
+              uint numPoints) override;
+    void _pinch(const QPointF& position, const QPointF& pixelDelta) override;
+    //@}
+
     void _checkAndApply(QRectF zoomRect);
     void _moveZoomRect(const QPointF& sceneDelta);
     void _constrainZoomLevel(QRectF& zoomRect) const;

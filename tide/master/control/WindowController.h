@@ -42,6 +42,8 @@
 
 #include "types.h"
 
+#include "scene/Window.h"
+
 #include <QObject>
 
 /** Common window size states. */
@@ -90,6 +92,13 @@ public:
      */
     WindowController(Window& window, const DisplayGroup& group,
                      Coordinates target = Coordinates::AUTO);
+
+    /** @name UI resize handle events. */
+    //@{
+    Q_INVOKABLE void startResizing(const Window::ResizeHandle handle);
+    Q_INVOKABLE void toggleResizeMode();
+    Q_INVOKABLE void stopResizing();
+    //@}
 
     /** Resize the window. */
     Q_INVOKABLE void resize(QSizeF size, WindowPoint fixedPoint = TOP_LEFT);

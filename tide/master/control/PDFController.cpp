@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -45,30 +45,30 @@
 PDFController::PDFController(Window& window)
     : ZoomController(window)
 {
-    assert(_window.getContent().getType() == CONTENT_TYPE_PDF);
+    assert(getContent().getType() == CONTENT_TYPE_PDF);
 }
 
-void PDFController::swipeLeft()
+void PDFController::_swipeLeft()
 {
-    nextPage();
+    _nextPage();
 }
 
-void PDFController::swipeRight()
+void PDFController::_swipeRight()
 {
-    prevPage();
+    _prevPage();
 }
 
-void PDFController::prevPage()
+void PDFController::_prevPage()
 {
     _getPDFContent().previousPage();
 }
 
-void PDFController::nextPage()
+void PDFController::_nextPage()
 {
     _getPDFContent().nextPage();
 }
 
 PDFContent& PDFController::_getPDFContent()
 {
-    return static_cast<PDFContent&>(_window.getContent());
+    return static_cast<PDFContent&>(getContent());
 }

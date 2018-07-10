@@ -81,8 +81,8 @@ class Content : public QObject
     Q_PROPERTY(KeyboardState* keyboard READ getKeyboardState CONSTANT)
     Q_PROPERTY(Interaction interactionPolicy READ getInteractionPolicy NOTIFY
                    interactionPolicyChanged)
-    Q_PROPERTY(bool captureInteraction READ getCaptureInteraction WRITE
-                   setCaptureInteraction NOTIFY captureInteractionChanged)
+    Q_PROPERTY(bool captureInteraction READ getCaptureInteraction NOTIFY
+                   captureInteractionChanged)
 
 public:
     /** The different types of interaction. */

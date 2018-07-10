@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -55,47 +55,48 @@ public:
     /** Constructor */
     explicit PixelStreamController(Window& window);
 
+signals:
+    /** Emitted when an Event occured. */
+    void notify(const deflect::Event& event);
+
+private:
     /** @name Touch gesture handlers. */
     //@{
-    void touchBegin(QPointF position) override;
-    void touchEnd(QPointF position) override;
+    void _touchBegin(const QPointF& position) override;
+    void _touchEnd(const QPointF& position) override;
 
-    void addTouchPoint(int id, QPointF position) override;
-    void updateTouchPoint(int id, QPointF position) override;
-    void removeTouchPoint(int id, QPointF position) override;
+    void _addTouchPoint(int id, const QPointF& position) override;
+    void _updateTouchPoint(int id, const QPointF& position) override;
+    void _removeTouchPoint(int id, const QPointF& position) override;
 
-    void tap(QPointF position, uint numPoints) override;
-    void doubleTap(QPointF position, uint numPoints) override;
-    void tapAndHold(QPointF position, uint numPoints) override;
-    void pan(QPointF position, QPointF delta, uint numPoints) override;
-    void pinch(QPointF position, QPointF pixelDelta) override;
+    void _tap(const QPointF& position, uint numPoints) override;
+    void _doubleTap(const QPointF& position, uint numPoints) override;
+    void _tapAndHold(const QPointF& position, uint numPoints) override;
+    void _pan(const QPointF& position, const QPointF& delta,
+              uint numPoints) override;
+    void _pinch(const QPointF& position, const QPointF& delta) override;
 
-    void swipeLeft() override;
-    void swipeRight() override;
-    void swipeUp() override;
-    void swipeDown() override;
+    void _swipeLeft() override;
+    void _swipeRight() override;
+    void _swipeUp() override;
+    void _swipeDown() override;
     //@}
 
     /** @name Keyboard event handlers. */
     //@{
-    void keyPress(int key, int modifiers, QString text) override;
-    void keyRelease(int key, int modifiers, QString text) override;
+    void _keyPress(int key, int modifiers, const QString& text) override;
+    void _keyRelease(int key, int modifiers, const QString& text) override;
     //@}
 
     /** @name UI event handlers. */
     //@{
-    void prevPage() override;
-    void nextPage() override;
+    void _prevPage() override;
+    void _nextPage() override;
     //@}
 
-signals:
-    /** Emitted when an Event occured. */
-    void notify(deflect::Event event);
-
-private slots:
     void _sendSizeChangedEvent();
 
-private:
+    QPointF _normalize(const QPointF& point) const;
     deflect::Event _getNormEvent(const QPointF& position) const;
 };
 
