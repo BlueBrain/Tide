@@ -175,9 +175,6 @@ void MasterApplication::_init()
     _pixelStreamerLauncher.reset(
         new PixelStreamerLauncher(*_pixelStreamWindowManager, *_config));
 
-    _inactivityTimer.reset(
-        new InactivityTimer(_config->settings.inactivityTimeout));
-
     if (_config->master.headless)
         _initOffscreenView();
     else
@@ -331,12 +328,15 @@ void MasterApplication::_setupMPIConnections()
             },
             Qt::DirectConnection);
 
-    connect(_inactivityTimer.get(), &InactivityTimer::countdownUpdated,
-            _masterToWallChannel.get(),
-            [this](CountdownStatusPtr status) {
-                _masterToWallChannel->sendAsync(status);
-            },
-            Qt::DirectConnection);
+    if (_inactivityTimer)
+    {
+        connect(_inactivityTimer.get(), &InactivityTimer::countdownUpdated,
+                _masterToWallChannel.get(),
+                [this](CountdownStatusPtr status) {
+                    _masterToWallChannel->sendAsync(status);
+                },
+                Qt::DirectConnection);
+    }
 
     connect(_lock.get(), &ScreenLock::modified, [this](ScreenLockPtr lock) {
         _masterToWallChannel->sendAsync(lock);
@@ -434,6 +434,9 @@ void MasterApplication::_initScreenController()
 {
     _screenController =
         ScreenControllerFactory::create(_config->master.planarSerialPort);
+
+    _inactivityTimer =
+        std::make_unique<InactivityTimer>(_config->settings.inactivityTimeout);
 
     connect(_inactivityTimer.get(), &InactivityTimer::poweroff, [this]() {
         _screenController->powerOff();
@@ -533,7 +536,8 @@ bool MasterApplication::notify(QObject* receiver, QEvent* event)
 
 void MasterApplication::_handle(const QTouchEvent* event)
 {
-    _inactivityTimer->restart();
+    if (_inactivityTimer)
+        _inactivityTimer->restart();
 
     if ((uint)event->touchPoints().length() >=
         _config->settings.touchpointsToWakeup)

@@ -65,13 +65,10 @@ inline std::ostream& operator<<(std::ostream& str,
     return str;
 }
 
-BOOST_AUTO_TEST_CASE(testEmptySerialDeviceReturnsNullptr)
-{
-    BOOST_CHECK(!ScreenControllerFactory::create(""));
-}
-
 BOOST_AUTO_TEST_CASE(testExceptionWhenSerialDeviceCannotBeOpened)
 {
+    BOOST_CHECK_THROW(ScreenControllerFactory::create(""), std::runtime_error);
+    BOOST_CHECK_THROW(ScreenControllerFactory::create(";"), std::runtime_error);
     BOOST_CHECK_THROW(ScreenControllerFactory::create("/dev/null;/dev/das"),
                       std::runtime_error);
     BOOST_CHECK_THROW(ScreenControllerFactory::create(

@@ -3,8 +3,10 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
-* [258](https://github.com/BlueBrain/Tide/pull/258):
-  Previous demo launcher replaced with a web ui version
+* [260](https://github.com/BlueBrain/Tide/pull/260):
+  Add context menu to copy-paste selected contents from one session to another.
+  Fix a bug that caused the "Touch to prevent sleep" dialog appear even when no
+  screen controller was configured.
 * [256](https://github.com/BlueBrain/Tide/pull/256):
   Add "dimensions" property in surface configuration to let UI elements scale
   to real-world sizes (in meters). Currently used for the Launcher only.
