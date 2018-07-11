@@ -61,7 +61,8 @@ std::unique_ptr<ScreenController> ScreenControllerFactory::create(
 {
     const auto connections = parseInputString(ports);
     if (connections.empty())
-        return nullptr;
+        throw std::runtime_error("Invalid screen controller list: '" +
+                                 ports.toStdString() + "'");
 
     std::vector<std::unique_ptr<ScreenController>> controllers;
     QMapIterator<QString, PlanarController::Type> i(connections);

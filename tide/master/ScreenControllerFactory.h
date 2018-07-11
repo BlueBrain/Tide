@@ -52,6 +52,7 @@ public:
     /**
      * Create a ScreenController.
      * @param ports a configurable combination of port and device type.
+     * @throw std::runtime_error if an error occurs when opening the ports.
      */
     static std::unique_ptr<ScreenController> create(const QString& ports);
 
