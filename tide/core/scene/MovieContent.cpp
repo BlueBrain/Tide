@@ -49,17 +49,9 @@ BOOST_CLASS_EXPORT_IMPLEMENT(MovieContent)
 
 IMPLEMENT_SERIALIZE_FOR_XML(MovieContent)
 
-namespace
-{
-const QString ICON_PAUSE("qrc:///img/pause.svg");
-const QString ICON_PLAY("qrc:///img/play.svg");
-const QString MOVIE_CONTROLS("qrc:///qml/core/MovieControls.qml");
-}
-
 MovieContent::MovieContent(const QString& uri)
     : Content(uri)
 {
-    _createActions();
 }
 
 CONTENT_TYPE MovieContent::getType() const
@@ -80,11 +72,6 @@ bool MovieContent::readMetadata()
     setDimensions(QSize(movie.getWidth(), movie.getHeight()));
     _duration = movie.getDuration();
     return true;
-}
-
-QString MovieContent::getQmlControls() const
-{
-    return MOVIE_CONTROLS;
 }
 
 Content::Interaction MovieContent::getInteractionPolicy() const
@@ -112,9 +99,41 @@ const QStringList& MovieContent::getSupportedExtensions()
     return extensions;
 }
 
-ControlState MovieContent::getControlState() const
+void MovieContent::play()
 {
-    return _controlState;
+    if (isPlaying())
+        return;
+
+    _controlState = (ControlState)(_controlState & ~STATE_PAUSED);
+
+    emit playingChanged();
+    emit modified();
+}
+
+void MovieContent::pause()
+{
+    if (isPaused())
+        return;
+
+    _controlState = (ControlState)(_controlState | STATE_PAUSED);
+
+    emit playingChanged();
+    emit modified();
+}
+
+bool MovieContent::isPlaying() const
+{
+    return !isPaused();
+}
+
+bool MovieContent::isPaused() const
+{
+    return _controlState & STATE_PAUSED;
+}
+
+bool MovieContent::isLooping() const
+{
+    return _controlState & STATE_LOOP;
 }
 
 qreal MovieContent::getDuration() const
@@ -150,32 +169,4 @@ void MovieContent::setSkipping(const bool skipping)
     _skipping = skipping;
     emit skippingChanged(skipping);
     emit modified();
-}
-
-void MovieContent::_play()
-{
-    _controlState = (ControlState)(_controlState & ~STATE_PAUSED);
-
-    emit modified();
-}
-
-void MovieContent::_pause()
-{
-    _controlState = (ControlState)(_controlState | STATE_PAUSED);
-
-    emit modified();
-}
-
-void MovieContent::_createActions()
-{
-    auto playPauseAction = std::make_unique<ContentAction>();
-    playPauseAction->setCheckable(true);
-    playPauseAction->setIcon(ICON_PAUSE);
-    playPauseAction->setIconChecked(ICON_PLAY);
-    playPauseAction->setChecked(_controlState & STATE_PAUSED);
-    connect(playPauseAction.get(), &ContentAction::checked, this,
-            &MovieContent::_pause);
-    connect(playPauseAction.get(), &ContentAction::unchecked, this,
-            &MovieContent::_play);
-    getActions()->add(std::move(playPauseAction));
 }

@@ -3,14 +3,6 @@ import Tide 1.0
 import "qrc:/qml/core/style.js" as Style
 
 Rectangle {
-    function fuzzyCompare(value1, value2) {
-        return Math.abs(value1 - value2) <= 0.0000001
-    }
-
-    function hasZoom(rect) {
-        return !fuzzyCompare(rect.width, 1.0) || !fuzzyCompare(rect.height, 1.0)
-    }
-
     property bool vertical: window.content.aspectRatio < 1.0
 
     border.width: Style.zoomContextBorderWidth
@@ -26,7 +18,7 @@ Rectangle {
     anchors.bottomMargin: vertical ? width * Style.zoomContextRelMargin :
                                      height * Style.zoomContextRelMargin
     anchors.leftMargin: anchors.bottomMargin
-    visible: options.showZoomContext && hasZoom(window.content.zoomRect)
+    visible: options.showZoomContext && window.content.zoomed
 
     Item {
         id: zoomContextParent

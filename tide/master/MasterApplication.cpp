@@ -193,10 +193,10 @@ void MasterApplication::_initView()
     if (_config->master.headless)
         _initOffscreenView();
     else
-        _initMasterWindow();
+        _initGUIWindow();
 }
 
-void MasterApplication::_initMasterWindow()
+void MasterApplication::_initGUIWindow()
 {
     _masterWindow.reset(new MasterWindow(_scene, _options, *_config));
 
@@ -211,16 +211,26 @@ void MasterApplication::_initMasterWindow()
     connect(_masterWindow.get(), &MasterWindow::sessionLoaded,
             _sceneController.get(), &SceneController::apply);
 
-    auto view = _masterWindow->getQuickView();
-    _createSurfaceRenderer(*view->engine(), view->getSurfaceItem());
+    _createGUISurfaceRenderers();
+}
 
-    connect(view, &MasterQuickView::mousePressed, [this](const QPointF pos) {
+void MasterApplication::_createGUISurfaceRenderers()
+{
+    for (auto view : _masterWindow->getQuickViews())
+        _createNextSurfaceRenderer(*view->engine(), view->getSurfaceItem());
+
+    _connectGUIMouseEventsToMarkers(*_masterWindow->getQuickViews().front());
+}
+
+void MasterApplication::_connectGUIMouseEventsToMarkers(MasterQuickView& view)
+{
+    connect(&view, &MasterQuickView::mousePressed, [this](const QPointF pos) {
         _markers->addMarker(MOUSE_MARKER_ID, pos);
     });
-    connect(view, &MasterQuickView::mouseMoved, [this](const QPointF pos) {
+    connect(&view, &MasterQuickView::mouseMoved, [this](const QPointF pos) {
         _markers->updateMarker(MOUSE_MARKER_ID, pos);
     });
-    connect(view, &MasterQuickView::mouseReleased,
+    connect(&view, &MasterQuickView::mouseReleased,
             [this](const QPointF) { _markers->removeMarker(MOUSE_MARKER_ID); });
 }
 
@@ -235,21 +245,23 @@ void MasterApplication::_initOffscreenView()
     auto engine = _offscreenQuickView->getEngine();
     auto item = _offscreenQuickView->getRootItem();
 
-    _createSurfaceRenderer(*engine, *item);
+    _createNextSurfaceRenderer(*engine, *item);
 }
 
-void MasterApplication::_createSurfaceRenderer(QQmlEngine& engine,
-                                               QQuickItem& parentItem)
+void MasterApplication::_createNextSurfaceRenderer(QQmlEngine& engine,
+                                                   QQuickItem& parentItem)
 {
     _setContextProperties(*engine.rootContext());
 
-    _surfaceRenderer.reset(
-        new MasterSurfaceRenderer{_scene->getSurface(0), engine, parentItem});
+    auto renderer = std::make_unique<MasterSurfaceRenderer>(
+        _scene->getSurface(_surfaceRenderers.size()), engine, parentItem);
 
-    connect(_surfaceRenderer.get(), &MasterSurfaceRenderer::openLauncher,
+    connect(renderer.get(), &MasterSurfaceRenderer::openLauncher,
             _pixelStreamerLauncher.get(), &PixelStreamerLauncher::openLauncher);
-    connect(_surfaceRenderer.get(), &MasterSurfaceRenderer::open,
+    connect(renderer.get(), &MasterSurfaceRenderer::open,
             _sceneController.get(), &SceneController::openAll);
+
+    _surfaceRenderers.emplace_back(std::move(renderer));
 }
 
 void MasterApplication::_setContextProperties(QQmlContext& context)

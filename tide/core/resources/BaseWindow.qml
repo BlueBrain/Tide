@@ -17,7 +17,6 @@ Rectangle {
     property alias resizeCirclesDelegate: resizeCircles.delegate
     property alias titleBar: titleBar
     property alias virtualKeyboard: virtualKeyboard
-    property alias windowControlButtons: windowControls.buttons
 
     border.color: Style.windowBorderDefaultColor
     border.width: options.showWindowBorders && !isBackground ? Style.windowBorderWidth : 0
@@ -70,7 +69,9 @@ Rectangle {
                 id: controlBar
                 width: parent.width
                 visible: status == Loader.Ready
-                source: windowRect.isBackground ? "" : window.content.qmlControls
+                active: (typeof window.content.playing !== "undefined") && !windowRect.isBackground
+                sourceComponent: MovieControls {
+                }
             }
         }
     }
@@ -108,12 +109,13 @@ Rectangle {
         Loader {
             id: virtualKeyboard
             source: "qrc:/virtualkeyboard/InputPanel.qml"
-            active: window.content.keyboard.visible
+            property bool hasKeyboard: window.content.keyboard !== null
+            active: hasKeyboard && window.content.keyboard.visible
             width: Math.min(Style.keyboardMaxSizePx, Style.keyboardRelSize * parent.width)
             height: 0.25 * width
             anchors.horizontalCenter: parent.horizontalCenter
-            y: window.content.keyboard.visible ? Math.min(0.5 * parent.height, parent.height - height) : parent.height
-            opacity:  window.content.keyboard.visible ? 1.0 : 0.0
+            y: hasKeyboard && window.content.keyboard.visible ? Math.min(0.5 * parent.height, parent.height - height) : parent.height
+            opacity:  hasKeyboard && window.content.keyboard.visible ? 1.0 : 0.0
             visible: opacity > 0.0
             Behavior on y { NumberAnimation { easing.type: Easing.InOutQuad; duration: 150 }}
             Behavior on opacity { NumberAnimation { easing.type: Easing.InOutQuad; duration: 150 }}
@@ -164,7 +166,7 @@ Rectangle {
         anchors.verticalCenter: contentArea.verticalCenter
         anchors.left: contentArea.left
         color: windowRect.border.color
-        delegate: TriangleControlButton {
+        delegate: TriangleButton {
             onClicked: contentcontroller.prevPage()
         }
         delegateOverflow: windowRect.border.width
@@ -179,7 +181,7 @@ Rectangle {
         color: windowRect.border.color
         anchors.verticalCenter: contentArea.verticalCenter
         anchors.right: contentArea.right
-        delegate: TriangleControlButton {
+        delegate: TriangleButton {
             onClicked: contentcontroller.nextPage()
         }
         delegateOverflow: windowRect.border.width
@@ -192,7 +194,6 @@ Rectangle {
 
     WindowControls {
         id: windowControls
-        contentActionsVisible: !controlBar.visible
         color: windowRect.border.color
     }
 

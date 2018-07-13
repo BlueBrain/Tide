@@ -4,8 +4,6 @@ import "qrc:/qml/core/style.js" as Style
 Item {
     id: sideControl
 
-    signal openLauncher
-
     width: childrenRect.width
 
     anchors.verticalCenter: parent.verticalCenter
@@ -23,25 +21,21 @@ Item {
         id: buttons
         anchors.centerIn: buttonShape
         anchors.horizontalCenterOffset: -0.5 * buttonShape.dropShadowWidth
-        ExitControlButton {
+        ExitButton {
             id: exitButton
             size: Style.buttonsSizeLarge
         }
-        LaunchControlButton {
+        LaunchButton {
             visible: !exitButton.visible
-            onOpenLauncher: sideControl.openLauncher()
             size: Style.buttonsSizeLarge
         }
         HorizontalButtonSeparator {
             width: Style.buttonsSizeLarge
         }
-        ContentActionsButtons {
+        ContentActionButton {
             id: contentAction
-            size: Style.buttonsSizeLarge
-            visible: count > 0
-            model: displaygroup.fullscreenWindow ? displaygroup.fullscreenWindow.content.actions : undefined
         }
-        LockControlButton {
+        LockButton {
             visible: !contentAction.visible
             size: Style.buttonsSizeLarge
         }

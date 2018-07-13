@@ -116,9 +116,9 @@ MasterWindow::MasterWindow(ScenePtr scene_, OptionsPtr options,
     show();
 }
 
-MasterQuickView* MasterWindow::getQuickView()
+std::vector<MasterQuickView*> MasterWindow::getQuickViews()
 {
-    return _quickView;
+    return _quickViews;
 }
 
 void MasterWindow::_setupMasterWindowUI()
@@ -387,8 +387,7 @@ void MasterWindow::_addSurfacesTabViews(const Configuration& config)
         const auto& surfaceConfig = config.surfaces[i];
         const auto tabTitle = QString{"Surface %1"}.arg(i);
         auto quickView = std::make_unique<MasterQuickView>(surfaceConfig);
-        if (i == 0)
-            _quickView = quickView.get(); // keep a reference for mouse -> touch
+        _quickViews.push_back(quickView.get()); // keep a reference
         _addDisplayGroupTabView(std::move(quickView), tabTitle);
     }
 }

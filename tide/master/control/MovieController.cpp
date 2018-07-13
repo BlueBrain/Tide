@@ -47,6 +47,14 @@ MovieController::MovieController(Window& window)
     assert(getContent().getType() == CONTENT_TYPE_MOVIE);
 }
 
+void MovieController::togglePlay()
+{
+    if (_getMovieContent().isPlaying())
+        _getMovieContent().pause();
+    else
+        _getMovieContent().play();
+}
+
 void MovieController::startSkipping()
 {
     _getMovieContent().setSkipping(true);

@@ -39,6 +39,11 @@
 
 #include "ScreenLock.h"
 
+ScreenLockPtr ScreenLock::create()
+{
+    return ScreenLockPtr(new ScreenLock);
+}
+
 void ScreenLock::lock()
 {
     if (_locked)

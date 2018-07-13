@@ -155,8 +155,6 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   network/ReceiveBuffer.h
   network/SharedNetworkBarrier.h
   scene/Background.h
-  scene/ContentAction.h
-  scene/ContentActionsModel.h
   scene/ContentFactory.h
   scene/Content.h
   scene/ContentType.h
@@ -231,8 +229,6 @@ list(APPEND TIDECORE_SOURCES
   network/SharedNetworkBarrier.cpp
   resources/core.qrc
   scene/Background.cpp
-  scene/ContentAction.cpp
-  scene/ContentActionsModel.cpp
   scene/Content.cpp
   scene/ContentFactory.cpp
   scene/ContentType.cpp

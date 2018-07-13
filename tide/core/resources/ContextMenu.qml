@@ -23,18 +23,15 @@ Rectangle {
         anchors.centerIn: parent
         spacing: Style.buttonsPaddingLarge
 
-        FocusControlButton {
+        FocusButton {
             size: Style.buttonsSizeLarge
-            onClicked: {
-                groupcontroller.toggleFocusAll()
-                contextmenucontroller.hide()
-            }
+            onClicked: contextmenucontroller.focus()
         }
         VerticalButtonSeparator {
             height: Style.buttonsSizeLarge
             visible: copyButton.visible
         }
-        CopyControlButton {
+        CopyButton {
             id: copyButton
             size: Style.buttonsSizeLarge
             itemCount: displaygroup.selectedUris.length
@@ -45,7 +42,7 @@ Rectangle {
             height: Style.buttonsSizeLarge
             visible: pasteButton.visible
         }
-        PasteControlButton {
+        PasteButton {
             id: pasteButton
             size: Style.buttonsSizeLarge
             itemCount: contextmenu.copiedUris.length

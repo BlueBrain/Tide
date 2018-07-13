@@ -63,8 +63,8 @@ public:
     /** Constructor. */
     MasterWindow(ScenePtr scene, OptionsPtr options, Configuration& config);
 
-    /** @return the quick view. */
-    MasterQuickView* getQuickView();
+    /** @return the quick view(s). */
+    std::vector<MasterQuickView*> getQuickViews();
 
 signals:
     /** Emitted when users want to open a webbrowser. */
@@ -114,9 +114,9 @@ private:
     QFutureWatcher<ScenePtr> _loadSessionOp;
     QFutureWatcher<bool> _saveSessionOp;
 
-    BackgroundWidget* _backgroundWidget; // child QObject
-    WebbrowserWidget* _webbrowserWidget; // child QObject
-    MasterQuickView* _quickView;         // child QObject
+    BackgroundWidget* _backgroundWidget;       // child QObject
+    WebbrowserWidget* _webbrowserWidget;       // child QObject
+    std::vector<MasterQuickView*> _quickViews; // child QObjects
 
     QString _contentFolder;
     QString _sessionFolder;

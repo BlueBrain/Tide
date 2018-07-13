@@ -96,8 +96,8 @@ MovieUpdater::~MovieUpdater()
 
 void MovieUpdater::update(const MovieContent& movie)
 {
-    _paused = movie.getControlState() & STATE_PAUSED;
-    _loop = movie.getControlState() & STATE_LOOP;
+    _paused = movie.isPaused();
+    _loop = movie.isLooping();
     _skipping = movie.isSkipping();
     _skipPosition = movie.getPosition();
 }

@@ -42,6 +42,7 @@
 #ifndef PIXEL_STREAM_CONTENT_H
 #define PIXEL_STREAM_CONTENT_H
 
+#include "KeyboardState.h"
 #include "MultiChannelContent.h"
 
 #include <deflect/Event.h>
@@ -68,6 +69,9 @@ public:
     **/
     bool readMetadata() override;
 
+    /** Get the keyboard state from QML. */
+    KeyboardState* getKeyboardState() override;
+
     /** Does this content already have registered EventReceiver(s) */
     bool hasEventReceivers() const;
 
@@ -86,13 +90,10 @@ signals:
 protected:
     // Default constructor required for boost::serialization
     // Derived classes can disable the keyboard action
-    PixelStreamContent(const bool keyboard = true)
-        : _hasKeyboardAction{keyboard}
-    {
-    }
+    PixelStreamContent(const bool keyboard = true);
 
 private:
-    void _createActions();
+    void _createKeyboard();
 
     friend class boost::serialization::access;
 
@@ -103,6 +104,9 @@ private:
         // clang-format off
         ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(MultiChannelContent);
         ar & _eventReceiversCount;
+        ar & _keyboardState;
+        if (_keyboardState)
+            _keyboardState->setParent(this);
         // clang-format on
     }
 
@@ -120,7 +124,7 @@ private:
                            const unsigned int version)
     {
         serialize_members_xml(ar, version);
-        _createActions(); // actions are not saved to xml file
+        _createKeyboard(); // actions are not saved to xml file
     }
 
     /** Saving to xml. */
@@ -131,7 +135,7 @@ private:
     }
 
     unsigned int _eventReceiversCount = 0;
-    bool _hasKeyboardAction = true;
+    KeyboardState* _keyboardState = nullptr; // Child QObject
 };
 
 DECLARE_SERIALIZE_FOR_XML(PixelStreamContent)

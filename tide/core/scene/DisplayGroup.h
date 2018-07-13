@@ -90,7 +90,7 @@ public:
     void add(WindowPtr window);
 
     /** Remove a window. */
-    Q_INVOKABLE void remove(WindowPtr window);
+    void remove(WindowPtr window);
 
     /** Move a window to the front. */
     void moveToFront(WindowPtr window);

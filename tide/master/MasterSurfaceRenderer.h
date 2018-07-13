@@ -73,6 +73,7 @@ private:
     DisplayGroupPtr _group;
     std::unique_ptr<DisplayGroupController> _groupController;
     std::unique_ptr<ContextMenuController> _contextMenuController;
+    std::unique_ptr<SideController> _sideController;
     std::unique_ptr<QQuickItem> _surfaceItem;
     std::unique_ptr<MasterDisplayGroupRenderer> _displayGroupRenderer;
 

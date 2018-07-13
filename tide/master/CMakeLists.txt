@@ -21,11 +21,13 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   control/ContentController.h
   control/ContextMenuController.h
   control/DisplayGroupController.h
+  control/KeyboardController.h
   control/LayoutEngine.h
   control/LayoutPolicy.h
   control/MultiChannelWindowController.h
   control/PixelStreamController.h
   control/SceneController.h
+  control/SideController.cpp
   control/WindowController.h
   control/WindowTouchController.h
   control/ZoomController.h
@@ -65,11 +67,13 @@ list(APPEND TIDEMASTER_SOURCES
   control/ContentController.cpp
   control/ContextMenuController.cpp
   control/DisplayGroupController.cpp
+  control/KeyboardController.cpp
   control/LayoutEngine.cpp
   control/LayoutPolicy.cpp
   control/MultiChannelWindowController.cpp
   control/PixelStreamController.cpp
   control/SceneController.cpp
+  control/SideController.cpp
   control/WindowController.cpp
   control/WindowTouchController.cpp
   control/ZoomController.cpp

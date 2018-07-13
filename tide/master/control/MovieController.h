@@ -53,6 +53,7 @@ public:
     /** Constructor */
     MovieController(Window& window);
 
+    Q_INVOKABLE void togglePlay();
     Q_INVOKABLE void startSkipping();
     Q_INVOKABLE void skipTo(qreal position);
     Q_INVOKABLE void stopSkipping();

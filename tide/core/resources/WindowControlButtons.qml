@@ -2,23 +2,31 @@ import QtQuick 2.0
 import Tide 1.0
 
 Column {
-    property int buttonCount: window.isPanel ? 1 : window.focused ? 3 : 4
+    width: childrenRect.width
+    height: childrenRect.height
 
-    CloseControlButton {
+    CloseButton {
     }
-    OneToOneControlButton {
+    OneToOneButton {
         visible: !window.isPanel && !window.focused
     }
-    FullscreenControlButton {
+    FullscreenButton {
         visible: !window.isPanel
     }
-    FocusControlButton {
+    FocusButton {
         visible: !window.isPanel
         onClicked: {
             if (window.focused)
                 groupcontroller.unfocus(window.id)
             else
                 groupcontroller.focusSelected()
+        }
+    }
+    Loader {
+        id: keyboardButton
+        active: window.content.keyboard !== null
+        sourceComponent: KeyboardButton {
+            onClicked: contentcontroller.keyboard.toggle()
         }
     }
 }

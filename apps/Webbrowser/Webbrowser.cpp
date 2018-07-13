@@ -46,6 +46,7 @@
 #include "tide/master/localstreamer/HtmlSelectReplacer.h"
 #include "tide/master/localstreamer/QmlKeyInjector.h"
 
+#include <QAbstractListModel>
 #include <QQmlContext>
 #include <QQmlProperty>
 

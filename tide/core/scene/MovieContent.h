@@ -55,6 +55,7 @@ class MovieContent : public Content
     Q_OBJECT
     Q_DISABLE_COPY(MovieContent)
 
+    Q_PROPERTY(bool playing READ isPlaying NOTIFY playingChanged)
     Q_PROPERTY(qreal duration READ getDuration CONSTANT)
     Q_PROPERTY(qreal position READ getPosition NOTIFY positionChanged)
     Q_PROPERTY(bool skipping READ isSkipping NOTIFY skippingChanged)
@@ -72,9 +73,6 @@ public:
     **/
     bool readMetadata() final;
 
-    /** @return the qml file which contains the movie controls. */
-    QString getQmlControls() const final;
-
     /** @return OFF. */
     Interaction getInteractionPolicy() const final;
 
@@ -83,7 +81,11 @@ public:
 
     /** @name Playback control. */
     //@{
-    ControlState getControlState() const;
+    void play();
+    void pause();
+    bool isPlaying() const;
+    bool isPaused() const;
+    bool isLooping() const;
     qreal getDuration() const;
     qreal getPosition() const;
     void setPosition(qreal pos);
@@ -94,17 +96,12 @@ public:
 signals:
     /** @name QProperty notifiers */
     //@{
+    void playingChanged();
     void positionChanged(qreal pos);
     void skippingChanged(bool skipping);
     //@}
 
-private slots:
-    void _play();
-    void _pause();
-
 private:
-    void _createActions();
-
     friend class boost::serialization::access;
 
     // Default constructor required for boost::serialization
@@ -140,9 +137,6 @@ private:
                            const unsigned int version)
     {
         serialize_members_xml(ar, version);
-        // Actions are not saved to xml file. Their creation need to be done
-        // after _controlState is restored.
-        _createActions();
     }
 
     /** Saving to xml. */
