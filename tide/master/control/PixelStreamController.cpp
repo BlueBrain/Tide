@@ -44,6 +44,7 @@
 
 PixelStreamController::PixelStreamController(Window& window)
     : ContentController(window)
+    , _keyboardController{*_getPixelStreamContent().getKeyboardState()}
 {
     connect(&window, &Window::coordinatesChanged, this,
             &PixelStreamController::_sendSizeChangedEvent);
@@ -53,6 +54,11 @@ PixelStreamController::PixelStreamController(Window& window)
     auto& content = dynamic_cast<PixelStreamContent&>(window.getContent());
     connect(this, &PixelStreamController::notify, &content,
             &PixelStreamContent::notify);
+}
+
+QObject* PixelStreamController::getKeyboardController()
+{
+    return &_keyboardController;
 }
 
 void PixelStreamController::_addTouchPoint(const int id,
@@ -198,6 +204,11 @@ void PixelStreamController::_prevPage()
 void PixelStreamController::_nextPage()
 {
     swipeRight();
+}
+
+PixelStreamContent& PixelStreamController::_getPixelStreamContent()
+{
+    return static_cast<PixelStreamContent&>(getContent());
 }
 
 void PixelStreamController::_keyPress(const int key, const int modifiers,

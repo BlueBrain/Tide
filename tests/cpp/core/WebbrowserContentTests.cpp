@@ -75,10 +75,7 @@ BOOST_AUTO_TEST_CASE(testDefaultState)
     BOOST_CHECK_EQUAL(content.getType(), CONTENT_TYPE_WEBBROWSER);
     BOOST_CHECK_EQUAL(content.getURI(), "Webbrowser_1");
     BOOST_CHECK_EQUAL(content.getTitle(), "Web Browser");
-
     BOOST_CHECK_EQUAL(content.hasFixedAspectRatio(), false);
-    BOOST_CHECK(content.getQmlControls().isEmpty());
-
     BOOST_CHECK_EQUAL(content.getUrl(), "");
     BOOST_CHECK_EQUAL(content.getPage(), 0);
     BOOST_CHECK_EQUAL(content.getPageCount(), 0);

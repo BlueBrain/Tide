@@ -3,10 +3,7 @@ import Tide 1.0
 import "style.js" as Style
 
 Item {
-    property alias buttons: buttons
-    property alias fixedButtons: buttons.headerItem
     property alias color: buttonsRectangle.color
-    property bool contentActionsVisible: true
 
     id: windowControls
     width: buttonsRectangle.width
@@ -30,17 +27,11 @@ Item {
         anchors.top: buttonsRectangle.bottom
     }
 
-    ContentActionsButtons {
+    WindowControlButtons {
         id: buttons
-        width: Style.buttonsSize
-        height: (count + headerItem.buttonCount) * Style.buttonsSize
         anchors.horizontalCenter: buttonsRectangle.horizontalCenter
         anchors.topMargin: Style.buttonsPadding
         anchors.top: buttonsRectangle.top
-
-        header: FixedControlButtons {
-        }
-        model: contentActionsVisible ? window.content.actions : undefined
     }
 
     states: [

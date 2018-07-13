@@ -52,14 +52,10 @@ class KeyboardState : public QObject
     Q_OBJECT
     Q_DISABLE_COPY(KeyboardState)
 
-    Q_PROPERTY(
-        bool visible READ isVisible WRITE setVisible NOTIFY visibleChanged)
-    Q_PROPERTY(bool shift READ getShiftActive WRITE setShiftActive NOTIFY
-                   shiftActiveChanged)
-    Q_PROPERTY(bool symbols READ getSymbolsActive WRITE setSymbolsActive NOTIFY
-                   symbolsActiveChanged)
-    Q_PROPERTY(int activeKeyId READ getActiveKeyId WRITE setActiveKeyId NOTIFY
-                   activeKeyIdChanged)
+    Q_PROPERTY(bool visible READ isVisible NOTIFY visibleChanged)
+    Q_PROPERTY(bool shift READ getShiftActive NOTIFY shiftActiveChanged)
+    Q_PROPERTY(bool symbols READ getSymbolsActive NOTIFY symbolsActiveChanged)
+    Q_PROPERTY(int activeKeyId READ getActiveKeyId NOTIFY activeKeyIdChanged)
 
 public:
     explicit KeyboardState(QObject* parent = 0);
@@ -76,7 +72,6 @@ public:
     /** @return the identifier of the currently active key (if any) else -1. */
     int getActiveKeyId() const;
 
-public slots:
     /** Set the visibility of the keyboard. */
     void setVisible(bool visible);
 

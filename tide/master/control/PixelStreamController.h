@@ -41,6 +41,7 @@
 #define PIXELSTREAMCONTROLLER_H
 
 #include "ContentController.h"
+#include "KeyboardController.h"
 
 #include <deflect/Event.h>
 
@@ -50,10 +51,13 @@
 class PixelStreamController : public ContentController
 {
     Q_OBJECT
+    Q_PROPERTY(QObject* keyboard READ getKeyboardController CONSTANT)
 
 public:
     /** Constructor */
     explicit PixelStreamController(Window& window);
+
+    QObject* getKeyboardController();
 
 signals:
     /** Emitted when an Event occured. */
@@ -94,10 +98,14 @@ private:
     void _nextPage() override;
     //@}
 
+    PixelStreamContent& _getPixelStreamContent();
+
     void _sendSizeChangedEvent();
 
     QPointF _normalize(const QPointF& point) const;
     deflect::Event _getNormEvent(const QPointF& position) const;
+
+    KeyboardController _keyboardController;
 };
 
 #endif

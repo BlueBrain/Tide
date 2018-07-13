@@ -67,9 +67,6 @@ void Content::_init()
 {
     connect(this, &Content::interactionPolicyChanged, this,
             &Content::captureInteractionChanged);
-
-    connect(&_keyboardState, &KeyboardState::modified, this,
-            &Content::modified);
 }
 
 const QString& Content::getURI() const
@@ -157,11 +154,6 @@ Content::Interaction Content::getInteractionPolicy() const
     return Content::Interaction::AUTO;
 }
 
-QString Content::getQmlControls() const
-{
-    return QString();
-}
-
 bool Content::getCaptureInteraction() const
 {
     switch (getInteractionPolicy())
@@ -215,6 +207,11 @@ bool Content::hasFixedAspectRatio() const
     return true;
 }
 
+KeyboardState* Content::getKeyboardState()
+{
+    return nullptr;
+}
+
 const QRectF& Content::getZoomRect() const
 {
     return _zoomRect;
@@ -229,17 +226,12 @@ void Content::setZoomRect(const QRectF& zoomRect)
     emit modified();
 }
 
+bool Content::isZoomed() const
+{
+    return _zoomRect != UNIT_RECTF;
+}
+
 void Content::resetZoom()
 {
     setZoomRect(UNIT_RECTF);
-}
-
-ContentActionsModel* Content::getActions()
-{
-    return &_actions;
-}
-
-KeyboardState* Content::getKeyboardState()
-{
-    return &_keyboardState;
 }

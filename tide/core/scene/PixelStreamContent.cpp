@@ -53,10 +53,16 @@ const QString ICON_KEYBOARD("qrc:///img/keyboard.svg");
 PixelStreamContent::PixelStreamContent(const QString& uri, const QSize& size,
                                        const bool keyboard)
     : MultiChannelContent{uri}
-    , _hasKeyboardAction{keyboard}
 {
     setDimensions(size);
-    _createActions();
+    if (keyboard)
+        _createKeyboard();
+}
+
+PixelStreamContent::PixelStreamContent(const bool keyboard)
+{
+    if (keyboard)
+        _createKeyboard();
 }
 
 CONTENT_TYPE PixelStreamContent::getType() const
@@ -75,6 +81,11 @@ Content::Interaction PixelStreamContent::getInteractionPolicy() const
                                : Content::Interaction::OFF;
 }
 
+KeyboardState* PixelStreamContent::getKeyboardState()
+{
+    return _keyboardState;
+}
+
 bool PixelStreamContent::hasEventReceivers() const
 {
     return _eventReceiversCount > 0;
@@ -89,18 +100,8 @@ void PixelStreamContent::incrementEventReceiverCount()
     }
 }
 
-void PixelStreamContent::_createActions()
+void PixelStreamContent::_createKeyboard()
 {
-    if (!_hasKeyboardAction)
-        return;
-
-    auto keyboardAction = std::make_unique<ContentAction>();
-    keyboardAction->setCheckable(true);
-    keyboardAction->setIcon(ICON_KEYBOARD);
-    keyboardAction->setIconChecked(ICON_KEYBOARD);
-    connect(keyboardAction.get(), &ContentAction::triggered, getKeyboardState(),
-            &KeyboardState::setVisible);
-    connect(getKeyboardState(), &KeyboardState::visibleChanged,
-            keyboardAction.get(), &ContentAction::setChecked);
-    getActions()->add(std::move(keyboardAction));
+    _keyboardState = new KeyboardState(this); // child QObject
+    connect(_keyboardState, &KeyboardState::modified, this, &Content::modified);
 }

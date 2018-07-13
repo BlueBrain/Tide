@@ -72,18 +72,8 @@ void DisplayGroupController::remove(const QUuid windowId)
 
 void DisplayGroupController::removeLater(const QUuid windowId)
 {
-    auto window = _group.getWindow(windowId);
-    if (!window)
-        return;
-
-    if (window->isFocused())
-    {
-        _group.removeFocusedWindow(window);
-        updateFocusedWindowsCoordinates();
-    }
-
-    QMetaObject::invokeMethod(&_group, "remove", Qt::QueuedConnection,
-                              Q_ARG(WindowPtr, window));
+    QMetaObject::invokeMethod(this, "remove", Qt::QueuedConnection,
+                              Q_ARG(QUuid, windowId));
 }
 
 bool DisplayGroupController::showFullscreen(const QUuid& id)

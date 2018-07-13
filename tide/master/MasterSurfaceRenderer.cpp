@@ -42,6 +42,7 @@
 #include "MasterDisplayGroupRenderer.h"
 #include "control/ContextMenuController.h"
 #include "control/DisplayGroupController.h"
+#include "control/SideController.h"
 #include "qmlUtils.h"
 #include "scene/Scene.h"
 
@@ -60,13 +61,15 @@ MasterSurfaceRenderer::MasterSurfaceRenderer(Surface& surface,
     : _surface{surface}
     , _group{surface.getGroupPtr()}
     , _groupController{new DisplayGroupController{*_group}}
-    , _contextMenuController{
-          new ContextMenuController{surface.getContextMenu()}}
+    , _contextMenuController{new ContextMenuController{surface.getContextMenu(),
+                                                       *_group}}
+    , _sideController{new SideController{*_group}}
 {
     connect(_contextMenuController.get(), &ContextMenuController::open, this,
             &MasterSurfaceRenderer::open);
 
-    _setContextProperties(*engine.rootContext());
+    connect(_sideController.get(), &SideController::openLauncher, this,
+            &MasterSurfaceRenderer::openLauncher);
 
     if (surface.getIndex() == 0)
     {
@@ -85,14 +88,11 @@ MasterSurfaceRenderer::~MasterSurfaceRenderer()
 {
 }
 
-void MasterSurfaceRenderer::_setContextProperties(QQmlContext& context)
-{
-    context.setContextProperty("contextmenu", &_surface.getContextMenu());
-}
-
 void MasterSurfaceRenderer::_setControlSurfaceContextProperties(
     QQmlContext& context)
 {
+    context.setContextProperty("sidecontroller", _sideController.get());
+    context.setContextProperty("contextmenu", &_surface.getContextMenu());
     context.setContextProperty("contextmenucontroller",
                                _contextMenuController.get());
 
@@ -104,8 +104,6 @@ void MasterSurfaceRenderer::_setControlSurfaceContextProperties(
 void MasterSurfaceRenderer::_createControlSurfaceItem(QQmlEngine& engine)
 {
     _surfaceItem = qml::makeItem(engine, QML_CONTROL_SURFACE_URL);
-    connect(_surfaceItem.get(), SIGNAL(openLauncher()), this,
-            SIGNAL(openLauncher()));
 }
 
 void MasterSurfaceRenderer::_createBasicSurfaceItem(QQmlEngine& engine)

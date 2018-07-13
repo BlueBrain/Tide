@@ -54,7 +54,9 @@ class ContextMenuController : public QObject
 
 public:
     /** Constructor */
-    ContextMenuController(ContextMenu& contextMenu);
+    ContextMenuController(ContextMenu& contextMenu, DisplayGroup& group);
+
+    Q_INVOKABLE void focus();
 
     Q_INVOKABLE void show(const QPointF& pos);
     Q_INVOKABLE void hide();
@@ -67,6 +69,7 @@ signals:
 
 private:
     ContextMenu& _contextMenu;
+    DisplayGroup& _group;
 };
 
 #endif

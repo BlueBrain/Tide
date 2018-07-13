@@ -26,7 +26,6 @@ Item {
         id: sideControl
         z: Style.sideControlZorder
         visible: options.showControlArea
-        onOpenLauncher: controlSurface.openLauncher()
     }
 
     StreamNotificationArea {
@@ -38,7 +37,7 @@ Item {
     }
 
     ContextMenu {
-        z: Style.sideControlZorder
+        z: Style.contextMenuZorder
         x: contextmenu.position.x
         y: contextmenu.position.y
         visible: contextmenu.visible

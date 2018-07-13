@@ -41,7 +41,6 @@
 #define CORE_QMLTYPEREGISTRATION_H
 
 #include "multitouch/MultitouchArea.h"
-#include "scene/ContentActionsModel.h"
 #include "scene/KeyboardState.h"
 #include "scene/Markers.h"
 #include "scene/Window.h"
@@ -57,11 +56,11 @@ namespace core
  */
 void registerQmlTypes()
 {
-    qmlRegisterType<ContentActionsModel>(QML_MODULE, 1, 0,
-                                         "ContentActionsModel");
-    qmlRegisterType<KeyboardState>(QML_MODULE, 1, 0, "KeyboardState");
     qmlRegisterType<MultitouchArea>(QML_MODULE, 1, 0, "MultitouchArea");
 
+    qmlRegisterUncreatableType<KeyboardState>(
+        QML_MODULE, 1, 0, "KeyboardState",
+        "KeyboardState is linked to a Content and read-only in QML");
     qmlRegisterUncreatableType<Content>(
         QML_MODULE, 1, 0, "Content",
         "Content is linked to a Window and read-only in QML");

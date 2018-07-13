@@ -12,10 +12,9 @@ Item {
     height: buttons.height
     width: parent.width
 
-    ContentActionsButtons {
+    PlayPauseButton {
         id: buttons
-        orientation: ListView.Horizontal
-        model: window.content.actions
+        onClicked: contentcontroller.togglePlay()
     }
     Slider {
         id: progressBar

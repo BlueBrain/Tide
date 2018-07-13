@@ -42,9 +42,7 @@
 #ifndef CONTENT_H
 #define CONTENT_H
 
-#include "ContentActionsModel.h"
 #include "ContentType.h"
-#include "KeyboardState.h"
 #include "serialization/includes.h"
 #include "types.h"
 
@@ -70,15 +68,12 @@ class Content : public QObject
     Q_PROPERTY(QString filePath READ getFilePath CONSTANT)
     Q_PROPERTY(QString title READ getTitle NOTIFY titleChanged)
     Q_PROPERTY(bool hasFixedAspectRatio READ hasFixedAspectRatio CONSTANT)
-    Q_PROPERTY(QString qmlControls READ getQmlControls CONSTANT)
+    Q_PROPERTY(KeyboardState* keyboard READ getKeyboardState CONSTANT)
 
     // These properties can be constant because they are only accessed on wall
     Q_PROPERTY(qreal aspectRatio READ getAspectRatio CONSTANT)
     Q_PROPERTY(QRectF zoomRect READ getZoomRect CONSTANT)
-
-    // These properties are written by master and read on wall
-    Q_PROPERTY(ContentActionsModel* actions READ getActions CONSTANT)
-    Q_PROPERTY(KeyboardState* keyboard READ getKeyboardState CONSTANT)
+    Q_PROPERTY(bool zoomed READ isZoomed CONSTANT)
     Q_PROPERTY(Interaction interactionPolicy READ getInteractionPolicy NOTIFY
                    interactionPolicyChanged)
     Q_PROPERTY(bool captureInteraction READ getCaptureInteraction NOTIFY
@@ -148,6 +143,9 @@ public:
     /** @return true if the content has a fixed aspect ratio. */
     virtual bool hasFixedAspectRatio() const;
 
+    /** Get the keyboard state from QML. */
+    virtual KeyboardState* getKeyboardState();
+
     /** @return true if the content can be zoomed. */
     virtual bool canBeZoomed() const;
 
@@ -157,17 +155,11 @@ public:
     /** Set the zoom rectangle in normalized coordinates. */
     void setZoomRect(const QRectF& zoomRect);
 
+    /** @return true if the content is zoomed. */
+    bool isZoomed() const;
+
     /** Resets the zoom to [0,0,1,1]. */
-    Q_INVOKABLE void resetZoom();
-
-    /** Get the actions from QML. */
-    ContentActionsModel* getActions();
-
-    /** Get content-specific qml controls file (default: empty). */
-    virtual QString getQmlControls() const;
-
-    /** Get the keyboard state from QML. */
-    KeyboardState* getKeyboardState();
+    void resetZoom();
 
     /** Get the interaction policy (default: AUTO). */
     virtual Interaction getInteractionPolicy() const;
@@ -214,10 +206,6 @@ private:
         ar & _size.rwidth();
         ar & _size.rheight();
         ar & _zoomRect;
-        ar & _actions;
-        _actions.setParent(this);
-        ar & _keyboardState;
-        _keyboardState.setParent(this);
         ar & _captureInteraction;
         // clang-format on
     }
@@ -260,8 +248,6 @@ private:
     QRectF _zoomRect{UNIT_RECTF};
     deflect::SizeHints _sizeHints;
     bool _captureInteraction{false};
-    ContentActionsModel _actions{this};
-    KeyboardState _keyboardState{this};
 
     static qreal _maxScale;
 };

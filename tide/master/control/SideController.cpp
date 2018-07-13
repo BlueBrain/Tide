@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,53 +37,45 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef CONTENTACTIONSMODEL_H
-#define CONTENTACTIONSMODEL_H
+#include "SideController.h"
 
-#include "ContentAction.h" // needed for serialization
-#include "serialization/includes.h"
+#include "control/DisplayGroupController.h"
+#include "control/KeyboardController.h"
+#include "control/MovieController.h"
+#include "scene/DisplayGroup.h"
+#include "scene/MovieContent.h"
+#include "scene/PixelStreamContent.h"
 
-#include <QAbstractListModel>
-
-/**
- * Exposes the actions of a Content for viewing in a QML ListView.
- */
-class ContentActionsModel : public QAbstractListModel
+SideController::SideController(DisplayGroup& group)
+    : _group{group}
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(ContentActionsModel)
+}
 
-public:
-    ContentActionsModel(QObject* parent = 0);
+void SideController::toggleLauncher()
+{
+    if (_group.hasVisiblePanels())
+        DisplayGroupController{_group}.hidePanels();
+    else
+        emit openLauncher();
+}
 
-    QVariant data(const QModelIndex& index, int role) const override;
-    int rowCount(const QModelIndex& parent = QModelIndex()) const override;
-
-    /** Add an action and retains ownership by setting itself as the parent. */
-    void add(std::unique_ptr<ContentAction> action);
-
-private:
-    friend class boost::serialization::access;
-
-    QHash<int, QByteArray> roleNames() const final;
-
-    std::vector<ContentAction*> _actions; // Children QObjects, don't free
-
-    template <class Archive>
-    void save(Archive& ar, const unsigned int) const
+void SideController::toggleKeyboard()
+{
+    if (auto window = _group.getFullscreenWindow())
     {
-        ar << boost::serialization::make_nvp("actions", _actions);
+        if (auto content =
+                dynamic_cast<PixelStreamContent*>(window->getContentPtr()))
+        {
+            KeyboardController{*content->getKeyboardState()}.toggle();
+        }
     }
+}
 
-    template <class Archive>
-    void load(Archive& ar, const unsigned int)
+void SideController::togglePlay()
+{
+    if (auto window = _group.getFullscreenWindow())
     {
-        ar >> boost::serialization::make_nvp("actions", _actions);
-        for (auto action : _actions)
-            action->setParent(this);
+        if (dynamic_cast<MovieContent*>(window->getContentPtr()))
+            MovieController{*window}.togglePlay();
     }
-
-    BOOST_SERIALIZATION_SPLIT_MEMBER()
-};
-
-#endif
+}

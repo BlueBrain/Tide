@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,47 +37,39 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "ContentActionsModel.h"
+#include "KeyboardController.h"
 
-namespace
-{
-const int ROLE_ACTION = Qt::UserRole;
-}
-
-ContentActionsModel::ContentActionsModel(QObject* parent_)
-    : QAbstractListModel(parent_)
+KeyboardController::KeyboardController(KeyboardState& keyboard)
+    : _keyboard{keyboard}
 {
 }
 
-QHash<int, QByteArray> ContentActionsModel::roleNames() const
+void KeyboardController::show()
 {
-    QHash<int, QByteArray> roles;
-    roles[ROLE_ACTION] = "action";
-    return roles;
+    _keyboard.setVisible(true);
 }
 
-QVariant ContentActionsModel::data(const QModelIndex& index_, int role) const
+void KeyboardController::hide()
 {
-    if (index_.row() < 0 || index_.row() >= rowCount() || !index_.isValid())
-        return QVariant();
-
-    if (role == ROLE_ACTION)
-    {
-        QVariant variant;
-        variant.setValue(static_cast<QObject*>(_actions[index_.row()]));
-        return variant;
-    }
-    return QVariant();
+    _keyboard.setVisible(false);
 }
 
-int ContentActionsModel::rowCount(const QModelIndex& parent_) const
+void KeyboardController::toggle()
 {
-    Q_UNUSED(parent_);
-    return _actions.size();
+    _keyboard.setVisible(!_keyboard.isVisible());
 }
 
-void ContentActionsModel::add(std::unique_ptr<ContentAction> action)
+void KeyboardController::enableShift(const bool enable)
 {
-    _actions.push_back(action.get());
-    action.release()->setParent(this);
+    _keyboard.setShiftActive(enable);
+}
+
+void KeyboardController::showSymbols(const bool enable)
+{
+    _keyboard.setSymbolsActive(enable);
+}
+
+void KeyboardController::activateKey(const int keyId)
+{
+    _keyboard.setActiveKeyId(keyId);
 }

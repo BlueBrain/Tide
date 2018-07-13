@@ -60,7 +60,8 @@ class ScreenLock : public QObject,
 
 public:
     /** Create a shared ScreenLock object. */
-    static ScreenLockPtr create() { return ScreenLockPtr(new ScreenLock); }
+    static ScreenLockPtr create();
+
     /**
      * Lock the screen. Notify about incoming streams and disallow
      * Web Interface to controll the wall

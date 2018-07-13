@@ -39,11 +39,20 @@
 
 #include "ContextMenuController.h"
 
+#include "control/DisplayGroupController.h"
 #include "scene/ContextMenu.h"
 
-ContextMenuController::ContextMenuController(ContextMenu& contextMenu)
+ContextMenuController::ContextMenuController(ContextMenu& contextMenu,
+                                             DisplayGroup& group)
     : _contextMenu{contextMenu}
+    , _group{group}
 {
+}
+
+void ContextMenuController::focus()
+{
+    DisplayGroupController{_group}.toggleFocusAll();
+    hide();
 }
 
 void ContextMenuController::copy(const QStringList& uris)

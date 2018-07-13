@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,101 +37,34 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "ContentAction.h"
+#ifndef KEYBOARDCONTROLLER_H
+#define KEYBOARDCONTROLLER_H
 
-// false-positive on qt signals for Q_PROPERTY notifiers
-// cppcheck-suppress uninitMemberVar
-ContentAction::ContentAction(const QUuid& actionId)
-    : _uuid(actionId)
-    , _checkable(false)
-    , _checked(false)
-    , _enabled(true)
+#include "scene/KeyboardState.h"
+
+#include <QObject>
+
+/**
+ * Control the on-screen keyboard UI state.
+ */
+class KeyboardController : public QObject
 {
-}
+    Q_OBJECT
+    Q_DISABLE_COPY(KeyboardController)
 
-const QString& ContentAction::getIcon() const
-{
-    return _icon;
-}
+public:
+    explicit KeyboardController(KeyboardState& keyboard);
 
-const QString& ContentAction::getIconChecked() const
-{
-    return _iconChecked;
-}
+    Q_INVOKABLE void show();
+    Q_INVOKABLE void hide();
+    Q_INVOKABLE void toggle();
 
-bool ContentAction::isCheckable() const
-{
-    return _checkable;
-}
+    Q_INVOKABLE void enableShift(bool enable);
+    Q_INVOKABLE void showSymbols(bool enable);
+    Q_INVOKABLE void activateKey(int keyId);
 
-bool ContentAction::isChecked() const
-{
-    return _checked;
-}
+private:
+    KeyboardState& _keyboard;
+};
 
-bool ContentAction::isEnabled() const
-{
-    return _enabled;
-}
-
-void ContentAction::setIcon(const QString icon)
-{
-    if (icon == _icon)
-        return;
-
-    _icon = icon;
-    emit iconChanged();
-}
-
-void ContentAction::setIconChecked(const QString icon)
-{
-    if (icon == _iconChecked)
-        return;
-
-    _iconChecked = icon;
-    emit iconCheckedChanged();
-}
-
-void ContentAction::setCheckable(const bool value)
-{
-    if (_checkable == value)
-        return;
-
-    _checkable = value;
-    emit checkableChanged();
-}
-
-void ContentAction::setEnabled(const bool value)
-
-{
-    if (_enabled == value)
-        return;
-
-    _enabled = value;
-    emit enabledChanged();
-}
-
-void ContentAction::setChecked(const bool value)
-{
-    if (!_checkable || _checked == value)
-        return;
-
-    _checked = value;
-    emit checkedChanged();
-
-    if (_checked)
-        emit checked();
-    else
-        emit unchecked();
-}
-
-void ContentAction::trigger()
-{
-    if (!_enabled)
-        return;
-
-    if (_checkable)
-        setChecked(!_checked);
-
-    emit triggered(_checked);
-}
+#endif

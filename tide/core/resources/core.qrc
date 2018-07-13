@@ -47,26 +47,26 @@
         <file>BasicSurface.qml</file>
         <file>ClickArea.qml</file>
         <file>Clock.qml</file>
-        <file>CloseControlButton.qml</file>
+        <file>CloseButton.qml</file>
         <file>ContentActionButton.qml</file>
-        <file>ContentActionsButtons.qml</file>
         <file>ContextMenu.qml</file>
         <file>ControlButton.qml</file>
         <file>ControlSurface.qml</file>
-        <file>CopyControlButton.qml</file>
+        <file>CopyButton.qml</file>
         <file>DisplayGroup.qml</file>
-        <file>ExitControlButton.qml</file>
-        <file>FixedControlButtons.qml</file>
-        <file>FocusControlButton.qml</file>
-        <file>FullscreenControlButton.qml</file>
+        <file>ExitButton.qml</file>
+        <file>FocusButton.qml</file>
+        <file>FullscreenButton.qml</file>
         <file>HorizontalButtonSeparator.qml</file>
-        <file>LaunchControlButton.qml</file>
-        <file>LockControlButton.qml</file>
+        <file>KeyboardButton.qml</file>
+        <file>LaunchButton.qml</file>
+        <file>LockButton.qml</file>
         <file>MissingVirtualKeyboard.qml</file>
         <file>MovieControls.qml</file>
         <file>NumberedControlButton.qml</file>
-        <file>OneToOneControlButton.qml</file>
-        <file>PasteControlButton.qml</file>
+        <file>OneToOneButton.qml</file>
+        <file>PasteButton.qml</file>
+        <file>PlayPauseButton.qml</file>
         <file>ResizeCircle.qml</file>
         <file>ResizeCircles.qml</file>
         <file>SideButton.qml</file>
@@ -74,8 +74,9 @@
         <file>StreamNotificationArea.qml</file>
         <file>StreamNotificationBanner.qml</file>
         <file>Triangle.qml</file>
-        <file>TriangleControlButton.qml</file>
+        <file>TriangleButton.qml</file>
         <file>VerticalButtonSeparator.qml</file>
+        <file>WindowControlButtons.qml</file>
         <file>WindowControls.qml</file>
     </qresource>
 </RCC>
