@@ -45,7 +45,7 @@
 std::unique_ptr<TextureNode> TextureNodeFactoryImpl::create(
     const TextureFormat format)
 {
-    const auto dynamic = _type == TextureType::Dynamic;
+    const auto dynamic = _type == TextureType::dynamic;
     switch (format)
     {
     case TextureFormat::rgba:

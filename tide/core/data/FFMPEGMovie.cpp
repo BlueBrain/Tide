@@ -42,7 +42,7 @@
 #include "FFMPEGFrame.h"
 #include "FFMPEGPicture.h"
 #include "FFMPEGVideoStream.h"
-#include "log.h"
+#include "utils/log.h"
 
 #include <cmath>
 

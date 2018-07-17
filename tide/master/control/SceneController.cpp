@@ -168,7 +168,7 @@ void SceneController::_restoreWebbrowsers(const Scene& scene)
 void SceneController::_deleteTempContentFile(WindowPtr window)
 {
     const auto isFile = contentTypeIsFile(window->getContent().getType());
-    const auto& filename = window->getContent().getURI();
+    const auto& filename = window->getContent().getUri();
     if (isFile && QFileInfo(filename).absolutePath() == _folders.tmp)
     {
         QDir().remove(filename);

@@ -39,10 +39,10 @@
 
 #include "WallToWallChannel.h"
 
-#include "log.h"
 #include "network/MPIChannel.h"
 #include "serialization/chrono.h"
 #include "serialization/utils.h"
+#include "utils/log.h"
 
 #define RANK0 0
 

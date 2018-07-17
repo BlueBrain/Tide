@@ -197,7 +197,7 @@ QRectF CanvasNode::_rectWithoutMargins(const QRectF& rect) const
 }
 
 QRectF CanvasNode::_rectWithoutMargins(const QRectF& rect,
-                                       CONTENT_TYPE content_type) const
+                                       ContentType content_type) const
 {
     // take care that margins are respected
     auto rectWithoutMargins =
@@ -209,7 +209,7 @@ QRectF CanvasNode::_rectWithoutMargins(const QRectF& rect,
                    controlSpecifications::WINDOW_SPACING_PX,
                rect.height() - controlSpecifications::WINDOW_SPACING_PX -
                    controlSpecifications::WINDOW_TITLE_HEIGHT);
-    if (content_type == CONTENT_TYPE_MOVIE)
+    if (content_type == ContentType::movie)
     {
         rectWithoutMargins.setTop(rectWithoutMargins.top() +
                                   controlSpecifications::MOVIE_BAR_HEIGHT);
@@ -503,7 +503,7 @@ QRectF CanvasNode::_addMargins(const QRectF& rect) const
     return _addMargins(rect, content->getContentPtr()->getType());
 }
 
-QRectF CanvasNode::_addMargins(const QRectF& rect, CONTENT_TYPE type) const
+QRectF CanvasNode::_addMargins(const QRectF& rect, ContentType type) const
 {
     auto rectWithMargins = rect.toRect();
     rectWithMargins.setTop(rectWithMargins.top() -
@@ -516,7 +516,7 @@ QRectF CanvasNode::_addMargins(const QRectF& rect, CONTENT_TYPE type) const
                             controlSpecifications::WINDOW_SPACING_PX / 2);
     rectWithMargins.setRight(rectWithMargins.right() +
                              controlSpecifications::WINDOW_SPACING_PX / 2);
-    if (type == CONTENT_TYPE_MOVIE)
+    if (type == ContentType::movie)
     {
         rectWithMargins.setTop(rectWithMargins.top() -
                                controlSpecifications::MOVIE_BAR_HEIGHT);

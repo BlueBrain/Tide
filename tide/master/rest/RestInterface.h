@@ -73,8 +73,8 @@ public:
     /** Out-of-line destructor. */
     ~RestInterface();
 
-    /** Expose the statistics gathered by the given logging utility. */
-    void exposeStatistics(const LoggingUtility& logger) const;
+    /** Expose the statistics gathered by the given activity logger. */
+    void exposeStatistics(const ActivityLogger& logger) const;
 
     const AppRemoteController& getAppRemoteController() const;
 

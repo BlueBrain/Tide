@@ -69,14 +69,14 @@ void Content::_init()
             &Content::captureInteractionChanged);
 }
 
-const QString& Content::getURI() const
+const QString& Content::getUri() const
 {
     return _uri;
 }
 
 QString Content::getFilePath() const
 {
-    return getURI();
+    return getUri();
 }
 
 QString Content::getTitle() const
@@ -149,14 +149,9 @@ qreal Content::getMaxScale()
     return _maxScale;
 }
 
-Content::Interaction Content::getInteractionPolicy() const
-{
-    return Content::Interaction::AUTO;
-}
-
 bool Content::getCaptureInteraction() const
 {
-    switch (getInteractionPolicy())
+    switch (_getInteractionPolicy())
     {
     case Content::Interaction::OFF:
         return false;
@@ -171,7 +166,7 @@ bool Content::getCaptureInteraction() const
 void Content::setCaptureInteraction(const bool enable)
 {
     if (_captureInteraction == enable ||
-        getInteractionPolicy() != Content::Interaction::AUTO)
+        _getInteractionPolicy() != Content::Interaction::AUTO)
     {
         return;
     }
@@ -234,4 +229,9 @@ bool Content::isZoomed() const
 void Content::resetZoom()
 {
     setZoomRect(UNIT_RECTF);
+}
+
+Content::Interaction Content::_getInteractionPolicy() const
+{
+    return Content::Interaction::AUTO;
 }

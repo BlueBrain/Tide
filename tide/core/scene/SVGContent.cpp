@@ -52,18 +52,18 @@ SVGContent::SVGContent(const QString& uri)
 {
 }
 
-CONTENT_TYPE SVGContent::getType() const
+ContentType SVGContent::getType() const
 {
-    return CONTENT_TYPE_SVG;
+    return ContentType::svg;
 }
 
 bool SVGContent::readMetadata()
 {
-    const QFileInfo file(getURI());
+    const QFileInfo file(getUri());
     if (!file.exists() || !file.isReadable())
         return false;
 
-    const SVG svg(getURI());
+    const SVG svg(getUri());
     if (!svg.isValid())
         return false;
 

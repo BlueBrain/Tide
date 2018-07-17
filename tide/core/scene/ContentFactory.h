@@ -74,7 +74,7 @@ public:
     static QString getSupportedFilesFilterAsString();
 
     /** Get the content type for a given uri. */
-    static CONTENT_TYPE getContentTypeForFile(const QString& uri);
+    static ContentType getContentTypeForFile(const QString& uri);
 };
 
 #endif

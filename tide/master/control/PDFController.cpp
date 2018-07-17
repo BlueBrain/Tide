@@ -45,7 +45,7 @@
 PDFController::PDFController(Window& window)
     : ZoomController(window)
 {
-    assert(getContent().getType() == CONTENT_TYPE_PDF);
+    assert(getContent().getType() == ContentType::pdf);
 }
 
 void PDFController::_swipeLeft()

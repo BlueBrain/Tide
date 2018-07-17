@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2016, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,34 +37,59 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef MASTER_QMLTYPEREGISTRATION_H
-#define MASTER_QMLTYPEREGISTRATION_H
+#ifndef BACKGROUNDWIDGET_H
+#define BACKGROUNDWIDGET_H
 
-#include "tide/core/QmlTypeRegistration.h"
+#include <QDialog>
 
-#include "control/ContentController.h"
-#include "control/WindowController.h"
+#include "types.h"
 
-#include <QtQml>
+class QLabel;
 
-#define MASTER_QML_MODULE "TideMaster"
-
-namespace master
-{
 /**
- * Register types for use in Qml
+ * Simple widget to edit and save background settings.
  */
-void registerQmlTypes()
+class BackgroundWidget : public QDialog
 {
-    ::core::registerQmlTypes();
+    Q_OBJECT
 
-    qmlRegisterUncreatableType<WindowController>(
-        MASTER_QML_MODULE, 1, 0, "WindowController",
-        "WindowController is exposed as a context property");
-    qmlRegisterUncreatableType<ContentController>(
-        MASTER_QML_MODULE, 1, 0, "ContentController",
-        "ContentController is exposed as a context property");
-}
-}
+public:
+    /**
+     * Create a BackgroundWidget
+     * @param configuration The configuration in which to read and save
+     *                      background settings.
+     * @param parent An optional parent widget
+     */
+    BackgroundWidget(Configuration& configuration, QWidget* parent = 0);
+
+public slots:
+    /** Store the new settings and close the widget */
+    void accept() override;
+
+    /** Revert to the previous settings and close the widget */
+    void reject() override;
+
+    /** Set the active surface to edit. */
+    void setActiveSurface(uint surfaceIndex);
+
+private slots:
+    void _chooseColor();
+    void _openBackgroundContent();
+    void _removeBackground();
+
+private:
+    Background& _background();
+
+    Configuration& _configuration;
+    uint _surfaceIndex = 0;
+
+    QLabel* _colorLabel;
+    QLabel* _backgroundLabel;
+
+    QColor _previousColor;
+    QString _previousBackgroundUri;
+
+    QString _backgroundFolder;
+};
 
 #endif

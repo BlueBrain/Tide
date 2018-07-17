@@ -39,7 +39,7 @@
 
 #include "PDF.h"
 
-#include "log.h"
+#include "utils/log.h"
 
 #if TIDE_USE_CAIRO && TIDE_USE_POPPLER_GLIB
 #include "PDFPopplerCairoBackend.h"

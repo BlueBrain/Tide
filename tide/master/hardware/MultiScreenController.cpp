@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,59 +37,55 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef BACKGROUNDWIDGET_H
-#define BACKGROUNDWIDGET_H
+#include "MultiScreenController.h"
 
-#include <QDialog>
+#include "PlanarController.h"
+#include "configuration/Configuration.h"
 
-#include "types.h"
-
-class QLabel;
-
-/**
- * Simple widget to edit and save background settings.
- */
-class BackgroundWidget : public QDialog
+MultiScreenController::MultiScreenController(
+    std::vector<std::unique_ptr<ScreenController>>&& controllers)
+    : _controllers{std::move(controllers)}
 {
-    Q_OBJECT
+    for (auto& controller : _controllers)
+        connect(controller.get(), &ScreenController::powerStateChanged,
+                [this]() { emit powerStateChanged(getState()); });
+}
 
-public:
-    /**
-     * Create a BackgroundWidget
-     * @param configuration The configuration in which to read and save
-     *                      background settings.
-     * @param parent An optional parent widget
-     */
-    BackgroundWidget(Configuration& configuration, QWidget* parent = 0);
+ScreenState MultiScreenController::getState() const
+{
+    const auto state = _controllers[0]->getState();
+    for (const auto& controller : _controllers)
+    {
+        if (controller->getState() != state)
+            return ScreenState::undefined;
+    }
+    return state;
+}
 
-public slots:
-    /** Store the new settings and close the widget */
-    void accept() override;
+void MultiScreenController::checkPowerState()
+{
+    for (const auto& controller : _controllers)
+        controller->checkPowerState();
+}
 
-    /** Revert to the previous settings and close the widget */
-    void reject() override;
+bool MultiScreenController::powerOn()
+{
+    bool success = true;
+    for (auto& controller : _controllers)
+    {
+        if (!controller->powerOn())
+            success = false;
+    }
+    return success;
+}
 
-    /** Set the active surface to edit. */
-    void setActiveSurface(uint surfaceIndex);
-
-private slots:
-    void _chooseColor();
-    void _openBackgroundContent();
-    void _removeBackground();
-
-private:
-    Background& _background();
-
-    Configuration& _configuration;
-    uint _surfaceIndex = 0;
-
-    QLabel* _colorLabel;
-    QLabel* _backgroundLabel;
-
-    QColor _previousColor;
-    QString _previousBackgroundURI;
-
-    QString _backgroundFolder;
-};
-
-#endif
+bool MultiScreenController::powerOff()
+{
+    bool success = true;
+    for (auto& controller : _controllers)
+    {
+        if (!controller->powerOff())
+            success = false;
+    }
+    return success;
+}

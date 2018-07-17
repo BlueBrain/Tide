@@ -41,12 +41,12 @@
 
 #include "Tile.h"
 #include "config.h"
-#include "log.h"
 #include "network/WallToWallChannel.h"
 #include "scene/Background.h"
 #include "scene/MultiChannelContent.h"
 #include "scene/Scene.h"
 #include "scene/Window.h"
+#include "utils/log.h"
 
 #include "BasicSynchronizer.h"
 #include "LodSynchronizer.h"
@@ -90,7 +90,7 @@ std::shared_ptr<typename Map::mapped_type::element_type> _getOrCreate(
     Map& map, const Window& window)
 {
     const auto& id = window.getID();
-    const auto& uri = window.getContent().getURI();
+    const auto& uri = window.getContent().getUri();
     return _getOrCreate(map, id, uri);
 }
 
@@ -127,7 +127,7 @@ void _synchronize(WallToWallChannel& channel, Updater& updater)
 bool _isMovie(const Background& background)
 {
     if (auto content = background.getContent())
-        return content->getType() == CONTENT_TYPE_MOVIE;
+        return content->getType() == ContentType::movie;
     return false;
 }
 
@@ -195,13 +195,13 @@ void DataProvider::updateDataSources(const Scene& scene)
         switch (content.getType())
         {
 #if TIDE_ENABLE_MOVIE_SUPPORT
-        case CONTENT_TYPE_MOVIE:
+        case ContentType::movie:
             updatedMovies.insert(window->getID());
             break;
 #endif
-        case CONTENT_TYPE_PIXEL_STREAM:
-        case CONTENT_TYPE_WEBBROWSER:
-            updatedStreams.insert(content.getURI());
+        case ContentType::pixel_stream:
+        case ContentType::webbrowser:
+            updatedStreams.insert(content.getUri());
             break;
         default:
             break; /** nothing to do */
@@ -260,15 +260,15 @@ void DataProvider::_updateDataSource(const Content& content, const QUuid& id)
     switch (content.getType())
     {
 #if TIDE_ENABLE_MOVIE_SUPPORT
-    case CONTENT_TYPE_MOVIE:
+    case ContentType::movie:
     {
         const auto& movie = static_cast<const MovieContent&>(content);
-        _getOrCreateMovieSource(movie.getURI(), id)->update(movie);
+        _getOrCreateMovieSource(movie.getUri(), id)->update(movie);
     }
     break;
 #endif
 #if TIDE_ENABLE_PDF_SUPPORT
-    case CONTENT_TYPE_PDF:
+    case ContentType::pdf:
     {
         const auto& pdf = static_cast<const PDFContent&>(content);
         if (_pdfSources.count(id))
@@ -276,10 +276,10 @@ void DataProvider::_updateDataSource(const Content& content, const QUuid& id)
     }
     break;
 #endif
-    case CONTENT_TYPE_PIXEL_STREAM:
-    case CONTENT_TYPE_WEBBROWSER:
+    case ContentType::pixel_stream:
+    case ContentType::webbrowser:
     {
-        _getOrCreateStreamSource(content.getURI());
+        _getOrCreateStreamSource(content.getUri());
     }
     break;
     default:
@@ -434,14 +434,14 @@ std::unique_ptr<ContentSynchronizer> DataProvider::_makeSynchronizer(
     switch (window.getContent().getType())
     {
 #if TIDE_USE_TIFF
-    case CONTENT_TYPE_IMAGE_PYRAMID:
+    case ContentType::image_pyramid:
     {
         auto source = _getOrCreate(_imagePyrSources, window);
         return std::make_unique<LodSynchronizer>(source);
     }
 #endif
 #if TIDE_ENABLE_MOVIE_SUPPORT
-    case CONTENT_TYPE_MOVIE:
+    case ContentType::movie:
     {
         auto source = _movieSources.at(window.getID());
         source->update(static_cast<const MovieContent&>(window.getContent()));
@@ -449,28 +449,28 @@ std::unique_ptr<ContentSynchronizer> DataProvider::_makeSynchronizer(
     }
 #endif
 #if TIDE_ENABLE_PDF_SUPPORT
-    case CONTENT_TYPE_PDF:
+    case ContentType::pdf:
     {
         auto source = _getOrCreate(_pdfSources, window);
         source->update(static_cast<const PDFContent&>(window.getContent()));
         return std::make_unique<PDFSynchronizer>(source);
     }
 #endif
-    case CONTENT_TYPE_PIXEL_STREAM:
-    case CONTENT_TYPE_WEBBROWSER:
+    case ContentType::pixel_stream:
+    case ContentType::webbrowser:
     {
         const auto& content = window.getContent();
-        auto source = _streamSources.at(content.getURI());
+        auto source = _streamSources.at(content.getUri());
         const auto channel =
             static_cast<const MultiChannelContent&>(content).getChannel();
         return std::make_unique<PixelStreamSynchronizer>(source, view, channel);
     }
-    case CONTENT_TYPE_SVG:
+    case ContentType::svg:
     {
         auto source = _getOrCreate(_svgSources, window);
         return std::make_unique<LodSynchronizer>(source);
     }
-    case CONTENT_TYPE_TEXTURE:
+    case ContentType::texture:
     {
         auto source = _getOrCreate(_imageSources, window);
         return std::make_unique<BasicSynchronizer>(source);

@@ -43,8 +43,8 @@
 #include "DataProvider.h"
 #include "PixelStreamSynchronizer.h"
 #include "Tile.h"
-#include "qmlUtils.h"
 #include "scene/Window.h"
+#include "utils/qml.h"
 
 namespace
 {

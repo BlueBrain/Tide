@@ -40,7 +40,7 @@
 #include "LauncherPlacer.h"
 
 #include "configuration/SurfaceConfig.h"
-#include "geometry.h"
+#include "utils/geometry.h"
 
 namespace
 {

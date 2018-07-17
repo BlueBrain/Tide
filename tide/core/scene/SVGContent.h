@@ -56,7 +56,7 @@ public:
     explicit SVGContent(const QString& uri);
 
     /** Get the content type **/
-    CONTENT_TYPE getType() const override;
+    ContentType getType() const override;
 
     /**
      * Read SVG metadata.

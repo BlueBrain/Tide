@@ -40,7 +40,7 @@
 #define BOOST_TEST_MODULE ScreenshotAssembler
 #include <boost/test/unit_test.hpp>
 
-#include "ScreenshotAssembler.h"
+#include "tools/ScreenshotAssembler.h"
 
 #include "MinimalGlobalQtApp.h"
 #include "imageCompare.h"

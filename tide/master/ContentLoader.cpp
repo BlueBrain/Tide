@@ -40,10 +40,10 @@
 #include "ContentLoader.h"
 
 #include "control/WindowController.h"
-#include "log.h"
 #include "scene/ContentFactory.h"
 #include "scene/DisplayGroup.h"
 #include "scene/Window.h"
+#include "utils/log.h"
 
 #include <QDir>
 #include <cmath>

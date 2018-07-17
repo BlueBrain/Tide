@@ -65,9 +65,9 @@ PixelStreamContent::PixelStreamContent(const bool keyboard)
         _createKeyboard();
 }
 
-CONTENT_TYPE PixelStreamContent::getType() const
+ContentType PixelStreamContent::getType() const
 {
-    return CONTENT_TYPE_PIXEL_STREAM;
+    return ContentType::pixel_stream;
 }
 
 bool PixelStreamContent::readMetadata()
@@ -75,7 +75,7 @@ bool PixelStreamContent::readMetadata()
     return true;
 }
 
-Content::Interaction PixelStreamContent::getInteractionPolicy() const
+Content::Interaction PixelStreamContent::_getInteractionPolicy() const
 {
     return hasEventReceivers() ? Content::Interaction::ON
                                : Content::Interaction::OFF;

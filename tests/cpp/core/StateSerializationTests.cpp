@@ -129,8 +129,8 @@ BOOST_AUTO_TEST_CASE(
 
     BOOST_CHECK_EQUAL(dimensions, CONTENT_SIZE);
     BOOST_CHECK_EQUAL(dummyContent.dummyParam_, DUMMY_PARAM_VALUE);
-    BOOST_CHECK_EQUAL(dummyContent.getType(), CONTENT_TYPE_ANY);
-    BOOST_CHECK_EQUAL(dummyContent.getURI().toStdString(),
+    BOOST_CHECK_EQUAL(dummyContent.getType(), ContentType::invalid);
+    BOOST_CHECK_EQUAL(dummyContent.getUri().toStdString(),
                       DUMMY_URI.toStdString());
 }
 
@@ -173,8 +173,8 @@ BOOST_AUTO_TEST_CASE(testWhenOpeningBrokenStateThenNoExceptionIsThrown)
 void checkContent(const Content& content)
 {
     BOOST_CHECK_EQUAL(content.getDimensions(), VALID_TEXTURE_SIZE);
-    BOOST_CHECK_EQUAL(content.getType(), CONTENT_TYPE_TEXTURE);
-    BOOST_CHECK_EQUAL(content.getURI().toStdString(),
+    BOOST_CHECK_EQUAL(content.getType(), ContentType::texture);
+    BOOST_CHECK_EQUAL(content.getUri().toStdString(),
                       VALID_TEXTURE_URI.toStdString());
 }
 
@@ -449,7 +449,7 @@ BOOST_AUTO_TEST_CASE(testStateSerializationUploadedToFile)
     BOOST_CHECK(listFiles(savedSessionDir).contains(uploadedFile));
     BOOST_CHECK(listFiles(uploadDir).contains("test.dcx"));
     BOOST_CHECK(listFiles(uploadDir).contains("test.dcxpreview"));
-    BOOST_CHECK_EQUAL(window->getContent().getURI(),
+    BOOST_CHECK_EQUAL(window->getContent().getUri(),
                       savedSessionDir + uploadedFile);
 
     // 4) Add another file with the same name and test saving
@@ -462,7 +462,7 @@ BOOST_AUTO_TEST_CASE(testStateSerializationUploadedToFile)
     BOOST_CHECK(!listFiles(tempDir).contains(uploadedFile));
     BOOST_CHECK(listFiles(savedSessionDir).contains(uploadedFile));
     BOOST_CHECK(listFiles(savedSessionDir).contains("uploaded_1.png"));
-    BOOST_CHECK_EQUAL(newWindow->getContent().getURI(),
+    BOOST_CHECK_EQUAL(newWindow->getContent().getUri(),
                       savedSessionDir + "uploaded_1.png");
 
     QDir{uploadDir}.removeRecursively();
@@ -497,12 +497,12 @@ BOOST_AUTO_TEST_CASE(testErrorContentWhenFileMissing)
         const auto e = dynamic_cast<const ErrorContent*>(&errorContent);
         BOOST_CHECK(e);
     }
-    BOOST_CHECK_EQUAL(errorContent.getURI(), ":/img/error.png");
+    BOOST_CHECK_EQUAL(errorContent.getUri(), ":/img/error.png");
     BOOST_CHECK_EQUAL(errorContent.getFilePath(), INVALID_URI);
     BOOST_CHECK_EQUAL(errorContent.getTitle(), "uri");
 
     const auto& validContent = loadedGroup.getWindows()[1]->getContent();
-    BOOST_CHECK_EQUAL(validContent.getURI(), VALID_TEXTURE_URI);
+    BOOST_CHECK_EQUAL(validContent.getUri(), VALID_TEXTURE_URI);
     BOOST_CHECK_EQUAL(validContent.getFilePath(), VALID_TEXTURE_URI);
     BOOST_CHECK_EQUAL(validContent.getTitle(), VALID_TEXTURE_URI);
 
@@ -516,7 +516,7 @@ BOOST_AUTO_TEST_CASE(testErrorContentWhenFileMissing)
 
     BOOST_REQUIRE_EQUAL(loadedGroup2.getWindows().size(), 1);
     const auto& validContent2 = loadedGroup2.getWindows()[0]->getContent();
-    BOOST_CHECK_EQUAL(validContent2.getURI(), VALID_TEXTURE_URI);
+    BOOST_CHECK_EQUAL(validContent2.getUri(), VALID_TEXTURE_URI);
     BOOST_CHECK_EQUAL(validContent2.getFilePath(), VALID_TEXTURE_URI);
     BOOST_CHECK_EQUAL(validContent2.getTitle(), VALID_TEXTURE_URI);
 

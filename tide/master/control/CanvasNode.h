@@ -85,7 +85,7 @@ private:
 
     QRectF _rectWithoutMargins(const QRectF& rect) const;
     QRectF _rectWithoutMargins(const QRectF& rect,
-                               CONTENT_TYPE content_type) const;
+                               ContentType content_type) const;
     bool _insertRoot(WindowPtr window);
     bool _insertTerminal(WindowPtr window);
     void _computeBoundaries(const QRectF& realSize,
@@ -99,7 +99,7 @@ private:
     WindowPtr content = NULL;
     QRectF _addMargins(WindowPtr window) const;
     QRectF _addMargins(const QRectF& rect) const;
-    QRectF _addMargins(const QRectF& rect, CONTENT_TYPE type) const;
+    QRectF _addMargins(const QRectF& rect, ContentType type) const;
 };
 
 #endif

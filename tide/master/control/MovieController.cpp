@@ -44,7 +44,7 @@
 MovieController::MovieController(Window& window)
     : ContentController{window}
 {
-    assert(getContent().getType() == CONTENT_TYPE_MOVIE);
+    assert(getContent().getType() == ContentType::movie);
 }
 
 void MovieController::togglePlay()

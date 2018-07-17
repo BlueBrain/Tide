@@ -40,19 +40,18 @@
 
 #include "MasterApplication.h"
 
-#include "InactivityTimer.h"
-#include "MasterSurfaceRenderer.h"
 #include "PixelStreamWindowManager.h"
 #include "QmlTypeRegistration.h"
-#include "ScreenshotAssembler.h"
 #include "configuration/Configuration.h"
 #include "configuration/SurfaceConfigValidator.h"
 #include "control/SceneController.h"
+#include "gui/MasterQuickView.h"
+#include "gui/MasterWindow.h"
 #include "localstreamer/PixelStreamerLauncher.h"
-#include "log.h"
 #include "network/MasterFromWallChannel.h"
 #include "network/MasterToForkerChannel.h"
 #include "network/MasterToWallChannel.h"
+#include "qml/MasterSurfaceRenderer.h"
 #include "scene/Background.h"
 #include "scene/ContentFactory.h"
 #include "scene/DisplayGroup.h"
@@ -61,16 +60,17 @@
 #include "scene/Scene.h"
 #include "scene/ScreenLock.h"
 #include "scene/VectorialContent.h"
-#include "ui/MasterQuickView.h"
-#include "ui/MasterWindow.h"
+#include "tools/InactivityTimer.h"
+#include "tools/ScreenshotAssembler.h"
+#include "utils/log.h"
 
 #if TIDE_ENABLE_REST_INTERFACE
-#include "LoggingUtility.h"
 #include "rest/RestInterface.h"
+#include "tools/ActivityLogger.h"
 #endif
 
 #if TIDE_ENABLE_PLANAR_CONTROLLER
-#include "ScreenControllerFactory.h"
+#include "hardware/ScreenControllerFactory.h"
 #endif
 
 #include <deflect/qt/QuickRenderer.h>
@@ -99,7 +99,7 @@ MasterApplication::MasterApplication(int& argc_, char** argv_,
     , _markers(Markers::create(0))
     , _options(Options::create())
 {
-    master::registerQmlTypes();
+    qml::registerTypes();
     Content::setMaxScale(_config->settings.contentMaxScale);
     VectorialContent::setMaxScale(_config->settings.contentMaxScaleVectorial);
 
@@ -407,7 +407,7 @@ void MasterApplication::_setupMPIConnections()
 #if TIDE_ENABLE_REST_INTERFACE
 void MasterApplication::_initRestInterface()
 {
-    _logger = std::make_unique<LoggingUtility>();
+    _logger = std::make_unique<ActivityLogger>();
     _logger->monitor(*_scene);
 
     _restInterface =
@@ -464,7 +464,7 @@ void MasterApplication::_initScreenController()
 
     connect(_screenController.get(), &ScreenController::powerStateChanged,
             [this](const ScreenState state) {
-                if (state == ScreenState::ON)
+                if (state == ScreenState::on)
                     _inactivityTimer->restart();
                 else
                     _inactivityTimer->stop();
@@ -472,13 +472,13 @@ void MasterApplication::_initScreenController()
 
     connect(_screenController.get(), &ScreenController::powerStateChanged,
             [this](const ScreenState state) {
-                if (state == ScreenState::OFF)
+                if (state == ScreenState::off)
                     _lock->unlock();
             });
 
 #if TIDE_ENABLE_REST_INTERFACE
     connect(_screenController.get(), &ScreenController::powerStateChanged,
-            _logger.get(), &LoggingUtility::logScreenStateChanged);
+            _logger.get(), &ActivityLogger::logScreenStateChanged);
 #endif
 }
 #endif
@@ -486,7 +486,7 @@ void MasterApplication::_initScreenController()
 void MasterApplication::_suspend()
 {
 #if TIDE_ENABLE_PLANAR_CONTROLLER
-    if (_screenController && _screenController->getState() == ScreenState::ON)
+    if (_screenController && _screenController->getState() == ScreenState::on)
     {
         if (_screenController->powerOff())
             _sceneController->hideLauncher();
@@ -499,7 +499,7 @@ void MasterApplication::_suspend()
 void MasterApplication::_resume()
 {
 #if TIDE_ENABLE_PLANAR_CONTROLLER
-    if (_screenController && _screenController->getState() == ScreenState::OFF)
+    if (_screenController && _screenController->getState() == ScreenState::off)
     {
         if (_screenController->powerOn())
             print_log(LOG_INFO, LOG_POWER,

@@ -65,14 +65,14 @@ void PDFContent::_init()
     connect(this, SIGNAL(pageChanged()), this, SIGNAL(modified()));
 }
 
-CONTENT_TYPE PDFContent::getType() const
+ContentType PDFContent::getType() const
 {
-    return CONTENT_TYPE_PDF;
+    return ContentType::pdf;
 }
 
 bool PDFContent::readMetadata()
 {
-    const PDF pdf(getURI());
+    const PDF pdf(getUri());
     if (!pdf.isValid())
         return false;
 

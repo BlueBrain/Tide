@@ -113,15 +113,9 @@ if(TIDE_USE_TIFF)
 endif()
 
 list(APPEND TIDECORE_PUBLIC_HEADERS
-  CommandLineParser.h
-  geometry.h
-  log.h
   QmlTypeRegistration.h
-  qmlUtils.h
   StatePreview.h
   types.h
-  yuv.h
-  ZoomHelper.h
   configuration/Configuration.h
   configuration/ConfigurationWriter.h
   configuration/Process.h
@@ -176,6 +170,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   scene/TextureContent.h
   scene/VectorialContent.h
   scene/Window.h
+  scene/ZoomHelper.h
   serialization/chrono.h
   serialization/deflectTypes.h
   serialization/includes.h
@@ -192,17 +187,17 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   thumbnail/ThumbnailGenerator.h
   thumbnail/ThumbnailProvider.h
   utils/compilerMacros.h
+  utils/CommandLineParser.h
+  utils/geometry.h
   utils/IterableSmartPtrCollection.h
+  utils/log.h
+  utils/qml.h
+  utils/yuv.h
 )
 
 list(APPEND TIDECORE_SOURCES
-  CommandLineParser.cpp
-  geometry.cpp
-  log.cpp
   MetaTypeRegistration.cpp
   StatePreview.cpp
-  yuv.cpp
-  ZoomHelper.cpp
   configuration/Configuration.cpp
   configuration/ConfigurationWriter.cpp
   configuration/SurfaceConfig.cpp
@@ -250,6 +245,11 @@ list(APPEND TIDECORE_SOURCES
   scene/TextureContent.cpp
   scene/VectorialContent.cpp
   scene/Window.cpp
+  scene/ZoomHelper.cpp
+  utils/CommandLineParser.cpp
+  utils/geometry.cpp
+  utils/log.cpp
+  utils/yuv.cpp
   thumbnail/DefaultThumbnailGenerator.cpp
   thumbnail/FolderThumbnailGenerator.cpp
   thumbnail/ImageThumbnailGenerator.cpp

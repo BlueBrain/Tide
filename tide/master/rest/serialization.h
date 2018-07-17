@@ -54,7 +54,7 @@ QJsonObject serialize(const Window& window, const DisplayGroup& group);
 QJsonObject serialize(const DisplayGroup& group);
 QJsonObject serialize(const Surface& surface);
 QJsonArray serialize(const Scene& scene);
-QJsonObject serialize(const LoggingUtility& logger);
+QJsonObject serialize(const ActivityLogger& logger);
 QJsonObject serializeForRest(const Configuration& config);
 //@}
 }

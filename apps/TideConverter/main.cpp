@@ -37,9 +37,9 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "tide/core/CommandLineParser.h"
 #include "tide/core/configuration/Configuration.h"
 #include "tide/core/configuration/ConfigurationWriter.h"
+#include "tide/core/utils/CommandLineParser.h"
 
 #include <QCoreApplication>
 

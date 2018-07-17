@@ -44,7 +44,7 @@
 #else
 #include "SVGQtGpuBackend.h"
 #endif
-#include "log.h"
+#include "utils/log.h"
 
 #include <QFile>
 

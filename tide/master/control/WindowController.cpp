@@ -41,9 +41,9 @@
 #include "WindowController.h"
 
 #include "ZoomController.h"
-#include "geometry.h"
 #include "scene/DisplayGroup.h"
 #include "scene/Window.h"
+#include "utils/geometry.h"
 
 #include <cmath>
 

@@ -79,9 +79,9 @@ enum class ColorSpace
  */
 enum class ScreenState
 {
-    ON,
-    OFF,
-    UNDEF
+    on,
+    off,
+    undefined
 };
 
 /**
@@ -98,8 +98,8 @@ enum class SwapSync
  */
 enum class TextureType
 {
-    Static,
-    Dynamic
+    static_,
+    dynamic
 };
 
 class Background;
@@ -124,7 +124,7 @@ class ImageSource;
 class ImagePyramidDataSource;
 class InactivityTimer;
 class KeyboardState;
-class LoggingUtility;
+class ActivityLogger;
 class Markers;
 class MovieContent;
 class MovieUpdater;
@@ -217,14 +217,14 @@ inline std::ostream& operator<<(std::ostream& str, const ScreenState state)
 {
     switch (state)
     {
-    case ScreenState::ON:
-        str << "ON";
+    case ScreenState::on:
+        str << "on";
         break;
-    case ScreenState::OFF:
-        str << "OFF";
+    case ScreenState::off:
+        str << "off";
         break;
-    case ScreenState::UNDEF:
-        str << "UNDEF";
+    case ScreenState::undefined:
+        str << "undefined";
         break;
     }
     return str;

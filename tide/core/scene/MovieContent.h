@@ -65,7 +65,7 @@ public:
     explicit MovieContent(const QString& uri);
 
     /** @copydoc Content::getType **/
-    CONTENT_TYPE getType() const final;
+    ContentType getType() const final;
 
     /**
      * Read movie informations from the source URI.
@@ -74,7 +74,7 @@ public:
     bool readMetadata() final;
 
     /** @return OFF. */
-    Interaction getInteractionPolicy() const final;
+    Interaction _getInteractionPolicy() const final;
 
     /** @return the list of supported movie file extensions. */
     static const QStringList& getSupportedExtensions();

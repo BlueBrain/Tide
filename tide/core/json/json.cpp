@@ -39,7 +39,7 @@
 
 #include "json.h"
 
-#include "log.h"
+#include "utils/log.h"
 #include "json/serialization.h"
 
 #include <QFile>

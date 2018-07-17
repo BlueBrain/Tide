@@ -61,9 +61,9 @@ WebbrowserContent::WebbrowserContent()
 {
 }
 
-CONTENT_TYPE WebbrowserContent::getType() const
+ContentType WebbrowserContent::getType() const
 {
-    return CONTENT_TYPE_WEBBROWSER;
+    return ContentType::webbrowser;
 }
 
 QString WebbrowserContent::getTitle() const

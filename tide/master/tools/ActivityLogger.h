@@ -38,8 +38,8 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef LOGGINGUTILITY_H
-#define LOGGINGUTILITY_H
+#ifndef ACTIVITYLOGGER_H
+#define ACTIVITYLOGGER_H
 
 #include <QObject>
 
@@ -48,7 +48,7 @@
 /**
  * Gathers information/statistics on application usage.
  */
-class LoggingUtility : public QObject
+class ActivityLogger : public QObject
 {
     Q_OBJECT
 
@@ -117,7 +117,7 @@ private:
     QString _lastInteractionName;
     QString _lastInteractionTime;
 
-    ScreenState _screenState = ScreenState::UNDEF;
+    ScreenState _screenState = ScreenState::undefined;
     QString _screenStateModificationTime;
 
     void _monitor(const DisplayGroup& group);

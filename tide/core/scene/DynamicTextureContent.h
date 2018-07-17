@@ -54,7 +54,7 @@ class DynamicTextureContent : public Content
 {
 public:
     /** Get the content type **/
-    CONTENT_TYPE getType() const final;
+    ContentType getType() const final;
 
     /** @return always false, no longer supported. */
     bool readMetadata() final { return false; }

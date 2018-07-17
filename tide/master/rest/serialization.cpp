@@ -39,13 +39,13 @@
 
 #include "serialization.h"
 
-#include "LoggingUtility.h"
 #include "configuration/Configuration.h"
 #include "control/WindowController.h"
 #include "localstreamer/PixelStreamerLauncher.h"
 #include "scene/ContentFactory.h"
 #include "scene/DisplayGroup.h"
 #include "scene/Scene.h"
+#include "tools/ActivityLogger.h"
 #include "json/json.h"
 #include "json/serialization.h"
 #include "json/templates.h"
@@ -72,9 +72,9 @@ QString to_qstring(const ScreenState state)
 {
     switch (state)
     {
-    case ScreenState::ON:
+    case ScreenState::on:
         return "ON";
-    case ScreenState::OFF:
+    case ScreenState::off:
         return "OFF";
     default:
         return "UNDEF";
@@ -101,7 +101,7 @@ QJsonObject serialize(const Window& window, const DisplayGroup& group)
                        {"selected", window.isSelected()},
                        {"fullscreen", window.isFullscreen()},
                        {"focus", window.isFocused()},
-                       {"uri", window.getContent().getURI()},
+                       {"uri", window.getContent().getUri()},
                        {"visible", !window.isHidden()},
                        {"uuid", json::url_encode(window.getID())}};
 }
@@ -111,7 +111,7 @@ QJsonObject serialize(const DisplayGroup& group)
     QJsonArray windows;
     for (const auto& window : group.getWindows())
     {
-        if (window->getContent().getURI() == PixelStreamerLauncher::launcherUri)
+        if (window->getContent().getUri() == PixelStreamerLauncher::launcherUri)
             continue;
 
         windows.append(serialize(*window, group));
@@ -150,7 +150,7 @@ QJsonObject serializeForRest(const Configuration& config)
     return QJsonObject{{"config", configObject}};
 }
 
-QJsonObject serialize(const LoggingUtility& logger)
+QJsonObject serialize(const ActivityLogger& logger)
 {
     const QJsonObject event{{"last_event", logger.getLastInteractionName()},
                             {"last_event_date",

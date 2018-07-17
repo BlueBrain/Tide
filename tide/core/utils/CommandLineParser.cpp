@@ -37,72 +37,46 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef COMMANDLINEPARSER_H
-#define COMMANDLINEPARSER_H
+#include "utils/CommandLineParser.h"
 
-#include "log.h"
-#include <boost/program_options.hpp>
+#include <iostream>
 
-/**
- * Standard macro to check for --help and syntax error of command line args.
- */
-#define COMMAND_LINE_PARSER_CHECK(ParserClass, AppName)                     \
-    ParserClass commandLine;                                                \
-    try                                                                     \
-    {                                                                       \
-        commandLine.parse(argc, argv);                                      \
-    }                                                                       \
-    catch (const boost::program_options::error& e)                          \
-    {                                                                       \
-        print_log(LOG_FATAL, LOG_GENERAL, "failed to start: %s", e.what()); \
-        return EXIT_FAILURE;                                                \
-    }                                                                       \
-    if (commandLine.getHelp())                                              \
-    {                                                                       \
-        commandLine.showSyntax(AppName);                                    \
-        return EXIT_SUCCESS;                                                \
-    }
+namespace po = boost::program_options;
 
-/**
- * Basic command line arguments parser with [-h;--help] handling.
- */
-class CommandLineParser
+CommandLineParser::CommandLineParser()
 {
-public:
-    /** Constructor. */
-    CommandLineParser();
+    desc.add_options()("help,h", "produce help message");
+}
 
-    /** Virtual destructor. */
-    virtual ~CommandLineParser();
+CommandLineParser::~CommandLineParser()
+{
+}
 
-    /**
-     * Try to parse the command line arguments.
-     *
-     * @param argc number of command line arguments.
-     * @param argv array of command line arguments.
-     *
-     * @throw boost::program_options::error on parsing error.
-     */
-    virtual void parse(int argc, char** argv);
+void CommandLineParser::parse(const int argc, char** argv)
+{
+    try
+    {
+        po::command_line_parser parser{argc, argv};
+        parser.options(desc).positional(pos_desc);
+        const auto parsed = parser.run();
+        po::store(parsed, vm);
+        po::notify(vm);
+    }
+    catch (const po::required_option&)
+    {
+        // ignore missing required argument when --help is given
+        if (!vm.count("help"))
+            throw;
+    }
+}
 
-    /** Was the --help flag given. */
-    bool getHelp() const;
+bool CommandLineParser::getHelp() const
+{
+    return vm.count("help");
+}
 
-    /**
-     * Print syntax to std::out.
-     * @param appName The name of the executable to print in the output.
-     */
-    virtual void showSyntax(const std::string& appName) const;
-
-protected:
-    /** The list of options which already includes "--help". */
-    boost::program_options::options_description desc{"Allowed options"};
-
-    /** The list of positional options. */
-    boost::program_options::positional_options_description pos_desc;
-
-    /** Contains the results of the parse() operation. */
-    boost::program_options::variables_map vm;
-};
-
-#endif
+void CommandLineParser::showSyntax(const std::string& appName) const
+{
+    std::cout << "Usage: " << appName << " [OPTIONS...]\n\n";
+    std::cout << desc;
+}

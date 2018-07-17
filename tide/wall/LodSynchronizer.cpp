@@ -41,8 +41,8 @@
 
 #include "DataSource.h"
 #include "Tile.h"
-#include "ZoomHelper.h"
 #include "scene/Window.h"
+#include "scene/ZoomHelper.h"
 
 #include <QTextStream>
 

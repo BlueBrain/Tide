@@ -42,11 +42,11 @@
 #include "State.h"
 #include "StatePreview.h"
 #include "control/DisplayGroupController.h"
-#include "log.h"
 #include "scene/ContentFactory.h"
 #include "scene/ErrorContent.h"
 #include "scene/Scene.h"
 #include "serialization/utils.h"
+#include "utils/log.h"
 
 #include <QFileInfo>
 
@@ -54,10 +54,10 @@ namespace
 {
 const QString SESSION_FILE_EXTENSION(".dcx");
 
-bool _canBeRestored(const CONTENT_TYPE type)
+bool _canBeRestored(const ContentType type)
 {
     // PixelStreams are external applications and can't be restored.
-    if (type == CONTENT_TYPE_PIXEL_STREAM)
+    if (type == ContentType::pixel_stream)
         return false;
 
     return true;
@@ -76,7 +76,7 @@ bool _canBeSaved(const Content& content)
 void _relocateContent(Window& window, const QString& tmpDir,
                       const QString& dstDir)
 {
-    const auto& uri = window.getContent().getURI();
+    const auto& uri = window.getContent().getUri();
     if (!uri.startsWith(tmpDir))
         return;
 
@@ -98,7 +98,7 @@ WindowPtrs _findWindowsToRelocate(const DisplayGroup& group,
     WindowPtrs windowsToRelocate;
     for (const auto& window : group.getWindows())
     {
-        const auto& uri = window->getContent().getURI();
+        const auto& uri = window->getContent().getUri();
         if (QFileInfo{uri}.absolutePath() == tmpDir)
             windowsToRelocate.push_back(window);
     }
@@ -156,16 +156,16 @@ bool _validateContent(const WindowPtr& window)
 
     // Some regular textures were saved as DynamicTexture type before the
     // migration to qml2 rendering
-    if (content->getType() == CONTENT_TYPE_DYNAMIC_TEXTURE)
+    if (content->getType() == ContentType::dynamic_texture)
     {
-        const auto& uri = content->getURI();
+        const auto& uri = content->getUri();
         const auto type = ContentFactory::getContentTypeForFile(uri);
-        if (type == CONTENT_TYPE_TEXTURE)
+        if (type == ContentType::texture)
         {
             print_log(LOG_DEBUG, LOG_CONTENT,
                       "Try restoring legacy DynamicTexture as "
                       "a regular texture: '%s'",
-                      content->getURI().toLocal8Bit().constData());
+                      content->getUri().toLocal8Bit().constData());
 
             auto newContent = ContentFactory::getContent(uri);
             newContent->moveToThread(window->thread());
@@ -178,7 +178,7 @@ bool _validateContent(const WindowPtr& window)
                       "DynamicTexture are no longer supported. Please"
                       "convert the source image to a tiff pyramid: "
                       "'%s'",
-                      content->getURI().toLocal8Bit().constData());
+                      content->getUri().toLocal8Bit().constData());
         }
     }
 
@@ -187,12 +187,12 @@ bool _validateContent(const WindowPtr& window)
     if (window->getContent().readMetadata())
     {
         print_log(LOG_DEBUG, LOG_CONTENT, "Restoring content: '%s'",
-                  content->getURI().toLocal8Bit().constData());
+                  content->getUri().toLocal8Bit().constData());
     }
     else
     {
         print_log(LOG_WARN, LOG_CONTENT, "'%s' could not be restored!",
-                  content->getURI().toLocal8Bit().constData());
+                  content->getUri().toLocal8Bit().constData());
         auto errorContent = ContentFactory::getErrorContent(*content);
         errorContent->moveToThread(window->thread());
         window->setContent(std::move(errorContent));

@@ -40,7 +40,7 @@
 #include "ImagePyramidThumbnailGenerator.h"
 
 #include "data/TiffPyramidReader.h"
-#include "log.h"
+#include "utils/log.h"
 
 ImagePyramidThumbnailGenerator::ImagePyramidThumbnailGenerator(
     const QSize& size)

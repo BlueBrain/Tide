@@ -41,9 +41,9 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "MultiScreenController.h"
-#include "PlanarController.h"
-#include "ScreenControllerFactory.h"
+#include "hardware/MultiScreenController.h"
+#include "hardware/PlanarController.h"
+#include "hardware/ScreenControllerFactory.h"
 
 #include <QMap>
 

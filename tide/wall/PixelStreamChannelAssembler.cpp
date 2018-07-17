@@ -40,7 +40,7 @@
 #include "PixelStreamChannelAssembler.h"
 
 #include "StreamImage.h"
-#include "log.h"
+#include "utils/log.h"
 
 #include <deflect/server/TileDecoder.h>
 

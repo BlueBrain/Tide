@@ -43,8 +43,8 @@
 #include "control/ContextMenuController.h"
 #include "control/DisplayGroupController.h"
 #include "control/SideController.h"
-#include "qmlUtils.h"
 #include "scene/Scene.h"
+#include "utils/qml.h"
 
 #include <QQmlContext>
 #include <QQmlEngine>

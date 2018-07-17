@@ -49,25 +49,22 @@
 
 #define QML_MODULE "Tide"
 
-namespace core
+namespace qml
 {
 /**
  * Register types for use in Qml
  */
-void registerQmlTypes()
+void registerTypes()
 {
     qmlRegisterType<MultitouchArea>(QML_MODULE, 1, 0, "MultitouchArea");
 
     qmlRegisterUncreatableType<KeyboardState>(
         QML_MODULE, 1, 0, "KeyboardState",
-        "KeyboardState is linked to a Content and read-only in QML");
-    qmlRegisterUncreatableType<Content>(
-        QML_MODULE, 1, 0, "Content",
-        "Content is linked to a Window and read-only in QML");
-    qmlRegisterUncreatableType<Window>(QML_MODULE, 1, 0, "Window",
-                                       "This exports enums to QML");
+        "Needed to expose KeyboardState as a Content property.");
     qmlRegisterUncreatableType<Markers>(QML_MODULE, 1, 0, "Markers",
                                         "Markers are exposed from C++");
+    qmlRegisterUncreatableType<Window>(QML_MODULE, 1, 0, "Window",
+                                       "This exports enums to QML");
 }
 }
 

@@ -41,7 +41,7 @@
 
 #include "data/Image.h"
 #include "textureUtils.h"
-#include "yuv.h"
+#include "utils/yuv.h"
 
 #include <QOpenGLBuffer>
 #include <QOpenGLContext>

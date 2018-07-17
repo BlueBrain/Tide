@@ -39,9 +39,9 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "tide/core/CommandLineParser.h"
-#include "tide/core/log.h"
 #include "tide/core/network/MPIChannel.h"
+#include "tide/core/utils/CommandLineParser.h"
+#include "tide/core/utils/log.h"
 #include "tide/master/localstreamer/ProcessForker.h"
 
 class CommandLineHelper : public CommandLineParser

@@ -37,10 +37,10 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "CommandLineParser.h"
 #include "network/MPIChannel.h"
 #include "network/ReceiveBuffer.h"
 #include "serialization/utils.h"
+#include "utils/CommandLineParser.h"
 
 #include <chrono>
 #include <iostream>

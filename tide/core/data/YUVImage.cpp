@@ -39,7 +39,7 @@
 
 #include "YUVImage.h"
 
-#include "yuv.h"
+#include "utils/yuv.h"
 
 #include <QOpenGLFunctions>
 

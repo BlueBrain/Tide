@@ -42,15 +42,15 @@
 #include "FileBrowser.h"
 #include "FileReceiver.h"
 #include "HtmlContent.h"
-#include "LoggingUtility.h"
 #include "RestServer.h"
 #include "SceneRemoteController.h"
 #include "ThumbnailCache.h"
 #include "configuration/Configuration.h"
-#include "log.h"
 #include "rest/serialization.h"
 #include "scene/ContentFactory.h"
 #include "scene/Scene.h"
+#include "tools/ActivityLogger.h"
+#include "utils/log.h"
 #include "json/serialization.h"
 // include last
 #include "rest/templates.h"
@@ -58,8 +58,6 @@
 #include <tide/master/version.h>
 
 #include <rockets/jsonrpc/http.h>
-
-#include <QDir>
 
 using namespace rockets;
 
@@ -188,7 +186,7 @@ RestInterface::~RestInterface()
 {
 }
 
-void RestInterface::exposeStatistics(const LoggingUtility& logger) const
+void RestInterface::exposeStatistics(const ActivityLogger& logger) const
 {
     _impl->server.handleGET("tide/stats", logger);
 }

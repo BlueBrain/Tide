@@ -70,14 +70,14 @@ BOOST_AUTO_TEST_CASE(factory_method)
     auto controller = ContentController::create(window);
     BOOST_CHECK(dynamic_cast<ContentController*>(controller.get()));
 
-    dummyContent.type = CONTENT_TYPE_PIXEL_STREAM;
+    dummyContent.type = ContentType::pixel_stream;
     BOOST_CHECK_THROW(ContentController::create(window), std::bad_cast);
     Window streamWin(ContentFactory::getPixelStreamContent("xyz", QSize()));
     BOOST_CHECK_NO_THROW(controller = ContentController::create(streamWin));
     BOOST_CHECK(dynamic_cast<PixelStreamController*>(controller.get()));
 
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
-    dummyContent.type = CONTENT_TYPE_WEBBROWSER;
+    dummyContent.type = ContentType::webbrowser;
     BOOST_CHECK_THROW(ContentController::create(window), std::bad_cast);
     Window webWindow(
         ContentFactory::getPixelStreamContent("abc", QSize(),
@@ -87,30 +87,30 @@ BOOST_AUTO_TEST_CASE(factory_method)
 #endif
 
 #if TIDE_ENABLE_PDF_SUPPORT
-    dummyContent.type = CONTENT_TYPE_PDF;
+    dummyContent.type = ContentType::pdf;
     controller = ContentController::create(window);
     BOOST_CHECK(dynamic_cast<PDFController*>(controller.get()));
 #endif
 
 #if TIDE_ENABLE_MOVIE_SUPPORT
-    dummyContent.type = CONTENT_TYPE_MOVIE;
+    dummyContent.type = ContentType::movie;
     controller = ContentController::create(window);
     BOOST_CHECK(dynamic_cast<MovieController*>(controller.get()));
 #endif
 
-    dummyContent.type = CONTENT_TYPE_IMAGE_PYRAMID;
+    dummyContent.type = ContentType::image_pyramid;
     controller = ContentController::create(window);
     BOOST_CHECK(dynamic_cast<ZoomController*>(controller.get()));
 
-    dummyContent.type = CONTENT_TYPE_TEXTURE;
+    dummyContent.type = ContentType::texture;
     controller = ContentController::create(window);
     BOOST_CHECK(dynamic_cast<ZoomController*>(controller.get()));
 
-    dummyContent.type = CONTENT_TYPE_SVG;
+    dummyContent.type = ContentType::svg;
     controller = ContentController::create(window);
     BOOST_CHECK(dynamic_cast<ContentController*>(controller.get()));
 
-    dummyContent.type = CONTENT_TYPE_MOVIE;
+    dummyContent.type = ContentType::movie;
     controller = ContentController::create(window);
     BOOST_CHECK(dynamic_cast<ContentController*>(controller.get()));
 }

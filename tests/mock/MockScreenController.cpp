@@ -56,7 +56,7 @@ void MockScreenController::checkPowerState()
 
 bool MockScreenController::powerOn()
 {
-    _state = ScreenState::ON;
+    _state = ScreenState::on;
     emit powerStateChanged(_state);
     powerOnCalled = true;
     return true;
@@ -64,7 +64,7 @@ bool MockScreenController::powerOn()
 
 bool MockScreenController::powerOff()
 {
-    _state = ScreenState::OFF;
+    _state = ScreenState::off;
     emit powerStateChanged(_state);
     powerOffCalled = true;
     return true;

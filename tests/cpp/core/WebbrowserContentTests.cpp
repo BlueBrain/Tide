@@ -72,8 +72,8 @@ BOOST_AUTO_TEST_CASE(testDefaultState)
 {
     const WebbrowserContent content{"Webbrowser_1", QSize(640, 480)};
 
-    BOOST_CHECK_EQUAL(content.getType(), CONTENT_TYPE_WEBBROWSER);
-    BOOST_CHECK_EQUAL(content.getURI(), "Webbrowser_1");
+    BOOST_CHECK_EQUAL(content.getType(), ContentType::webbrowser);
+    BOOST_CHECK_EQUAL(content.getUri(), "Webbrowser_1");
     BOOST_CHECK_EQUAL(content.getTitle(), "Web Browser");
     BOOST_CHECK_EQUAL(content.hasFixedAspectRatio(), false);
     BOOST_CHECK_EQUAL(content.getUrl(), "");

@@ -54,7 +54,7 @@ QColor Background::getColor() const
 
 QString Background::getUri() const
 {
-    return _content ? _content->getURI() : QString();
+    return _content ? _content->getUri() : QString();
 }
 
 const Content* Background::getContent() const

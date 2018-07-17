@@ -44,12 +44,12 @@
 #include "WallConfiguration.h"
 #include "WallRenderContext.h"
 #include "WallSurfaceRenderer.h"
-#include "log.h"
-#include "qmlUtils.h"
 #include "scene/Background.h"
 #include "scene/Options.h"
 #include "scene/Surface.h"
 #include "screens.h"
+#include "utils/log.h"
+#include "utils/qml.h"
 
 #include <deflect/qt/QuickRenderer.h>
 

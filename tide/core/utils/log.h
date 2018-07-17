@@ -1,6 +1,8 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2011-2012, The University of Texas at Austin.       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael.Dumusc@epfl.ch                   */
+/*                          Daniel.Nachbaur@epfl.ch                  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,46 +39,50 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "CommandLineParser.h"
+#ifndef LOG_H
+#define LOG_H
 
-#include <iostream>
+#include <qlogging.h>
+#include <string>
 
-namespace po = boost::program_options;
+#define LOG_VERBOSE 0
+#define LOG_DEBUG 1
+#define LOG_INFO 2
+#define LOG_WARN 3
+#define LOG_ERROR 4
+#define LOG_FATAL 5
 
-CommandLineParser::CommandLineParser()
-{
-    desc.add_options()("help,h", "produce help message");
-}
+#define LOG_AV "AV"
+#define LOG_CONTENT "CONTENT"
+#define LOG_GENERAL "GENERAL"
+#define LOG_JS "JS"
+#define LOG_MPI "MPI"
+#define LOG_PDF "PDF"
+#define LOG_POWER "POWER"
+#define LOG_QT "QT"
+#define LOG_REST "REST"
+#define LOG_STREAM "STREAM"
+#define LOG_TIFF "TIFF"
 
-CommandLineParser::~CommandLineParser()
-{
-}
+extern std::string logger_id;
+extern void put_log(const int level, const std::string& facility,
+                    const char* format, ...);
 
-void CommandLineParser::parse(const int argc, char** argv)
-{
-    try
-    {
-        po::command_line_parser parser{argc, argv};
-        parser.options(desc).positional(pos_desc);
-        const auto parsed = parser.run();
-        po::store(parsed, vm);
-        po::notify(vm);
-    }
-    catch (const po::required_option&)
-    {
-        // ignore missing required argument when --help is given
-        if (!vm.count("help"))
-            throw;
-    }
-}
+extern void avMessageLoger(void*, int level, const char* format, va_list varg);
+extern void qtMessageLogger(QtMsgType type, const QMessageLogContext& context,
+                            const QString& msg);
 
-bool CommandLineParser::getHelp() const
-{
-    return vm.count("help");
-}
+extern void tiffMessageLoggerWarn(const char* module, const char* fmt,
+                                  va_list ap);
+extern void tiffMessageLoggerErr(const char* module, const char* fmt,
+                                 va_list ap);
 
-void CommandLineParser::showSyntax(const std::string& appName) const
-{
-    std::cout << "Usage: " << appName << " [OPTIONS...]\n\n";
-    std::cout << desc;
-}
+#ifdef _WIN32
+#define print_log(l, facility, fmt, ...) \
+    put_log(l, facility, "%s: " fmt, __FUNCTION__, ##__VA_ARGS__)
+#else
+#define print_log(l, facility, fmt, ...) \
+    put_log(l, facility, "%s: " fmt, __PRETTY_FUNCTION__, ##__VA_ARGS__)
+#endif
+
+#endif

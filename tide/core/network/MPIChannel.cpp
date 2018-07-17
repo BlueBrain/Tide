@@ -42,7 +42,7 @@
 #include "MPIContext.h"
 #include "MPINospin.h"
 
-#include "log.h"
+#include "utils/log.h"
 
 // #define instead of a function so that print_log prints the correct reference
 #define MPI_CHECK(func)                                                 \

@@ -48,16 +48,16 @@ ImagePyramidContent::ImagePyramidContent(const QString& uri)
 {
 }
 
-CONTENT_TYPE ImagePyramidContent::getType() const
+ContentType ImagePyramidContent::getType() const
 {
-    return CONTENT_TYPE_IMAGE_PYRAMID;
+    return ContentType::image_pyramid;
 }
 
 bool ImagePyramidContent::readMetadata()
 {
     try
     {
-        setDimensions(TiffPyramidReader{getURI()}.getImageSize());
+        setDimensions(TiffPyramidReader{getUri()}.getImageSize());
     }
     catch (...)
     {

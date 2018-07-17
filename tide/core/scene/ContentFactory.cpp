@@ -40,7 +40,7 @@
 #include "ContentFactory.h"
 
 #include "config.h"
-#include "log.h"
+#include "utils/log.h"
 
 #include "Content.h"
 #include "ErrorContent.h"
@@ -74,45 +74,44 @@ ContentPtr _makeContent(const QString& uri)
 {
     switch (ContentFactory::getContentTypeForFile(uri))
     {
-    case CONTENT_TYPE_SVG:
+    case ContentType::svg:
         return std::make_unique<SVGContent>(uri);
 #if TIDE_USE_TIFF
-    case CONTENT_TYPE_IMAGE_PYRAMID:
+    case ContentType::image_pyramid:
         return std::make_unique<ImagePyramidContent>(uri);
 #endif
 #if TIDE_ENABLE_MOVIE_SUPPORT
-    case CONTENT_TYPE_MOVIE:
+    case ContentType::movie:
         return std::make_unique<MovieContent>(uri);
 #endif
 #if TIDE_ENABLE_PDF_SUPPORT
-    case CONTENT_TYPE_PDF:
+    case ContentType::pdf:
         return std::make_unique<PDFContent>(uri);
 #endif
-    case CONTENT_TYPE_TEXTURE:
+    case ContentType::texture:
         return std::make_unique<TextureContent>(uri);
-    case CONTENT_TYPE_ANY:
     default:
         return nullptr;
     }
 }
 }
 
-CONTENT_TYPE ContentFactory::getContentTypeForFile(const QString& uri)
+ContentType ContentFactory::getContentTypeForFile(const QString& uri)
 {
-    const QString extension = QFileInfo(uri).suffix().toLower();
+    const auto extension = QFileInfo(uri).suffix().toLower();
 
     // SVGs must be processed first because they can also be read as an image
     if (SVGContent::getSupportedExtensions().contains(extension))
-        return CONTENT_TYPE_SVG;
+        return ContentType::svg;
 
 #if TIDE_ENABLE_MOVIE_SUPPORT
     if (MovieContent::getSupportedExtensions().contains(extension))
-        return CONTENT_TYPE_MOVIE;
+        return ContentType::movie;
 #endif
 
 #if TIDE_ENABLE_PDF_SUPPORT
     if (PDFContent::getSupportedExtensions().contains(extension))
-        return CONTENT_TYPE_PDF;
+        return ContentType::pdf;
 #endif
 
 #if TIDE_USE_TIFF
@@ -121,7 +120,7 @@ CONTENT_TYPE ContentFactory::getContentTypeForFile(const QString& uri)
         try
         {
             TiffPyramidReader tif{uri};
-            return CONTENT_TYPE_IMAGE_PYRAMID;
+            return ContentType::image_pyramid;
         }
         catch (...)
         { /* not a pyramid file, pass */
@@ -132,20 +131,20 @@ CONTENT_TYPE ContentFactory::getContentTypeForFile(const QString& uri)
     const QImageReader imageReader(uri);
     if (imageReader.canRead())
     {
-        const QSize size = imageReader.size();
+        const auto size = imageReader.size();
 
         if (size.width() <= maxTextureSize.width() &&
             size.height() <= maxTextureSize.height())
-            return CONTENT_TYPE_TEXTURE;
+            return ContentType::texture;
 
         print_log(LOG_WARN, LOG_CONTENT,
                   "Image too big to open. Try converting it to an "
                   "image pyramid: '%s'",
                   uri.toLocal8Bit().constData());
-        return CONTENT_TYPE_ANY;
+        return ContentType::invalid;
     }
 
-    return CONTENT_TYPE_ANY;
+    return ContentType::invalid;
 }
 
 ContentPtr ContentFactory::getContent(const QString& uri)
@@ -179,7 +178,7 @@ ContentPtr ContentFactory::getPixelStreamContent(const QString& uri,
 
 ContentPtr ContentFactory::getErrorContent(const Content& content)
 {
-    const auto& uri = content.getURI();
+    const auto& uri = content.getUri();
     const auto& size = content.getDimensions();
 
     return std::make_unique<ErrorContent>(uri, size);

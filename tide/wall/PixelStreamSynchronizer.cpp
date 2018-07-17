@@ -41,8 +41,8 @@
 
 #include "PixelStreamUpdater.h"
 #include "Tile.h"
-#include "ZoomHelper.h"
 #include "scene/Window.h"
+#include "scene/ZoomHelper.h"
 
 PixelStreamSynchronizer::PixelStreamSynchronizer(
     std::shared_ptr<PixelStreamUpdater> updater, const deflect::View view,
