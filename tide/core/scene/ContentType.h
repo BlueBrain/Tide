@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
 /*                          Daniel Nachbaur <daniel.nachbaur@epfl.ch>*/
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
@@ -43,17 +43,20 @@
 
 #include <QString>
 
-enum CONTENT_TYPE
+/**
+ * The different types of contents.
+ */
+enum class ContentType
 {
-    CONTENT_TYPE_ANY,
-    CONTENT_TYPE_DYNAMIC_TEXTURE,
-    CONTENT_TYPE_MOVIE,
-    CONTENT_TYPE_PIXEL_STREAM,
-    CONTENT_TYPE_SVG,
-    CONTENT_TYPE_TEXTURE,
-    CONTENT_TYPE_PDF,
-    CONTENT_TYPE_WEBBROWSER,
-    CONTENT_TYPE_IMAGE_PYRAMID
+    invalid,
+    dynamic_texture,
+    movie,
+    pixel_stream,
+    svg,
+    texture,
+    pdf,
+    webbrowser,
+    image_pyramid
 };
 
 /**
@@ -67,10 +70,7 @@ enum class StreamType
     WHITEBOARD
 };
 
-QString getContentTypeString(CONTENT_TYPE type);
-
-CONTENT_TYPE getContentType(const QString& typeString);
-
-bool contentTypeIsFile(CONTENT_TYPE type);
+bool contentTypeIsFile(ContentType type);
+std::ostream& operator<<(std::ostream& str, ContentType type);
 
 #endif

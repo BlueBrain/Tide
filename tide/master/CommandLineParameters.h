@@ -40,7 +40,7 @@
 #ifndef COMMANDLINEPARAMETERS_H
 #define COMMANDLINEPARAMETERS_H
 
-#include "CommandLineParser.h"
+#include "utils/CommandLineParser.h"
 
 #include <QString>
 

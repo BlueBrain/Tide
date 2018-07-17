@@ -47,13 +47,13 @@
 #include "MasterQuickView.h"
 #include "StateSerializationHelper.h"
 #include "configuration/Configuration.h"
-#include "log.h"
 #include "scene/Background.h"
 #include "scene/ContentFactory.h"
 #include "scene/DisplayGroup.h"
 #include "scene/Options.h"
 #include "scene/Scene.h"
 #include "scene/Window.h"
+#include "utils/log.h"
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
 #include "WebbrowserWidget.h"
 #endif

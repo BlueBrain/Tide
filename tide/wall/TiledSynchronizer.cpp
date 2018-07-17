@@ -72,7 +72,7 @@ void TiledSynchronizer::updateTiles()
     for (auto i : addedTiles)
     {
         const auto type =
-            source.isDynamic() ? TextureType::Dynamic : TextureType::Static;
+            source.isDynamic() ? TextureType::dynamic : TextureType::static_;
         emit addTile(Tile::create(i, source.getTileRect(i), type));
     }
 

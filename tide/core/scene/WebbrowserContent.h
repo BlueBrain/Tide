@@ -61,7 +61,7 @@ public:
     WebbrowserContent(const QString& uri, const QSize& size);
 
     /** Get the content type **/
-    CONTENT_TYPE getType() const final;
+    ContentType getType() const final;
 
     /** Get the title for the web page. **/
     QString getTitle() const final;

@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [261](https://github.com/BlueBrain/Tide/pull/261):
+  Tweak UI design and controls style.
 * [260](https://github.com/BlueBrain/Tide/pull/260):
   Add context menu to copy-paste selected contents from one session to another.
   Fix a bug that caused the "Touch to prevent sleep" dialog appear even when no

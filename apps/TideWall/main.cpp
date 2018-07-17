@@ -38,11 +38,11 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "CommandLineParser.h"
 #include "WallApplication.h"
 #include "WallConfiguration.h"
-#include "log.h"
 #include "network/MPIChannel.h"
+#include "utils/CommandLineParser.h"
+#include "utils/log.h"
 
 #include <QThreadPool>
 

@@ -64,31 +64,20 @@ class Content : public QObject
     Q_DISABLE_COPY(Content)
 
     // These properties are read-only on master and wall
-    Q_PROPERTY(QString uri READ getURI CONSTANT)
+    Q_PROPERTY(QString uri READ getUri CONSTANT)
     Q_PROPERTY(QString filePath READ getFilePath CONSTANT)
     Q_PROPERTY(QString title READ getTitle NOTIFY titleChanged)
     Q_PROPERTY(bool hasFixedAspectRatio READ hasFixedAspectRatio CONSTANT)
     Q_PROPERTY(KeyboardState* keyboard READ getKeyboardState CONSTANT)
+    Q_PROPERTY(bool captureInteraction READ getCaptureInteraction NOTIFY
+                   captureInteractionChanged)
 
     // These properties can be constant because they are only accessed on wall
     Q_PROPERTY(qreal aspectRatio READ getAspectRatio CONSTANT)
     Q_PROPERTY(QRectF zoomRect READ getZoomRect CONSTANT)
     Q_PROPERTY(bool zoomed READ isZoomed CONSTANT)
-    Q_PROPERTY(Interaction interactionPolicy READ getInteractionPolicy NOTIFY
-                   interactionPolicyChanged)
-    Q_PROPERTY(bool captureInteraction READ getCaptureInteraction NOTIFY
-                   captureInteractionChanged)
 
 public:
-    /** The different types of interaction. */
-    enum Interaction
-    {
-        AUTO, // interaction is enabled automatically (default)
-        ON,   // force interaction with content
-        OFF   // never interact with content
-    };
-    Q_ENUMS(Interaction)
-
     /** Constructor **/
     Content(const QString& uri);
 
@@ -96,10 +85,10 @@ public:
     ContentPtr clone() const;
 
     /** Get the content URI **/
-    const QString& getURI() const;
+    const QString& getUri() const;
 
     /** Get the content type **/
-    virtual CONTENT_TYPE getType() const = 0;
+    virtual ContentType getType() const = 0;
 
     /** @return the full path to the content file. */
     virtual QString getFilePath() const;
@@ -161,9 +150,6 @@ public:
     /** Resets the zoom to [0,0,1,1]. */
     void resetZoom();
 
-    /** Get the interaction policy (default: AUTO). */
-    virtual Interaction getInteractionPolicy() const;
-
     /** Set optional size hints to constrain resize/scale and 1:1 size. */
     void setSizeHints(const deflect::SizeHints& sizeHints);
 
@@ -194,7 +180,18 @@ protected:
     // Default constructor required for boost::serialization
     Content();
 
+    /** The different types of interaction. */
+    enum class Interaction
+    {
+        AUTO, // interaction is enabled automatically (default)
+        ON,   // force interaction with content
+        OFF   // never interact with content
+    };
+
 private:
+    /** Get the interaction policy (default: AUTO). */
+    virtual Interaction _getInteractionPolicy() const;
+
     friend class boost::serialization::access;
 
     /** Serialize for sending to Wall applications. */

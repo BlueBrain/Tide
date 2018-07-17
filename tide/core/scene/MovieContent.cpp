@@ -54,18 +54,18 @@ MovieContent::MovieContent(const QString& uri)
 {
 }
 
-CONTENT_TYPE MovieContent::getType() const
+ContentType MovieContent::getType() const
 {
-    return CONTENT_TYPE_MOVIE;
+    return ContentType::movie;
 }
 
 bool MovieContent::readMetadata()
 {
-    QFileInfo file(getURI());
+    QFileInfo file(getUri());
     if (!file.exists() || !file.isReadable())
         return false;
 
-    const FFMPEGMovie movie(getURI());
+    const FFMPEGMovie movie(getUri());
     if (!movie.isValid())
         return false;
 
@@ -74,7 +74,7 @@ bool MovieContent::readMetadata()
     return true;
 }
 
-Content::Interaction MovieContent::getInteractionPolicy() const
+Content::Interaction MovieContent::_getInteractionPolicy() const
 {
     return Content::Interaction::OFF;
 }

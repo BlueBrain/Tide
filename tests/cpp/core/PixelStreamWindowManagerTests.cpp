@@ -169,8 +169,7 @@ BOOST_AUTO_TEST_CASE(testEventReceiver)
 
     auto& content = dynamic_cast<PixelStreamContent&>(window->getContent());
     BOOST_REQUIRE(!content.hasEventReceivers());
-    BOOST_REQUIRE_EQUAL(content.getInteractionPolicy(),
-                        Content::Interaction::OFF);
+    BOOST_REQUIRE(!content.getCaptureInteraction());
 
     DummyEventReceiver receiver;
     BOOST_REQUIRE(!receiver.success);
@@ -184,11 +183,11 @@ BOOST_AUTO_TEST_CASE(testEventReceiver)
     BOOST_CHECK(!receiver.success);
 
     auto promise = std::make_shared<std::promise<bool>>();
-    windowManager.registerEventReceiver(content.getURI(), false, &receiver,
+    windowManager.registerEventReceiver(content.getUri(), false, &receiver,
                                         promise);
     BOOST_CHECK(promise->get_future().get());
     BOOST_CHECK(content.hasEventReceivers());
-    BOOST_CHECK_EQUAL(content.getInteractionPolicy(), Content::Interaction::ON);
+    BOOST_CHECK(content.getCaptureInteraction());
     BOOST_CHECK(!receiver.success);
 
     streamController->notify(deflect::Event());
@@ -214,8 +213,8 @@ BOOST_AUTO_TEST_CASE(testExplicitWindowCreation)
     BOOST_CHECK_EQUAL(window, windowManager.getWindows(uri)[0]);
 
     const auto& content = window->getContent();
-    BOOST_CHECK_EQUAL(content.getURI(), uri);
-    BOOST_CHECK_EQUAL(content.getType(), CONTENT_TYPE_PIXEL_STREAM);
+    BOOST_CHECK_EQUAL(content.getUri(), uri);
+    BOOST_CHECK_EQUAL(content.getType(), ContentType::pixel_stream);
 
     const QRectF& coords = window->getCoordinates();
     BOOST_CHECK_EQUAL(coords.size(), testWindowSize);
@@ -249,8 +248,8 @@ BOOST_AUTO_TEST_CASE(testImplicitWindowCreation)
     BOOST_CHECK_EQUAL(window, group.getWindow(window->getID()));
 
     const auto& content = window->getContent();
-    BOOST_CHECK(content.getURI() == uri);
-    BOOST_CHECK_EQUAL(content.getType(), CONTENT_TYPE_PIXEL_STREAM);
+    BOOST_CHECK(content.getUri() == uri);
+    BOOST_CHECK_EQUAL(content.getType(), ContentType::pixel_stream);
     BOOST_CHECK_EQUAL(content.getDimensions(), UNDEFINED_SIZE);
 
     const auto& coords = window->getCoordinates();
@@ -475,7 +474,7 @@ BOOST_FIXTURE_TEST_CASE(
     const auto& content =
         dynamic_cast<const PixelStreamContent&>(window->getContent());
 
-    BOOST_CHECK_EQUAL(content.getURI(), CONTENT_URI);
+    BOOST_CHECK_EQUAL(content.getUri(), CONTENT_URI);
     BOOST_CHECK_EQUAL(content.getChannel(), 0);
     BOOST_CHECK_EQUAL(content.getDimensions(), testFrameSize);
 }
@@ -568,8 +567,8 @@ BOOST_FIXTURE_TEST_CASE(multi_channel_stream_opens_on_multiple_surfaces,
     BOOST_CHECK(window0.isHidden());
     BOOST_CHECK(window1.isHidden());
 
-    BOOST_CHECK_EQUAL(content0.getURI(), CONTENT_URI);
-    BOOST_CHECK_EQUAL(content1.getURI(), CONTENT_URI);
+    BOOST_CHECK_EQUAL(content0.getUri(), CONTENT_URI);
+    BOOST_CHECK_EQUAL(content1.getUri(), CONTENT_URI);
 
     BOOST_CHECK_EQUAL(content0.getChannel(), 0);
     BOOST_CHECK_EQUAL(content1.getChannel(), 1);
@@ -589,7 +588,7 @@ BOOST_FIXTURE_TEST_CASE(multi_channel_stream_opens_on_multiple_surfaces,
     BOOST_CHECK(group1->getWindows().empty());
     BOOST_CHECK(group2->getWindows().empty());
 
-    BOOST_CHECK_EQUAL(content0.getURI(), CONTENT_URI);
+    BOOST_CHECK_EQUAL(content0.getUri(), CONTENT_URI);
     BOOST_CHECK_EQUAL(content0.getChannel(), 0);
     BOOST_CHECK_EQUAL(content0.getDimensions(), testFrameSize2);
 

@@ -56,7 +56,7 @@ public:
     explicit PDFContent(const QString& uri);
 
     /** Get the content type **/
-    CONTENT_TYPE getType() const override;
+    ContentType getType() const override;
 
     /**
      * Read PDF informations from the source URI.

@@ -41,7 +41,6 @@
 
 #include "DataProvider.h"
 #include "DisplayGroupRenderer.h"
-#include "qmlUtils.h"
 #include "scene/Background.h"
 #include "scene/CountdownStatus.h"
 #include "scene/DisplayGroup.h"
@@ -49,6 +48,7 @@
 #include "scene/Options.h"
 #include "scene/ScreenLock.h"
 #include "scene/Surface.h"
+#include "utils/qml.h"
 
 #include <deflect/server/Frame.h>
 
@@ -164,7 +164,7 @@ void WallSurfaceRenderer::_setBackground(const Background& background)
 
     if (!content)
         _backgroundRenderer.reset();
-    else if (_hasBackgroundChanged(content->getURI()))
+    else if (_hasBackgroundChanged(content->getUri()))
         _backgroundRenderer =
             std::make_unique<BackgroundRenderer>(background, _context,
                                                  *_surfaceItem);

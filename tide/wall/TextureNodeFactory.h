@@ -75,7 +75,7 @@ public:
 
 private:
     QQuickWindow& _window;
-    TextureType _type = TextureType::Static;
+    TextureType _type = TextureType::static_;
 };
 
 #endif

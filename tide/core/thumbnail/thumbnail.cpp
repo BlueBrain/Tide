@@ -53,7 +53,7 @@ namespace thumbnail
 {
 QImage create(const Content& content, const QSize& size)
 {
-    if (content.getType() == CONTENT_TYPE_PIXEL_STREAM)
+    if (content.getType() == ContentType::pixel_stream)
         return StreamThumbnailGenerator{size}.generate(content.getTitle());
 
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
@@ -61,7 +61,7 @@ QImage create(const Content& content, const QSize& size)
         return WebbrowserThumbnailGenerator{size}.generate(web->getUrl());
 #endif
 
-    return create(content.getURI(), size);
+    return create(content.getUri(), size);
 }
 
 QImage create(const QString& filename, const QSize& size)

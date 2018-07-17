@@ -40,9 +40,9 @@
 
 #include "ZoomController.h"
 
-#include "ZoomHelper.h"
-#include "geometry.h"
 #include "scene/Window.h"
+#include "scene/ZoomHelper.h"
+#include "utils/geometry.h"
 
 #define MIN_ZOOM 1.0
 

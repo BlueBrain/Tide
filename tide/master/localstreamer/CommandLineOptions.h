@@ -40,7 +40,7 @@
 #ifndef COMMANDLINEOPTIONS_H
 #define COMMANDLINEOPTIONS_H
 
-#include "CommandLineParser.h"
+#include "utils/CommandLineParser.h"
 
 #include <QStringList>
 

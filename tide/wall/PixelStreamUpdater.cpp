@@ -42,8 +42,8 @@
 #include "PixelStreamAssembler.h"
 #include "PixelStreamPassthrough.h"
 #include "StreamImage.h"
-#include "log.h"
 #include "network/WallToWallChannel.h"
+#include "utils/log.h"
 
 #include <deflect/server/Frame.h>
 #include <deflect/server/TileDecoder.h>

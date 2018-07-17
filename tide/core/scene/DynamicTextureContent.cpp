@@ -43,7 +43,7 @@
 
 BOOST_CLASS_EXPORT(DynamicTextureContent)
 
-CONTENT_TYPE DynamicTextureContent::getType() const
+ContentType DynamicTextureContent::getType() const
 {
-    return CONTENT_TYPE_DYNAMIC_TEXTURE;
+    return ContentType::dynamic_texture;
 }

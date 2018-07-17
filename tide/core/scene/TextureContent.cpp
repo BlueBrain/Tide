@@ -50,14 +50,14 @@ TextureContent::TextureContent(const QString& uri)
 {
 }
 
-CONTENT_TYPE TextureContent::getType() const
+ContentType TextureContent::getType() const
 {
-    return CONTENT_TYPE_TEXTURE;
+    return ContentType::texture;
 }
 
 bool TextureContent::readMetadata()
 {
-    const QImageReader imageReader(getURI());
+    const QImageReader imageReader(getUri());
     if (!imageReader.canRead())
         return false;
 

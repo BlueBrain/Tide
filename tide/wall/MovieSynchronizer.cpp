@@ -41,8 +41,8 @@
 
 #include "MovieUpdater.h"
 #include "Tile.h"
-#include "ZoomHelper.h"
 #include "scene/Window.h"
+#include "scene/ZoomHelper.h"
 
 MovieSynchronizer::MovieSynchronizer(std::shared_ptr<MovieUpdater> updater,
                                      const deflect::View view)

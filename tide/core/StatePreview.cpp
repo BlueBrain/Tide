@@ -41,9 +41,9 @@
 
 #include <QRectF>
 
-#include "log.h"
 #include "scene/Window.h"
 #include "thumbnail/thumbnail.h"
+#include "utils/log.h"
 
 #include <QFileInfo>
 #include <QImageReader>

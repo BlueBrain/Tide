@@ -58,7 +58,7 @@ BackgroundWidget::BackgroundWidget(Configuration& configuration,
     // Get current variables
 
     _previousColor = _background().getColor();
-    _previousBackgroundURI = _background().getUri();
+    _previousBackgroundUri = _background().getUri();
 
     // Color chooser
 
@@ -72,7 +72,7 @@ BackgroundWidget::BackgroundWidget(Configuration& configuration,
 
     // Background chooser
 
-    _backgroundLabel = new QLabel(_previousBackgroundURI);
+    _backgroundLabel = new QLabel(_previousBackgroundUri);
     _backgroundLabel->setFrameStyle(frameStyle);
     auto backgroundButton = new QPushButton(tr("Choose background content..."));
     connect(backgroundButton, SIGNAL(clicked()), this,
@@ -111,7 +111,7 @@ void BackgroundWidget::accept()
     if (_configuration.saveBackgroundChanges())
     {
         _previousColor = _background().getColor();
-        _previousBackgroundURI = _background().getUri();
+        _previousBackgroundUri = _background().getUri();
 
         QDialog::accept();
     }
@@ -130,10 +130,10 @@ void BackgroundWidget::reject()
     // Revert to saved settings
     _colorLabel->setText(_previousColor.name());
     _colorLabel->setPalette(QPalette(_previousColor));
-    _backgroundLabel->setText(_previousBackgroundURI);
+    _backgroundLabel->setText(_previousBackgroundUri);
 
     _background().setColor(_previousColor);
-    _background().setUri(_previousBackgroundURI);
+    _background().setUri(_previousBackgroundUri);
 
     QDialog::reject();
 }
@@ -152,7 +152,7 @@ void BackgroundWidget::setActiveSurface(const uint surfaceIndex)
 
     const auto uri = _background().getUri();
     _backgroundLabel->setText(uri);
-    _previousBackgroundURI = uri;
+    _previousBackgroundUri = uri;
 }
 
 void BackgroundWidget::_chooseColor()

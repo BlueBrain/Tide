@@ -82,14 +82,14 @@ void MultiChannelWindowController::_onWindowAdded(WindowPtr window)
         const auto& content =
             dynamic_cast<const MultiChannelContent&>(window->getContent());
 
-        _contentToWindowsMap[content.getURI()].insert(window->getID());
+        _contentToWindowsMap[content.getUri()].insert(window->getID());
 
         connect(window.get(), &Window::modeChanged,
                 [ this, windowWeakPtr = std::weak_ptr<Window>(window) ] {
                     if (auto win = windowWeakPtr.lock())
                     {
                         _changeFullscreenModeForAllWindows(
-                            win->getContent().getURI(), win->isFullscreen());
+                            win->getContent().getUri(), win->isFullscreen());
                     }
                 });
     }
@@ -105,14 +105,14 @@ void MultiChannelWindowController::_onWindowRemoved(WindowPtr window)
         const auto& content =
             dynamic_cast<const MultiChannelContent&>(window->getContent());
 
-        auto& windows = _contentToWindowsMap[content.getURI()];
+        auto& windows = _contentToWindowsMap[content.getUri()];
 
         // Close all windows if a window is closed by the user on any surface
         if (windows.erase(window->getID()))
             _closeAll(windows);
 
         if (windows.empty())
-            _contentToWindowsMap.erase(content.getURI());
+            _contentToWindowsMap.erase(content.getUri());
     }
     catch (const std::bad_cast&)
     {

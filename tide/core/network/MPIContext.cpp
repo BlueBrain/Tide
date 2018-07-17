@@ -40,7 +40,7 @@
 #include "MPIContext.h"
 
 #include "config.h"
-#include "log.h"
+#include "utils/log.h"
 
 #include <mpi.h>
 #include <stdexcept>

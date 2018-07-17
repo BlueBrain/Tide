@@ -53,7 +53,7 @@ BOOST_FIXTURE_TEST_CASE(need_to_change_texture_node_type_between_rgba_and_yuv,
     if (!window)
         return;
 
-    TextureNodeFactoryImpl f{*window, TextureType::Static};
+    TextureNodeFactoryImpl f{*window, TextureType::static_};
     using TF = TextureFormat;
 
     BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::rgba, TF::rgba), false);
@@ -82,7 +82,7 @@ BOOST_FIXTURE_TEST_CASE(create_static_texture_nodes, QQuickWindowFixture)
     if (!window)
         return;
 
-    TextureNodeFactoryImpl f{*window, TextureType::Static};
+    TextureNodeFactoryImpl f{*window, TextureType::static_};
     using TF = TextureFormat;
 
     BOOST_CHECK(dynamic_cast<TextureNodeRGBA*>(f.create(TF::rgba).get()));
@@ -96,7 +96,7 @@ BOOST_FIXTURE_TEST_CASE(create_dynamic_texture_nodes, QQuickWindowFixture)
     if (!window)
         return;
 
-    TextureNodeFactoryImpl f{*window, TextureType::Dynamic};
+    TextureNodeFactoryImpl f{*window, TextureType::dynamic};
     using TF = TextureFormat;
 
     BOOST_CHECK(dynamic_cast<TextureNodeRGBA*>(f.create(TF::rgba).get()));

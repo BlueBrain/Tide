@@ -42,9 +42,9 @@
 #include "control/ContentController.h"
 #include "control/DisplayGroupController.h"
 #include "control/WindowTouchController.h"
-#include "qmlUtils.h"
 #include "scene/DisplayGroup.h"
 #include "scene/Window.h"
+#include "utils/qml.h"
 
 #include <QQmlContext>
 #include <QQmlEngine>

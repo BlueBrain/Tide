@@ -43,10 +43,10 @@
 #include "VisibilityHelper.h"
 #include "WallRenderContext.h"
 #include "WindowRenderer.h"
-#include "geometry.h"
-#include "qmlUtils.h"
 #include "scene/Background.h"
 #include "scene/DisplayGroup.h"
+#include "utils/geometry.h"
+#include "utils/qml.h"
 
 BackgroundRenderer::BackgroundRenderer(const Background& background,
                                        const WallRenderContext& context,

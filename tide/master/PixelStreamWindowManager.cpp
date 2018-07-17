@@ -44,13 +44,13 @@
 #include "control/DisplayGroupController.h"
 #include "control/WindowController.h"
 #include "localstreamer/PixelStreamerLauncher.h"
-#include "log.h"
 #include "scene/ContentFactory.h"
 #include "scene/ContentType.h"
 #include "scene/DisplayGroup.h"
 #include "scene/PixelStreamContent.h"
 #include "scene/Scene.h"
 #include "scene/Window.h"
+#include "utils/log.h"
 
 #include <deflect/server/EventReceiver.h>
 #include <deflect/server/Frame.h>
@@ -90,9 +90,9 @@ const QUuid& _findWindowIdForChannel(const Windows& windows, const uint channel)
     throw window_not_found_error("");
 }
 
-bool _isStreamType(const CONTENT_TYPE type)
+bool _isStreamType(const ContentType type)
 {
-    return type == CONTENT_TYPE_PIXEL_STREAM || type == CONTENT_TYPE_WEBBROWSER;
+    return type == ContentType::pixel_stream || type == ContentType::webbrowser;
 }
 }
 
@@ -357,7 +357,7 @@ void PixelStreamWindowManager::_onWindowAdded(WindowPtr window,
     // which openWindow is not called).
     const auto& content =
         static_cast<const PixelStreamContent&>(window->getContent());
-    auto& windows = _streams[content.getURI()].windows;
+    auto& windows = _streams[content.getUri()].windows;
     windows.emplace(surfaceIndex,
                     WindowInfo{window->getID(), content.getChannel()});
 }
@@ -368,7 +368,7 @@ void PixelStreamWindowManager::_onWindowRemoved(WindowPtr window,
     if (!_isStreamType(window->getContent().getType()))
         return;
 
-    const auto& uri = window->getContent().getURI();
+    const auto& uri = window->getContent().getUri();
 
     auto& windows = _streams.at(uri).windows;
     windows.erase(surfaceIndex);
@@ -412,7 +412,7 @@ void PixelStreamWindowManager::_updateWindowSize(Window& window,
 
     // ready to make visible
     if (externalStreamIsOpening)
-        emit externalStreamOpening(content.getURI());
+        emit externalStreamOpening(content.getUri());
 }
 
 void PixelStreamWindowManager::_resizeInPlace(Window& window,

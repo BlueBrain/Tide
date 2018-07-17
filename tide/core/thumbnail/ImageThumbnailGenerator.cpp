@@ -42,7 +42,7 @@
 #include <QFileInfo>
 #include <QImageReader>
 
-#include "log.h"
+#include "utils/log.h"
 
 #define SIZEOF_MEGABYTE (1024 * 1024)
 #define MAX_IMAGE_FILE_SIZE (100 * SIZEOF_MEGABYTE)

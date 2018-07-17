@@ -39,8 +39,8 @@
 
 #include "TiffPyramidReader.h"
 
-#include "log.h"
 #include "types.h"
+#include "utils/log.h"
 
 #include <QPainter>
 #include <tiffio.h>

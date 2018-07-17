@@ -44,7 +44,6 @@
 #include "control/MovieController.h"
 #include "scene/DisplayGroup.h"
 #include "scene/MovieContent.h"
-#include "scene/PixelStreamContent.h"
 
 SideController::SideController(DisplayGroup& group)
     : _group{group}
@@ -63,11 +62,8 @@ void SideController::toggleKeyboard()
 {
     if (auto window = _group.getFullscreenWindow())
     {
-        if (auto content =
-                dynamic_cast<PixelStreamContent*>(window->getContentPtr()))
-        {
-            KeyboardController{*content->getKeyboardState()}.toggle();
-        }
+        if (auto keyboard = window->getContent().getKeyboardState())
+            KeyboardController{*keyboard}.toggle();
     }
 }
 

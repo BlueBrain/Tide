@@ -60,7 +60,6 @@ class RestInterface;
 class SceneController;
 class ScreenController;
 class ScreenshotAssembler;
-class LoggingUtility;
 /**
  * The main application for the Master process.
  */
@@ -117,7 +116,7 @@ private:
 
 #if TIDE_ENABLE_REST_INTERFACE
     std::unique_ptr<RestInterface> _restInterface;
-    std::unique_ptr<LoggingUtility> _logger;
+    std::unique_ptr<ActivityLogger> _logger;
 #endif
 
 #if TIDE_ENABLE_PLANAR_CONTROLLER

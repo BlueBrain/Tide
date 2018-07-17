@@ -39,7 +39,7 @@
 
 #include "FFMPEGFrame.h"
 
-#include "log.h"
+#include "utils/log.h"
 
 FFMPEGFrame::FFMPEGFrame()
 #if (LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55, 28, 0))

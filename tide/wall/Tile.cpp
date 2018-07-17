@@ -40,7 +40,7 @@
 #include "Tile.h"
 
 #include "TextureNodeFactory.h"
-#include "log.h"
+#include "utils/log.h"
 
 #include <QSGNode>
 
@@ -86,7 +86,7 @@ void Tile::update(const QRect& rect)
 {
     _nextCoord = rect;
 
-    if (_type == TextureType::Dynamic)
+    if (_type == TextureType::dynamic)
         emit requestNextFrame(shared_from_this());
 
     QQuickItem::update();
@@ -100,7 +100,7 @@ void Tile::updateBackTexture(ImagePtr image, TilePtr self)
         return;
     }
 
-    if (_type == TextureType::Static && _firstImageUploaded)
+    if (_type == TextureType::static_ && _firstImageUploaded)
         throw std::logic_error("Static tiles can't be updated");
 
     _textureSwitcher.setNextImage(image);

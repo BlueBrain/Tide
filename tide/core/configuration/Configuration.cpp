@@ -40,7 +40,7 @@
 #include "Configuration.h"
 
 #include "XmlParser.h"
-#include "log.h"
+#include "utils/log.h"
 #include "json/json.h"
 #include "json/serialization.h"
 

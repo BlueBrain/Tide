@@ -61,7 +61,7 @@ public:
     PixelStreamContent(const QString& uri, const QSize& size, bool keyboard);
 
     /** Get the content type **/
-    CONTENT_TYPE getType() const override;
+    ContentType getType() const override;
 
     /**
      * Content method overload, not used for PixelStreams.
@@ -79,7 +79,7 @@ public:
     void incrementEventReceiverCount();
 
     /** @return ON when hasEventReceivers() is true, otherwise OFF. */
-    Interaction getInteractionPolicy() const final;
+    Interaction _getInteractionPolicy() const final;
 
     /** Parse data received from the deflect::Stream. */
     virtual void parseData(QByteArray data) { Q_UNUSED(data); }

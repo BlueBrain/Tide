@@ -41,7 +41,7 @@
 
 #include "FFMPEGFrame.h"
 #include "FFMPEGVideoFrameConverter.h"
-#include "log.h"
+#include "utils/log.h"
 
 #include <sstream>
 #include <stdexcept>

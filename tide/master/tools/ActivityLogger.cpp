@@ -38,7 +38,7 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "LoggingUtility.h"
+#include "tools/ActivityLogger.h"
 
 #include "scene/Scene.h"
 #include "scene/Window.h"
@@ -72,53 +72,53 @@ const auto windowMovedToFront = "contentWindowMovedToFront";
 const auto windowRemoved = "contentWindowRemoved";
 }
 
-void LoggingUtility::monitor(const Scene& scene)
+void ActivityLogger::monitor(const Scene& scene)
 {
     for (const auto& surface : scene.getSurfaces())
         _monitor(surface.getGroup());
 }
 
-size_t LoggingUtility::getWindowCount() const
+size_t ActivityLogger::getWindowCount() const
 {
     return _windowCount;
 }
 
-size_t LoggingUtility::getAccumulatedWindowCount() const
+size_t ActivityLogger::getAccumulatedWindowCount() const
 {
     return _accumulatedWindowCount;
 }
 
-const QString& LoggingUtility::getWindowCountModificationTime() const
+const QString& ActivityLogger::getWindowCountModificationTime() const
 {
     return _windowCountModificationTime;
 }
 
-int LoggingUtility::getInteractionCount() const
+int ActivityLogger::getInteractionCount() const
 {
     return _interactionCounter;
 }
 
-const QString& LoggingUtility::getLastInteractionName() const
+const QString& ActivityLogger::getLastInteractionName() const
 {
     return _lastInteractionName;
 }
 
-const QString& LoggingUtility::getLastInteractionTime() const
+const QString& ActivityLogger::getLastInteractionTime() const
 {
     return _lastInteractionTime;
 }
 
-ScreenState LoggingUtility::getScreenState() const
+ScreenState ActivityLogger::getScreenState() const
 {
     return _screenState;
 }
 
-QString LoggingUtility::getScreenStateModificationTime() const
+QString ActivityLogger::getScreenStateModificationTime() const
 {
     return _screenStateModificationTime;
 }
 
-void LoggingUtility::logWindowAdded(WindowPtr window)
+void ActivityLogger::logWindowAdded(WindowPtr window)
 {
     connect(window.get(), &Window::stateChanged,
             [this]() { _logInteraction(windowStateChanged); });
@@ -138,49 +138,49 @@ void LoggingUtility::logWindowAdded(WindowPtr window)
     _logInteraction(windowAdded);
 }
 
-void LoggingUtility::logWindowMovedToFront()
+void ActivityLogger::logWindowMovedToFront()
 {
     _logInteraction(windowMovedToFront);
 }
 
-void LoggingUtility::logWindowRemoved()
+void ActivityLogger::logWindowRemoved()
 {
     _decrementWindowCount();
     _logInteraction(windowRemoved);
 }
 
-void LoggingUtility::_monitor(const DisplayGroup& group)
+void ActivityLogger::_monitor(const DisplayGroup& group)
 {
     connect(&group, &DisplayGroup::windowAdded, this,
-            &LoggingUtility::logWindowAdded);
+            &ActivityLogger::logWindowAdded);
 
     connect(&group, &DisplayGroup::windowRemoved, this,
-            &LoggingUtility::logWindowRemoved);
+            &ActivityLogger::logWindowRemoved);
 
     connect(&group, &DisplayGroup::windowMovedToFront, this,
-            &LoggingUtility::logWindowMovedToFront);
+            &ActivityLogger::logWindowMovedToFront);
 }
 
-void LoggingUtility::logScreenStateChanged(const ScreenState state)
+void ActivityLogger::logScreenStateChanged(const ScreenState state)
 {
     _screenState = state;
     _screenStateModificationTime = _getTimestamp();
 }
 
-void LoggingUtility::_incrementWindowCount()
+void ActivityLogger::_incrementWindowCount()
 {
     ++_windowCount;
     _windowCountModificationTime = _getTimestamp();
 }
 
-void LoggingUtility::_decrementWindowCount()
+void ActivityLogger::_decrementWindowCount()
 {
     if (_windowCount > 0)
         --_windowCount;
     _windowCountModificationTime = _getTimestamp();
 }
 
-void LoggingUtility::_logInteraction(const QString& name)
+void ActivityLogger::_logInteraction(const QString& name)
 {
     ++_interactionCounter;
     _lastInteractionName = name;

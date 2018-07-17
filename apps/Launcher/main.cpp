@@ -39,7 +39,7 @@
 
 #include "Launcher.h"
 
-#include "tide/core/log.h"
+#include "tide/core/utils/log.h"
 #include "tide/master/localstreamer/CommandLineOptions.h"
 
 int main(int argc, char** argv)

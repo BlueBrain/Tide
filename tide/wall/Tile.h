@@ -73,7 +73,7 @@ public:
      * @param type the type of texture (static/dynamic)
      */
     static TilePtr create(uint id, const QRect& rect,
-                          TextureType type = TextureType::Static);
+                          TextureType type = TextureType::static_);
 
     /** @return the unique identifier for this tile. */
     uint getId() const;
@@ -132,7 +132,7 @@ signals:
 
 private:
     const uint _tileId = 0;
-    TextureType _type = TextureType::Static;
+    TextureType _type = TextureType::static_;
     SizePolicy _policy = AdjustToTexture;
 
     bool _firstImageUploaded = false;

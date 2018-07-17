@@ -40,7 +40,7 @@
 #ifndef MOCKSCREENCONTROLLER_H
 #define MOCKSCREENCONTROLLER_H
 
-#include "ScreenController.h"
+#include "hardware/ScreenController.h"
 #include "types.h"
 
 #include <QObject>

@@ -1,6 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,55 +37,72 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "MultiScreenController.h"
+#ifndef COMMANDLINEPARSER_H
+#define COMMANDLINEPARSER_H
 
-#include "PlanarController.h"
-#include "configuration/Configuration.h"
+#include "utils/log.h"
+#include <boost/program_options.hpp>
 
-MultiScreenController::MultiScreenController(
-    std::vector<std::unique_ptr<ScreenController>>&& controllers)
-    : _controllers{std::move(controllers)}
-{
-    for (auto& controller : _controllers)
-        connect(controller.get(), &ScreenController::powerStateChanged,
-                [this]() { emit powerStateChanged(getState()); });
-}
-
-ScreenState MultiScreenController::getState() const
-{
-    const auto state = _controllers[0]->getState();
-    for (const auto& controller : _controllers)
-    {
-        if (controller->getState() != state)
-            return ScreenState::UNDEF;
+/**
+ * Standard macro to check for --help and syntax error of command line args.
+ */
+#define COMMAND_LINE_PARSER_CHECK(ParserClass, AppName)                     \
+    ParserClass commandLine;                                                \
+    try                                                                     \
+    {                                                                       \
+        commandLine.parse(argc, argv);                                      \
+    }                                                                       \
+    catch (const boost::program_options::error& e)                          \
+    {                                                                       \
+        print_log(LOG_FATAL, LOG_GENERAL, "failed to start: %s", e.what()); \
+        return EXIT_FAILURE;                                                \
+    }                                                                       \
+    if (commandLine.getHelp())                                              \
+    {                                                                       \
+        commandLine.showSyntax(AppName);                                    \
+        return EXIT_SUCCESS;                                                \
     }
-    return state;
-}
 
-void MultiScreenController::checkPowerState()
+/**
+ * Basic command line arguments parser with [-h;--help] handling.
+ */
+class CommandLineParser
 {
-    for (const auto& controller : _controllers)
-        controller->checkPowerState();
-}
+public:
+    /** Constructor. */
+    CommandLineParser();
 
-bool MultiScreenController::powerOn()
-{
-    bool success = true;
-    for (auto& controller : _controllers)
-    {
-        if (!controller->powerOn())
-            success = false;
-    }
-    return success;
-}
+    /** Virtual destructor. */
+    virtual ~CommandLineParser();
 
-bool MultiScreenController::powerOff()
-{
-    bool success = true;
-    for (auto& controller : _controllers)
-    {
-        if (!controller->powerOff())
-            success = false;
-    }
-    return success;
-}
+    /**
+     * Try to parse the command line arguments.
+     *
+     * @param argc number of command line arguments.
+     * @param argv array of command line arguments.
+     *
+     * @throw boost::program_options::error on parsing error.
+     */
+    virtual void parse(int argc, char** argv);
+
+    /** Was the --help flag given. */
+    bool getHelp() const;
+
+    /**
+     * Print syntax to std::out.
+     * @param appName The name of the executable to print in the output.
+     */
+    virtual void showSyntax(const std::string& appName) const;
+
+protected:
+    /** The list of options which already includes "--help". */
+    boost::program_options::options_description desc{"Allowed options"};
+
+    /** The list of positional options. */
+    boost::program_options::positional_options_description pos_desc;
+
+    /** Contains the results of the parse() operation. */
+    boost::program_options::variables_map vm;
+};
+
+#endif

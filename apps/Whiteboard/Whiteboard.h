@@ -40,7 +40,7 @@
 #ifndef WHITEBOARD_H
 #define WHITEBOARD_H
 
-#include "tide/master/FileInfoHelper.h"
+#include "tide/master/qml/FileInfoHelper.h"
 
 #include <QGuiApplication>
 #include <deflect/qt/QmlStreamer.h>

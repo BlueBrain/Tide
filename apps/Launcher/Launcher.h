@@ -41,7 +41,7 @@
 #ifndef LAUNCHER_H
 #define LAUNCHER_H
 
-#include "tide/master/FileInfoHelper.h"
+#include "tide/master/qml/FileInfoHelper.h"
 
 #include <deflect/qt/QmlStreamer.h>
 

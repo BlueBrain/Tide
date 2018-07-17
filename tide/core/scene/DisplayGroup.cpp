@@ -42,8 +42,8 @@
 #include "DisplayGroup.h"
 
 #include "Window.h"
-#include "log.h"
 #include "utils/compilerMacros.h"
+#include "utils/log.h"
 
 IMPLEMENT_SERIALIZE_FOR_XML(DisplayGroup)
 
@@ -160,7 +160,7 @@ WindowPtr DisplayGroup::findWindow(const QString& filename) const
 {
     for (const auto& window : _windows)
     {
-        if (window->getContent().getURI() == filename)
+        if (window->getContent().getUri() == filename)
             return window;
     }
     return WindowPtr();
@@ -283,7 +283,7 @@ QStringList DisplayGroup::getSelectedUris() const
 
     for (const auto& window : _windows)
         if (window->isSelected() && !window->isPanel())
-            uris.push_back(window->getContent().getURI());
+            uris.push_back(window->getContent().getUri());
 
     return uris;
 }

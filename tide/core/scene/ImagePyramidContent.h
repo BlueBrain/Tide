@@ -52,7 +52,7 @@ public:
     explicit ImagePyramidContent(const QString& uri);
 
     /** Get the content type **/
-    CONTENT_TYPE getType() const final;
+    ContentType getType() const final;
 
     /**
      * Read texture metadata.

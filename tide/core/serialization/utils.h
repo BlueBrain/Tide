@@ -40,8 +40,8 @@
 #ifndef SERIALIZATION_UTILS_H
 #define SERIALIZATION_UTILS_H
 
-#include "log.h"
 #include "serialization/includes.h"
+#include "utils/log.h"
 
 #include <fstream>
 #include <sstream>

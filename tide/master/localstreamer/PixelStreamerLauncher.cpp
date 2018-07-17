@@ -45,9 +45,9 @@
 #include "LauncherPlacer.h"
 #include "PixelStreamWindowManager.h"
 #include "configuration/Configuration.h"
-#include "log.h"
 #include "scene/ContentType.h"
 #include "scene/Window.h"
+#include "utils/log.h"
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
 #include "scene/WebbrowserContent.h"
 #endif
@@ -84,7 +84,7 @@ QString _getWebbrowserCommand(const QString& args)
 QString _getWebbrowserCommand(const WebbrowserContent& webbrowser)
 {
     CommandLineOptions options;
-    options.streamId = webbrowser.getURI();
+    options.streamId = webbrowser.getUri();
     options.url = webbrowser.getUrl();
     options.width = webbrowser.width();
     options.height = webbrowser.height();
@@ -155,7 +155,7 @@ void PixelStreamerLauncher::launch(const WebbrowserContent& webbrowser,
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
     const auto cmd = _getWebbrowserCommand(webbrowser);
     const auto env = _getWebbrowserEnv(debugPort);
-    _startProcess(webbrowser.getURI(), cmd, env);
+    _startProcess(webbrowser.getUri(), cmd, env);
 #else
     Q_UNUSED(webbrowser);
     Q_UNUSED(debugPort);

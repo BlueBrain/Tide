@@ -41,9 +41,9 @@
 
 #include "DataProvider.h"
 #include "VisibilityHelper.h"
-#include "geometry.h"
-#include "qmlUtils.h"
 #include "scene/DisplayGroup.h"
+#include "utils/geometry.h"
+#include "utils/qml.h"
 
 namespace
 {

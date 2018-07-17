@@ -39,8 +39,8 @@
 
 #include "Webbrowser.h"
 
-#include "log.h"
 #include "tide/master/localstreamer/CommandLineOptions.h"
+#include "utils/log.h"
 
 int main(int argc, char** argv)
 {

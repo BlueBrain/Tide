@@ -41,8 +41,8 @@
 #include "FileReceiver.h"
 
 #include "StateSerializationHelper.h"
-#include "log.h"
 #include "scene/ContentFactory.h"
+#include "utils/log.h"
 #include "json/json.h"
 
 #include <QByteArray>

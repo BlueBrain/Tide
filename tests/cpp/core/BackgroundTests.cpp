@@ -127,8 +127,8 @@ BOOST_FIXTURE_TEST_CASE(testBinarySerialization, Fixture)
     BOOST_REQUIRE(copy->getContent());
     BOOST_CHECK_EQUAL(copy->getContent()->parent(), copy.get());
     BOOST_CHECK_NE(background->getContent(), copy->getContent());
-    BOOST_CHECK_EQUAL(background->getContent()->getURI(),
-                      copy->getContent()->getURI());
+    BOOST_CHECK_EQUAL(background->getContent()->getUri(),
+                      copy->getContent()->getUri());
 }
 
 BOOST_FIXTURE_TEST_CASE(testJsonSerialization, Fixture)

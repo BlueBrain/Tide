@@ -41,8 +41,8 @@
 #include "State.h"
 
 #include "configuration/XmlParser.h"
-#include "log.h"
 #include "scene/ContentFactory.h"
+#include "utils/log.h"
 
 namespace
 {

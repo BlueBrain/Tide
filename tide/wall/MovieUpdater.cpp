@@ -42,9 +42,9 @@
 #include "data/FFMPEGFrame.h"
 #include "data/FFMPEGMovie.h"
 #include "data/FFMPEGPicture.h"
-#include "log.h"
 #include "network/WallToWallChannel.h"
 #include "scene/MovieContent.h"
+#include "utils/log.h"
 
 #include <cmath>
 

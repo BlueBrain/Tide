@@ -44,13 +44,13 @@
 #include "RenderController.h"
 #include "WallConfiguration.h"
 #include "WallWindow.h"
-#include "log.h"
 #include "network/MPIChannel.h"
 #include "network/WallFromMasterChannel.h"
 #include "network/WallToMasterChannel.h"
 #include "network/WallToWallChannel.h"
 #include "scene/Scene.h"
 #include "scene/VectorialContent.h"
+#include "utils/log.h"
 
 #include <stdexcept>
 
@@ -66,7 +66,7 @@ WallApplication::WallApplication(int& argc_, char** argv_,
     , _toMasterChannel{new WallToMasterChannel(worldChannel)}
     , _wallChannel{new WallToWallChannel{wallChannel}}
 {
-    core::registerQmlTypes();
+    qml::registerTypes();
 
     const auto config = _fromMasterChannel->receiveConfiguration();
     const auto rank = (uint)wallChannel->getRank();

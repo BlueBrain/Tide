@@ -1,6 +1,7 @@
 /*********************************************************************/
 /* Copyright (c) 2017, EPFL/Blue Brain Project                       */
 /*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,89 +38,64 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "PlanarController.h"
+#include "InactivityTimer.h"
+
+#include "scene/CountdownStatus.h"
+#include "utils/log.h"
 
 namespace
 {
-const int serialTimeout = 1000;    // in ms
-const int powerStateTimer = 60000; // in ms
+const auto COUNTDOWNTIMER_MS = 15000;
+const auto MS_PER_MIN = 60000;
 }
 
-PlanarController::PlanarController(const QString& serialport, const Type type)
-    : _config(_getConfig(type))
+InactivityTimer::InactivityTimer(const uint timeoutInMinutes)
 {
-    _serial.setPortName(serialport);
-    _serial.setBaudRate(_config.baudrate, QSerialPort::AllDirections);
-    _serial.setDataBits(QSerialPort::Data8);
-    _serial.setParity(QSerialPort::NoParity);
-    _serial.setStopBits(QSerialPort::OneStop);
-    _serial.setFlowControl(QSerialPort::NoFlowControl);
-    if (!_serial.open(QIODevice::ReadWrite))
-        throw std::runtime_error("Could not open " + serialport.toStdString());
+    _inactivityTimer.setInterval(timeoutInMinutes * MS_PER_MIN);
+    _inactivityTimer.setSingleShot(true);
+    _inactivityTimer.start();
 
-    connect(&_serial, &QSerialPort::readyRead, [this, type]() {
-        if (_serial.canReadLine())
+    _countdownTimer.setInterval(COUNTDOWNTIMER_MS);
+    _countdownTimer.setSingleShot(true);
+
+    connect(&_inactivityTimer, &QTimer::timeout, [this]() {
+        if (!_countdownTimer.isActive())
         {
-            QString output(_serial.readLine());
-            output = output.trimmed();
-            // TV_UR9850 returns "(0;PWR=0)"
-            // Others return DISPLAY.POWER=O or DISPLAY.POWER=OFF
-            if (type == Type::TV_UR9850)
-                output.remove(")");
-            ScreenState previousState = _state;
-            if (output.endsWith("OFF") || output.endsWith("0"))
-                _state = ScreenState::OFF;
-            else if (output.endsWith("ON") || output.endsWith("1"))
-                _state = ScreenState::ON;
-            else
-                _state = ScreenState::UNDEF;
-
-            if (_state != previousState)
-                emit powerStateChanged(_state);
+            _countdownTimer.start();
+            _sendCountdownStatus();
         }
     });
-
-    checkPowerState();
-    connect(&_timer, &QTimer::timeout, [this]() { checkPowerState(); });
-    _timer.start(powerStateTimer);
+    connect(&_countdownTimer, &QTimer::timeout, [this]() {
+        emit poweroff();
+        _sendCountdownStatus();
+    });
 }
 
-bool PlanarController::powerOn()
+void InactivityTimer::stop()
 {
-    _serial.write(_config.powerOn);
-    return _serial.waitForBytesWritten(serialTimeout);
-}
-
-bool PlanarController::powerOff()
-{
-    _serial.write(_config.powerOff);
-    return _serial.waitForBytesWritten(serialTimeout);
-}
-
-ScreenState PlanarController::getState() const
-{
-    return _state;
-}
-void PlanarController::checkPowerState()
-{
-    _serial.write(_config.powerState);
-    _serial.waitForBytesWritten(serialTimeout);
-}
-
-PlanarController::PlanarConfig PlanarController::_getConfig(
-    const Type type) const
-{
-    switch (type)
+    _inactivityTimer.stop();
+    if (_countdownTimer.isActive())
     {
-    case Type::Matrix:
-        return {9600, "OPA1DISPLAY.POWER=ON\r", "OPA1DISPLAY.POWER=OFF\r",
-                "OPA1DISPLAY.POWER?\r"};
-    case Type::TV_UR9850:
-        return {19200, "(PWR=1)\r", "(PWR=0)\r", "(PWR?)\r"};
-    case Type::TV_UR9851:
-        return {19200, "DISPLAY.POWER=ON\n", "DISPLAY.POWER=OFF\n",
-                "DISPLAY.POWER?\n"};
-    default:
-        throw std::invalid_argument("Non existing serial type");
+        _countdownTimer.stop();
+        _sendCountdownStatus();
     }
+}
+
+void InactivityTimer::restart()
+{
+    _inactivityTimer.start();
+    if (_countdownTimer.isActive())
+    {
+        print_log(LOG_INFO, LOG_POWER,
+                  "Prevented powering off the screens during countdown");
+        _countdownTimer.stop();
+        _sendCountdownStatus();
+    }
+}
+
+void InactivityTimer::_sendCountdownStatus()
+{
+    emit countdownUpdated(
+        std::make_shared<CountdownStatus>(_countdownTimer.isActive(),
+                                          (uint)_countdownTimer.interval()));
 }

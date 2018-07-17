@@ -56,12 +56,12 @@ public:
         setDimensions(dimensions);
     }
 
-    CONTENT_TYPE getType() const final { return type; }
+    ContentType getType() const final { return type; }
     bool readMetadata() final { return true; }
     bool hasFixedAspectRatio() const final { return fixedAspectRatio; }
     bool canBeZoomed() const final { return zoomable; }
     int dummyParam_ = 0;
-    CONTENT_TYPE type = CONTENT_TYPE_ANY;
+    ContentType type = ContentType::invalid;
     bool fixedAspectRatio = true;
     bool zoomable = true;
 

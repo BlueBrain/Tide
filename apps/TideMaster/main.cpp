@@ -39,7 +39,7 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "log.h"
+#include "utils/log.h"
 
 #include "CommandLineParameters.h"
 #include "MasterApplication.h"

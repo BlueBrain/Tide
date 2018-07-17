@@ -31,31 +31,30 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   control/WindowController.h
   control/WindowTouchController.h
   control/ZoomController.h
-  FileInfoHelper.h
-  InactivityTimer.h
+  gui/BackgroundWidget.h
+  gui/DisplayGroupListWidget.h
+  gui/MasterQuickView.h
+  gui/WindowListWidgetItem.h
+  gui/MasterWindow.h
   localstreamer/CommandLineOptions.h
   localstreamer/HtmlSelectReplacer.h
   localstreamer/LauncherPlacer.h
   localstreamer/PixelStreamerLauncher.h
   localstreamer/ProcessForker.h
   localstreamer/QmlKeyInjector.h
-  LoggingUtility.h
   MasterApplication.h
-  MasterDisplayGroupRenderer.h
-  MasterSurfaceRenderer.h
   network/MasterFromWallChannel.h
   network/MasterToForkerChannel.h
   network/MasterToWallChannel.h
   PixelStreamWindowManager.h
-  QmlTypeRegistration.h
-  ScreenshotAssembler.h
+  qml/FileInfoHelper.h
+  qml/MasterDisplayGroupRenderer.h
+  qml/MasterSurfaceRenderer.h
   State.h
   StateSerializationHelper.h
-  ui/BackgroundWidget.h
-  ui/DisplayGroupListWidget.h
-  ui/MasterQuickView.h
-  ui/WindowListWidgetItem.h
-  ui/MasterWindow.h
+  tools/ActivityLogger.h
+  tools/InactivityTimer.h
+  tools/ScreenshotAssembler.h
 )
 
 list(APPEND TIDEMASTER_SOURCES
@@ -77,38 +76,38 @@ list(APPEND TIDEMASTER_SOURCES
   control/WindowController.cpp
   control/WindowTouchController.cpp
   control/ZoomController.cpp
-  InactivityTimer.cpp
+  gui/BackgroundWidget.cpp
+  gui/DisplayGroupListWidget.cpp
+  gui/MasterQuickView.cpp
+  gui/MasterWindow.cpp
+  gui/WindowListWidgetItem.cpp
   localstreamer/HtmlSelectReplacer.cpp
   localstreamer/CommandLineOptions.cpp
   localstreamer/LauncherPlacer.cpp
   localstreamer/PixelStreamerLauncher.cpp
   localstreamer/ProcessForker.cpp
   localstreamer/QmlKeyInjector.cpp
-  LoggingUtility.cpp
   MasterApplication.cpp
-  MasterDisplayGroupRenderer.cpp
-  MasterSurfaceRenderer.cpp
   network/MasterFromWallChannel.cpp
   network/MasterToForkerChannel.cpp
   network/MasterToWallChannel.cpp
   PixelStreamWindowManager.cpp
-  ScreenshotAssembler.cpp
+  qml/MasterDisplayGroupRenderer.cpp
+  qml/MasterSurfaceRenderer.cpp
+  resources/master.qrc
   State.cpp
   StateSerializationHelper.cpp
-  resources/master.qrc
-  ui/BackgroundWidget.cpp
-  ui/DisplayGroupListWidget.cpp
-  ui/MasterQuickView.cpp
-  ui/MasterWindow.cpp
-  ui/WindowListWidgetItem.cpp
+  tools/ActivityLogger.cpp
+  tools/InactivityTimer.cpp
+  tools/ScreenshotAssembler.cpp
 )
 
 if(TIDE_ENABLE_WEBBROWSER_SUPPORT)
   list(APPEND TIDEMASTER_PUBLIC_HEADERS
-    ui/WebbrowserWidget.h
+    gui/WebbrowserWidget.h
   )
   list(APPEND TIDEMASTER_SOURCES
-    ui/WebbrowserWidget.cpp
+    gui/WebbrowserWidget.cpp
   )
 endif()
 
@@ -131,13 +130,13 @@ if(TIDE_ENABLE_MOVIE_SUPPORT)
 endif()
 
 if(TIDE_ENABLE_PLANAR_CONTROLLER)
-  list(APPEND TIDEMASTER_HEADERS MultiScreenController.h)
-  list(APPEND TIDEMASTER_SOURCES MultiScreenController.cpp)
-  list(APPEND TIDEMASTER_HEADERS PlanarController.h)
-  list(APPEND TIDEMASTER_SOURCES PlanarController.cpp)
-  list(APPEND TIDEMASTER_SOURCES ScreenController.h)
-  list(APPEND TIDEMASTER_SOURCES ScreenControllerFactory.h)
-  list(APPEND TIDEMASTER_SOURCES ScreenControllerFactory.cpp)
+  list(APPEND TIDEMASTER_HEADERS hardware/MultiScreenController.h)
+  list(APPEND TIDEMASTER_SOURCES hardware/MultiScreenController.cpp)
+  list(APPEND TIDEMASTER_HEADERS hardware/PlanarController.h)
+  list(APPEND TIDEMASTER_SOURCES hardware/PlanarController.cpp)
+  list(APPEND TIDEMASTER_SOURCES hardware/ScreenController.h)
+  list(APPEND TIDEMASTER_SOURCES hardware/ScreenControllerFactory.h)
+  list(APPEND TIDEMASTER_SOURCES hardware/ScreenControllerFactory.cpp)
   list(APPEND TIDEMASTER_LINK_LIBRARIES PRIVATE Qt5::SerialPort)
 endif()
 
