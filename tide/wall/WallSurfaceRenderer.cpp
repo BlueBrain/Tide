@@ -66,10 +66,10 @@ WallSurfaceRenderer::WallSurfaceRenderer(WallRenderContext context,
     : _context{std::move(context)}
     , _qmlContext{*_context.engine.rootContext()}
     , _surface{new Surface{0, DisplayGroup::create(QSize(1, 1))}}
-    , _countdownStatus{new CountdownStatus}
     , _markers{Markers::create(_context.surfaceIndex)}
     , _options{Options::create()}
     , _screenLock{ScreenLock::create()}
+    , _countdownStatus{new CountdownStatus}
 {
     _setContextProperties();
     _createSurfaceItem(parentItem);

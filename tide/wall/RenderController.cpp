@@ -40,68 +40,72 @@
 #include "RenderController.h"
 
 #include "DataProvider.h"
-#include "DisplayGroupRenderer.h"
+#include "SwapSynchronizer.h"
+#include "WallConfiguration.h"
 #include "WallWindow.h"
 #include "network/WallToWallChannel.h"
-#include "scene/Background.h"
 #include "scene/CountdownStatus.h"
 #include "scene/Options.h"
 #include "scene/Scene.h"
 #include "scene/ScreenLock.h"
 
-RenderController::RenderController(std::vector<WallWindow*> windows,
+RenderController::RenderController(const WallConfiguration& config,
                                    DataProvider& provider,
                                    WallToWallChannel& wallChannel,
                                    const SwapSync type)
-    : _windows{std::move(windows)}
+    : _windows{WallWindow::createWindows(config, provider)}
     , _provider{provider}
     , _wallChannel{wallChannel}
-    , _syncCountdownStatus{std::make_shared<CountdownStatus>()}
-    , _syncScene{Scene::create(QSize())}
-    , _syncLock(ScreenLock::create())
-    , _syncOptions{Options::create()}
 {
-    _syncScene.setCallback([this](ScenePtr scene) {
-        _provider.updateDataSources(*scene);
-        for (auto window : _windows)
-            window->setSurface(scene->getSurfacePtr(window->getSurfaceIndex()));
-    });
-    _syncLock.setCallback([this](ScreenLockPtr lock) {
-        for (auto window : _windows)
-            window->setScreenLock(lock);
-    });
-    _syncCountdownStatus.setCallback([this](CountdownStatusPtr status) {
-        for (auto window : _windows)
-            window->setCountdownStatus(status);
-    });
-    _syncMarkers.setCallback([this](MarkersPtr markers) {
-        for (auto window : _windows)
-            window->setMarkers(markers);
-    });
-    _syncOptions.setCallback([this](OptionsPtr options) {
-        for (auto window : _windows)
-            window->setRenderOptions(options);
-    });
-
-    connect(&_provider, &DataProvider::imageLoaded, this,
-            [this] { _needRedraw = true; }, Qt::QueuedConnection);
-
-    for (auto window : _windows)
-    {
-        connect(window, &WallWindow::imageGrabbed, this,
-                &RenderController::screenshotRendered);
-    }
-
+    _connectSwapSyncObjects();
+    _connectRedrawSignal();
+    _connectScreenshotSignals();
     _setupSwapSynchronization(type);
+    updateScene(Scene::create(config.surfaces));
 }
 
-void RenderController::_setupSwapSynchronization(const SwapSync type)
+RenderController::~RenderController() = default;
+
+void RenderController::updateScene(ScenePtr scene)
 {
-    _swapSynchronizer =
-        SwapSynchronizerFactory::get(type)->create(_wallChannel,
-                                                   _windows.size());
-    for (auto window : _windows)
-        window->setSwapSynchronizer(_swapSynchronizer.get());
+    _syncScene.update(scene);
+    _requestRender();
+}
+
+void RenderController::updateMarkers(MarkersPtr markers)
+{
+    _syncMarkers.update(markers);
+    _requestRender();
+}
+
+void RenderController::updateOptions(OptionsPtr options)
+{
+    _syncOptions.update(options);
+    _requestRender();
+}
+
+void RenderController::updateLock(ScreenLockPtr lock)
+{
+    _syncLock.update(lock);
+    _requestRender();
+}
+
+void RenderController::updateCountdownStatus(CountdownStatusPtr status)
+{
+    _syncCountdownStatus.update(status);
+    _requestRender();
+}
+
+void RenderController::updateRequestScreenshot()
+{
+    _syncScreenshot.update(true);
+    _requestRender();
+}
+
+void RenderController::updateQuit()
+{
+    _syncQuit.update(true);
+    _requestRender();
 }
 
 void RenderController::timerEvent(QTimerEvent* qtEvent)
@@ -109,25 +113,69 @@ void RenderController::timerEvent(QTimerEvent* qtEvent)
     if (qtEvent->timerId() == _renderTimer)
         _syncAndRender();
     else if (qtEvent->timerId() == _idleRedrawTimer)
-        requestRender();
+        _requestRender();
     else if (qtEvent->timerId() == _stopRenderingDelayTimer)
-    {
-        killTimer(_renderTimer);
-        killTimer(_stopRenderingDelayTimer);
-        _renderTimer = 0;
-        _stopRenderingDelayTimer = 0;
+        _stopRendering();
+}
 
-        // Redraw screen every minute so that the on-screen clock is up to date
-        if (_idleRedrawTimer == 0)
-            _idleRedrawTimer = startTimer(60000 /*ms*/);
+void RenderController::_connectSwapSyncObjects()
+{
+    _syncScene.setCallback([this](ScenePtr scene) {
+        _provider.updateDataSources(*scene);
+        for (auto&& window : _windows)
+            window->setSurface(scene->getSurfacePtr(window->getSurfaceIndex()));
+    });
+    _syncMarkers.setCallback([this](MarkersPtr markers) {
+        for (auto&& window : _windows)
+            window->setMarkers(markers);
+    });
+    _syncOptions.setCallback([this](OptionsPtr options) {
+        for (auto&& window : _windows)
+            window->setRenderOptions(options);
+    });
+    _syncLock.setCallback([this](ScreenLockPtr lock) {
+        for (auto&& window : _windows)
+            window->setScreenLock(lock);
+    });
+    _syncCountdownStatus.setCallback([this](CountdownStatusPtr status) {
+        for (auto&& window : _windows)
+            window->setCountdownStatus(status);
+    });
+}
+
+void RenderController::_connectRedrawSignal()
+{
+    connect(&_provider, &DataProvider::imageLoaded, this,
+            [this] { _redrawNeeded = true; }, Qt::QueuedConnection);
+}
+
+void RenderController::_connectScreenshotSignals()
+{
+    for (auto&& window : _windows)
+    {
+        connect(window.get(), &WallWindow::imageGrabbed, this,
+                &RenderController::screenshotRendered);
     }
 }
 
-void RenderController::requestRender()
+void RenderController::_setupSwapSynchronization(const SwapSync type)
+{
+    if (type == SwapSync::hardware)
+        print_log(LOG_INFO, LOG_GENERAL,
+                  "Launching with hardware swap synchronization...");
+
+    _swapSynchronizer =
+        SwapSynchronizerFactory::get(type)->create(_wallChannel,
+                                                   _windows.size());
+    for (auto&& window : _windows)
+        window->setSwapSynchronizer(_swapSynchronizer.get());
+}
+
+void RenderController::_requestRender()
 {
     killTimer(_stopRenderingDelayTimer);
-    _stopRenderingDelayTimer = 0;
     killTimer(_idleRedrawTimer);
+    _stopRenderingDelayTimer = 0;
     _idleRedrawTimer = 0;
 
     if (_renderTimer == 0)
@@ -136,100 +184,90 @@ void RenderController::requestRender()
 
 void RenderController::_syncAndRender()
 {
-    auto versionCheckFunc = std::bind(&WallToWallChannel::checkVersion,
-                                      &_wallChannel, std::placeholders::_1);
-    _syncQuit.sync(versionCheckFunc);
+    _synchronizeSceneUpdates();
     if (_syncQuit.get())
     {
-        killTimer(_renderTimer);
-        killTimer(_stopRenderingDelayTimer);
-        for (auto window : _windows)
-            window->deleteLater();
+        _terminateRendering();
         return;
     }
 
-    _synchronizeObjects(versionCheckFunc);
+    _synchronizeDataSourceUpdates();
+    _renderAllWindows();
+    _scheduleRedraw();
+}
 
-    const bool grab = _syncScreenshot.get();
+void RenderController::_renderAllWindows()
+{
+    const auto grab = _syncScreenshot.get();
     if (grab)
         _syncScreenshot = SwapSyncObject<bool>{false};
 
-    if (_syncAndRenderWindows(grab))
-    {
-        if (_stopRenderingDelayTimer == 0)
-            _stopRenderingDelayTimer = startTimer(5000 /*ms*/);
-    }
-    else
-        requestRender();
-
-    _needRedraw = false;
-}
-
-bool RenderController::_syncAndRenderWindows(const bool grab)
-{
-    _wallChannel.synchronizeClock();
-
-    _provider.synchronizeTilesSwap(_wallChannel);
-
-    for (auto window : _windows)
+    for (auto&& window : _windows)
     {
         if (!window->isInitialized())
-            return false;
-
+            return;
         window->render(grab);
-        _needRedraw = _needRedraw || window->needRedraw();
     }
-    return _wallChannel.allReady(!_needRedraw);
 }
 
-void RenderController::updateCountdownStatus(CountdownStatusPtr status)
+void RenderController::_scheduleRedraw()
 {
-    _syncCountdownStatus.update(status);
-    requestRender();
+    for (const auto& window : _windows)
+        _redrawNeeded = _redrawNeeded || window->needRedraw();
+
+    if (_wallChannel.allReady(!_redrawNeeded))
+        _scheduleStopRendering();
+    else
+        _requestRender();
+
+    _redrawNeeded = false;
 }
 
-void RenderController::updateScene(ScenePtr scene)
+void RenderController::_scheduleStopRendering()
 {
-    _syncScene.update(scene);
-    requestRender();
+    if (_stopRenderingDelayTimer == 0)
+        _stopRenderingDelayTimer = startTimer(5000 /*ms*/);
 }
 
-void RenderController::updateMarkers(MarkersPtr markers)
+void RenderController::_stopRendering()
 {
-    _syncMarkers.update(markers);
-    requestRender();
+    killTimer(_renderTimer);
+    killTimer(_stopRenderingDelayTimer);
+    _renderTimer = 0;
+    _stopRenderingDelayTimer = 0;
+
+    // Redraw screen every minute so that the on-screen clock is up to date
+    if (_idleRedrawTimer == 0)
+        _idleRedrawTimer = startTimer(60000 /*ms*/);
 }
 
-void RenderController::updateLock(ScreenLockPtr lock)
+void RenderController::_synchronizeSceneUpdates()
 {
-    _syncLock.update(lock);
-    requestRender();
-}
+    auto versionCheckFunc = std::bind(&WallToWallChannel::checkVersion,
+                                      &_wallChannel, std::placeholders::_1);
 
-void RenderController::updateOptions(OptionsPtr options)
-{
-    _syncOptions.update(options);
-    requestRender();
-}
-
-void RenderController::updateRequestScreenshot()
-{
-    _syncScreenshot.update(true);
-    requestRender();
-}
-
-void RenderController::updateQuit()
-{
-    _syncQuit.update(true);
-    requestRender();
-}
-
-void RenderController::_synchronizeObjects(const SyncFunction& versionCheckFunc)
-{
-    _syncCountdownStatus.sync(versionCheckFunc);
     _syncScene.sync(versionCheckFunc);
-    _syncLock.sync(versionCheckFunc);
     _syncMarkers.sync(versionCheckFunc);
     _syncOptions.sync(versionCheckFunc);
+    _syncLock.sync(versionCheckFunc);
+    _syncCountdownStatus.sync(versionCheckFunc);
     _syncScreenshot.sync(versionCheckFunc);
+    _syncQuit.sync(versionCheckFunc);
+}
+
+void RenderController::_synchronizeDataSourceUpdates()
+{
+    _wallChannel.synchronizeClock();
+    _provider.synchronizeTilesSwap(_wallChannel);
+}
+
+void RenderController::_terminateRendering()
+{
+    killTimer(_renderTimer);
+    killTimer(_stopRenderingDelayTimer);
+    killTimer(_idleRedrawTimer);
+
+    for (auto&& window : _windows)
+        window.release()->deleteLater();
+    _windows.clear();
 }

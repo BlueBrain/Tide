@@ -60,7 +60,6 @@ public:
     SwapSyncObject()
         : _frontObject()
         , _backObject()
-        , _version(0)
     {
     }
 
@@ -68,7 +67,6 @@ public:
     SwapSyncObject(const T& defaultObject)
         : _frontObject(defaultObject)
         , _backObject(defaultObject)
-        , _version(0)
     {
     }
 
@@ -88,15 +86,15 @@ public:
 
         if (syncFunc(_version) && _frontObject != _backObject)
         {
-            _swap();
             if (_callback)
-                _callback(_frontObject);
+                _callback(_backObject);
+            _swap();
             return true;
         }
         return false;
     }
 
-    /** Set an optional function to call after swapping. */
+    /** Set an optional function to call just before swapping. */
     void setCallback(const SyncCallbackFunction& callback)
     {
         _callback = callback;
@@ -106,7 +104,7 @@ private:
     SyncCallbackFunction _callback;
     T _frontObject;
     T _backObject;
-    uint64_t _version;
+    uint64_t _version = 0;
 
     void _swap() { _frontObject = _backObject; }
 };

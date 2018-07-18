@@ -170,6 +170,7 @@ typedef std::shared_ptr<Surface> SurfacePtr;
 typedef std::shared_ptr<Tile> TilePtr;
 typedef std::weak_ptr<Tile> TileWeakPtr;
 typedef std::shared_ptr<Window> WindowPtr;
+typedef std::unique_ptr<WallWindow> WallWindowPtr;
 
 typedef std::set<WindowPtr> WindowSet;
 typedef std::vector<WindowPtr> WindowPtrs;

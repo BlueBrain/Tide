@@ -43,7 +43,6 @@
 #include "types.h"
 
 #include "SwapSyncObject.h"
-#include "SwapSynchronizer.h"
 
 #include <QObject>
 
@@ -56,18 +55,16 @@ class RenderController : public QObject
     Q_DISABLE_COPY(RenderController)
 
 public:
-    /** Constructor */
-    RenderController(std::vector<WallWindow*> windows, DataProvider& provider,
+    RenderController(const WallConfiguration& config, DataProvider& provider,
                      WallToWallChannel& wallChannel, SwapSync type);
+    ~RenderController();
 
 public slots:
-    void requestRender();
-
-    void updateCountdownStatus(CountdownStatusPtr status);
     void updateScene(ScenePtr scene);
-    void updateLock(ScreenLockPtr lock);
     void updateMarkers(MarkersPtr markers);
     void updateOptions(OptionsPtr options);
+    void updateLock(ScreenLockPtr lock);
+    void updateCountdownStatus(CountdownStatusPtr status);
     void updateRequestScreenshot();
     void updateQuit();
 
@@ -75,32 +72,44 @@ signals:
     void screenshotRendered(QImage image, QPoint index);
 
 private:
-    std::vector<WallWindow*> _windows; // deleteLater from syncQuit
+    std::vector<WallWindowPtr> _windows;
     DataProvider& _provider;
     WallToWallChannel& _wallChannel;
     std::unique_ptr<SwapSynchronizer> _swapSynchronizer;
 
-    SwapSyncObject<CountdownStatusPtr> _syncCountdownStatus;
     SwapSyncObject<ScenePtr> _syncScene;
-    SwapSyncObject<ScreenLockPtr> _syncLock;
     SwapSyncObject<MarkersPtr> _syncMarkers;
     SwapSyncObject<OptionsPtr> _syncOptions;
+    SwapSyncObject<ScreenLockPtr> _syncLock;
+    SwapSyncObject<CountdownStatusPtr> _syncCountdownStatus;
     SwapSyncObject<bool> _syncScreenshot{false};
     SwapSyncObject<bool> _syncQuit{false};
 
     int _renderTimer = 0;
     int _stopRenderingDelayTimer = 0;
     int _idleRedrawTimer = 0;
-    bool _needRedraw = false;
-
-    void _setupSwapSynchronization(SwapSync type);
+    bool _redrawNeeded = false;
 
     void timerEvent(QTimerEvent* qtEvent) final;
 
-    /** Update and synchronize scene objects before rendering a frame. */
+    /** Initialization. */
+    void _connectSwapSyncObjects();
+    void _connectRedrawSignal();
+    void _connectScreenshotSignals();
+    void _setupSwapSynchronization(SwapSync type);
+
+    /** Synchronization and rendering. */
+    void _requestRender();
     void _syncAndRender();
-    bool _syncAndRenderWindows(bool grab);
-    void _synchronizeObjects(const SyncFunction& versionCheckFunc);
+    void _renderAllWindows();
+    void _scheduleRedraw();
+    void _scheduleStopRendering();
+    void _stopRendering();
+    void _synchronizeSceneUpdates();
+    void _synchronizeDataSourceUpdates();
+
+    /** Shutdown. */
+    void _terminateRendering();
 };
 
 #endif

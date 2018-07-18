@@ -43,18 +43,13 @@
 #include "QmlTypeRegistration.h"
 #include "RenderController.h"
 #include "WallConfiguration.h"
-#include "WallWindow.h"
 #include "network/MPIChannel.h"
 #include "network/WallFromMasterChannel.h"
 #include "network/WallToMasterChannel.h"
 #include "network/WallToWallChannel.h"
 #include "scene/Scene.h"
 #include "scene/VectorialContent.h"
-#include "utils/log.h"
 
-#include <stdexcept>
-
-#include <QQuickRenderControl>
 #include <QThreadPool>
 
 WallApplication::WallApplication(int& argc_, char** argv_,
@@ -81,63 +76,22 @@ WallApplication::WallApplication(int& argc_, char** argv_,
     const auto maxThreads = std::max(QThread::idealThreadCount() / prCount, 2);
     QThreadPool::globalInstance()->setMaxThreadCount(maxThreads);
 
-    _initWallWindows(config.global.swapsync);
-    _initMPIConnection();
-
-    _renderController->updateScene(Scene::create(config.surfaces));
+    _renderController.reset(new RenderController(*_config, *_provider,
+                                                 *_wallChannel,
+                                                 config.global.swapsync));
+    _initMPIConnections();
 }
 
 WallApplication::~WallApplication()
 {
-    if (_wallChannel->getRank() == 0)
-    {
-        // Make sure the send quit happens after any pending sendRequestFrame.
-        // The MasterFromWallChannel is waiting for this signal to exit.
-        // This step ensures that the queue of messages is flushed and the MPI
-        // connection will not block when closing itself.
-        QMetaObject::invokeMethod(_toMasterChannel.get(), "sendQuit",
-                                  Qt::BlockingQueuedConnection);
-    }
-
-    _mpiReceiveThread.quit();
-    _mpiReceiveThread.wait();
-
-    _mpiSendThread.quit();
-    _mpiSendThread.wait();
+    _terminateMPIConnections();
 }
 
-void WallApplication::_initWallWindows(const SwapSync swapsync)
+void WallApplication::_initMPIConnections()
 {
-    std::vector<WallWindow*> windows;
-    try
-    {
-        const auto screenCount = _config->screens.size();
-        for (uint screen = 0; screen < screenCount; ++screen)
-            windows.push_back(_makeWindow(screen));
-    }
-    catch (const std::runtime_error& e)
-    {
-        print_log(LOG_FATAL, LOG_GENERAL, "Error creating WallWindow: '%s'",
-                  e.what());
-        throw std::runtime_error("WallApplication: initialization failed.");
-    }
+    _mpiReceiveThread.setObjectName("Recv");
+    _mpiSendThread.setObjectName("Send");
 
-    if (swapsync == SwapSync::hardware)
-        print_log(LOG_INFO, LOG_GENERAL,
-                  "Launching with hardware swap synchronization...");
-
-    _renderController.reset(new RenderController(std::move(windows), *_provider,
-                                                 *_wallChannel, swapsync));
-}
-
-WallWindow* WallApplication::_makeWindow(const uint screen)
-{
-    return new WallWindow(*_config, screen, *_provider,
-                          std::make_unique<QQuickRenderControl>(this));
-}
-
-void WallApplication::_initMPIConnection()
-{
     _fromMasterChannel->moveToThread(&_mpiReceiveThread);
     _toMasterChannel->moveToThread(&_mpiSendThread);
 
@@ -166,15 +120,11 @@ void WallApplication::_initMPIConnection()
             _renderController.get(), SLOT(updateMarkers(MarkersPtr)));
 
     connect(_fromMasterChannel.get(),
-            SIGNAL(received(deflect::server::FramePtr)),
-            _renderController.get(), SLOT(requestRender()));
+            SIGNAL(received(deflect::server::FramePtr)), _provider.get(),
+            SLOT(setNewFrame(deflect::server::FramePtr)));
 
     connect(_renderController.get(), &RenderController::screenshotRendered,
             _toMasterChannel.get(), &WallToMasterChannel::sendScreenshot);
-
-    connect(_fromMasterChannel.get(),
-            SIGNAL(received(deflect::server::FramePtr)), _provider.get(),
-            SLOT(setNewFrame(deflect::server::FramePtr)));
 
     if (_wallChannel->getRank() == 0)
     {
@@ -188,8 +138,25 @@ void WallApplication::_initMPIConnection()
     connect(&_mpiReceiveThread, &QThread::started, _fromMasterChannel.get(),
             &WallFromMasterChannel::processMessages);
 
-    _mpiReceiveThread.setObjectName("Recv");
-    _mpiSendThread.setObjectName("Send");
     _mpiReceiveThread.start();
     _mpiSendThread.start();
+}
+
+void WallApplication::_terminateMPIConnections()
+{
+    if (_wallChannel->getRank() == 0)
+    {
+        // Make sure the send quit happens after any pending sendRequestFrame.
+        // The MasterFromWallChannel is waiting for this signal to exit.
+        // This step ensures that the queue of messages is flushed and the MPI
+        // connection will not block when closing itself.
+        QMetaObject::invokeMethod(_toMasterChannel.get(), "sendQuit",
+                                  Qt::BlockingQueuedConnection);
+    }
+
+    _mpiReceiveThread.quit();
+    _mpiReceiveThread.wait();
+
+    _mpiSendThread.quit();
+    _mpiSendThread.wait();
 }
