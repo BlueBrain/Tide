@@ -95,10 +95,10 @@ private:
     QQmlContext& _qmlContext;
 
     SurfacePtr _surface;
-    CountdownStatusPtr _countdownStatus;
     MarkersPtr _markers;
     OptionsPtr _options;
     ScreenLockPtr _screenLock;
+    CountdownStatusPtr _countdownStatus;
 
     std::unique_ptr<QQuickItem> _surfaceItem;
     std::unique_ptr<BackgroundRenderer> _backgroundRenderer;

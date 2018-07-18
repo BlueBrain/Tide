@@ -59,34 +59,51 @@
 #include <QQuickRenderControl>
 #include <QThread>
 
+WallWindowPtr WallWindow::create(const WallConfiguration& config,
+                                 const uint windowIndex, DataProvider& provider)
+{
+    return WallWindowPtr{
+        new WallWindow{config, windowIndex, provider,
+                       std::make_unique<QQuickRenderControl>()}};
+}
+
+std::vector<WallWindowPtr> WallWindow::createWindows(
+    const WallConfiguration& config, DataProvider& provider)
+{
+    std::vector<WallWindowPtr> windows;
+    for (auto screen = 0u; screen < config.screens.size(); ++screen)
+        windows.emplace_back(WallWindow::create(config, screen, provider));
+    return windows;
+}
+
 WallWindow::WallWindow(const WallConfiguration& config, const uint windowIndex,
                        DataProvider& provider,
                        std::unique_ptr<QQuickRenderControl> renderControl)
     : QQuickWindow(renderControl.get())
     , _provider(provider)
     , _renderControl(std::move(renderControl))
-    , _quickRenderer(new deflect::qt::QuickRenderer(*this, *_renderControl))
     , _quickRendererThread(new QThread)
     , _qmlEngine(new QQmlEngine)
 {
-    const auto windowNumber = QString::number(windowIndex);
-    _quickRendererThread->setObjectName("Render #" + windowNumber);
+    _quickRendererThread->setObjectName(QString("Render #%1").arg(windowIndex));
 
-    const auto& currentScreen = config.screens.at(windowIndex);
-    _surfaceIndex = currentScreen.surfaceIndex;
+    const auto& screenConfig = config.screens.at(windowIndex);
+    _surfaceIndex = screenConfig.surfaceIndex;
+    _globalIndex = screenConfig.globalIndex;
 
-    if (auto qscreen = screens::find(currentScreen.display))
+    if (auto qscreen = screens::find(screenConfig.display))
         setScreen(qscreen);
-    else if (!currentScreen.display.isEmpty())
+    else if (!screenConfig.display.isEmpty())
         print_log(LOG_FATAL, LOG_GENERAL, "Could not find display: '%s'",
-                  currentScreen.display.toLocal8Bit().constData());
+                  screenConfig.display.toLocal8Bit().constData());
 
     setFlags(Qt::FramelessWindowHint);
-    setPosition(currentScreen.position);
-    const auto& surface = config.surfaces[currentScreen.surfaceIndex];
-    resize(surface.getScreenRect(currentScreen.globalIndex).size());
+    setPosition(screenConfig.position);
 
-    if (currentScreen.fullscreen)
+    const auto& surfaceConfig = config.surfaces[screenConfig.surfaceIndex];
+    resize(surfaceConfig.getScreenRect(screenConfig.globalIndex).size());
+
+    if (screenConfig.fullscreen)
     {
         setCursor(Qt::BlankCursor);
         showFullScreen();
@@ -94,7 +111,7 @@ WallWindow::WallWindow(const WallConfiguration& config, const uint windowIndex,
     else
         show();
 
-    _startQuick(config, windowIndex);
+    _setupScene(config, windowIndex);
 }
 
 WallWindow::~WallWindow()
@@ -116,82 +133,12 @@ void WallWindow::setSwapSynchronizer(SwapSynchronizer* synchronizer)
 
 bool WallWindow::isInitialized() const
 {
-    return _rendererInitialized;
+    return !!_quickRenderer;
 }
 
 bool WallWindow::needRedraw() const
 {
     return _surfaceRenderer->needRedraw();
-}
-
-void WallWindow::exposeEvent(QExposeEvent*)
-{
-    if (!_rendererInitialized)
-    {
-// Initialize the renderer once the window is shown for correct GL
-// context realisiation
-
-#if QT_VERSION >= 0x050500
-        // Call required to make QtGraphicalEffects work in the initial scene.
-        _renderControl->prepareThread(_quickRendererThread.get());
-#else
-        print_log(LOG_DEBUG, LOG_GENERAL,
-                  "missing QQuickRenderControl::prepareThread() on "
-                  "Qt < 5.5. Expect some qWarnings and failing "
-                  "QtGraphicalEffects.");
-#endif
-
-        _quickRenderer->moveToThread(_quickRendererThread.get());
-        _quickRendererThread->start();
-        _quickRenderer->init();
-
-        _rendererInitialized = true;
-    }
-}
-
-void WallWindow::_startQuick(const WallConfiguration& config,
-                             const uint windowIndex)
-{
-    const auto& currentScreen = config.screens.at(windowIndex);
-    const auto globalIndex = currentScreen.globalIndex;
-
-    connect(_quickRenderer.get(), &deflect::qt::QuickRenderer::afterRender,
-            [this, globalIndex] {
-                if (_synchronizer)
-                    _synchronizer->globalBarrier(*this);
-
-                _quickRenderer->context()->swapBuffers(this);
-                _quickRenderer->context()->functions()->glFlush();
-                QMetaObject::invokeMethod(_surfaceRenderer.get(),
-                                          "updateRenderedFrames",
-                                          Qt::QueuedConnection);
-                if (_grabImage)
-                {
-                    emit imageGrabbed(_renderControl->grab(), globalIndex);
-                    _grabImage = false;
-                }
-            });
-
-    connect(_quickRenderer.get(), &deflect::qt::QuickRenderer::stopping,
-            [this] {
-                if (_synchronizer)
-                    _synchronizer->exitBarrier(*this);
-            });
-
-    const auto& surface = config.surfaces[currentScreen.surfaceIndex];
-
-    const auto screenRect = surface.getScreenRect(currentScreen.globalIndex);
-    const auto wallSize = surface.getTotalSize();
-    const auto view = currentScreen.stereoMode;
-    const auto surfaceIndex = currentScreen.surfaceIndex;
-
-    WallRenderContext context{*_qmlEngine, _provider, wallSize,
-                              screenRect,  view,      surfaceIndex};
-    _surfaceRenderer.reset(new WallSurfaceRenderer(context, *contentItem()));
-
-    _testPattern.reset(
-        new TestPattern(config, surface, currentScreen, *contentItem()));
-    _testPattern->setPosition(-screenRect.topLeft());
 }
 
 void WallWindow::render(const bool grab)
@@ -227,4 +174,74 @@ void WallWindow::setRenderOptions(OptionsPtr options)
 {
     _testPattern->setVisible(options->getShowTestPattern());
     _surfaceRenderer->setRenderingOptions(options);
+}
+
+void WallWindow::exposeEvent(QExposeEvent*)
+{
+    // Initialize the renderer once the window is shown for correct GL
+    // context realisiation
+    if (!_quickRenderer)
+        _startQuickRenderer();
+}
+
+void WallWindow::_startQuickRenderer()
+{
+#if QT_VERSION >= 0x050500
+    // Call required to make QtGraphicalEffects work in the initial scene.
+    _renderControl->prepareThread(_quickRendererThread.get());
+#else
+    print_log(LOG_DEBUG, LOG_GENERAL,
+              "missing QQuickRenderControl::prepareThread() on "
+              "Qt < 5.5. Expect some qWarnings and failing "
+              "QtGraphicalEffects.");
+#endif
+
+    _quickRenderer =
+        std::make_unique<deflect::qt::QuickRenderer>(*this, *_renderControl);
+    _quickRenderer->moveToThread(_quickRendererThread.get());
+    _quickRendererThread->start();
+    _quickRenderer->init();
+
+    connect(_quickRenderer.get(), &deflect::qt::QuickRenderer::afterRender,
+            [this] {
+                if (_synchronizer)
+                    _synchronizer->globalBarrier(*this);
+
+                _quickRenderer->context()->swapBuffers(this);
+                _quickRenderer->context()->functions()->glFlush();
+                QMetaObject::invokeMethod(_surfaceRenderer.get(),
+                                          "updateRenderedFrames",
+                                          Qt::QueuedConnection);
+                if (_grabImage)
+                {
+                    emit imageGrabbed(_renderControl->grab(), _globalIndex);
+                    _grabImage = false;
+                }
+            });
+
+    connect(_quickRenderer.get(), &deflect::qt::QuickRenderer::stopping,
+            [this] {
+                if (_synchronizer)
+                    _synchronizer->exitBarrier(*this);
+            });
+}
+
+void WallWindow::_setupScene(const WallConfiguration& config,
+                             const uint windowIndex)
+{
+    const auto& screenConfig = config.screens.at(windowIndex);
+    const auto& surface = config.surfaces[screenConfig.surfaceIndex];
+
+    const auto screenRect = surface.getScreenRect(screenConfig.globalIndex);
+    const auto wallSize = surface.getTotalSize();
+    const auto stereoView = screenConfig.stereoMode;
+    const auto surfaceIndex = screenConfig.surfaceIndex;
+
+    WallRenderContext context{*_qmlEngine, _provider,  wallSize,
+                              screenRect,  stereoView, surfaceIndex};
+    _surfaceRenderer.reset(new WallSurfaceRenderer(context, *contentItem()));
+
+    _testPattern.reset(
+        new TestPattern(config, surface, screenConfig, *contentItem()));
+    _testPattern->setPosition(-screenRect.topLeft());
 }

@@ -87,9 +87,8 @@ private:
     QThread _mpiSendThread;
     QThread _mpiReceiveThread;
 
-    void _initWallWindows(SwapSync swapsync);
-    WallWindow* _makeWindow(uint screen);
-    void _initMPIConnection();
+    void _initMPIConnections();
+    void _terminateMPIConnections();
 };
 
 #endif

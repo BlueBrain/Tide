@@ -101,7 +101,7 @@ signals:
     /** Emitted to request a new frame after a successful swap. */
     void requestFrame(QString uri);
 
-    /** Emitted to request the pixel stream to close. */
+    /** Emitted to request the pixel stream to close if an error occured. */
     void closePixelStream(QString uri);
 
     /** Emitted to request a new rendering after a tile image was loaded. */

@@ -58,13 +58,20 @@ public:
      * Create a wall window.
      * @param config the wall configuration to setup this window wrt position,
      *               size, etc.
-     * @param windowIndex the index of the window for this process
-     * @param provider the provider of data for the windows
-     * @param renderControl the Qt render control for QML scene rendering
+     * @param windowIndex the index of the window for this process.
+     * @param provider the provider of data for the windows.
      */
-    WallWindow(const WallConfiguration& config, uint windowIndex,
-               DataProvider& provider,
-               std::unique_ptr<QQuickRenderControl> renderControl);
+    static WallWindowPtr create(const WallConfiguration& config,
+                                uint windowIndex, DataProvider& provider);
+
+    /**
+     * Create all the windows for the wall process.
+     * @param config the wall configuration to setup this window wrt position,
+     *               size, etc.
+     * @param provider the provider of data for the windows.
+     */
+    static std::vector<WallWindowPtr> createWindows(
+        const WallConfiguration& config, DataProvider& provider);
 
     ~WallWindow();
 
@@ -108,17 +115,22 @@ signals:
     void imageGrabbed(QImage image, QPoint index);
 
 private:
+    WallWindow(const WallConfiguration& config, uint windowIndex,
+               DataProvider& provider,
+               std::unique_ptr<QQuickRenderControl> renderControl);
+
     void exposeEvent(QExposeEvent* exposeEvent) final;
 
-    void _startQuick(const WallConfiguration& config, const uint windowIndex);
+    void _startQuickRenderer();
+    void _setupScene(const WallConfiguration& config, uint windowIndex);
 
     DataProvider& _provider;
 
     size_t _surfaceIndex = 0;
+    QPoint _globalIndex;
 
     std::unique_ptr<QQuickRenderControl> _renderControl;
     SwapSynchronizer* _synchronizer = nullptr;
-    bool _rendererInitialized = false;
     bool _grabImage = false;
 
     std::unique_ptr<deflect::qt::QuickRenderer> _quickRenderer;
