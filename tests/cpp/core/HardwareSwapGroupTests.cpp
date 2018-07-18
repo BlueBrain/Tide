@@ -41,7 +41,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "HardwareSwapGroup.h"
+#include "swapsync/HardwareSwapGroup.h"
 
 #include "QGuiAppFixture.h"
 

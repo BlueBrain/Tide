@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,79 +37,27 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef RENDERCONTROLLER_H
-#define RENDERCONTROLLER_H
+#ifndef IMAGEPYRAMIDDATASOURCE_H
+#define IMAGEPYRAMIDDATASOURCE_H
 
-#include "types.h"
-
-#include "tools/SwapSyncObject.h"
-
-#include <QObject>
+#include "datasources/LodTiler.h"
 
 /**
- * Setup the scene and control the rendering options during runtime.
+ * A data source for tiled image pyramids.
  */
-class RenderController : public QObject
+class ImagePyramidDataSource : public LodTiler
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(RenderController)
-
 public:
-    RenderController(const WallConfiguration& config, DataProvider& provider,
-                     WallToWallChannel& wallChannel, SwapSync type);
-    ~RenderController();
+    /** Constructor. */
+    explicit ImagePyramidDataSource(const QString& uri);
 
-public slots:
-    void updateScene(ScenePtr scene);
-    void updateMarkers(MarkersPtr markers);
-    void updateOptions(OptionsPtr options);
-    void updateLock(ScreenLockPtr lock);
-    void updateCountdownStatus(CountdownStatusPtr status);
-    void updateRequestScreenshot();
-    void updateQuit();
-
-signals:
-    void screenshotRendered(QImage image, QPoint index);
+    /** @copydoc DataSource::getTileRect */
+    QRect getTileRect(uint tileId) const final;
 
 private:
-    std::vector<WallWindowPtr> _windows;
-    DataProvider& _provider;
-    WallToWallChannel& _wallChannel;
-    std::unique_ptr<SwapSynchronizer> _swapSynchronizer;
+    const QString _uri;
 
-    SwapSyncObject<ScenePtr> _syncScene;
-    SwapSyncObject<MarkersPtr> _syncMarkers;
-    SwapSyncObject<OptionsPtr> _syncOptions;
-    SwapSyncObject<ScreenLockPtr> _syncLock;
-    SwapSyncObject<CountdownStatusPtr> _syncCountdownStatus;
-    SwapSyncObject<bool> _syncScreenshot{false};
-    SwapSyncObject<bool> _syncQuit{false};
-
-    int _renderTimer = 0;
-    int _stopRenderingDelayTimer = 0;
-    int _idleRedrawTimer = 0;
-    bool _redrawNeeded = false;
-
-    void timerEvent(QTimerEvent* qtEvent) final;
-
-    /** Initialization. */
-    void _connectSwapSyncObjects();
-    void _connectRedrawSignal();
-    void _connectScreenshotSignals();
-    void _setupSwapSynchronization(SwapSync type);
-
-    /** Synchronization and rendering. */
-    void _requestRender();
-    void _syncAndRender();
-    void _renderAllWindows();
-    void _scheduleRedraw();
-    void _scheduleStopRendering();
-    void _stopRendering();
-    void _synchronizeSceneUpdates();
-    void _synchronizeDataSourceUpdates();
-
-    /** Shutdown. */
-    void _terminateRendering();
+    QImage getCachableTileImage(uint tileId) const final; // threadsafe
 };
 
 #endif

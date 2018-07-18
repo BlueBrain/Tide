@@ -40,9 +40,9 @@
 #define BOOST_TEST_MODULE VisibilityHelperTests
 #include <boost/test/unit_test.hpp>
 
-#include "VisibilityHelper.h"
 #include "scene/DisplayGroup.h"
 #include "scene/Window.h"
+#include "tools/VisibilityHelper.h"
 
 #include "DummyContent.h"
 

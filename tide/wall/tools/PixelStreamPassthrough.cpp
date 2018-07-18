@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,79 +37,47 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef RENDERCONTROLLER_H
-#define RENDERCONTROLLER_H
+#include "PixelStreamPassthrough.h"
 
-#include "types.h"
+#include "data/StreamImage.h"
 
-#include "tools/SwapSyncObject.h"
+#include <deflect/server/Frame.h>
+#include <deflect/server/TileDecoder.h>
 
-#include <QObject>
-
-/**
- * Setup the scene and control the rendering options during runtime.
- */
-class RenderController : public QObject
+PixelStreamPassthrough::PixelStreamPassthrough(deflect::server::FramePtr frame)
+    : _frame(frame)
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(RenderController)
+}
 
-public:
-    RenderController(const WallConfiguration& config, DataProvider& provider,
-                     WallToWallChannel& wallChannel, SwapSync type);
-    ~RenderController();
-
-public slots:
-    void updateScene(ScenePtr scene);
-    void updateMarkers(MarkersPtr markers);
-    void updateOptions(OptionsPtr options);
-    void updateLock(ScreenLockPtr lock);
-    void updateCountdownStatus(CountdownStatusPtr status);
-    void updateRequestScreenshot();
-    void updateQuit();
-
-signals:
-    void screenshotRendered(QImage image, QPoint index);
-
-private:
-    std::vector<WallWindowPtr> _windows;
-    DataProvider& _provider;
-    WallToWallChannel& _wallChannel;
-    std::unique_ptr<SwapSynchronizer> _swapSynchronizer;
-
-    SwapSyncObject<ScenePtr> _syncScene;
-    SwapSyncObject<MarkersPtr> _syncMarkers;
-    SwapSyncObject<OptionsPtr> _syncOptions;
-    SwapSyncObject<ScreenLockPtr> _syncLock;
-    SwapSyncObject<CountdownStatusPtr> _syncCountdownStatus;
-    SwapSyncObject<bool> _syncScreenshot{false};
-    SwapSyncObject<bool> _syncQuit{false};
-
-    int _renderTimer = 0;
-    int _stopRenderingDelayTimer = 0;
-    int _idleRedrawTimer = 0;
-    bool _redrawNeeded = false;
-
-    void timerEvent(QTimerEvent* qtEvent) final;
-
-    /** Initialization. */
-    void _connectSwapSyncObjects();
-    void _connectRedrawSignal();
-    void _connectScreenshotSignals();
-    void _setupSwapSynchronization(SwapSync type);
-
-    /** Synchronization and rendering. */
-    void _requestRender();
-    void _syncAndRender();
-    void _renderAllWindows();
-    void _scheduleRedraw();
-    void _scheduleStopRendering();
-    void _stopRendering();
-    void _synchronizeSceneUpdates();
-    void _synchronizeDataSourceUpdates();
-
-    /** Shutdown. */
-    void _terminateRendering();
-};
-
+ImagePtr PixelStreamPassthrough::getTileImage(
+    const uint tileIndex, deflect::server::TileDecoder& decoder)
+{
+    auto& tile = _frame->tiles.at(tileIndex);
+    if (tile.format == deflect::Format::jpeg)
+    {
+#ifndef DEFLECT_USE_LEGACY_LIBJPEGTURBO
+        decoder.decodeToYUV(tile);
+#else
+        decoder.decode(tile);
 #endif
+    }
+    return std::make_shared<StreamImage>(_frame, tileIndex);
+}
+
+QRect PixelStreamPassthrough::getTileRect(const uint tileIndex) const
+{
+    return toRect(_frame->tiles.at(tileIndex));
+}
+
+Indices PixelStreamPassthrough::computeVisibleSet(const QRectF& visibleArea,
+                                                  const uint channel) const
+{
+    Indices visibleSet;
+    for (size_t i = 0; i < _frame->tiles.size(); ++i)
+    {
+        const auto& tile = _frame->tiles[i];
+        if (tile.channel == channel && visibleArea.intersects(toRect(tile)))
+            visibleSet.insert(i);
+    }
+    return visibleSet;
+}

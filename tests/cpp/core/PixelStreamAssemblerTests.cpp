@@ -41,7 +41,7 @@
 #include <boost/test/unit_test.hpp>
 
 #include "tide/core/data/Image.h"
-#include "tide/wall/PixelStreamAssembler.h"
+#include "tide/wall/tools/PixelStreamAssembler.h"
 
 #include <deflect/server/Frame.h>
 #include <deflect/server/TileDecoder.h>

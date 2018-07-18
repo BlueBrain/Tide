@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,79 +37,88 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef RENDERCONTROLLER_H
-#define RENDERCONTROLLER_H
+#include "PDFTiler.h"
 
-#include "types.h"
+#include "data/PDF.h"
+#include "scene/PDFContent.h"
+#include "scene/VectorialContent.h"
+#include "tools/LodTools.h"
 
-#include "tools/SwapSyncObject.h"
+#include <QThread>
 
-#include <QObject>
-
-/**
- * Setup the scene and control the rendering options during runtime.
- */
-class RenderController : public QObject
+namespace
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(RenderController)
+// The main bottelneck of Poppler is the parsing done for every render call not
+// the rendering itself. See: https://bugzilla.gnome.org/show_bug.cgi?id=303365
+// Rendering a small tile takes almost as long a rendering the whole page, so
+// it is more optimal to use a large tile size.
+const uint tileSize = 2048;
+}
 
-public:
-    RenderController(const WallConfiguration& config, DataProvider& provider,
-                     WallToWallChannel& wallChannel, SwapSync type);
-    ~RenderController();
+PDFTiler::PDFTiler(const QString& uri)
+    : LodTiler{PDF{uri}.getSize() * VectorialContent::getMaxScale(), tileSize}
+    , _uri{uri}
+    , _tilesPerPage{_lodTool.getTilesCount()}
+{
+}
 
-public slots:
-    void updateScene(ScenePtr scene);
-    void updateMarkers(MarkersPtr markers);
-    void updateOptions(OptionsPtr options);
-    void updateLock(ScreenLockPtr lock);
-    void updateCountdownStatus(CountdownStatusPtr status);
-    void updateRequestScreenshot();
-    void updateQuit();
+PDFTiler::~PDFTiler()
+{
+}
 
-signals:
-    void screenshotRendered(QImage image, QPoint index);
+QRect PDFTiler::getTileRect(uint tileId) const
+{
+    tileId = tileId % _tilesPerPage;
+    return LodTiler::getTileRect(tileId);
+}
 
-private:
-    std::vector<WallWindowPtr> _windows;
-    DataProvider& _provider;
-    WallToWallChannel& _wallChannel;
-    std::unique_ptr<SwapSynchronizer> _swapSynchronizer;
+void PDFTiler::update(const PDFContent& content)
+{
+    _pageCount = content.getPageCount();
+    if (_currentPage != content.getPage())
+    {
+        _currentPage = content.getPage();
+        emit pageChanged();
+    }
+}
 
-    SwapSyncObject<ScenePtr> _syncScene;
-    SwapSyncObject<MarkersPtr> _syncMarkers;
-    SwapSyncObject<OptionsPtr> _syncOptions;
-    SwapSyncObject<ScreenLockPtr> _syncLock;
-    SwapSyncObject<CountdownStatusPtr> _syncCountdownStatus;
-    SwapSyncObject<bool> _syncScreenshot{false};
-    SwapSyncObject<bool> _syncQuit{false};
+Indices PDFTiler::computeVisibleSet(const QRectF& visibleTilesArea,
+                                    const uint lod, const uint channel) const
+{
+    const auto pageOffset = getPreviewTileId();
+    Indices offsetSet;
+    for (auto tileId :
+         LodTiler::computeVisibleSet(visibleTilesArea, lod, channel))
+    {
+        offsetSet.insert(tileId + pageOffset);
+    }
+    return offsetSet;
+}
 
-    int _renderTimer = 0;
-    int _stopRenderingDelayTimer = 0;
-    int _idleRedrawTimer = 0;
-    bool _redrawNeeded = false;
+QImage PDFTiler::getCachableTileImage(uint tileId) const
+{
+    const auto id = QThread::currentThreadId();
 
-    void timerEvent(QTimerEvent* qtEvent) final;
+    PDF* pdf = nullptr;
+    {
+        QMutexLocker lock(&_threadMapMutex);
+        if (!_perThreadPDF.count(id))
+            _perThreadPDF[id] = std::make_unique<PDF>(_uri);
+        pdf = _perThreadPDF[id].get();
+    }
+    pdf->setPage(tileId / _tilesPerPage);
 
-    /** Initialization. */
-    void _connectSwapSyncObjects();
-    void _connectRedrawSignal();
-    void _connectScreenshotSignals();
-    void _setupSwapSynchronization(SwapSync type);
+    tileId = tileId % _tilesPerPage;
+    const auto tileRect = getTileRect(tileId);
+    return pdf->renderToImage(tileRect.size(), getNormalizedTileRect(tileId));
+}
 
-    /** Synchronization and rendering. */
-    void _requestRender();
-    void _syncAndRender();
-    void _renderAllWindows();
-    void _scheduleRedraw();
-    void _scheduleStopRendering();
-    void _stopRendering();
-    void _synchronizeSceneUpdates();
-    void _synchronizeDataSourceUpdates();
+uint PDFTiler::getPreviewTileId() const
+{
+    return _tilesPerPage * _currentPage;
+}
 
-    /** Shutdown. */
-    void _terminateRendering();
-};
-
-#endif
+QString PDFTiler::getStatistics() const
+{
+    return QString("page %1/%2").arg(_currentPage + 1).arg(_pageCount);
+}

@@ -37,70 +37,31 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#define BOOST_TEST_MODULE TextureNodeFactoryTests
+#include "qscreens.h"
 
-#include <boost/test/unit_test.hpp>
+#include <QGuiApplication>
+#include <qpa/qplatformnativeinterface.h> // QtGui private header
 
-#include "qml/TextureNodeFactory.h"
-#include "qml/TextureNodeRGBA.h"
-#include "qml/TextureNodeYUV.h"
+#ifdef __linux__
+#include <X11/Xlib.h>
+#endif
 
-#include "QGuiAppFixture.h"
-
-BOOST_FIXTURE_TEST_CASE(need_to_change_texture_node_type_between_rgba_and_yuv,
-                        QQuickWindowFixture)
+namespace qscreens
 {
-    if (!window)
-        return;
-
-    TextureNodeFactoryImpl f{*window, TextureType::static_};
-    using TF = TextureFormat;
-
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::rgba, TF::rgba), false);
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::rgba, TF::yuv420), true);
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::rgba, TF::yuv422), true);
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::rgba, TF::yuv444), true);
-
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv420, TF::rgba), true);
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv420, TF::yuv420), false);
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv420, TF::yuv422), false);
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv420, TF::yuv444), false);
-
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv422, TF::rgba), true);
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv422, TF::yuv420), false);
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv422, TF::yuv422), false);
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv422, TF::yuv444), false);
-
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv444, TF::rgba), true);
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv444, TF::yuv420), false);
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv444, TF::yuv422), false);
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv444, TF::yuv444), false);
+QScreen* find(const QString& display)
+{
+#ifdef __linux__
+    for (auto screen : QGuiApplication::screens())
+    {
+        auto platform = QGuiApplication::platformNativeInterface();
+        auto handle = platform->nativeResourceForScreen("display", screen);
+        auto displayPtr = (Display*)handle;
+        if (display == DisplayString(displayPtr))
+            return screen;
+    }
+#else
+    Q_UNUSED(display);
+#endif
+    return nullptr;
 }
-
-BOOST_FIXTURE_TEST_CASE(create_static_texture_nodes, QQuickWindowFixture)
-{
-    if (!window)
-        return;
-
-    TextureNodeFactoryImpl f{*window, TextureType::static_};
-    using TF = TextureFormat;
-
-    BOOST_CHECK(dynamic_cast<TextureNodeRGBA*>(f.create(TF::rgba).get()));
-    BOOST_CHECK(dynamic_cast<TextureNodeYUV*>(f.create(TF::yuv420).get()));
-    BOOST_CHECK(dynamic_cast<TextureNodeYUV*>(f.create(TF::yuv422).get()));
-    BOOST_CHECK(dynamic_cast<TextureNodeYUV*>(f.create(TF::yuv444).get()));
-}
-
-BOOST_FIXTURE_TEST_CASE(create_dynamic_texture_nodes, QQuickWindowFixture)
-{
-    if (!window)
-        return;
-
-    TextureNodeFactoryImpl f{*window, TextureType::dynamic};
-    using TF = TextureFormat;
-
-    BOOST_CHECK(dynamic_cast<TextureNodeRGBA*>(f.create(TF::rgba).get()));
-    BOOST_CHECK(dynamic_cast<TextureNodeYUV*>(f.create(TF::yuv420).get()));
-    BOOST_CHECK(dynamic_cast<TextureNodeYUV*>(f.create(TF::yuv422).get()));
-    BOOST_CHECK(dynamic_cast<TextureNodeYUV*>(f.create(TF::yuv444).get()));
 }

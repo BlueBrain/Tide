@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,79 +37,84 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef RENDERCONTROLLER_H
-#define RENDERCONTROLLER_H
+#ifndef PIXELSTREAMUPDATER_H
+#define PIXELSTREAMUPDATER_H
 
 #include "types.h"
 
+#include "DataSource.h"
 #include "tools/SwapSyncObject.h"
 
 #include <QObject>
+#include <QReadWriteLock>
+
+class PixelStreamProcessor;
 
 /**
- * Setup the scene and control the rendering options during runtime.
+ * Synchronize the update of PixelStreams and send new frame requests.
  */
-class RenderController : public QObject
+class PixelStreamUpdater : public QObject, public DataSource
 {
     Q_OBJECT
-    Q_DISABLE_COPY(RenderController)
+    Q_DISABLE_COPY(PixelStreamUpdater)
 
 public:
-    RenderController(const WallConfiguration& config, DataProvider& provider,
-                     WallToWallChannel& wallChannel, SwapSync type);
-    ~RenderController();
+    /** Constructor. */
+    PixelStreamUpdater();
+
+    /** Destructor. */
+    ~PixelStreamUpdater();
+
+    /** @copydoc DataSource::isDynamic */
+    bool isDynamic() const final { return true; }
+    /**
+     * @copydoc DataSource::getTileImage
+     * threadsafe
+     */
+    ImagePtr getTileImage(uint tileIndex, deflect::View view) const final;
+
+    /** @copydoc DataSource::getTileRect */
+    QRect getTileRect(uint tileIndex) const final;
+
+    /** @copydoc DataSource::getTilesArea */
+    QSize getTilesArea(uint lod, uint channel) const final;
+
+    /** @copydoc DataSource::computeVisibleSet */
+    Indices computeVisibleSet(const QRectF& visibleTilesArea, uint lod,
+                              uint channel) const final;
+
+    /** @copydoc DataSource::getMaxLod */
+    uint getMaxLod() const final;
+
+    /** Allow advancing to the next frame of the stream (flow control). */
+    void getNextFrame();
+
+    /** Synchronize the advance to the next frame of the stream. */
+    void synchronizeFrameAdvance(WallToWallChannel& channel);
 
 public slots:
-    void updateScene(ScenePtr scene);
-    void updateMarkers(MarkersPtr markers);
-    void updateOptions(OptionsPtr options);
-    void updateLock(ScreenLockPtr lock);
-    void updateCountdownStatus(CountdownStatusPtr status);
-    void updateRequestScreenshot();
-    void updateQuit();
+    /** Update the appropriate PixelStream with the given frame. */
+    void updatePixelStream(deflect::server::FramePtr frame);
 
 signals:
-    void screenshotRendered(QImage image, QPoint index);
+    /** Emitted when a new picture has become available. */
+    void pictureUpdated();
+
+    /** Emitted to request a new frame after a successful swap. */
+    void requestFrame(QString uri);
 
 private:
-    std::vector<WallWindowPtr> _windows;
-    DataProvider& _provider;
-    WallToWallChannel& _wallChannel;
-    std::unique_ptr<SwapSynchronizer> _swapSynchronizer;
+    SwapSyncObject<deflect::server::FramePtr> _swapSyncFrame;
+    deflect::server::FramePtr _frameLeftOrMono;
+    deflect::server::FramePtr _frameRight;
+    std::unique_ptr<deflect::server::TileDecoder> _headerDecoder;
+    std::unique_ptr<PixelStreamProcessor> _processorLeft;
+    std::unique_ptr<PixelStreamProcessor> _processRight;
+    mutable QReadWriteLock _frameMutex;
+    bool _readyToSwap = true;
 
-    SwapSyncObject<ScenePtr> _syncScene;
-    SwapSyncObject<MarkersPtr> _syncMarkers;
-    SwapSyncObject<OptionsPtr> _syncOptions;
-    SwapSyncObject<ScreenLockPtr> _syncLock;
-    SwapSyncObject<CountdownStatusPtr> _syncCountdownStatus;
-    SwapSyncObject<bool> _syncScreenshot{false};
-    SwapSyncObject<bool> _syncQuit{false};
-
-    int _renderTimer = 0;
-    int _stopRenderingDelayTimer = 0;
-    int _idleRedrawTimer = 0;
-    bool _redrawNeeded = false;
-
-    void timerEvent(QTimerEvent* qtEvent) final;
-
-    /** Initialization. */
-    void _connectSwapSyncObjects();
-    void _connectRedrawSignal();
-    void _connectScreenshotSignals();
-    void _setupSwapSynchronization(SwapSync type);
-
-    /** Synchronization and rendering. */
-    void _requestRender();
-    void _syncAndRender();
-    void _renderAllWindows();
-    void _scheduleRedraw();
-    void _scheduleStopRendering();
-    void _stopRendering();
-    void _synchronizeSceneUpdates();
-    void _synchronizeDataSourceUpdates();
-
-    /** Shutdown. */
-    void _terminateRendering();
+    void _onFrameSwapped(deflect::server::FramePtr frame);
+    void _createFrameProcessors();
 };
 
 #endif

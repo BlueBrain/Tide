@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,79 +37,37 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef RENDERCONTROLLER_H
-#define RENDERCONTROLLER_H
+#include "BackgroundRenderer.h"
 
-#include "types.h"
+#include "DataProvider.h"
+#include "WallRenderContext.h"
+#include "qml/WindowRenderer.h"
+#include "scene/Background.h"
+#include "scene/DisplayGroup.h"
+#include "tools/VisibilityHelper.h"
+#include "utils/geometry.h"
+#include "utils/qml.h"
 
-#include "tools/SwapSyncObject.h"
-
-#include <QObject>
-
-/**
- * Setup the scene and control the rendering options during runtime.
- */
-class RenderController : public QObject
+BackgroundRenderer::BackgroundRenderer(const Background& background,
+                                       const WallRenderContext& context,
+                                       QQuickItem& parentItem)
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(RenderController)
+    auto content = background.getContent()->clone();
+    const auto& uuid = background.getContentUUID();
+    auto window = std::make_shared<Window>(std::move(content), uuid);
 
-public:
-    RenderController(const WallConfiguration& config, DataProvider& provider,
-                     WallToWallChannel& wallChannel, SwapSync type);
-    ~RenderController();
+    const auto wallRect = QRect{QPoint(), context.wallSize};
+    window->setCoordinates(geometry::adjustAndCenter(*window, wallRect));
+    auto sync = context.provider.createSynchronizer(*window, context.view);
 
-public slots:
-    void updateScene(ScenePtr scene);
-    void updateMarkers(MarkersPtr markers);
-    void updateOptions(OptionsPtr options);
-    void updateLock(ScreenLockPtr lock);
-    void updateCountdownStatus(CountdownStatusPtr status);
-    void updateRequestScreenshot();
-    void updateQuit();
+    _renderer.reset(new WindowRenderer(std::move(sync), window, parentItem,
+                                       context.engine.rootContext(), true));
 
-signals:
-    void screenshotRendered(QImage image, QPoint index);
+    auto emptyGroup = DisplayGroup::create(context.screenRect.size());
+    const VisibilityHelper helper(*emptyGroup, context.screenRect);
+    _renderer->update(window, helper.getVisibleArea(*window));
+}
 
-private:
-    std::vector<WallWindowPtr> _windows;
-    DataProvider& _provider;
-    WallToWallChannel& _wallChannel;
-    std::unique_ptr<SwapSynchronizer> _swapSynchronizer;
-
-    SwapSyncObject<ScenePtr> _syncScene;
-    SwapSyncObject<MarkersPtr> _syncMarkers;
-    SwapSyncObject<OptionsPtr> _syncOptions;
-    SwapSyncObject<ScreenLockPtr> _syncLock;
-    SwapSyncObject<CountdownStatusPtr> _syncCountdownStatus;
-    SwapSyncObject<bool> _syncScreenshot{false};
-    SwapSyncObject<bool> _syncQuit{false};
-
-    int _renderTimer = 0;
-    int _stopRenderingDelayTimer = 0;
-    int _idleRedrawTimer = 0;
-    bool _redrawNeeded = false;
-
-    void timerEvent(QTimerEvent* qtEvent) final;
-
-    /** Initialization. */
-    void _connectSwapSyncObjects();
-    void _connectRedrawSignal();
-    void _connectScreenshotSignals();
-    void _setupSwapSynchronization(SwapSync type);
-
-    /** Synchronization and rendering. */
-    void _requestRender();
-    void _syncAndRender();
-    void _renderAllWindows();
-    void _scheduleRedraw();
-    void _scheduleStopRendering();
-    void _stopRendering();
-    void _synchronizeSceneUpdates();
-    void _synchronizeDataSourceUpdates();
-
-    /** Shutdown. */
-    void _terminateRendering();
-};
-
-#endif
+BackgroundRenderer::~BackgroundRenderer()
+{
+}

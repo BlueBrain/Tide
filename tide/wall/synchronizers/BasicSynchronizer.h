@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,79 +37,59 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef RENDERCONTROLLER_H
-#define RENDERCONTROLLER_H
+#ifndef BASICSYNCHRONIZER_H
+#define BASICSYNCHRONIZER_H
 
-#include "types.h"
-
-#include "tools/SwapSyncObject.h"
-
-#include <QObject>
+#include "synchronizers/ContentSynchronizer.h"
 
 /**
- * Setup the scene and control the rendering options during runtime.
+ * A basic synchronizer used for static content types.
  */
-class RenderController : public QObject
+class BasicSynchronizer : public ContentSynchronizer
 {
     Q_OBJECT
-    Q_DISABLE_COPY(RenderController)
+    Q_DISABLE_COPY(BasicSynchronizer)
 
 public:
-    RenderController(const WallConfiguration& config, DataProvider& provider,
-                     WallToWallChannel& wallChannel, SwapSync type);
-    ~RenderController();
+    /** Constructor */
+    BasicSynchronizer(std::shared_ptr<DataSource> source);
+    ~BasicSynchronizer();
 
-public slots:
-    void updateScene(ScenePtr scene);
-    void updateMarkers(MarkersPtr markers);
-    void updateOptions(OptionsPtr options);
-    void updateLock(ScreenLockPtr lock);
-    void updateCountdownStatus(CountdownStatusPtr status);
-    void updateRequestScreenshot();
-    void updateQuit();
+    /** @copydoc ContentSynchronizer::update */
+    void update(const Window& window, const QRectF& visibleArea) override;
 
-signals:
-    void screenshotRendered(QImage image, QPoint index);
+    /** @copydoc ContentSynchronizer::updateTiles */
+    void updateTiles() override;
+
+    /** @copydoc ContentSynchronizer::canSwapTiles */
+    bool canSwapTiles() const override;
+
+    /** @copydoc ContentSynchronizer::swapTiles */
+    void swapTiles() override;
+
+    /** @copydoc ContentSynchronizer::getTilesArea */
+    QSize getTilesArea() const override;
+
+    /** @copydoc ContentSynchronizer::getStatistics */
+    QString getStatistics() const override;
+
+    /** @copydoc ContentSynchronizer::onSwapReady */
+    void onSwapReady(TilePtr tile) override;
+
+    /** @copydoc ContentSynchronizer::createZoomContextTile */
+    TilePtr createZoomContextTile() const override;
 
 private:
-    std::vector<WallWindowPtr> _windows;
-    DataProvider& _provider;
-    WallToWallChannel& _wallChannel;
-    std::unique_ptr<SwapSynchronizer> _swapSynchronizer;
+    std::shared_ptr<DataSource> _dataSource;
+    bool _tileAdded = false;
+    bool _addTile = false;
+    bool _zoomContextTileDirty = false;
 
-    SwapSyncObject<ScenePtr> _syncScene;
-    SwapSyncObject<MarkersPtr> _syncMarkers;
-    SwapSyncObject<OptionsPtr> _syncOptions;
-    SwapSyncObject<ScreenLockPtr> _syncLock;
-    SwapSyncObject<CountdownStatusPtr> _syncCountdownStatus;
-    SwapSyncObject<bool> _syncScreenshot{false};
-    SwapSyncObject<bool> _syncQuit{false};
+    /** @copydoc ContentSynchronizer::getDataSource */
+    const DataSource& getDataSource() const final;
 
-    int _renderTimer = 0;
-    int _stopRenderingDelayTimer = 0;
-    int _idleRedrawTimer = 0;
-    bool _redrawNeeded = false;
-
-    void timerEvent(QTimerEvent* qtEvent) final;
-
-    /** Initialization. */
-    void _connectSwapSyncObjects();
-    void _connectRedrawSignal();
-    void _connectScreenshotSignals();
-    void _setupSwapSynchronization(SwapSync type);
-
-    /** Synchronization and rendering. */
-    void _requestRender();
-    void _syncAndRender();
-    void _renderAllWindows();
-    void _scheduleRedraw();
-    void _scheduleStopRendering();
-    void _stopRendering();
-    void _synchronizeSceneUpdates();
-    void _synchronizeDataSourceUpdates();
-
-    /** Shutdown. */
-    void _terminateRendering();
+    /** Create this content's unique tile. */
+    void _createTile();
 };
 
 #endif

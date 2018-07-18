@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,79 +37,75 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef RENDERCONTROLLER_H
-#define RENDERCONTROLLER_H
+#ifndef TILEDSYNCHRONIZER_H
+#define TILEDSYNCHRONIZER_H
 
-#include "types.h"
-
-#include "tools/SwapSyncObject.h"
+#include "synchronizers/ContentSynchronizer.h"
 
 #include <QObject>
 
 /**
- * Setup the scene and control the rendering options during runtime.
+ * A base synchronizer used for tiled content types with optional LOD.
  */
-class RenderController : public QObject
+class TiledSynchronizer : public ContentSynchronizer
 {
     Q_OBJECT
-    Q_DISABLE_COPY(RenderController)
+    Q_DISABLE_COPY(TiledSynchronizer)
 
 public:
-    RenderController(const WallConfiguration& config, DataProvider& provider,
-                     WallToWallChannel& wallChannel, SwapSync type);
-    ~RenderController();
+    enum TileSwapPolicy
+    {
+        SwapTilesIndependently,
+        SwapTilesSynchronously
+    };
 
-public slots:
-    void updateScene(ScenePtr scene);
-    void updateMarkers(MarkersPtr markers);
-    void updateOptions(OptionsPtr options);
-    void updateLock(ScreenLockPtr lock);
-    void updateCountdownStatus(CountdownStatusPtr status);
-    void updateRequestScreenshot();
-    void updateQuit();
+    /** Constructor */
+    explicit TiledSynchronizer(TileSwapPolicy policy);
 
-signals:
-    void screenshotRendered(QImage image, QPoint index);
+    /** @copydoc ContentSynchronizer::updateTiles */
+    void updateTiles() override;
+
+    /** @copydoc ContentSynchronizer::onSwapReady */
+    void onSwapReady(TilePtr tile) override;
+
+    /**
+     * @return true if TileSwapPolicy is SwapTilesSynchronously and tiles are
+     *         ready to be swapped.
+     */
+    bool canSwapTiles() const override;
+
+    /**
+     * Call to swap tiles when TileSwapPolicy is SwapTilesSynchronously.
+     *
+     * Should only be called when canSwapTiles returns true on all processes.
+     */
+    void swapTiles() override;
+
+protected:
+    /** @name Parameters for updateTile. */
+    //@{
+    uint _lod = 0; /**< LOD used to obtain the list of visible tiles from the
+                        data source. */
+    uint _channel = 0; /**< Channel used to obtain the list of visible tiles. */
+    QRectF _visibleTilesArea; /**< Area used to obtain the list of visible tiles
+                                   from the data source. */
+    Indices _ignoreSet; /**< Tiles to be ignored; must be managed manually. */
+    bool _updateExistingTiles = false; /**< Update texture and coordinates of
+                                            tiles which are already visible. */
+    //@}
 
 private:
-    std::vector<WallWindowPtr> _windows;
-    DataProvider& _provider;
-    WallToWallChannel& _wallChannel;
-    std::unique_ptr<SwapSynchronizer> _swapSynchronizer;
+    TileSwapPolicy _policy;
 
-    SwapSyncObject<ScenePtr> _syncScene;
-    SwapSyncObject<MarkersPtr> _syncMarkers;
-    SwapSyncObject<OptionsPtr> _syncOptions;
-    SwapSyncObject<ScreenLockPtr> _syncLock;
-    SwapSyncObject<CountdownStatusPtr> _syncCountdownStatus;
-    SwapSyncObject<bool> _syncScreenshot{false};
-    SwapSyncObject<bool> _syncQuit{false};
+    Indices _visibleSet;
 
-    int _renderTimer = 0;
-    int _stopRenderingDelayTimer = 0;
-    int _idleRedrawTimer = 0;
-    bool _redrawNeeded = false;
+    bool _syncSwapPending = false;
+    std::set<TilePtr> _tilesReadyToSwap;
+    Indices _tilesReadySet;
+    Indices _syncSet;
+    Indices _removeLaterSet;
 
-    void timerEvent(QTimerEvent* qtEvent) final;
-
-    /** Initialization. */
-    void _connectSwapSyncObjects();
-    void _connectRedrawSignal();
-    void _connectScreenshotSignals();
-    void _setupSwapSynchronization(SwapSync type);
-
-    /** Synchronization and rendering. */
-    void _requestRender();
-    void _syncAndRender();
-    void _renderAllWindows();
-    void _scheduleRedraw();
-    void _scheduleStopRendering();
-    void _stopRendering();
-    void _synchronizeSceneUpdates();
-    void _synchronizeDataSourceUpdates();
-
-    /** Shutdown. */
-    void _terminateRendering();
+    void _removeTile(size_t tileIndex);
 };
 
 #endif

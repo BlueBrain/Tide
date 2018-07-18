@@ -40,7 +40,7 @@
 #define BOOST_TEST_MODULE StreamImageTests
 #include <boost/test/unit_test.hpp>
 
-#include "StreamImage.h"
+#include "data/StreamImage.h"
 
 #include <deflect/server/Frame.h>
 #include <deflect/server/TileDecoder.h>

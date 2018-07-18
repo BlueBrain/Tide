@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,79 +37,50 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef RENDERCONTROLLER_H
-#define RENDERCONTROLLER_H
+#ifndef SVGGPUIMAGE_H
+#define SVGGPUIMAGE_H
 
-#include "types.h"
+#include "data/Image.h"
 
-#include "tools/SwapSyncObject.h"
-
-#include <QObject>
+#include "datasources/SVGTiler.h"
 
 /**
- * Setup the scene and control the rendering options during runtime.
+ * Image wrapper for an SVG tile which will be rendered on the GPU.
+ *
+ * Until generateGpuImage() has succeeded, this class contains no image data.
+ * It is called in the texture upload thread with an active OpenGL context.
  */
-class RenderController : public QObject
+class SVGGpuImage : public Image
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(RenderController)
-
 public:
-    RenderController(const WallConfiguration& config, DataProvider& provider,
-                     WallToWallChannel& wallChannel, SwapSync type);
-    ~RenderController();
+    /** Constructor. */
+    SVGGpuImage(const SVGTiler& dataSource, uint tileId);
 
-public slots:
-    void updateScene(ScenePtr scene);
-    void updateMarkers(MarkersPtr markers);
-    void updateOptions(OptionsPtr options);
-    void updateLock(ScreenLockPtr lock);
-    void updateCountdownStatus(CountdownStatusPtr status);
-    void updateRequestScreenshot();
-    void updateQuit();
+    /** @copydoc Image::getWidth */
+    int getWidth() const override;
 
-signals:
-    void screenshotRendered(QImage image, QPoint index);
+    /** @copydoc Image::getHeight */
+    int getHeight() const override;
+
+    /** @copydoc Image::getData */
+    const uint8_t* getData(uint texture = 0) const override;
+
+    /** @copydoc Image::getFormat */
+    TextureFormat getFormat() const override;
+
+    /** @copydoc Image::getGLPixelFormat */
+    uint getGLPixelFormat() const override;
+
+    /** @copydoc Image::isGpuImage */
+    bool isGpuImage() const final;
+
+    /** @copydoc Image::generateGpuImage */
+    bool generateGpuImage() final;
 
 private:
-    std::vector<WallWindowPtr> _windows;
-    DataProvider& _provider;
-    WallToWallChannel& _wallChannel;
-    std::unique_ptr<SwapSynchronizer> _swapSynchronizer;
-
-    SwapSyncObject<ScenePtr> _syncScene;
-    SwapSyncObject<MarkersPtr> _syncMarkers;
-    SwapSyncObject<OptionsPtr> _syncOptions;
-    SwapSyncObject<ScreenLockPtr> _syncLock;
-    SwapSyncObject<CountdownStatusPtr> _syncCountdownStatus;
-    SwapSyncObject<bool> _syncScreenshot{false};
-    SwapSyncObject<bool> _syncQuit{false};
-
-    int _renderTimer = 0;
-    int _stopRenderingDelayTimer = 0;
-    int _idleRedrawTimer = 0;
-    bool _redrawNeeded = false;
-
-    void timerEvent(QTimerEvent* qtEvent) final;
-
-    /** Initialization. */
-    void _connectSwapSyncObjects();
-    void _connectRedrawSignal();
-    void _connectScreenshotSignals();
-    void _setupSwapSynchronization(SwapSync type);
-
-    /** Synchronization and rendering. */
-    void _requestRender();
-    void _syncAndRender();
-    void _renderAllWindows();
-    void _scheduleRedraw();
-    void _scheduleStopRendering();
-    void _stopRendering();
-    void _synchronizeSceneUpdates();
-    void _synchronizeDataSourceUpdates();
-
-    /** Shutdown. */
-    void _terminateRendering();
+    const SVGTiler& _dataSource;
+    const uint _tileId;
+    ImagePtr _image;
 };
 
 #endif

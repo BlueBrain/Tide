@@ -42,7 +42,7 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "SwapSyncObject.h"
+#include "tools/SwapSyncObject.h"
 
 using IntPtr = std::shared_ptr<int>;
 

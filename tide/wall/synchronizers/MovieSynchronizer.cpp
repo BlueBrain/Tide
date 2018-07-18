@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,79 +37,105 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef RENDERCONTROLLER_H
-#define RENDERCONTROLLER_H
+#include "MovieSynchronizer.h"
 
-#include "types.h"
+#include "datasources/MovieUpdater.h"
+#include "qml/Tile.h"
+#include "scene/Window.h"
+#include "scene/ZoomHelper.h"
 
-#include "tools/SwapSyncObject.h"
-
-#include <QObject>
-
-/**
- * Setup the scene and control the rendering options during runtime.
- */
-class RenderController : public QObject
+MovieSynchronizer::MovieSynchronizer(std::shared_ptr<MovieUpdater> updater,
+                                     const deflect::View view)
+    : TiledSynchronizer{TileSwapPolicy::SwapTilesSynchronously}
+    , _updater{std::move(updater)}
+    , _view{view}
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(RenderController)
+    _updater->synchronizers.insert(this);
 
-public:
-    RenderController(const WallConfiguration& config, DataProvider& provider,
-                     WallToWallChannel& wallChannel, SwapSync type);
-    ~RenderController();
+    connect(_updater.get(), &MovieUpdater::pictureUpdated, this,
+            &MovieSynchronizer::_onPictureUpdated);
+}
 
-public slots:
-    void updateScene(ScenePtr scene);
-    void updateMarkers(MarkersPtr markers);
-    void updateOptions(OptionsPtr options);
-    void updateLock(ScreenLockPtr lock);
-    void updateCountdownStatus(CountdownStatusPtr status);
-    void updateRequestScreenshot();
-    void updateQuit();
+MovieSynchronizer::~MovieSynchronizer()
+{
+    _updater->synchronizers.erase(this);
+}
 
-signals:
-    void screenshotRendered(QImage image, QPoint index);
+void MovieSynchronizer::update(const Window& window, const QRectF& visibleArea)
+{
+    if (_updater->isSkipping())
+        emit sliderPositionChanged();
 
-private:
-    std::vector<WallWindowPtr> _windows;
-    DataProvider& _provider;
-    WallToWallChannel& _wallChannel;
-    std::unique_ptr<SwapSynchronizer> _swapSynchronizer;
+    // Tiles area corresponds to Content dimensions for Movies
+    const auto tilesSurface = window.getContent().getDimensions();
 
-    SwapSyncObject<ScenePtr> _syncScene;
-    SwapSyncObject<MarkersPtr> _syncMarkers;
-    SwapSyncObject<OptionsPtr> _syncOptions;
-    SwapSyncObject<ScreenLockPtr> _syncLock;
-    SwapSyncObject<CountdownStatusPtr> _syncCountdownStatus;
-    SwapSyncObject<bool> _syncScreenshot{false};
-    SwapSyncObject<bool> _syncQuit{false};
+    const auto visibleTilesArea =
+        ZoomHelper{window}.toTilesArea(visibleArea, tilesSurface);
 
-    int _renderTimer = 0;
-    int _stopRenderingDelayTimer = 0;
-    int _idleRedrawTimer = 0;
-    bool _redrawNeeded = false;
+    if (_visibleTilesArea == visibleTilesArea)
+        return;
 
-    void timerEvent(QTimerEvent* qtEvent) final;
+    _visibleTilesArea = visibleTilesArea;
+    _tilesDirty = true;
+}
 
-    /** Initialization. */
-    void _connectSwapSyncObjects();
-    void _connectRedrawSignal();
-    void _connectScreenshotSignals();
-    void _setupSwapSynchronization(SwapSync type);
+void MovieSynchronizer::updateTiles()
+{
+    if (_tilesDirty)
+    {
+        TiledSynchronizer::updateTiles();
+        _tilesDirty = false;
+        _updateExistingTiles = false;
+    }
+}
 
-    /** Synchronization and rendering. */
-    void _requestRender();
-    void _syncAndRender();
-    void _renderAllWindows();
-    void _scheduleRedraw();
-    void _scheduleStopRendering();
-    void _stopRendering();
-    void _synchronizeSceneUpdates();
-    void _synchronizeDataSourceUpdates();
+void MovieSynchronizer::swapTiles()
+{
+    TiledSynchronizer::swapTiles();
 
-    /** Shutdown. */
-    void _terminateRendering();
-};
+    if (!_updater->isPaused() || _updater->isSkipping())
+    {
+        _fpsCounter.tick();
+        emit statisticsChanged();
+        emit sliderPositionChanged();
+    }
+}
 
-#endif
+QSize MovieSynchronizer::getTilesArea() const
+{
+    return getDataSource().getTilesArea(0, 0);
+}
+
+QString MovieSynchronizer::getStatistics() const
+{
+    return QString("%1 / %2").arg(_fpsCounter.toString(),
+                                  _updater->getStatistics());
+}
+
+deflect::View MovieSynchronizer::getView() const
+{
+    return _view;
+}
+
+const DataSource& MovieSynchronizer::getDataSource() const
+{
+    return *_updater;
+}
+
+bool MovieSynchronizer::hasVisibleTiles() const
+{
+    return !_visibleTilesArea.isEmpty();
+}
+
+qreal MovieSynchronizer::getSliderPosition() const
+{
+    // The slider follows user input while skipping to keep things smooth
+    return _updater->isSkipping() ? _updater->getSkipPosition()
+                                  : _updater->getPosition();
+}
+
+void MovieSynchronizer::_onPictureUpdated()
+{
+    _updateExistingTiles = true;
+    _tilesDirty = true;
+}
