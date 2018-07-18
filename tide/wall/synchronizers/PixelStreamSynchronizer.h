@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,79 +37,64 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef RENDERCONTROLLER_H
-#define RENDERCONTROLLER_H
+#ifndef PIXELSTREAMSYNCHRONIZER_H
+#define PIXELSTREAMSYNCHRONIZER_H
 
-#include "types.h"
-
-#include "tools/SwapSyncObject.h"
+#include "synchronizers/TiledSynchronizer.h"
+#include "tools/FpsCounter.h"
 
 #include <QObject>
 
 /**
- * Setup the scene and control the rendering options during runtime.
+ * Synchronizes a PixelStream between different QML windows.
  */
-class RenderController : public QObject
+class PixelStreamSynchronizer : public TiledSynchronizer
 {
     Q_OBJECT
-    Q_DISABLE_COPY(RenderController)
+    Q_DISABLE_COPY(PixelStreamSynchronizer)
 
 public:
-    RenderController(const WallConfiguration& config, DataProvider& provider,
-                     WallToWallChannel& wallChannel, SwapSync type);
-    ~RenderController();
+    /**
+     * Construct a synchronizer for a stream.
+     * @param updater The shared pixel stream data source.
+     * @param view which the data source provides. Left and right views also
+     *        include mono contents.
+     * @param channel of the stream to display
+     */
+    PixelStreamSynchronizer(std::shared_ptr<PixelStreamUpdater> updater,
+                            deflect::View view, uint channel);
+    ~PixelStreamSynchronizer();
 
-public slots:
-    void updateScene(ScenePtr scene);
-    void updateMarkers(MarkersPtr markers);
-    void updateOptions(OptionsPtr options);
-    void updateLock(ScreenLockPtr lock);
-    void updateCountdownStatus(CountdownStatusPtr status);
-    void updateRequestScreenshot();
-    void updateQuit();
+    /** @copydoc ContentSynchronizer::update */
+    void update(const Window& window, const QRectF& visibleArea) override;
 
-signals:
-    void screenshotRendered(QImage image, QPoint index);
+    /** @copydoc ContentSynchronizer::updateTiles */
+    void updateTiles() final;
+
+    /** @copydoc ContentSynchronizer::swapTiles */
+    void swapTiles() final;
+
+    /** @copydoc ContentSynchronizer::getTilesArea */
+    QSize getTilesArea() const override;
+
+    /** @copydoc ContentSynchronizer::getStatistics */
+    QString getStatistics() const override;
+
+    /** @copydoc ContentSynchronizer::getView */
+    deflect::View getView() const final;
+
+    /** @copydoc ContentSynchronizer::getDataSource */
+    const DataSource& getDataSource() const final;
 
 private:
-    std::vector<WallWindowPtr> _windows;
-    DataProvider& _provider;
-    WallToWallChannel& _wallChannel;
-    std::unique_ptr<SwapSynchronizer> _swapSynchronizer;
+    std::shared_ptr<PixelStreamUpdater> _updater;
+    deflect::View _view;
+    FpsCounter _fpsCounter;
 
-    SwapSyncObject<ScenePtr> _syncScene;
-    SwapSyncObject<MarkersPtr> _syncMarkers;
-    SwapSyncObject<OptionsPtr> _syncOptions;
-    SwapSyncObject<ScreenLockPtr> _syncLock;
-    SwapSyncObject<CountdownStatusPtr> _syncCountdownStatus;
-    SwapSyncObject<bool> _syncScreenshot{false};
-    SwapSyncObject<bool> _syncQuit{false};
+    bool _tilesDirty = true;
+    QSize _tilesArea;
 
-    int _renderTimer = 0;
-    int _stopRenderingDelayTimer = 0;
-    int _idleRedrawTimer = 0;
-    bool _redrawNeeded = false;
-
-    void timerEvent(QTimerEvent* qtEvent) final;
-
-    /** Initialization. */
-    void _connectSwapSyncObjects();
-    void _connectRedrawSignal();
-    void _connectScreenshotSignals();
-    void _setupSwapSynchronization(SwapSync type);
-
-    /** Synchronization and rendering. */
-    void _requestRender();
-    void _syncAndRender();
-    void _renderAllWindows();
-    void _scheduleRedraw();
-    void _scheduleStopRendering();
-    void _stopRendering();
-    void _synchronizeSceneUpdates();
-    void _synchronizeDataSourceUpdates();
-
-    /** Shutdown. */
-    void _terminateRendering();
+    void _onPictureUpdated();
 };
 
 #endif

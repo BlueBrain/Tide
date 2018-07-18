@@ -40,14 +40,14 @@
 #include "RenderController.h"
 
 #include "DataProvider.h"
-#include "SwapSynchronizer.h"
 #include "WallConfiguration.h"
-#include "WallWindow.h"
 #include "network/WallToWallChannel.h"
+#include "qml/WallWindow.h"
 #include "scene/CountdownStatus.h"
 #include "scene/Options.h"
 #include "scene/Scene.h"
 #include "scene/ScreenLock.h"
+#include "swapsync/SwapSynchronizer.h"
 
 RenderController::RenderController(const WallConfiguration& config,
                                    DataProvider& provider,

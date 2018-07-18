@@ -41,9 +41,9 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "SwapSynchronizer.h"
-#include "SwapSynchronizerHardware.h"
-#include "SwapSynchronizerSoftware.h"
+#include "swapsync/SwapSynchronizer.h"
+#include "swapsync/SwapSynchronizerHardware.h"
+#include "swapsync/SwapSynchronizerSoftware.h"
 
 #include "MockNetworkBarrier.h"
 #include "QGuiAppFixture.h"

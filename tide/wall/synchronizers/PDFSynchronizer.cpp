@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,79 +37,38 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef RENDERCONTROLLER_H
-#define RENDERCONTROLLER_H
+#include "PDFSynchronizer.h"
 
-#include "types.h"
+#include "qml/Tile.h"
 
-#include "tools/SwapSyncObject.h"
-
-#include <QObject>
-
-/**
- * Setup the scene and control the rendering options during runtime.
- */
-class RenderController : public QObject
+PDFSynchronizer::PDFSynchronizer(std::shared_ptr<PDFTiler> source)
+    : LodSynchronizer(source)
+    , _source(std::move(source))
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(RenderController)
+    connect(_source.get(), &PDFTiler::pageChanged,
+            [this] { _pageChanged = true; });
+}
 
-public:
-    RenderController(const WallConfiguration& config, DataProvider& provider,
-                     WallToWallChannel& wallChannel, SwapSync type);
-    ~RenderController();
+void PDFSynchronizer::update(const Window& window, const QRectF& visibleArea)
+{
+    LodSynchronizer::update(window, visibleArea, _pageChanged,
+                            _source->getPreviewTileId());
 
-public slots:
-    void updateScene(ScenePtr scene);
-    void updateMarkers(MarkersPtr markers);
-    void updateOptions(OptionsPtr options);
-    void updateLock(ScreenLockPtr lock);
-    void updateCountdownStatus(CountdownStatusPtr status);
-    void updateRequestScreenshot();
-    void updateQuit();
+    if (_pageChanged)
+    {
+        _pageChanged = false;
+        emit statisticsChanged();
+    }
+}
 
-signals:
-    void screenshotRendered(QImage image, QPoint index);
+QString PDFSynchronizer::getStatistics() const
+{
+    const auto pageStatistics = _source->getStatistics();
+    return LodSynchronizer::getStatistics() + QString(" ") + pageStatistics;
+}
 
-private:
-    std::vector<WallWindowPtr> _windows;
-    DataProvider& _provider;
-    WallToWallChannel& _wallChannel;
-    std::unique_ptr<SwapSynchronizer> _swapSynchronizer;
-
-    SwapSyncObject<ScenePtr> _syncScene;
-    SwapSyncObject<MarkersPtr> _syncMarkers;
-    SwapSyncObject<OptionsPtr> _syncOptions;
-    SwapSyncObject<ScreenLockPtr> _syncLock;
-    SwapSyncObject<CountdownStatusPtr> _syncCountdownStatus;
-    SwapSyncObject<bool> _syncScreenshot{false};
-    SwapSyncObject<bool> _syncQuit{false};
-
-    int _renderTimer = 0;
-    int _stopRenderingDelayTimer = 0;
-    int _idleRedrawTimer = 0;
-    bool _redrawNeeded = false;
-
-    void timerEvent(QTimerEvent* qtEvent) final;
-
-    /** Initialization. */
-    void _connectSwapSyncObjects();
-    void _connectRedrawSignal();
-    void _connectScreenshotSignals();
-    void _setupSwapSynchronization(SwapSync type);
-
-    /** Synchronization and rendering. */
-    void _requestRender();
-    void _syncAndRender();
-    void _renderAllWindows();
-    void _scheduleRedraw();
-    void _scheduleStopRendering();
-    void _stopRendering();
-    void _synchronizeSceneUpdates();
-    void _synchronizeDataSourceUpdates();
-
-    /** Shutdown. */
-    void _terminateRendering();
-};
-
-#endif
+TilePtr PDFSynchronizer::createZoomContextTile() const
+{
+    const auto tileId = _source->getPreviewTileId();
+    return Tile::create(tileId, getDataSource().getTileRect(tileId));
+}

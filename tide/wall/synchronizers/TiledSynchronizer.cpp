@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,79 +37,94 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef RENDERCONTROLLER_H
-#define RENDERCONTROLLER_H
+#include "TiledSynchronizer.h"
 
-#include "types.h"
+#include "datasources/DataSource.h"
+#include "qml/Tile.h"
 
-#include "tools/SwapSyncObject.h"
-
-#include <QObject>
-
-/**
- * Setup the scene and control the rendering options during runtime.
- */
-class RenderController : public QObject
+TiledSynchronizer::TiledSynchronizer(const TileSwapPolicy policy)
+    : _policy(policy)
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(RenderController)
+}
 
-public:
-    RenderController(const WallConfiguration& config, DataProvider& provider,
-                     WallToWallChannel& wallChannel, SwapSync type);
-    ~RenderController();
+void TiledSynchronizer::onSwapReady(TilePtr tile)
+{
+    if (_policy == SwapTilesSynchronously &&
+        _syncSet.find(tile->getId()) != _syncSet.end())
+    {
+        _tilesReadyToSwap.insert(tile);
+        _tilesReadySet.insert(tile->getId());
+    }
+    else
+        tile->swapImage();
+}
 
-public slots:
-    void updateScene(ScenePtr scene);
-    void updateMarkers(MarkersPtr markers);
-    void updateOptions(OptionsPtr options);
-    void updateLock(ScreenLockPtr lock);
-    void updateCountdownStatus(CountdownStatusPtr status);
-    void updateRequestScreenshot();
-    void updateQuit();
+void TiledSynchronizer::updateTiles()
+{
+    const auto& source = getDataSource();
+    auto visibleSet =
+        source.computeVisibleSet(_visibleTilesArea, _lod, _channel);
+    visibleSet = set_difference(visibleSet, _ignoreSet);
 
-signals:
-    void screenshotRendered(QImage image, QPoint index);
+    const auto addedTiles = set_difference(visibleSet, _visibleSet);
+    const auto removedTiles = set_difference(_visibleSet, visibleSet);
 
-private:
-    std::vector<WallWindowPtr> _windows;
-    DataProvider& _provider;
-    WallToWallChannel& _wallChannel;
-    std::unique_ptr<SwapSynchronizer> _swapSynchronizer;
+    for (auto i : addedTiles)
+    {
+        const auto type =
+            source.isDynamic() ? TextureType::dynamic : TextureType::static_;
+        emit addTile(Tile::create(i, source.getTileRect(i), type));
+    }
 
-    SwapSyncObject<ScenePtr> _syncScene;
-    SwapSyncObject<MarkersPtr> _syncMarkers;
-    SwapSyncObject<OptionsPtr> _syncOptions;
-    SwapSyncObject<ScreenLockPtr> _syncLock;
-    SwapSyncObject<CountdownStatusPtr> _syncCountdownStatus;
-    SwapSyncObject<bool> _syncScreenshot{false};
-    SwapSyncObject<bool> _syncQuit{false};
+    if (_updateExistingTiles)
+    {
+        const auto currentTiles = set_difference(_visibleSet, removedTiles);
+        for (auto i : currentTiles)
+            emit updateTile(i, source.getTileRect(i));
+    }
 
-    int _renderTimer = 0;
-    int _stopRenderingDelayTimer = 0;
-    int _idleRedrawTimer = 0;
-    bool _redrawNeeded = false;
+    if (_policy == SwapTilesSynchronously)
+    {
+        if (_updateExistingTiles)
+        {
+            _syncSet = visibleSet;
+            _syncSwapPending = true;
+        }
+        else
+            _syncSet = set_difference(_syncSet, removedTiles);
+    }
 
-    void timerEvent(QTimerEvent* qtEvent) final;
+    for (auto i : removedTiles)
+        _removeTile(i);
+    _removeLaterSet = set_difference(_removeLaterSet, addedTiles);
 
-    /** Initialization. */
-    void _connectSwapSyncObjects();
-    void _connectRedrawSignal();
-    void _connectScreenshotSignals();
-    void _setupSwapSynchronization(SwapSync type);
+    _visibleSet = visibleSet;
+}
 
-    /** Synchronization and rendering. */
-    void _requestRender();
-    void _syncAndRender();
-    void _renderAllWindows();
-    void _scheduleRedraw();
-    void _scheduleStopRendering();
-    void _stopRendering();
-    void _synchronizeSceneUpdates();
-    void _synchronizeDataSourceUpdates();
+bool TiledSynchronizer::canSwapTiles() const
+{
+    return _syncSwapPending && set_difference(_syncSet, _tilesReadySet).empty();
+}
 
-    /** Shutdown. */
-    void _terminateRendering();
-};
+void TiledSynchronizer::swapTiles()
+{
+    for (auto i : _removeLaterSet)
+        emit removeTile(i);
+    _removeLaterSet.clear();
 
-#endif
+    for (auto& tile : _tilesReadyToSwap)
+        tile->swapImage();
+    _tilesReadyToSwap.clear();
+    _tilesReadySet.clear();
+    _syncSet.clear();
+
+    _syncSwapPending = false;
+}
+
+void TiledSynchronizer::_removeTile(const size_t tileIndex)
+{
+    if (_policy == SwapTilesSynchronously && _syncSwapPending)
+        _removeLaterSet.insert(tileIndex);
+    else
+        emit removeTile(tileIndex);
+}

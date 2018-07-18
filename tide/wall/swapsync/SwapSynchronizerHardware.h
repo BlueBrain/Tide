@@ -37,70 +37,54 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#define BOOST_TEST_MODULE TextureNodeFactoryTests
+#ifndef SWAPSYNCHRONIZERHARDWARE_H
+#define SWAPSYNCHRONIZERHARDWARE_H
 
-#include <boost/test/unit_test.hpp>
+#include "swapsync/SwapSynchronizer.h"
 
-#include "qml/TextureNodeFactory.h"
-#include "qml/TextureNodeRGBA.h"
-#include "qml/TextureNodeYUV.h"
+#include "HardwareSwapGroup.h"
+#include "network/SharedNetworkBarrier.h"
 
-#include "QGuiAppFixture.h"
-
-BOOST_FIXTURE_TEST_CASE(need_to_change_texture_node_type_between_rgba_and_yuv,
-                        QQuickWindowFixture)
+// clang-format off
+/**
+ * Hardware swap synchonizer using GL extensions (for NVidia Quadro GSync card).
+ *
+ * Given the following setup:
+ *
+ * Node #1: process A {Left window, Right window}
+ * Node #2: process B {Left window, Right window}
+ *
+ * Where each window has its own (non-sharing) GLContext and render thread.
+ * The startup procedure is:
+ *                                      — global barrier —
+ * A-L joinSwapGroup(1) | A-R joinSwapGroup(1) || B-L joinSwapGroup(1) | B-R joinSwapGroup(1)
+ *            — A local barrier —              ||             — B local barrier —
+ *           A joinSwapBarrier(1,1)            ||            B joinSwapBarrier(1,1)
+ *                                      — global barrier —
+ *
+ * And the shutdown procedure is:
+ *                                      — global barrier —
+ *             A leaveSwapBarrier()            ||             B leaveSwapBarrier()
+ * A-L leaveSwapGroup() | A-R leaveSwapGroup() || B-L leaveSwapGroup() | B-R leaveSwapGroup()
+ *
+ * The {join|leave}SwapBarrier must be executed by a single GL context per
+ * machine.
+ */ // clang-format on
+class SwapSynchronizerHardware : public SwapSynchronizer
 {
-    if (!window)
-        return;
+public:
+    SwapSynchronizerHardware(NetworkBarrier& barrier, uint windowCount);
 
-    TextureNodeFactoryImpl f{*window, TextureType::static_};
-    using TF = TextureFormat;
+    void globalBarrier(const QWindow& window) final;
+    void exitBarrier(const QWindow& window) final;
 
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::rgba, TF::rgba), false);
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::rgba, TF::yuv420), true);
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::rgba, TF::yuv422), true);
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::rgba, TF::yuv444), true);
+private:
+    NetworkBarrier& _networkBarrier;
+    SharedNetworkBarrier _globalBarrier;
+    LocalBarrier _localBarrier;
+    uint _windowCount = 0;
+    HardwareSwapGroup _hardwareSwapGroup;
+    bool _initialized = false;
+};
 
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv420, TF::rgba), true);
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv420, TF::yuv420), false);
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv420, TF::yuv422), false);
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv420, TF::yuv444), false);
-
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv422, TF::rgba), true);
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv422, TF::yuv420), false);
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv422, TF::yuv422), false);
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv422, TF::yuv444), false);
-
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv444, TF::rgba), true);
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv444, TF::yuv420), false);
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv444, TF::yuv422), false);
-    BOOST_CHECK_EQUAL(f.needToChangeNodeType(TF::yuv444, TF::yuv444), false);
-}
-
-BOOST_FIXTURE_TEST_CASE(create_static_texture_nodes, QQuickWindowFixture)
-{
-    if (!window)
-        return;
-
-    TextureNodeFactoryImpl f{*window, TextureType::static_};
-    using TF = TextureFormat;
-
-    BOOST_CHECK(dynamic_cast<TextureNodeRGBA*>(f.create(TF::rgba).get()));
-    BOOST_CHECK(dynamic_cast<TextureNodeYUV*>(f.create(TF::yuv420).get()));
-    BOOST_CHECK(dynamic_cast<TextureNodeYUV*>(f.create(TF::yuv422).get()));
-    BOOST_CHECK(dynamic_cast<TextureNodeYUV*>(f.create(TF::yuv444).get()));
-}
-
-BOOST_FIXTURE_TEST_CASE(create_dynamic_texture_nodes, QQuickWindowFixture)
-{
-    if (!window)
-        return;
-
-    TextureNodeFactoryImpl f{*window, TextureType::dynamic};
-    using TF = TextureFormat;
-
-    BOOST_CHECK(dynamic_cast<TextureNodeRGBA*>(f.create(TF::rgba).get()));
-    BOOST_CHECK(dynamic_cast<TextureNodeYUV*>(f.create(TF::yuv420).get()));
-    BOOST_CHECK(dynamic_cast<TextureNodeYUV*>(f.create(TF::yuv422).get()));
-    BOOST_CHECK(dynamic_cast<TextureNodeYUV*>(f.create(TF::yuv444).get()));
-}
+#endif

@@ -41,8 +41,8 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "TextureSwitcher.h"
 #include "data/Image.h"
+#include "qml/TextureSwitcher.h"
 
 class MockTextureNode : public TextureNode
 {

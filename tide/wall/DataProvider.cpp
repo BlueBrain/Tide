@@ -39,28 +39,28 @@
 
 #include "DataProvider.h"
 
-#include "Tile.h"
 #include "config.h"
 #include "network/WallToWallChannel.h"
+#include "qml/Tile.h"
 #include "scene/Background.h"
 #include "scene/MultiChannelContent.h"
 #include "scene/Scene.h"
 #include "scene/Window.h"
 #include "utils/log.h"
 
-#include "BasicSynchronizer.h"
-#include "LodSynchronizer.h"
-#include "PixelStreamSynchronizer.h"
-#include "PixelStreamUpdater.h"
+#include "datasources/PixelStreamUpdater.h"
+#include "synchronizers/BasicSynchronizer.h"
+#include "synchronizers/LodSynchronizer.h"
+#include "synchronizers/PixelStreamSynchronizer.h"
 
 #if TIDE_ENABLE_MOVIE_SUPPORT
-#include "MovieSynchronizer.h"
-#include "MovieUpdater.h"
+#include "datasources/MovieUpdater.h"
 #include "scene/MovieContent.h"
+#include "synchronizers/MovieSynchronizer.h"
 #endif
 #if TIDE_ENABLE_PDF_SUPPORT
-#include "PDFSynchronizer.h"
 #include "scene/PDFContent.h"
+#include "synchronizers/PDFSynchronizer.h"
 #endif
 
 #include <deflect/server/Frame.h>

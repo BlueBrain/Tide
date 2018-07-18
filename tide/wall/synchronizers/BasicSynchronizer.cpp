@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,79 +37,90 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef RENDERCONTROLLER_H
-#define RENDERCONTROLLER_H
+#include "BasicSynchronizer.h"
 
-#include "types.h"
+#include "datasources/DataSource.h"
+#include "qml/Tile.h"
 
-#include "tools/SwapSyncObject.h"
-
-#include <QObject>
-
-/**
- * Setup the scene and control the rendering options during runtime.
- */
-class RenderController : public QObject
+BasicSynchronizer::BasicSynchronizer(std::shared_ptr<DataSource> source)
+    : _dataSource(std::move(source))
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(RenderController)
+    _dataSource->synchronizers.insert(this);
 
-public:
-    RenderController(const WallConfiguration& config, DataProvider& provider,
-                     WallToWallChannel& wallChannel, SwapSync type);
-    ~RenderController();
+    connect(this, &ContentSynchronizer::zoomContextVisibleChanged,
+            [this] { _zoomContextTileDirty = true; });
+}
 
-public slots:
-    void updateScene(ScenePtr scene);
-    void updateMarkers(MarkersPtr markers);
-    void updateOptions(OptionsPtr options);
-    void updateLock(ScreenLockPtr lock);
-    void updateCountdownStatus(CountdownStatusPtr status);
-    void updateRequestScreenshot();
-    void updateQuit();
+BasicSynchronizer::~BasicSynchronizer()
+{
+    _dataSource->synchronizers.erase(this);
+}
 
-signals:
-    void screenshotRendered(QImage image, QPoint index);
+void BasicSynchronizer::update(const Window& /*window*/,
+                               const QRectF& visibleArea)
+{
+    if (!_tileAdded && !visibleArea.isEmpty())
+        _addTile = true;
+}
 
-private:
-    std::vector<WallWindowPtr> _windows;
-    DataProvider& _provider;
-    WallToWallChannel& _wallChannel;
-    std::unique_ptr<SwapSynchronizer> _swapSynchronizer;
+void BasicSynchronizer::updateTiles()
+{
+    if (_addTile)
+        _createTile();
 
-    SwapSyncObject<ScenePtr> _syncScene;
-    SwapSyncObject<MarkersPtr> _syncMarkers;
-    SwapSyncObject<OptionsPtr> _syncOptions;
-    SwapSyncObject<ScreenLockPtr> _syncLock;
-    SwapSyncObject<CountdownStatusPtr> _syncCountdownStatus;
-    SwapSyncObject<bool> _syncScreenshot{false};
-    SwapSyncObject<bool> _syncQuit{false};
+    if (_zoomContextTileDirty)
+    {
+        _zoomContextTileDirty = false;
+        emit zoomContextTileChanged(getZoomContextVisible());
+    }
+}
 
-    int _renderTimer = 0;
-    int _stopRenderingDelayTimer = 0;
-    int _idleRedrawTimer = 0;
-    bool _redrawNeeded = false;
+bool BasicSynchronizer::canSwapTiles() const
+{
+    return false;
+}
 
-    void timerEvent(QTimerEvent* qtEvent) final;
+void BasicSynchronizer::swapTiles()
+{
+    // Swap not synchronized, done directly in onSwapReady()
+}
 
-    /** Initialization. */
-    void _connectSwapSyncObjects();
-    void _connectRedrawSignal();
-    void _connectScreenshotSignals();
-    void _setupSwapSynchronization(SwapSync type);
+QSize BasicSynchronizer::getTilesArea() const
+{
+    return getDataSource().getTilesArea(0, 0);
+}
 
-    /** Synchronization and rendering. */
-    void _requestRender();
-    void _syncAndRender();
-    void _renderAllWindows();
-    void _scheduleRedraw();
-    void _scheduleStopRendering();
-    void _stopRendering();
-    void _synchronizeSceneUpdates();
-    void _synchronizeDataSourceUpdates();
+QString BasicSynchronizer::getStatistics() const
+{
+    QString stats;
+    QTextStream stream(&stats);
+    const auto area = getTilesArea();
+    stream << "  res: " << area.width() << "x" << area.height();
+    return stats;
+}
 
-    /** Shutdown. */
-    void _terminateRendering();
-};
+void BasicSynchronizer::onSwapReady(TilePtr tile)
+{
+    tile->swapImage();
+}
 
-#endif
+TilePtr BasicSynchronizer::createZoomContextTile() const
+{
+    return Tile::create(0, getDataSource().getTileRect(0));
+}
+
+void BasicSynchronizer::_createTile()
+{
+    if (_tileAdded)
+        return;
+
+    _tileAdded = true;
+    _addTile = false;
+    emit addTile(Tile::create(0, QRect(QPoint(), getTilesArea())));
+    emit tilesAreaChanged();
+}
+
+const DataSource& BasicSynchronizer::getDataSource() const
+{
+    return *_dataSource;
+}

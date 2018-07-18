@@ -125,6 +125,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   configuration/XmlParser.h
   data/Image.h
   data/QtImage.h
+  data/StreamImage.h
   data/SVG.h
   data/SVGBackend.h
   data/SVGQtGpuBackend.h
@@ -204,6 +205,7 @@ list(APPEND TIDECORE_SOURCES
   configuration/SurfaceConfigValidator.cpp
   configuration/XmlParser.cpp
   data/QtImage.cpp
+  data/StreamImage.cpp
   data/SVG.cpp
   data/SVGQtGpuBackend.cpp
   data/YUVImage.cpp

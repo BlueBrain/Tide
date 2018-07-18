@@ -43,15 +43,15 @@
 #include "config.h"
 #include "types.h"
 
-#include "ContentSynchronizer.h"
+#include "synchronizers/ContentSynchronizer.h"
 #if TIDE_USE_TIFF
-#include "ImagePyramidDataSource.h"
+#include "datasources/ImagePyramidDataSource.h"
 #endif
-#include "ImageSource.h"
+#include "datasources/ImageSource.h"
 #if TIDE_ENABLE_PDF_SUPPORT
-#include "PDFTiler.h"
+#include "datasources/PDFTiler.h"
 #endif
-#include "SVGTiler.h"
+#include "datasources/SVGTiler.h"
 
 #include <QFutureWatcher>
 #include <QList>

@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,79 +37,45 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef RENDERCONTROLLER_H
-#define RENDERCONTROLLER_H
+#ifndef LODTILER_H
+#define LODTILER_H
 
-#include "types.h"
+#include "CachedDataSource.h"
 
-#include "tools/SwapSyncObject.h"
-
-#include <QObject>
+#include "tools/LodTools.h" // member
 
 /**
- * Setup the scene and control the rendering options during runtime.
+ * Base class to provide tiles for multi-LOD tiled data source.
  */
-class RenderController : public QObject
+class LodTiler : public CachedDataSource
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(RenderController)
-
 public:
-    RenderController(const WallConfiguration& config, DataProvider& provider,
-                     WallToWallChannel& wallChannel, SwapSync type);
-    ~RenderController();
+    /** @copydoc DataSource::getTileRect */
+    QRect getTileRect(uint tileId) const override;
 
-public slots:
-    void updateScene(ScenePtr scene);
-    void updateMarkers(MarkersPtr markers);
-    void updateOptions(OptionsPtr options);
-    void updateLock(ScreenLockPtr lock);
-    void updateCountdownStatus(CountdownStatusPtr status);
-    void updateRequestScreenshot();
-    void updateQuit();
+    /** @copydoc DataSource::getTilesArea */
+    QSize getTilesArea(uint lod, uint channel) const override;
 
-signals:
-    void screenshotRendered(QImage image, QPoint index);
+    /** @copydoc DataSource::computeVisibleSet */
+    Indices computeVisibleSet(const QRectF& visibleTilesArea, uint lod,
+                              uint channel) const override;
 
-private:
-    std::vector<WallWindowPtr> _windows;
-    DataProvider& _provider;
-    WallToWallChannel& _wallChannel;
-    std::unique_ptr<SwapSynchronizer> _swapSynchronizer;
+    /** @copydoc DataSource::getMaxLod */
+    uint getMaxLod() const final;
 
-    SwapSyncObject<ScenePtr> _syncScene;
-    SwapSyncObject<MarkersPtr> _syncMarkers;
-    SwapSyncObject<OptionsPtr> _syncOptions;
-    SwapSyncObject<ScreenLockPtr> _syncLock;
-    SwapSyncObject<CountdownStatusPtr> _syncCountdownStatus;
-    SwapSyncObject<bool> _syncScreenshot{false};
-    SwapSyncObject<bool> _syncQuit{false};
+    /** Get the tile rectangle in normalized coordinates. */
+    QRectF getNormalizedTileRect(uint tileId) const;
 
-    int _renderTimer = 0;
-    int _stopRenderingDelayTimer = 0;
-    int _idleRedrawTimer = 0;
-    bool _redrawNeeded = false;
+protected:
+    /**
+     * Constructor
+     * @param contentSize the size of the full resolution content
+     * @param tileSize the size of the tiles to subdivide the content
+     */
+    LodTiler(const QSize& contentSize, uint tileSize);
+    LodTiler(std::pair<QSize, uint> args);
 
-    void timerEvent(QTimerEvent* qtEvent) final;
-
-    /** Initialization. */
-    void _connectSwapSyncObjects();
-    void _connectRedrawSignal();
-    void _connectScreenshotSignals();
-    void _setupSwapSynchronization(SwapSync type);
-
-    /** Synchronization and rendering. */
-    void _requestRender();
-    void _syncAndRender();
-    void _renderAllWindows();
-    void _scheduleRedraw();
-    void _scheduleStopRendering();
-    void _stopRendering();
-    void _synchronizeSceneUpdates();
-    void _synchronizeDataSourceUpdates();
-
-    /** Shutdown. */
-    void _terminateRendering();
+    LodTools _lodTool;
 };
 
 #endif

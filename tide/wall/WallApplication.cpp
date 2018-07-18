@@ -47,7 +47,6 @@
 #include "network/WallFromMasterChannel.h"
 #include "network/WallToMasterChannel.h"
 #include "network/WallToWallChannel.h"
-#include "scene/Scene.h"
 #include "scene/VectorialContent.h"
 
 #include <QThreadPool>
