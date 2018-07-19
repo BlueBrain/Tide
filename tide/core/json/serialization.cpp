@@ -170,6 +170,7 @@ QJsonObject serializeAsObject(const QSize& size)
 QJsonObject serialize(const Background& background)
 {
     return QJsonObject{{"color", background.getColor().name()},
+                       {"text", background.getText()},
                        {"uri", background.getUri()}};
 }
 
@@ -203,8 +204,7 @@ QJsonObject serialize(const Configuration& config)
          QJsonObject{{"swapsync", serialize(config.global.swapsync)}}},
         {"launcher",
          QJsonObject{{"display", config.launcher.display},
-                     {"demoServiceUrl", config.launcher.demoServiceUrl}
-                     }},
+                     {"demoServiceUrl", config.launcher.demoServiceUrl}}},
         {"master",
          QJsonObject{{"host", config.master.hostname},
                      {"display", config.master.display},
@@ -336,6 +336,10 @@ bool deserialize(const QJsonObject& object, Background& background)
             return false;
         background.setColor(color);
     }
+
+    value = object["text"];
+    if (value.isString())
+        background.setText(value.toString());
 
     value = object["uri"];
     if (value.isString())

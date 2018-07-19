@@ -56,6 +56,9 @@ var sideButtonRelNarrowHeight = 0.22
 // Surface controls (left-side triangle)
 var surfaceControlsColor = activeColor
 
+// Background text
+var backgroundTextSize = buttonsSize * 0.65
+
 // Content windows
 var windowBorderWidth = 20;
 var windowBorderDefaultColor = baseColor;

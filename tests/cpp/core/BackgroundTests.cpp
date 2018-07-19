@@ -51,6 +51,7 @@ namespace
 const std::string defaultJson{
     R"({
     "color": "#000000",
+    "text": "",
     "uri": ""
 }
 )"};
@@ -71,6 +72,7 @@ const std::string invalidBackgroundParametersJson{
 const std::string allValuesChangedJson{
     R"({
     "color": "#aa3300",
+    "text": "TIDE",
     "uri": "wall.png"
 }
 )"};
@@ -91,6 +93,7 @@ struct Fixture
 BOOST_FIXTURE_TEST_CASE(testDefaultConstructor, Fixture)
 {
     BOOST_CHECK_EQUAL(background->getColor().name(), "#000000");
+    BOOST_CHECK_EQUAL(background->getText(), "");
     BOOST_CHECK_EQUAL(background->getUri(), "");
     BOOST_CHECK(background->getContent() == nullptr);
     BOOST_CHECK(!uuid.isNull());
@@ -108,8 +111,13 @@ BOOST_FIXTURE_TEST_CASE(testNotifications, Fixture)
     background->setColor(Qt::blue);
     BOOST_CHECK(notified);
     BOOST_CHECK_EQUAL(background->getColor().name(), QColor{Qt::blue}.name());
-
     notified = false;
+
+    background->setText("TIDE");
+    BOOST_CHECK(notified);
+    BOOST_CHECK_EQUAL(background->getText(), "TIDE");
+    notified = false;
+
     background->setUri("wall.png");
     BOOST_CHECK(notified);
     BOOST_CHECK_EQUAL(background->getUri(), "wall.png");
@@ -118,10 +126,12 @@ BOOST_FIXTURE_TEST_CASE(testNotifications, Fixture)
 BOOST_FIXTURE_TEST_CASE(testBinarySerialization, Fixture)
 {
     background->setColor(Qt::red);
+    background->setText("TIDE");
     background->setUri("wall.png");
     const auto copy = serialization::binaryCopy(background);
 
     BOOST_CHECK_EQUAL(background->getColor().name(), copy->getColor().name());
+    BOOST_CHECK_EQUAL(background->getText(), copy->getText());
     BOOST_CHECK_EQUAL(background->getUri(), copy->getUri());
     BOOST_CHECK_EQUAL(background->getContentUUID(), copy->getContentUUID());
     BOOST_REQUIRE(copy->getContent());
@@ -145,18 +155,22 @@ BOOST_FIXTURE_TEST_CASE(testInvalidJsonHasNoEffect, Fixture)
 
 BOOST_FIXTURE_TEST_CASE(testInvalidBackgroundParametersHaveNoEffect, Fixture)
 {
+    background->setText("TIDE");
     BOOST_CHECK(
         !json::deserialize(invalidBackgroundParametersJson, *background));
     BOOST_CHECK_EQUAL(background->getColor().name(), "#000000");
     BOOST_CHECK_EQUAL(background->getUri(), "");
+    BOOST_CHECK_EQUAL(background->getText(), "TIDE");
     BOOST_CHECK_EQUAL(background->getContentUUID(), uuid);
 }
 
 BOOST_FIXTURE_TEST_CASE(testChangeOnlyUriFromJson, Fixture)
 {
+    background->setText("TIDE");
     BOOST_REQUIRE_EQUAL(background->getUri(), "");
     BOOST_CHECK(json::deserialize(uriChangedJson, *background));
     BOOST_CHECK_EQUAL(background->getUri(), "wall.png");
+    BOOST_CHECK_EQUAL(background->getText(), "TIDE");
     BOOST_CHECK_NE(background->getContentUUID(), uuid);
 }
 
@@ -165,6 +179,7 @@ BOOST_FIXTURE_TEST_CASE(testChangeAllValuesFromJson, Fixture)
     BOOST_CHECK(json::deserialize(allValuesChangedJson, *background));
     BOOST_CHECK_EQUAL(json::dump(*background), allValuesChangedJson);
     BOOST_CHECK_EQUAL(background->getColor().name(), "#aa3300");
+    BOOST_CHECK_EQUAL(background->getText(), "TIDE");
     BOOST_CHECK_EQUAL(background->getUri(), "wall.png");
     BOOST_CHECK_NE(background->getContentUUID(), uuid);
 }

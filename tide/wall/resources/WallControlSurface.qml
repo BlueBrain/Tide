@@ -5,7 +5,11 @@ import "qrc:/qml/core/style.js" as Style
 
 ControlSurface {
     property alias frames: walloverlay.frames
+    property alias text: backgroundText.text
 
+    BackgroundText {
+        id: backgroundText
+    }
     WallOverlay {
         id: walloverlay
         anchors.fill: parent
