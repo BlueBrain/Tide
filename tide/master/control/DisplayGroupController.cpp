@@ -149,9 +149,9 @@ bool DisplayGroupController::unfocus(const QUuid& id)
     if (!window || !_group.getFocusedWindows().count(window))
         return false;
 
+    window->setSelected(false);
     _group.removeFocusedWindow(window);
     _readjustToNewZoomLevel(*window);
-    window->setSelected(false);
 
     updateFocusedWindowsCoordinates();
     return true;

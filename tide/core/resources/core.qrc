@@ -23,6 +23,7 @@
         <file>right_arrow.svg</file>
         <file>tick.svg</file>
         <file>triangle.svg</file>
+        <file>unfocus.svg</file>
         <file>unknownfile.png</file>
         <file>unlock.svg</file>
     </qresource>

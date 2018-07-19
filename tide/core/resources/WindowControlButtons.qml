@@ -6,6 +6,7 @@ Column {
     height: childrenRect.height
 
     CloseButton {
+        visible: !window.focused
     }
     OneToOneButton {
         visible: !window.isPanel && !window.focused
@@ -15,6 +16,7 @@ Column {
     }
     FocusButton {
         visible: !window.isPanel
+        image: window.focused ? "qrc:/img/unfocus.svg" : "qrc:/img/focus.svg"
         onClicked: {
             if (window.focused)
                 groupcontroller.unfocus(window.id)
