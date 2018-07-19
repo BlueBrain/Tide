@@ -116,6 +116,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   QmlTypeRegistration.h
   StatePreview.h
   types.h
+  ui.h
   configuration/Configuration.h
   configuration/ConfigurationWriter.h
   configuration/Process.h
@@ -199,6 +200,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
 list(APPEND TIDECORE_SOURCES
   MetaTypeRegistration.cpp
   StatePreview.cpp
+  ui.cpp
   configuration/Configuration.cpp
   configuration/ConfigurationWriter.cpp
   configuration/SurfaceConfig.cpp

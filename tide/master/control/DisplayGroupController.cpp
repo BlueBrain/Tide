@@ -39,8 +39,8 @@
 
 #include "DisplayGroupController.h"
 
-#include "AutomaticLayout.h"
 #include "WindowController.h"
+#include "layout/LayoutEngine.h"
 #include "scene/DisplayGroup.h"
 #include "scene/Window.h"
 
@@ -137,7 +137,7 @@ bool DisplayGroupController::focus(const QUuid& id)
     // Update coordinates BEFORE focusing window for proper transition
     auto focusedWindows = _group.getFocusedWindows();
     focusedWindows.insert(window);
-    _prepareFocusedCoordinates(focusedWindows);
+    _updateFocusedCoordinates(focusedWindows);
 
     _group.addFocusedWindow(window);
     return true;
@@ -270,7 +270,7 @@ QRectF DisplayGroupController::estimateSurface() const
 
 void DisplayGroupController::updateFocusedWindowsCoordinates()
 {
-    AutomaticLayout{_group}.updateFocusedCoord(_group.getFocusedWindows());
+    _updateFocusedCoordinates(_group.getFocusedWindows());
 }
 
 void DisplayGroupController::_focus(const WindowSet& windows)
@@ -278,16 +278,15 @@ void DisplayGroupController::_focus(const WindowSet& windows)
     unfocusAll(); // ensure precondition, but should already be empty
 
     // Update focused coordinates BEFORE focusing windows for proper transition
-    _prepareFocusedCoordinates(windows);
+    _updateFocusedCoordinates(windows);
 
     for (const auto& window : windows)
         _group.addFocusedWindow(window);
 }
 
-void DisplayGroupController::_prepareFocusedCoordinates(
-    const WindowSet& windows)
+void DisplayGroupController::_updateFocusedCoordinates(const WindowSet& windows)
 {
-    AutomaticLayout{_group}.updateFocusedCoord(windows);
+    LayoutEngine::create(_group)->updateFocusedCoord(windows);
 }
 
 void DisplayGroupController::_extend(const QSizeF& newSize)

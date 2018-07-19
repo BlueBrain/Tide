@@ -42,7 +42,6 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "control/LayoutEngine.h"
 #include "control/WindowController.h"
 #include "scene/DisplayGroup.h"
 #include "scene/Window.h"
@@ -494,50 +493,4 @@ BOOST_AUTO_TEST_CASE(testResizeRelativeToCorner)
     BOOST_CHECK_EQUAL(window.getCoordinates().height() - 2,
                       prevCoords.height());
     BOOST_CHECK_EQUAL(window.getCoordinates().width() + 1, prevCoords.width());
-}
-
-BOOST_AUTO_TEST_CASE(testLayoutEngineOneWindow)
-{
-    auto window = std::make_shared<Window>(make_dummy_content());
-    const auto& content = window->getContent();
-
-    auto displayGroup = DisplayGroup::create(wallSize);
-    displayGroup->add(window);
-    displayGroup->addFocusedWindow(window);
-
-    LayoutEngine engine(*displayGroup);
-    const QRectF coords = engine.getFocusedCoord(*window);
-
-    const qreal expectedPadding =
-        0.02 * wallSize.width() + 0.3 * 0.3 * wallSize.height();
-    const qreal expectedXOffset = 200.0; // window controls width
-    const qreal totalExpectedMargin = 2.0 * expectedPadding + expectedXOffset;
-    const qreal expectedWidth = wallSize.width() - totalExpectedMargin;
-    const qreal expectedHeight = expectedWidth / content.getAspectRatio();
-    const qreal expectedY = (wallSize.height() - expectedHeight) / 2.0;
-
-    // focus mode, vertically centered on wall and repects inner margin
-    BOOST_CHECK_EQUAL(coords.x(), expectedPadding + expectedXOffset);
-    BOOST_CHECK_EQUAL(coords.y(), expectedY);
-    BOOST_CHECK_EQUAL(coords.width(), expectedWidth);
-    BOOST_CHECK_EQUAL(coords.height(), expectedHeight);
-}
-
-BOOST_AUTO_TEST_CASE(testLayoutEngineTwoWindows)
-{
-    auto window1 = std::make_shared<Window>(make_dummy_content());
-    auto window2 = std::make_shared<Window>(make_dummy_content());
-
-    auto displayGroup = DisplayGroup::create(wallSize);
-    displayGroup->add(window1);
-    displayGroup->add(window2);
-    displayGroup->addFocusedWindow(window1);
-    displayGroup->addFocusedWindow(window2);
-
-    LayoutEngine engine(*displayGroup);
-    const QRectF coords1 = engine.getFocusedCoord(*window1);
-    const QRectF coords2 = engine.getFocusedCoord(*window2);
-
-    BOOST_CHECK_EQUAL(coords1, QRectF(310, 443.75, 150, 112.5));
-    BOOST_CHECK_EQUAL(coords2, QRectF(740, 443.75, 150, 112.5));
 }

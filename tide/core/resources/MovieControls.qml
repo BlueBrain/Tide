@@ -9,18 +9,19 @@ import "style.js" as Style
 Item {
     property bool isMaster: (typeof contentsync === "undefined")
 
-    height: buttons.height
+    height: playPauseButton.height
     width: parent.width
 
     PlayPauseButton {
-        id: buttons
+        id: playPauseButton
         onClicked: contentcontroller.togglePlay()
     }
     Slider {
         id: progressBar
         anchors.right: parent.right
-        anchors.left: buttons.right
-        anchors.margins: Style.windowBorderWidth
+        anchors.left: playPauseButton.right
+        anchors.leftMargin: Style.windowBorderWidth
+        anchors.rightMargin: Style.windowBorderWidth
         anchors.verticalCenter: parent.verticalCenter
         enabled: isMaster
         value: isMaster ? window.content.position

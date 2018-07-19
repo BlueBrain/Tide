@@ -37,25 +37,21 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "LayoutPolicy.h"
+#include "CanvasTree.h"
 
-#include "scene/DisplayGroup.h"
+#include "CanvasNode.h"
 
-using namespace controlSpecifications;
-LayoutPolicy::LayoutPolicy(const DisplayGroup& group)
-    : _group(group)
+CanvasTree::CanvasTree(const WindowPtrs& windows, const QRectF& availableSpace)
+    : _rootNode{std::make_shared<CanvasNode>(windows, availableSpace)}
 {
 }
 
-QRectF LayoutPolicy::_getAvailableSpace() const
+void CanvasTree::updateFocusCoordinates()
 {
-    auto left_width_margin =
-        _group.width() * INSIDE_MARGIN_RELATIVE +
-        _group.height() * SIDEBAR_WIDTH_REL_TO_DISPLAYGROUP_HEIGHT;
-    auto right_width_margin = _group.width() * INSIDE_MARGIN_RELATIVE;
-    auto top_margin = _group.height() * INSIDE_MARGIN_RELATIVE;
-    auto bottom_margin = top_margin;
-    return QRectF(left_width_margin, top_margin,
-                  _group.width() - left_width_margin - right_width_margin,
-                  _group.height() - top_margin - bottom_margin);
+    _rootNode->updateFocusCoordinates();
+}
+
+qreal CanvasTree::getOccupiedSpace()
+{
+    return _rootNode->getOccupiedSpace();
 }

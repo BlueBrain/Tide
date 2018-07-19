@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/*                     Nataniel Hofer <nataniel.hofer@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,34 +37,23 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef LAYOUTENGINE_H
-#define LAYOUTENGINE_H
+#ifndef LAYOUT_ENGINE_H
+#define LAYOUT_ENGINE_H
 
-#include "LayoutPolicy.h"
 #include "types.h"
 
-struct WindowCoordinates;
-
 /**
- * Layout engine for positionning windows on the wall.
+ * Engine that takes care of laying out windows in focused mode.
  */
-class LayoutEngine : public LayoutPolicy
+class LayoutEngine
 {
 public:
-    LayoutEngine(const DisplayGroup& group);
+    static std::unique_ptr<LayoutEngine> create(const DisplayGroup& group);
 
-    /** @return the focused coordinates for the window. */
-    QRectF getFocusedCoord(const Window& window) const;
+    virtual ~LayoutEngine() = default;
 
     /** Update the focused coordinates for the set of windows. */
-    void updateFocusedCoord(const WindowSet& windows) const;
-
-private:
-    QRectF _getFocusedCoord(const Window& window,
-                            const WindowSet& focusedWindows) const;
-    WindowCoordinates _getNominalCoord(const Window& window) const;
-    void _constrainFullyInside(QRectF& window) const;
-    qreal _getInsideMargin() const;
+    virtual void updateFocusedCoord(const WindowSet& windows) const = 0;
 };
 
 #endif

@@ -55,6 +55,16 @@ QRectF geometry::resizeAroundPosition(const QRectF& rect,
     return transform.mapRect(rect);
 }
 
+QRectF geometry::scaleAroundCenter(const QRectF& rect, const qreal factor)
+{
+    QTransform transform;
+    transform.translate(rect.center().x(), rect.center().y());
+    transform.scale(factor, factor);
+    transform.translate(-rect.center().x(), -rect.center().y());
+
+    return transform.mapRect(rect);
+}
+
 QSizeF geometry::constrain(const QSizeF& size, const QSizeF& min,
                            const QSizeF& max)
 {

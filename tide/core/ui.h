@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Nataniel Hofer <nataniel.hofer@epfl.ch>       */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,69 +37,37 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef CANVASNODE_H
-#define CANVASNODE_H
+#ifndef UI_H
+#define UI_H
 
-#include "scene/ContentType.h"
+#include "scene/DisplayGroup.h"
 #include "types.h"
 
 /**
- * Represent a node or a leaf in the binary tree structure used by
- * AutomaticLayout
+ * UI element sizes (currently also defined in style.js).
  */
-class CanvasNode : public QRectF,
-                   public std::enable_shared_from_this<CanvasNode>
+namespace ui
 {
-public:
-    using NodePtr = std::shared_ptr<CanvasNode>;
+/** @return the size of regular buttons. */
+qreal getButtonSize();
 
-    CanvasNode(NodePtr rootPtr, NodePtr parent, NodePtr firstChild,
-               NodePtr secondChild, QRectF rect);
-    CanvasNode(QRectF available_space);
-    CanvasNode(NodePtr rootPtr, NodePtr parent, WindowPtr window, QRectF rect);
-    bool insert(WindowPtr window);
-    /**
-     * return true if there is an empty leaf
-     */
-    bool isFree() const;
-    bool isRoot() const;
-    bool isTerminal() const;
-    void updateFocusCoordinates();
-    /**
-     * resize the tree, insertion should not be used after call to preview
-     */
-    void preview();
-    qreal getOccupiedSpace();
-    const QRectF availableSpace;
-    NodePtr rootPtr;
-    NodePtr parent;
-    NodePtr firstChild;
-    NodePtr secondChild;
+/** @return the left margin added by the window control bar. */
+qreal getWindowControlsMargin();
 
-private:
-    void _update();
-    qreal _getOccupiedSpace() const;
-    bool previewed = false;
-    void _constrainTerminalIntoRect(const QRectF& rect);
-    void _constrainNodeIntoRect(const QRectF& rect);
+/** @return the minimum spacing between focused windows. */
+qreal getMinWindowSpacing();
 
-    QRectF _rectWithoutMargins(const QRectF& rect) const;
-    QRectF _rectWithoutMargins(const QRectF& rect,
-                               ContentType content_type) const;
-    bool _insertRoot(WindowPtr window);
-    bool _insertTerminal(WindowPtr window);
-    void _computeBoundaries(const QRectF& realSize,
-                            QRectF& internalNodeBoundaries,
-                            QRectF& internalFreeLeafBoundaries,
-                            QRectF& externalFreeLeafBoundaries) const;
-    bool _insertSecondChild(WindowPtr window);
-    bool _chooseVerticalCut(const QRectF& realSize) const;
-    void _setRect(QRectF newRect);
-    void _constrainIntoRect(const QRectF& rect);
-    WindowPtr content = NULL;
-    QRectF _addMargins(WindowPtr window) const;
-    QRectF _addMargins(const QRectF& rect) const;
-    QRectF _addMargins(const QRectF& rect, ContentType type) const;
-};
+/** @return the total height of the window control bar. */
+qreal getFocusedWindowControlBarHeight(const Content& content);
+
+/** @return the margins due to the controls in focus mode. */
+QMarginsF getFocusedWindowControlsMargins(const Content& content);
+
+/** @return the width of the fixed side control bar on the control surface. */
+qreal getSideControlWidth();
+
+/** @return the surface of the DisplayGroup available for focused windows. */
+QRectF getFocusSurface(const DisplayGroup& group);
+}
 
 #endif

@@ -15,15 +15,10 @@ set(TIDEMASTER_LINK_LIBRARIES
 list(APPEND TIDEMASTER_PUBLIC_HEADERS
   CommandLineParameters.h
   ContentLoader.h
-  control/AutomaticLayout.h
-  control/CanvasNode.h
-  control/CanvasTree.h
   control/ContentController.h
   control/ContextMenuController.h
   control/DisplayGroupController.h
   control/KeyboardController.h
-  control/LayoutEngine.h
-  control/LayoutPolicy.h
   control/MultiChannelWindowController.h
   control/PixelStreamController.h
   control/SceneController.h
@@ -36,6 +31,10 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   gui/MasterQuickView.h
   gui/WindowListWidgetItem.h
   gui/MasterWindow.h
+  layout/AutomaticLayout.h
+  layout/CanvasNode.h
+  layout/LayoutEngine.h
+  layout/LineLayout.h
   localstreamer/CommandLineOptions.h
   localstreamer/HtmlSelectReplacer.h
   localstreamer/LauncherPlacer.h
@@ -60,15 +59,10 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
 list(APPEND TIDEMASTER_SOURCES
   CommandLineParameters.cpp
   ContentLoader.cpp
-  control/AutomaticLayout.cpp
-  control/CanvasNode.cpp
-  control/CanvasTree.cpp
   control/ContentController.cpp
   control/ContextMenuController.cpp
   control/DisplayGroupController.cpp
   control/KeyboardController.cpp
-  control/LayoutEngine.cpp
-  control/LayoutPolicy.cpp
   control/MultiChannelWindowController.cpp
   control/PixelStreamController.cpp
   control/SceneController.cpp
@@ -81,6 +75,10 @@ list(APPEND TIDEMASTER_SOURCES
   gui/MasterQuickView.cpp
   gui/MasterWindow.cpp
   gui/WindowListWidgetItem.cpp
+  layout/AutomaticLayout.cpp
+  layout/CanvasNode.cpp
+  layout/LayoutEngine.cpp
+  layout/LineLayout.cpp
   localstreamer/HtmlSelectReplacer.cpp
   localstreamer/CommandLineOptions.cpp
   localstreamer/LauncherPlacer.cpp
