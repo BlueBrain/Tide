@@ -19,7 +19,8 @@ Rectangle {
     property alias virtualKeyboard: virtualKeyboard
 
     border.color: Style.windowBorderDefaultColor
-    border.width: options.showWindowBorders && !isBackground ? Style.windowBorderWidth : 0
+    border.width: options.showWindowBorders
+                  && !isBackground ? Style.windowBorderWidth : 0
 
     // The window header overlaps with the top window border (when visible)
     property real yOffset: Math.max(border.width, windowHeader.height)
@@ -47,8 +48,8 @@ Rectangle {
             spacing: -Style.windowTitleControlsOverlap
             Item {
                 id: titleBar
-                visible: options.showWindowTitles && !windowRect.isBackground
-                         && !window.isPanel
+                visible: options.showWindowTitles && !window.focused
+                         && !windowRect.isBackground && !window.isPanel
                 width: parent.width
                 height: Style.windowTitleHeight
                 Text {
@@ -57,19 +58,27 @@ Rectangle {
                     anchors.right: parent.right
                     anchors.leftMargin: Style.windowTitleFontSize / 2
 
-                    FontLoader { id: gothamBook; source: "qrc:/fonts/Gotham-Book.otf"; name: "qrc::gotham-book" }
+                    FontLoader {
+                        id: gothamBook
+                        source: "qrc:/fonts/Gotham-Book.otf"
+                        name: "qrc::gotham-book"
+                    }
 
                     fontSizeMode: options.showFilePaths ? Text.Fit : Text.FixedSize
                     elide: options.showFilePaths ? Text.ElideLeft : Text.ElideRight
                     text: options.showFilePaths ? window.content.filePath : window.content.title
-                    font { family: "qrc::gotham-book"; pixelSize: Style.windowTitleFontSize }
+                    font {
+                        family: "qrc::gotham-book"
+                        pixelSize: Style.windowTitleFontSize
+                    }
                 }
             }
             Loader {
                 id: controlBar
                 width: parent.width
                 visible: status == Loader.Ready
-                active: (typeof window.content.playing !== "undefined") && !windowRect.isBackground
+                active: (typeof window.content.playing !== "undefined")
+                        && !windowRect.isBackground
                 sourceComponent: MovieControls {
                 }
             }
@@ -83,8 +92,8 @@ Rectangle {
         color: Style.windowFocusGlowColor
         glowRadius: Style.windowFocusGlowRadius
         spread: Style.windowFocusGlowSpread
-        visible: window.content.captureInteraction &&
-                 window.state === Window.NONE
+        visible: window.content.captureInteraction
+                 && window.state === Window.NONE
     }
 
     Rectangle {
@@ -111,26 +120,39 @@ Rectangle {
             source: "qrc:/virtualkeyboard/InputPanel.qml"
             property bool hasKeyboard: window.content.keyboard !== null
             active: hasKeyboard && window.content.keyboard.visible
-            width: Math.min(Style.keyboardMaxSizePx, Style.keyboardRelSize * parent.width)
+            width: Math.min(Style.keyboardMaxSizePx,
+                            Style.keyboardRelSize * parent.width)
             height: 0.25 * width
             anchors.horizontalCenter: parent.horizontalCenter
-            y: hasKeyboard && window.content.keyboard.visible ? Math.min(0.5 * parent.height, parent.height - height) : parent.height
-            opacity:  hasKeyboard && window.content.keyboard.visible ? 1.0 : 0.0
+            y: hasKeyboard
+               && window.content.keyboard.visible ? Math.min(
+                                                        0.5 * parent.height,
+                                                        parent.height - height) : parent.height
+            opacity: hasKeyboard && window.content.keyboard.visible ? 1.0 : 0.0
             visible: opacity > 0.0
-            Behavior on y { NumberAnimation { easing.type: Easing.InOutQuad; duration: 150 }}
-            Behavior on opacity { NumberAnimation { easing.type: Easing.InOutQuad; duration: 150 }}
+            Behavior on y {
+                NumberAnimation {
+                    easing.type: Easing.InOutQuad
+                    duration: 150
+                }
+            }
+            Behavior on opacity {
+                NumberAnimation {
+                    easing.type: Easing.InOutQuad
+                    duration: 150
+                }
+            }
             onStatusChanged: {
                 if (status == Loader.Error)
                     source = "qrc:/qml/core/MissingVirtualKeyboard.qml"
-                else if( status == Loader.Ready )
+                else if (status == Loader.Ready)
                     active = true // Keep the keyboard loaded when hidding it
             }
         }
         Behavior on posX {
             id: transitionBehaviour
-            enabled: window.focused ||
-                     (window.fullscreen &&
-                      window.state === Window.NONE)
+            enabled: window.focused || (window.fullscreen
+                                        && window.state === Window.NONE)
             NumberAnimation {
                 duration: Style.focusTransitionTime
                 easing.type: Easing.InOutQuad
@@ -170,10 +192,8 @@ Rectangle {
             onClicked: contentcontroller.prevPage()
         }
         delegateOverflow: windowRect.border.width
-        visible: (window.selected || window.focused ||
-                  window.fullscreen) &&
-                 window.content.page !== undefined &&
-                 window.content.page > 0
+        visible: (window.selected || window.focused || window.fullscreen)
+                 && window.content.page !== undefined && window.content.page > 0
     }
 
     SideButton {
@@ -186,10 +206,9 @@ Rectangle {
         }
         delegateOverflow: windowRect.border.width
         flipRight: true
-        visible: (window.selected || window.focused ||
-                  window.fullscreen) &&
-                 window.content.page !== undefined &&
-                 window.content.page < window.content.pageCount - 1
+        visible: (window.selected || window.focused || window.fullscreen)
+                 && window.content.page !== undefined
+                 && window.content.page < window.content.pageCount - 1
     }
 
     WindowControls {
@@ -282,7 +301,7 @@ Rectangle {
     transitions: [
         Transition {
             from: "focused"
-            to: "selected,"     // selected AND default state ""
+            to: "selected," // selected AND default state ""
             id: unfocusTransition
             SequentialAnimation {
                 // Slide behind other focused windows for the transition
@@ -292,7 +311,9 @@ Rectangle {
                     value: Style.unfocusZorder
                 }
                 ParallelAnimation {
-                    ColorAnimation { duration: Style.focusTransitionTime }
+                    ColorAnimation {
+                        duration: Style.focusTransitionTime
+                    }
                     NumberAnimation {
                         target: contentArea
                         properties: "posX,posY,width,height"
@@ -338,10 +359,14 @@ Rectangle {
     ]
 
     Behavior on border.color {
-        ColorAnimation { duration: Style.focusTransitionTime }
+        ColorAnimation {
+            duration: Style.focusTransitionTime
+        }
     }
     Behavior on border.width {
-        NumberAnimation { duration: Style.focusTransitionTime }
+        NumberAnimation {
+            duration: Style.focusTransitionTime
+        }
     }
     Behavior on opacity {
         NumberAnimation {
