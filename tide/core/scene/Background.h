@@ -67,11 +67,17 @@ public:
     /** Get the color of the background. */
     QColor getColor() const;
 
+    /** Get the text to display on the background. */
+    QString getText() const;
+
     /** Get the uri of the background content. */
     QString getUri() const;
 
     /** Set the color of the background. */
     void setColor(QColor color);
+
+    /** Set the text to display on the background. */
+    void setText(const QString& text);
 
     /**
      * Set the background content from a uri.
@@ -103,6 +109,7 @@ private:
     {
         // clang-format off
         ar & _color;
+        ar & _text;
         ar & _content;
         if (_content)
             _content->setParent(this);
@@ -111,6 +118,7 @@ private:
     }
 
     QColor _color;
+    QString _text;
     ContentPtr _content;
     QUuid _contentID = QUuid::createUuid();
 };

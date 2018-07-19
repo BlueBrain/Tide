@@ -52,6 +52,11 @@ QColor Background::getColor() const
     return _color;
 }
 
+QString Background::getText() const
+{
+    return _text;
+}
+
 QString Background::getUri() const
 {
     return _content ? _content->getUri() : QString();
@@ -73,6 +78,15 @@ void Background::setColor(const QColor color)
         return;
 
     _color = color;
+    emit updated(shared_from_this());
+}
+
+void Background::setText(const QString& text)
+{
+    if (_text == text)
+        return;
+
+    _text = text;
     emit updated(shared_from_this());
 }
 

@@ -160,6 +160,8 @@ void WallSurfaceRenderer::_createGroupRenderer()
 
 void WallSurfaceRenderer::_setBackground(const Background& background)
 {
+    _surfaceItem->setProperty("text", background.getText());
+
     const auto content = background.getContent();
 
     if (!content)

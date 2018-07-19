@@ -29,7 +29,8 @@
     "surfaces": [
         {
             "background": {
-                "color": "#73d216",
+                "color": "#80c4bf",
+                "text": "Blue Brain Project",
                 "uri": ""
             },
             "displayHeight": 600,
@@ -37,7 +38,8 @@
         },
         {
             "background": {
-                "color": "#75507b",
+                "color": "#fce94f",
+                "text": "TIDE",
                 "uri": ""
             },
             "displayHeight": 400,
