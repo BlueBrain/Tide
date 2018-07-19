@@ -136,7 +136,7 @@ private:
     DisplayGroup& _group;
 
     void _focus(const WindowSet& windows);
-    void _prepareFocusedCoordinates(const WindowSet& windows);
+    void _updateFocusedCoordinates(const WindowSet& windows);
 
     /** Extend the DisplayGroup surface, keeping the windows centered. */
     void _extend(const QSizeF& newSize);

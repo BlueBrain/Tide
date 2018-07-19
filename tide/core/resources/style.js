@@ -68,8 +68,8 @@ var windowBorderMovingColor = baseColor;
 var windowBorderResizingColor = baseColor;
 
 var windowTitleHeight = 100;
-var windowTitleFontSize = windowTitleHeight / 2;
 var windowTitleControlsOverlap = 10;
+var windowTitleFontSize = windowTitleHeight / 2;
 
 var resizeCircleRadius = 50;
 var resizeCircleActiveColor = activeColor;

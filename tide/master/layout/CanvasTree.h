@@ -37,45 +37,30 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef LAYOUTPOLICY_H
-#define LAYOUTPOLICY_H
+#ifndef CANVASTREE_H
+#define CANVASTREE_H
 
 #include "types.h"
 
-// Hardcoded variables which are also defined in style.js
-namespace controlSpecifications
-{
-const qreal INSIDE_MARGIN_RELATIVE = 0.02;
-const qreal SIDEBAR_WIDTH_REL_TO_DISPLAYGROUP_HEIGHT = 0.3 * 0.3;
-const qreal WINDOW_CONTROLS_MARGIN_PX = 200.0;
-const qreal WINDOW_SPACING_PX = 80.0;
-const qreal WINDOW_TITLE_HEIGHT = 100.0;
-const qreal MOVIE_BAR_HEIGHT = 100.0;
-}
+class CanvasNode;
 
 /**
- * Abstract class whose derived classes must deal with the layout in focus
- * coordinates.
+ * Represent the binary tree used by the AutomaticLayout class, is on top of
+ * CanvasNode.
  */
-class LayoutPolicy
+class CanvasTree
 {
 public:
-    LayoutPolicy(const DisplayGroup& group);
+    CanvasTree(const WindowPtrs& windows, const QRectF& availableSpace);
 
-    /** @return the focused coordinates for the window. */
-    virtual QRectF getFocusedCoord(const Window& window) const = 0;
+    /** Resize the tree, updating the coordinates of the windows. */
+    void updateFocusCoordinates();
 
-    /** Update the focused coordinates for the set of windows. */
-    virtual void updateFocusedCoord(const WindowSet& windows) const = 0;
-    virtual ~LayoutPolicy(){};
+    /** @return the space occupied by the windows. */
+    qreal getOccupiedSpace();
 
-protected:
-    const DisplayGroup& _group;
-
-    /**
-     * returns the rect of available space on the display group
-     */
-    QRectF _getAvailableSpace() const;
+private:
+    std::shared_ptr<CanvasNode> _rootNode;
 };
 
 #endif

@@ -37,86 +37,12 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
+#include "LayoutEngine.h"
+
 #include "AutomaticLayout.h"
+#include "LineLayout.h"
 
-#include "CanvasTree.h"
-#include "control/WindowController.h"
-#include "scene/ContentType.h"
-#include "scene/DisplayGroup.h"
-#include "scene/Window.h"
-#include "types.h"
-
-namespace
+std::unique_ptr<LayoutEngine> LayoutEngine::create(const DisplayGroup& group)
 {
-const int maxRandomPermutations = 200;
-}
-
-AutomaticLayout::AutomaticLayout(const DisplayGroup& group)
-    : LayoutPolicy(group)
-{
-}
-
-qreal AutomaticLayout::_computeMaxRatio(const Window& window) const
-{
-    return std::max(window.width() / _getAvailableSpace().width(),
-                    window.height() / _getAvailableSpace().height());
-}
-
-QRectF AutomaticLayout::getFocusedCoord(const Window& window) const
-{
-    return _getFocusedCoord(window, _group.getFocusedWindows());
-}
-
-void AutomaticLayout::updateFocusedCoord(const WindowSet& windows) const
-{
-    auto sortedWindows = _sortByMaxRatio(windows);
-    auto layoutTree = CanvasTree(sortedWindows, _getAvailableSpace());
-    auto maxOccupiedSpace = layoutTree.getOccupiedSpace();
-    // seed the random function, so every execution will be identical
-    std::srand(0);
-    for (int i = 0; i < maxRandomPermutations; ++i)
-    {
-        std::random_shuffle(sortedWindows.begin(), sortedWindows.end());
-        auto currentTree = CanvasTree(sortedWindows, _getAvailableSpace());
-        if (currentTree.getOccupiedSpace() > maxOccupiedSpace)
-        {
-            layoutTree = currentTree;
-            maxOccupiedSpace = currentTree.getOccupiedSpace();
-        }
-    }
-    // We keep the tree for which used space is maximal
-    layoutTree.updateFocusCoordinates();
-}
-
-qreal AutomaticLayout::_getTotalArea(const WindowSet& windows) const
-{
-    auto areaCount = qreal(0.0);
-    for (const auto& window : windows)
-    {
-        const auto preferredDimensions =
-            window->getContentPtr()->getPreferredDimensions();
-        areaCount += preferredDimensions.width() * preferredDimensions.height();
-    }
-    return areaCount;
-}
-
-QRectF AutomaticLayout::_getFocusedCoord(const Window& window,
-                                         const WindowSet& windows) const
-{
-    updateFocusedCoord(windows);
-    return window.getCoordinates();
-}
-
-WindowPtrs AutomaticLayout::_sortByMaxRatio(const WindowSet& windows) const
-{
-    std::vector<WindowPtr> windowVec;
-    for (auto& window : windows)
-    {
-        windowVec.push_back(window);
-    }
-    std::sort(windowVec.begin(), windowVec.end(),
-              [this](WindowPtr a, WindowPtr b) {
-                  return _computeMaxRatio(*a) > _computeMaxRatio(*b);
-              });
-    return windowVec;
+    return std::make_unique<AutomaticLayout>(group);
 }

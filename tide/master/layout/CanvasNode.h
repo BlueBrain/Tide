@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Nataniel Hofer <nataniel.hofer@epfl.ch>       */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Nataniel Hofer <nataniel.hofer@epfl.ch>  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,28 +38,57 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "CanvasTree.h"
+#ifndef CANVASNODE_H
+#define CANVASNODE_H
 
-#include "CanvasNode.h"
-#include "LayoutPolicy.h"
+#include "types.h"
 
-CanvasTree::CanvasTree(WindowPtrs windows, const QRectF& availableSpace)
-    : rootNode{std::make_shared<CanvasNode>(availableSpace)}
+/**
+ * A node or a leaf in the binary tree structure used by AutomaticLayout.
+ */
+class CanvasNode : private QRectF
 {
-    rootNode->rootPtr = rootNode;
-    for (const auto& window : windows)
-        rootNode->insert(window);
-}
+public:
+    /** Root node constructor. */
+    CanvasNode(const WindowPtrs& windows, const QRectF& availableSpace);
 
-void CanvasTree::updateFocusCoordinates()
-{
-    if (rootNode)
-        rootNode->updateFocusCoordinates();
-}
+    qreal getOccupiedSpace() const;
+    void updateWindowCoordinates() const;
 
-qreal CanvasTree::getOccupiedSpace()
-{
-    if (rootNode)
-        return rootNode->getOccupiedSpace();
-    return 0;
-}
+    /** @name Internal constructors. */
+    //@{
+    using NodePtr = std::unique_ptr<CanvasNode>;
+    CanvasNode(NodePtr firstChild, NodePtr secondChild, const QRectF& rect);
+    CanvasNode(WindowPtr window, const QRectF& rect);
+    //@}
+
+private:
+    bool _insert(WindowPtr window);
+    bool _isFree() const;
+    bool _isTerminal() const;
+    void _constrainTerminalIntoRect(const QRectF& rect);
+    void _constrainNodeIntoRect(const QRectF& rect);
+    bool _insertRoot(WindowPtr window);
+    bool _insertTerminal(WindowPtr window);
+    void _computeBoundaries(const QRectF& realSize,
+                            QRectF& internalNodeBoundaries,
+                            QRectF& internalFreeLeafBoundaries,
+                            QRectF& externalFreeLeafBoundaries) const;
+    bool _insertSecondChild(WindowPtr window);
+    bool _chooseVerticalCut(const QRectF& realSize) const;
+    void _setRect(const QRectF& newRect);
+    void _constrainIntoRect(const QRectF& rect);
+
+    QRectF _addMargins(WindowPtr window) const;
+    QRectF _addMargins(const QRectF& rect) const;
+    QRectF _removeMargins(const QRectF& rect) const;
+    QMarginsF _getMargins(const Content& content) const;
+
+    const bool _isRoot = false;
+    const QRectF _availableSpace;
+    NodePtr _firstChild;
+    NodePtr _secondChild;
+    WindowPtr _window;
+};
+
+#endif

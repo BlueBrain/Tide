@@ -37,15 +37,13 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "LayoutEngine.h"
+#include "LineLayout.h"
 
 #include "control/WindowController.h"
 #include "scene/DisplayGroup.h"
 #include "scene/Window.h"
-
-#include <QTransform>
-
-using namespace controlSpecifications;
+#include "ui.h"
+#include "utils/geometry.h"
 
 struct WindowCoordinates
 {
@@ -54,11 +52,8 @@ struct WindowCoordinates
 };
 using WindowList = std::vector<WindowCoordinates>;
 
-LayoutEngine::LayoutEngine(const DisplayGroup& group)
-    : LayoutPolicy(group)
+namespace
 {
-}
-
 qreal _computeAggregatedWidth(const WindowList& windows)
 {
     qreal width = 0.0;
@@ -81,29 +76,26 @@ WindowList _getLeftHandSideSubset(const WindowList& windows,
     }
     return leftSubset;
 }
-
-QRectF _scaleAroundCenter(const QRectF& rect, const qreal factor)
-{
-    QTransform transform;
-    transform.translate(rect.center().x(), rect.center().y());
-    transform.scale(factor, factor);
-    transform.translate(-rect.center().x(), -rect.center().y());
-    return transform.mapRect(rect);
 }
 
-QRectF LayoutEngine::getFocusedCoord(const Window& window) const
+LineLayout::LineLayout(const DisplayGroup& group)
+    : _group(group)
 {
-    return _getFocusedCoord(window, _group.getFocusedWindows());
 }
 
-void LayoutEngine::updateFocusedCoord(const WindowSet& windows) const
+void LineLayout::updateFocusedCoord(const WindowSet& windows) const
 {
     for (auto& window : windows)
         window->setFocusedCoordinates(_getFocusedCoord(*window, windows));
 }
 
-QRectF LayoutEngine::_getFocusedCoord(const Window& window,
-                                      const WindowSet& focusedWindows) const
+QRectF LineLayout::getFocusedCoord(const Window& window) const
+{
+    return _getFocusedCoord(window, _group.getFocusedWindows());
+}
+
+QRectF LineLayout::_getFocusedCoord(const Window& window,
+                                    const WindowSet& focusedWindows) const
 {
     if (focusedWindows.size() < 2)
         return _getNominalCoord(window).rect;
@@ -113,12 +105,13 @@ QRectF LayoutEngine::_getFocusedCoord(const Window& window,
     for (const auto& win : focusedWindows)
         nominalCoords.emplace_back(_getNominalCoord(*win));
 
+    const auto surface = ui::getFocusSurface(_group);
+
     // Compute scaling factor so that all windows fit in the available width
     const qreal totalWidth = _computeAggregatedWidth(nominalCoords);
-    const qreal insideMargin = _getInsideMargin();
-    qreal availWidth = _group.width() - 2.0 * insideMargin;
-    availWidth -= focusedWindows.size() * WINDOW_CONTROLS_MARGIN_PX;
-    availWidth -= (focusedWindows.size() - 1) * WINDOW_SPACING_PX;
+    auto availWidth = surface.width();
+    availWidth -= focusedWindows.size() * ui::getWindowControlsMargin();
+    availWidth -= (focusedWindows.size() - 1) * ui::getMinWindowSpacing();
 
     qreal scaleFactor = 1.0;
     qreal extraSpace = 0.0;
@@ -130,54 +123,46 @@ QRectF LayoutEngine::_getFocusedCoord(const Window& window,
     // Distribute the windows horizontally so they don't overlap
     const auto winCoord = _getNominalCoord(window);
     const auto leftSubset = _getLeftHandSideSubset(nominalCoords, winCoord);
-    qreal leftPos = insideMargin;
+    auto leftPos = surface.x();
     leftPos += _computeAggregatedWidth(leftSubset) * scaleFactor;
-    leftPos += (leftSubset.size() + 1) * WINDOW_CONTROLS_MARGIN_PX;
+    leftPos += (leftSubset.size() + 1) * ui::getWindowControlsMargin();
     leftPos += (leftSubset.size() + 1) * extraSpace;
-    leftPos += leftSubset.size() * WINDOW_SPACING_PX;
+    leftPos += leftSubset.size() * ui::getMinWindowSpacing();
 
     // Scale and move the window rectangle to its final position
-    auto coord = _scaleAroundCenter(winCoord.rect, scaleFactor);
+    auto coord = geometry::scaleAroundCenter(winCoord.rect, scaleFactor);
     coord.moveLeft(leftPos);
     return coord;
 }
 
-WindowCoordinates LayoutEngine::_getNominalCoord(const Window& window) const
+WindowCoordinates LineLayout::_getNominalCoord(const Window& window) const
 {
-    const qreal margin = 2.0 * _getInsideMargin();
-    const QSizeF margins(margin + WINDOW_CONTROLS_MARGIN_PX, margin);
-    const QSizeF wallSize = _group.size();
-    const QSizeF maxSize = wallSize.boundedTo(wallSize - margins);
-
-    QSizeF size = window.size();
-    size.scale(maxSize, Qt::KeepAspectRatio);
+    const auto surface = ui::getFocusSurface(_group);
+    const auto maxSize =
+        surface.size() - QSizeF(ui::getWindowControlsMargin(), 0);
+    auto size = window.size().scaled(maxSize, Qt::KeepAspectRatio);
 
     WindowController(const_cast<Window&>(window), _group,
                      WindowController::Coordinates::STANDARD)
         .constrainSize(size);
 
-    QRectF coord(QPointF(), size);
-    coord.moveCenter(QPointF(window.center().x(), wallSize.height() * 0.5));
+    auto coord = QRectF(QPointF(), size);
+    coord.moveCenter(QPointF(window.center().x(), surface.center().y()));
     _constrainFullyInside(coord);
     return {coord, _group.getZindex(window.getID())};
 }
 
-void LayoutEngine::_constrainFullyInside(QRectF& window) const
+void LineLayout::_constrainFullyInside(QRectF& window) const
 {
-    const qreal margin = _getInsideMargin();
-    const qreal minX = margin + WINDOW_CONTROLS_MARGIN_PX;
-    const qreal minY = margin;
-    const qreal maxX = _group.width() - window.width() - margin;
-    const qreal maxY = _group.height() - window.height() - margin;
+    const auto surface = ui::getFocusSurface(_group);
+
+    const qreal minX = surface.x() + ui::getWindowControlsMargin();
+    const qreal minY = surface.y();
+    const qreal maxX = surface.right() - window.width();
+    const qreal maxY = surface.bottom() - window.height();
 
     const QPointF position(std::max(minX, std::min(window.x(), maxX)),
                            std::max(minY, std::min(window.y(), maxY)));
 
     window.moveTopLeft(position);
-}
-
-qreal LayoutEngine::_getInsideMargin() const
-{
-    return _group.width() * INSIDE_MARGIN_RELATIVE +
-           _group.height() * SIDEBAR_WIDTH_REL_TO_DISPLAYGROUP_HEIGHT;
 }

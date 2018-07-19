@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Nataniel Hofer <nataniel.hofer@epfl.ch>       */
+/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,29 +37,35 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef CANVASTREE_H
-#define CANVASTREE_H
+#ifndef LINE_LAYOUT_H
+#define LINE_LAYOUT_H
 
-#include "CanvasNode.h"
+#include "layout/LayoutEngine.h"
 #include "types.h"
 
+struct WindowCoordinates;
+
 /**
- * Represent the binary tree used by the AutomaticLayout class, is on top of
- * CanvasNode.
+ * Layout engine that positions windows in a single line.
  */
-class CanvasTree
+class LineLayout : public LayoutEngine
 {
 public:
-    CanvasTree(WindowPtrs windows, const QRectF& availableSpace);
+    LineLayout(const DisplayGroup& group);
 
-    /** Resize the tree, updating the coordinates of the windows. */
-    void updateFocusCoordinates();
+    /** @copydoc LayoutEngine::updateFocusedCoord */
+    void updateFocusedCoord(const WindowSet& windows) const override;
 
-    /** @return the space occupied by the windows. */
-    qreal getOccupiedSpace();
+    /** @return the focused coordinates for the window. */
+    QRectF getFocusedCoord(const Window& window) const;
 
 private:
-    std::shared_ptr<CanvasNode> rootNode;
+    QRectF _getFocusedCoord(const Window& window,
+                            const WindowSet& focusedWindows) const;
+    WindowCoordinates _getNominalCoord(const Window& window) const;
+    void _constrainFullyInside(QRectF& window) const;
+
+    const DisplayGroup& _group;
 };
 
 #endif

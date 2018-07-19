@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Nataniel Hofer <nataniel.hofer@epfl.ch>       */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Nataniel Hofer <nataniel.hofer@epfl.ch>  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,36 +38,61 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef AUTOMATICLAYOUT_H
-#define AUTOMATICLAYOUT_H
+#include "AutomaticLayout.h"
 
-#include "LayoutPolicy.h"
-#include "types.h"
+#include "layout/CanvasNode.h"
+#include "scene/DisplayGroup.h"
+#include "scene/Window.h"
+#include "ui.h"
 
-/**
- * This class takes care of laying out of the windows in focused mode,
- * using binary trees and heuristics.
- * It tries to insert the windows one by one while keeping a rectangle whose
- * aspect ratio is close to the available space of the display group.
- */
-class AutomaticLayout : public LayoutPolicy
+namespace
 {
-public:
-    AutomaticLayout(const DisplayGroup& group);
+const int maxRandomPermutations = 200;
+}
 
-    /** @return the focused coordinates for the window. */
-    QRectF getFocusedCoord(const Window& window) const;
+AutomaticLayout::AutomaticLayout(const DisplayGroup& group)
+    : _group(group)
+{
+}
 
-    /** Update the focused coordinates for the set of windows. */
-    void updateFocusedCoord(const WindowSet& windows) const;
+void AutomaticLayout::updateFocusedCoord(const WindowSet& windows) const
+{
+    const auto availableSpace = _getAvailableSpace();
+    auto sortedWindows = _sortByMaxRatio(windows);
+    auto layout = std::make_unique<CanvasNode>(sortedWindows, availableSpace);
 
-private:
-    std::vector<WindowSet> _separateContent(const WindowSet& windows) const;
-    qreal _getTotalArea(const WindowSet& windows) const;
-    qreal _computeMaxRatio(const Window& window) const;
-    QRectF _getFocusedCoord(const Window& window,
-                            const WindowSet& windows) const;
-    WindowPtrs _sortByMaxRatio(const WindowSet& windows) const;
-};
+    // seed the random function, so every execution will be identical
+    std::srand(0);
 
-#endif
+    // We keep the tree for which used space is maximal
+    for (int i = 0; i < maxRandomPermutations; ++i)
+    {
+        std::random_shuffle(sortedWindows.begin(), sortedWindows.end());
+        auto tree = std::make_unique<CanvasNode>(sortedWindows, availableSpace);
+        if (tree->getOccupiedSpace() > layout->getOccupiedSpace())
+            layout = std::move(tree);
+    }
+    layout->updateWindowCoordinates();
+}
+
+QRectF AutomaticLayout::_getAvailableSpace() const
+{
+    return ui::getFocusSurface(_group);
+}
+
+WindowPtrs AutomaticLayout::_sortByMaxRatio(const WindowSet& windows) const
+{
+    auto sortedWindows = std::vector<WindowPtr>{windows.begin(), windows.end()};
+    std::sort(sortedWindows.begin(), sortedWindows.end(),
+              [this](WindowPtr a, WindowPtr b) {
+                  return _computeMaxRatio(*a) > _computeMaxRatio(*b);
+              });
+    return sortedWindows;
+}
+
+qreal AutomaticLayout::_computeMaxRatio(const Window& window) const
+{
+    const auto space = _getAvailableSpace();
+    return std::max(window.width() / space.width(),
+                    window.height() / space.height());
+}

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,84 +37,69 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef GEOMETRY_H
-#define GEOMETRY_H
+#include "ui.h"
 
-#include <QRectF>
+namespace ui
+{
+namespace
+{
+/** Hardcoded dimensions (currently also defined in style.js). */
+const qreal buttonsSize = 106;
+const qreal buttonsPadding = buttonsSize / 4.0;
+const qreal buttonsSizeLarge = 1.15 * buttonsSize;
+const qreal buttonsPaddingLarge = 1.15 * buttonsPadding;
 
-/**
- * Set of geometry functions.
- */
-namespace geometry
+const qreal movieBarHeight = buttonsSize;
+const qreal controlsWidth = buttonsSize + 2 * buttonsPadding;
+const qreal controlsDistanceFromWindow = buttonsPadding;
+
+inline bool hasMovieControls(const Content& content)
 {
-/**
- * Get the size of a surface scaled to fit inside another one
- * @param source the source size
- * @param target the target size
- * @return the adjusted size
- */
-template <typename Source, typename Target>
-inline QSizeF getAdjustedSize(const Source& source, const Target& target)
-{
-    auto size = QSizeF(source.width(), source.height());
-    return size.scaled(target.size(), Qt::KeepAspectRatio);
+    return content.getType() == ContentType::movie;
+}
 }
 
-/**
- * Get the size of a surface scaled to fit around another one
- * @param source the source size
- * @param target the target size
- * @return the adjusted size
- */
-template <typename Source, typename Target>
-inline QSizeF getExpandedSize(const Source& source, const Target& target)
+qreal getButtonSize()
 {
-    auto size = QSizeF(source.width(), source.height());
-    return size.scaled(target.size(), Qt::KeepAspectRatioByExpanding);
+    return buttonsSize;
 }
 
-/**
- * Adjust a surface to exactly fit inside another one, preserving aspect ratio
- * @param source the source surface
- * @param target the destination surface
- * @return the adjusted rectangle
- */
-template <typename Source, typename Target>
-QRectF adjustAndCenter(const Source& source, const Target& target)
+qreal getWindowControlsMargin()
 {
-    auto rect = QRectF{QPointF(), getAdjustedSize(source, target)};
-    rect.moveCenter(target.center());
-    return rect;
+    return controlsWidth + controlsDistanceFromWindow;
 }
 
-/**
- * Resize a rectangle around a point of interest.
- *
- * @param rect the rectangle to resize
- * @param position the point of interest to resize around
- * @param size the new absolute size to resize to
- * @return the resized rectangle
- */
-QRectF resizeAroundPosition(const QRectF& rect, const QPointF& position,
-                            const QSizeF& size);
-
-/**
- * Resize a rectangle around its center.
- *
- * @param rect the rectangle to resize.
- * @param factor the resize factor to apply.
- * @return the resized rectangle.
- */
-QRectF scaleAroundCenter(const QRectF& rect, const qreal factor);
-
-/**
- * Constrain a size between min and max values.
- * @param size the size to constrain
- * @param min the minimum size (ignored if not valid)
- * @param max the maximum size (ignored if not valid)
- * @return the size comprised between min and max
- */
-QSizeF constrain(const QSizeF& size, const QSizeF& min, const QSizeF& max);
+qreal getMinWindowSpacing()
+{
+    return 40.0;
 }
 
-#endif
+qreal getFocusedWindowControlBarHeight(const Content& content)
+{
+    return hasMovieControls(content) ? movieBarHeight : 0.0;
+}
+
+QMarginsF getFocusedWindowControlsMargins(const Content& content)
+{
+    const auto leftMargin = getWindowControlsMargin();
+    const auto topMargin = getFocusedWindowControlBarHeight(content);
+    return QMarginsF{leftMargin, topMargin, 0.0, 0.0};
+}
+
+qreal getSideControlWidth()
+{
+    return buttonsSizeLarge + 2.0 * buttonsPaddingLarge;
+}
+
+QRectF getFocusSurface(const DisplayGroup& group)
+{
+    const auto margin = buttonsSize;
+    const auto rightMargin = margin;
+    const auto leftMargin = margin + getSideControlWidth();
+    const auto topMargin = margin;
+    const auto bottomMargin = margin;
+    return QRectF{leftMargin, topMargin,
+                  group.width() - leftMargin - rightMargin,
+                  group.height() - topMargin - bottomMargin};
+}
+}
