@@ -77,8 +77,8 @@ bool PixelStreamContent::readMetadata()
 
 Content::Interaction PixelStreamContent::_getInteractionPolicy() const
 {
-    return hasEventReceivers() ? Content::Interaction::ON
-                               : Content::Interaction::OFF;
+    return hasEventReceivers() ? Content::Interaction::on
+                               : Content::Interaction::off;
 }
 
 KeyboardState* PixelStreamContent::getKeyboardState()

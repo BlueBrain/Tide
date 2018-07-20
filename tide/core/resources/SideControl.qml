@@ -10,7 +10,7 @@ Item {
     anchors.left: parent.left
 
     // Can't be made a top-level item; this results in unexplained incorrect
-    // centering of buttons inside the Canevas.
+    // centering of buttons inside the Canvas.
     SideButton {
         id: buttonShape
         width: buttons.width + 2 * Style.buttonsPaddingLarge

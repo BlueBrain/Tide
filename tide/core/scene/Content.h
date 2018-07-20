@@ -183,9 +183,9 @@ protected:
     /** The different types of interaction. */
     enum class Interaction
     {
-        AUTO, // interaction is enabled automatically (default)
-        ON,   // force interaction with content
-        OFF   // never interact with content
+        dynamic, // interaction is enabled dynamically by tap-and-hold (default)
+        on,      // force interaction with content
+        off      // never interact with content
     };
 
 private:

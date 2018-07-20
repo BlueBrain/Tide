@@ -75,9 +75,9 @@ WallApplication::WallApplication(int& argc_, char** argv_,
     const auto maxThreads = std::max(QThread::idealThreadCount() / prCount, 2);
     QThreadPool::globalInstance()->setMaxThreadCount(maxThreads);
 
-    _renderController.reset(new RenderController(*_config, *_provider,
-                                                 *_wallChannel,
-                                                 config.global.swapsync));
+    _renderController =
+        std::make_unique<RenderController>(*_config, *_provider, *_wallChannel,
+                                           config.global.swapsync);
     _initMPIConnections();
 }
 

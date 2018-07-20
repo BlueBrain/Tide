@@ -153,11 +153,11 @@ bool Content::getCaptureInteraction() const
 {
     switch (_getInteractionPolicy())
     {
-    case Content::Interaction::OFF:
+    case Content::Interaction::off:
         return false;
-    case Content::Interaction::ON:
+    case Content::Interaction::on:
         return true;
-    case Content::Interaction::AUTO:
+    case Content::Interaction::dynamic:
     default:
         return _captureInteraction;
     }
@@ -166,7 +166,7 @@ bool Content::getCaptureInteraction() const
 void Content::setCaptureInteraction(const bool enable)
 {
     if (_captureInteraction == enable ||
-        _getInteractionPolicy() != Content::Interaction::AUTO)
+        _getInteractionPolicy() != Content::Interaction::dynamic)
     {
         return;
     }
@@ -233,5 +233,5 @@ void Content::resetZoom()
 
 Content::Interaction Content::_getInteractionPolicy() const
 {
-    return Content::Interaction::AUTO;
+    return Content::Interaction::dynamic;
 }
