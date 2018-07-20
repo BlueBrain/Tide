@@ -124,7 +124,6 @@ private:
                            const unsigned int version)
     {
         serialize_members_xml(ar, version);
-        _createKeyboard(); // actions are not saved to xml file
     }
 
     /** Saving to xml. */
