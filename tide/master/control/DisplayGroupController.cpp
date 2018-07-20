@@ -164,7 +164,7 @@ void DisplayGroupController::focusSelected()
 
 void DisplayGroupController::focusAll()
 {
-    _focus({_group.getWindows().begin(), _group.getWindows().end()});
+    _focus(_group.getFocusableWindows());
 }
 
 void DisplayGroupController::unfocusAll()
