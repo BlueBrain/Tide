@@ -154,6 +154,9 @@ public:
     /** Get the set of selected windows. */
     WindowSet getSelectedWindows() const;
 
+    /** Get the set of windows that can be focused (all excluding panels). */
+    WindowSet getFocusableWindows() const;
+
     /** @return the URIs of the selected windows. */
     QStringList getSelectedUris() const;
 

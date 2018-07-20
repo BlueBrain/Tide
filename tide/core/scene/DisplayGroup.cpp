@@ -277,6 +277,15 @@ WindowSet DisplayGroup::getSelectedWindows() const
     return selectedWindows;
 }
 
+WindowSet DisplayGroup::getFocusableWindows() const
+{
+    auto focusableWindows = WindowSet{};
+    std::copy_if(getWindows().begin(), getWindows().end(),
+                 std::inserter(focusableWindows, focusableWindows.end()),
+                 [](const WindowPtr& window) { return !window->isPanel(); });
+    return focusableWindows;
+}
+
 QStringList DisplayGroup::getSelectedUris() const
 {
     auto uris = QStringList{};

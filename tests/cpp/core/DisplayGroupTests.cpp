@@ -78,6 +78,19 @@ BOOST_AUTO_TEST_CASE(focus_window)
     BOOST_CHECK(!window->isFocused());
 }
 
+BOOST_AUTO_TEST_CASE(get_focusable_windows)
+{
+    auto window = std::make_shared<Window>(makeDummyContent());
+    auto panel = std::make_shared<Window>(makeDummyContent(), Window::PANEL);
+    auto group = DisplayGroup::create(wallSize);
+    group->add(window);
+    group->add(panel);
+
+    const auto focusableWindows = group->getFocusableWindows();
+    BOOST_REQUIRE_EQUAL(focusableWindows.size(), 1);
+    BOOST_CHECK(focusableWindows.count(window));
+}
+
 BOOST_AUTO_TEST_CASE(window_z_order)
 {
     auto window0 = std::make_shared<Window>(makeDummyContent());
