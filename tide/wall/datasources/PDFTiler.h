@@ -61,6 +61,9 @@ public:
     /** Destructor. */
     ~PDFTiler();
 
+    /** Update this datasource according to pdf content (set page info). */
+    void update(const Content& content) final;
+
     /** @copydoc DataSource::getTileRect */
     QRect getTileRect(uint tileId) const final;
 
@@ -76,9 +79,6 @@ public:
 
     /** @return the ID of the preview (lowest res.) tile for the current page */
     uint getPreviewTileId() const;
-
-    /** Update this datasource according to pdf content (set page info). */
-    void update(const PDFContent& content);
 
     /** @return the current page / total number of pages of the document. */
     QString getStatistics() const;

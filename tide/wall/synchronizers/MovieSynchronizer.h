@@ -82,9 +82,6 @@ public:
     /** @copydoc ContentSynchronizer::getView */
     deflect::View getView() const final;
 
-    /** @return true if the movie is visible on this window. */
-    bool hasVisibleTiles() const;
-
     /** @return the normalized position in the move. */
     qreal getSliderPosition() const;
 

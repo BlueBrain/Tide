@@ -81,6 +81,9 @@ public:
      */
     void swapTiles() override;
 
+    /** @copydoc ContentSynchronizer::hasVisibleTiles */
+    bool hasVisibleTiles() const override;
+
 protected:
     /** @name Parameters for updateTile. */
     //@{

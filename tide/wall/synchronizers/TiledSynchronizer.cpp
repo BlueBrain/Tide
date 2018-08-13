@@ -121,6 +121,11 @@ void TiledSynchronizer::swapTiles()
     _syncSwapPending = false;
 }
 
+bool TiledSynchronizer::hasVisibleTiles() const
+{
+    return !_visibleTilesArea.isEmpty();
+}
+
 void TiledSynchronizer::_removeTile(const size_t tileIndex)
 {
     if (_policy == SwapTilesSynchronously && _syncSwapPending)

@@ -51,7 +51,7 @@ PixelStreamSynchronizer::PixelStreamSynchronizer(
     , _updater{std::move(updater)}
     , _view{view}
 {
-    _updater->synchronizers.insert(this);
+    _updater->synchronizers.register_(this);
 
     _channel = channel;
 
@@ -61,7 +61,7 @@ PixelStreamSynchronizer::PixelStreamSynchronizer(
 
 PixelStreamSynchronizer::~PixelStreamSynchronizer()
 {
-    _updater->synchronizers.erase(this);
+    _updater->synchronizers.deregister(this);
 }
 
 void PixelStreamSynchronizer::update(const Window& window,

@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,87 +37,55 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef PIXELSTREAMUPDATER_H
-#define PIXELSTREAMUPDATER_H
+#ifndef CONTENTSYNCHRONIZERS_H
+#define CONTENTSYNCHRONIZERS_H
 
 #include "types.h"
 
-#include "DataSource.h"
-#include "tools/SwapSyncObject.h"
-
-#include <QObject>
-#include <QReadWriteLock>
-
-class PixelStreamProcessor;
+#include "synchronizers/ContentSynchronizer.h"
 
 /**
- * Synchronize the update of PixelStreams and send new frame requests.
+ * The set of ContentSynchronizers for one shared data source.
  */
-class PixelStreamUpdater : public QObject, public DataSource
+class ContentSynchronizers
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(PixelStreamUpdater)
-
 public:
-    /** Constructor. */
-    PixelStreamUpdater(const QString& uri);
+    bool canSwapTiles() const
+    {
+        bool swap = true;
+        for (auto synchronizer : _synchronizers)
+            swap = swap && synchronizer->canSwapTiles();
+        return swap;
+    }
+    bool haveVisibleTiles() const
+    {
+        bool visible = false;
+        for (auto synchronizer : _synchronizers)
+            visible = visible || synchronizer->hasVisibleTiles();
+        return visible;
+    }
+    void swapTiles()
+    {
+        for (auto synchronizer : _synchronizers)
+            synchronizer->swapTiles();
+    }
+    void updateTiles()
+    {
+        for (auto synchronizer : _synchronizers)
+            synchronizer->updateTiles();
+    }
 
-    /** Destructor. */
-    ~PixelStreamUpdater();
-
-    /** @return the uri of the stream that was passed to the constructor. */
-    const QString& getUri() const;
-
-    /** @copydoc DataSource::isDynamic */
-    bool isDynamic() const final { return true; }
-    /**
-     * @copydoc DataSource::getTileImage
-     * threadsafe
-     */
-    ImagePtr getTileImage(uint tileIndex, deflect::View view) const final;
-
-    /** @copydoc DataSource::getTileRect */
-    QRect getTileRect(uint tileIndex) const final;
-
-    /** @copydoc DataSource::getTilesArea */
-    QSize getTilesArea(uint lod, uint channel) const final;
-
-    /** @copydoc DataSource::computeVisibleSet */
-    Indices computeVisibleSet(const QRectF& visibleTilesArea, uint lod,
-                              uint channel) const final;
-
-    /** @copydoc DataSource::getMaxLod */
-    uint getMaxLod() const final;
-
-    /** @copydoc DataSource::allowNextFrame */
-    void allowNextFrame() final;
-
-    /** @copydoc DataSource::synchronizeFrameAdvance */
-    void synchronizeFrameAdvance(WallToWallChannel& channel) final;
-
-    /** Set the frame to be rendered next. */
-    void setNextFrame(deflect::server::FramePtr frame);
-
-signals:
-    /** Emitted when a new picture has become available. */
-    void pictureUpdated();
-
-    /** Emitted to request a new frame after a successful swap. */
-    void requestFrame(QString uri);
+    void register_(ContentSynchronizer* synchronizer)
+    {
+        _synchronizers.insert(synchronizer);
+    }
+    void deregister(ContentSynchronizer* synchronizer)
+    {
+        _synchronizers.erase(synchronizer);
+    }
 
 private:
-    QString _uri;
-    SwapSyncObject<deflect::server::FramePtr> _swapSyncFrame;
-    deflect::server::FramePtr _frameLeftOrMono;
-    deflect::server::FramePtr _frameRight;
-    std::unique_ptr<deflect::server::TileDecoder> _headerDecoder;
-    std::unique_ptr<PixelStreamProcessor> _processorLeft;
-    std::unique_ptr<PixelStreamProcessor> _processRight;
-    mutable QReadWriteLock _frameMutex;
-    bool _readyToSwap = true;
-
-    void _onFrameSwapped(deflect::server::FramePtr frame);
-    void _createFrameProcessors();
+    std::set<ContentSynchronizer*> _synchronizers;
 };
 
 #endif

@@ -50,6 +50,7 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   DataProvider.h
   datasources/CachedDataSource.h
   datasources/DataSource.h
+  datasources/DataSourceFactory.h
   datasources/ImageSource.h
   datasources/LodTiler.h
   datasources/SVGGpuImage.h
@@ -78,6 +79,8 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   RenderController.h
   synchronizers/BasicSynchronizer.h
   synchronizers/ContentSynchronizer.h
+  synchronizers/ContentSynchronizers.h
+  synchronizers/ContentSynchronizerFactory.h
   synchronizers/LodSynchronizer.h
   synchronizers/PixelStreamSynchronizer.h
   synchronizers/TiledSynchronizer.h
@@ -100,6 +103,7 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
 
 list(APPEND TIDEWALL_SOURCES
   datasources/CachedDataSource.cpp
+  datasources/DataSourceFactory.cpp
   datasources/ImageSource.cpp
   datasources/LodTiler.cpp
   datasources/SVGGpuImage.cpp
@@ -130,6 +134,7 @@ list(APPEND TIDEWALL_SOURCES
   swapsync/SwapSynchronizerHardware.cpp
   swapsync/SwapSynchronizerSoftware.cpp
   synchronizers/BasicSynchronizer.cpp
+  synchronizers/ContentSynchronizerFactory.cpp
   synchronizers/LodSynchronizer.cpp
   synchronizers/PixelStreamSynchronizer.cpp
   synchronizers/TiledSynchronizer.cpp

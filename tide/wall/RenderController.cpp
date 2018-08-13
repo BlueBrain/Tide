@@ -259,6 +259,7 @@ void RenderController::_synchronizeDataSourceUpdates()
 {
     _wallChannel.synchronizeClock();
     _provider.synchronizeTilesSwap(_wallChannel);
+    _provider.synchronizeTilesUpdate(_wallChannel);
 }
 
 void RenderController::_terminateRendering()

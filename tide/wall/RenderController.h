@@ -44,6 +44,7 @@
 
 #include "tools/SwapSyncObject.h"
 
+#include <QImage>
 #include <QObject>
 
 /**

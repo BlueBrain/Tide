@@ -52,7 +52,7 @@ class BasicSynchronizer : public ContentSynchronizer
 
 public:
     /** Constructor */
-    BasicSynchronizer(std::shared_ptr<DataSource> source);
+    BasicSynchronizer(DataSourceSharedPtr source);
     ~BasicSynchronizer();
 
     /** @copydoc ContentSynchronizer::update */
@@ -79,8 +79,11 @@ public:
     /** @copydoc ContentSynchronizer::createZoomContextTile */
     TilePtr createZoomContextTile() const override;
 
+    /** @copydoc ContentSynchronizer::hasVisibleTiles */
+    bool hasVisibleTiles() const override;
+
 private:
-    std::shared_ptr<DataSource> _dataSource;
+    DataSourceSharedPtr _dataSource;
     bool _tileAdded = false;
     bool _addTile = false;
     bool _zoomContextTileDirty = false;

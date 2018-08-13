@@ -166,15 +166,22 @@ void PixelStreamWindowManager::openWindow(const uint surfaceIndex,
 
 void PixelStreamWindowManager::handleStreamStart(const QString uri)
 {
-    // internal streams already have a window
+    // Internal streams (or when restored from a session) already have a window.
+    // The requestFrame signal from the DataProvider on the wall process has
+    // arrived before the Stream was started and ignored by the deflect::Server;
+    // hence the first frame must be requested here again.
     if (_streams.count(uri))
     {
-        emit requestFirstFrame(uri);
         print_log(LOG_INFO, LOG_STREAM,
                   "start sending frames for stream window: '%s'",
                   uri.toLocal8Bit().constData());
+        emit requestFirstFrame(uri);
     }
-    // external streams don't have a window yet, create one
+    // External streams don't have a window yet, create one. The first frame
+    // will be requested by the DataProvider on the wall process as soon as it's
+    // ready to accept them. Emitting requestFirstFrame directly here would be
+    // incorrect. It causes a race condition leaving the stream window to be
+    // black occasionally (see also DISCL-382 / PR #77).
     else
     {
         openWindow(SURFACE0, uri, QSize());

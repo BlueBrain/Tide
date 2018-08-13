@@ -49,7 +49,7 @@ const QSize previewSize{1920, 1920};
 std::pair<QSize, uint> _getLodParameters(const QString& uri)
 {
     const TiffPyramidReader tif{uri};
-    const QSize tileSize = tif.getTileSize();
+    const auto tileSize = tif.getTileSize();
     if (tileSize.width() != tileSize.height())
         throw std::runtime_error("Non-square tiles are not supported");
     return std::make_pair(tif.getImageSize(), tileSize.width());
@@ -87,7 +87,7 @@ QImage ImagePyramidDataSource::getCachableTileImage(const uint tileId) const
     // TIFF tiles all have a fixed size. Those at the top of the pyramid
     // (or at the borders) are padded, but Tide expects to get tiles of the
     // exact dimensions (not padding) for uploading as GL textures.
-    const QSize expectedSize = getTileRect(tileId).size();
+    const auto expectedSize = getTileRect(tileId).size();
     if (image.size() != expectedSize)
         image = image.copy(QRect(QPoint(), expectedSize));
 

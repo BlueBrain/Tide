@@ -46,11 +46,11 @@
 
 #include <QTextStream>
 
-LodSynchronizer::LodSynchronizer(std::shared_ptr<DataSource> source)
+LodSynchronizer::LodSynchronizer(DataSourceSharedPtr source)
     : TiledSynchronizer(TileSwapPolicy::SwapTilesIndependently)
     , _source(std::move(source))
 {
-    _source->synchronizers.insert(this);
+    _source->synchronizers.register_(this);
 
     connect(this, &ContentSynchronizer::zoomContextVisibleChanged,
             [this] { _zoomContextTileDirty = true; });
@@ -58,7 +58,7 @@ LodSynchronizer::LodSynchronizer(std::shared_ptr<DataSource> source)
 
 LodSynchronizer::~LodSynchronizer()
 {
-    _source->synchronizers.erase(this);
+    _source->synchronizers.deregister(this);
 }
 
 void LodSynchronizer::update(const Window& window, const QRectF& visibleArea)

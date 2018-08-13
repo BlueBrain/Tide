@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,87 +37,71 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef PIXELSTREAMUPDATER_H
-#define PIXELSTREAMUPDATER_H
+#include "ContentSynchronizerFactory.h"
 
-#include "types.h"
+#include "config.h"
+#include "scene/Content.h"
+#include "scene/MultiChannelContent.h"
 
-#include "DataSource.h"
-#include "tools/SwapSyncObject.h"
+#include "datasources/PixelStreamUpdater.h"
+#include "synchronizers/BasicSynchronizer.h"
+#include "synchronizers/LodSynchronizer.h"
+#include "synchronizers/PixelStreamSynchronizer.h"
 
-#include <QObject>
-#include <QReadWriteLock>
-
-class PixelStreamProcessor;
-
-/**
- * Synchronize the update of PixelStreams and send new frame requests.
- */
-class PixelStreamUpdater : public QObject, public DataSource
-{
-    Q_OBJECT
-    Q_DISABLE_COPY(PixelStreamUpdater)
-
-public:
-    /** Constructor. */
-    PixelStreamUpdater(const QString& uri);
-
-    /** Destructor. */
-    ~PixelStreamUpdater();
-
-    /** @return the uri of the stream that was passed to the constructor. */
-    const QString& getUri() const;
-
-    /** @copydoc DataSource::isDynamic */
-    bool isDynamic() const final { return true; }
-    /**
-     * @copydoc DataSource::getTileImage
-     * threadsafe
-     */
-    ImagePtr getTileImage(uint tileIndex, deflect::View view) const final;
-
-    /** @copydoc DataSource::getTileRect */
-    QRect getTileRect(uint tileIndex) const final;
-
-    /** @copydoc DataSource::getTilesArea */
-    QSize getTilesArea(uint lod, uint channel) const final;
-
-    /** @copydoc DataSource::computeVisibleSet */
-    Indices computeVisibleSet(const QRectF& visibleTilesArea, uint lod,
-                              uint channel) const final;
-
-    /** @copydoc DataSource::getMaxLod */
-    uint getMaxLod() const final;
-
-    /** @copydoc DataSource::allowNextFrame */
-    void allowNextFrame() final;
-
-    /** @copydoc DataSource::synchronizeFrameAdvance */
-    void synchronizeFrameAdvance(WallToWallChannel& channel) final;
-
-    /** Set the frame to be rendered next. */
-    void setNextFrame(deflect::server::FramePtr frame);
-
-signals:
-    /** Emitted when a new picture has become available. */
-    void pictureUpdated();
-
-    /** Emitted to request a new frame after a successful swap. */
-    void requestFrame(QString uri);
-
-private:
-    QString _uri;
-    SwapSyncObject<deflect::server::FramePtr> _swapSyncFrame;
-    deflect::server::FramePtr _frameLeftOrMono;
-    deflect::server::FramePtr _frameRight;
-    std::unique_ptr<deflect::server::TileDecoder> _headerDecoder;
-    std::unique_ptr<PixelStreamProcessor> _processorLeft;
-    std::unique_ptr<PixelStreamProcessor> _processRight;
-    mutable QReadWriteLock _frameMutex;
-    bool _readyToSwap = true;
-
-    void _onFrameSwapped(deflect::server::FramePtr frame);
-    void _createFrameProcessors();
-};
-
+#if TIDE_ENABLE_MOVIE_SUPPORT
+#include "datasources/MovieUpdater.h"
+#include "synchronizers/MovieSynchronizer.h"
 #endif
+
+#if TIDE_ENABLE_PDF_SUPPORT
+#include "datasources/PDFTiler.h"
+#include "synchronizers/PDFSynchronizer.h"
+#endif
+
+std::unique_ptr<ContentSynchronizer> ContentSynchronizerFactory::create(
+    const Content& content, const deflect::View view,
+    std::shared_ptr<DataSource> source)
+{
+    switch (content.getType())
+    {
+#if TIDE_ENABLE_MOVIE_SUPPORT
+    case ContentType::movie:
+    {
+        return std::make_unique<MovieSynchronizer>(
+            std::dynamic_pointer_cast<MovieUpdater>(source), view);
+    }
+#endif
+    case ContentType::pixel_stream:
+    case ContentType::webbrowser:
+    {
+        const auto channel =
+            static_cast<const MultiChannelContent&>(content).getChannel();
+        return std::make_unique<PixelStreamSynchronizer>(
+            std::dynamic_pointer_cast<PixelStreamUpdater>(source), view,
+            channel);
+    }
+#if TIDE_USE_TIFF
+    case ContentType::image_pyramid:
+    {
+        return std::make_unique<LodSynchronizer>(source);
+    }
+#endif
+#if TIDE_ENABLE_PDF_SUPPORT
+    case ContentType::pdf:
+    {
+        return std::make_unique<PDFSynchronizer>(
+            std::dynamic_pointer_cast<PDFTiler>(source));
+    }
+#endif
+    case ContentType::svg:
+    {
+        return std::make_unique<LodSynchronizer>(source);
+    }
+    case ContentType::texture:
+    {
+        return std::make_unique<BasicSynchronizer>(source);
+    }
+    default:
+        throw std::runtime_error("No ContentSynchronizer for ContentType");
+    }
+}

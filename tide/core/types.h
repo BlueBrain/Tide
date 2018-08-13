@@ -157,6 +157,7 @@ typedef std::unique_ptr<Content> ContentPtr;
 typedef std::shared_ptr<ContentSynchronizer> ContentSynchronizerSharedPtr;
 typedef std::shared_ptr<ContextMenu> ContextMenuPtr;
 typedef std::shared_ptr<CountdownStatus> CountdownStatusPtr;
+typedef std::shared_ptr<DataSource> DataSourceSharedPtr;
 typedef std::shared_ptr<DisplayGroup> DisplayGroupPtr;
 typedef std::shared_ptr<Image> ImagePtr;
 typedef std::shared_ptr<FFMPEGPicture> PicturePtr;

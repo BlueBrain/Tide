@@ -127,7 +127,7 @@ void WallApplication::_initMPIConnections()
 
     if (_wallChannel->getRank() == 0)
     {
-        connect(_provider.get(), &DataProvider::requestFrame,
+        connect(_provider.get(), &DataProvider::requestPixelStreamFrame,
                 _toMasterChannel.get(), &WallToMasterChannel::sendRequestFrame);
         connect(_provider.get(), &DataProvider::closePixelStream,
                 _toMasterChannel.get(),
