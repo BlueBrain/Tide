@@ -40,25 +40,15 @@
 #ifndef DATAPROVIDER_H
 #define DATAPROVIDER_H
 
-#include "config.h"
-#include "types.h"
-
 #include "synchronizers/ContentSynchronizer.h"
-#if TIDE_USE_TIFF
-#include "datasources/ImagePyramidDataSource.h"
-#endif
-#include "datasources/ImageSource.h"
-#if TIDE_ENABLE_PDF_SUPPORT
-#include "datasources/PDFTiler.h"
-#endif
-#include "datasources/SVGTiler.h"
+#include "types.h"
 
 #include <QFutureWatcher>
 #include <QList>
 #include <QObject>
 
 /**
- * Load image data in parallel.
+ * Load tile images in parallel, synchronizing tiles swap and frame advance.
  */
 class DataProvider : public QObject
 {
@@ -72,34 +62,46 @@ public:
     /** Destructor. */
     ~DataProvider();
 
-    /** @return a ContentSynchronizer for the given content. */
-    std::unique_ptr<ContentSynchronizer> createSynchronizer(
-        const Window& window, deflect::View view);
-
     /**
-     * Update the data sources with information from a new scene.
+     * Update the data sources when the scene has changed.
      *
-     * @param scene with updated information for the movies/pdfs/streams.
+     * @param scene with updated information.
      */
     void updateDataSources(const Scene& scene);
 
     /**
-     * Synchronize the swap of Tiles just before rendering for movies/streams.
+     * Create a ContentSynchronizer for the given window and view.
+     *
+     * A data source must alread exist for the target content; so this function
+     * must be called *after* updateDataSources.
+     */
+    std::unique_ptr<ContentSynchronizer> createSynchronizer(
+        const Window& window, deflect::View view);
+
+    /**
+     * Synchronize the swap of Tiles just before rendering.
      *
      * @param channel to synchonize swap accross all wall processes.
      */
     void synchronizeTilesSwap(WallToWallChannel& channel);
 
+    /**
+     * Synchronize the update of Tiles just before rendering.
+     *
+     * @param channel to synchonize the update accross all wall processes.
+     */
+    void synchronizeTilesUpdate(WallToWallChannel& channel);
+
 public slots:
-    /** Load an image asynchronously. */
+    /** Start loading a tile image asynchronously. */
     void loadAsync(TilePtr tile, deflect::View view);
 
-    /** Add a new frame. */
+    /** Update the frame for an existing PixelStream data source. */
     void setNewFrame(deflect::server::FramePtr frame);
 
 signals:
-    /** Emitted to request a new frame after a successful swap. */
-    void requestFrame(QString uri);
+    /** Emitted to request a new frame for a stream after a successful swap. */
+    void requestPixelStreamFrame(QString uri);
 
     /** Emitted to request the pixel stream to close if an error occured. */
     void closePixelStream(QString uri);
@@ -111,21 +113,8 @@ private:
     using Watcher = QFutureWatcher<void>;
     QList<Watcher*> _watchers;
 
-#if TIDE_ENABLE_MOVIE_SUPPORT
-    std::map<QUuid, std::shared_ptr<MovieUpdater>> _movieSources;
-#endif
-    std::map<QString, std::shared_ptr<PixelStreamUpdater>> _streamSources;
-
-    std::map<QUuid, std::weak_ptr<ImageSource>> _imageSources;
-#if TIDE_USE_TIFF
-    std::map<QUuid, std::weak_ptr<ImagePyramidDataSource>> _imagePyrSources;
-#endif
-#if TIDE_ENABLE_PDF_SUPPORT
-    std::map<QUuid, std::weak_ptr<PDFTiler>> _pdfSources;
-#endif
-    std::map<QUuid, std::weak_ptr<SVGTiler>> _svgSources;
-
-    void _updateDataSource(const Content& content, const QUuid& id);
+    std::map<QUuid, DataSourceSharedPtr> _dataSources;
+    std::map<QString, QUuid> _streamSources;
 
     struct TileUpdateInfo
     {
@@ -135,27 +124,15 @@ private:
     using TileUpdateList = std::vector<TileUpdateInfo>;
     std::map<uint, TileUpdateList> _tileImageRequests;
 
-    using DataSourcePtr = std::shared_ptr<DataSource>;
-    void _processTileImageRequests(DataSourcePtr source);
+    void _createOrUpdateDataSource(const Content& content, const QUuid& id);
+    DataSourceSharedPtr _getOrCreateDataSource(const Content& content,
+                                               const QUuid& id);
 
-#if TIDE_ENABLE_MOVIE_SUPPORT
-    std::shared_ptr<MovieUpdater> _getOrCreateMovieSource(const QString& uri,
-                                                          const QUuid& id);
-#endif
-    std::shared_ptr<PixelStreamUpdater> _getOrCreateStreamSource(
-        const QString& uri);
-    void _load(DataSourcePtr source, const TileUpdateList& tileList);
+    void _updateTiles();
+    void _startTileImageRequests(DataSourceSharedPtr source);
+    void _handleStreamError(const QString& uri);
+    void _load(DataSourceSharedPtr source, const TileUpdateList& tileList);
     void _handleFinished();
-    std::unique_ptr<ContentSynchronizer> _makeSynchronizer(const Window& window,
-                                                           deflect::View view);
-
-    template <typename DataSources>
-    void _updateTiles(DataSources& dataSources);
-
-    template <typename DataSource, typename URIType>
-    void _handleError(URIType, const std::exception&)
-    {
-    }
 };
 
 #endif

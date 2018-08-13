@@ -41,12 +41,12 @@
 #define MOVIEUPDATER_H
 
 #include "datasources/DataSource.h"
-#include "synchronizers/MovieSynchronizer.h"
 #include "tools/ElapsedTimer.h"
 #include "tools/FpsCounter.h"
 #include "types.h"
 
 #include <QMutex>
+#include <QObject>
 
 /**
  * Updates Movies synchronously across different processes.
@@ -65,6 +65,9 @@ public:
 
     /** @copydoc DataSource::isDynamic */
     bool isDynamic() const final { return true; }
+    /** Update this datasource according to visibility and movie content. */
+    void update(const Content& content) final;
+
     /**
      * @copydoc DataSource::getTileImage
      * threadsafe
@@ -84,17 +87,11 @@ public:
     /** @copydoc DataSource::getMaxLod */
     uint getMaxLod() const final;
 
-    /** Update this datasource according to visibility and movie content. */
-    void update(const MovieContent& movie);
+    /** @copydoc DataSource::allowNextFrame */
+    void allowNextFrame() final;
 
-    /** Synchronize frame advance accross all processes. */
-    void synchronizeFrameAdvance(WallToWallChannel& channel);
-
-    /**
-     * Indicates that the last requested frame was consumed and we can advance
-     * to the next frame.
-     */
-    void getNextFrame();
+    /** @copydoc DataSource::synchronizeFrameAdvance */
+    void synchronizeFrameAdvance(WallToWallChannel& channel) final;
 
     /** @return current / max fps, movie position in percentage. */
     QString getStatistics() const;

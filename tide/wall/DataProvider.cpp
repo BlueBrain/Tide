@@ -40,28 +40,15 @@
 #include "DataProvider.h"
 
 #include "config.h"
+#include "datasources/DataSourceFactory.h"
+#include "datasources/PixelStreamUpdater.h"
 #include "network/WallToWallChannel.h"
 #include "qml/Tile.h"
 #include "scene/Background.h"
-#include "scene/MultiChannelContent.h"
 #include "scene/Scene.h"
 #include "scene/Window.h"
+#include "synchronizers/ContentSynchronizerFactory.h"
 #include "utils/log.h"
-
-#include "datasources/PixelStreamUpdater.h"
-#include "synchronizers/BasicSynchronizer.h"
-#include "synchronizers/LodSynchronizer.h"
-#include "synchronizers/PixelStreamSynchronizer.h"
-
-#if TIDE_ENABLE_MOVIE_SUPPORT
-#include "datasources/MovieUpdater.h"
-#include "scene/MovieContent.h"
-#include "synchronizers/MovieSynchronizer.h"
-#endif
-#if TIDE_ENABLE_PDF_SUPPORT
-#include "scene/PDFContent.h"
-#include "synchronizers/PDFSynchronizer.h"
-#endif
 
 #include <deflect/server/Frame.h>
 
@@ -70,32 +57,7 @@
 namespace
 {
 template <typename Map>
-std::shared_ptr<typename Map::mapped_type::element_type> _getOrCreate(
-    Map& map, const QUuid& id, const QString& uri)
-{
-    std::shared_ptr<typename Map::mapped_type::element_type> source;
-    if (map.count(id))
-        source = map[id].lock();
-
-    if (!source)
-    {
-        source = std::make_shared<typename Map::mapped_type::element_type>(uri);
-        map[id] = source;
-    }
-    return source;
-}
-
-template <typename Map>
-std::shared_ptr<typename Map::mapped_type::element_type> _getOrCreate(
-    Map& map, const Window& window)
-{
-    const auto& id = window.getID();
-    const auto& uri = window.getContent().getUri();
-    return _getOrCreate(map, id, uri);
-}
-
-template <typename Map>
-void _removeUnused(Map& map, const std::set<typename Map::key_type>& validKeys)
+void remove_unused(Map& map, const std::set<typename Map::key_type>& validKeys)
 {
     auto it = map.begin();
     while (it != map.end())
@@ -107,39 +69,9 @@ void _removeUnused(Map& map, const std::set<typename Map::key_type>& validKeys)
     }
 }
 
-template <typename Updater>
-void _synchronize(WallToWallChannel& channel, Updater& updater)
+inline auto cast_to_stream_source(DataSourceSharedPtr source)
 {
-    bool swap = true;
-    for (auto synchronizer : updater.synchronizers)
-        swap = swap && synchronizer->canSwapTiles();
-
-    if (channel.allReady(swap))
-    {
-        for (auto synchronizer : updater.synchronizers)
-            synchronizer->swapTiles();
-        updater.getNextFrame();
-    }
-
-    updater.synchronizeFrameAdvance(channel);
-}
-
-bool _isMovie(const Background& background)
-{
-    if (auto content = background.getContent())
-        return content->getType() == ContentType::movie;
-    return false;
-}
-
-template <typename T>
-inline std::shared_ptr<T> getSharedPtr(const std::weak_ptr<T>& ptr)
-{
-    return ptr.lock();
-}
-template <typename T>
-inline std::shared_ptr<T> getSharedPtr(const std::shared_ptr<T>& ptr)
-{
-    return ptr;
+    return std::dynamic_pointer_cast<PixelStreamUpdater>(source);
 }
 }
 
@@ -153,10 +85,39 @@ DataProvider::~DataProvider()
     }
 }
 
+void DataProvider::updateDataSources(const Scene& scene)
+{
+    // Synchronized contents (such as streams and movies) must be added and
+    // removed synchronously here. Otherwise, in synchronizeTilesSwap() locking
+    // the weak pointer may succeed on processes that are asynchronously getting
+    // a tile image but fail on the others, causing a deadlock.
+
+    std::set<QUuid> updatedSources;
+
+    for (const auto& surface : scene.getSurfaces())
+    {
+        const auto& background = surface.getBackground();
+        if (auto content = background.getContent())
+            _createOrUpdateDataSource(*content, background.getContentUUID());
+        updatedSources.insert(background.getContentUUID());
+    }
+
+    for (const auto& window : scene.getWindows())
+    {
+        const auto& content = window->getContent();
+        _createOrUpdateDataSource(content, window->getID());
+        updatedSources.insert(window->getID());
+    }
+
+    remove_unused(_dataSources, updatedSources);
+}
+
 std::unique_ptr<ContentSynchronizer> DataProvider::createSynchronizer(
     const Window& window, const deflect::View view)
 {
-    auto synchronizer = _makeSynchronizer(window, view);
+    auto source = _dataSources.at(window.getID());
+    auto synchronizer =
+        ContentSynchronizerFactory::create(window.getContent(), view, source);
 
     connect(synchronizer.get(), &ContentSynchronizer::requestTileUpdate, this,
             &DataProvider::loadAsync);
@@ -164,79 +125,27 @@ std::unique_ptr<ContentSynchronizer> DataProvider::createSynchronizer(
     return synchronizer;
 }
 
-void DataProvider::updateDataSources(const Scene& scene)
-{
-// Streams and movies are synchronized contents, so they must be added and
-// removed synchronously here. Otherwise, in synchronizeTilesSwap() locking
-// the weak pointer may succeed on processes that are asynchronously getting
-// a tile image but fail on the others, causing a deadlock.
-
-#if TIDE_ENABLE_MOVIE_SUPPORT
-    std::set<QUuid> updatedMovies;
-#endif
-    std::set<QString> updatedStreams;
-
-    for (const auto& surface : scene.getSurfaces())
-    {
-        const auto& background = surface.getBackground();
-        if (auto content = background.getContent())
-            _updateDataSource(*content, background.getContentUUID());
-#if TIDE_ENABLE_MOVIE_SUPPORT
-        if (_isMovie(background))
-            updatedMovies.insert(background.getContentUUID());
-#endif
-    }
-
-    for (const auto& window : scene.getWindows())
-    {
-        const auto& content = window->getContent();
-        _updateDataSource(content, window->getID());
-
-        switch (content.getType())
-        {
-#if TIDE_ENABLE_MOVIE_SUPPORT
-        case ContentType::movie:
-            updatedMovies.insert(window->getID());
-            break;
-#endif
-        case ContentType::pixel_stream:
-        case ContentType::webbrowser:
-            updatedStreams.insert(content.getUri());
-            break;
-        default:
-            break; /** nothing to do */
-        }
-    }
-
-#if TIDE_ENABLE_MOVIE_SUPPORT
-    _removeUnused(_movieSources, updatedMovies);
-#endif
-    _removeUnused(_streamSources, updatedStreams);
-}
-
 void DataProvider::synchronizeTilesSwap(WallToWallChannel& channel)
 {
-    for (auto stream : _streamSources)
-        _synchronize(channel, *stream.second);
-    _updateTiles(_streamSources);
+    for (auto dataSource : _dataSources)
+    {
+        auto& source = *dataSource.second;
+        if (source.isDynamic()) // movies and pixelstreams
+        {
+            if (channel.allReady(source.synchronizers.canSwapTiles()))
+            {
+                source.synchronizers.swapTiles();
+                source.allowNextFrame();
+            }
+        }
+    }
+}
 
-#if TIDE_ENABLE_MOVIE_SUPPORT
-    for (auto movie : _movieSources)
-        _synchronize(channel, *movie.second);
-    _updateTiles(_movieSources);
-#endif
-
-    _updateTiles(_imageSources);
-
-#if TIDE_USE_TIFF
-    _updateTiles(_imagePyrSources);
-#endif
-
-#if TIDE_ENABLE_PDF_SUPPORT
-    _updateTiles(_pdfSources);
-#endif
-
-    _updateTiles(_svgSources);
+void DataProvider::synchronizeTilesUpdate(WallToWallChannel& channel)
+{
+    for (auto dataSource : _dataSources)
+        dataSource.second->synchronizeFrameAdvance(channel);
+    _updateTiles();
 }
 
 void DataProvider::loadAsync(TilePtr tile, deflect::View view)
@@ -249,90 +158,73 @@ void DataProvider::loadAsync(TilePtr tile, deflect::View view)
 
 void DataProvider::setNewFrame(deflect::server::FramePtr frame)
 {
-    if (!_streamSources.count(frame->uri))
+    const auto id = _streamSources[frame->uri];
+    if (!_dataSources.count(id))
         return;
 
-    _streamSources[frame->uri]->updatePixelStream(frame);
+    if (auto stream = cast_to_stream_source(_dataSources[id]))
+        stream->setNextFrame(frame);
 }
 
-void DataProvider::_updateDataSource(const Content& content, const QUuid& id)
+void DataProvider::_createOrUpdateDataSource(const Content& content,
+                                             const QUuid& id)
 {
-    switch (content.getType())
-    {
-#if TIDE_ENABLE_MOVIE_SUPPORT
-    case ContentType::movie:
-    {
-        const auto& movie = static_cast<const MovieContent&>(content);
-        _getOrCreateMovieSource(movie.getUri(), id)->update(movie);
-    }
-    break;
-#endif
-#if TIDE_ENABLE_PDF_SUPPORT
-    case ContentType::pdf:
-    {
-        const auto& pdf = static_cast<const PDFContent&>(content);
-        if (_pdfSources.count(id))
-            _pdfSources.at(id).lock()->update(pdf);
-    }
-    break;
-#endif
-    case ContentType::pixel_stream:
-    case ContentType::webbrowser:
-    {
-        _getOrCreateStreamSource(content.getUri());
-    }
-    break;
-    default:
-        break; /** nothing to do */
-    }
+    _getOrCreateDataSource(content, id)->update(content);
 }
 
-template <typename DataSources>
-void DataProvider::_updateTiles(DataSources& dataSources)
+DataSourceSharedPtr DataProvider::_getOrCreateDataSource(const Content& content,
+                                                         const QUuid& id)
 {
-    auto it = dataSources.begin();
-    while (it != dataSources.end())
+    if (!_dataSources.count(id))
     {
-        if (auto source = getSharedPtr(it->second))
+        _dataSources[id] = DataSourceFactory::create(content);
+        if (auto stream = cast_to_stream_source(_dataSources[id]))
         {
-            // The following results in loadAsync() being called one or multiple
-            // times, filling _tileImageRequests with the tiles from the
-            // different WallWindows for this data source.
-            try
-            {
-                for (auto synchronizer : source->synchronizers)
-                    synchronizer->updateTiles();
-            }
-            catch (const std::exception& exc)
-            {
-                _handleError<decltype(source)>(it->first, exc);
-                it = dataSources.erase(it);
-                continue;
-            }
+            _streamSources[content.getUri()] = id;
+            connect(stream.get(), &PixelStreamUpdater::requestFrame, this,
+                    &DataProvider::requestPixelStreamFrame);
+
+            // request the first frame now that the data source is ready to
+            // accept it.
+            emit requestPixelStreamFrame(content.getUri());
+        }
+    }
+    return _dataSources[id];
+}
+
+void DataProvider::_updateTiles()
+{
+    auto it = _dataSources.begin();
+    while (it != _dataSources.end())
+    {
+        // The following results in loadAsync() being called one or multiple
+        // times, filling _tileImageRequests with the tiles from the
+        // different WallWindows for this data source.
+        try
+        {
+            _tileImageRequests.clear();
+
+            auto source = it->second;
+            source->synchronizers.updateTiles(); // may throw
 
             // Start the asynchronous loading of images for this data source
             // and clear the list of requests for the next data source.
-            _processTileImageRequests(source);
+            _startTileImageRequests(source);
             ++it;
         }
-        else
+        catch (const std::exception& e)
         {
-            print_log(LOG_DEBUG, LOG_GENERAL, "Removing invalid source");
-            it = dataSources.erase(it);
+            print_log(LOG_ERROR, LOG_GENERAL,
+                      "closing data source due to exception: %s", e.what());
+            it = _dataSources.erase(it);
+
+            if (auto stream = cast_to_stream_source(it->second))
+                _handleStreamError(stream->getUri());
         }
     }
 }
 
-template <>
-void DataProvider::_handleError<std::shared_ptr<PixelStreamUpdater>, QString>(
-    QString uri, const std::exception& exc)
-{
-    print_log(LOG_ERROR, LOG_STREAM, "%s, closing pixel stream %s", exc.what(),
-              uri.toLocal8Bit().constData());
-    emit closePixelStream(uri);
-}
-
-void DataProvider::_processTileImageRequests(DataSourcePtr source)
+void DataProvider::_startTileImageRequests(DataSourceSharedPtr source)
 {
     for (const auto& tileRequest : _tileImageRequests)
     {
@@ -345,42 +237,18 @@ void DataProvider::_processTileImageRequests(DataSourcePtr source)
                 _load(source, tilesToUpdate);
             }));
     }
-    _tileImageRequests.clear();
 }
 
-#if TIDE_ENABLE_MOVIE_SUPPORT
-std::shared_ptr<MovieUpdater> DataProvider::_getOrCreateMovieSource(
-    const QString& uri, const QUuid& id)
+void DataProvider::_handleStreamError(const QString& uri)
 {
-    auto it = _movieSources.find(id);
-    if (it == _movieSources.end())
-    {
-        it = _movieSources.emplace(id, std::make_shared<MovieUpdater>(uri))
-                 .first;
-    }
-    return it->second;
-}
-#endif
-
-std::shared_ptr<PixelStreamUpdater> DataProvider::_getOrCreateStreamSource(
-    const QString& uri)
-{
-    auto it = _streamSources.find(uri);
-    if (it == _streamSources.end())
-    {
-        it = _streamSources.emplace(uri, std::make_shared<PixelStreamUpdater>())
-                 .first;
-        connect(it->second.get(), &PixelStreamUpdater::requestFrame, this,
-                &DataProvider::requestFrame);
-        // Fix DISCL-382: New frames are requested after showing the current
-        // one, but it's conditional to _streamSources[id] in setNewFrame(),
-        // hence request a frame once we have a PixelStreamUpdater.
-        emit requestFrame(uri);
-    }
-    return it->second;
+    print_log(LOG_ERROR, LOG_STREAM, "closing pixel stream %s",
+              uri.toLocal8Bit().constData());
+    _streamSources.erase(uri);
+    emit closePixelStream(uri);
 }
 
-void DataProvider::_load(DataSourcePtr source, const TileUpdateList& tiles)
+void DataProvider::_load(DataSourceSharedPtr source,
+                         const TileUpdateList& tiles)
 {
     // Request image only once for each view
     std::map<deflect::View, ImagePtr> image;
@@ -426,56 +294,4 @@ void DataProvider::_handleFinished()
     auto watcher = static_cast<Watcher*>(sender());
     _watchers.removeOne(watcher);
     watcher->deleteLater();
-}
-
-std::unique_ptr<ContentSynchronizer> DataProvider::_makeSynchronizer(
-    const Window& window, const deflect::View view)
-{
-    switch (window.getContent().getType())
-    {
-#if TIDE_USE_TIFF
-    case ContentType::image_pyramid:
-    {
-        auto source = _getOrCreate(_imagePyrSources, window);
-        return std::make_unique<LodSynchronizer>(source);
-    }
-#endif
-#if TIDE_ENABLE_MOVIE_SUPPORT
-    case ContentType::movie:
-    {
-        auto source = _movieSources.at(window.getID());
-        source->update(static_cast<const MovieContent&>(window.getContent()));
-        return std::make_unique<MovieSynchronizer>(source, view);
-    }
-#endif
-#if TIDE_ENABLE_PDF_SUPPORT
-    case ContentType::pdf:
-    {
-        auto source = _getOrCreate(_pdfSources, window);
-        source->update(static_cast<const PDFContent&>(window.getContent()));
-        return std::make_unique<PDFSynchronizer>(source);
-    }
-#endif
-    case ContentType::pixel_stream:
-    case ContentType::webbrowser:
-    {
-        const auto& content = window.getContent();
-        auto source = _streamSources.at(content.getUri());
-        const auto channel =
-            static_cast<const MultiChannelContent&>(content).getChannel();
-        return std::make_unique<PixelStreamSynchronizer>(source, view, channel);
-    }
-    case ContentType::svg:
-    {
-        auto source = _getOrCreate(_svgSources, window);
-        return std::make_unique<LodSynchronizer>(source);
-    }
-    case ContentType::texture:
-    {
-        auto source = _getOrCreate(_imageSources, window);
-        return std::make_unique<BasicSynchronizer>(source);
-    }
-    default:
-        throw std::runtime_error("No ContentSynchronizer for ContentType");
-    }
 }

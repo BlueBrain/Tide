@@ -100,6 +100,9 @@ public:
     virtual TilePtr createZoomContextTile() const { return TilePtr(); }
     /** Get the view for this synchronizer. */
     virtual deflect::View getView() const { return deflect::View::mono; }
+    /** @return true if at least one tile is visible for this synchronizer. */
+    virtual bool hasVisibleTiles() const = 0;
+
 public slots:
     /**
      * Called when a tile is ready to swap.

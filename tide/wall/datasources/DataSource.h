@@ -40,6 +40,7 @@
 #ifndef DATASOURCE_H
 #define DATASOURCE_H
 
+#include "synchronizers/ContentSynchronizers.h"
 #include "types.h"
 
 /**
@@ -52,6 +53,8 @@ public:
 
     /** @return true if the data source produces dynamic contents. */
     virtual bool isDynamic() const { return false; }
+    /** Update the state of the data source. */
+    virtual void update(const Content& content) { Q_UNUSED(content); }
     /**
      * Get a tile image by its id for a given view.
      * Called asynchronously but not concurrently. threadsafe.
@@ -71,8 +74,16 @@ public:
     /** @return the max LOD level (top of pyramid, lowest resolution). */
     virtual uint getMaxLod() const = 0;
 
+    /** Allow advancing to the next frame (synchronization / flow control). */
+    virtual void allowNextFrame() {}
+    /** Synchronize the advance to the next frame of the data. */
+    virtual void synchronizeFrameAdvance(WallToWallChannel& channel)
+    {
+        Q_UNUSED(channel);
+    }
+
     /** The synchronizers linked to this shared data source. */
-    std::set<ContentSynchronizer*> synchronizers;
+    ContentSynchronizers synchronizers;
 };
 
 #endif

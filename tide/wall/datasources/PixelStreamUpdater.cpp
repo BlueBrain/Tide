@@ -74,8 +74,9 @@ void _sortByChannelAndPosition(deflect::server::Tiles& tiles)
 }
 }
 
-PixelStreamUpdater::PixelStreamUpdater()
-    : _headerDecoder{new deflect::server::TileDecoder}
+PixelStreamUpdater::PixelStreamUpdater(const QString& uri)
+    : _uri{uri}
+    , _headerDecoder{new deflect::server::TileDecoder}
 {
     _swapSyncFrame.setCallback(std::bind(&PixelStreamUpdater::_onFrameSwapped,
                                          this, std::placeholders::_1));
@@ -83,6 +84,11 @@ PixelStreamUpdater::PixelStreamUpdater()
 
 PixelStreamUpdater::~PixelStreamUpdater()
 {
+}
+
+const QString& PixelStreamUpdater::getUri() const
+{
+    return _uri;
 }
 
 ImagePtr PixelStreamUpdater::getTileImage(const uint tileIndex,
@@ -146,7 +152,7 @@ uint PixelStreamUpdater::getMaxLod() const
     return 0;
 }
 
-void PixelStreamUpdater::getNextFrame()
+void PixelStreamUpdater::allowNextFrame()
 {
     _readyToSwap = true;
 }
@@ -161,8 +167,10 @@ void PixelStreamUpdater::synchronizeFrameAdvance(WallToWallChannel& channel)
     _swapSyncFrame.sync(versionCheckFunc);
 }
 
-void PixelStreamUpdater::updatePixelStream(deflect::server::FramePtr frame)
+void PixelStreamUpdater::setNextFrame(deflect::server::FramePtr frame)
 {
+    assert(frame->uri == getUri());
+
     _swapSyncFrame.update(frame);
 }
 

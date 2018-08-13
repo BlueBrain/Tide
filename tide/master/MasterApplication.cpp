@@ -291,7 +291,7 @@ void MasterApplication::_startDeflectServer()
 
     connect(_deflectServer.get(),
             &deflect::server::Server::pixelStreamException,
-            [this](const QString uri, const QString what) {
+            [](const QString uri, const QString what) {
                 print_log(LOG_WARN, LOG_STREAM,
                           "Stream '%s' encountered an exception: '%s'",
                           uri.toLocal8Bit().constData(),

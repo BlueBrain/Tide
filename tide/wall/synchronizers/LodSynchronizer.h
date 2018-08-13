@@ -52,7 +52,7 @@ class LodSynchronizer : public TiledSynchronizer
 
 public:
     /** Constructor. */
-    LodSynchronizer(std::shared_ptr<DataSource> source);
+    LodSynchronizer(DataSourceSharedPtr source);
     ~LodSynchronizer();
 
     /** @copydoc ContentSynchronizer::update */
@@ -89,7 +89,7 @@ protected:
     const DataSource& getDataSource() const final;
 
 private:
-    std::shared_ptr<DataSource> _source;
+    DataSourceSharedPtr _source;
     bool _tilesDirty = true;
     bool _zoomContextTileDirty = true;
     int _backgroundTileId = 0;

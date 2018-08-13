@@ -66,20 +66,22 @@ PDFTiler::~PDFTiler()
 {
 }
 
+void PDFTiler::update(const Content& content)
+{
+    const auto& pdf = dynamic_cast<const PDFContent&>(content);
+
+    _pageCount = pdf.getPageCount();
+    if (_currentPage != pdf.getPage())
+    {
+        _currentPage = pdf.getPage();
+        emit pageChanged();
+    }
+}
+
 QRect PDFTiler::getTileRect(uint tileId) const
 {
     tileId = tileId % _tilesPerPage;
     return LodTiler::getTileRect(tileId);
-}
-
-void PDFTiler::update(const PDFContent& content)
-{
-    _pageCount = content.getPageCount();
-    if (_currentPage != content.getPage())
-    {
-        _currentPage = content.getPage();
-        emit pageChanged();
-    }
 }
 
 Indices PDFTiler::computeVisibleSet(const QRectF& visibleTilesArea,

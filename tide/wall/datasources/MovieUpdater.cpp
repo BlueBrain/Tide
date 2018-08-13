@@ -94,8 +94,10 @@ MovieUpdater::~MovieUpdater()
 {
 }
 
-void MovieUpdater::update(const MovieContent& movie)
+void MovieUpdater::update(const Content& content)
 {
+    const auto& movie = dynamic_cast<const MovieContent&>(content);
+
     _paused = movie.isPaused();
     _loop = movie.isLooping();
     _skipping = movie.isSkipping();
@@ -183,11 +185,6 @@ uint MovieUpdater::getMaxLod() const
     return 0;
 }
 
-void MovieUpdater::getNextFrame()
-{
-    _readyForNextFrame = true;
-}
-
 QString MovieUpdater::getStatistics() const
 {
     const auto frameDuration = _ffmpegMovie->getFrameDuration();
@@ -216,15 +213,14 @@ qreal MovieUpdater::getSkipPosition() const
     return _skipPosition / _ffmpegMovie->getDuration();
 }
 
+void MovieUpdater::allowNextFrame()
+{
+    _readyForNextFrame = true;
+}
+
 void MovieUpdater::synchronizeFrameAdvance(WallToWallChannel& channel)
 {
-    bool visible = false;
-    for (auto synchronizer : synchronizers)
-    {
-        auto movieSynchronizer = static_cast<MovieSynchronizer*>(synchronizer);
-        visible = visible || movieSynchronizer->hasVisibleTiles();
-    }
-
+    const bool visible = synchronizers.haveVisibleTiles();
     const double frameDuration = _ffmpegMovie->getFrameDuration();
 
     bool inSync = false;

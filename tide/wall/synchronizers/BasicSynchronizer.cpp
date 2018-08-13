@@ -42,10 +42,10 @@
 #include "datasources/DataSource.h"
 #include "qml/Tile.h"
 
-BasicSynchronizer::BasicSynchronizer(std::shared_ptr<DataSource> source)
+BasicSynchronizer::BasicSynchronizer(DataSourceSharedPtr source)
     : _dataSource(std::move(source))
 {
-    _dataSource->synchronizers.insert(this);
+    _dataSource->synchronizers.register_(this);
 
     connect(this, &ContentSynchronizer::zoomContextVisibleChanged,
             [this] { _zoomContextTileDirty = true; });
@@ -53,7 +53,7 @@ BasicSynchronizer::BasicSynchronizer(std::shared_ptr<DataSource> source)
 
 BasicSynchronizer::~BasicSynchronizer()
 {
-    _dataSource->synchronizers.erase(this);
+    _dataSource->synchronizers.deregister(this);
 }
 
 void BasicSynchronizer::update(const Window& /*window*/,
@@ -107,6 +107,11 @@ void BasicSynchronizer::onSwapReady(TilePtr tile)
 TilePtr BasicSynchronizer::createZoomContextTile() const
 {
     return Tile::create(0, getDataSource().getTileRect(0));
+}
+
+bool BasicSynchronizer::hasVisibleTiles() const
+{
+    return _tileAdded;
 }
 
 void BasicSynchronizer::_createTile()

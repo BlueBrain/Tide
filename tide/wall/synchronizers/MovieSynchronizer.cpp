@@ -50,7 +50,7 @@ MovieSynchronizer::MovieSynchronizer(std::shared_ptr<MovieUpdater> updater,
     , _updater{std::move(updater)}
     , _view{view}
 {
-    _updater->synchronizers.insert(this);
+    _updater->synchronizers.register_(this);
 
     connect(_updater.get(), &MovieUpdater::pictureUpdated, this,
             &MovieSynchronizer::_onPictureUpdated);
@@ -58,7 +58,7 @@ MovieSynchronizer::MovieSynchronizer(std::shared_ptr<MovieUpdater> updater,
 
 MovieSynchronizer::~MovieSynchronizer()
 {
-    _updater->synchronizers.erase(this);
+    _updater->synchronizers.deregister(this);
 }
 
 void MovieSynchronizer::update(const Window& window, const QRectF& visibleArea)
@@ -120,11 +120,6 @@ deflect::View MovieSynchronizer::getView() const
 const DataSource& MovieSynchronizer::getDataSource() const
 {
     return *_updater;
-}
-
-bool MovieSynchronizer::hasVisibleTiles() const
-{
-    return !_visibleTilesArea.isEmpty();
 }
 
 qreal MovieSynchronizer::getSliderPosition() const

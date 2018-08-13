@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,87 +37,54 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef PIXELSTREAMUPDATER_H
-#define PIXELSTREAMUPDATER_H
+#include "DataSourceFactory.h"
 
-#include "types.h"
+#include "config.h"
+#include "scene/Content.h"
 
-#include "DataSource.h"
-#include "tools/SwapSyncObject.h"
+#include "datasources/ImageSource.h"
+#include "datasources/PixelStreamUpdater.h"
+#include "datasources/SVGTiler.h"
 
-#include <QObject>
-#include <QReadWriteLock>
-
-class PixelStreamProcessor;
-
-/**
- * Synchronize the update of PixelStreams and send new frame requests.
- */
-class PixelStreamUpdater : public QObject, public DataSource
-{
-    Q_OBJECT
-    Q_DISABLE_COPY(PixelStreamUpdater)
-
-public:
-    /** Constructor. */
-    PixelStreamUpdater(const QString& uri);
-
-    /** Destructor. */
-    ~PixelStreamUpdater();
-
-    /** @return the uri of the stream that was passed to the constructor. */
-    const QString& getUri() const;
-
-    /** @copydoc DataSource::isDynamic */
-    bool isDynamic() const final { return true; }
-    /**
-     * @copydoc DataSource::getTileImage
-     * threadsafe
-     */
-    ImagePtr getTileImage(uint tileIndex, deflect::View view) const final;
-
-    /** @copydoc DataSource::getTileRect */
-    QRect getTileRect(uint tileIndex) const final;
-
-    /** @copydoc DataSource::getTilesArea */
-    QSize getTilesArea(uint lod, uint channel) const final;
-
-    /** @copydoc DataSource::computeVisibleSet */
-    Indices computeVisibleSet(const QRectF& visibleTilesArea, uint lod,
-                              uint channel) const final;
-
-    /** @copydoc DataSource::getMaxLod */
-    uint getMaxLod() const final;
-
-    /** @copydoc DataSource::allowNextFrame */
-    void allowNextFrame() final;
-
-    /** @copydoc DataSource::synchronizeFrameAdvance */
-    void synchronizeFrameAdvance(WallToWallChannel& channel) final;
-
-    /** Set the frame to be rendered next. */
-    void setNextFrame(deflect::server::FramePtr frame);
-
-signals:
-    /** Emitted when a new picture has become available. */
-    void pictureUpdated();
-
-    /** Emitted to request a new frame after a successful swap. */
-    void requestFrame(QString uri);
-
-private:
-    QString _uri;
-    SwapSyncObject<deflect::server::FramePtr> _swapSyncFrame;
-    deflect::server::FramePtr _frameLeftOrMono;
-    deflect::server::FramePtr _frameRight;
-    std::unique_ptr<deflect::server::TileDecoder> _headerDecoder;
-    std::unique_ptr<PixelStreamProcessor> _processorLeft;
-    std::unique_ptr<PixelStreamProcessor> _processRight;
-    mutable QReadWriteLock _frameMutex;
-    bool _readyToSwap = true;
-
-    void _onFrameSwapped(deflect::server::FramePtr frame);
-    void _createFrameProcessors();
-};
-
+#if TIDE_ENABLE_MOVIE_SUPPORT
+#include "datasources/MovieUpdater.h"
 #endif
+
+#if TIDE_USE_TIFF
+#include "datasources/ImagePyramidDataSource.h"
+#endif
+
+#if TIDE_ENABLE_PDF_SUPPORT
+#include "datasources/PDFTiler.h"
+#endif
+
+std::unique_ptr<DataSource> DataSourceFactory::create(const Content& content)
+{
+    switch (content.getType())
+    {
+#if TIDE_ENABLE_MOVIE_SUPPORT
+    case ContentType::movie:
+        return std::make_unique<MovieUpdater>(content.getUri());
+#endif
+
+    case ContentType::pixel_stream:
+    case ContentType::webbrowser:
+        return std::make_unique<PixelStreamUpdater>(content.getUri());
+    case ContentType::svg:
+        return std::make_unique<SVGTiler>(content.getUri());
+    case ContentType::texture:
+        return std::make_unique<ImageSource>(content.getUri());
+
+#if TIDE_ENABLE_PDF_SUPPORT
+    case ContentType::pdf:
+        return std::make_unique<PDFTiler>(content.getUri());
+#endif
+
+#if TIDE_USE_TIFF
+    case ContentType::image_pyramid:
+        return std::make_unique<ImagePyramidDataSource>(content.getUri());
+#endif
+    default:
+        throw std::logic_error("No data source for this content type");
+    }
+}
