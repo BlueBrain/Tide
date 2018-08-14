@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [264](https://github.com/BlueBrain/Tide/pull/264):
+  Fix a crash that could occur when playing large 3D movies.
 * [261](https://github.com/BlueBrain/Tide/pull/261):
   Tweak UI design and controls style.
 * [260](https://github.com/BlueBrain/Tide/pull/260):
