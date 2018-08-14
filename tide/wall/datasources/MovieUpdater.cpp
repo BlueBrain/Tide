@@ -50,15 +50,14 @@
 
 namespace
 {
-void _splitSideBySide(const FFMPEGPicture& image, PicturePtr& left,
-                      PicturePtr& right)
+auto _splitSideBySide(const FFMPEGPicture& image)
 {
     const auto width = image.getWidth() / 2;
     const auto height = image.getHeight();
     const auto format = image.getFormat();
 
-    left = std::make_shared<FFMPEGPicture>(width, height, format);
-    right = std::make_shared<FFMPEGPicture>(width, height, format);
+    auto left = std::make_shared<FFMPEGPicture>(width, height, format);
+    auto right = std::make_shared<FFMPEGPicture>(width, height, format);
 
     const uint numTextures = (format == TextureFormat::rgba) ? 1 : 3 /*YUV*/;
     for (uint texture = 0; texture < numTextures; ++texture)
@@ -75,6 +74,14 @@ void _splitSideBySide(const FFMPEGPicture& image, PicturePtr& left,
             std::copy(input + targetWidth, input + lineWidth, outRight);
         }
     }
+    return std::make_pair(left, right);
+}
+
+auto _splitSideBySide(std::shared_ptr<FFMPEGPicture> image)
+{
+    if (!image)
+        return std::make_pair(image, image);
+    return _splitSideBySide(*image);
 }
 }
 
@@ -162,6 +169,8 @@ ImagePtr MovieUpdater::getTileImage(const uint tileIndex,
     if (loopBack)
         image = _ffmpegMovie->getFrame(0.0);
 
+    // Warning: in rare cases image may still be null at this point
+
     {
         const QMutexLocker lock(&_mutex);
         _currentPosition = _ffmpegMovie->getPosition();
@@ -172,7 +181,7 @@ ImagePtr MovieUpdater::getTileImage(const uint tileIndex,
     }
     if (_ffmpegMovie->isStereo())
     {
-        _splitSideBySide(*image, _pictureLeftOrMono, _pictureRight);
+        std::tie(_pictureLeftOrMono, _pictureRight) = _splitSideBySide(image);
         return view == deflect::View::right_eye ? _pictureRight
                                                 : _pictureLeftOrMono;
     }
