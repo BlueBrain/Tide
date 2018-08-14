@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.4.1 (git 1.4)
 
+* [263](https://github.com/BlueBrain/Tide/pull/263):
+  Fix a crash that could occur when playing large 3D movies.
 * [252](https://github.com/BlueBrain/Tide/pull/252):
   - Fix movie duration calculation.
   - Fix occasional crash when generating thumbnails for small movies.
