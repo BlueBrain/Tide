@@ -125,6 +125,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   configuration/SurfaceConfigValidator.h
   configuration/XmlParser.h
   data/Image.h
+  data/ImageReader.h
   data/QtImage.h
   data/StreamImage.h
   data/SVG.h
@@ -169,7 +170,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   scene/ScreenLock.h
   scene/Surface.h
   scene/SVGContent.h
-  scene/TextureContent.h
+  scene/ImageContent.h
   scene/VectorialContent.h
   scene/Window.h
   scene/ZoomHelper.h
@@ -206,6 +207,7 @@ list(APPEND TIDECORE_SOURCES
   configuration/SurfaceConfig.cpp
   configuration/SurfaceConfigValidator.cpp
   configuration/XmlParser.cpp
+  data/ImageReader.cpp
   data/QtImage.cpp
   data/StreamImage.cpp
   data/SVG.cpp
@@ -246,7 +248,7 @@ list(APPEND TIDECORE_SOURCES
   scene/ScreenLock.cpp
   scene/Surface.cpp
   scene/SVGContent.cpp
-  scene/TextureContent.cpp
+  scene/ImageContent.cpp
   scene/VectorialContent.cpp
   scene/Window.cpp
   scene/ZoomHelper.cpp

@@ -53,7 +53,7 @@ enum class ContentType
     movie,
     pixel_stream,
     svg,
-    texture,
+    image,
     pdf,
     webbrowser,
     image_pyramid

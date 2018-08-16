@@ -65,8 +65,11 @@ ImagePtr SVGTiler::getTileImage(const uint tileId,
     return CachedDataSource::getTileImage(tileId, view);
 }
 
-QImage SVGTiler::getCachableTileImage(const uint tileId) const
+QImage SVGTiler::getCachableTileImage(const uint tileId,
+                                      const deflect::View view) const
 {
+    Q_UNUSED(view);
+
     const QRect imageRect = getTileRect(tileId);
     const QRectF zoomRect = getNormalizedTileRect(tileId);
 

@@ -190,7 +190,7 @@ BOOST_AUTO_TEST_CASE(testWindowResizePolicyNonZoomableContent)
 BOOST_AUTO_TEST_CASE(testWindowResizePolicyZoomableContent)
 {
     auto content = makeDummyContent();
-    static_cast<DummyContent&>(*content).type = ContentType::texture;
+    static_cast<DummyContent&>(*content).type = ContentType::image;
     Window window(std::move(content));
 
     // Default state

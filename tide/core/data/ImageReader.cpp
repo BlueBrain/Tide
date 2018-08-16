@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,65 +37,88 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "ImagePyramidDataSource.h"
+#include "ImageReader.h"
 
-#include "data/TiffPyramidReader.h"
+#include "data/QtImage.h"
+
+#include <QFileInfo>
 
 namespace
 {
-const QSize previewSize{1920, 1920};
+bool _isStereoImage(const QString& uri)
+{
+    return QFileInfo{uri}.suffix().toLower() == "jps";
 }
 
-std::pair<QSize, uint> _getLodParameters(const QString& uri)
+QSize _getMonoSize(const QSize& stereoSize)
 {
-    const TiffPyramidReader tif{uri};
-    const auto tileSize = tif.getTileSize();
-    if (tileSize.width() != tileSize.height())
-        throw std::runtime_error("Non-square tiles are not supported");
-    return std::make_pair(tif.getImageSize(), tileSize.width());
+    return QSize{stereoSize.width() / 2, stereoSize.height()};
 }
 
-ImagePyramidDataSource::ImagePyramidDataSource(const QString& uri)
-    : LodTiler{_getLodParameters(uri)}
-    , _uri{uri}
+QRect _getMonoRect(const QSize& imageSize, const deflect::View view)
+{
+    return view == deflect::View::right_eye
+               ? QRect{QPoint{imageSize.width() / 2, 0},
+                       _getMonoSize(imageSize)}
+               : QRect{QPoint{0, 0}, _getMonoSize(imageSize)};
+}
+
+QImage _getMonoImage(const QImage& image, const deflect::View view)
+{
+    return image.copy(_getMonoRect(image.size(), view));
+}
+
+QImage _ensureGlCompatibleFormat(const QImage& image)
+{
+    return QtImage::is32Bits(image)
+               ? image
+               : image.convertToFormat(QImage::Format_ARGB32);
+}
+}
+
+ImageReader::ImageReader(const QString& uri)
+    : _reader{std::make_unique<QImageReader>(uri)}
+    , _stereo{_isStereoImage(uri)}
 {
 }
 
-QRect ImagePyramidDataSource::getTileRect(const uint tileId) const
+QString ImageReader::getUri() const
 {
-    if (tileId == 0)
-    {
-        TiffPyramidReader tif{_uri};
-        return {QPoint(), tif.readSize(tif.findLevel(previewSize))};
-    }
-    return LodTiler::getTileRect(tileId);
+    return _reader->fileName();
 }
 
-QImage ImagePyramidDataSource::getCachableTileImage(
-    const uint tileId, const deflect::View view) const
+bool ImageReader::isValid() const
 {
-    Q_UNUSED(view);
+    return _reader->canRead();
+}
 
-    TiffPyramidReader tif{_uri};
+bool ImageReader::isStereo() const
+{
+    return _stereo;
+}
 
-    QImage image;
-    if (tileId == 0)
-        image = tif.readImage(tif.findLevel(previewSize));
-    else
-    {
-        const auto index = _lodTool.getTileIndex(tileId);
-        image = tif.readTile(index.x, index.y, index.lod);
-    }
+QSize ImageReader::getSize() const
+{
+    return isStereo() ? _getMonoSize(_reader->size()) : _reader->size();
+}
 
-    // TIFF tiles all have a fixed size. Those at the top of the pyramid
-    // (or at the borders) are padded, but Tide expects to get tiles of the
-    // exact dimensions (not padding) for uploading as GL textures.
-    const auto expectedSize = getTileRect(tileId).size();
-    if (image.size() != expectedSize)
-        image = image.copy(QRect(QPoint(), expectedSize));
+QImage ImageReader::getImage(const deflect::View view) const
+{
+    return _ensureGlCompatibleFormat(_readImage(view));
+}
 
-    // Tide currently only supports 32 bit textures, convert if needed.
-    if (image.pixelFormat().bitsPerPixel() != 32)
-        image = image.convertToFormat(QImage::Format_RGB32);
-    return image;
+QStringList ImageReader::getSupportedImageFormats()
+{
+    QStringList extensions;
+
+    for (const auto& entry : QImageReader::supportedImageFormats())
+        extensions << entry;
+    extensions << "jps";
+
+    return extensions;
+}
+
+QImage ImageReader::_readImage(const deflect::View view) const
+{
+    return isStereo() ? _getMonoImage(_reader->read(), view) : _reader->read();
 }

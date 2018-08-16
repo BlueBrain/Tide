@@ -72,7 +72,7 @@ std::unique_ptr<DataSource> DataSourceFactory::create(const Content& content)
         return std::make_unique<PixelStreamUpdater>(content.getUri());
     case ContentType::svg:
         return std::make_unique<SVGTiler>(content.getUri());
-    case ContentType::texture:
+    case ContentType::image:
         return std::make_unique<ImageSource>(content.getUri());
 
 #if TIDE_ENABLE_PDF_SUPPORT

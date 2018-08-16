@@ -44,7 +44,7 @@
 #include "ImageThumbnailGenerator.h"
 #include "StateThumbnailGenerator.h"
 #include "config.h"
-#include "scene/TextureContent.h"
+#include "scene/ImageContent.h"
 
 #if TIDE_ENABLE_MOVIE_SUPPORT
 #include "MovieThumbnailGenerator.h"
@@ -94,7 +94,7 @@ ThumbnailGeneratorPtr ThumbnailGeneratorFactory::getGenerator(
     }
 #endif
 
-    if (TextureContent::getSupportedExtensions().contains(extension))
+    if (ImageContent::getSupportedExtensions().contains(extension))
         return ThumbnailGeneratorPtr(new ImageThumbnailGenerator(size));
 
 #if TIDE_ENABLE_PDF_SUPPORT

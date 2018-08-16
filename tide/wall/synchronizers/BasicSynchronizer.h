@@ -52,7 +52,7 @@ class BasicSynchronizer : public ContentSynchronizer
 
 public:
     /** Constructor */
-    BasicSynchronizer(DataSourceSharedPtr source);
+    BasicSynchronizer(DataSourceSharedPtr source, deflect::View view);
     ~BasicSynchronizer();
 
     /** @copydoc ContentSynchronizer::update */
@@ -82,8 +82,12 @@ public:
     /** @copydoc ContentSynchronizer::hasVisibleTiles */
     bool hasVisibleTiles() const override;
 
+    /** @copydoc ContentSynchronizer::getView */
+    deflect::View getView() const final;
+
 private:
     DataSourceSharedPtr _dataSource;
+    deflect::View _view;
     bool _tileAdded = false;
     bool _addTile = false;
     bool _zoomContextTileDirty = false;

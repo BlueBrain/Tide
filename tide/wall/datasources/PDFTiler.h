@@ -71,12 +71,6 @@ public:
     Indices computeVisibleSet(const QRectF& visibleTilesArea, uint lod,
                               uint channel) const final;
 
-    /**
-     * @copydoc CachedDataSource::getCachableTileImage
-     * threadsafe
-     */
-    QImage getCachableTileImage(uint tileId) const final;
-
     /** @return the ID of the preview (lowest res.) tile for the current page */
     uint getPreviewTileId() const;
 
@@ -88,6 +82,8 @@ signals:
     void pageChanged();
 
 private:
+    QImage getCachableTileImage(uint tileId, deflect::View view) const final;
+    bool isStereo() const final { return false; }
     const QString _uri;
     const uint _tilesPerPage;
     int _currentPage = 0;

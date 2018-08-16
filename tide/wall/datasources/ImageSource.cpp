@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,20 +39,22 @@
 
 #include "ImageSource.h"
 
-#include "data/QtImage.h"
-
-#include <QImageReader>
+#include "data/ImageReader.h"
 
 ImageSource::ImageSource(const QString& uri)
-    : _uri(uri)
-    , _imageSize(QImageReader(_uri).size())
+    : _reader{std::make_unique<ImageReader>(uri)}
+{
+}
+
+ImageSource::~ImageSource()
 {
 }
 
 QRect ImageSource::getTileRect(const uint tileIndex) const
 {
     Q_UNUSED(tileIndex);
-    return QRect(QPoint(0, 0), _imageSize);
+
+    return QRect(QPoint(0, 0), _reader->getSize());
 }
 
 QSize ImageSource::getTilesArea(const uint lod, const uint channel) const
@@ -60,19 +62,21 @@ QSize ImageSource::getTilesArea(const uint lod, const uint channel) const
     Q_UNUSED(lod);
     Q_UNUSED(channel);
 
-    return _imageSize;
+    return _reader->getSize();
 }
 
-QImage ImageSource::getCachableTileImage(const uint tileIndex) const
+QImage ImageSource::getCachableTileImage(const uint tileIndex,
+                                         const deflect::View view) const
 {
     Q_UNUSED(tileIndex);
 
-    // Make sure image format is 32-bits per pixel as required by the GL texture
-    QImage image(_uri);
-    if (!QtImage::is32Bits(image))
-        image = image.convertToFormat(QImage::Format_ARGB32);
+    // temporary reader required for thread safety
+    return ImageReader{_reader->getUri()}.getImage(view);
+}
 
-    return image;
+bool ImageSource::isStereo() const
+{
+    return _reader->isStereo();
 }
 
 Indices ImageSource::computeVisibleSet(const QRectF& visibleTilesArea,

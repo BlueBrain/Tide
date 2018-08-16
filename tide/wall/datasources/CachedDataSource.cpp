@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -44,19 +44,18 @@
 ImagePtr CachedDataSource::getTileImage(const uint tileId,
                                         const deflect::View view) const
 {
-    Q_UNUSED(view);
-
+    auto& cache = _getCache(view);
     {
         const QMutexLocker lock(&_mutex);
-        if (_cache.contains(tileId))
-            return std::make_shared<QtImage>(_cache[tileId]);
+        if (cache.contains(tileId))
+            return std::make_shared<QtImage>(cache[tileId]);
     }
 
-    const auto image = getCachableTileImage(tileId);
+    const auto image = getCachableTileImage(tileId, view);
     if (!image.isNull())
     {
         const QMutexLocker lock(&_mutex);
-        _cache.insert(tileId, image);
+        cache.insert(tileId, image);
     }
     return std::make_shared<QtImage>(image);
 }
@@ -64,5 +63,12 @@ ImagePtr CachedDataSource::getTileImage(const uint tileId,
 bool CachedDataSource::contains(const uint tileId) const
 {
     const QMutexLocker lock(&_mutex);
-    return _cache.contains(tileId);
+    return _cacheLeftOrMono.contains(tileId);
+}
+
+CachedDataSource::Cache& CachedDataSource::_getCache(
+    const deflect::View view) const
+{
+    return view == deflect::View::right_eye && isStereo() ? _cacheRight
+                                                          : _cacheLeftOrMono;
 }

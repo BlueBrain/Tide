@@ -42,8 +42,10 @@
 #include "datasources/DataSource.h"
 #include "qml/Tile.h"
 
-BasicSynchronizer::BasicSynchronizer(DataSourceSharedPtr source)
+BasicSynchronizer::BasicSynchronizer(DataSourceSharedPtr source,
+                                     const deflect::View view)
     : _dataSource(std::move(source))
+    , _view{view}
 {
     _dataSource->synchronizers.register_(this);
 
@@ -112,6 +114,11 @@ TilePtr BasicSynchronizer::createZoomContextTile() const
 bool BasicSynchronizer::hasVisibleTiles() const
 {
     return _tileAdded;
+}
+
+deflect::View BasicSynchronizer::getView() const
+{
+    return _view;
 }
 
 void BasicSynchronizer::_createTile()

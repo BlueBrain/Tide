@@ -1,6 +1,8 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2011-2012, The University of Texas at Austin.       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael.Dumusc@epfl.ch                   */
+/*                          Daniel.Nachbaur@epfl.ch                  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,65 +39,39 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "ImagePyramidDataSource.h"
+#include "ImageContent.h"
 
-#include "data/TiffPyramidReader.h"
+#include "data/ImageReader.h"
 
-namespace
-{
-const QSize previewSize{1920, 1920};
-}
+BOOST_CLASS_EXPORT_IMPLEMENT(ImageContent)
 
-std::pair<QSize, uint> _getLodParameters(const QString& uri)
-{
-    const TiffPyramidReader tif{uri};
-    const auto tileSize = tif.getTileSize();
-    if (tileSize.width() != tileSize.height())
-        throw std::runtime_error("Non-square tiles are not supported");
-    return std::make_pair(tif.getImageSize(), tileSize.width());
-}
-
-ImagePyramidDataSource::ImagePyramidDataSource(const QString& uri)
-    : LodTiler{_getLodParameters(uri)}
-    , _uri{uri}
+ImageContent::ImageContent(const QString& uri)
+    : Content(uri)
 {
 }
 
-QRect ImagePyramidDataSource::getTileRect(const uint tileId) const
+ContentType ImageContent::getType() const
 {
-    if (tileId == 0)
-    {
-        TiffPyramidReader tif{_uri};
-        return {QPoint(), tif.readSize(tif.findLevel(previewSize))};
-    }
-    return LodTiler::getTileRect(tileId);
+    return ContentType::image;
 }
 
-QImage ImagePyramidDataSource::getCachableTileImage(
-    const uint tileId, const deflect::View view) const
+bool ImageContent::readMetadata()
 {
-    Q_UNUSED(view);
+    const auto imageReader = ImageReader(getUri());
+    if (!imageReader.isValid())
+        return false;
 
-    TiffPyramidReader tif{_uri};
+    setDimensions(imageReader.getSize());
+    return true;
+}
 
-    QImage image;
-    if (tileId == 0)
-        image = tif.readImage(tif.findLevel(previewSize));
-    else
-    {
-        const auto index = _lodTool.getTileIndex(tileId);
-        image = tif.readTile(index.x, index.y, index.lod);
-    }
+bool ImageContent::canBeZoomed() const
+{
+    return true;
+}
 
-    // TIFF tiles all have a fixed size. Those at the top of the pyramid
-    // (or at the borders) are padded, but Tide expects to get tiles of the
-    // exact dimensions (not padding) for uploading as GL textures.
-    const auto expectedSize = getTileRect(tileId).size();
-    if (image.size() != expectedSize)
-        image = image.copy(QRect(QPoint(), expectedSize));
-
-    // Tide currently only supports 32 bit textures, convert if needed.
-    if (image.pixelFormat().bitsPerPixel() != 32)
-        image = image.convertToFormat(QImage::Format_RGB32);
-    return image;
+const QStringList& ImageContent::getSupportedExtensions()
+{
+    static QStringList extensions{ImageReader::getSupportedImageFormats()};
+    return extensions;
 }
