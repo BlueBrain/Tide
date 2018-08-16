@@ -47,7 +47,7 @@ const auto ERROR_IMAGE_FILENAME = ":/img/error.png";
 }
 
 ErrorContent::ErrorContent(const QString& uri, const QSize& size)
-    : TextureContent(ERROR_IMAGE_FILENAME)
+    : ImageContent(ERROR_IMAGE_FILENAME)
     , _originalUri{uri}
 {
     if (!size.isEmpty())

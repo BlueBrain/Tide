@@ -74,8 +74,8 @@ std::ostream& operator<<(std::ostream& str, const ContentType type)
     case ContentType::svg:
         str << "svg";
         break;
-    case ContentType::texture:
-        str << "texture";
+    case ContentType::image:
+        str << "image";
         break;
     case ContentType::pdf:
         str << "pdf";

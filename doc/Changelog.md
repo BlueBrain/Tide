@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [265](https://github.com/BlueBrain/Tide/pull/265):
+  Add support for 3D images (side-by-side jpeg images with .jps extension).
 * [264](https://github.com/BlueBrain/Tide/pull/264):
   Fix a crash that could occur when playing large 3D movies.
 * [261](https://github.com/BlueBrain/Tide/pull/261):

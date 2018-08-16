@@ -65,8 +65,8 @@ private:
      * Unlike other DataSource classes, this method may need to be called from a
      * thread with an OpenGL context depending on the SVG backend used.
      */
-    QImage getCachableTileImage(uint tileId) const final;
-
+    QImage getCachableTileImage(uint tileId, deflect::View view) const final;
+    bool isStereo() const final { return false; }
     SVG _svg;
 
     mutable QMutex _threadMapMutex;

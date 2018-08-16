@@ -44,9 +44,10 @@
 
 #include "Content.h"
 #include "ErrorContent.h"
+#include "ImageContent.h"
 #include "PixelStreamContent.h"
 #include "SVGContent.h"
-#include "TextureContent.h"
+#include "data/ImageReader.h"
 #if TIDE_USE_TIFF
 #include "ImagePyramidContent.h"
 #include "data/TiffPyramidReader.h"
@@ -63,7 +64,6 @@
 
 #include <QFile>
 #include <QFileInfo>
-#include <QImageReader>
 #include <QTextStream>
 
 namespace
@@ -88,8 +88,8 @@ ContentPtr _makeContent(const QString& uri)
     case ContentType::pdf:
         return std::make_unique<PDFContent>(uri);
 #endif
-    case ContentType::texture:
-        return std::make_unique<TextureContent>(uri);
+    case ContentType::image:
+        return std::make_unique<ImageContent>(uri);
     default:
         return nullptr;
     }
@@ -128,14 +128,14 @@ ContentType ContentFactory::getContentTypeForFile(const QString& uri)
     }
 #endif
 
-    const QImageReader imageReader(uri);
-    if (imageReader.canRead())
+    const auto imageReader = ImageReader(uri);
+    if (imageReader.isValid())
     {
-        const auto size = imageReader.size();
+        const auto size = imageReader.getSize();
 
         if (size.width() <= maxTextureSize.width() &&
             size.height() <= maxTextureSize.height())
-            return ContentType::texture;
+            return ContentType::image;
 
         print_log(LOG_WARN, LOG_CONTENT,
                   "Image too big to open. Try converting it to an "
@@ -199,7 +199,7 @@ const QStringList& ContentFactory::getSupportedExtensions()
         extensions.append(PDFContent::getSupportedExtensions());
 #endif
         extensions.append(SVGContent::getSupportedExtensions());
-        extensions.append(TextureContent::getSupportedExtensions());
+        extensions.append(ImageContent::getSupportedExtensions());
 #if TIDE_ENABLE_MOVIE_SUPPORT
         extensions.append(MovieContent::getSupportedExtensions());
 #endif

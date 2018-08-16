@@ -1,8 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael.Dumusc@epfl.ch                        */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,51 +37,35 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef TEXTURE_CONTENT_H
-#define TEXTURE_CONTENT_H
+#ifndef IMAGEREADER_H
+#define IMAGEREADER_H
 
-#include "Content.h"
+#include "types.h"
 
-class TextureContent : public Content
+#include <QImage>
+#include <QImageReader>
+
+/**
+ * Reader for regular 2D / stereo 3D images.
+ */
+class ImageReader
 {
 public:
-    /**
-     * Constructor.
-     * @param uri The uri of the pdf document.
-     */
-    explicit TextureContent(const QString& uri);
+    ImageReader(const QString& uri);
 
-    /** Get the content type **/
-    ContentType getType() const override;
+    QString getUri() const;
+    bool isValid() const;
+    bool isStereo() const;
+    QSize getSize() const;
+    QImage getImage(deflect::View view = deflect::View::mono) const;
 
-    /**
-     * Read texture metadata.
-     * @return true on success, false if the URI is invalid or an error occured.
-    **/
-    bool readMetadata() override;
-
-    /** @return true */
-    bool canBeZoomed() const final;
-
-    static const QStringList& getSupportedExtensions();
-
-protected:
-    TextureContent() = default; // required for boost::serialization
+    static QStringList getSupportedImageFormats();
 
 private:
-    friend class boost::serialization::access;
+    std::unique_ptr<QImageReader> _reader;
+    bool _stereo = false;
 
-    template <class Archive>
-    void serialize(Archive& ar, const unsigned int)
-    {
-        // serialize base class information (with NVP for xml archives)
-        // clang-format off
-        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Content);
-        // clang-format on
-    }
+    QImage _readImage(deflect::View view) const;
 };
-
-// Need to be in header for serialization of derived class ErrorContent
-BOOST_CLASS_EXPORT_KEY(TextureContent)
 
 #endif

@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -46,18 +46,16 @@
 
 /**
  * Cached data source for regular images.
- *
- * Used by ImageSynchronizer.
  */
 class ImageSource : public CachedDataSource
 {
 public:
     /**
      * Construct an image source.
-     * Does not load any data until the image is first requested.
-     * @param uri The uri to a valid image file.
+     * @param uri of the image file.
      */
     explicit ImageSource(const QString& uri);
+    ~ImageSource();
 
     /** @copydoc DataSource::getTileRect */
     QRect getTileRect(uint tileIndex) const final;
@@ -73,10 +71,11 @@ public:
     uint getMaxLod() const final;
 
 private:
-    const QString _uri;
-    const QSize _imageSize;
+    /** threadsafe */
+    QImage getCachableTileImage(uint tileId, deflect::View view) const final;
+    bool isStereo() const final;
 
-    QImage getCachableTileImage(uint tileId) const final;
+    std::unique_ptr<ImageReader> _reader;
 };
 
 #endif

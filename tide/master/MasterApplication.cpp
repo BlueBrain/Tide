@@ -443,7 +443,8 @@ void MasterApplication::_initRestInterface()
     connect(&appController, &AppRemoteController::powerOff, this,
             &MasterApplication::_suspend);
 
-    connect(&appController, &AppRemoteController::exit, [this]() { exit(); });
+    connect(&appController, &AppRemoteController::exit, this,
+            &QCoreApplication::quit);
 }
 #endif
 

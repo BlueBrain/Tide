@@ -160,11 +160,11 @@ bool _validateContent(const WindowPtr& window)
     {
         const auto& uri = content->getUri();
         const auto type = ContentFactory::getContentTypeForFile(uri);
-        if (type == ContentType::texture)
+        if (type == ContentType::image)
         {
             print_log(LOG_DEBUG, LOG_CONTENT,
                       "Try restoring legacy DynamicTexture as "
-                      "a regular texture: '%s'",
+                      "a regular image: '%s'",
                       content->getUri().toLocal8Bit().constData());
 
             auto newContent = ContentFactory::getContent(uri);

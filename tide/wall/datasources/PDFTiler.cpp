@@ -97,8 +97,11 @@ Indices PDFTiler::computeVisibleSet(const QRectF& visibleTilesArea,
     return offsetSet;
 }
 
-QImage PDFTiler::getCachableTileImage(uint tileId) const
+QImage PDFTiler::getCachableTileImage(uint tileId,
+                                      const deflect::View view) const
 {
+    Q_UNUSED(view);
+
     const auto id = QThread::currentThreadId();
 
     PDF* pdf = nullptr;

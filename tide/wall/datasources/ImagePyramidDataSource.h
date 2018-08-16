@@ -55,9 +55,10 @@ public:
     QRect getTileRect(uint tileId) const final;
 
 private:
+    /** threadsafe */
+    QImage getCachableTileImage(uint tileId, deflect::View view) const final;
+    bool isStereo() const final { return false; }
     const QString _uri;
-
-    QImage getCachableTileImage(uint tileId) const final; // threadsafe
 };
 
 #endif

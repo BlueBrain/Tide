@@ -66,7 +66,7 @@ std::unique_ptr<ContentController> ContentController::create(Window& window)
         return std::make_unique<PDFController>(window);
 #endif
     case ContentType::image_pyramid:
-    case ContentType::texture:
+    case ContentType::image:
     case ContentType::svg:
         return std::make_unique<ZoomController>(window);
 #if TIDE_ENABLE_MOVIE_SUPPORT

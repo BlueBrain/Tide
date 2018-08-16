@@ -45,7 +45,6 @@
 #include <QCache>
 #include <QDateTime>
 #include <QFileInfo>
-#include <QImageReader>
 
 #include <cassert>
 

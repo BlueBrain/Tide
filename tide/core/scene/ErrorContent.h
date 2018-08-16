@@ -40,14 +40,14 @@
 #ifndef ERROR_CONTENT_H
 #define ERROR_CONTENT_H
 
-#include "TextureContent.h"
+#include "ImageContent.h"
 
 /**
  * A placeholder to replace a Content that can no longer be restored from file.
  *
  * Error contents are not kept when saving the session again.
  */
-class ErrorContent : public TextureContent
+class ErrorContent : public ImageContent
 {
 public:
     /**
@@ -72,7 +72,7 @@ private:
     {
         // serialize base class information (with NVP for xml archives)
         // clang-format off
-        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(TextureContent);
+        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(ImageContent);
         ar & boost::serialization::make_nvp("originalUri", _originalUri);
         // clang-format on
     }

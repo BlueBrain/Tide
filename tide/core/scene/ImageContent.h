@@ -1,8 +1,8 @@
 /*********************************************************************/
-/* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael.Dumusc@epfl.ch                        */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/* Copyright (c) 2011-2012, The University of Texas at Austin.       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael.Dumusc@epfl.ch                   */
+/*                          Daniel.Nachbaur@epfl.ch                  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,47 +39,55 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "TextureContent.h"
+#ifndef IMAGE_CONTENT_H
+#define IMAGE_CONTENT_H
 
-#include <QImageReader>
+#include "Content.h"
 
-BOOST_CLASS_EXPORT_IMPLEMENT(TextureContent)
-
-TextureContent::TextureContent(const QString& uri)
-    : Content(uri)
+/**
+ * A regular 2D or stereo 3D image.
+ */
+class ImageContent : public Content
 {
-}
+public:
+    /**
+     * Constructor.
+     * @param uri The uri of the pdf document.
+     */
+    explicit ImageContent(const QString& uri);
 
-ContentType TextureContent::getType() const
-{
-    return ContentType::texture;
-}
+    /** @copydoc Content::getType **/
+    ContentType getType() const override;
 
-bool TextureContent::readMetadata()
-{
-    const QImageReader imageReader(getUri());
-    if (!imageReader.canRead())
-        return false;
+    /**
+     * Read texture metadata.
+     * @return true on success, false if the URI is invalid or an error occured.
+    **/
+    bool readMetadata() override;
 
-    setDimensions(imageReader.size());
-    return true;
-}
+    /** @return true */
+    bool canBeZoomed() const final;
 
-bool TextureContent::canBeZoomed() const
-{
-    return true;
-}
+    static const QStringList& getSupportedExtensions();
 
-const QStringList& TextureContent::getSupportedExtensions()
-{
-    static QStringList extensions;
+protected:
+    ImageContent() = default; // required for boost::serialization
 
-    if (extensions.empty())
+private:
+    friend class boost::serialization::access;
+
+    template <class Archive>
+    void serialize(Archive& ar, const unsigned int)
     {
-        const QList<QByteArray>& imageFormats =
-            QImageReader::supportedImageFormats();
-        foreach (const QByteArray entry, imageFormats)
-            extensions << entry;
+        // serialize base class information (with NVP for xml archives)
+        // clang-format off
+        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Content);
+        // clang-format on
     }
-    return extensions;
-}
+};
+
+// Need to be in header for serialization of derived class ErrorContent
+// Use "TextureContent" as key for compatibility with legacy xml sessions
+BOOST_CLASS_EXPORT_KEY2(ImageContent, "TextureContent")
+
+#endif

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -55,16 +55,24 @@ public:
     /** @copydoc DataSource::getTileImage threadsafe */
     ImagePtr getTileImage(uint tileId, deflect::View view) const override;
 
-    /** Check if the cache contains an image for a tile. */
-    bool contains(uint tileId) const;
-
 protected:
-    /** Get a tile image which will be cached. threadsafe */
-    virtual QImage getCachableTileImage(uint tileId) const = 0;
+    /** Check if the cache contains an image (used for SVGGpuImage only). */
+    bool contains(const uint tileId) const;
 
 private:
+    /** Get a tile image which will be cached. threadsafe */
+    virtual QImage getCachableTileImage(uint tileId,
+                                        deflect::View view) const = 0;
+
+    /** @return true is the source is stereo. */
+    virtual bool isStereo() const = 0;
+
     mutable QMutex _mutex;
-    mutable QMap<uint, QImage> _cache;
+    using Cache = QMap<uint, QImage>;
+    mutable Cache _cacheLeftOrMono;
+    mutable Cache _cacheRight;
+
+    Cache& _getCache(deflect::View view) const;
 };
 
 #endif

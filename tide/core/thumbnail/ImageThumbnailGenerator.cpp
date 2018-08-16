@@ -39,10 +39,10 @@
 
 #include "ImageThumbnailGenerator.h"
 
-#include <QFileInfo>
-#include <QImageReader>
-
+#include "data/ImageReader.h"
 #include "utils/log.h"
+
+#include <QFileInfo>
 
 #define SIZEOF_MEGABYTE (1024 * 1024)
 #define MAX_IMAGE_FILE_SIZE (100 * SIZEOF_MEGABYTE)
@@ -54,13 +54,13 @@ ImageThumbnailGenerator::ImageThumbnailGenerator(const QSize& size)
 
 QImage ImageThumbnailGenerator::generate(const QString& filename) const
 {
-    QImageReader reader(filename);
-    if (reader.canRead())
+    const auto reader = ImageReader(filename);
+    if (reader.isValid())
     {
         if (QFileInfo(filename).size() > MAX_IMAGE_FILE_SIZE)
             return _createLargeImagePlaceholder();
 
-        return reader.read().scaled(_size, _aspectRatioMode);
+        return reader.getImage().scaled(_size, _aspectRatioMode);
     }
 
     print_log(LOG_ERROR, LOG_CONTENT, "could not open image file: '%s'",

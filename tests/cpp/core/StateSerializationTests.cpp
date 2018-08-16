@@ -46,7 +46,7 @@
 #include "scene/ContentFactory.h"
 #include "scene/DisplayGroup.h"
 #include "scene/ErrorContent.h"
-#include "scene/TextureContent.h"
+#include "scene/ImageContent.h"
 #include "scene/Window.h"
 #include "serialization/utils.h"
 #include "types.h"
@@ -68,7 +68,7 @@ const QSize CONTENT_SIZE(100, 100);
 const int DUMMY_PARAM_VALUE = 10;
 const QString DUMMY_URI = "/dummuy/uri";
 const QString INVALID_URI = "/invalid/uri";
-const QString VALID_TEXTURE_URI = "wall.png";
+const QString VALID_IMAGE_URI = "wall.png";
 const QString LEGACY_URI = "legacy.dcx";
 const QString STATE_V0_URI = "state_v0.dcx";
 const QString STATE_V0_PREVIEW_FILE = "state_v0.dcxpreview";
@@ -77,20 +77,20 @@ const QString STATE_V3_URI = "state_v3.dcx";
 const QString STATE_V3_NOTITLES_URI = "state_v3_noTitles.dcx";
 const QString STATE_V4_URI = "state_v4.dcx";
 const QString TEST_DIR = "tmp";
-const QSize VALID_TEXTURE_SIZE(256, 128);
+const QSize VALID_IMAGE_SIZE(256, 128);
 }
 
 WindowPtr makeValidTestWindow(const QString& uri)
 {
     auto content = ContentFactory::getContent(uri);
     BOOST_REQUIRE(content);
-    BOOST_REQUIRE_EQUAL(content->getDimensions(), VALID_TEXTURE_SIZE);
+    BOOST_REQUIRE_EQUAL(content->getDimensions(), VALID_IMAGE_SIZE);
     return std::make_shared<Window>(std::move(content));
 }
 
 WindowPtr makeInvalidTestWindow(const QString& uri)
 {
-    auto missingContent = std::make_unique<TextureContent>(uri);
+    auto missingContent = std::make_unique<ImageContent>(uri);
     return std::make_shared<Window>(std::move(missingContent));
 }
 
@@ -172,10 +172,10 @@ BOOST_AUTO_TEST_CASE(testWhenOpeningBrokenStateThenNoExceptionIsThrown)
 
 void checkContent(const Content& content)
 {
-    BOOST_CHECK_EQUAL(content.getDimensions(), VALID_TEXTURE_SIZE);
-    BOOST_CHECK_EQUAL(content.getType(), ContentType::texture);
+    BOOST_CHECK_EQUAL(content.getDimensions(), VALID_IMAGE_SIZE);
+    BOOST_CHECK_EQUAL(content.getType(), ContentType::image);
     BOOST_CHECK_EQUAL(content.getUri().toStdString(),
-                      VALID_TEXTURE_URI.toStdString());
+                      VALID_IMAGE_URI.toStdString());
 }
 
 void checkLegacyWindow(WindowPtr window)
@@ -350,7 +350,7 @@ BOOST_AUTO_TEST_CASE(testStateSerializationHelperReadingFromVersion4File)
 
 DisplayGroupPtr createTestDisplayGroup()
 {
-    auto window = makeValidTestWindow(VALID_TEXTURE_URI);
+    auto window = makeValidTestWindow(VALID_IMAGE_URI);
 
     const QPointF position(0.25 * wallSize.width(), 0.25 * wallSize.height());
     window->setCoordinates(QRectF(position, 0.5 * wallSize));
@@ -434,7 +434,7 @@ BOOST_AUTO_TEST_CASE(testStateSerializationUploadedToFile)
     // 2) Create new file and put it into system temp folder
     const auto uploadedFile = QString{"uploaded.png"};
     const auto newValidUri = tempDir + "/" + uploadedFile;
-    QFile::copy(VALID_TEXTURE_URI, newValidUri);
+    QFile::copy(VALID_IMAGE_URI, newValidUri);
 
     // 3) Test saving
     auto displayGroup = createTestDisplayGroup();
@@ -453,7 +453,7 @@ BOOST_AUTO_TEST_CASE(testStateSerializationUploadedToFile)
                       savedSessionDir + uploadedFile);
 
     // 4) Add another file with the same name and test saving
-    QFile::copy(VALID_TEXTURE_URI, newValidUri);
+    QFile::copy(VALID_IMAGE_URI, newValidUri);
     auto newWindow = makeValidTestWindow(newValidUri);
     displayGroup->add(newWindow);
     BOOST_CHECK(
@@ -476,7 +476,7 @@ BOOST_AUTO_TEST_CASE(testErrorContentWhenFileMissing)
 
     auto group = DisplayGroup::create(wallSize);
     group->add(makeInvalidTestWindow(INVALID_URI));
-    group->add(makeValidTestWindow(VALID_TEXTURE_URI));
+    group->add(makeValidTestWindow(VALID_IMAGE_URI));
     auto scene = Scene::create(group);
 
     // 2) saving session
@@ -502,9 +502,9 @@ BOOST_AUTO_TEST_CASE(testErrorContentWhenFileMissing)
     BOOST_CHECK_EQUAL(errorContent.getTitle(), "uri");
 
     const auto& validContent = loadedGroup.getWindows()[1]->getContent();
-    BOOST_CHECK_EQUAL(validContent.getUri(), VALID_TEXTURE_URI);
-    BOOST_CHECK_EQUAL(validContent.getFilePath(), VALID_TEXTURE_URI);
-    BOOST_CHECK_EQUAL(validContent.getTitle(), VALID_TEXTURE_URI);
+    BOOST_CHECK_EQUAL(validContent.getUri(), VALID_IMAGE_URI);
+    BOOST_CHECK_EQUAL(validContent.getFilePath(), VALID_IMAGE_URI);
+    BOOST_CHECK_EQUAL(validContent.getTitle(), VALID_IMAGE_URI);
 
     // 4) saving session a second time (error content is not saved)
     BOOST_CHECK(StateSerializationHelper{loadedScene}.save(file).result());
@@ -516,9 +516,9 @@ BOOST_AUTO_TEST_CASE(testErrorContentWhenFileMissing)
 
     BOOST_REQUIRE_EQUAL(loadedGroup2.getWindows().size(), 1);
     const auto& validContent2 = loadedGroup2.getWindows()[0]->getContent();
-    BOOST_CHECK_EQUAL(validContent2.getUri(), VALID_TEXTURE_URI);
-    BOOST_CHECK_EQUAL(validContent2.getFilePath(), VALID_TEXTURE_URI);
-    BOOST_CHECK_EQUAL(validContent2.getTitle(), VALID_TEXTURE_URI);
+    BOOST_CHECK_EQUAL(validContent2.getUri(), VALID_IMAGE_URI);
+    BOOST_CHECK_EQUAL(validContent2.getFilePath(), VALID_IMAGE_URI);
+    BOOST_CHECK_EQUAL(validContent2.getTitle(), VALID_IMAGE_URI);
 
     // 5) cleanup
     cleanupTestDir();

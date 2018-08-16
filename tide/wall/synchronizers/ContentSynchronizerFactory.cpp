@@ -97,9 +97,9 @@ std::unique_ptr<ContentSynchronizer> ContentSynchronizerFactory::create(
     {
         return std::make_unique<LodSynchronizer>(source);
     }
-    case ContentType::texture:
+    case ContentType::image:
     {
-        return std::make_unique<BasicSynchronizer>(source);
+        return std::make_unique<BasicSynchronizer>(source, view);
     }
     default:
         throw std::runtime_error("No ContentSynchronizer for ContentType");

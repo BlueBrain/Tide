@@ -102,7 +102,7 @@ BOOST_AUTO_TEST_CASE(factory_method)
     controller = ContentController::create(window);
     BOOST_CHECK(dynamic_cast<ZoomController*>(controller.get()));
 
-    dummyContent.type = ContentType::texture;
+    dummyContent.type = ContentType::image;
     controller = ContentController::create(window);
     BOOST_CHECK(dynamic_cast<ZoomController*>(controller.get()));
 
