@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,80 +37,66 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef FFMPEGMOVIE_H
-#define FFMPEGMOVIE_H
+#define BOOST_TEST_MODULE DataSourceTests
 
-#include "FFMPEGDefines.h"
+#include <boost/test/unit_test.hpp>
 
-extern "C" {
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libavutil/error.h>
-#include <libavutil/mathematics.h>
+#include "datasources/DataSource.h"
+#include "datasources/DataSourceFactory.h"
+
+#include "DummyContent.h"
+
+namespace
+{
+const QSize contentSize(800, 600);
+const QRectF contentArea(QRectF(QPointF(), contentSize));
+const std::vector<ContentType> contentTypes{ContentType::movie,
+                                            ContentType::pixel_stream,
+                                            ContentType::svg,
+                                            ContentType::image,
+                                            ContentType::pdf,
+                                            ContentType::webbrowser,
+                                            ContentType::image_pyramid};
+const std::vector<ContentType> unsupportedContentTypes{
+    ContentType::invalid, ContentType::dynamic_texture};
+
+ContentPtr make_dummy_content(const ContentType type)
+{
+    auto content = std::make_unique<DummyContent>(contentSize, "/not/a/file");
+    content->type = type;
+    return content;
+}
 }
 
-#include "types.h"
-
-#include <QString>
-
-/**
- * Read and play movies using the FFMPEG library.
- */
-class FFMPEGMovie
+BOOST_AUTO_TEST_CASE(datasources_handle_files_access_problems_gracefully)
 {
-public:
-    /**
-     * Constructor.
-     * @param uri: the movie file to open.
-     * @throw std::runtime_error if the file can't be opened.
-     */
-    FFMPEGMovie(const QString& uri);
+    for (const auto& type : contentTypes)
+    {
+        auto content = make_dummy_content(type);
+        try
+        {
+            auto datasource = DataSourceFactory::create(*content);
 
-    /** Destructor */
-    ~FFMPEGMovie();
+            BOOST_CHECK(datasource->getTileRect(0).isEmpty());
+            BOOST_CHECK(datasource->getTilesArea(0, 0).isEmpty());
+            BOOST_CHECK_EQUAL(datasource->getMaxLod(), 0);
+            BOOST_CHECK(
+                datasource->computeVisibleSet(contentArea, 0, 0).empty());
+            BOOST_CHECK(!datasource->getTileImage(0, deflect::View::mono));
+        }
+        catch (...)
+        {
+            BOOST_CHECK(false);
+        }
+    }
+}
 
-    /** Get the frame width. */
-    unsigned int getWidth() const;
-
-    /** Get the frame height. */
-    unsigned int getHeight() const;
-
-    /** @return true if the movie has side-by-side stereo format. */
-    bool isStereo() const;
-
-    /** Get the current time position in seconds. */
-    double getPosition() const;
-
-    /** Get the movie duration in seconds. May be unavailable for some movies.
-     */
-    double getDuration() const;
-
-    /** Get the duration of a frame in seconds. */
-    double getFrameDuration() const;
-
-    /** @return the format of the decoded movie frames. */
-    TextureFormat getFormat() const;
-
-    /** Set the format of the decoded movie frames, overwriting the default. */
-    void setFormat(TextureFormat format);
-
-    /**
-     * Get a frame at the given position in seconds.
-     *
-     * @param posInSeconds request position in seconds; clamped if out-of-bounds
-     * @return the decoded movie image that was closest to posInSeconds, nullptr
-     *         otherwise
-     */
-    PicturePtr getFrame(double posInSeconds);
-
-private:
-    AVFormatContext* _avFormatContext = nullptr;
-    std::unique_ptr<FFMPEGVideoStream> _videoStream;
-    TextureFormat _format = TextureFormat::yuv420;
-    double _streamPosition = 0.0;
-
-    void _createAvFormatContext(const QString& uri);
-    void _releaseAvFormatContext();
-};
-
-#endif
+BOOST_AUTO_TEST_CASE(datasource_factory_throws_for_unsupported_contents)
+{
+    for (const auto& type : unsupportedContentTypes)
+    {
+        auto content = make_dummy_content(type);
+        BOOST_CHECK_THROW(DataSourceFactory::create(*content),
+                          std::logic_error);
+    }
+}

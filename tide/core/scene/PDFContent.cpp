@@ -72,22 +72,23 @@ ContentType PDFContent::getType() const
 
 bool PDFContent::readMetadata()
 {
-    const PDF pdf(getUri());
-    if (!pdf.isValid())
+    try
+    {
+        const PDF pdf(getUri());
+        setDimensions(pdf.getSize());
+        _pageCount = pdf.getPageCount();
+        _pageNumber = std::min(_pageNumber, _pageCount - 1);
+        return true;
+    }
+    catch (const std::runtime_error&)
+    {
         return false;
-
-    setDimensions(pdf.getSize());
-    _pageCount = pdf.getPageCount();
-    _pageNumber = std::min(_pageNumber, _pageCount - 1);
-
-    return true;
+    }
 }
 
 const QStringList& PDFContent::getSupportedExtensions()
 {
-    static QStringList extensions;
-    if (extensions.empty())
-        extensions << "pdf";
+    static QStringList extensions{"pdf"};
     return extensions;
 }
 

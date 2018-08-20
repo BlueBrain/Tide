@@ -102,6 +102,7 @@ enum class TextureType
     dynamic
 };
 
+class ActivityLogger;
 class Background;
 class Configuration;
 class Content;
@@ -125,7 +126,7 @@ class ImageSource;
 class ImagePyramidDataSource;
 class InactivityTimer;
 class KeyboardState;
-class ActivityLogger;
+class LodTools;
 class Markers;
 class MovieContent;
 class MovieUpdater;

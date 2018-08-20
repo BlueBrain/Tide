@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -58,7 +58,7 @@ public:
     /**
      * Open an svg document.
      * @param uri the file to open.
-     * @sa isValid()
+     * @throw std::runtime_error if the file could not be opened.
      */
     explicit SVG(const QString& uri);
 
@@ -74,9 +74,6 @@ public:
 
     /** @return the filename of the document passed to the constructor. */
     const QString& getFilename() const;
-
-    /** @return true if the document is valid. */
-    bool isValid() const;
 
     /** @return the dimensions of the document in pixels. */
     QSize getSize() const;

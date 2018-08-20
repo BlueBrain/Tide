@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -41,8 +41,8 @@
 
 #include "data/PDF.h"
 #include "scene/PDFContent.h"
-#include "scene/VectorialContent.h"
 #include "tools/LodTools.h"
+#include "utils/log.h"
 
 #include <QThread>
 
@@ -55,11 +55,21 @@ namespace
 const uint tileSize = 2048;
 }
 
-PDFTiler::PDFTiler(const QString& uri)
-    : LodTiler{PDF{uri}.getSize() * VectorialContent::getMaxScale(), tileSize}
-    , _uri{uri}
-    , _tilesPerPage{_lodTool.getTilesCount()}
+PDFTiler::PDFTiler(const QString& uri, const QSize& maxImageSize)
+    : _uri{uri}
 {
+    try
+    {
+        std::make_unique<PDF>(uri);
+        _lodTool = std::make_unique<LodTools>(maxImageSize, tileSize);
+    }
+    catch (const std::runtime_error& e)
+    {
+        _lodTool = std::make_unique<LodTools>(QSize(), 1);
+        print_log(LOG_WARN, LOG_CONTENT, "PDF error: %s - %s",
+                  uri.toLocal8Bit().constData(), e.what());
+    }
+    _tilesPerPage = _lodTool->getTilesCount();
 }
 
 PDFTiler::~PDFTiler()
@@ -78,10 +88,9 @@ void PDFTiler::update(const Content& content)
     }
 }
 
-QRect PDFTiler::getTileRect(uint tileId) const
+QRect PDFTiler::getTileRect(const uint tileId) const
 {
-    tileId = tileId % _tilesPerPage;
-    return LodTiler::getTileRect(tileId);
+    return LodTiler::getTileRect(tileId % _tilesPerPage);
 }
 
 Indices PDFTiler::computeVisibleSet(const QRectF& visibleTilesArea,
@@ -97,7 +106,7 @@ Indices PDFTiler::computeVisibleSet(const QRectF& visibleTilesArea,
     return offsetSet;
 }
 
-QImage PDFTiler::getCachableTileImage(uint tileId,
+QImage PDFTiler::getCachableTileImage(const uint tileId,
                                       const deflect::View view) const
 {
     Q_UNUSED(view);
@@ -105,17 +114,22 @@ QImage PDFTiler::getCachableTileImage(uint tileId,
     const auto id = QThread::currentThreadId();
 
     PDF* pdf = nullptr;
+    try
     {
         QMutexLocker lock(&_threadMapMutex);
         if (!_perThreadPDF.count(id))
             _perThreadPDF[id] = std::make_unique<PDF>(_uri);
         pdf = _perThreadPDF[id].get();
     }
+    catch (const std::runtime_error&)
+    {
+        return QImage();
+    }
     pdf->setPage(tileId / _tilesPerPage);
 
-    tileId = tileId % _tilesPerPage;
-    const auto tileRect = getTileRect(tileId);
-    return pdf->renderToImage(tileRect.size(), getNormalizedTileRect(tileId));
+    const auto imageSize = getTileRect(tileId).size();
+    const auto region = LodTiler::getNormalizedTileRect(tileId % _tilesPerPage);
+    return pdf->renderToImage(imageSize, region);
 }
 
 uint PDFTiler::getPreviewTileId() const

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -113,12 +113,19 @@ signals:
     void pictureUpdated();
 
 private:
-    std::unique_ptr<FFMPEGMovie> _ffmpegMovie;
+    void _triggerFrameUpdate();
+    void _exchangeSharedTimestamp(WallToWallChannel& channel, bool isCandidate);
 
+    std::unique_ptr<FFMPEGMovie> _ffmpegMovie;
     bool _paused = false;
     bool _loop = true;
     bool _skipping = false;
     double _skipPosition = 0.0;
+    // Received from master to avoid deadlocks that could occur if the code
+    // path in synchronizeFrameAdvance would be different on a subset of wall
+    // processes because _ffmpegMovie is invalid on those nodes.
+    double _duration = 0.0;
+    double _frameDuration = 0.0;
 
     bool _readyForNextFrame = true;
 
@@ -134,9 +141,6 @@ private:
     mutable PicturePtr _pictureRight;
 
     mutable QMutex _getImageMutex;
-
-    void _triggerFrameUpdate();
-    void _exchangeSharedTimestamp(WallToWallChannel& channel, bool isCandidate);
 };
 
 #endif

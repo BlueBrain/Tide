@@ -51,15 +51,16 @@ MovieThumbnailGenerator::MovieThumbnailGenerator(const QSize& size)
 
 QImage MovieThumbnailGenerator::generate(const QString& filename) const
 {
-    FFMPEGMovie movie(filename);
-    movie.setFormat(TextureFormat::rgba);
-
-    if (!movie.isValid())
-        return createErrorImage("movie");
-
-    const double target = PREVIEW_RELATIVE_POSITION * movie.getDuration();
-    if (auto picture = movie.getFrame(target))
+    try
     {
+        FFMPEGMovie movie(filename);
+        movie.setFormat(TextureFormat::rgba);
+
+        const auto target = PREVIEW_RELATIVE_POSITION * movie.getDuration();
+        auto picture = movie.getFrame(target);
+        if (!picture)
+            throw std::runtime_error("rendering movie frame failed");
+
         const auto image = picture->toQImage(); // QImage wrapper; no copy
 
         // WAR: QImage::scaled doesn't make a copy if scaled size == image size
@@ -68,6 +69,8 @@ QImage MovieThumbnailGenerator::generate(const QString& filename) const
 
         return image.scaled(_size, _aspectRatioMode);
     }
-
-    return createErrorImage("movie");
+    catch (const std::runtime_error&)
+    {
+        return createErrorImage("movie");
+    }
 }

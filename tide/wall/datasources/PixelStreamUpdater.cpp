@@ -124,6 +124,9 @@ ImagePtr PixelStreamUpdater::getTileImage(const uint tileIndex,
 
 QRect PixelStreamUpdater::getTileRect(const uint tileIndex) const
 {
+    if (!_processorLeft)
+        return QRect();
+
     return _processorLeft->getTileRect(tileIndex);
 }
 

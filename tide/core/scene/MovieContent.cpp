@@ -43,8 +43,6 @@
 
 #include "data/FFMPEGMovie.h"
 
-#include <QtCore/QFileInfo>
-
 BOOST_CLASS_EXPORT_IMPLEMENT(MovieContent)
 
 IMPLEMENT_SERIALIZE_FOR_XML(MovieContent)
@@ -61,41 +59,24 @@ ContentType MovieContent::getType() const
 
 bool MovieContent::readMetadata()
 {
-    QFileInfo file(getUri());
-    if (!file.exists() || !file.isReadable())
+    try
+    {
+        const FFMPEGMovie movie(getUri());
+        setDimensions(QSize(movie.getWidth(), movie.getHeight()));
+        _duration = movie.getDuration();
+        _frameDuration = movie.getFrameDuration();
+        return true;
+    }
+    catch (const std::runtime_error&)
+    {
         return false;
-
-    const FFMPEGMovie movie(getUri());
-    if (!movie.isValid())
-        return false;
-
-    setDimensions(QSize(movie.getWidth(), movie.getHeight()));
-    _duration = movie.getDuration();
-    return true;
-}
-
-Content::Interaction MovieContent::_getInteractionPolicy() const
-{
-    return Content::Interaction::off;
+    }
 }
 
 const QStringList& MovieContent::getSupportedExtensions()
 {
-    static QStringList extensions;
-
-    if (extensions.empty())
-    {
-        extensions << "mov"
-                   << "avi"
-                   << "mp4"
-                   << "mkv"
-                   << "mpg"
-                   << "mpeg"
-                   << "flv"
-                   << "webm"
-                   << "wmv";
-    }
-
+    static QStringList extensions{"mov",  "avi", "mp4",  "mkv", "mpg",
+                                  "mpeg", "flv", "webm", "wmv"};
     return extensions;
 }
 
@@ -136,9 +117,19 @@ bool MovieContent::isLooping() const
     return _controlState & STATE_LOOP;
 }
 
-qreal MovieContent::getDuration() const
+bool MovieContent::isSkipping() const
 {
-    return _duration;
+    return _skipping;
+}
+
+void MovieContent::setSkipping(const bool skipping)
+{
+    if (skipping == _skipping)
+        return;
+
+    _skipping = skipping;
+    emit skippingChanged(skipping);
+    emit modified();
 }
 
 qreal MovieContent::getPosition() const
@@ -156,17 +147,17 @@ void MovieContent::setPosition(const qreal pos)
     emit modified();
 }
 
-bool MovieContent::isSkipping() const
+qreal MovieContent::getDuration() const
 {
-    return _skipping;
+    return _duration;
 }
 
-void MovieContent::setSkipping(const bool skipping)
+qreal MovieContent::getFrameDuration() const
 {
-    if (skipping == _skipping)
-        return;
+    return _frameDuration;
+}
 
-    _skipping = skipping;
-    emit skippingChanged(skipping);
-    emit modified();
+Content::Interaction MovieContent::_getInteractionPolicy() const
+{
+    return Content::Interaction::off;
 }

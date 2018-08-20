@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -51,6 +51,9 @@ public:
     /** Constructor. */
     explicit ImagePyramidDataSource(const QString& uri);
 
+    /** Destructor. */
+    ~ImagePyramidDataSource();
+
     /** @copydoc DataSource::getTileRect */
     QRect getTileRect(uint tileId) const final;
 
@@ -58,7 +61,11 @@ private:
     /** threadsafe */
     QImage getCachableTileImage(uint tileId, deflect::View view) const final;
     bool isStereo() const final { return false; }
+    const LodTools& _getLodTool() const final { return *_lodTool; }
     const QString _uri;
+    std::unique_ptr<LodTools> _lodTool;
+    QSize _previewImageSize;
+    bool _valid = true;
 };
 
 #endif

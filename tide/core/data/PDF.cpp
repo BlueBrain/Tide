@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -72,15 +72,7 @@ PDF::PDF(const QString& uri)
     : _impl(new Impl)
 {
     _impl->filename = uri;
-    try
-    {
-        _impl->pdf = _createPdfBackend(uri);
-    }
-    catch (const std::runtime_error& e)
-    {
-        print_log(LOG_DEBUG, LOG_PDF, "Could not open document '%s': '%s'",
-                  uri.toLocal8Bit().constData(), e.what());
-    }
+    _impl->pdf = _createPdfBackend(uri);
 }
 
 PDF::~PDF()
@@ -92,19 +84,14 @@ const QString& PDF::getFilename() const
     return _impl->filename;
 }
 
-bool PDF::isValid() const
-{
-    return bool(_impl->pdf);
-}
-
 QSize PDF::getSize() const
 {
-    return isValid() ? _impl->pdf->getSize() : QSize();
+    return _impl->pdf->getSize();
 }
 
 int PDF::getPage() const
 {
-    return isValid() ? _impl->currentPage : INVALID_PAGE_NUMBER;
+    return _impl->currentPage;
 }
 
 void PDF::setPage(const int pageNumber)
@@ -126,10 +113,10 @@ void PDF::setPage(const int pageNumber)
 
 int PDF::getPageCount() const
 {
-    return isValid() ? _impl->pdf->getPageCount() : 0;
+    return _impl->pdf->getPageCount();
 }
 
 QImage PDF::renderToImage(const QSize& imageSize, const QRectF& region) const
 {
-    return isValid() ? _impl->pdf->renderToImage(imageSize, region) : QImage();
+    return _impl->pdf->renderToImage(imageSize, region);
 }

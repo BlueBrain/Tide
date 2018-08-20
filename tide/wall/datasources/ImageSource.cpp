@@ -85,7 +85,7 @@ Indices ImageSource::computeVisibleSet(const QRectF& visibleTilesArea,
     Q_UNUSED(lod);
     Q_UNUSED(channel);
 
-    if (visibleTilesArea.isEmpty())
+    if (!_reader->isValid() || visibleTilesArea.isEmpty())
         return Indices();
 
     return {0};

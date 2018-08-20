@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -42,8 +42,6 @@
 
 #include "CachedDataSource.h"
 
-#include "tools/LodTools.h" // member
-
 /**
  * Base class to provide tiles for multi-LOD tiled data source.
  */
@@ -66,16 +64,9 @@ public:
     /** Get the tile rectangle in normalized coordinates. */
     QRectF getNormalizedTileRect(uint tileId) const;
 
-protected:
-    /**
-     * Constructor
-     * @param contentSize the size of the full resolution content
-     * @param tileSize the size of the tiles to subdivide the content
-     */
-    LodTiler(const QSize& contentSize, uint tileSize);
-    LodTiler(std::pair<QSize, uint> args);
-
-    LodTools _lodTool;
+private:
+    /** @return the LOD information for the DataSource. */
+    virtual const LodTools& _getLodTool() const = 0;
 };
 
 #endif

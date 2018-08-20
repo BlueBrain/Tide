@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -44,7 +44,6 @@
 #else
 #include "SVGQtGpuBackend.h"
 #endif
-#include "utils/log.h"
 
 #include <QFile>
 
@@ -68,19 +67,12 @@ SVG::SVG(const QString& uri)
     : _impl(new Impl)
 {
     _impl->filename = uri;
-    try
-    {
-        QFile file(uri);
-        if (!file.open(QIODevice::ReadOnly))
-            throw std::runtime_error("invalid file");
-        _impl->svgData = file.readAll();
-        _impl->svg = _createSvgBackend(_impl->svgData);
-    }
-    catch (const std::runtime_error& e)
-    {
-        print_log(LOG_DEBUG, LOG_CONTENT, "Could not open document '%s': '%s'",
-                  uri.toLocal8Bit().constData(), e.what());
-    }
+
+    QFile file(uri);
+    if (!file.open(QIODevice::ReadOnly))
+        throw std::runtime_error("invalid file");
+    _impl->svgData = file.readAll();
+    _impl->svg = _createSvgBackend(_impl->svgData);
 }
 
 SVG::SVG(const QByteArray& svgData)
@@ -99,14 +91,9 @@ const QString& SVG::getFilename() const
     return _impl->filename;
 }
 
-bool SVG::isValid() const
-{
-    return bool(_impl->svg);
-}
-
 QSize SVG::getSize() const
 {
-    return isValid() ? _impl->svg->getSize() : QSize();
+    return _impl->svg->getSize();
 }
 
 const QByteArray& SVG::getData() const
@@ -116,5 +103,5 @@ const QByteArray& SVG::getData() const
 
 QImage SVG::renderToImage(const QSize& imageSize, const QRectF& region) const
 {
-    return isValid() ? _impl->svg->renderToImage(imageSize, region) : QImage();
+    return _impl->svg->renderToImage(imageSize, region);
 }

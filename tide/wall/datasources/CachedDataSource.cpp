@@ -52,7 +52,9 @@ ImagePtr CachedDataSource::getTileImage(const uint tileId,
     }
 
     const auto image = getCachableTileImage(tileId, view);
-    if (!image.isNull())
+    if (image.isNull())
+        return ImagePtr();
+
     {
         const QMutexLocker lock(&_mutex);
         cache.insert(tileId, image);

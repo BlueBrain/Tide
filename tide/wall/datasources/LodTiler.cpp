@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,44 +39,36 @@
 
 #include "LodTiler.h"
 
-LodTiler::LodTiler(const QSize& contentSize, const uint tileSize)
-    : _lodTool(contentSize, tileSize)
-{
-}
-
-LodTiler::LodTiler(std::pair<QSize, uint> args)
-    : _lodTool(args.first, args.second)
-{
-}
+#include "tools/LodTools.h"
 
 QRect LodTiler::getTileRect(const uint tileId) const
 {
-    return _lodTool.getTileCoord(tileId);
+    return _getLodTool().getTileCoord(tileId);
 }
 
 QSize LodTiler::getTilesArea(const uint lod, const uint channel) const
 {
     Q_UNUSED(channel);
-    return _lodTool.getTilesArea(lod);
+    return _getLodTool().getTilesArea(lod);
 }
 
 Indices LodTiler::computeVisibleSet(const QRectF& visibleTilesArea,
                                     const uint lod, const uint channel) const
 {
     Q_UNUSED(channel);
-    return _lodTool.getVisibleTiles(visibleTilesArea, lod);
+    return _getLodTool().getVisibleTiles(visibleTilesArea, lod);
 }
 
 uint LodTiler::getMaxLod() const
 {
-    return _lodTool.getMaxLod();
+    return _getLodTool().getMaxLod();
 }
 
 QRectF LodTiler::getNormalizedTileRect(const uint tileId) const
 {
-    const QRectF tile(getTileRect(tileId));
-    const uint lod = _lodTool.getTileIndex(tileId).lod;
-    const QSize area = getTilesArea(lod, 0);
+    const auto tile = QRectF{getTileRect(tileId)};
+    const auto lod = _getLodTool().getTileIndex(tileId).lod;
+    const auto area = getTilesArea(lod, 0);
 
     const auto t =
         QTransform::fromScale(1.0 / area.width(), 1.0 / area.height());

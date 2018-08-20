@@ -39,6 +39,7 @@
 
 #include "tools/LodTools.h"
 
+#include <cassert>
 #include <cmath>
 
 LodTools::LodTools(const QSize& contentSize, const uint tileSize)
@@ -46,6 +47,7 @@ LodTools::LodTools(const QSize& contentSize, const uint tileSize)
     , _tileSize(tileSize)
     , _maxLod(_computeMaxLod())
 {
+    assert(_tileSize > 0);
 }
 
 uint LodTools::getMaxLod() const
@@ -154,6 +156,9 @@ Indices LodTools::getVisibleTiles(const QRectF& area, const uint lod) const
 
 uint LodTools::_computeMaxLod() const
 {
+    if (!_contentSize.isValid())
+        return 0;
+
     uint maxLod = 0;
     uint maxDim = std::max(_contentSize.width(), _contentSize.height());
     while (maxDim > _tileSize)

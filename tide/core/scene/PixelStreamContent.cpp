@@ -75,12 +75,6 @@ bool PixelStreamContent::readMetadata()
     return true;
 }
 
-Content::Interaction PixelStreamContent::_getInteractionPolicy() const
-{
-    return hasEventReceivers() ? Content::Interaction::on
-                               : Content::Interaction::off;
-}
-
 KeyboardState* PixelStreamContent::getKeyboardState()
 {
     return _keyboardState;
@@ -98,6 +92,12 @@ void PixelStreamContent::incrementEventReceiverCount()
         emit interactionPolicyChanged();
         emit modified();
     }
+}
+
+Content::Interaction PixelStreamContent::_getInteractionPolicy() const
+{
+    return hasEventReceivers() ? Content::Interaction::on
+                               : Content::Interaction::off;
 }
 
 void PixelStreamContent::_createKeyboard()

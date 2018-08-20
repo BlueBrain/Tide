@@ -105,8 +105,7 @@ private:
     const uint _maxLod;
 
     mutable QMutex _lodTilesMapCacheMutex;
-    typedef std::map<size_t, TileInfos> LodTilesMap;
-    mutable LodTilesMap _lodTilesMapCache;
+    mutable std::map<size_t, TileInfos> _lodTilesMapCache;
 
     uint _computeMaxLod() const;
 };
