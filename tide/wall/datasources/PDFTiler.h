@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -56,7 +56,7 @@ class PDFTiler : public QObject, public LodTiler
 
 public:
     /** Constructor. */
-    explicit PDFTiler(const QString& uri);
+    explicit PDFTiler(const QString& uri, const QSize& maxImageSize);
 
     /** Destructor. */
     ~PDFTiler();
@@ -84,8 +84,10 @@ signals:
 private:
     QImage getCachableTileImage(uint tileId, deflect::View view) const final;
     bool isStereo() const final { return false; }
+    const LodTools& _getLodTool() const final { return *_lodTool; }
     const QString _uri;
-    const uint _tilesPerPage;
+    std::unique_ptr<LodTools> _lodTool;
+    uint _tilesPerPage;
     int _currentPage = 0;
     int _pageCount = 0;
 

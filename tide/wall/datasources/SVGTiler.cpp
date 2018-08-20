@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -40,7 +40,8 @@
 #include "SVGTiler.h"
 
 #include "SVGGpuImage.h"
-#include "scene/VectorialContent.h"
+#include "tools/LodTools.h"
+#include "utils/log.h"
 
 #include <QThread>
 
@@ -49,9 +50,22 @@ namespace
 const uint tileSize = 1024;
 }
 
-SVGTiler::SVGTiler(const QString& uri)
-    : LodTiler{SVG{uri}.getSize() * VectorialContent::getMaxScale(), tileSize}
-    , _svg{uri}
+SVGTiler::SVGTiler(const QString& uri, const QSize& maxImageSize)
+{
+    try
+    {
+        _svg = std::make_unique<SVG>(uri);
+        _lodTool = std::make_unique<LodTools>(maxImageSize, tileSize);
+    }
+    catch (const std::runtime_error& e)
+    {
+        _lodTool = std::make_unique<LodTools>(QSize(), 1u);
+        print_log(LOG_WARN, LOG_CONTENT, "SVG error: %s - %s",
+                  uri.toLocal8Bit().constData(), e.what());
+    }
+}
+
+SVGTiler::~SVGTiler()
 {
 }
 
@@ -70,8 +84,11 @@ QImage SVGTiler::getCachableTileImage(const uint tileId,
 {
     Q_UNUSED(view);
 
-    const QRect imageRect = getTileRect(tileId);
-    const QRectF zoomRect = getNormalizedTileRect(tileId);
+    if (!_svg)
+        return QImage();
+
+    const auto imageRect = getTileRect(tileId);
+    const auto zoomRect = getNormalizedTileRect(tileId);
 
 #if TIDE_USE_CAIRO && TIDE_USE_RSVG
     // The SvgCairoRSVGBackend is called from multiple threads
@@ -80,12 +97,12 @@ QImage SVGTiler::getCachableTileImage(const uint tileId,
         const auto id = QThread::currentThreadId();
         const QMutexLocker lock(&_threadMapMutex);
         if (!_perThreadSVG.count(id))
-            _perThreadSVG[id] = std::make_unique<SVG>(_svg.getData());
+            _perThreadSVG[id] = std::make_unique<SVG>(_svg->getData());
         svg = _perThreadSVG[id].get();
     }
 #else
     // The SvgQtGpuBackend is always called from the GPU thread
-    const SVG* svg = &_svg;
+    const auto& svg = _svg;
 #endif
     return svg->renderToImage(imageRect.size(), zoomRect);
 }

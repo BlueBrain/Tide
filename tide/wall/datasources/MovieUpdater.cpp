@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -86,15 +86,22 @@ auto _splitSideBySide(std::shared_ptr<FFMPEGPicture> image)
 }
 
 MovieUpdater::MovieUpdater(const QString& uri)
-    : _ffmpegMovie(new FFMPEGMovie(uri))
 {
-    // Observed bug [DISCL-295]: opening a movie might fail on WallProcesses
-    // despite correctly reading metadata on the MasterProcess.
-    // bool FFMPEGMovie::openVideoStreamDecoder(): could not open codec
-    // error: -11 Resource temporarily unavailable
-    if (!_ffmpegMovie->isValid())
-        print_log(LOG_WARN, LOG_AV, , "Movie is invalid: %s",
-                  uri.toLocal8Bit().constData());
+    try
+    {
+        _ffmpegMovie = std::make_unique<FFMPEGMovie>(uri);
+        _duration = _ffmpegMovie->getDuration();
+        _frameDuration = _ffmpegMovie->getFrameDuration();
+    }
+    catch (const std::runtime_error& e)
+    {
+        // Observed bug [DISCL-295]: opening a movie might fail on WallProcesses
+        // despite correctly reading metadata on the MasterProcess.
+        // bool FFMPEGMovie::openVideoStreamDecoder(): could not open codec
+        // error: -11 Resource temporarily unavailable
+        print_log(LOG_WARN, LOG_AV, "Movie file can't be opened: %s - %s",
+                  uri.toLocal8Bit().constData(), e.what());
+    }
 }
 
 MovieUpdater::~MovieUpdater()
@@ -109,11 +116,18 @@ void MovieUpdater::update(const Content& content)
     _loop = movie.isLooping();
     _skipping = movie.isSkipping();
     _skipPosition = movie.getPosition();
+    // must be received from master in case _ffmpegMovie is invalid on this node
+    _duration = movie.getDuration();
+    _frameDuration = movie.getFrameDuration();
 }
 
 QRect MovieUpdater::getTileRect(const uint tileIndex) const
 {
     Q_UNUSED(tileIndex);
+
+    if (!_ffmpegMovie)
+        return QRect();
+
     return QRect(0, 0, _ffmpegMovie->getWidth(), _ffmpegMovie->getHeight());
 }
 
@@ -132,7 +146,7 @@ Indices MovieUpdater::computeVisibleSet(const QRectF& visibleTilesArea,
     Q_UNUSED(lod);
     Q_UNUSED(channel);
 
-    if (visibleTilesArea.isEmpty())
+    if (!_ffmpegMovie || visibleTilesArea.isEmpty())
         return Indices();
 
     return {0};
@@ -142,6 +156,9 @@ ImagePtr MovieUpdater::getTileImage(const uint tileIndex,
                                     const deflect::View view) const
 {
     Q_UNUSED(tileIndex);
+
+    if (!_ffmpegMovie)
+        return ImagePtr();
 
     // WAR bug: concurrent calls to this function may occur when the movie was
     // obstruced by another window and becomes visible again, resulting in a
@@ -196,15 +213,14 @@ uint MovieUpdater::getMaxLod() const
 
 QString MovieUpdater::getStatistics() const
 {
-    const auto frameDuration = _ffmpegMovie->getFrameDuration();
-    const auto fps = QString::number(1.0 / frameDuration, 'g', 3);
+    const auto movieFps = QString::number(1.0 / _frameDuration, 'g', 3);
     const auto progress = QString::number(getPosition() * 100.0, 'g', 3);
-    return QString("%2 fps %3 %").arg(fps, progress);
+    return QString("%2 fps %3 %").arg(movieFps, progress);
 }
 
 qreal MovieUpdater::getPosition() const
 {
-    return _sharedTimestamp / _ffmpegMovie->getDuration();
+    return _sharedTimestamp / _duration;
 }
 
 bool MovieUpdater::isSkipping() const
@@ -219,7 +235,7 @@ bool MovieUpdater::isPaused() const
 
 qreal MovieUpdater::getSkipPosition() const
 {
-    return _skipPosition / _ffmpegMovie->getDuration();
+    return _skipPosition / _duration;
 }
 
 void MovieUpdater::allowNextFrame()
@@ -230,7 +246,7 @@ void MovieUpdater::allowNextFrame()
 void MovieUpdater::synchronizeFrameAdvance(WallToWallChannel& channel)
 {
     const bool visible = synchronizers.haveVisibleTiles();
-    const double frameDuration = _ffmpegMovie->getFrameDuration();
+    const double frameDuration = _frameDuration;
 
     bool inSync = false;
     {

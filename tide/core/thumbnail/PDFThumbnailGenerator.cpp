@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -58,28 +58,26 @@ PDFThumbnailGenerator::PDFThumbnailGenerator(const QSize& size)
 
 QImage PDFThumbnailGenerator::generate(const QString& filename) const
 {
-    const PDF pdf(filename);
-
-    if (!pdf.isValid())
+    try
     {
-        print_log(LOG_ERROR, LOG_CONTENT, "could not open pdf file: '%s'",
-                  filename.toLatin1().constData());
+        const PDF pdf(filename);
+
+        if (QFileInfo(filename).size() > maxPdfPageSize * pdf.getPageCount())
+            return _createLargePdfPlaceholder();
+
+        const auto imageSize = pdf.getSize().scaled(_size, _aspectRatioMode);
+        const auto image = pdf.renderToImage(imageSize);
+        if (image.isNull())
+            throw std::runtime_error("rendering to image failed");
+        return image;
+    }
+    catch (const std::runtime_error& e)
+    {
+        print_log(LOG_ERROR, LOG_CONTENT,
+                  "pdf thumbnail could not be generated: '%s' - %s",
+                  filename.toLatin1().constData(), e.what());
         return createErrorImage("pdf");
     }
-
-    if (QFileInfo(filename).size() > maxPdfPageSize * pdf.getPageCount())
-        return _createLargePdfPlaceholder();
-
-    const QSize imageSize = pdf.getSize().scaled(_size, _aspectRatioMode);
-    const QImage image = pdf.renderToImage(imageSize);
-    if (image.isNull())
-    {
-        print_log(LOG_ERROR, LOG_CONTENT, "could not render pdf file: '%s'",
-                  filename.toLatin1().constData());
-        return createErrorImage("pdf");
-    }
-
-    return image;
 }
 
 QImage PDFThumbnailGenerator::_createLargePdfPlaceholder() const

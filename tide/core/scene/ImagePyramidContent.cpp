@@ -73,11 +73,6 @@ bool ImagePyramidContent::canBeZoomed() const
 
 const QStringList& ImagePyramidContent::getSupportedExtensions()
 {
-    static QStringList extensions;
-
-    if (extensions.empty())
-        extensions << "tif"
-                   << "tiff";
-
+    static QStringList extensions{"tif", "tiff"};
     return extensions;
 }

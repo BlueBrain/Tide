@@ -45,6 +45,10 @@
 
 /**
  * Base interface for shared data sources.
+ *
+ * The DataProvider expects derived classes to always be constructible (no-throw
+ * constructor) and the public functions to behave correctly even if the source
+ * is unavailable for some reason (file access problem, etc...).
  */
 class DataSource
 {
@@ -58,16 +62,17 @@ public:
     /**
      * Get a tile image by its id for a given view.
      * Called asynchronously but not concurrently. threadsafe.
+     * Implementations can return nullptr or throw an exception on error.
      */
     virtual ImagePtr getTileImage(uint tileId, deflect::View view) const = 0;
 
-    /** Get the coordinates of a tile. */
+    /** @return the coordinates of a tile. */
     virtual QRect getTileRect(uint tileId) const = 0;
 
     /** @return the image size for the requested lod and channel. */
     virtual QSize getTilesArea(uint lod, uint channel) const = 0;
 
-    /** Compute the indices of the tiles which are visible in the given area. */
+    /** @return the indices of the tiles which are visible in the given area. */
     virtual Indices computeVisibleSet(const QRectF& visibleTilesArea, uint lod,
                                       uint channel) const = 0;
 

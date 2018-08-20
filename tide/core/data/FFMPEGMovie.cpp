@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -114,8 +114,10 @@ static FFMPEGStaticInit instance;
 }
 
 FFMPEGMovie::FFMPEGMovie(const QString& uri)
-    : _isValid(_open(uri))
 {
+    _createAvFormatContext(uri);
+    _videoStream = std::make_unique<FFMPEGVideoStream>(*_avFormatContext);
+    _format = _determineOutputFormat(_videoStream->getAVFormat(), uri);
 }
 
 FFMPEGMovie::~FFMPEGMovie()
@@ -124,61 +126,26 @@ FFMPEGMovie::~FFMPEGMovie()
     _releaseAvFormatContext();
 }
 
-bool FFMPEGMovie::_open(const QString& uri)
-{
-    if (!_createAvFormatContext(uri))
-        return false;
-
-    try
-    {
-        _videoStream.reset(new FFMPEGVideoStream(*_avFormatContext));
-        _format = _determineOutputFormat(_videoStream->getAVFormat(), uri);
-    }
-    catch (const std::runtime_error& e)
-    {
-        print_log(LOG_FATAL, LOG_AV, "Error opening file %s : '%s'",
-                  uri.toLocal8Bit().constData(), e.what());
-        _releaseAvFormatContext();
-        return false;
-    }
-
-    return true;
-}
-
-bool FFMPEGMovie::_createAvFormatContext(const QString& uri)
+void FFMPEGMovie::_createAvFormatContext(const QString& uri)
 {
     // Read movie header information into _avFormatContext and allocate it
     if (avformat_open_input(&_avFormatContext, uri.toLatin1(), 0, 0) != 0)
-    {
-        print_log(LOG_ERROR, LOG_AV, "error reading movie headers: '%s'",
-                  uri.toLocal8Bit().constData());
-        return false;
-    }
+        throw std::runtime_error("error reading movie headers");
 
     // Read stream information into _avFormatContext->streams
     if (avformat_find_stream_info(_avFormatContext, NULL) < 0)
-    {
-        print_log(LOG_ERROR, LOG_AV, "error reading stream information: '%s'",
-                  uri.toLocal8Bit().constData());
-        return false;
-    }
+        throw std::runtime_error("error reading stream ");
 
 #if LOG_THRESHOLD <= LOG_VERBOSE
     // print detail information about the input or output format
     av_dump_format(_avFormatContext, 0, uri.toLatin1(), 0);
 #endif
-    return true;
 }
 
 void FFMPEGMovie::_releaseAvFormatContext()
 {
     if (_avFormatContext)
         avformat_close_input(&_avFormatContext);
-}
-
-bool FFMPEGMovie::isValid() const
-{
-    return _isValid;
 }
 
 unsigned int FFMPEGMovie::getWidth() const

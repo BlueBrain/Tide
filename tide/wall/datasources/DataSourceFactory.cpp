@@ -71,13 +71,15 @@ std::unique_ptr<DataSource> DataSourceFactory::create(const Content& content)
     case ContentType::webbrowser:
         return std::make_unique<PixelStreamUpdater>(content.getUri());
     case ContentType::svg:
-        return std::make_unique<SVGTiler>(content.getUri());
+        return std::make_unique<SVGTiler>(content.getUri(),
+                                          content.getMaxDimensions());
     case ContentType::image:
         return std::make_unique<ImageSource>(content.getUri());
 
 #if TIDE_ENABLE_PDF_SUPPORT
     case ContentType::pdf:
-        return std::make_unique<PDFTiler>(content.getUri());
+        return std::make_unique<PDFTiler>(content.getUri(),
+                                          content.getMaxDimensions());
 #endif
 
 #if TIDE_USE_TIFF

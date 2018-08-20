@@ -265,10 +265,11 @@ void DataProvider::_load(DataSourceSharedPtr source,
                 {
                     image[view] = source->getTileImage(id, view);
                 }
-                catch (...)
+                catch (const std::exception& e)
                 {
                     print_log(LOG_ERROR, LOG_GENERAL,
-                              "An error occured with tile: %d", id);
+                              "An error occured with tile: %d - %s", id,
+                              e.what());
                     return;
                 }
                 if (!image[view])

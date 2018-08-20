@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -51,7 +51,10 @@ class SVGTiler : public LodTiler
 {
 public:
     /** Constructor. */
-    explicit SVGTiler(const QString& uri);
+    explicit SVGTiler(const QString& uri, const QSize& maxImageSize);
+
+    /** Destructor. */
+    ~SVGTiler();
 
     /**
      * Override for SVG GPU images, threadsafe.
@@ -67,8 +70,9 @@ private:
      */
     QImage getCachableTileImage(uint tileId, deflect::View view) const final;
     bool isStereo() const final { return false; }
-    SVG _svg;
-
+    const LodTools& _getLodTool() const final { return *_lodTool; }
+    std::unique_ptr<SVG> _svg;
+    std::unique_ptr<LodTools> _lodTool;
     mutable QMutex _threadMapMutex;
     typedef std::unique_ptr<SVG> SVGPtr;
     mutable std::map<Qt::HANDLE, SVGPtr> _perThreadSVG;

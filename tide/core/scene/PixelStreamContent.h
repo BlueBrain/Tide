@@ -78,9 +78,6 @@ public:
     /** Register to receive events on this content. */
     void incrementEventReceiverCount();
 
-    /** @return ON when hasEventReceivers() is true, otherwise OFF. */
-    Interaction _getInteractionPolicy() const final;
-
     /** Parse data received from the deflect::Stream. */
     virtual void parseData(QByteArray data) { Q_UNUSED(data); }
 signals:
@@ -93,6 +90,9 @@ protected:
     PixelStreamContent(const bool keyboard = true);
 
 private:
+    /** @return ON when hasEventReceivers() is true, otherwise OFF. */
+    Interaction _getInteractionPolicy() const final;
+
     void _createKeyboard();
 
     friend class boost::serialization::access;

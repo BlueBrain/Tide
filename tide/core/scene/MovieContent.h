@@ -56,9 +56,9 @@ class MovieContent : public Content
     Q_DISABLE_COPY(MovieContent)
 
     Q_PROPERTY(bool playing READ isPlaying NOTIFY playingChanged)
-    Q_PROPERTY(qreal duration READ getDuration CONSTANT)
-    Q_PROPERTY(qreal position READ getPosition NOTIFY positionChanged)
     Q_PROPERTY(bool skipping READ isSkipping NOTIFY skippingChanged)
+    Q_PROPERTY(qreal position READ getPosition NOTIFY positionChanged)
+    Q_PROPERTY(qreal duration READ getDuration CONSTANT)
 
 public:
     /** Create a MovieContent from the given uri. */
@@ -73,9 +73,6 @@ public:
     **/
     bool readMetadata() final;
 
-    /** @return OFF. */
-    Interaction _getInteractionPolicy() const final;
-
     /** @return the list of supported movie file extensions. */
     static const QStringList& getSupportedExtensions();
 
@@ -86,22 +83,26 @@ public:
     bool isPlaying() const;
     bool isPaused() const;
     bool isLooping() const;
-    qreal getDuration() const;
-    qreal getPosition() const;
-    void setPosition(qreal pos);
     bool isSkipping() const;
     void setSkipping(bool skipping);
+    qreal getPosition() const;
+    void setPosition(qreal pos);
+    qreal getDuration() const;
+    qreal getFrameDuration() const;
     //@}
 
 signals:
     /** @name QProperty notifiers */
     //@{
     void playingChanged();
-    void positionChanged(qreal pos);
     void skippingChanged(bool skipping);
+    void positionChanged(qreal pos);
     //@}
 
 private:
+    /** @return OFF. */
+    Interaction _getInteractionPolicy() const final;
+
     friend class boost::serialization::access;
 
     // Default constructor required for boost::serialization
@@ -114,9 +115,10 @@ private:
         // clang-format off
         ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Content);
         ar & _controlState;
-        ar & _duration;
-        ar & _position;
         ar & _skipping;
+        ar & _position;
+        ar & _duration;
+        ar & _frameDuration;
         // clang-format on
     }
 
@@ -147,9 +149,10 @@ private:
     }
 
     ControlState _controlState = STATE_LOOP;
-    double _duration = 0.0;
-    double _position = 0.0;
     bool _skipping = false;
+    double _position = 0.0;
+    double _duration = 0.0;
+    double _frameDuration = 0.0;
 };
 
 BOOST_CLASS_VERSION(MovieContent, 2)

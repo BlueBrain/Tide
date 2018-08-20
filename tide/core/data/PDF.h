@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -58,6 +58,7 @@ public:
     /**
      * Open a document.
      * @param uri the file to open.
+     * @throw std::runtime_error if the document can't be opened.
      */
     PDF(const QString& uri);
 
@@ -66,9 +67,6 @@ public:
 
     /** @return the filename of the document passed to the constructor. */
     const QString& getFilename() const;
-
-    /** @return true if the document is valid. */
-    bool isValid() const;
 
     /** @return the dimensions of the document in pixels. */
     QSize getSize() const;

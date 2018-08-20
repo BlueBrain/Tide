@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -40,34 +40,50 @@
 #include "ImagePyramidDataSource.h"
 
 #include "data/TiffPyramidReader.h"
+#include "tools/LodTools.h"
+#include "utils/log.h"
 
 namespace
 {
 const QSize previewSize{1920, 1920};
-}
 
-std::pair<QSize, uint> _getLodParameters(const QString& uri)
+uint _getTileSize(const TiffPyramidReader& tif)
 {
-    const TiffPyramidReader tif{uri};
     const auto tileSize = tif.getTileSize();
     if (tileSize.width() != tileSize.height())
         throw std::runtime_error("Non-square tiles are not supported");
-    return std::make_pair(tif.getImageSize(), tileSize.width());
+    return tileSize.width();
+}
 }
 
 ImagePyramidDataSource::ImagePyramidDataSource(const QString& uri)
-    : LodTiler{_getLodParameters(uri)}
-    , _uri{uri}
+    : _uri{uri}
+{
+    try
+    {
+        TiffPyramidReader tif{uri};
+        _lodTool =
+            std::make_unique<LodTools>(tif.getImageSize(), _getTileSize(tif));
+        _previewImageSize = tif.readSize(tif.findLevel(previewSize));
+    }
+    catch (const std::runtime_error& e)
+    {
+        _lodTool = std::make_unique<LodTools>(QSize(), 1);
+        _valid = false;
+        print_log(LOG_WARN, LOG_CONTENT, "Failed opening TIFF file: %s - %s",
+                  uri.toLocal8Bit().constData(), e.what());
+    }
+}
+
+ImagePyramidDataSource::~ImagePyramidDataSource()
 {
 }
 
 QRect ImagePyramidDataSource::getTileRect(const uint tileId) const
 {
     if (tileId == 0)
-    {
-        TiffPyramidReader tif{_uri};
-        return {QPoint(), tif.readSize(tif.findLevel(previewSize))};
-    }
+        return {QPoint(), _previewImageSize};
+
     return LodTiler::getTileRect(tileId);
 }
 
@@ -76,6 +92,9 @@ QImage ImagePyramidDataSource::getCachableTileImage(
 {
     Q_UNUSED(view);
 
+    if (!_valid)
+        return QImage();
+
     TiffPyramidReader tif{_uri};
 
     QImage image;
@@ -83,7 +102,7 @@ QImage ImagePyramidDataSource::getCachableTileImage(
         image = tif.readImage(tif.findLevel(previewSize));
     else
     {
-        const auto index = _lodTool.getTileIndex(tileId);
+        const auto index = _getLodTool().getTileIndex(tileId);
         image = tif.readTile(index.x, index.y, index.lod);
     }
 

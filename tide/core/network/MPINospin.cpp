@@ -47,6 +47,8 @@
 #include <algorithm>
 #include <ctime>
 
+#define TIDE_DISABLE_MPI_NOSPIN 0 // switch for debugging purposes only
+
 namespace
 {
 const size_t nsec_start = 1000;
@@ -56,6 +58,9 @@ const size_t nsec_max = 100000;
 int MPI_Probe_Nospin(const int source, const int tag, MPI_Comm comm,
                      MPI_Status* status)
 {
+#if TIDE_DISABLE_MPI_NOSPIN
+    return MPI_Probe(source, tag, comm, status);
+#else
     int flag = 0;
     int ret = MPI_Iprobe(source, tag, comm, &flag, status);
     if (ret != MPI_SUCCESS)
@@ -69,11 +74,15 @@ int MPI_Probe_Nospin(const int source, const int tag, MPI_Comm comm,
         ret = MPI_Iprobe(source, tag, comm, &flag, status);
     }
     return ret;
+#endif
 }
 
 int MPI_Send_Nospin(void* buff, const int count, MPI_Datatype datatype,
                     const int dest, const int tag, MPI_Comm comm)
 {
+#if TIDE_DISABLE_MPI_NOSPIN
+    return MPI_Send(buff, count, datatype, dest, tag, comm);
+#else
     MPI_Request req;
     const int ret = MPI_Isend(buff, count, datatype, dest, tag, comm, &req);
     if (ret != MPI_SUCCESS)
@@ -89,12 +98,16 @@ int MPI_Send_Nospin(void* buff, const int count, MPI_Datatype datatype,
         MPI_Request_get_status(req, &flag, MPI_STATUS_IGNORE);
     }
     return MPI_Wait(&req, MPI_STATUS_IGNORE); // release the request object
+#endif
 }
 
 int MPI_Recv_Nospin(void* buff, const int count, MPI_Datatype datatype,
                     const int from, const int tag, MPI_Comm comm,
                     MPI_Status* status)
 {
+#if TIDE_DISABLE_MPI_NOSPIN
+    return MPI_Recv(buff, count, datatype, from, tag, comm, status);
+#else
     MPI_Request req;
     const int ret = MPI_Irecv(buff, count, datatype, from, tag, comm, &req);
     if (ret != MPI_SUCCESS)
@@ -109,4 +122,5 @@ int MPI_Recv_Nospin(void* buff, const int count, MPI_Datatype datatype,
         MPI_Request_get_status(req, &flag, status); // Always returns success
     }
     return MPI_Wait(&req, status); // release the request object
+#endif
 }

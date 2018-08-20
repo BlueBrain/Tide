@@ -1,8 +1,8 @@
 /*********************************************************************/
-/* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael.Dumusc@epfl.ch                        */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/* Copyright (c) 2011-2012, The University of Texas at Austin.       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael.Dumusc@epfl.ch                   */
+/*                          Daniel.Nachbaur@epfl.ch                  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -59,23 +59,20 @@ ContentType SVGContent::getType() const
 
 bool SVGContent::readMetadata()
 {
-    const QFileInfo file(getUri());
-    if (!file.exists() || !file.isReadable())
+    try
+    {
+        const SVG svg(getUri());
+        setDimensions(svg.getSize());
+        return true;
+    }
+    catch (const std::runtime_error&)
+    {
         return false;
-
-    const SVG svg(getUri());
-    if (!svg.isValid())
-        return false;
-
-    setDimensions(svg.getSize());
-    return true;
+    }
 }
 
 const QStringList& SVGContent::getSupportedExtensions()
 {
-    static QStringList extensions;
-
-    if (extensions.empty())
-        extensions << "svg";
+    static QStringList extensions{"svg"};
     return extensions;
 }
