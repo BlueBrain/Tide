@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -48,7 +48,31 @@ namespace
 {
 #if TIDE_USE_QT5X11EXTRAS
 
-using JoinSwapGroupFunc = bool(QOPENGLF_APIENTRYP)(Display*, uint, GLuint);
+// The Qt WId returned by QWindow::winId() is the desired GLXDrawable since:
+// WId QXcbWindow::winId() const { return m_window; }
+// xcb_window_t m_window;
+//
+// And:
+// - GLXDrawable = XID = unsigned long (= uint32_t)
+// - XID === xcb_window_t = uint32_t
+
+using GLXDrawable = uint32_t;
+
+// Alternatively the bound drawable (window) could be retrived at runtime:
+//
+// using GetCurrentDrawable = GLXDrawable(QOPENGLF_APIENTRYP)();
+// GetCurrentDrawable _getGetCurrentDrawable()
+// {
+//     auto context = _getCurrentGlContext();
+//     if (auto func = context->getProcAddress("glXGetCurrentDrawable"))
+//         return reinterpret_cast<GetCurrentDrawable>(func);
+//     throw std::runtime_error("missing glXGetCurrentDrawable extension");
+// }
+
+using QueryMaxSwapGroups = bool(QOPENGLF_APIENTRYP)(Display*, int, GLuint*,
+                                                    GLuint*);
+using JoinSwapGroupFunc = bool(QOPENGLF_APIENTRYP)(Display*, GLXDrawable,
+                                                   GLuint);
 using BindSwapBarrierFunc = bool(QOPENGLF_APIENTRYP)(Display*, GLuint, GLuint);
 
 QOpenGLContext* _getCurrentGlContext()
@@ -56,6 +80,14 @@ QOpenGLContext* _getCurrentGlContext()
     if (auto context = QOpenGLContext::currentContext())
         return context;
     throw std::runtime_error("no current gl context");
+}
+
+QueryMaxSwapGroups _getQueryMaxSwapGroupsFunc()
+{
+    auto context = _getCurrentGlContext();
+    if (auto func = context->getProcAddress("glXQueryMaxSwapGroupsNV"))
+        return reinterpret_cast<QueryMaxSwapGroups>(func);
+    throw std::runtime_error("missing glXQueryMaxSwapGroupsNV extension");
 }
 
 JoinSwapGroupFunc _getJoinSwapGroupFunc()
@@ -74,14 +106,53 @@ BindSwapBarrierFunc _getBindSwapBarrierFunc()
     throw std::runtime_error("missing glXBindSwapBarrierNV extension");
 }
 
-bool _joinSwapGroup(const uint winID, const GLuint group)
+std::pair<GLuint, GLuint> _getMaxGroupAndBarrier()
 {
+    GLuint maxGroup = 0;
+    GLuint maxBarrier = 0;
+
+    auto queryMaxSwapGroups = _getQueryMaxSwapGroupsFunc();
+    queryMaxSwapGroups(QX11Info::display(), QX11Info::appScreen(), &maxGroup,
+                       &maxBarrier);
+
+    return std::make_pair(maxGroup, maxBarrier);
+}
+
+void _checkGroup(const GLuint group)
+{
+    const auto maxGroup = _getMaxGroupAndBarrier().first;
+    if (group > maxGroup)
+    {
+        throw std::runtime_error(
+            std::string("Required swap group is not available: ") +
+            std::to_string(group) + " >= " + std::to_string(maxGroup));
+    }
+}
+
+void _checkBarrier(const GLuint barrier)
+{
+    const auto maxBarrier = _getMaxGroupAndBarrier().second;
+    if (barrier > maxBarrier)
+    {
+        throw std::runtime_error(
+            std::string("Required swap barrier is not available: ") +
+            std::to_string(barrier) + " >= " + std::to_string(maxBarrier));
+    }
+}
+
+bool _joinSwapGroup(const uint winId, const GLuint group)
+{
+    _checkGroup(group);
+
     auto joinSwapGroup = _getJoinSwapGroupFunc();
-    return joinSwapGroup(QX11Info::display(), winID, group);
+    return joinSwapGroup(QX11Info::display(), winId, group);
+    throw std::runtime_error("Failed to get current drawable");
 }
 
 bool _bindSwapBarrier(const GLuint group, const GLuint barrier)
 {
+    _checkBarrier(barrier);
+
     auto bindSwapBarrier = _getBindSwapBarrierFunc();
     return bindSwapBarrier(QX11Info::display(), group, barrier);
 }
