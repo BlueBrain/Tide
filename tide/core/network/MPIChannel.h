@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2015, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -41,6 +41,7 @@
 #define MPICHANNEL_H
 
 #include "MPIHeader.h"
+#include "NetworkBarrier.h"
 #include "types.h"
 
 #include <mpi.h>
@@ -68,7 +69,7 @@ struct ProbeResult
 /**
  * Handle MPI communications between all Tide instances.
  */
-class MPIChannel
+class MPIChannel : public NetworkBarrier
 {
 public:
     /**
@@ -99,7 +100,7 @@ public:
     int getSize() const;
 
     /** Block execution until all participants have reached the barrier. */
-    void globalBarrier() const;
+    void globalBarrier() const final;
 
     /**
      * Get the sum of the given local values across all processes.

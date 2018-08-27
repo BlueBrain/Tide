@@ -1,8 +1,8 @@
 /*********************************************************************/
-/* Copyright (c) 2011 - 2012, The University of Texas at Austin.     */
-/* Copyright (c) 2013-2017, EPFL/Blue Brain Project                  */
-/*                     Raphael.Dumusc@epfl.ch                        */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/* Copyright (c) 2011-2012, The University of Texas at Austin.       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael.Dumusc@epfl.ch                   */
+/*                          Daniel.Nachbaur@epfl.ch                  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -66,6 +66,7 @@ int main(int argc, char* argv[])
         MPIChannelPtr worldChannel(new MPIChannel(argc, argv));
         const int rank = worldChannel->getRank();
         MPIChannelPtr localChannel(new MPIChannel(*worldChannel, 0, rank));
+        MPIChannelPtr localChannel2(new MPIChannel(*worldChannel, 0, rank));
         MPIChannelPtr mainChannel(new MPIChannel(*worldChannel, 0, rank));
 
         ProcessForker(localChannel).run();

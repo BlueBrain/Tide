@@ -53,7 +53,8 @@
 
 WallApplication::WallApplication(int& argc_, char** argv_,
                                  MPIChannelPtr worldChannel,
-                                 MPIChannelPtr wallChannel)
+                                 MPIChannelPtr wallChannel,
+                                 MPIChannelPtr wallChannelSwapSync)
     : QGuiApplication{argc_, argv_}
     , _provider{new DataProvider}
     , _fromMasterChannel{new WallFromMasterChannel(worldChannel)}
@@ -77,6 +78,7 @@ WallApplication::WallApplication(int& argc_, char** argv_,
 
     _renderController =
         std::make_unique<RenderController>(*_config, *_provider, *_wallChannel,
+                                           *wallChannelSwapSync,
                                            config.global.swapsync);
     _initMPIConnections();
 }

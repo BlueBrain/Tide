@@ -85,13 +85,14 @@ int main(int argc, char* argv[])
         qInstallMessageHandler(qtMessageLogger);
 
         MPIChannelPtr localChannel(new MPIChannel(*worldChannel, 1, rank));
+        MPIChannelPtr localChannel2(new MPIChannel(*worldChannel, 1, rank));
         MPIChannelPtr mainChannel(new MPIChannel(*worldChannel, 1, rank));
 
         std::unique_ptr<WallApplication> app;
         try
         {
-            app.reset(
-                new WallApplication(argc, argv, mainChannel, localChannel));
+            app.reset(new WallApplication(argc, argv, mainChannel, localChannel,
+                                          localChannel2));
         }
         catch (const std::exception& e)
         {
