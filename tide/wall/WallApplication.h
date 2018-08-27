@@ -66,11 +66,13 @@ public:
      * @param argc Command line argument count (required by QApplication)
      * @param argv Command line arguments (required by QApplication)
      * @param worldChannel The world MPI channel
-     * @param wallChannel The wall MPI channel
+     * @param wallChannel The wall MPI channel for scene synchronization
+     * @param wallChannelSwapSync The wall channel for swap synchronization
      * @throw std::runtime_error if an error occured during initialization
      */
     WallApplication(int& argc, char** argv, MPIChannelPtr worldChannel,
-                    MPIChannelPtr wallChannel);
+                    MPIChannelPtr wallChannel,
+                    MPIChannelPtr wallChannelSwapSync);
 
     /** Destructor */
     virtual ~WallApplication();

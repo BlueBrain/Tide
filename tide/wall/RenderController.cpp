@@ -52,6 +52,7 @@
 RenderController::RenderController(const WallConfiguration& config,
                                    DataProvider& provider,
                                    WallToWallChannel& wallChannel,
+                                   NetworkBarrier& swapSyncBarrier,
                                    const SwapSync type)
     : _windows{WallWindow::createWindows(config, provider)}
     , _provider{provider}
@@ -60,7 +61,7 @@ RenderController::RenderController(const WallConfiguration& config,
     _connectSwapSyncObjects();
     _connectRedrawSignal();
     _connectScreenshotSignals();
-    _setupSwapSynchronization(type);
+    _setupSwapSynchronization(swapSyncBarrier, type);
     updateScene(Scene::create(config.surfaces));
 }
 
@@ -158,14 +159,15 @@ void RenderController::_connectScreenshotSignals()
     }
 }
 
-void RenderController::_setupSwapSynchronization(const SwapSync type)
+void RenderController::_setupSwapSynchronization(
+    NetworkBarrier& swapSyncBarrier, const SwapSync type)
 {
     if (type == SwapSync::hardware)
         print_log(LOG_INFO, LOG_GENERAL,
                   "Launching with hardware swap synchronization...");
 
     _swapSynchronizer =
-        SwapSynchronizerFactory::get(type)->create(_wallChannel,
+        SwapSynchronizerFactory::get(type)->create(swapSyncBarrier,
                                                    _windows.size());
     for (auto&& window : _windows)
         window->setSwapSynchronizer(_swapSynchronizer.get());

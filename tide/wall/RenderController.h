@@ -57,7 +57,8 @@ class RenderController : public QObject
 
 public:
     RenderController(const WallConfiguration& config, DataProvider& provider,
-                     WallToWallChannel& wallChannel, SwapSync type);
+                     WallToWallChannel& wallChannel,
+                     NetworkBarrier& swapSyncBarrier, SwapSync type);
     ~RenderController();
 
 public slots:
@@ -97,7 +98,8 @@ private:
     void _connectSwapSyncObjects();
     void _connectRedrawSignal();
     void _connectScreenshotSignals();
-    void _setupSwapSynchronization(SwapSync type);
+    void _setupSwapSynchronization(NetworkBarrier& swapSyncBarrier,
+                                   SwapSync type);
 
     /** Synchronization and rendering. */
     void _requestRender();
