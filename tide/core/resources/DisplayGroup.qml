@@ -40,6 +40,16 @@ Item {
 
     states: [
         State {
+            // Default state is needed to work around a bug in animation in Qt,
+            // where the opacity property may not always be restored to its
+            // original value. See JIRA issue: DISCL-305
+            name: ""
+            PropertyChanges {
+                target: focuscontext
+                opacity: 0
+            }
+        },
+        State {
             name: "fullscreen"
             when: displaygroup.hasFullscreenWindows
             PropertyChanges {

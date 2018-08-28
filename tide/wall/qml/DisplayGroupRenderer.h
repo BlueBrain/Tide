@@ -77,7 +77,6 @@ private:
 
     void _updateWindowItems(const DisplayGroup& displayGroup);
     void _removeOldWindows(const QSet<QUuid>& updatedWindows);
-    void _workAroundOpacityIssue();
     void _createDisplayGroupQmlItem(QQuickItem& parentItem);
     void _createWindowQmlItem(WindowPtr window);
 };
