@@ -65,8 +65,6 @@ void DisplayGroupRenderer::setDisplayGroup(DisplayGroupPtr displayGroup)
     _qmlContext->setContextProperty("displaygroup", displayGroup.get());
     _updateWindowItems(*displayGroup);
     _displayGroup = std::move(displayGroup);
-
-    _workAroundOpacityIssue();
 }
 
 void DisplayGroupRenderer::_updateWindowItems(const DisplayGroup& displayGroup)
@@ -105,23 +103,6 @@ void DisplayGroupRenderer::_removeOldWindows(const QSet<QUuid>& updatedWindows)
             ++it;
         else
             it = _windowItems.erase(it);
-    }
-}
-
-void DisplayGroupRenderer::_workAroundOpacityIssue()
-{
-    // Work around a bug in animation in Qt, where the opacity property
-    // of the focus context may not always be restored to its original value.
-    // See JIRA issue: DISCL-305
-    if (!_displayGroup->hasFocusedWindows() &&
-        !_displayGroup->hasFullscreenWindows() &&
-        !_displayGroup->hasVisiblePanels())
-    {
-        for (auto child : _displayGroupItem->childItems())
-        {
-            if (child->objectName() == "focuscontext")
-                child->setProperty("opacity", 0.0);
-        }
     }
 }
 
