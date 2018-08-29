@@ -39,9 +39,12 @@
 
 #include "SVGTiler.h"
 
-#include "SVGGpuImage.h"
 #include "tools/LodTools.h"
 #include "utils/log.h"
+
+#if !(TIDE_USE_CAIRO && TIDE_USE_RSVG)
+#include "SVGGpuImage.h"
+#endif
 
 #include <QThread>
 
@@ -73,11 +76,19 @@ ImagePtr SVGTiler::getTileImage(const uint tileId,
                                 const deflect::View view) const
 {
 #if !(TIDE_USE_CAIRO && TIDE_USE_RSVG)
-    if (!contains(tileId))
+    if (_svg && !contains(tileId))
         return std::make_shared<SVGGpuImage>(*this, tileId);
 #endif
     return CachedDataSource::getTileImage(tileId, view);
 }
+
+#if !(TIDE_USE_CAIRO && TIDE_USE_RSVG)
+ImagePtr SVGTiler::renderAndCacheGpuImage(const uint tileId,
+                                          const deflect::View view) const
+{
+    return CachedDataSource::getTileImage(tileId, view);
+}
+#endif
 
 QImage SVGTiler::getCachableTileImage(const uint tileId,
                                       const deflect::View view) const
@@ -87,22 +98,23 @@ QImage SVGTiler::getCachableTileImage(const uint tileId,
     if (!_svg)
         return QImage();
 
-    const auto imageRect = getTileRect(tileId);
+    const auto imageSize = getTileRect(tileId).size();
     const auto zoomRect = getNormalizedTileRect(tileId);
 
+    return _getSvgForCurrentThread().renderToImage(imageSize, zoomRect);
+}
+
+SVG& SVGTiler::_getSvgForCurrentThread() const
+{
 #if TIDE_USE_CAIRO && TIDE_USE_RSVG
     // The SvgCairoRSVGBackend is called from multiple threads
-    SVG* svg = nullptr;
-    {
-        const auto id = QThread::currentThreadId();
-        const QMutexLocker lock(&_threadMapMutex);
-        if (!_perThreadSVG.count(id))
-            _perThreadSVG[id] = std::make_unique<SVG>(_svg->getData());
-        svg = _perThreadSVG[id].get();
-    }
+    const auto id = QThread::currentThreadId();
+    const QMutexLocker lock(&_threadMapMutex);
+    if (!_perThreadSVG.count(id))
+        _perThreadSVG[id] = std::make_unique<SVG>(_svg->getData());
+    return *_perThreadSVG[id];
 #else
-    // The SvgQtGpuBackend is always called from the GPU thread
-    const auto& svg = _svg;
+    // The SvgQtGpuBackend is always called from the render thread (GPU)
+    return *_svg;
 #endif
-    return svg->renderToImage(imageRect.size(), zoomRect);
 }

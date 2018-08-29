@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -76,9 +76,8 @@ bool SVGGpuImage::isGpuImage() const
     return true;
 }
 
-bool SVGGpuImage::generateGpuImage()
+bool SVGGpuImage::generateGpuImage() const
 {
-    // Call getTileImage so that the image gets cached for the next request
-    _image = _dataSource.getTileImage(_tileId, deflect::View::mono);
-    return true;
+    _image = _dataSource.renderAndCacheGpuImage(_tileId, deflect::View::mono);
+    return !!_image;
 }

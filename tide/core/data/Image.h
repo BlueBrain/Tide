@@ -94,14 +94,14 @@ public:
     /** @return the OpenGL pixel format of the image data. */
     virtual uint getGLPixelFormat() const = 0;
 
-    /** @return true if the image is a GPU image and need special processing. */
+    /** @return true if generateGpuImage must be called from render thread. */
     virtual bool isGpuImage() const { return false; }
     /**
      * Generate the GPU image.
      * This method will be called on a thread with an active OpenGL context if
      * isGpuImage() is true;
      */
-    virtual bool generateGpuImage() { return false; }
+    virtual bool generateGpuImage() const { return false; }
 };
 
 #endif

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -75,12 +75,12 @@ public:
     bool isGpuImage() const final;
 
     /** @copydoc Image::generateGpuImage */
-    bool generateGpuImage() final;
+    bool generateGpuImage() const final;
 
 private:
     const SVGTiler& _dataSource;
     const uint _tileId;
-    ImagePtr _image;
+    mutable ImagePtr _image;
 };
 
 #endif
