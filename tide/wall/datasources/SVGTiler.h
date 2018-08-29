@@ -62,6 +62,11 @@ public:
      */
     ImagePtr getTileImage(uint tileId, deflect::View view) const final;
 
+#if !(TIDE_USE_CAIRO && TIDE_USE_RSVG)
+    /** Called exclusively by SVGGpuImage from the GL render thread. */
+    ImagePtr renderAndCacheGpuImage(uint tileId, deflect::View view) const;
+#endif
+
 private:
     /**
      * Get a tile image which will be cached.
@@ -71,11 +76,15 @@ private:
     QImage getCachableTileImage(uint tileId, deflect::View view) const final;
     bool isStereo() const final { return false; }
     const LodTools& _getLodTool() const final { return *_lodTool; }
+    SVG& _getSvgForCurrentThread() const;
+
     std::unique_ptr<SVG> _svg;
     std::unique_ptr<LodTools> _lodTool;
+
+#if (TIDE_USE_CAIRO && TIDE_USE_RSVG)
     mutable QMutex _threadMapMutex;
-    typedef std::unique_ptr<SVG> SVGPtr;
-    mutable std::map<Qt::HANDLE, SVGPtr> _perThreadSVG;
+    mutable std::map<Qt::HANDLE, std::unique_ptr<SVG>> _perThreadSVG;
+#endif
 };
 
 #endif

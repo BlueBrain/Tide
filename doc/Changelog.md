@@ -8,6 +8,7 @@ Changelog {#changelog}
   - Fix crashes in case of file read errors on some of the wall processes.
   - Fix InfiniBand networking using Intel MPI.
   - Fix bug that could cause the background tap to become permanently disabled.
+  - Fix the SVG Qt GPU backend.
 * [265](https://github.com/BlueBrain/Tide/pull/265):
   Add support for 3D images (side-by-side jpeg images with .jps extension).
 * [264](https://github.com/BlueBrain/Tide/pull/264):

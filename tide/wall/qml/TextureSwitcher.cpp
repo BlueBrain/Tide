@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -69,6 +69,9 @@ void TextureSwitcher::update(std::unique_ptr<TextureNode>& node,
     {
         if (_needToChangeNextNode(factory))
             _createNextNode(factory);
+
+        if (_image->isGpuImage() && !_image->generateGpuImage())
+            throw std::runtime_error("GPU image generation failed");
 
         _uploadImage(_nextNode ? *_nextNode : *node);
     }

@@ -46,6 +46,15 @@ if(TIDE_USE_TIFF)
   )
 endif()
 
+if(NOT (TIDE_USE_CAIRO AND TIDE_USE_RSVG))
+  list(APPEND TIDEWALL_PUBLIC_HEADERS
+    datasources/SVGGpuImage.h
+  )
+  list(APPEND TIDEWALL_SOURCES
+    datasources/SVGGpuImage.cpp
+  )
+endif()
+
 list(APPEND TIDEWALL_PUBLIC_HEADERS
   DataProvider.h
   datasources/CachedDataSource.h
@@ -53,7 +62,6 @@ list(APPEND TIDEWALL_PUBLIC_HEADERS
   datasources/DataSourceFactory.h
   datasources/ImageSource.h
   datasources/LodTiler.h
-  datasources/SVGGpuImage.h
   datasources/SVGTiler.h
   datasources/PixelStreamUpdater.h
   network/WallFromMasterChannel.h
@@ -106,7 +114,6 @@ list(APPEND TIDEWALL_SOURCES
   datasources/DataSourceFactory.cpp
   datasources/ImageSource.cpp
   datasources/LodTiler.cpp
-  datasources/SVGGpuImage.cpp
   datasources/SVGTiler.cpp
   datasources/PixelStreamUpdater.cpp
   DataProvider.cpp

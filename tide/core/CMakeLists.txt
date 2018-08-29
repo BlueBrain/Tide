@@ -93,6 +93,13 @@ if(TIDE_USE_CAIRO AND TIDE_USE_RSVG)
   list(APPEND TIDECORE_LINK_LIBRARIES
     PRIVATE ${RSVG_LIBRARIES}
   )
+else()
+  list(APPEND TIDECORE_PUBLIC_HEADERS
+    data/SVGQtGpuBackend.h
+  )
+  list(APPEND TIDECORE_SOURCES
+    data/SVGQtGpuBackend.cpp
+  )
 endif()
 
 if(TIDE_USE_TIFF)
@@ -130,7 +137,6 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   data/StreamImage.h
   data/SVG.h
   data/SVGBackend.h
-  data/SVGQtGpuBackend.h
   data/YUVImage.h
   json/json.h
   json/serialization.h
@@ -211,7 +217,6 @@ list(APPEND TIDECORE_SOURCES
   data/QtImage.cpp
   data/StreamImage.cpp
   data/SVG.cpp
-  data/SVGQtGpuBackend.cpp
   data/YUVImage.cpp
   json/json.cpp
   json/serialization.cpp
