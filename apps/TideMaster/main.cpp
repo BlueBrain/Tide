@@ -43,20 +43,17 @@
 
 #include "CommandLineParameters.h"
 #include "MasterApplication.h"
-#include "network/MPIChannel.h"
+#include "network/MPICommunicator.h"
 
 #include <QThreadPool>
 
 #include <memory>
 #include <stdexcept>
 
-int main(int argc, char* argv[])
+namespace
 {
-    logger_id = "master";
-    qInstallMessageHandler(qtMessageLogger);
-
-    COMMAND_LINE_PARSER_CHECK(CommandLineParameters, "tideMaster");
-
+void setupEnvVariables()
+{
     // Load virtualkeyboard input context plugin
     qputenv("QT_IM_MODULE", QByteArray("virtualkeyboard"));
 
@@ -69,28 +66,50 @@ int main(int argc, char* argv[])
         if (QString(qVersion()) == "5.8.0")
             qunsetenv("http_proxy");
     }
+}
+}
+
+int main(int argc, char* argv[])
+{
+    logger_id = "master";
+    qInstallMessageHandler(qtMessageLogger);
+
+    COMMAND_LINE_PARSER_CHECK(CommandLineParameters, "tideMaster");
+
+    setupEnvVariables();
 
     {
-        MPIChannelPtr worldChannel(new MPIChannel(argc, argv));
-        if (worldChannel->getSize() < 2)
+        auto worldComm = MPICommunicator{argc, argv};
+        if (worldComm.getSize() < 2)
         {
             std::cerr << "MPI group size < 2 detected. Use tide script or check"
-                         " MPI configuration."
+                         " MPI parameters."
                       << std::endl;
             return EXIT_FAILURE;
         }
+        // Init communicators: all MPI processes must follow the same steps
+        auto masterForkerComm = MPICommunicator{worldComm, 0};
+        auto wallSwapSyncComm = MPICommunicator{worldComm, 0};
+        auto masterWallComm = MPICommunicator{worldComm, 1};
+        auto wallMasterComm = MPICommunicator{worldComm, 1};
 
-        const int rank = worldChannel->getRank();
-        MPIChannelPtr localChannel(new MPIChannel(*worldChannel, 0, rank));
-        MPIChannelPtr localChannel2(new MPIChannel(*worldChannel, 0, rank));
-        MPIChannelPtr mainChannel(new MPIChannel(*worldChannel, 1, rank));
+        Q_UNUSED(wallSwapSyncComm);
 
-        std::unique_ptr<MasterApplication> app;
         try
         {
             const auto config = commandLine.getConfigFilename();
-            app.reset(new MasterApplication(argc, argv, config, mainChannel,
-                                            localChannel));
+            MasterApplication app(argc, argv, config, masterWallComm,
+                                  wallMasterComm, masterForkerComm);
+
+            const auto& session = commandLine.getSessionFilename();
+            if (!session.isEmpty())
+                app.load(session);
+
+            app.exec(); // enter Qt event loop
+
+            print_log(LOG_DEBUG, LOG_GENERAL,
+                      "waiting for threads to finish...");
+            QThreadPool::globalInstance()->waitForDone();
         }
         catch (const std::exception& e)
         {
@@ -99,21 +118,12 @@ int main(int argc, char* argv[])
 
             // Avoid MPI deadlock, tell the other applications to quit
             // (normally done by MasterApplication destructor).
-            localChannel->send(MPIMessageType::QUIT, "", 1);
-            mainChannel->sendAll(MPIMessageType::QUIT);
+            masterForkerComm.send(MessageType::QUIT, "", 1);
+            masterWallComm.broadcast(MessageType::QUIT);
 
             return EXIT_FAILURE;
         }
-
-        const auto& session = commandLine.getSessionFilename();
-        if (!session.isEmpty())
-            app->load(session);
-
-        app->exec(); // enter Qt event loop
-
-        print_log(LOG_DEBUG, LOG_GENERAL, "waiting for threads to finish...");
-        QThreadPool::globalInstance()->waitForDone();
-    }
+    } // close MPI connections
     print_log(LOG_DEBUG, LOG_GENERAL, "done.");
     return EXIT_SUCCESS;
 }

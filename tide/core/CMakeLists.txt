@@ -150,9 +150,9 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   multitouch/TapAndHoldDetector.h
   multitouch/TapDetector.h
   network/LocalBarrier.h
-  network/MPIChannel.h
+  network/MPICommunicator.h
   network/MPIContext.h
-  network/MPIHeader.h
+  network/MessageHeader.h
   network/MPINospin.h
   network/NetworkBarrier.h
   network/ReceiveBuffer.h
@@ -229,7 +229,7 @@ list(APPEND TIDECORE_SOURCES
   multitouch/TapAndHoldDetector.cpp
   multitouch/TapDetector.cpp
   network/LocalBarrier.cpp
-  network/MPIChannel.cpp
+  network/MPICommunicator.cpp
   network/MPIContext.cpp
   network/MPINospin.cpp
   network/SharedNetworkBarrier.cpp

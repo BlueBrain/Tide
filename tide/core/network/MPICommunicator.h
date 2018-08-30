@@ -37,11 +37,11 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef MPICHANNEL_H
-#define MPICHANNEL_H
+#ifndef MPICOMMUNICATOR_H
+#define MPICOMMUNICATOR_H
 
-#include "MPIHeader.h"
 #include "NetworkBarrier.h"
+#include "network/MessageHeader.h"
 #include "types.h"
 
 #include <mpi.h>
@@ -49,7 +49,7 @@
 class MPIContext;
 
 /**
- * The result of an MPIChannel::probe() operation
+ * The result of a probe operation on the network communicator.
  */
 struct ProbeResult
 {
@@ -60,45 +60,122 @@ struct ProbeResult
     const int size;
 
     /** The type of the message */
-    const MPIMessageType message;
+    const MessageType messageType;
 
     /** @return True if the probe was successful and receive() is safe */
     bool isValid() const { return size >= 0; }
 };
 
 /**
- * Handle MPI communications between all Tide instances.
+ * Handle network communication between a set of MPI processes.
  */
-class MPIChannel : public NetworkBarrier
+class MPICommunicator : public NetworkBarrier
 {
 public:
     /**
-     * Create a new channel, initializing the MPI context.
+     * Create a new communicator, initializing the MPI context.
+     *
      * This constructor should only be used once per program.
-     * Use the alternative constructor to create additional channels which
+     * Use the alternative constructor to create additional communicators which
      * share the primary MPIContext.
+     *
      * @param argc main program arguments count
      * @param argv main program arguments
      */
-    MPIChannel(int argc, char* argv[]);
+    MPICommunicator(int argc, char* argv[]);
 
     /**
-     * Create a new channel from splitting its parent channel.
-     * @param parent The parent context to split, sharing the same MPIContext
-     * @param color All processes with the same color belong to the same channel
-     * @param key If provided, used to order the new ranks for the new channel
+     * Create a communicator by splitting a parent one.
+     *
+     * The new ranks are ordered according to the ranks in the parent.
+     *
+     * @param parent The parent context to split, sharing the same MPIContext.
+     * @param color All processes with the same color belong to the same group.
      */
-    MPIChannel(const MPIChannel& parent, int color, int key);
+    MPICommunicator(const MPICommunicator& parent, int color);
 
-    /** Destructor, closes the MPI channel. */
-    ~MPIChannel();
+    /** Destructor, closes the MPI communicator. */
+    ~MPICommunicator();
 
-    /** Get the rank of this process. */
+    /** Get the rank of this process in this group. */
     int getRank() const;
 
-    /** Get the number of processes in this channel. */
+    /** Get the number of processes in this group. */
     int getSize() const;
 
+    /** @name One-to-one communication. */
+    //@{
+    /**
+     * Send data to a single process.
+     * @param type The type of data to send
+     * @param serializedData The serialized data
+     * @param dest The destination process
+     */
+    void send(MessageType type, const std::string& serializedData, int dest);
+
+    /**
+     * Perform a blocking probe operation.
+     * This allows receiving messages of any type and size from any source
+     * atomically, without the need for transmitting a separate message header.
+     * @see receive()
+     * @param src The source process of where to probe on (default: any)
+     * @param tag The message tag of interest (default: any)
+     * @return The probe result for a subsequent receive()
+     */
+    ProbeResult probe(int src = MPI_ANY_SOURCE, int tag = MPI_ANY_TAG);
+
+    /**
+     * Receive a message from a specific process.
+     * This call is blocking.
+     * @see probe()
+     * @param src The source process
+     * @param dataBuffer The target data buffer
+     * @param messageSize The number of bytes to receive
+     * @param tag The message tag/type, see probe()
+     */
+    void receive(int src, char* dataBuffer, size_t messageSize, int tag);
+    //@}
+
+    /** @name Collective communication. */
+    //@{
+    /**
+     * Broadcast a signal to all processes.
+     * @see receiveBroadcastHeader()
+     * @param type The type of signal
+     */
+    void broadcast(MessageType type);
+
+    /**
+     * Brodcast a message to all other processes.
+     * @see receiveBroadcastHeader()
+     * @param type The message type
+     * @param data The serialized payload
+     */
+    void broadcast(MessageType type, const std::string& data);
+    void broadcast(MessageType type, const QByteArray& data);
+
+    /**
+     * Receive a header broadcast by a specific process.
+     * This call is blocking.
+     * @see receiveBroadcast()
+     * @param src The source process
+     * @return The header containing the message type and size
+     */
+    MessageHeader receiveBroadcastHeader(int src);
+
+    /**
+     * Recieve a broadcast.
+     * This call is blocking.
+     * @see receiveBroadcastHeader()
+     * @param src The source process
+     * @param dataBuffer The target data buffer
+     * @param messageSize The number of bytes to receive
+     */
+    void receiveBroadcast(int src, char* dataBuffer, size_t messageSize);
+    //@}
+
+    /** @name Collective operations. */
+    //@{
     /** Block execution until all participants have reached the barrier. */
     void globalBarrier() const final;
 
@@ -110,84 +187,22 @@ public:
     int globalSum(int localValue) const;
 
     /**
-     * Send data to a single process
-     * @param type The type of data to send
-     * @param serializedData The serialized data
-     * @param dest The destination process
-     */
-    void send(MPIMessageType type, const std::string& serializedData, int dest);
-
-    /**
-     * Send a signal to all processes
-     * @param type The type of signal
-     */
-    void sendAll(MPIMessageType type);
-
-    /**
-     * Send a brodcast message to all other processes
-     * @param type The message type
-     * @param serializedData The serialized data
-     */
-    void broadcast(MPIMessageType type, const std::string& serializedData);
-    void broadcast(MPIMessageType type, const QByteArray& serializedData);
-
-    /** Nonblocking probe for messages from a given source */
-    bool isMessageAvailable(int src);
-
-    /**
-     * Perform a blocking probe operation that returns if a message is pending
-     * @param src The source process of where to probe on, default
-     * MPI_ANY_SOURCE
-     * @param tag The message tag of interest, default MPI_ANY_TAG
-     * @return The probe result for a subsequent receive()
-     */
-    ProbeResult probe(int src = MPI_ANY_SOURCE, int tag = MPI_ANY_TAG);
-
-    /**
-     * Receive a header from a specific process.
-     * This call is blocking.
-     * @see isMessageAvailable()
-     * @param src The source process
-     * @return The header containing the message type and size
-     */
-    MPIHeader receiveHeader(int src);
-
-    /**
-     * Receive a message from a specific process.
-     * This call is blocking.
-     * @see receiveHeader()
-     * @param dataBuffer The target data buffer
-     * @param messageSize The number of bytes to receive
-     * @param src The source process
-     * @param tag The message tag/type, see probe()
-     */
-    void receive(char* dataBuffer, size_t messageSize, int src, int tag = 0);
-
-    /**
-     * Recieve a broadcast.
-     * This call is blocking.
-     * @see receiveHeader()
-     * @param dataBuffer The target data buffer
-     * @param messageSize The number of bytes to receive
-     * @param src The source process
-     */
-    void receiveBroadcast(char* dataBuffer, size_t messageSize, int src);
-
-    /**
      * Gather the values accross all the processes.
      * @param value The local value
      * @return A vector of values of size getSize(), ordered by process rank
      */
     std::vector<uint64_t> gatherAll(uint64_t value);
+    //@}
 
 private:
     std::shared_ptr<MPIContext> _mpiContext;
     MPI_Comm _mpiComm;
-    int _mpiRank;
-    int _mpiSize;
+    int _mpiRank = -1;
+    int _mpiSize = -1;
 
-    bool _isValid(const int dest) const;
-    void _send(const MPIHeader& header, const int dest);
+    void _broadcast(const MessageHeader& mh);
+    void _broadcast(const char* data, const size_t size);
+    bool _isValidAndNotSelf(const int dest) const;
 };
 
 #endif

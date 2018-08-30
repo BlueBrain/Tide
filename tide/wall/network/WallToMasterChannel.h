@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
 /*                          Daniel Nachbaur <daniel.nachbaur@epfl.ch>*/
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
@@ -56,7 +56,7 @@ class WallToMasterChannel : public QObject
 
 public:
     /** Constructor */
-    WallToMasterChannel(MPIChannelPtr mpiChannel);
+    WallToMasterChannel(MPICommunicator& communicator);
 
 public slots:
     /**
@@ -84,7 +84,7 @@ public slots:
     void sendQuit();
 
 private:
-    MPIChannelPtr _mpiChannel;
+    MPICommunicator& _communicator;
 };
 
 #endif

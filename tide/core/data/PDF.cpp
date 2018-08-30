@@ -47,11 +47,6 @@
 #include "PDFPopplerQtBackend.h"
 #endif
 
-namespace
-{
-const int INVALID_PAGE_NUMBER = -1;
-}
-
 std::unique_ptr<PDFBackend> _createPdfBackend(const QString& uri)
 {
 #if TIDE_USE_CAIRO && TIDE_USE_POPPLER_GLIB

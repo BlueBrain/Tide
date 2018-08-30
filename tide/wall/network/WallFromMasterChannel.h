@@ -55,7 +55,7 @@ class WallFromMasterChannel : public QObject
 
 public:
     /** Constructor */
-    WallFromMasterChannel(MPIChannelPtr mpiChannel);
+    WallFromMasterChannel(MPICommunicator& communicator);
 
     /**
      * Receive the inital Configuration sent by the master process.
@@ -117,9 +117,9 @@ signals:
     void receivedQuit();
 
 private:
-    MPIChannelPtr _mpiChannel;
+    MPICommunicator& _communicator;
     ReceiveBuffer _buffer;
-    bool _processMessages;
+    bool _processMessages = true;
 
     void receiveMessage();
 

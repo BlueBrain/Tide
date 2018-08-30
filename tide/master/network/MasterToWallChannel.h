@@ -40,7 +40,7 @@
 #ifndef MASTERTOWALLCHANNEL_H
 #define MASTERTOWALLCHANNEL_H
 
-#include "network/MPIHeader.h"
+#include "network/MessageHeader.h"
 #include "types.h"
 
 #include <QObject>
@@ -69,7 +69,7 @@ class MasterToWallChannel : public QObject
 
 public:
     /** Constructor */
-    MasterToWallChannel(MPIChannelPtr mpiChannel);
+    MasterToWallChannel(MPICommunicator& communicator);
 
 public slots:
     /**
@@ -125,15 +125,15 @@ public slots:
     void sendQuit();
 
 private:
-    MPIChannelPtr _mpiChannel;
+    MPICommunicator& _communicator;
 
     template <typename T>
-    void broadcast(const T& object, const MPIMessageType type);
+    void broadcast(const T& object, const MessageType type);
     template <typename T>
-    void broadcastAsync(const T& object, const MPIMessageType type);
+    void broadcastAsync(const T& object, const MessageType type);
 
 private slots:
-    void _broadcast(MPIMessageType type, std::string data);
+    void _broadcast(MessageType type, std::string data);
 };
 
 #endif

@@ -88,13 +88,14 @@ const QUrl QML_OFFSCREEN_ROOT_COMPONENT("qrc:/qml/master/OffscreenRoot.qml");
 
 MasterApplication::MasterApplication(int& argc_, char** argv_,
                                      const QString& config,
-                                     MPIChannelPtr worldChannel,
-                                     MPIChannelPtr forkChannel)
+                                     MPICommunicator& wallSendComm,
+                                     MPICommunicator& wallRecvComm,
+                                     MPICommunicator& forkerSendComm)
     : QApplication(argc_, argv_)
     , _config(new Configuration(config))
-    , _masterToForkerChannel(new MasterToForkerChannel(forkChannel))
-    , _masterToWallChannel(new MasterToWallChannel(worldChannel))
-    , _masterFromWallChannel(new MasterFromWallChannel(worldChannel))
+    , _masterToForkerChannel(new MasterToForkerChannel(forkerSendComm))
+    , _masterToWallChannel(new MasterToWallChannel(wallSendComm))
+    , _masterFromWallChannel(new MasterFromWallChannel(wallRecvComm))
     , _lock(ScreenLock::create())
     , _markers(Markers::create(0))
     , _options(Options::create())

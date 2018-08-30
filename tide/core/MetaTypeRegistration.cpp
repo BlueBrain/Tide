@@ -40,7 +40,7 @@
 #include "config.h"
 #include "types.h"
 
-#include "network/MPIHeader.h"
+#include "network/MessageHeader.h"
 #include "scene/Window.h"
 
 #include <QMetaType>
@@ -66,7 +66,7 @@ struct MetaTypeRegistration
         qRegisterMetaType<SceneConstPtr>("SceneConstPtr");
         qRegisterMetaType<ImagePtr>("ImagePtr");
         qRegisterMetaType<MarkersPtr>("MarkersPtr");
-        qRegisterMetaType<MPIMessageType>("MPIMessageType");
+        qRegisterMetaType<MessageType>("MessageType");
         qRegisterMetaType<OptionsPtr>("OptionsPtr");
         qRegisterMetaType<QUuid>("QUuid");
         qRegisterMetaType<ScreenLockPtr>("ScreenLockPtr");

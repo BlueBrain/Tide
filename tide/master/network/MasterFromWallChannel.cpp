@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
 /*                          Daniel Nachbaur <daniel.nachbaur@epfl.ch>*/
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
@@ -40,15 +40,14 @@
 
 #include "MasterFromWallChannel.h"
 
-#include "network/MPIChannel.h"
+#include "network/MPICommunicator.h"
 #include "serialization/utils.h"
 #include "utils/log.h"
 
-MasterFromWallChannel::MasterFromWallChannel(MPIChannelPtr mpiChannel)
-    : _mpiChannel(mpiChannel)
-    , _processMessages(true)
+MasterFromWallChannel::MasterFromWallChannel(MPICommunicator& communicator)
+    : _communicator{communicator}
 {
-    if (_mpiChannel->getSize() < 2)
+    if (_communicator.getSize() < 2)
     {
         print_log(LOG_WARN, LOG_MPI, "Channel has no Wall receiver");
         _processMessages = false;
@@ -59,7 +58,7 @@ void MasterFromWallChannel::processMessages()
 {
     while (_processMessages)
     {
-        const ProbeResult result = _mpiChannel->probe();
+        const auto result = _communicator.probe();
         if (!result.isValid())
         {
             print_log(LOG_ERROR, LOG_MPI, "Invalid probe result size: %d",
@@ -68,17 +67,17 @@ void MasterFromWallChannel::processMessages()
         }
 
         _buffer.setSize(result.size);
-        _mpiChannel->receive(_buffer.data(), result.size, result.src,
-                             int(result.message));
+        _communicator.receive(result.src, _buffer.data(), _buffer.size(),
+                              int(result.messageType));
 
-        switch (result.message)
+        switch (result.messageType)
         {
-        case MPIMessageType::REQUEST_FRAME:
+        case MessageType::REQUEST_FRAME:
         {
             emit receivedRequestFrame(serialization::get<QString>(_buffer));
             break;
         }
-        case MPIMessageType::IMAGE:
+        case MessageType::IMAGE:
         {
             QImage image;
             QPoint index;
@@ -86,15 +85,15 @@ void MasterFromWallChannel::processMessages()
             emit receivedScreenshot(image, index);
             break;
         }
-        case MPIMessageType::PIXELSTREAM_CLOSE:
+        case MessageType::PIXELSTREAM_CLOSE:
             emit pixelStreamClose(serialization::get<QString>(_buffer));
             break;
-        case MPIMessageType::QUIT:
+        case MessageType::QUIT:
             _processMessages = false;
             break;
         default:
             print_log(LOG_WARN, LOG_MPI, "Invalid message type: %d",
-                      result.message);
+                      result.messageType);
             break;
         }
     }

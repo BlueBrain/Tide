@@ -39,7 +39,7 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "tide/core/network/MPIChannel.h"
+#include "tide/core/network/MPICommunicator.h"
 #include "tide/core/utils/CommandLineParser.h"
 #include "tide/core/utils/log.h"
 #include "tide/master/localstreamer/ProcessForker.h"
@@ -63,14 +63,26 @@ int main(int argc, char* argv[])
     COMMAND_LINE_PARSER_CHECK(CommandLineHelper, "tideForker");
 
     {
-        MPIChannelPtr worldChannel(new MPIChannel(argc, argv));
-        const int rank = worldChannel->getRank();
-        MPIChannelPtr localChannel(new MPIChannel(*worldChannel, 0, rank));
-        MPIChannelPtr localChannel2(new MPIChannel(*worldChannel, 0, rank));
-        MPIChannelPtr mainChannel(new MPIChannel(*worldChannel, 0, rank));
+        auto worldComm = MPICommunicator{argc, argv};
+        if (worldComm.getSize() < 2)
+        {
+            std::cerr << "MPI group size < 2 detected. Use tide script or check"
+                         " MPI parameters."
+                      << std::endl;
+            return EXIT_FAILURE;
+        }
+        // Init communicators: all MPI processes must follow the same steps
+        auto masterForkerComm = MPICommunicator{worldComm, 0};
+        auto wallSwapSyncComm = MPICommunicator{worldComm, 0};
+        auto masterWallComm = MPICommunicator{worldComm, 0};
+        auto wallMasterComm = MPICommunicator{worldComm, 0};
 
-        ProcessForker(localChannel).run();
-    }
+        Q_UNUSED(wallSwapSyncComm);
+        Q_UNUSED(masterWallComm);
+        Q_UNUSED(wallMasterComm);
+
+        ProcessForker{masterForkerComm}.run();
+    } // close MPI connections
     print_log(LOG_DEBUG, LOG_GENERAL, "done.");
     return EXIT_SUCCESS;
 }

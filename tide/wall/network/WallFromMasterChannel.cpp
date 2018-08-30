@@ -40,7 +40,7 @@
 #include "WallFromMasterChannel.h"
 
 #include "configuration/Configuration.h"
-#include "network/MPIChannel.h"
+#include "network/MPICommunicator.h"
 #include "scene/CountdownStatus.h"
 #include "scene/Markers.h"
 #include "scene/Options.h"
@@ -60,16 +60,15 @@ namespace
 const int RANK0 = 0;
 }
 
-WallFromMasterChannel::WallFromMasterChannel(MPIChannelPtr mpiChannel)
-    : _mpiChannel{mpiChannel}
-    , _processMessages{true}
+WallFromMasterChannel::WallFromMasterChannel(MPICommunicator& communicator)
+    : _communicator{communicator}
 {
 }
 
 Configuration WallFromMasterChannel::receiveConfiguration()
 {
-    const auto mh = _mpiChannel->receiveHeader(RANK0);
-    if (mh.type != MPIMessageType::CONFIG)
+    const auto mh = _communicator.receiveBroadcastHeader(RANK0);
+    if (mh.type != MessageType::CONFIG)
         throw std::logic_error("Configuation object expected from master");
     return receiveJsonBroadcast<Configuration>(mh.size);
 }
@@ -82,25 +81,25 @@ void WallFromMasterChannel::processMessages()
 
 void WallFromMasterChannel::receiveMessage()
 {
-    const auto mh = _mpiChannel->receiveHeader(RANK0);
+    const auto mh = _communicator.receiveBroadcastHeader(RANK0);
     switch (mh.type)
     {
-    case MPIMessageType::SCENE:
+    case MessageType::SCENE:
         emit received(receiveQObjectBroadcast<ScenePtr>(mh.size));
         break;
-    case MPIMessageType::OPTIONS:
+    case MessageType::OPTIONS:
         emit received(receiveQObjectBroadcast<OptionsPtr>(mh.size));
         break;
-    case MPIMessageType::LOCK:
+    case MessageType::LOCK:
         emit received(receiveQObjectBroadcast<ScreenLockPtr>(mh.size));
         break;
-    case MPIMessageType::MARKERS:
+    case MessageType::MARKERS:
         emit received(receiveQObjectBroadcast<MarkersPtr>(mh.size));
         break;
-    case MPIMessageType::COUNTDOWN_STATUS:
+    case MessageType::COUNTDOWN_STATUS:
         emit received(receiveQObjectBroadcast<CountdownStatusPtr>(mh.size));
         break;
-    case MPIMessageType::PIXELSTREAM:
+    case MessageType::PIXELSTREAM:
 #if BOOST_VERSION >= 106000
         emit received(
             receiveBinaryBroadcast<deflect::server::FramePtr>(mh.size));
@@ -112,14 +111,14 @@ void WallFromMasterChannel::receiveMessage()
             receiveBinaryBroadcast<deflect::server::Frame>(mh.size)));
 #endif
         break;
-    case MPIMessageType::IMAGE:
+    case MessageType::IMAGE:
         emit receivedScreenshotRequest();
         break;
-    case MPIMessageType::QUIT:
+    case MessageType::QUIT:
         _processMessages = false;
         emit receivedQuit();
         break;
-    case MPIMessageType::CONFIG:
+    case MessageType::CONFIG:
         throw std::logic_error("Configuation object not expected at runtime");
         break;
     default:
@@ -130,7 +129,7 @@ void WallFromMasterChannel::receiveMessage()
 void WallFromMasterChannel::receiveBroadcast(const size_t messageSize)
 {
     _buffer.setSize(messageSize);
-    _mpiChannel->receiveBroadcast(_buffer.data(), messageSize, RANK0);
+    _communicator.receiveBroadcast(RANK0, _buffer.data(), messageSize);
 }
 
 template <typename T>

@@ -37,7 +37,7 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "network/MPIChannel.h"
+#include "network/MPICommunicator.h"
 #include "network/ReceiveBuffer.h"
 #include "serialization/utils.h"
 #include "utils/CommandLineParser.h"
@@ -105,7 +105,7 @@ int main(int argc, char** argv)
 {
     COMMAND_LINE_PARSER_CHECK(BenchmarkOptions, "tideBenchmarkMPI");
 
-    MPIChannel mpiChannel(argc, argv);
+    MPICommunicator mpiComm(argc, argv);
 
     // Send buffer
     std::vector<char> noiseBuffer(commandLine.dataSize());
@@ -118,25 +118,25 @@ int main(int argc, char** argv)
     Timer timer;
     size_t counter = 0;
 
-    mpiChannel.globalBarrier();
+    mpiComm.globalBarrier();
     timer.start();
 
     while (counter < commandLine.packetsCount())
     {
-        if (mpiChannel.getRank() == RANK0)
-            mpiChannel.broadcast(MPIMessageType::NONE, serializedData);
+        if (mpiComm.getRank() == RANK0)
+            mpiComm.broadcast(MessageType::NONE, serializedData);
         else
         {
-            const MPIHeader header = mpiChannel.receiveHeader(RANK0);
+            const auto header = mpiComm.receiveBroadcastHeader(RANK0);
             buffer.setSize(header.size);
-            mpiChannel.receiveBroadcast(buffer.data(), header.size, RANK0);
+            mpiComm.receiveBroadcast(RANK0, buffer.data(), header.size);
         }
         ++counter;
     }
 
     const float time = timer.elapsed();
 
-    if (mpiChannel.getRank() == RANK0)
+    if (mpiComm.getRank() == RANK0)
     {
         std::cout << "Object size [Mbytes]: "
                   << (float)serializedData.size() / MEGABYTE << std::endl;

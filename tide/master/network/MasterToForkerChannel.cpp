@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,7 +39,7 @@
 
 #include "MasterToForkerChannel.h"
 
-#include "network/MPIChannel.h"
+#include "network/MPICommunicator.h"
 #include "serialization/utils.h"
 
 namespace
@@ -48,8 +48,8 @@ const int forkerProcess = 1;
 const QString sep('#');
 }
 
-MasterToForkerChannel::MasterToForkerChannel(MPIChannelPtr mpiChannel)
-    : _mpiChannel(mpiChannel)
+MasterToForkerChannel::MasterToForkerChannel(MPICommunicator& communicator)
+    : _communicator{communicator}
 {
 }
 
@@ -57,12 +57,12 @@ void MasterToForkerChannel::sendStart(const QString command,
                                       const QString workingDir,
                                       const QStringList env)
 {
-    const QString string = command + sep + workingDir + sep + env.join(';');
+    const auto string = command + sep + workingDir + sep + env.join(';');
     const auto data = serialization::toBinary(string);
-    _mpiChannel->send(MPIMessageType::START_PROCESS, data, forkerProcess);
+    _communicator.send(MessageType::START_PROCESS, data, forkerProcess);
 }
 
 void MasterToForkerChannel::sendQuit()
 {
-    _mpiChannel->send(MPIMessageType::QUIT, "", forkerProcess);
+    _communicator.send(MessageType::QUIT, "", forkerProcess);
 }
