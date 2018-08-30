@@ -43,7 +43,7 @@
 #include "QmlTypeRegistration.h"
 #include "RenderController.h"
 #include "WallConfiguration.h"
-#include "network/MPIChannel.h"
+#include "network/MPICommunicator.h"
 #include "network/WallFromMasterChannel.h"
 #include "network/WallToMasterChannel.h"
 #include "network/WallToWallChannel.h"
@@ -52,19 +52,20 @@
 #include <QThreadPool>
 
 WallApplication::WallApplication(int& argc_, char** argv_,
-                                 MPIChannelPtr worldChannel,
-                                 MPIChannelPtr wallChannel,
-                                 MPIChannelPtr wallChannelSwapSync)
+                                 MPICommunicator& masterRecvComm,
+                                 MPICommunicator& masterSendComm,
+                                 MPICommunicator& wallToWallComm,
+                                 NetworkBarrier& swapSyncBarrier)
     : QGuiApplication{argc_, argv_}
     , _provider{new DataProvider}
-    , _fromMasterChannel{new WallFromMasterChannel(worldChannel)}
-    , _toMasterChannel{new WallToMasterChannel(worldChannel)}
-    , _wallChannel{new WallToWallChannel{wallChannel}}
+    , _fromMasterChannel{new WallFromMasterChannel(masterRecvComm)}
+    , _toMasterChannel{new WallToMasterChannel(masterSendComm)}
+    , _wallChannel{new WallToWallChannel{wallToWallComm}}
 {
     qml::registerTypes();
 
     const auto config = _fromMasterChannel->receiveConfiguration();
-    const auto rank = (uint)wallChannel->getRank();
+    const auto rank = (uint)wallToWallComm.getRank();
     _config = std::make_unique<WallConfiguration>(config, rank);
 
     Content::setMaxScale(config.settings.contentMaxScale);
@@ -78,7 +79,7 @@ WallApplication::WallApplication(int& argc_, char** argv_,
 
     _renderController =
         std::make_unique<RenderController>(*_config, *_provider, *_wallChannel,
-                                           *wallChannelSwapSync,
+                                           swapSyncBarrier,
                                            config.global.swapsync);
     _initMPIConnections();
 }

@@ -73,12 +73,15 @@ public:
      * @param argc Command line argument count (required by QApplication)
      * @param argv Command line arguments (required by QApplication)
      * @param config The configuration file for the application
-     * @param worldChannel The world MPI channel
-     * @param forkChannel The MPI channel for forking processes
+     * @param wallSendComm The communicator to send messages to wall processes
+     * @param wallRecvComm The communicator to receive from wall processes
+     * @param forkerSendComm The communicator for the forker process
      * @throw std::runtime_error if an error occured during initialization
      */
     MasterApplication(int& argc, char** argv, const QString& config,
-                      MPIChannelPtr worldChannel, MPIChannelPtr forkChannel);
+                      MPICommunicator& wallSendComm,
+                      MPICommunicator& wallRecvComm,
+                      MPICommunicator& forkerSendComm);
 
     /** Destructor */
     ~MasterApplication();

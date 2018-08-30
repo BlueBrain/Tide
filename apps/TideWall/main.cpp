@@ -40,7 +40,7 @@
 
 #include "WallApplication.h"
 #include "WallConfiguration.h"
-#include "network/MPIChannel.h"
+#include "network/MPICommunicator.h"
 #include "utils/CommandLineParser.h"
 #include "utils/log.h"
 
@@ -61,38 +61,48 @@ public:
         std::cout << "Do not launch manually, use 'tide' script instead.\n";
     }
 };
+
+void setupEnvVariables()
+{
+    // Load virtualkeyboard input context plugin
+    qputenv("QT_IM_MODULE", QByteArray("virtualkeyboard"));
+}
 }
 
 int main(int argc, char* argv[])
 {
     COMMAND_LINE_PARSER_CHECK(CommandLineParameters, "tideWall");
 
-    // Load virtualkeyboard input context plugin
-    qputenv("QT_IM_MODULE", QByteArray("virtualkeyboard"));
+    setupEnvVariables();
 
     {
-        MPIChannelPtr worldChannel(new MPIChannel(argc, argv));
-        if (worldChannel->getSize() < 2)
+        auto worldComm = MPICommunicator{argc, argv};
+        if (worldComm.getSize() < 2)
         {
             std::cerr << "MPI group size < 2 detected. Use tide script or check"
-                         " MPI configuration."
+                         " MPI parameters."
                       << std::endl;
             return EXIT_FAILURE;
         }
 
-        const int rank = worldChannel->getRank();
-        logger_id = QString("wall%1").arg(rank).toStdString();
+        logger_id = QString("wall%1").arg(worldComm.getRank()).toStdString();
         qInstallMessageHandler(qtMessageLogger);
 
-        MPIChannelPtr localChannel(new MPIChannel(*worldChannel, 1, rank));
-        MPIChannelPtr localChannel2(new MPIChannel(*worldChannel, 1, rank));
-        MPIChannelPtr mainChannel(new MPIChannel(*worldChannel, 1, rank));
+        // Init communicators: all MPI processes must follow the same steps
+        auto wallToWallComm = MPICommunicator{worldComm, 1};
+        auto wallSwapSyncComm = MPICommunicator{worldComm, 1};
+        auto masterWallComm = MPICommunicator{worldComm, 1};
+        auto wallMasterComm = MPICommunicator{worldComm, 1};
 
-        std::unique_ptr<WallApplication> app;
         try
         {
-            app.reset(new WallApplication(argc, argv, mainChannel, localChannel,
-                                          localChannel2));
+            WallApplication app(argc, argv, masterWallComm, wallMasterComm,
+                                wallToWallComm, wallSwapSyncComm);
+            app.exec(); // enter Qt event loop
+
+            print_log(LOG_DEBUG, LOG_GENERAL,
+                      "waiting for threads to finish...");
+            QThreadPool::globalInstance()->waitForDone();
         }
         catch (const std::exception& e)
         {
@@ -101,16 +111,12 @@ int main(int argc, char* argv[])
 
             // Always send QUIT to the master application that will wait on it
             // to exit (normally done by WallApplication destructor).
-            if (localChannel->getRank() == 0)
-                mainChannel->send(MPIMessageType::QUIT, "", 0);
+            if (wallToWallComm.getRank() == 0)
+                masterWallComm.send(MessageType::QUIT, "", 0);
 
             return EXIT_FAILURE;
         }
-        app->exec(); // enter Qt event loop
-
-        print_log(LOG_DEBUG, LOG_GENERAL, "waiting for threads to finish...");
-        QThreadPool::globalInstance()->waitForDone();
-    }
+    } // close MPI connections
     print_log(LOG_DEBUG, LOG_GENERAL, "done.");
     return EXIT_SUCCESS;
 }

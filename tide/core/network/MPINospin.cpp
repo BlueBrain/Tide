@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -45,7 +45,8 @@
 #include "MPINospin.h"
 
 #include <algorithm>
-#include <ctime>
+#include <chrono>
+#include <thread>
 
 #define TIDE_DISABLE_MPI_NOSPIN 0 // switch for debugging purposes only
 
@@ -53,6 +54,19 @@ namespace
 {
 const size_t nsec_start = 1000;
 const size_t nsec_max = 100000;
+
+int _waitForCompletion(MPI_Request req, MPI_Status* status)
+{
+    auto sleep_ns = nsec_start;
+    int flag = 0;
+    while (!flag)
+    {
+        std::this_thread::sleep_for(std::chrono::nanoseconds(sleep_ns));
+        sleep_ns = std::min(size_t(sleep_ns << 1), nsec_max);
+        MPI_Request_get_status(req, &flag, status);
+    }
+    return MPI_Wait(&req, status);
+}
 }
 
 int MPI_Probe_Nospin(const int source, const int tag, MPI_Comm comm,
@@ -88,16 +102,7 @@ int MPI_Send_Nospin(void* buff, const int count, MPI_Datatype datatype,
     if (ret != MPI_SUCCESS)
         return ret;
 
-    timespec ts{0, nsec_start};
-    int flag = 0;
-    while (!flag)
-    {
-        nanosleep(&ts, nullptr);
-        ts.tv_nsec = std::min(size_t(ts.tv_nsec << 1), nsec_max);
-        // Always returns success. Status unused for single send operations.
-        MPI_Request_get_status(req, &flag, MPI_STATUS_IGNORE);
-    }
-    return MPI_Wait(&req, MPI_STATUS_IGNORE); // release the request object
+    return _waitForCompletion(req, MPI_STATUS_IGNORE);
 #endif
 }
 
@@ -113,14 +118,21 @@ int MPI_Recv_Nospin(void* buff, const int count, MPI_Datatype datatype,
     if (ret != MPI_SUCCESS)
         return ret;
 
-    timespec ts{0, nsec_start};
-    int flag = 0;
-    while (!flag)
-    {
-        nanosleep(&ts, nullptr);
-        ts.tv_nsec = std::min(size_t(ts.tv_nsec << 1), nsec_max);
-        MPI_Request_get_status(req, &flag, status); // Always returns success
-    }
-    return MPI_Wait(&req, status); // release the request object
+    return _waitForCompletion(req, status);
+#endif
+}
+
+int MPI_Bcast_Nospin(void* buff, const int count, MPI_Datatype datatype,
+                     const int root, MPI_Comm comm)
+{
+#if TIDE_DISABLE_MPI_NOSPIN
+    MPI_Bcast(buff, count, datatype, root, comm);
+#else
+    MPI_Request req;
+    const int ret = MPI_Ibcast(buff, count, datatype, root, comm, &req);
+    if (ret != MPI_SUCCESS)
+        return ret;
+
+    return _waitForCompletion(req, MPI_STATUS_IGNORE);
 #endif
 }

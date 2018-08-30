@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -61,5 +61,12 @@ int MPI_Send_Nospin(void* buff, int count, MPI_Datatype datatype, int dest,
  */
 int MPI_Recv_Nospin(void* buff, int count, MPI_Datatype datatype, int from,
                     int tag, MPI_Comm comm, MPI_Status* status);
+
+/**
+ * Implements a blocking, non-spinning MPI_Bcast to minimize CPU usage.
+ * @see MPI_Bcast
+ */
+int MPI_Bcast_Nospin(void* buff, int count, MPI_Datatype datatype, int root,
+                     MPI_Comm comm);
 
 #endif

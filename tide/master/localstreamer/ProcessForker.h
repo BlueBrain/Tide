@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -71,22 +71,20 @@ class ProcessForker
 public:
     /**
      * Constructor
-     * @param mpiChannel to receive commands from the master application
+     * @param communicator to receive commands from the master application.
      */
-    explicit ProcessForker(MPIChannelPtr mpiChannel);
+    explicit ProcessForker(MPICommunicator& communicator);
 
-    /** Process MPI commands until a quit message is received. */
+    /** Process commands until a quit message is received. */
     void run();
 
 private:
-    MPIChannelPtr _mpiChannel;
-    bool _processMessages;
-
-    typedef std::map<QString, QProcess*> Processes;
-    Processes _processes;
-
     void _launch(const QString& command, const QString& workingDir,
                  const QStringList& env);
+
+    MPICommunicator& _communicator;
+    bool _processMessages = true;
+    std::map<QString, QProcess*> _processes;
 };
 
 #endif

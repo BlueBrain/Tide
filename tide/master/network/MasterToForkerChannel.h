@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -55,7 +55,7 @@ class MasterToForkerChannel : public QObject
 
 public:
     /** Constructor */
-    MasterToForkerChannel(MPIChannelPtr mpiChannel);
+    MasterToForkerChannel(MPICommunicator& communicator);
 
 public slots:
     /**
@@ -73,7 +73,7 @@ public slots:
     void sendQuit();
 
 private:
-    MPIChannelPtr _mpiChannel;
+    MPICommunicator& _communicator;
 };
 
 #endif

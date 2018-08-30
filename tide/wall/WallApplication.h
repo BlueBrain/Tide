@@ -65,14 +65,16 @@ public:
      * Constructor
      * @param argc Command line argument count (required by QApplication)
      * @param argv Command line arguments (required by QApplication)
-     * @param worldChannel The world MPI channel
-     * @param wallChannel The wall MPI channel for scene synchronization
-     * @param wallChannelSwapSync The wall channel for swap synchronization
+     * @param masterRecvComm The communicator to receive from master process
+     * @param masterSendComm The communicator to send messages to master process
+     * @param wallToWallComm The communicator for scene synchronization
+     * @param swapSyncBarrier The network barrier for frame swap synchronization
      * @throw std::runtime_error if an error occured during initialization
      */
-    WallApplication(int& argc, char** argv, MPIChannelPtr worldChannel,
-                    MPIChannelPtr wallChannel,
-                    MPIChannelPtr wallChannelSwapSync);
+    WallApplication(int& argc, char** argv, MPICommunicator& masterRecvComm,
+                    MPICommunicator& masterSendComm,
+                    MPICommunicator& wallToWallComm,
+                    NetworkBarrier& swapSyncBarrier);
 
     /** Destructor */
     virtual ~WallApplication();

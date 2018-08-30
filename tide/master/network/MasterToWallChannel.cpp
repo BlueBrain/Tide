@@ -39,7 +39,7 @@
 
 #include "MasterToWallChannel.h"
 
-#include "network/MPIChannel.h"
+#include "network/MPICommunicator.h"
 #include "scene/CountdownStatus.h"
 #include "scene/Markers.h"
 #include "scene/Options.h"
@@ -52,82 +52,82 @@
 
 #include <deflect/server/Frame.h>
 
-MasterToWallChannel::MasterToWallChannel(MPIChannelPtr mpiChannel)
-    : _mpiChannel(mpiChannel)
+MasterToWallChannel::MasterToWallChannel(MPICommunicator& communicator)
+    : _communicator{communicator}
 {
 }
 
 template <typename T>
-void MasterToWallChannel::broadcast(const T& object, const MPIMessageType type)
+void MasterToWallChannel::broadcast(const T& object, const MessageType type)
 {
-    _mpiChannel->broadcast(type, serialization::toBinary(object));
+    _communicator.broadcast(type, serialization::toBinary(object));
 }
 
 template <typename T>
 void MasterToWallChannel::broadcastAsync(const T& object,
-                                         const MPIMessageType type)
+                                         const MessageType type)
 {
     const auto data = serialization::toBinary(object);
 
     QMetaObject::invokeMethod(this, "_broadcast", Qt::QueuedConnection,
-                              Q_ARG(MPIMessageType, type),
+                              Q_ARG(MessageType, type),
                               Q_ARG(std::string, data));
 }
 
 void MasterToWallChannel::sendAsync(ScenePtr scene)
 {
-    broadcastAsync(scene, MPIMessageType::SCENE);
+    broadcastAsync(scene, MessageType::SCENE);
 }
 
 void MasterToWallChannel::sendAsync(OptionsPtr options)
 {
-    broadcastAsync(options, MPIMessageType::OPTIONS);
+    broadcastAsync(options, MessageType::OPTIONS);
 }
 
 void MasterToWallChannel::sendAsync(CountdownStatusPtr status)
 {
-    broadcastAsync(status, MPIMessageType::COUNTDOWN_STATUS);
+    broadcastAsync(status, MessageType::COUNTDOWN_STATUS);
 }
 
 void MasterToWallChannel::sendAsync(ScreenLockPtr lock)
 {
-    broadcastAsync(lock, MPIMessageType::LOCK);
+    broadcastAsync(lock, MessageType::LOCK);
 }
 
 void MasterToWallChannel::sendAsync(MarkersPtr markers)
 {
-    broadcastAsync(markers, MPIMessageType::MARKERS);
+    broadcastAsync(markers, MessageType::MARKERS);
 }
 
 void MasterToWallChannel::sendFrame(deflect::server::FramePtr frame)
 {
     assert(!frame->tiles.empty() && "received an empty frame");
 #if BOOST_VERSION >= 106000
-    broadcast(frame, MPIMessageType::PIXELSTREAM);
+    broadcast(frame, MessageType::PIXELSTREAM);
 #else
     // WAR missing support for std::shared_ptr
-    broadcast(*frame, MPIMessageType::PIXELSTREAM);
+    broadcast(*frame, MessageType::PIXELSTREAM);
 #endif
 }
 
 void MasterToWallChannel::send(const Configuration& config)
 {
-    _mpiChannel->broadcast(MPIMessageType::CONFIG, json::pack(config));
+    _communicator.broadcast(MessageType::CONFIG, json::pack(config));
 }
 
 void MasterToWallChannel::sendRequestScreenshot()
 {
-    _mpiChannel->sendAll(MPIMessageType::IMAGE);
+    _communicator.broadcast(MessageType::IMAGE);
 }
 
 void MasterToWallChannel::sendQuit()
 {
-    _mpiChannel->sendAll(MPIMessageType::QUIT);
+    _communicator.broadcast(MessageType::QUIT);
 }
 
 // cppcheck-suppress passedByValue
-void MasterToWallChannel::_broadcast(const MPIMessageType type,
+void MasterToWallChannel::_broadcast(const MessageType type,
                                      const std::string data)
 {
-    _mpiChannel->broadcast(type, data);
+    _communicator.broadcast(type, data);
 }

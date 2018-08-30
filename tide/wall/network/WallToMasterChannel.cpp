@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
 /*                          Daniel Nachbaur <daniel.nachbaur@epfl.ch>*/
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
@@ -40,33 +40,33 @@
 
 #include "WallToMasterChannel.h"
 
-#include "network/MPIChannel.h"
+#include "network/MPICommunicator.h"
 #include "serialization/utils.h"
 
-WallToMasterChannel::WallToMasterChannel(MPIChannelPtr mpiChannel)
-    : _mpiChannel(mpiChannel)
+WallToMasterChannel::WallToMasterChannel(MPICommunicator& communicator)
+    : _communicator{communicator}
 {
 }
 
 void WallToMasterChannel::sendScreenshot(const QImage image, const QPoint index)
 {
     const auto data = serialization::toBinary(image, index);
-    _mpiChannel->send(MPIMessageType::IMAGE, data, 0);
+    _communicator.send(MessageType::IMAGE, data, 0);
 }
 
 void WallToMasterChannel::sendRequestFrame(const QString uri)
 {
     const auto data = serialization::toBinary(uri);
-    _mpiChannel->send(MPIMessageType::REQUEST_FRAME, data, 0);
+    _communicator.send(MessageType::REQUEST_FRAME, data, 0);
 }
 
 void WallToMasterChannel::sendPixelStreamClose(const QString uri)
 {
     const auto data = serialization::toBinary(uri);
-    _mpiChannel->send(MPIMessageType::PIXELSTREAM_CLOSE, data, 0);
+    _communicator.send(MessageType::PIXELSTREAM_CLOSE, data, 0);
 }
 
 void WallToMasterChannel::sendQuit()
 {
-    _mpiChannel->send(MPIMessageType::QUIT, "", 0);
+    _communicator.send(MessageType::QUIT, "", 0);
 }

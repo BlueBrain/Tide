@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,31 +39,31 @@
 
 #include "WallToWallChannel.h"
 
-#include "network/MPIChannel.h"
+#include "network/MPICommunicator.h"
 #include "serialization/chrono.h"
 #include "serialization/utils.h"
 #include "utils/log.h"
 
 #define RANK0 0
 
-WallToWallChannel::WallToWallChannel(MPIChannelPtr mpiChannel)
-    : _mpiChannel(mpiChannel)
+WallToWallChannel::WallToWallChannel(MPICommunicator& communicator)
+    : _communicator{communicator}
 {
 }
 
 int WallToWallChannel::getRank() const
 {
-    return _mpiChannel->getRank();
+    return _communicator.getRank();
 }
 
 int WallToWallChannel::globalSum(const int localValue) const
 {
-    return _mpiChannel->globalSum(localValue);
+    return _communicator.globalSum(localValue);
 }
 
 bool WallToWallChannel::allReady(const bool isReady) const
 {
-    return _mpiChannel->globalSum(isReady ? 1 : 0) == _mpiChannel->getSize();
+    return _communicator.globalSum(isReady ? 1 : 0) == _communicator.getSize();
 }
 
 WallToWallChannel::clock::time_point WallToWallChannel::getTime() const
@@ -73,25 +73,18 @@ WallToWallChannel::clock::time_point WallToWallChannel::getTime() const
 
 void WallToWallChannel::synchronizeClock()
 {
-    if (_mpiChannel->getRank() == RANK0)
+    if (_communicator.getRank() == RANK0)
         _sendClock();
     else
         _receiveClock();
 }
 
-void WallToWallChannel::globalBarrier() const
-{
-    _mpiChannel->globalBarrier();
-}
-
 bool WallToWallChannel::checkVersion(const uint64_t version) const
 {
-    std::vector<uint64_t> versions = _mpiChannel->gatherAll(version);
-
-    for (std::vector<uint64_t>::const_iterator it = versions.begin();
-         it != versions.end(); ++it)
+    const auto versions = _communicator.gatherAll(version);
+    for (const auto& v : versions)
     {
-        if (*it != version)
+        if (v != version)
             return false;
     }
     return true;
@@ -116,40 +109,40 @@ int WallToWallChannel::electLeader(const bool isCandidate)
 
 void WallToWallChannel::broadcast(const double timestamp)
 {
-    _mpiChannel->broadcast(MPIMessageType::TIMESTAMP,
-                           serialization::toBinary(timestamp));
+    _communicator.broadcast(MessageType::TIMESTAMP,
+                            serialization::toBinary(timestamp));
 }
 
 double WallToWallChannel::receiveTimestampBroadcast(const int src)
 {
-    MPIHeader header = _mpiChannel->receiveHeader(src);
-    assert(header.type == MPIMessageType::TIMESTAMP);
+    const auto header = _communicator.receiveBroadcastHeader(src);
+    assert(header.type == MessageType::TIMESTAMP);
 
     _buffer.setSize(header.size);
-    _mpiChannel->receiveBroadcast(_buffer.data(), _buffer.size(), src);
+    _communicator.receiveBroadcast(src, _buffer.data(), _buffer.size());
 
     return serialization::get<double>(_buffer);
 }
 
 void WallToWallChannel::_sendClock()
 {
-    assert(_mpiChannel->getRank() == RANK0);
+    assert(_communicator.getRank() == RANK0);
 
     _timestamp = clock::now();
 
-    _mpiChannel->broadcast(MPIMessageType::FRAME_CLOCK,
-                           serialization::toBinary(_timestamp));
+    _communicator.broadcast(MessageType::FRAME_CLOCK,
+                            serialization::toBinary(_timestamp));
 }
 
 void WallToWallChannel::_receiveClock()
 {
-    assert(_mpiChannel->getRank() != RANK0);
+    assert(_communicator.getRank() != RANK0);
 
-    MPIHeader header = _mpiChannel->receiveHeader(RANK0);
-    assert(header.type == MPIMessageType::FRAME_CLOCK);
+    const auto header = _communicator.receiveBroadcastHeader(RANK0);
+    assert(header.type == MessageType::FRAME_CLOCK);
 
     _buffer.setSize(header.size);
-    _mpiChannel->receiveBroadcast(_buffer.data(), _buffer.size(), RANK0);
+    _communicator.receiveBroadcast(RANK0, _buffer.data(), _buffer.size());
 
     _timestamp = serialization::get<clock::time_point>(_buffer);
 }

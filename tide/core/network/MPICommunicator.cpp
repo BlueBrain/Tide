@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2015, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,7 +37,7 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "MPIChannel.h"
+#include "MPICommunicator.h"
 
 #include "MPIContext.h"
 #include "MPINospin.h"
@@ -52,49 +52,45 @@
             print_log(LOG_ERROR, LOG_MPI, "Error detected! (%d)", err); \
     }
 
-MPIChannel::MPIChannel(int argc, char* argv[])
+MPICommunicator::MPICommunicator(int argc, char* argv[])
     : _mpiContext(new MPIContext(argc, argv))
     , _mpiComm(MPI_COMM_WORLD)
-    , _mpiRank(-1)
-    , _mpiSize(-1)
 {
     MPI_Comm_rank(MPI_COMM_WORLD, &_mpiRank);
     MPI_Comm_size(MPI_COMM_WORLD, &_mpiSize);
 }
 
-MPIChannel::MPIChannel(const MPIChannel& parent, const int color, const int key)
+MPICommunicator::MPICommunicator(const MPICommunicator& parent, const int color)
     : _mpiContext(parent._mpiContext)
     , _mpiComm(MPI_COMM_NULL)
-    , _mpiRank(-1)
-    , _mpiSize(-1)
 {
-    MPI_Comm_split(parent._mpiComm, color, key, &_mpiComm);
+    MPI_Comm_split(parent._mpiComm, color, parent.getRank(), &_mpiComm);
     MPI_Comm_rank(_mpiComm, &_mpiRank);
     MPI_Comm_size(_mpiComm, &_mpiSize);
 }
 
-MPIChannel::~MPIChannel()
+MPICommunicator::~MPICommunicator()
 {
     if (_mpiComm != MPI_COMM_WORLD)
         MPI_Comm_disconnect(&_mpiComm);
 }
 
-int MPIChannel::getRank() const
+int MPICommunicator::getRank() const
 {
     return _mpiRank;
 }
 
-int MPIChannel::getSize() const
+int MPICommunicator::getSize() const
 {
     return _mpiSize;
 }
 
-void MPIChannel::globalBarrier() const
+void MPICommunicator::globalBarrier() const
 {
     MPI_Barrier(_mpiComm);
 }
 
-int MPIChannel::globalSum(const int localValue) const
+int MPICommunicator::globalSum(const int localValue) const
 {
     int globalValue = 0;
     MPI_Allreduce((void*)&localValue, (void*)&globalValue, 1, MPI_INT, MPI_SUM,
@@ -102,19 +98,19 @@ int MPIChannel::globalSum(const int localValue) const
     return globalValue;
 }
 
-bool MPIChannel::isMessageAvailable(const int src)
+std::vector<uint64_t> MPICommunicator::gatherAll(const uint64_t value)
 {
-    int flag;
-    MPI_Status status;
-    MPI_Iprobe(src, 0, _mpiComm, &flag, &status);
-
-    return (bool)flag;
+    std::vector<uint64_t> results(_mpiSize);
+    MPI_CHECK(MPI_Allgather((void*)&value, 1, MPI_LONG_LONG_INT,
+                            (void*)results.data(), 1, MPI_LONG_LONG_INT,
+                            _mpiComm));
+    return results;
 }
 
-void MPIChannel::send(const MPIMessageType type,
-                      const std::string& serializedData, const int dest)
+void MPICommunicator::send(const MessageType type,
+                           const std::string& serializedData, const int dest)
 {
-    if (!_isValid(dest))
+    if (!_isValidAndNotSelf(dest))
         return;
 
     MPI_CHECK(MPI_Send_Nospin((void*)serializedData.data(),
@@ -122,47 +118,7 @@ void MPIChannel::send(const MPIMessageType type,
                               _mpiComm));
 }
 
-void MPIChannel::sendAll(const MPIMessageType type)
-{
-    MPIHeader mh;
-    mh.size = 0;
-    mh.type = type;
-
-    for (int i = 0; i < _mpiSize; ++i)
-        _send(mh, i);
-}
-
-void MPIChannel::broadcast(const MPIMessageType type,
-                           const std::string& serializedData)
-{
-    broadcast(type, QByteArray::fromRawData(serializedData.data(),
-                                            serializedData.size()));
-}
-
-void MPIChannel::broadcast(const MPIMessageType type,
-                           const QByteArray& serializedData)
-{
-    MPIHeader mh;
-    mh.size = serializedData.size();
-    mh.type = type;
-
-    for (int i = 0; i < _mpiSize; ++i)
-        _send(mh, i);
-
-    MPI_CHECK(MPI_Bcast(const_cast<char*>(serializedData.constData()),
-                        serializedData.size(), MPI_BYTE, _mpiRank, _mpiComm));
-}
-
-MPIHeader MPIChannel::receiveHeader(const int src)
-{
-    MPI_Status status;
-    MPIHeader mh;
-    MPI_CHECK(MPI_Recv_Nospin((void*)&mh, sizeof(MPIHeader), MPI_BYTE, src, 0,
-                              _mpiComm, &status));
-    return mh;
-}
-
-ProbeResult MPIChannel::probe(const int src, const int tag)
+ProbeResult MPICommunicator::probe(const int src, const int tag)
 {
     MPI_Status status;
     MPI_CHECK(MPI_Probe_Nospin(src, tag, _mpiComm, &status));
@@ -170,12 +126,11 @@ ProbeResult MPIChannel::probe(const int src, const int tag)
     int count = MPI_UNDEFINED;
     MPI_CHECK(MPI_Get_count(&status, MPI_BYTE, &count));
 
-    return ProbeResult{status.MPI_SOURCE, count,
-                       MPIMessageType(status.MPI_TAG)};
+    return ProbeResult{status.MPI_SOURCE, count, MessageType(status.MPI_TAG)};
 }
 
-void MPIChannel::receive(char* dataBuffer, const size_t messageSize,
-                         const int src, const int tag)
+void MPICommunicator::receive(const int src, char* dataBuffer,
+                              const size_t messageSize, const int tag)
 {
     MPI_Status status;
     MPI_CHECK(MPI_Recv_Nospin((void*)dataBuffer, messageSize, MPI_BYTE, src,
@@ -189,32 +144,55 @@ void MPIChannel::receive(char* dataBuffer, const size_t messageSize,
                   messageSize);
 }
 
-void MPIChannel::receiveBroadcast(char* dataBuffer, const size_t messageSize,
-                                  const int src)
+void MPICommunicator::broadcast(const MessageType type)
 {
+    _broadcast(MessageHeader{type, 0});
+}
+
+void MPICommunicator::broadcast(const MessageType type, const std::string& data)
+{
+    broadcast(type, QByteArray::fromRawData(data.data(), data.size()));
+}
+
+void MPICommunicator::broadcast(const MessageType type, const QByteArray& data)
+{
+    _broadcast(MessageHeader{type, (uint)data.size()});
+    _broadcast(data.constData(), data.size());
+}
+
+MessageHeader MPICommunicator::receiveBroadcastHeader(const int src)
+{
+    // No-spin so that waiting for a message in a thread does not burn 100% CPU.
+    // This does not reduce broadcast performance (tideBenchmarkMPI).
+    MessageHeader mh;
+    MPI_CHECK(MPI_Bcast_Nospin((void*)&mh, sizeof(MessageHeader), MPI_BYTE, src,
+                               _mpiComm));
+    return mh;
+}
+
+void MPICommunicator::receiveBroadcast(const int src, char* dataBuffer,
+                                       const size_t messageSize)
+{
+    // Use regular MPI_Bcast for transfering the payload. The no-spin version
+    // brings no benefits once the header has been received; but it degrades the
+    // broadcast performance by an order of magnitude (tideBenchmarkMPI).
     MPI_CHECK(
         MPI_Bcast((void*)dataBuffer, messageSize, MPI_BYTE, src, _mpiComm));
 }
 
-std::vector<uint64_t> MPIChannel::gatherAll(const uint64_t value)
+void MPICommunicator::_broadcast(const MessageHeader& mh)
 {
-    std::vector<uint64_t> results(_mpiSize);
-    MPI_CHECK(MPI_Allgather((void*)&value, 1, MPI_LONG_LONG_INT,
-                            (void*)results.data(), 1, MPI_LONG_LONG_INT,
-                            _mpiComm));
-    return results;
+    MPI_CHECK(MPI_Bcast_Nospin((void*)&mh, sizeof(MessageHeader), MPI_BYTE,
+                               _mpiRank, _mpiComm));
 }
 
-bool MPIChannel::_isValid(const int dest) const
+void MPICommunicator::_broadcast(const char* data, const size_t size)
+{
+    MPI_CHECK(
+        MPI_Bcast(const_cast<char*>(data), size, MPI_BYTE, _mpiRank, _mpiComm));
+}
+
+bool MPICommunicator::_isValidAndNotSelf(const int dest) const
 {
     return dest != _mpiRank && dest >= 0 && dest < _mpiSize;
-}
-
-void MPIChannel::_send(const MPIHeader& header, const int dest)
-{
-    if (!_isValid(dest))
-        return;
-
-    MPI_CHECK(MPI_Send_Nospin((void*)&header, sizeof(MPIHeader), MPI_BYTE, dest,
-                              0, _mpiComm));
 }

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
 /*                          Daniel Nachbaur <daniel.nachbaur@epfl.ch>*/
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
@@ -41,7 +41,7 @@
 #ifndef MASTERFROMWALLCHANNEL_H
 #define MASTERFROMWALLCHANNEL_H
 
-#include "network/MPIHeader.h"
+#include "network/MessageHeader.h"
 #include "network/ReceiveBuffer.h"
 #include "types.h"
 
@@ -58,7 +58,7 @@ class MasterFromWallChannel : public QObject
 
 public:
     /** Constructor */
-    MasterFromWallChannel(MPIChannelPtr mpiChannel);
+    MasterFromWallChannel(MPICommunicator& communicator);
 
 public slots:
     /**
@@ -88,9 +88,9 @@ signals:
     void pixelStreamClose(QString uri);
 
 private:
-    MPIChannelPtr _mpiChannel;
+    MPICommunicator& _communicator;
     ReceiveBuffer _buffer;
-    bool _processMessages;
+    bool _processMessages = true;
 };
 
 #endif

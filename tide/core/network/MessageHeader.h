@@ -37,13 +37,13 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef MPIHEADER_H
-#define MPIHEADER_H
+#ifndef MESSAGEHEADER_H
+#define MESSAGEHEADER_H
 
 #include <stdint.h>
 
-/** The type of MPI message. */
-enum class MPIMessageType
+/** The type of network message. */
+enum class MessageType
 {
     NONE,
     FRAME_CLOCK,
@@ -63,13 +63,13 @@ enum class MPIMessageType
 };
 
 /** Fixed-size message header. */
-struct MPIHeader
+struct MessageHeader
 {
     /** Message type. */
-    MPIMessageType type;
+    MessageType type = MessageType::NONE;
 
     /** Size of the message payload. */
-    uint32_t size;
+    uint32_t size = 0u;
 };
 
 #endif

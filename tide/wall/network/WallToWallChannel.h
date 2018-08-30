@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -40,7 +40,6 @@
 #ifndef WALLTOWALLCHANNEL_H
 #define WALLTOWALLCHANNEL_H
 
-#include "network/NetworkBarrier.h"
 #include "network/ReceiveBuffer.h"
 #include "types.h"
 
@@ -51,7 +50,7 @@
 /**
  * Communication channel between the Wall processes.
  */
-class WallToWallChannel : public QObject, public NetworkBarrier
+class WallToWallChannel : public QObject
 {
     Q_OBJECT
     Q_DISABLE_COPY(WallToWallChannel)
@@ -60,7 +59,7 @@ public:
     using clock = std::chrono::high_resolution_clock;
 
     /** Constructor */
-    WallToWallChannel(MPIChannelPtr mpiChannel);
+    WallToWallChannel(MPICommunicator& communicator);
 
     /** @return The rank of this process. */
     int getRank() const;
@@ -80,9 +79,6 @@ public:
 
     /** Synchronize clock time across all processes. */
     void synchronizeClock();
-
-    /** Block execution until all programs have reached the barrier. */
-    void globalBarrier() const final;
 
     /** Check that all processes have the same version of an object. */
     bool checkVersion(uint64_t version) const;
@@ -104,7 +100,7 @@ public:
     double receiveTimestampBroadcast(int src);
 
 private:
-    MPIChannelPtr _mpiChannel;
+    MPICommunicator& _communicator;
     ReceiveBuffer _buffer;
     clock::time_point _timestamp;
 

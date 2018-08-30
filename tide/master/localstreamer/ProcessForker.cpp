@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,16 +39,15 @@
 
 #include "ProcessForker.h"
 
-#include "network/MPIChannel.h"
+#include "network/MPICommunicator.h"
 #include "network/ReceiveBuffer.h"
 #include "serialization/utils.h"
 #include "utils/log.h"
 
 #include <QProcess>
 
-ProcessForker::ProcessForker(MPIChannelPtr mpiChannel)
-    : _mpiChannel(mpiChannel)
-    , _processMessages(true)
+ProcessForker::ProcessForker(MPICommunicator& communicator)
+    : _communicator{communicator}
 {
 }
 
@@ -58,7 +57,7 @@ void ProcessForker::run()
 
     while (_processMessages)
     {
-        const ProbeResult result = _mpiChannel->probe();
+        const auto result = _communicator.probe();
         if (!result.isValid())
         {
             print_log(LOG_ERROR, LOG_MPI, "Invalid probe result size: %d",
@@ -67,12 +66,12 @@ void ProcessForker::run()
         }
 
         buffer.setSize(result.size);
-        _mpiChannel->receive(buffer.data(), result.size, result.src,
-                             int(result.message));
+        _communicator.receive(result.src, buffer.data(), buffer.size(),
+                              int(result.messageType));
 
-        switch (result.message)
+        switch (result.messageType)
         {
-        case MPIMessageType::START_PROCESS:
+        case MessageType::START_PROCESS:
         {
             const auto string = serialization::get<QString>(buffer);
             const auto args = string.split('#');
@@ -85,12 +84,12 @@ void ProcessForker::run()
             _launch(args[0], args[1], args[2].split(';'));
             break;
         }
-        case MPIMessageType::QUIT:
+        case MessageType::QUIT:
             _processMessages = false;
             break;
         default:
             print_log(LOG_WARN, LOG_MPI, "Invalid message type: '%d'",
-                      result.message);
+                      result.messageType);
             break;
         }
     }
@@ -99,11 +98,11 @@ void ProcessForker::run()
 void ProcessForker::_launch(const QString& command, const QString& workingDir,
                             const QStringList& env)
 {
-    for (const QString& var : env)
+    for (const auto& var : env)
     {
         // Know Qt bug: QProcess::setProcessEnvironment() does not work with
         // startDetached(). Calling qputenv() directly as a workaround.
-        const QStringList kv = var.split("=");
+        const auto kv = var.split("=");
         if (kv.length() == 2 &&
             !qputenv(kv[0].toLocal8Bit().constData(), kv[1].toLocal8Bit()))
         {
@@ -118,7 +117,7 @@ void ProcessForker::_launch(const QString& command, const QString& workingDir,
     // <qt5-source>/qtdeclarative/src/quick/items/qquickwindow.cpp
     qputenv("QML_NO_TOUCH_COMPRESSION", "1");
 
-    QProcess* process = new QProcess();
+    auto process = new QProcess();
     process->setWorkingDirectory(workingDir);
     process->startDetached(command);
 }
