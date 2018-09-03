@@ -51,7 +51,6 @@ enum SizeState
 {
     SIZE_1TO1,
     SIZE_1TO1_FITTING,
-    SIZE_LARGE,
     SIZE_FULLSCREEN,
     SIZE_FULLSCREEN_MAX,
     SIZE_FULLSCREEN_1TO1
@@ -101,7 +100,8 @@ public:
     //@}
 
     /** Resize the window. */
-    Q_INVOKABLE void resize(QSizeF size, WindowPoint fixedPoint = TOP_LEFT);
+    Q_INVOKABLE void resize(const QSizeF& size,
+                            WindowPoint fixedPoint = TOP_LEFT);
 
     /** Resize the window relative to the current active window border */
     Q_INVOKABLE void resizeRelative(const QPointF& delta);

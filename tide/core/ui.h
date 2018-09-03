@@ -48,6 +48,8 @@
  */
 namespace ui
 {
+/** @name Fixed UI element sizes. */
+//@{
 /** @return the size of regular buttons. */
 qreal getButtonSize();
 
@@ -65,9 +67,16 @@ QMarginsF getFocusedWindowControlsMargins(const Content& content);
 
 /** @return the width of the fixed side control bar on the control surface. */
 qreal getSideControlWidth();
+//@}
 
+/** @name Constraints for window layout. */
+//@{
 /** @return the surface of the DisplayGroup available for focused windows. */
 QRectF getFocusSurface(const DisplayGroup& group);
+
+/** @return the minimum size that a normal window should have. */
+qreal getMinWindowSize();
+//@}
 }
 
 #endif
