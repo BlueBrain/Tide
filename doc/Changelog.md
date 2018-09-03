@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [267](https://github.com/BlueBrain/Tide/pull/267):
+  Improve resizing of external streams by better considering its size hints.
 * [266](https://github.com/BlueBrain/Tide/pull/266):
   Multiple bugfixes:
   - Fix crashes in case of file read errors on some of the wall processes.

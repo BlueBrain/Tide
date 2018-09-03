@@ -45,6 +45,14 @@
 
 IMPLEMENT_SERIALIZE_FOR_XML(Content)
 
+namespace
+{
+int _clampToInt(const unsigned int n)
+{
+    return std::min((unsigned int)std::numeric_limits<int>::max(), n);
+}
+}
+
 qreal Content::_maxScale = 3.0;
 
 Content::Content(const QString& uri)
@@ -127,20 +135,22 @@ QSize Content::getMaxDimensions() const
         return getDimensions().isValid() ? getDimensions() * getMaxScale()
                                          : UNDEFINED_SIZE;
     }
-    return QSize(_sizeHints.maxWidth, _sizeHints.maxHeight);
+    return QSize{_clampToInt(_sizeHints.maxWidth),
+                 _clampToInt(_sizeHints.maxHeight)};
 }
 
 void Content::setSizeHints(const deflect::SizeHints& sizeHints)
 {
     if (_sizeHints == sizeHints)
         return;
+
     _sizeHints = sizeHints;
     emit modified();
 }
 
 void Content::setMaxScale(const qreal value)
 {
-    if (value > 0)
+    if (value > 0.0)
         _maxScale = value;
 }
 

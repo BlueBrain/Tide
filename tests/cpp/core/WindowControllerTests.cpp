@@ -138,30 +138,45 @@ WindowPtr makeDummyWindow()
     return window;
 }
 
-BOOST_AUTO_TEST_CASE(testOneToOneSize)
+struct TestFixture
 {
-    auto window = makeDummyWindow();
-    auto displayGroup = DisplayGroup::create(wallSize);
-    WindowController controller(*window, *displayGroup);
-    const QRectF& coords = window->getCoordinates();
+    WindowPtr window = makeDummyWindow();
+    DisplayGroupPtr displayGroup = DisplayGroup::create(wallSize);
+    WindowController controller{*window, *displayGroup};
+};
 
+BOOST_FIXTURE_TEST_CASE(testOneToOneSize, TestFixture)
+{
     controller.adjustSize(SIZE_1TO1);
 
     // 1:1 size restored around existing window center
+    const auto& coords = window->getCoordinates();
     BOOST_CHECK_EQUAL(coords.size(), CONTENT_SIZE);
     BOOST_CHECK_EQUAL(coords.center(), QPointF(625, 240));
 }
 
-BOOST_AUTO_TEST_CASE(testOneToOneFittingSize)
+BOOST_FIXTURE_TEST_CASE(testOneToOneSizeUsesPreferedSize, TestFixture)
 {
-    auto window = makeDummyWindow();
-    auto displayGroup = DisplayGroup::create(wallSize);
-    WindowController controller(*window, *displayGroup);
-    const QRectF& coords = window->getCoordinates();
+    deflect::SizeHints hints;
+    hints.preferredWidth = CONTENT_SIZE.width() * 0.8;
+    hints.preferredHeight = CONTENT_SIZE.height() * 1.1;
+    window->getContent().setSizeHints(hints);
 
+    controller.adjustSize(SIZE_1TO1);
+
+    // 1:1 size restored around existing window center
+    const auto& coords = window->getCoordinates();
+    BOOST_CHECK_EQUAL(coords.size(),
+                      QSizeF(hints.preferredWidth, hints.preferredHeight));
+    BOOST_CHECK_EQUAL(coords.center(), QPointF(625, 240));
+}
+
+BOOST_FIXTURE_TEST_CASE(testOneToOneFittingSize, TestFixture)
+{
     controller.adjustSize(SIZE_1TO1_FITTING);
 
     // 1:1 size restored around existing window center
+    const auto& coords = window->getCoordinates();
     BOOST_CHECK_EQUAL(coords.size(), CONTENT_SIZE);
     BOOST_CHECK_EQUAL(coords.center(), QPointF(625, 240));
 
@@ -172,12 +187,8 @@ BOOST_AUTO_TEST_CASE(testOneToOneFittingSize)
     BOOST_CHECK_EQUAL(coords.center(), QPointF(625, 240));
 }
 
-BOOST_AUTO_TEST_CASE(testSizeLimitsBigContent)
+BOOST_FIXTURE_TEST_CASE(testSizeLimitsBigContent, TestFixture)
 {
-    auto window = makeDummyWindow();
-    auto displayGroup = DisplayGroup::create(wallSize);
-    WindowController controller(*window, *displayGroup);
-
     // Make a large content and validate it
     auto& content = window->getContent();
     content.setDimensions(BIG_CONTENT_SIZE);
@@ -198,12 +209,8 @@ BOOST_AUTO_TEST_CASE(testSizeLimitsBigContent)
     BOOST_CHECK_EQUAL(controller.getMaxSize(), 0.25 * normalMaxSize);
 }
 
-BOOST_AUTO_TEST_CASE(testSizeLimitsSmallContent)
+BOOST_FIXTURE_TEST_CASE(testSizeLimitsSmallContent, TestFixture)
 {
-    auto window = makeDummyWindow();
-    auto displayGroup = DisplayGroup::create(wallSize);
-    WindowController controller(*window, *displayGroup);
-
     // Make a small content and validate it
     auto& content = window->getContent();
     content.setDimensions(SMALL_CONTENT_SIZE);
@@ -218,18 +225,57 @@ BOOST_AUTO_TEST_CASE(testSizeLimitsSmallContent)
     BOOST_CHECK_EQUAL(controller.getMaxSize(),
                       SMALL_CONTENT_SIZE * Content::getMaxScale());
 
-    const QSizeF normalMaxSize = controller.getMaxSize();
+    const auto normalMaxSize = controller.getMaxSize();
     window->getContent().setZoomRect(
         QRectF(QPointF(0.3, 0.1), QSizeF(0.25, 0.25)));
     BOOST_CHECK_EQUAL(controller.getMaxSize(), 0.25 * normalMaxSize);
 }
 
-BOOST_AUTO_TEST_CASE(testAspectRatioMinSize)
+BOOST_FIXTURE_TEST_CASE(smallContentMadeFullscreenRespectsMaxContentSize,
+                        TestFixture)
 {
-    auto window = makeDummyWindow();
-    auto displayGroup = DisplayGroup::create(wallSize);
-    WindowController controller(*window, *displayGroup);
+    auto& content = window->getContent();
+    content.setDimensions(SMALL_CONTENT_SIZE);
 
+    BOOST_REQUIRE(content.getMaxDimensions() < wallSize);
+
+    controller.adjustSize(SizeState::SIZE_FULLSCREEN);
+
+    BOOST_CHECK_EQUAL(window->getCoordinates().size(),
+                      content.getMaxDimensions());
+}
+
+BOOST_FIXTURE_TEST_CASE(smallContentWithBigMaxSizeHintsCanBeMadeFullscreen,
+                        TestFixture)
+{
+    auto& content = window->getContent();
+    content.setDimensions(SMALL_CONTENT_SIZE);
+
+    deflect::SizeHints hints;
+    hints.maxWidth = std::numeric_limits<unsigned int>::max();
+    hints.maxHeight = std::numeric_limits<unsigned int>::max();
+    content.setSizeHints(hints);
+
+    BOOST_REQUIRE_EQUAL(content.getMaxDimensions(),
+                        QSize(std::numeric_limits<int>::max(),
+                              std::numeric_limits<int>::max()));
+
+    // Keep content aspect ratio
+    controller.adjustSize(SizeState::SIZE_FULLSCREEN);
+    BOOST_CHECK_EQUAL(window->getCoordinates(),
+                      QRectF(QPointF{0, 125}, QSizeF{1000, 750}));
+
+    // Use preferred size aspect ratio
+    hints.preferredWidth = wallSize.width() / 2;
+    hints.preferredHeight = wallSize.height() / 2;
+    content.setSizeHints(hints);
+    controller.adjustSize(SizeState::SIZE_FULLSCREEN);
+    BOOST_CHECK_EQUAL(window->getCoordinates(),
+                      QRectF(QPointF{0, 0}, wallSize));
+}
+
+BOOST_FIXTURE_TEST_CASE(testAspectRatioMinSize, TestFixture)
+{
     // Make a content and validate MinSize keeps aspect ratio
     auto& content = window->getContent();
     content.setDimensions(QSize(400, 800));
@@ -265,8 +311,8 @@ BOOST_AUTO_TEST_CASE(testAspectRatioMinSize)
                       QSize(600, 300));
 
     window->setMode(Window::STANDARD);
-    const QSize maxSize(CONTENT_SIZE * 2);
-    const QSize minSize(CONTENT_SIZE / 2);
+    const auto maxSize = QSize{CONTENT_SIZE * 2};
+    const auto minSize = QSize{CONTENT_SIZE / 2};
     deflect::SizeHints hints;
     hints.maxWidth = maxSize.width();
     hints.maxHeight = maxSize.height();
@@ -289,15 +335,10 @@ BOOST_AUTO_TEST_CASE(testAspectRatioMinSize)
                       QSize(400, 300));
 }
 
-BOOST_AUTO_TEST_CASE(testSizeHints)
+BOOST_FIXTURE_TEST_CASE(testSizeHints, TestFixture)
 {
-    auto window = makeDummyWindow();
-    auto displayGroup = DisplayGroup::create(wallSize);
-    WindowController controller(*window, *displayGroup);
-    auto& content = window->getContent();
-
-    const QSize maxSize(CONTENT_SIZE * 2);
-    const QSize minSize(CONTENT_SIZE / 2);
+    const auto maxSize = QSize{CONTENT_SIZE * 2};
+    const auto minSize = QSize{CONTENT_SIZE / 2};
     deflect::SizeHints hints;
     hints.maxWidth = maxSize.width();
     hints.maxHeight = maxSize.height();
@@ -305,9 +346,10 @@ BOOST_AUTO_TEST_CASE(testSizeHints)
     hints.minHeight = minSize.height();
     hints.preferredWidth = CONTENT_SIZE.width();
     hints.preferredHeight = CONTENT_SIZE.height();
+    auto& content = window->getContent();
     content.setSizeHints(hints);
     content.setDimensions(CONTENT_SIZE);
-    const QRectF& coords = window->getCoordinates();
+    const auto& coords = window->getCoordinates();
 
     // too big, constrains to maxSize
     controller.resize(maxSize * 2, CENTER);
@@ -324,21 +366,6 @@ BOOST_AUTO_TEST_CASE(testSizeHints)
     // too small, clamped to minSize
     controller.resize(minSize / 2, CENTER);
     BOOST_CHECK_EQUAL(coords.size(), minSize);
-}
-
-BOOST_AUTO_TEST_CASE(testLargeSize)
-{
-    auto window = makeDummyWindow();
-    auto displayGroup = DisplayGroup::create(wallSize);
-    WindowController controller(*window, *displayGroup);
-    const QRectF& coords = window->getCoordinates();
-
-    controller.adjustSize(SIZE_LARGE);
-
-    // 75% of the screen, resized around window center
-    BOOST_CHECK_EQUAL(coords.center(), QPointF(625, 240));
-    BOOST_CHECK_EQUAL(coords.width(), 0.75 * wallSize.width());
-    BOOST_CHECK_EQUAL(coords.height(), 0.75 * wallSize.width() / CONTENT_AR);
 }
 
 void _checkFullscreen(const QRectF& coords)

@@ -49,9 +49,14 @@ const qreal buttonsPadding = buttonsSize / 4.0;
 const qreal buttonsSizeLarge = 1.15 * buttonsSize;
 const qreal buttonsPaddingLarge = 1.15 * buttonsPadding;
 
+/** Derived UI element sizes. */
 const qreal movieBarHeight = buttonsSize;
 const qreal controlsWidth = buttonsSize + 2 * buttonsPadding;
 const qreal controlsDistanceFromWindow = buttonsPadding;
+
+/** Constraints. */
+const qreal minWindowSize = 300;
+const qreal minWindowSpacingInFocusMode = 40;
 
 inline bool hasMovieControls(const Content& content)
 {
@@ -71,7 +76,7 @@ qreal getWindowControlsMargin()
 
 qreal getMinWindowSpacing()
 {
-    return 40.0;
+    return minWindowSpacingInFocusMode;
 }
 
 qreal getFocusedWindowControlBarHeight(const Content& content)
@@ -101,5 +106,10 @@ QRectF getFocusSurface(const DisplayGroup& group)
     return QRectF{leftMargin, topMargin,
                   group.width() - leftMargin - rightMargin,
                   group.height() - topMargin - bottomMargin};
+}
+
+qreal getMinWindowSize()
+{
+    return minWindowSize;
 }
 }
