@@ -17,9 +17,10 @@ The standard build procedure using git and CMake is the following:
 
 Tide builds on top of standard and well tested libraries for core
 functionalities such as rendering, serialization, file handling and network
-communication. Those dependencies are:
+communication. These dependencies are:
 * Boost 1.56 or later
-* MPI with MPI_THREAD_MULTIPLE support (openmpi 1.6.5 or later recommended)
+* MPI with MPI_THREAD_MULTIPLE support (OpenMPI >= 1.6.5, or IntelMPI for
+  InfiniBand networks)
 * Qt 5.4 or later (5.8 or later recommended)
 
 In addition, it also depends on some external projects that are automatically
@@ -27,11 +28,10 @@ cloned by CMake during the configure step. They come with their own additional
 requirements:
 * Deflect: streaming of contents and applications
   - libjpeg-turbo
-* VirtualKeyboard: on-screen virtual keyboard (Qml)
-* ZeroEQ: http / REST interface (technically optional, but needed to operate
+* Rockets: http / REST interface (technically optional, but needed to operate
   the on-screen Launcher panel)
-  - Pthreads
-  - ZeroMQ
+  - libwebsockets
+* VirtualKeyboard: on-screen virtual keyboard (Qml)
 
 Some additional libraries are searched by CMake to enable useful extra
 features if they are found:
@@ -53,7 +53,7 @@ To run the automatic install, do the following:
     cd Tide/build
     cmake .. -DINSTALL_PACKAGES=1
 
-One could also look directly at the TIDE_DEB_DEPENDS and TIDE_PORT_DEPENDS
+Alternatively, look directly at the TIDE_DEB_DEPENDS and TIDE_PORT_DEPENDS
 entries in the top-level CMakeLists.txt of each (sub)project and install the
 packages manually.
 
@@ -121,8 +121,21 @@ configuration_1x1.json).
 
 Tide builds and runs on OSX (x86_64), but has limited features and testing.
 
+Most dependencies are easily installed through either brew or macports.
+
+#### Brew
+
+Using brew on OSX 10.13:
+
+    brew install boost ffmpeg librsvg open-mpi poppler qt jpeg-turbo libwebsockets
+    export PATH=/usr/local/opt/qt/bin:$PATH
+    export PKG_CONFIG_PATH=/usr/local/opt/jpeg-turbo/lib/pkgconfig
+    export CPATH=$(brew --prefix openssl)/include
+
+#### MacPorts
+
 The required libjpeg-turbo cannot be installed via macports because it conflicts
-with the regular libjpeg. A separate installer must be obtained from
+with the regular libjpeg. A separate installer can be obtained from
 [sourceforge](https://sourceforge.net/projects/libjpeg-turbo/).
 
 ### Windows

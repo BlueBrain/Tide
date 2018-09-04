@@ -22,6 +22,7 @@ set(TIDE_DEB_DEPENDS python imagemagick libopenmpi-dev openmpi-bin
   libpoppler-glib-dev libcairo2-dev libpoppler-qt5-dev librsvg2-dev libtiff5-dev
   libavutil-dev libavformat-dev libavcodec-dev libswscale-dev)
 set(TIDE_PORT_DEPENDS boost ffmpeg mpich-devel qt5)
+set(TIDE_BREW_DEPENDS boost ffmpeg librsvg open-mpi poppler qt)
 
 include(Common)
 
