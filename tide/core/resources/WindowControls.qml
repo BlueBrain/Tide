@@ -16,7 +16,7 @@ Item {
     Rectangle {
         id: buttonsRectangle
         width: buttons.width + 2 * Style.buttonsPadding
-        height: buttons.height
+        height: triangle.visible ? buttons.height : buttons.height + 2 * Style.buttonsPadding
         color: Style.controlsDefaultColor
     }
     Triangle {
@@ -25,6 +25,8 @@ Item {
         height: 2 * width
         color: buttonsRectangle.color
         anchors.top: buttonsRectangle.bottom
+        visible: (window.focused ? window.focusedCoordinates.height : window.height)
+                 > (buttons.height + triangle.height)
     }
 
     WindowControlButtons {
@@ -42,9 +44,8 @@ Item {
         },
         State {
             name: "opaque"
-            when: window.selected &&
-                  window.state !== Window.RESIZING &&
-                  !window.fullscreen
+            when: window.selected && window.state !== Window.RESIZING
+                  && !window.fullscreen
             PropertyChanges {
                 target: windowControls
                 opacity: 1
