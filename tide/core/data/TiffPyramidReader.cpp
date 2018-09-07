@@ -123,7 +123,7 @@ uint TiffPyramidReader::findLevel(const QSize& imageSize)
     return level;
 }
 
-QImage::Format _getImageFormat(const int bytesPerPixel)
+QImage::Format _getQImageFormat(const int bytesPerPixel)
 {
     switch (bytesPerPixel)
     {
@@ -144,7 +144,8 @@ QImage::Format _getImageFormat(const int bytesPerPixel)
 
 QImage TiffPyramidReader::readTile(const int i, const int j, const uint lod)
 {
-    const QSize tileSize = getTileSize();
+    const auto tileSize = getTileSize();
+    const auto bytesPerPixel = getBytesPerPixel();
 
     if (!TIFFSetDirectory(_impl->tif.get(), lod))
     {
@@ -152,7 +153,7 @@ QImage TiffPyramidReader::readTile(const int i, const int j, const uint lod)
         return QImage();
     }
 
-    const QPoint tile(i * tileSize.width(), j * tileSize.height());
+    const auto tile = QPoint(i * tileSize.width(), j * tileSize.height());
     if (!TIFFCheckTile(_impl->tif.get(), tile.x(), tile.y(), 0, 0))
     {
         print_log(LOG_WARN, LOG_TIFF, "Invalid tile (%d, %d) @ LOD %d", i, j,
@@ -160,15 +161,17 @@ QImage TiffPyramidReader::readTile(const int i, const int j, const uint lod)
         return QImage();
     }
 
-    QImage image(tileSize, _getImageFormat(getBytesPerPixel()));
+    auto image = QImage(tileSize, _getQImageFormat(bytesPerPixel));
     TIFFReadTile(_impl->tif.get(), image.bits(), tile.x(), tile.y(), 0, 0);
+    if (bytesPerPixel == 4)
+        return image.rgbSwapped(); // Tiff images are stored as ABRG -> ARGB
     return image;
 }
 
 QImage TiffPyramidReader::readTopLevelImage()
 {
-    QImage image = readTile(0, 0, findTopPyramidLevel());
-    const QSize croppedSize = getImageSize(); // assume directory is unchanged
+    auto image = readTile(0, 0, findTopPyramidLevel());
+    const auto croppedSize = getImageSize(); // assume directory is unchanged
     if (image.size() != croppedSize)
         image = image.copy(QRect(QPoint(), croppedSize));
     return image;
@@ -192,9 +195,10 @@ QImage TiffPyramidReader::readImage(const uint lod)
         return QImage();
     }
 
-    const auto format = _getImageFormat(getBytesPerPixel());
-    QImage tile{getTileSize(), format};
-    QImage image{getImageSize(), format};
+    const auto bytesPerPixel = getBytesPerPixel();
+    const auto format = _getQImageFormat(bytesPerPixel);
+    auto tile = QImage{getTileSize(), format};
+    auto image = QImage{getImageSize(), format};
     QPainter painter{&image};
 
     for (int y = 0; y < image.height(); y += tile.height())
@@ -205,5 +209,7 @@ QImage TiffPyramidReader::readImage(const uint lod)
             painter.drawImage(x, y, tile);
         }
     }
+    if (bytesPerPixel == 4)
+        return image.rgbSwapped(); // Tiff images are stored as ABRG -> ARGB
     return image;
 }
