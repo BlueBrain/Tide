@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [268](https://github.com/BlueBrain/Tide/pull/268):
+  Fix color inversion problem with certain TIFF pyramids (4 bytes per pixel).
 * [267](https://github.com/BlueBrain/Tide/pull/267):
   Improve resizing of external streams by better considering its size hints.
 * [266](https://github.com/BlueBrain/Tide/pull/266):
