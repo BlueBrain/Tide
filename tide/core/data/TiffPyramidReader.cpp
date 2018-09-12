@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -45,6 +45,10 @@
 #include <QPainter>
 #include <tiffio.h>
 
+#include <cassert>
+
+namespace
+{
 struct TiffStaticInit
 {
     TiffStaticInit()
@@ -59,10 +63,49 @@ struct TIFFDeleter
 {
     void operator()(TIFF* file) { TIFFClose(file); }
 };
-typedef std::unique_ptr<TIFF, TIFFDeleter> TIFFPtr;
+using TIFFPtr = std::unique_ptr<TIFF, TIFFDeleter>;
+
+QImage::Format _getQImageFormat(const int bytesPerPixel)
+{
+    switch (bytesPerPixel)
+    {
+    case 1:
+#if QT_VERSION >= 0x050500
+        return QImage::Format_Grayscale8;
+#else
+        return QImage::Format_Indexed8;
+#endif
+    case 2: // grayscale + alpha => convert to ARGB
+        return QImage::Format_ARGB32;
+    case 3:
+        return QImage::Format_RGB888;
+    case 4:
+        return QImage::Format_ARGB32;
+    default:
+        throw std::runtime_error("Unsupported format");
+    }
+}
+
+void _toARGB32Image(const std::vector<uint16_t>& buffer, QImage& image)
+{
+    assert(image.format() == QImage::Format_ARGB32);
+    assert((size_t)image.byteCount() == 4u * buffer.size());
+
+    auto dst = image.bits();
+    for (auto pixel = 0u; pixel < buffer.size(); ++pixel)
+    {
+        dst[4 * pixel + 0] = buffer[pixel];      // B
+        dst[4 * pixel + 1] = buffer[pixel];      // G
+        dst[4 * pixel + 2] = buffer[pixel];      // R
+        dst[4 * pixel + 3] = buffer[pixel] >> 8; // A
+    }
+}
+}
 
 struct TiffPyramidReader::Impl
 {
+    TIFFPtr tif;
+
     Impl(const QString& uri)
         : tif{TIFFOpen(uri.toLocal8Bit().constData(), "r")}
     {
@@ -72,7 +115,53 @@ struct TiffPyramidReader::Impl
         if (!TIFFIsTiled(tif.get()))
             throw std::runtime_error("Not a tiled tiff image");
     }
-    TIFFPtr tif;
+
+    void setDirectory(const uint lod)
+    {
+        if (!TIFFSetDirectory(tif.get(), lod))
+            throw std::runtime_error("Invalid pyramid level");
+    }
+
+    void readTile(const QPoint& tileCoord, const int bytesPerPixel,
+                  QImage& image)
+    {
+        if (bytesPerPixel == 2)
+            readGrayscaleWithAlphaTile(tileCoord, image);
+        else
+            readTileData(tileCoord, image.bits());
+
+        if (bytesPerPixel == 4)
+            image = image.rgbSwapped(); // Tiff data is stored as ABRG -> ARGB
+    }
+
+    void readGrayscaleWithAlphaTile(const QPoint& tileCoord, QImage& image)
+    {
+        if (!hasAssociatedAlpha())
+            throw std::runtime_error("Unknown data layout");
+
+        auto buffer = std::vector<uint16_t>(image.width() * image.height());
+        readTileData(tileCoord, buffer.data());
+        _toARGB32Image(buffer, image);
+    }
+
+    void readTileData(const QPoint& tileCoord, void* buffer)
+    {
+        validate(tileCoord);
+        TIFFReadTile(tif.get(), buffer, tileCoord.x(), tileCoord.y(), 0, 0);
+    }
+
+    void validate(const QPoint& tileCoord)
+    {
+        if (!TIFFCheckTile(tif.get(), tileCoord.x(), tileCoord.y(), 0, 0))
+            throw std::runtime_error("Invalid coordinates");
+    }
+
+    bool hasAssociatedAlpha()
+    {
+        int extra = EXTRASAMPLE_UNSPECIFIED;
+        TIFFGetField(tif.get(), TIFFTAG_EXTRASAMPLES, &extra);
+        return extra == EXTRASAMPLE_ASSOCALPHA;
+    }
 };
 
 TiffPyramidReader::TiffPyramidReader(const QString& uri)
@@ -123,49 +212,29 @@ uint TiffPyramidReader::findLevel(const QSize& imageSize)
     return level;
 }
 
-QImage::Format _getQImageFormat(const int bytesPerPixel)
-{
-    switch (bytesPerPixel)
-    {
-    case 1:
-#if QT_VERSION >= 0x050500
-        return QImage::Format_Grayscale8;
-#else
-        return QImage::Format_Indexed8;
-#endif
-    case 3:
-        return QImage::Format_RGB888;
-    case 4:
-        return QImage::Format_ARGB32;
-    default:
-        return QImage::Format_Invalid;
-    }
-}
-
 QImage TiffPyramidReader::readTile(const int i, const int j, const uint lod)
 {
-    const auto tileSize = getTileSize();
-    const auto bytesPerPixel = getBytesPerPixel();
-
-    if (!TIFFSetDirectory(_impl->tif.get(), lod))
+    try
     {
-        print_log(LOG_WARN, LOG_TIFF, "Invalid pyramid level: %d", lod);
+        _impl->setDirectory(lod);
+
+        const auto bytesPerPixel = getBytesPerPixel();
+        const auto format = _getQImageFormat(bytesPerPixel);
+
+        const auto tileSize = getTileSize();
+        const auto tileCoord =
+            QPoint{i * tileSize.width(), j * tileSize.height()};
+
+        auto image = QImage{tileSize, format};
+        _impl->readTile(tileCoord, bytesPerPixel, image);
+        return image;
+    }
+    catch (const std::runtime_error& e)
+    {
+        print_log(LOG_WARN, LOG_TIFF, "%s for tile (%d, %d) @ LOD %d", e.what(),
+                  i, j, lod);
         return QImage();
     }
-
-    const auto tile = QPoint(i * tileSize.width(), j * tileSize.height());
-    if (!TIFFCheckTile(_impl->tif.get(), tile.x(), tile.y(), 0, 0))
-    {
-        print_log(LOG_WARN, LOG_TIFF, "Invalid tile (%d, %d) @ LOD %d", i, j,
-                  lod);
-        return QImage();
-    }
-
-    auto image = QImage(tileSize, _getQImageFormat(bytesPerPixel));
-    TIFFReadTile(_impl->tif.get(), image.bits(), tile.x(), tile.y(), 0, 0);
-    if (bytesPerPixel == 4)
-        return image.rgbSwapped(); // Tiff images are stored as ABRG -> ARGB
-    return image;
 }
 
 QImage TiffPyramidReader::readTopLevelImage()
@@ -179,37 +248,44 @@ QImage TiffPyramidReader::readTopLevelImage()
 
 QSize TiffPyramidReader::readSize(const uint lod)
 {
-    if (!TIFFSetDirectory(_impl->tif.get(), lod))
+    try
+    {
+        _impl->setDirectory(lod);
+        return getImageSize();
+    }
+    catch (const std::runtime_error&)
     {
         print_log(LOG_WARN, LOG_TIFF, "Invalid pyramid level: %d", lod);
         return QSize();
     }
-    return getImageSize();
 }
 
 QImage TiffPyramidReader::readImage(const uint lod)
 {
-    if (!TIFFSetDirectory(_impl->tif.get(), lod))
+    try
     {
-        print_log(LOG_WARN, LOG_TIFF, "Invalid pyramid level: %d", lod);
+        _impl->setDirectory(lod);
+
+        const auto bytesPerPixel = getBytesPerPixel();
+        const auto format = _getQImageFormat(bytesPerPixel);
+
+        auto tile = QImage{getTileSize(), format};
+        auto image = QImage{getImageSize(), format};
+
+        QPainter painter{&image};
+        for (int y = 0; y < image.height(); y += tile.height())
+        {
+            for (int x = 0; x < image.width(); x += tile.width())
+            {
+                _impl->readTile({x, y}, bytesPerPixel, tile);
+                painter.drawImage(x, y, tile);
+            }
+        }
+        return image;
+    }
+    catch (const std::runtime_error& e)
+    {
+        print_log(LOG_WARN, LOG_TIFF, "%s for image LOD %d", e.what(), lod);
         return QImage();
     }
-
-    const auto bytesPerPixel = getBytesPerPixel();
-    const auto format = _getQImageFormat(bytesPerPixel);
-    auto tile = QImage{getTileSize(), format};
-    auto image = QImage{getImageSize(), format};
-    QPainter painter{&image};
-
-    for (int y = 0; y < image.height(); y += tile.height())
-    {
-        for (int x = 0; x < image.width(); x += tile.width())
-        {
-            TIFFReadTile(_impl->tif.get(), tile.bits(), x, y, 0, 0);
-            painter.drawImage(x, y, tile);
-        }
-    }
-    if (bytesPerPixel == 4)
-        return image.rgbSwapped(); // Tiff images are stored as ABRG -> ARGB
-    return image;
 }
