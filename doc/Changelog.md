@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [269](https://github.com/BlueBrain/Tide/pull/269):
+  Fix segfault with TIFF pyramids in grayscale + alpha (2 bytes per pixel).
 * [268](https://github.com/BlueBrain/Tide/pull/268):
   Fix color inversion problem with certain TIFF pyramids (4 bytes per pixel).
 * [267](https://github.com/BlueBrain/Tide/pull/267):
