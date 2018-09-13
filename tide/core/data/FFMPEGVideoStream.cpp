@@ -358,6 +358,8 @@ void FFMPEGVideoStream::_generateSeekingParameters()
         const auto den = int64_t(timeBase.num) * AV_TIME_BASE;
         duration = av_rescale(_avFormatContext.duration, num, den);
     }
+    if (duration <= 0)
+        throw std::runtime_error("cannot determine movie duration");
 
     // Estimate number of frames if unavailable
     _numFrames = _videoStream->nb_frames;
