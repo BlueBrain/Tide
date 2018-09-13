@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -63,17 +63,23 @@ void upload(const Image& image, const uint srcTextureIdx, QOpenGLBuffer& pbo)
     pbo.release();
 }
 
+GLint _getUnpackAlignment(const uint textureWidth)
+{
+    if (textureWidth % 4 == 0)
+        return 4;
+    if (textureWidth % 2 == 0)
+        return 2;
+    return 1;
+}
+
 void copy(QOpenGLBuffer& pbo, QSGTexture& texture, const uint glTexFormat)
 {
     auto gl = QOpenGLContext::currentContext()->functions();
+
     const auto textureSize = texture.textureSize();
 
-    GLint alignment = 1;
-    if ((textureSize.width() % 4) == 0)
-        alignment = 4;
-    else if ((textureSize.width() % 2) == 0)
-        alignment = 2;
-    gl->glPixelStorei(GL_UNPACK_ALIGNMENT, alignment);
+    gl->glPixelStorei(GL_UNPACK_ALIGNMENT,
+                      _getUnpackAlignment(textureSize.width()));
 
     texture.bind();
     pbo.bind();
@@ -86,8 +92,9 @@ void copy(QOpenGLBuffer& pbo, QSGTexture& texture, const uint glTexFormat)
 std::unique_ptr<QSGTexture> createTexture(const QSize& size,
                                           QQuickWindow& window)
 {
-    uint textureID = 0;
     auto gl = QOpenGLContext::currentContext()->functions();
+
+    auto textureID = GLuint{0};
     gl->glGenTextures(1, &textureID);
     gl->glBindTexture(GL_TEXTURE_2D, textureID);
     gl->glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, size.width(), size.height(), 0,
@@ -102,17 +109,18 @@ std::unique_ptr<QSGTexture> createTexture(const QSize& size,
 std::unique_ptr<QSGTexture> createTextureRgba(const QSize& size,
                                               QQuickWindow& window)
 {
-    uint textureID;
     auto gl = QOpenGLContext::currentContext()->functions();
-    gl->glActiveTexture(GL_TEXTURE0);
+
+    auto textureID = GLuint{0};
     gl->glGenTextures(1, &textureID);
     gl->glBindTexture(GL_TEXTURE_2D, textureID);
     gl->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size.width(), size.height(), 0,
                      GL_RGBA, GL_UNSIGNED_BYTE, 0);
     gl->glBindTexture(GL_TEXTURE_2D, 0);
 
-    const auto textureFlags =
-        QQuickWindow::CreateTextureOptions(QQuickWindow::TextureOwnsGLTexture);
+    const auto textureFlags = QQuickWindow::CreateTextureOptions(
+        QQuickWindow::TextureOwnsGLTexture |
+        QQuickWindow::TextureHasAlphaChannel);
     return std::unique_ptr<QSGTexture>{
         window.createTextureFromId(textureID, size, textureFlags)};
 }

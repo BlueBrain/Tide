@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [270](https://github.com/BlueBrain/Tide/pull/270):
+  Fix rendering of contents with alpha channel + "transparent windows" option.
 * [269](https://github.com/BlueBrain/Tide/pull/269):
   Fix segfault with TIFF pyramids in grayscale + alpha (2 bytes per pixel).
 * [268](https://github.com/BlueBrain/Tide/pull/268):
