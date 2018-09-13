@@ -112,6 +112,7 @@ std::unique_ptr<QSGTexture> createTextureRgba(const QSize& size,
     auto gl = QOpenGLContext::currentContext()->functions();
 
     auto textureID = GLuint{0};
+    gl->glActiveTexture(GL_TEXTURE0);
     gl->glGenTextures(1, &textureID);
     gl->glBindTexture(GL_TEXTURE_2D, textureID);
     gl->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, size.width(), size.height(), 0,
