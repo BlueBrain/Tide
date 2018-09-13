@@ -43,6 +43,8 @@
 
 #include "data/FFMPEGMovie.h"
 
+#include "utils/log.h"
+
 BOOST_CLASS_EXPORT_IMPLEMENT(MovieContent)
 
 IMPLEMENT_SERIALIZE_FOR_XML(MovieContent)
@@ -67,8 +69,9 @@ bool MovieContent::readMetadata()
         _frameDuration = movie.getFrameDuration();
         return true;
     }
-    catch (const std::runtime_error&)
+    catch (const std::runtime_error& e)
     {
+        put_log(LOG_DEBUG, LOG_AV, e.what());
         return false;
     }
 }
