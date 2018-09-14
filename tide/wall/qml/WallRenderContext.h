@@ -42,6 +42,8 @@
 
 #include "types.h"
 
+#include "scene/Options.h"
+
 #include <QQmlContext>
 #include <QQmlEngine>
 
@@ -67,6 +69,12 @@ struct WallRenderContext
         , view{view_}
         , surfaceIndex{surfaceIndex_}
     {
+    }
+
+    bool isAlphaBlendingEnabled() const
+    {
+        auto options = engine.rootContext()->contextProperty("options");
+        return qvariant_cast<Options*>(options)->isAlphaBlendingEnabled();
     }
 };
 

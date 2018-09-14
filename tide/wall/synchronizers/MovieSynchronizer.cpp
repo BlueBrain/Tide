@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -68,7 +68,6 @@ void MovieSynchronizer::update(const Window& window, const QRectF& visibleArea)
 
     // Tiles area corresponds to Content dimensions for Movies
     const auto tilesSurface = window.getContent().getDimensions();
-
     const auto visibleTilesArea =
         ZoomHelper{window}.toTilesArea(visibleArea, tilesSurface);
 
@@ -76,17 +75,7 @@ void MovieSynchronizer::update(const Window& window, const QRectF& visibleArea)
         return;
 
     _visibleTilesArea = visibleTilesArea;
-    _tilesDirty = true;
-}
-
-void MovieSynchronizer::updateTiles()
-{
-    if (_tilesDirty)
-    {
-        TiledSynchronizer::updateTiles();
-        _tilesDirty = false;
-        _updateExistingTiles = false;
-    }
+    markTilesDirty();
 }
 
 void MovieSynchronizer::swapTiles()
@@ -101,9 +90,9 @@ void MovieSynchronizer::swapTiles()
     }
 }
 
-QSize MovieSynchronizer::getTilesArea() const
+QSize MovieSynchronizer::_getTilesArea(const uint lod) const
 {
-    return getDataSource().getTilesArea(0, 0);
+    return getDataSource().getTilesArea(lod, 0);
 }
 
 QString MovieSynchronizer::getStatistics() const
@@ -129,8 +118,14 @@ qreal MovieSynchronizer::getSliderPosition() const
                                   : _updater->getPosition();
 }
 
+QRectF MovieSynchronizer::getVisibleTilesArea(const uint lod) const
+{
+    Q_UNUSED(lod);
+    return _visibleTilesArea;
+}
+
 void MovieSynchronizer::_onPictureUpdated()
 {
-    _updateExistingTiles = true;
-    _tilesDirty = true;
+    markTilesDirty();
+    markExistingTilesDirty();
 }

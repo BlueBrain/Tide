@@ -59,6 +59,9 @@ public:
     /** @copydoc Content::getType **/
     ContentType getType() const override;
 
+    /** @copydoc Content::hasTransparency **/
+    bool hasTransparency() const override;
+
     /**
      * Read texture metadata.
      * @return true on success, false if the URI is invalid or an error occured.
@@ -76,15 +79,44 @@ protected:
 private:
     friend class boost::serialization::access;
 
+    /** Serialize for sending to Wall applications. */
     template <class Archive>
     void serialize(Archive& ar, const unsigned int)
+    {
+        // clang-format off
+        ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Content);
+        ar & _transparent;
+        // clang-format on
+    }
+
+    /** Serialize for saving to an xml file. */
+    template <class Archive>
+    void serialize_members_xml(Archive& ar, const unsigned int)
     {
         // serialize base class information (with NVP for xml archives)
         // clang-format off
         ar & BOOST_SERIALIZATION_BASE_OBJECT_NVP(Content);
         // clang-format on
     }
+
+    /** Loading from xml. */
+    void serialize_for_xml(boost::archive::xml_iarchive& ar,
+                           const unsigned int version)
+    {
+        serialize_members_xml(ar, version);
+    }
+
+    /** Saving to xml. */
+    void serialize_for_xml(boost::archive::xml_oarchive& ar,
+                           const unsigned int version)
+    {
+        serialize_members_xml(ar, version);
+    }
+
+    bool _transparent = false;
 };
+
+DECLARE_SERIALIZE_FOR_XML(ImageContent)
 
 // Need to be in header for serialization of derived class ErrorContent
 // Use "TextureContent" as key for compatibility with legacy xml sessions

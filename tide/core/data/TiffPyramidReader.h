@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -77,6 +77,9 @@ public:
 
     /** Get the number of bytes by pixel. */
     int getBytesPerPixel() const;
+
+    /** @return true if the image has an alpha channel. */
+    bool hasAlphaChannel() const;
 
     /** Find the index of the top level of the pyramid. */
     uint findTopPyramidLevel();

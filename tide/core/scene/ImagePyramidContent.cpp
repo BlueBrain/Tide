@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -42,10 +42,12 @@
 #include "data/TiffPyramidReader.h"
 #include "utils/log.h"
 
-BOOST_CLASS_EXPORT(ImagePyramidContent)
+BOOST_CLASS_EXPORT_IMPLEMENT(ImagePyramidContent)
+
+IMPLEMENT_SERIALIZE_FOR_XML(ImagePyramidContent)
 
 ImagePyramidContent::ImagePyramidContent(const QString& uri)
-    : Content(uri)
+    : Content{uri}
 {
 }
 
@@ -54,11 +56,18 @@ ContentType ImagePyramidContent::getType() const
     return ContentType::image_pyramid;
 }
 
+bool ImagePyramidContent::hasTransparency() const
+{
+    return _transparent;
+}
+
 bool ImagePyramidContent::readMetadata()
 {
     try
     {
-        setDimensions(TiffPyramidReader{getUri()}.getImageSize());
+        TiffPyramidReader reader{getUri()};
+        setDimensions(reader.getImageSize());
+        _transparent = reader.hasAlphaChannel();
     }
     catch (const std::exception& e)
     {

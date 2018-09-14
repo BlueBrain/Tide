@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -67,9 +67,6 @@ public:
     /** @copydoc ContentSynchronizer::swapTiles */
     void swapTiles() override;
 
-    /** @copydoc ContentSynchronizer::getTilesArea */
-    QSize getTilesArea() const override;
-
     /** @copydoc ContentSynchronizer::getStatistics */
     QString getStatistics() const override;
 
@@ -86,17 +83,16 @@ public:
     deflect::View getView() const final;
 
 private:
+    const DataSource& getDataSource() const final;
+    QSize _getTilesArea(uint lod) const final;
+
+    void _createTile();
+
     DataSourceSharedPtr _dataSource;
     deflect::View _view;
     bool _tileAdded = false;
     bool _addTile = false;
     bool _zoomContextTileDirty = false;
-
-    /** @copydoc ContentSynchronizer::getDataSource */
-    const DataSource& getDataSource() const final;
-
-    /** Create this content's unique tile. */
-    void _createTile();
 };
 
 #endif

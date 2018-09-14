@@ -72,7 +72,7 @@ public:
                               uint channel) const final;
 
     /** @return the ID of the preview (lowest res.) tile for the current page */
-    uint getPreviewTileId() const;
+    uint getPreviewTileId() const final;
 
     /** @return the current page / total number of pages of the document. */
     QString getStatistics() const;

@@ -100,8 +100,8 @@ std::unique_ptr<QSGTexture> createTexture(const QSize& size,
     gl->glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, size.width(), size.height(), 0,
                      GL_RED, GL_UNSIGNED_BYTE, nullptr);
 
-    const auto textureFlags =
-        QQuickWindow::CreateTextureOptions(QQuickWindow::TextureOwnsGLTexture);
+    const auto textureFlags = QQuickWindow::CreateTextureOptions(
+        QQuickWindow::TextureOwnsGLTexture | QQuickWindow::TextureHasMipmaps);
     return std::unique_ptr<QSGTexture>{
         window.createTextureFromId(textureID, size, textureFlags)};
 }
@@ -120,7 +120,7 @@ std::unique_ptr<QSGTexture> createTextureRgba(const QSize& size,
     gl->glBindTexture(GL_TEXTURE_2D, 0);
 
     const auto textureFlags = QQuickWindow::CreateTextureOptions(
-        QQuickWindow::TextureOwnsGLTexture |
+        QQuickWindow::TextureOwnsGLTexture | QQuickWindow::TextureHasMipmaps |
         QQuickWindow::TextureHasAlphaChannel);
     return std::unique_ptr<QSGTexture>{
         window.createTextureFromId(textureID, size, textureFlags)};

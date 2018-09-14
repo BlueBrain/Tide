@@ -78,7 +78,7 @@ private:
     std::map<uint, TilePtr> _tiles;
     TilePtr _zoomContextTile;
 
-    void _addTile(TilePtr tile);
+    void _addTile(TilePtr tile, uint lod);
     QQuickItem* _getZoomContextParentItem() const;
     void _updateZoomContextTile(bool visible);
     void _addZoomContextTile();

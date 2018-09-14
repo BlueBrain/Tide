@@ -64,7 +64,8 @@ BackgroundRenderer::BackgroundRenderer(const Background& background,
                                        context.engine.rootContext(), true));
 
     auto emptyGroup = DisplayGroup::create(context.screenRect.size());
-    const VisibilityHelper helper(*emptyGroup, context.screenRect);
+    const auto helper = VisibilityHelper{*emptyGroup, context.screenRect,
+                                         context.isAlphaBlendingEnabled()};
     _renderer->update(window, helper.getVisibleArea(*window));
 }
 

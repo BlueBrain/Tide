@@ -64,7 +64,7 @@ ContentPtr make_dummy_content(const ContentType type)
 {
     auto content = std::make_unique<DummyContent>(contentSize, "/not/a/file");
     content->type = type;
-    return content;
+    return std::move(content); // move to fix clang bug
 }
 }
 

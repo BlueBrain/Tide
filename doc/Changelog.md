@@ -3,6 +3,11 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [272](https://github.com/BlueBrain/Tide/pull/272):
+  - Smooth transitions between resolution levels for opaque contents (PDFs,
+    regular TIFF pyramids).
+  - Fix rendering and blending of transparent contents (PNGs, SVGs, TIFF
+    pyramids with alpha).
 * [271](https://github.com/BlueBrain/Tide/pull/271):
   Fix thumbnails for side-by-side stereo movies (only show one side).
 * [270](https://github.com/BlueBrain/Tide/pull/270):

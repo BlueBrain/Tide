@@ -51,7 +51,8 @@ ImagePtr CachedDataSource::getTileImage(const uint tileId,
             return std::make_shared<QtImage>(cache[tileId]);
     }
 
-    const auto image = getCachableTileImage(tileId, view);
+    const auto image =
+        QtImage::toGlCompatibleFormat(getCachableTileImage(tileId, view));
     if (image.isNull())
         return ImagePtr();
 

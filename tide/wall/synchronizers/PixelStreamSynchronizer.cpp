@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -47,13 +47,12 @@
 PixelStreamSynchronizer::PixelStreamSynchronizer(
     std::shared_ptr<PixelStreamUpdater> updater, const deflect::View view,
     const uint channel)
-    : TiledSynchronizer(TileSwapPolicy::SwapTilesSynchronously)
+    : TiledSynchronizer{TileSwapPolicy::SwapTilesSynchronously}
     , _updater{std::move(updater)}
     , _view{view}
+    , _channel{channel}
 {
     _updater->synchronizers.register_(this);
-
-    _channel = channel;
 
     connect(_updater.get(), &PixelStreamUpdater::pictureUpdated, this,
             &PixelStreamSynchronizer::_onPictureUpdated);
@@ -69,7 +68,6 @@ void PixelStreamSynchronizer::update(const Window& window,
 {
     // Tiles area corresponds to Content dimensions for PixelStreams
     const auto tilesSurface = window.getContent().getDimensions();
-
     const auto visibleTilesArea =
         ZoomHelper{window}.toTilesArea(visibleArea, tilesSurface);
 
@@ -77,17 +75,7 @@ void PixelStreamSynchronizer::update(const Window& window,
         return;
 
     _visibleTilesArea = visibleTilesArea;
-    _tilesDirty = true;
-}
-
-void PixelStreamSynchronizer::updateTiles()
-{
-    if (_tilesDirty)
-    {
-        TiledSynchronizer::updateTiles();
-        _tilesDirty = false;
-        _updateExistingTiles = false;
-    }
+    markTilesDirty();
 }
 
 void PixelStreamSynchronizer::swapTiles()
@@ -97,12 +85,12 @@ void PixelStreamSynchronizer::swapTiles()
     _fpsCounter.tick();
     emit statisticsChanged();
 
-    _tilesArea = _updater->getTilesArea(0, _channel);
-    emit tilesAreaChanged();
+    _setTilesArea(_updater->getTilesArea(0, getChannel()));
 }
 
-QSize PixelStreamSynchronizer::getTilesArea() const
+QSize PixelStreamSynchronizer::_getTilesArea(const uint lod) const
 {
+    Q_UNUSED(lod);
     return _tilesArea;
 }
 
@@ -121,8 +109,28 @@ const DataSource& PixelStreamSynchronizer::getDataSource() const
     return *_updater;
 }
 
+uint PixelStreamSynchronizer::getChannel() const
+{
+    return _channel;
+}
+
+QRectF PixelStreamSynchronizer::getVisibleTilesArea(const uint lod) const
+{
+    Q_UNUSED(lod);
+    return _visibleTilesArea;
+}
+
+void PixelStreamSynchronizer::_setTilesArea(const QSize& tilesArea)
+{
+    if (tilesArea == _tilesArea)
+        return;
+
+    _tilesArea = tilesArea;
+    emit tilesAreasChanged();
+}
+
 void PixelStreamSynchronizer::_onPictureUpdated()
 {
-    _tilesDirty = true;
-    _updateExistingTiles = true;
+    markTilesDirty();
+    markExistingTilesDirty();
 }

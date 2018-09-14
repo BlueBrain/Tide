@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -67,14 +67,11 @@ public:
     /** @copydoc ContentSynchronizer::update */
     void update(const Window& window, const QRectF& visibleArea) final;
 
-    /** @copydoc ContentSynchronizer::updateTiles */
-    void updateTiles() final;
-
     /** @copydoc ContentSynchronizer::swapTiles */
     void swapTiles() final;
 
-    /** @copydoc ContentSynchronizer::getTilesArea */
-    QSize getTilesArea() const final;
+    /** @copydoc ContentSynchronizer::_getTilesArea */
+    QSize _getTilesArea(uint lod) const final;
 
     /** @copydoc ContentSynchronizer::getStatistics */
     QString getStatistics() const final;
@@ -92,14 +89,16 @@ signals:
     //@}
 
 private:
+    const DataSource& getDataSource() const final;
+    QRectF getVisibleTilesArea(uint lod) const final;
+
+    void _onPictureUpdated();
+
     std::shared_ptr<MovieUpdater> _updater;
     deflect::View _view;
     FpsCounter _fpsCounter;
 
-    bool _tilesDirty = true;
-
-    const DataSource& getDataSource() const final;
-    void _onPictureUpdated();
+    QRectF _visibleTilesArea;
 };
 
 #endif

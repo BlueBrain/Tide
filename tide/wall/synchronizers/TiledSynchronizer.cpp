@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -43,7 +43,7 @@
 #include "qml/Tile.h"
 
 TiledSynchronizer::TiledSynchronizer(const TileSwapPolicy policy)
-    : _policy(policy)
+    : _policy{policy}
 {
 }
 
@@ -61,26 +61,16 @@ void TiledSynchronizer::onSwapReady(TilePtr tile)
 
 void TiledSynchronizer::updateTiles()
 {
-    const auto& source = getDataSource();
-    auto visibleSet =
-        source.computeVisibleSet(_visibleTilesArea, _lod, _channel);
-    visibleSet = set_difference(visibleSet, _ignoreSet);
+    if (!_tilesDirty)
+        return;
 
-    const auto addedTiles = set_difference(visibleSet, _visibleSet);
+    const auto visibleSet = _computeVisibleTilesAndAddMissingOnes();
     const auto removedTiles = set_difference(_visibleSet, visibleSet);
-
-    for (auto i : addedTiles)
-    {
-        const auto type =
-            source.isDynamic() ? TextureType::dynamic : TextureType::static_;
-        emit addTile(Tile::create(i, source.getTileRect(i), type));
-    }
 
     if (_updateExistingTiles)
     {
         const auto currentTiles = set_difference(_visibleSet, removedTiles);
-        for (auto i : currentTiles)
-            emit updateTile(i, source.getTileRect(i));
+        _updateTiles(currentTiles);
     }
 
     if (_policy == SwapTilesSynchronously)
@@ -94,11 +84,13 @@ void TiledSynchronizer::updateTiles()
             _syncSet = set_difference(_syncSet, removedTiles);
     }
 
-    for (auto i : removedTiles)
-        _removeTile(i);
-    _removeLaterSet = set_difference(_removeLaterSet, addedTiles);
+    _removeTiles(removedTiles);
 
+    _removeLaterSet = set_difference(_removeLaterSet, visibleSet);
     _visibleSet = visibleSet;
+
+    _tilesDirty = false;
+    _updateExistingTiles = false;
 }
 
 bool TiledSynchronizer::canSwapTiles() const
@@ -123,7 +115,58 @@ void TiledSynchronizer::swapTiles()
 
 bool TiledSynchronizer::hasVisibleTiles() const
 {
-    return !_visibleTilesArea.isEmpty();
+    return !_visibleSet.empty();
+}
+
+void TiledSynchronizer::markTilesDirty()
+{
+    _tilesDirty = true;
+}
+
+void TiledSynchronizer::markExistingTilesDirty()
+{
+    _updateExistingTiles = true;
+}
+
+Indices TiledSynchronizer::_computeVisibleTilesAndAddMissingOnes()
+{
+    Indices visibleSet;
+    for (auto lod = getLod(); lod < getLodCount(); ++lod)
+    {
+        const auto visibleSetLod = _computeVisibleTiles(lod);
+        const auto addedTilesLod = set_difference(visibleSetLod, _visibleSet);
+        _addTiles(addedTilesLod, lod);
+
+        visibleSet.insert(visibleSetLod.begin(), visibleSetLod.end());
+    }
+    return visibleSet;
+}
+
+Indices TiledSynchronizer::_computeVisibleTiles(const uint lod) const
+{
+    return getDataSource().computeVisibleSet(getVisibleTilesArea(lod), lod,
+                                             getChannel());
+}
+
+void TiledSynchronizer::_addTiles(const Indices& tiles, const uint lod)
+{
+    const auto& source = getDataSource();
+    const auto type = _getTextureType();
+    const auto zOrder = getLodCount() - lod - 1;
+    for (auto i : tiles)
+        emit addTile(Tile::create(i, source.getTileRect(i), type), zOrder);
+}
+
+void TiledSynchronizer::_updateTiles(const Indices& tiles)
+{
+    for (auto i : tiles)
+        emit updateTile(i, getDataSource().getTileRect(i));
+}
+
+void TiledSynchronizer::_removeTiles(const Indices& tiles)
+{
+    for (auto i : tiles)
+        _removeTile(i);
 }
 
 void TiledSynchronizer::_removeTile(const size_t tileIndex)
@@ -132,4 +175,10 @@ void TiledSynchronizer::_removeTile(const size_t tileIndex)
         _removeLaterSet.insert(tileIndex);
     else
         emit removeTile(tileIndex);
+}
+
+TextureType TiledSynchronizer::_getTextureType() const
+{
+    return getDataSource().isDynamic() ? TextureType::dynamic
+                                       : TextureType::static_;
 }

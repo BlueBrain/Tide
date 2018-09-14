@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -43,9 +43,11 @@
 #include "scene/Window.h"
 
 VisibilityHelper::VisibilityHelper(const DisplayGroup& displayGroup,
-                                   const QRect& visibleArea)
-    : _displayGroup(displayGroup)
-    , _visibleArea(visibleArea)
+                                   const QRect& visibleArea,
+                                   const bool alphaBlending)
+    : _displayGroup{displayGroup}
+    , _visibleArea{visibleArea}
+    , _alphaBlending{alphaBlending}
 {
 }
 
@@ -90,32 +92,37 @@ QRectF _globalToWindowCoordinates(const QRectF& area, const QRectF& window)
 
 QRectF VisibilityHelper::getVisibleArea(const Window& window) const
 {
-    const QRectF& windowCoords = window.getDisplayCoordinates();
+    const auto& windowCoords = window.getDisplayCoordinates();
 
-    QRectF area = windowCoords.intersected(_visibleArea);
+    auto area = windowCoords.intersected(_visibleArea);
     if (area.isEmpty())
         return QRectF();
 
     if (window.isFullscreen())
         return _globalToWindowCoordinates(area, windowCoords);
-    else if (_displayGroup.hasFullscreenWindows())
+
+    if (_displayGroup.hasFullscreenWindows())
         return QRectF();
 
     if (window.isFocused())
         return _globalToWindowCoordinates(area, windowCoords);
 
-    bool isAbove = false;
+    auto winIsAbove = false;
     for (const auto& win : _displayGroup.getWindows())
     {
-        if (win->getID() == window.getID() && !window.isPanel())
+        if (win->getID() == window.getID())
         {
-            isAbove = true;
+            winIsAbove = !window.isPanel(); // panels are above regular windows
             continue;
         }
         if (win->isHidden())
             continue;
-        if (isAbove || win->isFocused())
+
+        if ((winIsAbove || win->isFocused()) &&
+            (!_alphaBlending || !win->getContent().hasTransparency()))
+        {
             area = _cutOverlap(area, win->getDisplayCoordinates());
+        }
 
         if (area.isEmpty())
             return QRectF();

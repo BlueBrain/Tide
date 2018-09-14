@@ -1,6 +1,6 @@
 /*********************************************************************/
 /* Copyright (c) 2011-2012, The University of Texas at Austin.       */
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael.Dumusc@epfl.ch                   */
 /*                          Daniel.Nachbaur@epfl.ch                  */
 /* All rights reserved.                                              */
@@ -57,6 +57,9 @@ public:
 
     /** Get the content type **/
     ContentType getType() const override;
+
+    /** @copydoc Content::hasTransparency **/
+    bool hasTransparency() const final;
 
     /**
      * Read SVG metadata.

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -43,8 +43,6 @@
 #include "synchronizers/TiledSynchronizer.h"
 #include "tools/FpsCounter.h"
 
-#include <QObject>
-
 /**
  * Synchronizes a PixelStream between different QML windows.
  */
@@ -68,14 +66,11 @@ public:
     /** @copydoc ContentSynchronizer::update */
     void update(const Window& window, const QRectF& visibleArea) override;
 
-    /** @copydoc ContentSynchronizer::updateTiles */
-    void updateTiles() final;
-
     /** @copydoc ContentSynchronizer::swapTiles */
     void swapTiles() final;
 
-    /** @copydoc ContentSynchronizer::getTilesArea */
-    QSize getTilesArea() const override;
+    /** @copydoc ContentSynchronizer::_getTilesArea */
+    QSize _getTilesArea(uint lod) const override;
 
     /** @copydoc ContentSynchronizer::getStatistics */
     QString getStatistics() const override;
@@ -86,15 +81,22 @@ public:
     /** @copydoc ContentSynchronizer::getDataSource */
     const DataSource& getDataSource() const final;
 
+    /** @copydoc TiledSynchronizer::getChannel */
+    uint getChannel() const final;
+
 private:
+    QRectF getVisibleTilesArea(uint lod) const final;
+
+    void _setTilesArea(const QSize& tilesArea);
+    void _onPictureUpdated();
+
     std::shared_ptr<PixelStreamUpdater> _updater;
     deflect::View _view;
+    uint _channel = 0;
     FpsCounter _fpsCounter;
 
-    bool _tilesDirty = true;
     QSize _tilesArea;
-
-    void _onPictureUpdated();
+    QRectF _visibleTilesArea;
 };
 
 #endif

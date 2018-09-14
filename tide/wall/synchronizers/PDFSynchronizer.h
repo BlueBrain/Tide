@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -61,9 +61,6 @@ public:
 
     /** @copydoc ContentSynchronizer::getStatistics */
     QString getStatistics() const final;
-
-    /** @copydoc ContentSynchronizer::createZoomContextTile */
-    TilePtr createZoomContextTile() const final;
 
 private:
     std::shared_ptr<PDFTiler> _source;

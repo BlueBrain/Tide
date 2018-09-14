@@ -71,7 +71,8 @@ void DisplayGroupRenderer::_updateWindowItems(const DisplayGroup& displayGroup)
 {
     QSet<QUuid> updatedWindows;
     const QQuickItem* parentItem = nullptr;
-    const auto helper = VisibilityHelper(displayGroup, _context.screenRect);
+    const auto helper = VisibilityHelper{displayGroup, _context.screenRect,
+                                         _context.isAlphaBlendingEnabled()};
 
     for (const auto& window : displayGroup.getWindows())
     {

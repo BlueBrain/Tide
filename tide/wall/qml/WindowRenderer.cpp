@@ -102,7 +102,7 @@ QQuickItem* WindowRenderer::getQuickItem()
     return _windowItem.get();
 }
 
-void WindowRenderer::_addTile(TilePtr tile)
+void WindowRenderer::_addTile(TilePtr tile, const uint zOrder)
 {
     connect(tile.get(), &Tile::readyToSwap, _synchronizer.get(),
             &ContentSynchronizer::onSwapReady);
@@ -113,7 +113,7 @@ void WindowRenderer::_addTile(TilePtr tile)
     _tiles[tile->getId()] = tile;
 
     auto item = _windowItem->findChild<QQuickItem*>(TILES_PARENT_OBJECT_NAME);
-    tile->setParentItem(item);
+    tile->setParentItem(item->childItems().at(zOrder));
 
     connect(item, SIGNAL(showTilesBordersValueChanged(bool)), tile.get(),
             SLOT(setShowBorder(bool)));

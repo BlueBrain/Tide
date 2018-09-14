@@ -71,6 +71,7 @@ class Content : public QObject
     Q_PROPERTY(KeyboardState* keyboard READ getKeyboardState CONSTANT)
     Q_PROPERTY(bool captureInteraction READ getCaptureInteraction NOTIFY
                    captureInteractionChanged)
+    Q_PROPERTY(bool transparency READ hasTransparency CONSTANT)
 
     // These properties can be constant because they are only accessed on wall
     Q_PROPERTY(qreal aspectRatio READ getAspectRatio CONSTANT)
@@ -95,6 +96,9 @@ public:
 
     /** Get the title of the content */
     virtual QString getTitle() const;
+
+    /** @return true if the content has transparency (alpha channel). */
+    virtual bool hasTransparency() const;
 
     /**
      * Read content metadata from the data source.

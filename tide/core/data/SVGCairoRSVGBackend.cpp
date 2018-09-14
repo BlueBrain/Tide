@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -97,24 +97,24 @@ QSize SVGCairoRSVGBackend::getSize() const
 QImage SVGCairoRSVGBackend::renderToImage(const QSize& imageSize,
                                           const QRectF& region) const
 {
-    const QSizeF svgSize(getSize());
+    const auto svgSize = QSizeF(getSize());
 
-    const qreal zoomX = 1.0 / region.width();
-    const qreal zoomY = 1.0 / region.height();
+    const auto zoomX = 1.0 / region.width();
+    const auto zoomY = 1.0 / region.height();
 
-    const qreal resX = imageSize.width() / svgSize.width();
-    const qreal resY = imageSize.height() / svgSize.height();
+    const auto resX = imageSize.width() / svgSize.width();
+    const auto resY = imageSize.height() / svgSize.height();
 
-    const QPointF topLeft(region.x() * svgSize.width(),
-                          region.y() * svgSize.height());
+    const auto topLeft =
+        QPointF{region.x() * svgSize.width(), region.y() * svgSize.height()};
 
-    QImage image(imageSize, QImage::Format_ARGB32);
-    image.fill(Qt::white);
-    CairoSurfacePtr surface(
+    auto image = QImage{imageSize, QImage::Format_ARGB32_Premultiplied};
+    image.fill(Qt::transparent);
+    auto surface = CairoSurfacePtr{
         cairo_image_surface_create_for_data(image.bits(), CAIRO_FORMAT_ARGB32,
                                             image.width(), image.height(),
-                                            4 * image.width()));
-    CairoPtr context(cairo_create(surface.get()));
+                                            4 * image.width())};
+    auto context = CairoPtr{cairo_create(surface.get())};
 
     cairo_scale(context.get(), zoomX * resX, zoomY * resY);
     cairo_translate(context.get(), -topLeft.x(), -topLeft.y());

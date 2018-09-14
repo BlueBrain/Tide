@@ -57,6 +57,9 @@ public:
     /** @copydoc DataSource::getTileRect */
     QRect getTileRect(uint tileId) const final;
 
+    /** @copydoc DataSource::getPreviewTileId */
+    virtual uint getPreviewTileId() const;
+
 private:
     /** threadsafe */
     QImage getCachableTileImage(uint tileId, deflect::View view) const final;
