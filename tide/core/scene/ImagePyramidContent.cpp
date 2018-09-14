@@ -40,6 +40,7 @@
 #include "ImagePyramidContent.h"
 
 #include "data/TiffPyramidReader.h"
+#include "utils/log.h"
 
 BOOST_CLASS_EXPORT(ImagePyramidContent)
 
@@ -59,8 +60,9 @@ bool ImagePyramidContent::readMetadata()
     {
         setDimensions(TiffPyramidReader{getUri()}.getImageSize());
     }
-    catch (...)
+    catch (const std::exception& e)
     {
+        put_log(LOG_DEBUG, LOG_TIFF, e.what());
         return false;
     }
     return true;
