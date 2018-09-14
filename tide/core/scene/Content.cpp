@@ -92,6 +92,11 @@ QString Content::getTitle() const
     return getFilePath().section("/", -1, -1);
 }
 
+bool Content::hasTransparency() const
+{
+    return false;
+}
+
 QSize Content::getDimensions() const
 {
     return _size;

@@ -45,14 +45,21 @@
 
 BOOST_CLASS_EXPORT_IMPLEMENT(ImageContent)
 
+IMPLEMENT_SERIALIZE_FOR_XML(ImageContent)
+
 ImageContent::ImageContent(const QString& uri)
-    : Content(uri)
+    : Content{uri}
 {
 }
 
 ContentType ImageContent::getType() const
 {
     return ContentType::image;
+}
+
+bool ImageContent::hasTransparency() const
+{
+    return _transparent;
 }
 
 bool ImageContent::readMetadata()
@@ -62,6 +69,7 @@ bool ImageContent::readMetadata()
         return false;
 
     setDimensions(imageReader.getSize());
+    _transparent = imageReader.hasAlphaChannel();
     return true;
 }
 

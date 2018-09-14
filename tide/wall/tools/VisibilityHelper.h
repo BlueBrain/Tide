@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -48,14 +48,15 @@
 class VisibilityHelper
 {
 public:
-    VisibilityHelper(const DisplayGroup& displayGroup,
-                     const QRect& visibleArea);
+    VisibilityHelper(const DisplayGroup& displayGroup, const QRect& visibleArea,
+                     bool alphaBlending);
 
     QRectF getVisibleArea(const Window& window) const;
 
 private:
     const DisplayGroup& _displayGroup;
     const QRect& _visibleArea;
+    bool _alphaBlending = false;
 };
 
 #endif

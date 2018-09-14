@@ -56,6 +56,7 @@ public:
     QString getUri() const;
     bool isValid() const;
     bool isStereo() const;
+    bool hasAlphaChannel() const;
     QSize getSize() const;
     QImage getImage(deflect::View view) const;
 
@@ -64,8 +65,6 @@ public:
 private:
     std::unique_ptr<QImageReader> _reader;
     bool _stereo = false;
-
-    QImage _readImage(deflect::View view) const;
 };
 
 #endif

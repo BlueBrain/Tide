@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2014, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -46,22 +46,24 @@ class DummyContent : public Content
 {
 public:
     DummyContent(const QString& uri = QString())
-        : Content(uri)
+        : Content{uri}
     {
     }
 
     DummyContent(const QSize& dimensions, const QString& uri = QString())
-        : Content(uri)
+        : Content{uri}
     {
         setDimensions(dimensions);
     }
 
     ContentType getType() const final { return type; }
+    bool hasTransparency() const final { return transparent; }
     bool readMetadata() final { return true; }
     bool hasFixedAspectRatio() const final { return fixedAspectRatio; }
     bool canBeZoomed() const final { return zoomable; }
     int dummyParam_ = 0;
     ContentType type = ContentType::invalid;
+    bool transparent = false;
     bool fixedAspectRatio = true;
     bool zoomable = true;
 

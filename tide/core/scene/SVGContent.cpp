@@ -57,11 +57,16 @@ ContentType SVGContent::getType() const
     return ContentType::svg;
 }
 
+bool SVGContent::hasTransparency() const
+{
+    return true;
+}
+
 bool SVGContent::readMetadata()
 {
     try
     {
-        const SVG svg(getUri());
+        const SVG svg{getUri()};
         setDimensions(svg.getSize());
         return true;
     }

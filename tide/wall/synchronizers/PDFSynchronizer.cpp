@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -39,11 +39,9 @@
 
 #include "PDFSynchronizer.h"
 
-#include "qml/Tile.h"
-
 PDFSynchronizer::PDFSynchronizer(std::shared_ptr<PDFTiler> source)
-    : LodSynchronizer(source)
-    , _source(std::move(source))
+    : LodSynchronizer{source}
+    , _source{std::move(source)}
 {
     connect(_source.get(), &PDFTiler::pageChanged,
             [this] { _pageChanged = true; });
@@ -51,8 +49,7 @@ PDFSynchronizer::PDFSynchronizer(std::shared_ptr<PDFTiler> source)
 
 void PDFSynchronizer::update(const Window& window, const QRectF& visibleArea)
 {
-    LodSynchronizer::update(window, visibleArea, _pageChanged,
-                            _source->getPreviewTileId());
+    LodSynchronizer::update(window, visibleArea, _pageChanged);
 
     if (_pageChanged)
     {
@@ -63,12 +60,5 @@ void PDFSynchronizer::update(const Window& window, const QRectF& visibleArea)
 
 QString PDFSynchronizer::getStatistics() const
 {
-    const auto pageStatistics = _source->getStatistics();
-    return LodSynchronizer::getStatistics() + QString(" ") + pageStatistics;
-}
-
-TilePtr PDFSynchronizer::createZoomContextTile() const
-{
-    const auto tileId = _source->getPreviewTileId();
-    return Tile::create(tileId, getDataSource().getTileRect(tileId));
+    return LodSynchronizer::getStatistics() + " " + _source->getStatistics();
 }

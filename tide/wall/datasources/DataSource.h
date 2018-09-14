@@ -79,6 +79,8 @@ public:
     /** @return the max LOD level (top of pyramid, lowest resolution). */
     virtual uint getMaxLod() const = 0;
 
+    /** @return the index of the tile to use for a preview. */
+    virtual uint getPreviewTileId() const { return 0; }
     /** Allow advancing to the next frame (synchronization / flow control). */
     virtual void allowNextFrame() {}
     /** Synchronize the advance to the next frame of the data. */

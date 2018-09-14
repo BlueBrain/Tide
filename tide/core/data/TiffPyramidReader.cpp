@@ -81,6 +81,8 @@ QImage::Format _getQImageFormat(const int bytesPerPixel)
     case 3:
         return QImage::Format_RGB888;
     case 4:
+        // although pixels are generally stored premultiplied in TIFF files
+        // libtiff reverts the pre-multiplication when reading.
         return QImage::Format_ARGB32;
     default:
         throw std::runtime_error("Unsupported format");
@@ -182,9 +184,7 @@ TiffPyramidReader::TiffPyramidReader(const QString& uri)
 {
 }
 
-TiffPyramidReader::~TiffPyramidReader()
-{
-}
+TiffPyramidReader::~TiffPyramidReader() = default;
 
 QSize TiffPyramidReader::getImageSize() const
 {
@@ -207,6 +207,11 @@ int TiffPyramidReader::getBytesPerPixel() const
     int value = 0;
     TIFFGetField(_impl->tif.get(), TIFFTAG_SAMPLESPERPIXEL, &value);
     return value;
+}
+
+bool TiffPyramidReader::hasAlphaChannel() const
+{
+    return _impl->hasAssociatedAlpha();
 }
 
 uint TiffPyramidReader::findTopPyramidLevel()

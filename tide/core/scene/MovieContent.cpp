@@ -50,7 +50,7 @@ BOOST_CLASS_EXPORT_IMPLEMENT(MovieContent)
 IMPLEMENT_SERIALIZE_FOR_XML(MovieContent)
 
 MovieContent::MovieContent(const QString& uri)
-    : Content(uri)
+    : Content{uri}
 {
 }
 

@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -51,10 +51,8 @@ class QtImage : public Image
 {
 public:
     /**
-     * Constructor, stores the given QImage.
-     * @param image an image in 32 bits format
-     * @throw std::runtime_error if image is invalid or not in 32 bits format
-     * @sa is32Bits
+     * Constructor, stores a copy of the given QImage.
+     * @param image which will be converted to the appropriate format if needed.
      */
     explicit QtImage(const QImage& image);
 
@@ -73,14 +71,15 @@ public:
     /** @copydoc Image::getGLPixelFormat */
     uint getGLPixelFormat() const override;
 
-    /** @return true if the image format is 32 bits per pixel. */
-    static bool is32Bits(const QImage& image)
-    {
-        return !image.isNull() && image.bytesPerLine() / image.width() == 4;
-    }
+    /**
+     * @return image in a suitable format for rendering:
+     * - ARGB32_Premultiplied for images with alpha channel (transparent).
+     * - RGB32 for others (opaque).
+.    */
+    static QImage toGlCompatibleFormat(const QImage& image);
 
 private:
-    const QImage _image;
+    QImage _image;
 };
 
 #endif

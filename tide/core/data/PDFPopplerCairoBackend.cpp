@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -43,17 +43,19 @@
 
 #include "CairoWrappers.h"
 
+#include <cstring> // std::memset
+
 struct PopplerPageDeleter
 {
     void operator()(PopplerPage* page) { g_object_unref(page); }
 };
-typedef std::unique_ptr<PopplerPage, PopplerPageDeleter> PopplerPagePtr;
+using PopplerPagePtr = std::unique_ptr<PopplerPage, PopplerPageDeleter>;
 
 struct PopplerDocDeleter
 {
     void operator()(PopplerDocument* doc) { g_object_unref(doc); }
 };
-typedef std::unique_ptr<PopplerDocument, PopplerDocDeleter> PopplerDocumentPtr;
+using PopplerDocumentPtr = std::unique_ptr<PopplerDocument, PopplerDocDeleter>;
 
 struct PDFPopplerCairoBackend::Impl
 {
@@ -71,7 +73,7 @@ PDFPopplerCairoBackend::PDFPopplerCairoBackend(const QString& uri)
 {
     GError* gerror = nullptr;
     _impl->document.reset(
-        poppler_document_new_from_file(_getFilepath(uri).c_str(), NULL,
+        poppler_document_new_from_file(_getFilepath(uri).c_str(), nullptr,
                                        &gerror));
     if (!_impl->document)
         throw std::runtime_error(gerror->message);
@@ -97,8 +99,8 @@ int PDFPopplerCairoBackend::getPageCount() const
 
 bool PDFPopplerCairoBackend::setPage(const int pageNumber)
 {
-    PopplerPagePtr page(
-        poppler_document_get_page(_impl->document.get(), pageNumber));
+    auto page = PopplerPagePtr{
+        poppler_document_get_page(_impl->document.get(), pageNumber)};
     if (!page)
         return false;
 
@@ -127,28 +129,31 @@ void _threadSafeRenderPage(PopplerPage* page, cairo_t* context)
 QImage PDFPopplerCairoBackend::renderToImage(const QSize& imageSize,
                                              const QRectF& region) const
 {
-    const QSizeF pageSize(getSize());
+    const auto pageSize = QSizeF{getSize()};
 
-    const qreal zoomX = 1.0 / region.width();
-    const qreal zoomY = 1.0 / region.height();
+    const auto zoomX = 1.0 / region.width();
+    const auto zoomY = 1.0 / region.height();
 
-    const qreal resX = imageSize.width() / pageSize.width();
-    const qreal resY = imageSize.height() / pageSize.height();
+    const auto resX = imageSize.width() / pageSize.width();
+    const auto resY = imageSize.height() / pageSize.height();
 
-    const QPointF topLeft(region.x() * pageSize.width(),
-                          region.y() * pageSize.height());
+    const auto topLeft =
+        QPointF{region.x() * pageSize.width(), region.y() * pageSize.height()};
 
-    // For correct rendering of PDF, it is first rendered to a transparent
-    // image (all alpha = 0).
-    QImage image(imageSize, QImage::Format_ARGB32);
-    image.fill(0u);
+    // For correct rendering of PDF it has to be first rendered to a transparent
+    // image (all alpha = 0). The image format is already set to RGB32 which is
+    // the desired (opaque) output format. This is fine since Cairo won't access
+    // this information. Since Qt 5.9 QImage::reinterpretAsFormat could be used
+    // instead.
+    auto image = QImage{imageSize, QImage::Format_RGB32};
+    std::memset(image.bits(), 0u, image.byteCount());
 
-    CairoSurfacePtr surface(
+    auto surface = CairoSurfacePtr{
         cairo_image_surface_create_for_data(image.bits(), CAIRO_FORMAT_ARGB32,
                                             image.width(), image.height(),
-                                            4 * image.width()));
+                                            4 * image.width())};
 
-    CairoPtr context(cairo_create(surface.get()));
+    auto context = CairoPtr{cairo_create(surface.get())};
 
     cairo_scale(context.get(), zoomX * resX, zoomY * resY);
     cairo_translate(context.get(), -topLeft.x(), -topLeft.y());

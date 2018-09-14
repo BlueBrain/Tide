@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -54,10 +54,11 @@ class ContentSynchronizer : public QObject
 {
     Q_OBJECT
     Q_DISABLE_COPY(ContentSynchronizer)
-    Q_PROPERTY(QSize tilesArea READ getTilesArea NOTIFY tilesAreaChanged)
     Q_PROPERTY(QString statistics READ getStatistics NOTIFY statisticsChanged)
     Q_PROPERTY(bool zoomContextVisible READ getZoomContextVisible WRITE
                    setZoomContextVisible NOTIFY zoomContextVisibleChanged)
+    Q_PROPERTY(uint lod READ getLod NOTIFY lodChanged)
+    Q_PROPERTY(uint lodCount READ getLodCount CONSTANT)
 
 public:
     /** Constructor */
@@ -85,8 +86,17 @@ public:
     /** @return true if tiles are ready to be swapped. */
     virtual bool canSwapTiles() const = 0;
 
-    /** @return the total area covered by the tiles. */
-    virtual QSize getTilesArea() const = 0;
+    /**
+     * @return the total area covered by the tiles for a given LOD.
+     * @note has to be a method + notifier instead of Q_PROPERTY because there
+     *       is no support for QList<QSize> in Qml.
+     */
+    Q_INVOKABLE QSize getTilesArea(const uint lod) const
+    {
+        if (lod >= getLodCount())
+            throw std::logic_error("invalid LOD requested");
+        return _getTilesArea(lod);
+    }
 
     /** Get statistics about this Content. */
     virtual QString getStatistics() const = 0;
@@ -103,6 +113,10 @@ public:
     /** @return true if at least one tile is visible for this synchronizer. */
     virtual bool hasVisibleTiles() const = 0;
 
+    /** @return the current level of detail. */
+    virtual uint getLod() const { return 0; }
+    /** @return the number of level of detail. */
+    virtual uint getLodCount() const { return 1; }
 public slots:
     /**
      * Called when a tile is ready to swap.
@@ -128,8 +142,8 @@ public slots:
     }
 
 signals:
-    /** Notifier for the tiles area property. */
-    void tilesAreaChanged();
+    /** Notifier for the tiles areas property. @see getTilesArea() */
+    void tilesAreasChanged();
 
     /** Notifier for the statistics property. */
     void statisticsChanged();
@@ -138,7 +152,7 @@ signals:
     void zoomContextVisibleChanged();
 
     /** Notify the window to add a tile. */
-    void addTile(TilePtr tile);
+    void addTile(TilePtr tile, uint zOrder);
 
     /** Notify the window to remove a tile. */
     void removeTile(uint tileId);
@@ -152,8 +166,14 @@ signals:
     /** Notify that the zoom context tile has changed and must be recreated. */
     void zoomContextTileChanged(bool visible);
 
+    /** Notify that the level of detail has changed. */
+    void lodChanged(uint lod);
+
 private:
     bool _zoomContextVisible = false;
+
+    /** @return the total area covered by the tiles for a given LOD. */
+    virtual QSize _getTilesArea(uint lod) const = 0;
 };
 
 #endif

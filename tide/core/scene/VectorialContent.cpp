@@ -42,7 +42,7 @@
 qreal VectorialContent::_maxScale = 6.0;
 
 VectorialContent::VectorialContent(const QString& uri)
-    : Content(uri)
+    : Content{uri}
 {
 }
 

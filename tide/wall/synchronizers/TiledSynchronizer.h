@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -42,8 +42,6 @@
 
 #include "synchronizers/ContentSynchronizer.h"
 
-#include <QObject>
-
 /**
  * A base synchronizer used for tiled content types with optional LOD.
  */
@@ -85,30 +83,38 @@ public:
     bool hasVisibleTiles() const override;
 
 protected:
-    /** @name Parameters for updateTile. */
-    //@{
-    uint _lod = 0; /**< LOD used to obtain the list of visible tiles from the
-                        data source. */
-    uint _channel = 0; /**< Channel used to obtain the list of visible tiles. */
-    QRectF _visibleTilesArea; /**< Area used to obtain the list of visible tiles
-                                   from the data source. */
-    Indices _ignoreSet; /**< Tiles to be ignored; must be managed manually. */
-    bool _updateExistingTiles = false; /**< Update texture and coordinates of
-                                            tiles which are already visible. */
-    //@}
+    /** Request an update of the tiles. */
+    void markTilesDirty();
 
+    /** Update texture and coordinates of tiles which are already visible. */
+    void markExistingTilesDirty();
+
+    /** @return the channel used to obtain the list of visible tiles. */
+    virtual uint getChannel() const { return 0; }
 private:
-    TileSwapPolicy _policy;
+    /** @return the area to obtain the visible tiles from the data source. */
+    virtual QRectF getVisibleTilesArea(uint lod) const = 0;
 
-    Indices _visibleSet;
+    Indices _computeVisibleTilesAndAddMissingOnes();
+    Indices _computeVisibleTiles(uint lod) const;
+    void _addTiles(const Indices& tiles, uint lod);
+    void _updateTiles(const Indices& tiles);
+    void _removeTiles(const Indices& tiles);
+    void _removeTile(size_t tileIndex);
+    TextureType _getTextureType() const;
+
+    TileSwapPolicy _policy;
 
     bool _syncSwapPending = false;
     std::set<TilePtr> _tilesReadyToSwap;
+
+    Indices _visibleSet;
     Indices _tilesReadySet;
     Indices _syncSet;
     Indices _removeLaterSet;
 
-    void _removeTile(size_t tileIndex);
+    bool _tilesDirty = true;
+    bool _updateExistingTiles = false;
 };
 
 #endif

@@ -39,7 +39,6 @@
 
 #include "ImageReader.h"
 
-#include "data/QtImage.h"
 #include "utils/stereoimage.h"
 
 #include <QFileInfo>
@@ -49,13 +48,6 @@ namespace
 bool _isStereoImage(const QString& uri)
 {
     return QFileInfo{uri}.suffix().toLower() == "jps";
-}
-
-QImage _ensureGlCompatibleFormat(const QImage& image)
-{
-    return QtImage::is32Bits(image)
-               ? image
-               : image.convertToFormat(QImage::Format_ARGB32);
 }
 }
 
@@ -80,6 +72,11 @@ bool ImageReader::isStereo() const
     return _stereo;
 }
 
+bool ImageReader::hasAlphaChannel() const
+{
+    return QImage(QSize(1, 1), _reader->imageFormat()).hasAlphaChannel();
+}
+
 QSize ImageReader::getSize() const
 {
     return isStereo() ? stereoimage::getMonoSize(_reader->size())
@@ -88,7 +85,8 @@ QSize ImageReader::getSize() const
 
 QImage ImageReader::getImage(const deflect::View view) const
 {
-    return _ensureGlCompatibleFormat(_readImage(view));
+    return isStereo() ? stereoimage::extract(_reader->read(), view)
+                      : _reader->read();
 }
 
 QStringList ImageReader::getSupportedImageFormats()
@@ -100,10 +98,4 @@ QStringList ImageReader::getSupportedImageFormats()
     extensions << "jps";
 
     return extensions;
-}
-
-QImage ImageReader::_readImage(const deflect::View view) const
-{
-    return isStereo() ? stereoimage::extract(_reader->read(), view)
-                      : _reader->read();
 }

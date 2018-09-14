@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -62,16 +62,22 @@ public:
     void updateTiles() override;
 
     /**
-     * @return the total area covered by the tiles (depends on current LOD
-     *         and channel).
+     * @return the total area covered by the tiles for a given LOD (depends on
+     *         current channel).
      */
-    QSize getTilesArea() const override;
+    QSize _getTilesArea(uint lod) const override;
 
     /** @copydoc ContentSynchronizer::getStatistics */
     QString getStatistics() const override;
 
     /** @copydoc ContentSynchronizer::createZoomContextTile */
     TilePtr createZoomContextTile() const override;
+
+    /** @copydoc ContentSynchronizer::getLod */
+    uint getLod() const override;
+
+    /** @copydoc ContentSynchronizer::getLodCount */
+    uint getLodCount() const override;
 
 protected:
     /**
@@ -80,22 +86,27 @@ protected:
      * @param window for area and zoom calculations.
      * @param visibleArea the visible area of the window.
      * @param forceUpdate the tiles, e.g. if the source has changed (pdf page).
-     * @param backgroundTileId to use as background tile to smooth LOD change.
      */
     void update(const Window& window, const QRectF& visibleArea,
-                bool forceUpdate, int backgroundTileId);
-
-    /** @copydoc ContentSynchronizer::getDataSource */
-    const DataSource& getDataSource() const final;
+                bool forceUpdate);
 
 private:
-    DataSourceSharedPtr _source;
-    bool _tilesDirty = true;
-    bool _zoomContextTileDirty = true;
-    int _backgroundTileId = 0;
+    const DataSource& getDataSource() const final;
+    QRectF getVisibleTilesArea(uint lod) const final;
 
-    uint _getLod(const QSize& targetDisplaySize) const;
-    void _setBackgroundTile(uint backgroundTileId);
+    void _updateLod(const uint lod);
+    void _updateVisibleTileAreas(const Window& window,
+                                 const QRectF& visibleArea);
+    QRectF _computeVisibleTilesArea(const Window& window,
+                                    const QRectF& visibleArea,
+                                    const uint lod) const;
+    uint _findCurrentLod(const Window& window) const;
+    uint _findLod(const QSize& targetDisplaySize) const;
+
+    DataSourceSharedPtr _source;
+    bool _zoomContextTileDirty = true;
+    uint _lod = 0;
+    std::vector<QRectF> _visibleTilesArea{{QRectF()}};
 };
 
 #endif

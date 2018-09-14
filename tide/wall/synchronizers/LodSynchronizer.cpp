@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -47,8 +47,8 @@
 #include <QTextStream>
 
 LodSynchronizer::LodSynchronizer(DataSourceSharedPtr source)
-    : TiledSynchronizer(TileSwapPolicy::SwapTilesIndependently)
-    , _source(std::move(source))
+    : TiledSynchronizer{TileSwapPolicy::SwapTilesIndependently}
+    , _source{std::move(source)}
 {
     _source->synchronizers.register_(this);
 
@@ -63,17 +63,12 @@ LodSynchronizer::~LodSynchronizer()
 
 void LodSynchronizer::update(const Window& window, const QRectF& visibleArea)
 {
-    update(window, visibleArea, false, 0);
+    update(window, visibleArea, false);
 }
 
 void LodSynchronizer::updateTiles()
 {
-    if (_tilesDirty)
-    {
-        _setBackgroundTile(_backgroundTileId);
-        TiledSynchronizer::updateTiles();
-        _tilesDirty = false;
-    }
+    TiledSynchronizer::updateTiles();
 
     if (_zoomContextTileDirty)
     {
@@ -82,48 +77,50 @@ void LodSynchronizer::updateTiles()
     }
 }
 
-QSize LodSynchronizer::getTilesArea() const
+QSize LodSynchronizer::_getTilesArea(const uint lod) const
 {
-    return getDataSource().getTilesArea(_lod, _channel);
+    return getDataSource().getTilesArea(lod, getChannel());
 }
 
 QString LodSynchronizer::getStatistics() const
 {
-    QString stats;
-    QTextStream stream(&stats);
-    stream << "LOD:  " << _lod << "/" << getDataSource().getMaxLod();
-    const QSize& area = getTilesArea();
+    auto stats = QString();
+    QTextStream stream{&stats};
+    stream << "LOD:  " << getLod() << "/" << getLodCount() - 1;
+    const auto& area = _getTilesArea(getLod());
     stream << "  res: " << area.width() << "x" << area.height();
     return stats;
 }
 
 TilePtr LodSynchronizer::createZoomContextTile() const
 {
-    return Tile::create(0, getDataSource().getTileRect(0));
+    const auto id = getDataSource().getPreviewTileId();
+    return Tile::create(id, getDataSource().getTileRect(id));
+}
+
+uint LodSynchronizer::getLod() const
+{
+    return _lod;
+}
+
+uint LodSynchronizer::getLodCount() const
+{
+    return getDataSource().getMaxLod() + 1;
 }
 
 void LodSynchronizer::update(const Window& window, const QRectF& visibleArea,
-                             const bool forceUpdate, const int backgroundTileId)
+                             const bool forceUpdate)
 {
-    const ZoomHelper helper(window);
-    const auto lod = _getLod(helper.getContentRect().size().toSize());
-    const auto tilesSurface = getDataSource().getTilesArea(lod, _channel);
-    const auto visibleTilesArea = helper.toTilesArea(visibleArea, tilesSurface);
+    const auto lod = _findCurrentLod(window);
+    const auto tilesArea = _computeVisibleTilesArea(window, visibleArea, lod);
 
-    if (!forceUpdate && visibleTilesArea == _visibleTilesArea && lod == _lod)
+    if (!forceUpdate && lod == _lod && tilesArea == _visibleTilesArea[lod])
         return;
 
-    _visibleTilesArea = visibleTilesArea;
+    _updateVisibleTileAreas(window, visibleArea);
+    _updateLod(lod);
 
-    if (lod != _lod)
-    {
-        _lod = lod;
-        emit statisticsChanged();
-        emit tilesAreaChanged();
-    }
-
-    _backgroundTileId = backgroundTileId;
-    _tilesDirty = true;
+    markTilesDirty();
 
     if (forceUpdate)
         _zoomContextTileDirty = true;
@@ -134,37 +131,55 @@ const DataSource& LodSynchronizer::getDataSource() const
     return *_source;
 }
 
-uint LodSynchronizer::_getLod(const QSize& targetDisplaySize) const
+QRectF LodSynchronizer::getVisibleTilesArea(const uint lod) const
 {
-    uint lod = 0;
-    QSize nextLOD = getDataSource().getTilesArea(1, 0);
-    const uint maxLod = getDataSource().getMaxLod();
+    return _visibleTilesArea.at(lod);
+}
+
+void LodSynchronizer::_updateLod(const uint lod)
+{
+    if (lod == _lod)
+        return;
+
+    _lod = lod;
+    emit lodChanged(_lod);
+    emit statisticsChanged();
+}
+
+void LodSynchronizer::_updateVisibleTileAreas(const Window& window,
+                                              const QRectF& visibleArea)
+{
+    _visibleTilesArea.resize(getLodCount());
+
+    for (auto lod = 0u; lod < getLodCount(); ++lod)
+    {
+        _visibleTilesArea[lod] =
+            _computeVisibleTilesArea(window, visibleArea, lod);
+    }
+}
+
+QRectF LodSynchronizer::_computeVisibleTilesArea(const Window& window,
+                                                 const QRectF& visibleArea,
+                                                 const uint lod) const
+{
+    const auto tilesSurface = getDataSource().getTilesArea(lod, getChannel());
+    return ZoomHelper{window}.toTilesArea(visibleArea, tilesSurface);
+}
+
+uint LodSynchronizer::_findCurrentLod(const Window& window) const
+{
+    return _findLod(ZoomHelper{window}.getContentRect().size().toSize());
+}
+
+uint LodSynchronizer::_findLod(const QSize& targetDisplaySize) const
+{
+    auto lod = 0u;
+    auto nextLOD = getDataSource().getTilesArea(1, 0);
+    const auto maxLod = getDataSource().getMaxLod();
     while (targetDisplaySize.width() < nextLOD.width() &&
            targetDisplaySize.height() < nextLOD.height() && lod < maxLod)
     {
         nextLOD = getDataSource().getTilesArea(++lod + 1, 0);
     }
     return lod;
-}
-
-void LodSynchronizer::_setBackgroundTile(const uint tileId)
-{
-    // Add an lod-0 tile always visible in the background to smooth LOD
-    // transitions. TODO: implement a finer control to switch tiles after the
-    // new LOD is ready [DISCL-345].
-
-    if (!_ignoreSet.count(tileId))
-    {
-        for (auto tile : _ignoreSet)
-            emit removeTile(tile);
-        _ignoreSet.clear();
-    }
-
-    if (_ignoreSet.empty())
-    {
-        _ignoreSet.insert(tileId);
-        auto tile = Tile::create(tileId, getDataSource().getTileRect(tileId));
-        tile->setSizePolicy(Tile::FillParent);
-        emit addTile(tile);
-    }
 }

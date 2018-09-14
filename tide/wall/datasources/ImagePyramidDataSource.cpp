@@ -81,10 +81,15 @@ ImagePyramidDataSource::~ImagePyramidDataSource()
 
 QRect ImagePyramidDataSource::getTileRect(const uint tileId) const
 {
-    if (tileId == 0)
+    if (tileId == getPreviewTileId())
         return {QPoint(), _previewImageSize};
 
     return LodTiler::getTileRect(tileId);
+}
+
+uint ImagePyramidDataSource::getPreviewTileId() const
+{
+    return std::numeric_limits<uint>::max();
 }
 
 QImage ImagePyramidDataSource::getCachableTileImage(
@@ -98,7 +103,7 @@ QImage ImagePyramidDataSource::getCachableTileImage(
     TiffPyramidReader tif{_uri};
 
     QImage image;
-    if (tileId == 0)
+    if (tileId == getPreviewTileId())
         image = tif.readImage(tif.findLevel(previewSize));
     else
     {
@@ -112,9 +117,5 @@ QImage ImagePyramidDataSource::getCachableTileImage(
     const auto expectedSize = getTileRect(tileId).size();
     if (image.size() != expectedSize)
         image = image.copy(QRect(QPoint(), expectedSize));
-
-    // Tide currently only supports 32 bit textures, convert if needed.
-    if (image.pixelFormat().bitsPerPixel() != 32)
-        image = image.convertToFormat(QImage::Format_RGB32);
     return image;
 }

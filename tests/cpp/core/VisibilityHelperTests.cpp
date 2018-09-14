@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -52,10 +52,18 @@ const QSize groupSize(800, 600);
 const QSize size(200, 200);
 const QRect viewRect(0, 0, groupSize.width() / 2, groupSize.height());
 const QRect centeredViewRect(350, 250, 100, 100);
+const bool alphaBlending{false};
 
 ContentPtr makeDummyContent()
 {
     return std::make_unique<DummyContent>(size);
+}
+
+ContentPtr makeTransparentContent()
+{
+    auto content = std::make_unique<DummyContent>(size);
+    content->transparent = true;
+    return content;
 }
 }
 
@@ -70,7 +78,7 @@ struct Fixture
 
     DisplayGroupPtr group{DisplayGroup::create(groupSize)};
     WindowPtr window{new Window{makeDummyContent()}};
-    VisibilityHelper helper{*group, viewRect};
+    VisibilityHelper helper{*group, viewRect, alphaBlending};
 };
 
 BOOST_FIXTURE_TEST_CASE(testSingleWindow, Fixture)
@@ -113,7 +121,8 @@ BOOST_FIXTURE_TEST_CASE(testSingleWindowCenteredViewRect, Fixture)
 {
     window->setCoordinates(QRectF(QPointF(300, 200), size));
 
-    VisibilityHelper otherViewRectHelper(*group, centeredViewRect);
+    VisibilityHelper otherViewRectHelper(*group, centeredViewRect,
+                                         alphaBlending);
     BOOST_CHECK_EQUAL(otherViewRectHelper.getVisibleArea(*window),
                       QRectF(QPointF(50, 50), centeredViewRect.size()));
 }
@@ -163,6 +172,28 @@ BOOST_FIXTURE_TEST_CASE(testUnderlyingWindow, Fixture)
     group->moveToFront(window);
     BOOST_CHECK_EQUAL(helper.getVisibleArea(*otherWindow), QRectF());
     BOOST_CHECK_EQUAL(helper.getVisibleArea(*window), coord);
+}
+
+BOOST_FIXTURE_TEST_CASE(transparentWindowDoesNotObstructWhenAlphaBlendingIsOn,
+                        Fixture)
+{
+    auto alphaHelper = VisibilityHelper{*group, viewRect, true};
+    const auto& coord = window->getCoordinates();
+
+    auto transparentWindow = std::make_shared<Window>(makeTransparentContent());
+    group->add(transparentWindow);
+    BOOST_CHECK_EQUAL(helper.getVisibleArea(*transparentWindow), coord);
+    BOOST_CHECK(helper.getVisibleArea(*window).isEmpty());
+
+    BOOST_CHECK_EQUAL(alphaHelper.getVisibleArea(*transparentWindow), coord);
+    BOOST_CHECK_EQUAL(alphaHelper.getVisibleArea(*window), coord);
+
+    group->moveToFront(window);
+    BOOST_CHECK_EQUAL(helper.getVisibleArea(*window), coord);
+    BOOST_CHECK(helper.getVisibleArea(*transparentWindow).isEmpty());
+
+    BOOST_CHECK_EQUAL(alphaHelper.getVisibleArea(*window), coord);
+    BOOST_CHECK(alphaHelper.getVisibleArea(*transparentWindow).isEmpty());
 }
 
 BOOST_FIXTURE_TEST_CASE(testViewCutCombinedWithOverlappingWindow, Fixture)

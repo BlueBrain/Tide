@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2015-2017, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -44,7 +44,7 @@
 
 BasicSynchronizer::BasicSynchronizer(DataSourceSharedPtr source,
                                      const deflect::View view)
-    : _dataSource(std::move(source))
+    : _dataSource{std::move(source)}
     , _view{view}
 {
     _dataSource->synchronizers.register_(this);
@@ -87,16 +87,16 @@ void BasicSynchronizer::swapTiles()
     // Swap not synchronized, done directly in onSwapReady()
 }
 
-QSize BasicSynchronizer::getTilesArea() const
+QSize BasicSynchronizer::_getTilesArea(const uint lod) const
 {
-    return getDataSource().getTilesArea(0, 0);
+    return getDataSource().getTilesArea(lod, 0);
 }
 
 QString BasicSynchronizer::getStatistics() const
 {
     QString stats;
     QTextStream stream(&stats);
-    const auto area = getTilesArea();
+    const auto area = _getTilesArea(getLod());
     stream << "  res: " << area.width() << "x" << area.height();
     return stats;
 }
@@ -128,8 +128,7 @@ void BasicSynchronizer::_createTile()
 
     _tileAdded = true;
     _addTile = false;
-    emit addTile(Tile::create(0, QRect(QPoint(), getTilesArea())));
-    emit tilesAreaChanged();
+    emit addTile(Tile::create(0, QRect{QPoint(), _getTilesArea(0)}), 0);
 }
 
 const DataSource& BasicSynchronizer::getDataSource() const

@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,13 +39,21 @@
 
 #include "QtImage.h"
 
-#include <QOpenGLFunctions>
+#include <QOpenGLFunctions> // GL_BGRA type
+
+namespace
+{
+bool _is32Bits(const QImage& image)
+{
+    return !image.isNull() && image.bytesPerLine() / image.width() == 4;
+}
+}
 
 QtImage::QtImage(const QImage& image)
-    : _image(image)
+    : _image{toGlCompatibleFormat(image)}
 {
-    if (!is32Bits(_image))
-        throw std::runtime_error("QtImage() - invalid image format");
+    if (!_is32Bits(_image))
+        throw std::logic_error("QtImage should be in 32 bits per pixel format");
 }
 
 int QtImage::getWidth() const
@@ -72,4 +80,11 @@ TextureFormat QtImage::getFormat() const
 uint QtImage::getGLPixelFormat() const
 {
     return GL_BGRA;
+}
+
+QImage QtImage::toGlCompatibleFormat(const QImage& image)
+{
+    return image.convertToFormat(image.hasAlphaChannel()
+                                     ? QImage::Format_ARGB32_Premultiplied
+                                     : QImage::Format_RGB32);
 }
