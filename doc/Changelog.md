@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [271](https://github.com/BlueBrain/Tide/pull/271):
+  Fix thumbnails for side-by-side stereo movies (only show one side).
 * [270](https://github.com/BlueBrain/Tide/pull/270):
   Fix rendering of contents with alpha channel + "transparent windows" option.
 * [269](https://github.com/BlueBrain/Tide/pull/269):

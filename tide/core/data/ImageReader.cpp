@@ -40,6 +40,7 @@
 #include "ImageReader.h"
 
 #include "data/QtImage.h"
+#include "utils/stereoimage.h"
 
 #include <QFileInfo>
 
@@ -48,24 +49,6 @@ namespace
 bool _isStereoImage(const QString& uri)
 {
     return QFileInfo{uri}.suffix().toLower() == "jps";
-}
-
-QSize _getMonoSize(const QSize& stereoSize)
-{
-    return QSize{stereoSize.width() / 2, stereoSize.height()};
-}
-
-QRect _getMonoRect(const QSize& imageSize, const deflect::View view)
-{
-    return view == deflect::View::right_eye
-               ? QRect{QPoint{imageSize.width() / 2, 0},
-                       _getMonoSize(imageSize)}
-               : QRect{QPoint{0, 0}, _getMonoSize(imageSize)};
-}
-
-QImage _getMonoImage(const QImage& image, const deflect::View view)
-{
-    return image.copy(_getMonoRect(image.size(), view));
 }
 
 QImage _ensureGlCompatibleFormat(const QImage& image)
@@ -99,7 +82,8 @@ bool ImageReader::isStereo() const
 
 QSize ImageReader::getSize() const
 {
-    return isStereo() ? _getMonoSize(_reader->size()) : _reader->size();
+    return isStereo() ? stereoimage::getMonoSize(_reader->size())
+                      : _reader->size();
 }
 
 QImage ImageReader::getImage(const deflect::View view) const
@@ -120,5 +104,6 @@ QStringList ImageReader::getSupportedImageFormats()
 
 QImage ImageReader::_readImage(const deflect::View view) const
 {
-    return isStereo() ? _getMonoImage(_reader->read(), view) : _reader->read();
+    return isStereo() ? stereoimage::extract(_reader->read(), view)
+                      : _reader->read();
 }

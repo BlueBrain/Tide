@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -48,19 +48,20 @@
 #define MAX_IMAGE_FILE_SIZE (100 * SIZEOF_MEGABYTE)
 
 ImageThumbnailGenerator::ImageThumbnailGenerator(const QSize& size)
-    : ThumbnailGenerator(size)
+    : ThumbnailGenerator{size}
 {
 }
 
 QImage ImageThumbnailGenerator::generate(const QString& filename) const
 {
-    const auto reader = ImageReader(filename);
+    const auto reader = ImageReader{filename};
     if (reader.isValid())
     {
-        if (QFileInfo(filename).size() > MAX_IMAGE_FILE_SIZE)
+        if (QFileInfo{filename}.size() > MAX_IMAGE_FILE_SIZE)
             return _createLargeImagePlaceholder();
 
-        return reader.getImage().scaled(_size, _aspectRatioMode);
+        return reader.getImage(deflect::View::mono)
+            .scaled(_size, _aspectRatioMode);
     }
 
     print_log(LOG_ERROR, LOG_CONTENT, "could not open image file: '%s'",
@@ -70,7 +71,7 @@ QImage ImageThumbnailGenerator::generate(const QString& filename) const
 
 QImage ImageThumbnailGenerator::_createLargeImagePlaceholder() const
 {
-    QImage img = createGradientImage(Qt::darkBlue, Qt::white);
+    auto img = createGradientImage(Qt::darkBlue, Qt::white);
     paintText(img, "LARGE\nIMAGE");
     return img;
 }

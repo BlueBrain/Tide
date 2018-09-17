@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,43 +37,23 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "MovieThumbnailGenerator.h"
+#ifndef STEREOIMAGE_H
+#define STEREOIMAGE_H
 
-#include "data/FFMPEGMovie.h"
-#include "data/FFMPEGPicture.h"
-#include "utils/stereoimage.h"
+#include "types.h"
 
-#define PREVIEW_RELATIVE_POSITION 0.5
+#include <QImage>
 
-MovieThumbnailGenerator::MovieThumbnailGenerator(const QSize& size)
-    : ThumbnailGenerator{size}
+/**
+ * Helper functions for stereo images.
+ */
+namespace stereoimage
 {
+/** @return the size of a single eye view of a stereo image. */
+QSize getMonoSize(const QSize& stereoSize);
+
+/** @return a single eye view copied from the stereo image. */
+QImage extract(const QImage& stereoImage, deflect::View view);
 }
 
-QImage MovieThumbnailGenerator::generate(const QString& filename) const
-{
-    try
-    {
-        FFMPEGMovie movie{filename};
-        movie.setFormat(TextureFormat::rgba);
-
-        const auto target = PREVIEW_RELATIVE_POSITION * movie.getDuration();
-        const auto picture = movie.getFrame(target);
-        if (!picture)
-            throw std::runtime_error("rendering movie frame failed");
-
-        auto image = picture->toQImage(); // QImage wrapper; no copy
-
-        if (movie.isStereo())
-            image = stereoimage::extract(image, deflect::View::mono);
-        // WAR: QImage::scaled doesn't make a copy if scaled size == image size
-        else if (image.size().scaled(_size, _aspectRatioMode) == image.size())
-            return image.copy();
-
-        return image.scaled(_size, _aspectRatioMode);
-    }
-    catch (const std::runtime_error&)
-    {
-        return createErrorImage("movie");
-    }
-}
+#endif
