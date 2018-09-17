@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,43 +37,27 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "MovieThumbnailGenerator.h"
+#include "stereoimage.h"
 
-#include "data/FFMPEGMovie.h"
-#include "data/FFMPEGPicture.h"
-#include "utils/stereoimage.h"
-
-#define PREVIEW_RELATIVE_POSITION 0.5
-
-MovieThumbnailGenerator::MovieThumbnailGenerator(const QSize& size)
-    : ThumbnailGenerator{size}
+namespace stereoimage
 {
+QRect _getMonoRect(const QSize& imageSize, const deflect::View view)
+{
+    return view == deflect::View::right_eye
+               ? QRect{QPoint{imageSize.width() / 2, 0}, getMonoSize(imageSize)}
+               : QRect{QPoint{0, 0}, getMonoSize(imageSize)};
 }
 
-QImage MovieThumbnailGenerator::generate(const QString& filename) const
+QSize getMonoSize(const QSize& stereoSize)
 {
-    try
-    {
-        FFMPEGMovie movie{filename};
-        movie.setFormat(TextureFormat::rgba);
+    return QSize{stereoSize.width() / 2, stereoSize.height()};
+}
 
-        const auto target = PREVIEW_RELATIVE_POSITION * movie.getDuration();
-        const auto picture = movie.getFrame(target);
-        if (!picture)
-            throw std::runtime_error("rendering movie frame failed");
+QImage extract(const QImage& stereoImage, const deflect::View view)
+{
+    if (view == deflect::View::side_by_side)
+        return stereoImage;
 
-        auto image = picture->toQImage(); // QImage wrapper; no copy
-
-        if (movie.isStereo())
-            image = stereoimage::extract(image, deflect::View::mono);
-        // WAR: QImage::scaled doesn't make a copy if scaled size == image size
-        else if (image.size().scaled(_size, _aspectRatioMode) == image.size())
-            return image.copy();
-
-        return image.scaled(_size, _aspectRatioMode);
-    }
-    catch (const std::runtime_error&)
-    {
-        return createErrorImage("movie");
-    }
+    return stereoImage.copy(_getMonoRect(stereoImage.size(), view));
+}
 }

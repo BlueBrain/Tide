@@ -39,6 +39,12 @@
 
 #include "FFMPEGMovie.h"
 
+extern "C" {
+#include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
+#include <libavutil/error.h>
+}
+
 #include "FFMPEGFrame.h"
 #include "FFMPEGPicture.h"
 #include "FFMPEGVideoStream.h"
@@ -100,6 +106,25 @@ TextureFormat _determineOutputFormat(const AVPixelFormat fileFormat,
     }
 }
 
+AVFormatContextPtr _createAvFormatContext(const QString& uri)
+{
+    // Read movie header information into _avFormatContext and allocate it
+    AVFormatContext* avContext = nullptr;
+    if (avformat_open_input(&avContext, uri.toLatin1(), 0, 0) != 0)
+        throw std::runtime_error("error reading movie headers");
+    auto avFormatContext = AVFormatContextPtr{avContext};
+
+    // Read stream information into _avFormatContext->streams
+    if (avformat_find_stream_info(avFormatContext.get(), NULL) < 0)
+        throw std::runtime_error("error reading stream ");
+
+#if LOG_THRESHOLD <= LOG_VERBOSE
+    // print detail information about the input or output format
+    av_dump_format(avFormatContext.get(), 0, uri.toLatin1(), 0);
+#endif
+    return avFormatContext;
+}
+
 struct FFMPEGStaticInit
 {
     FFMPEGStaticInit()
@@ -114,39 +139,13 @@ static FFMPEGStaticInit instance;
 }
 
 FFMPEGMovie::FFMPEGMovie(const QString& uri)
+    : _avFormatContext{_createAvFormatContext(uri)}
+    , _videoStream{std::make_unique<FFMPEGVideoStream>(*_avFormatContext)}
+    , _format{_determineOutputFormat(_videoStream->getAVFormat(), uri)}
 {
-    _createAvFormatContext(uri);
-    _videoStream = std::make_unique<FFMPEGVideoStream>(*_avFormatContext);
-    _format = _determineOutputFormat(_videoStream->getAVFormat(), uri);
 }
 
-FFMPEGMovie::~FFMPEGMovie()
-{
-    _videoStream.reset();
-    _releaseAvFormatContext();
-}
-
-void FFMPEGMovie::_createAvFormatContext(const QString& uri)
-{
-    // Read movie header information into _avFormatContext and allocate it
-    if (avformat_open_input(&_avFormatContext, uri.toLatin1(), 0, 0) != 0)
-        throw std::runtime_error("error reading movie headers");
-
-    // Read stream information into _avFormatContext->streams
-    if (avformat_find_stream_info(_avFormatContext, NULL) < 0)
-        throw std::runtime_error("error reading stream ");
-
-#if LOG_THRESHOLD <= LOG_VERBOSE
-    // print detail information about the input or output format
-    av_dump_format(_avFormatContext, 0, uri.toLatin1(), 0);
-#endif
-}
-
-void FFMPEGMovie::_releaseAvFormatContext()
-{
-    if (_avFormatContext)
-        avformat_close_input(&_avFormatContext);
-}
+FFMPEGMovie::~FFMPEGMovie() = default;
 
 unsigned int FFMPEGMovie::getWidth() const
 {
@@ -193,26 +192,26 @@ PicturePtr FFMPEGMovie::getFrame(double posInSeconds)
     posInSeconds = std::max(0.0, std::min(posInSeconds, getDuration()));
 
     // Seek back for loop or forward if too far away
-    const double streamDelta = posInSeconds - _streamPosition;
+    const auto streamDelta = posInSeconds - _streamPosition;
     if (streamDelta < 0 || std::abs(streamDelta) > MIN_SEEK_DELTA_SEC)
     {
-        const double frameDuration = _videoStream->getFrameDuration();
-        const double target = std::max(0.0, posInSeconds - frameDuration);
-        const int64_t frameIndex = _videoStream->getFrameIndex(target);
+        const auto frameDuration = _videoStream->getFrameDuration();
+        const auto target = std::max(0.0, posInSeconds - frameDuration);
+        const auto frameIndex = _videoStream->getFrameIndex(target);
         if (!_videoStream->seekToNearestFullframe(frameIndex))
             return PicturePtr();
     }
 
     PicturePtr picture;
-    const int64_t targetTimestamp = _videoStream->getTimestamp(posInSeconds);
+    const auto targetTimestamp = _videoStream->getTimestamp(posInSeconds);
 
     AVPacket packet;
     av_init_packet(&packet);
 
     int avReadStatus = 0;
-    while ((avReadStatus = av_read_frame(_avFormatContext, &packet)) >= 0)
+    while ((avReadStatus = av_read_frame(_avFormatContext.get(), &packet)) >= 0)
     {
-        const int64_t timestamp = _videoStream->decodeTimestamp(packet);
+        const auto timestamp = _videoStream->decodeTimestamp(packet);
         if (timestamp >= targetTimestamp)
         {
             picture = _videoStream->decodePictureForLastPacket(_format);

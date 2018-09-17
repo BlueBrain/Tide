@@ -26,6 +26,7 @@ if(TIDE_ENABLE_MOVIE_SUPPORT)
     data/FFMPEGPicture.h
     data/FFMPEGVideoFrameConverter.h
     data/FFMPEGVideoStream.h
+    data/FFMPEGWrappers.h
     scene/MovieContent.h
     thumbnail/MovieThumbnailGenerator.h
   )
@@ -199,6 +200,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   utils/CommandLineParser.h
   utils/geometry.h
   utils/IterableSmartPtrCollection.h
+  utils/stereoimage.h
   utils/log.h
   utils/qml.h
   utils/yuv.h
@@ -259,6 +261,7 @@ list(APPEND TIDECORE_SOURCES
   scene/ZoomHelper.cpp
   utils/CommandLineParser.cpp
   utils/geometry.cpp
+  utils/stereoimage.cpp
   utils/log.cpp
   utils/yuv.cpp
   thumbnail/DefaultThumbnailGenerator.cpp

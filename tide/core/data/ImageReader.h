@@ -57,7 +57,7 @@ public:
     bool isValid() const;
     bool isStereo() const;
     QSize getSize() const;
-    QImage getImage(deflect::View view = deflect::View::mono) const;
+    QImage getImage(deflect::View view) const;
 
     static QStringList getSupportedImageFormats();
 

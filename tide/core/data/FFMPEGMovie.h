@@ -40,18 +40,9 @@
 #ifndef FFMPEGMOVIE_H
 #define FFMPEGMOVIE_H
 
-#include "FFMPEGDefines.h"
-
-extern "C" {
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-#include <libavutil/error.h>
-#include <libavutil/mathematics.h>
-}
+#include "FFMPEGWrappers.h"
 
 #include "types.h"
-
-#include <QString>
 
 /**
  * Read and play movies using the FFMPEG library.
@@ -61,12 +52,10 @@ class FFMPEGMovie
 public:
     /**
      * Constructor.
-     * @param uri: the movie file to open.
+     * @param uri the movie file to open.
      * @throw std::runtime_error if the file can't be opened.
      */
     FFMPEGMovie(const QString& uri);
-
-    /** Destructor */
     ~FFMPEGMovie();
 
     /** Get the frame width. */
@@ -104,13 +93,10 @@ public:
     PicturePtr getFrame(double posInSeconds);
 
 private:
-    AVFormatContext* _avFormatContext = nullptr;
+    AVFormatContextPtr _avFormatContext;
     std::unique_ptr<FFMPEGVideoStream> _videoStream;
     TextureFormat _format = TextureFormat::yuv420;
     double _streamPosition = 0.0;
-
-    void _createAvFormatContext(const QString& uri);
-    void _releaseAvFormatContext();
 };
 
 #endif
