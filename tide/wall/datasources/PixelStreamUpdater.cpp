@@ -39,7 +39,6 @@
 
 #include "PixelStreamUpdater.h"
 
-#include "data/StreamImage.h"
 #include "network/WallToWallChannel.h"
 #include "tools/PixelStreamAssembler.h"
 #include "tools/PixelStreamPassthrough.h"
@@ -48,7 +47,6 @@
 #include <deflect/server/Frame.h>
 #include <deflect/server/TileDecoder.h>
 
-#include <QImage>
 #include <QThreadStorage>
 
 namespace
@@ -76,7 +74,6 @@ void _sortByChannelAndPosition(deflect::server::Tiles& tiles)
 
 PixelStreamUpdater::PixelStreamUpdater(const QString& uri)
     : _uri{uri}
-    , _headerDecoder{new deflect::server::TileDecoder}
 {
     _swapSyncFrame.setCallback(std::bind(&PixelStreamUpdater::_onFrameSwapped,
                                          this, std::placeholders::_1));
