@@ -110,7 +110,6 @@ private:
     SwapSyncObject<deflect::server::FramePtr> _swapSyncFrame;
     deflect::server::FramePtr _frameLeftOrMono;
     deflect::server::FramePtr _frameRight;
-    std::unique_ptr<deflect::server::TileDecoder> _headerDecoder;
     std::unique_ptr<PixelStreamProcessor> _processorLeft;
     std::unique_ptr<PixelStreamProcessor> _processRight;
     mutable QReadWriteLock _frameMutex;
