@@ -45,6 +45,7 @@
 #include <QPainter>
 #include <tiffio.h>
 
+#include <array>
 #include <cassert>
 
 namespace
@@ -158,8 +159,20 @@ struct TiffPyramidReader::Impl
 
     bool hasAssociatedAlpha()
     {
-        int extra = EXTRASAMPLE_UNSPECIFIED;
-        TIFFGetField(tif.get(), TIFFTAG_EXTRASAMPLES, &extra);
+        uint16_t extra = EXTRASAMPLE_UNSPECIFIED;
+        // WAR to avoid random segfaults when TIFFTAG_EXTRASAMPLES exists.
+        // The first 3(?) values get filled with random garbage (libtiff 4.0.6).
+        //
+        // The documentation for TIFFGetField states there should be two params:
+        // TIFFTAG_EXTRASAMPLES  2    uint16*,uint16** count & types array
+        //
+        // Which is probably for symmetry with TIFFSetField:
+        // TIFFTAG_EXTRASAMPLES	 2    uint16,uint16*   count & types array
+        //
+        // Except when reading the value of the parameter is written in the
+        // first variable...
+        std::array<int16_t, 10> overflowBuffer;
+        TIFFGetField(tif.get(), TIFFTAG_EXTRASAMPLES, &extra, &overflowBuffer);
         return extra == EXTRASAMPLE_ASSOCALPHA;
     }
 };
