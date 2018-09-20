@@ -160,16 +160,13 @@ ContentPtr ContentFactory::getPixelStreamContent(const QString& uri,
                                                  const QSize& size,
                                                  const StreamType stream)
 {
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT
     if (stream == StreamType::WEBBROWSER)
     {
-#if TIDE_ENABLE_WEBBROWSER_SUPPORT
         return std::make_unique<WebbrowserContent>(uri, size);
-#else
-        Q_UNUSED(uri);
-        throw std::runtime_error("Tide compiled without WebbrowserContent!");
-#endif
     }
     else
+#endif
     {
         const auto keyboard = stream == StreamType::EXTERNAL;
         return std::make_unique<PixelStreamContent>(uri, size, keyboard);

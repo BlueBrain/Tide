@@ -41,6 +41,8 @@
 #ifndef CONTENTTYPE_H
 #define CONTENTTYPE_H
 
+#include "config.h"
+
 #include <QString>
 
 /**
@@ -50,13 +52,21 @@ enum class ContentType
 {
     invalid,
     dynamic_texture,
+#if TIDE_ENABLE_MOVIE_SUPPORT
     movie,
+#endif
+#if TIDE_ENABLE_PDF_SUPPORT
+    pdf,
+#endif
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT
+    webbrowser,
+#endif
+#if TIDE_USE_TIFF
+    image_pyramid,
+#endif
     pixel_stream,
     svg,
-    image,
-    pdf,
-    webbrowser,
-    image_pyramid
+    image
 };
 
 /**
@@ -66,7 +76,9 @@ enum class StreamType
 {
     EXTERNAL,
     LAUNCHER,
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT
     WEBBROWSER,
+#endif
     WHITEBOARD
 };
 

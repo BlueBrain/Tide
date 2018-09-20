@@ -1,7 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -42,16 +42,64 @@
 
 #include <boost/test/unit_test.hpp>
 
-#include "rest/serialization.h"
 #include "scene/ContentFactory.h"
 #include "scene/DisplayGroup.h"
+#include "tools/ActivityLogger.h"
+
+#include "rest/serialization.h"
 // include last
 #include "json/templates.h"
+
+#include "DummyContent.h"
+
+#include <QRegularExpression>
 
 namespace
 {
 const QString imageUri{"wall.png"};
 const QSize wallSize{1000, 1000};
+
+WindowPtr makeDummyWindow()
+{
+    return std::make_shared<Window>(ContentPtr{new DummyContent});
+}
+
+const std::string activityLoggerDefaultJson{
+    R"({
+    "event": {
+        "count": 0,
+        "last_event": "",
+        "last_event_date": ""
+    },
+    "screens": {
+        "last_change": "",
+        "state": "UNDEF"
+    },
+    "window": {
+        "accumulated_count": 0,
+        "count": 0,
+        "date_set": ""
+    }
+}
+)"};
+const QString activityLoggerRegexJson{
+    R"(\{
+    "event": \{
+        "count": 2,
+        "last_event": "contentWindowAdded",
+        "last_event_date": "\d{4}-\d{2}-\d{2}[A-Z]\d{2}:\d{2}:\d{2}.\d{6}"
+    \},
+    "screens": {
+        "last_change": "",
+        "state": "UNDEF"
+    },
+    "window": \{
+        "accumulated_count": 2,
+        "count": 2,
+        "date_set": "\d{4}-\d{2}-\d{2}[A-Z]\d{2}:\d{2}:\d{2}.\d{6}"
+    \}
+\}
+)"};
 }
 
 BOOST_AUTO_TEST_CASE(testSerializeDisplayGroup)
@@ -88,4 +136,18 @@ BOOST_AUTO_TEST_CASE(testSerializeDisplayGroup)
     BOOST_CHECK_EQUAL(uuid, window->getID().toString());
     BOOST_CHECK_EQUAL(jsonWindow.value("x").toInt(), 64);
     BOOST_CHECK_EQUAL(jsonWindow.value("y").toInt(), 79);
+}
+
+BOOST_AUTO_TEST_CASE(testSerializeActivityLogger)
+{
+    ActivityLogger logger;
+    BOOST_CHECK_EQUAL(json::dump(logger), activityLoggerDefaultJson);
+
+    logger.logWindowAdded(makeDummyWindow());
+    logger.logWindowAdded(makeDummyWindow());
+
+    const auto regex = QRegularExpression(activityLoggerRegexJson);
+    const auto json = QString::fromStdString(json::dump(logger));
+    const auto matchedJson = regex.match(json).captured();
+    BOOST_CHECK_EQUAL(json, matchedJson);
 }

@@ -50,12 +50,12 @@
 #include "datasources/MovieUpdater.h"
 #endif
 
-#if TIDE_USE_TIFF
-#include "datasources/ImagePyramidDataSource.h"
-#endif
-
 #if TIDE_ENABLE_PDF_SUPPORT
 #include "datasources/PDFTiler.h"
+#endif
+
+#if TIDE_USE_TIFF
+#include "datasources/ImagePyramidDataSource.h"
 #endif
 
 std::unique_ptr<DataSource> DataSourceFactory::create(const Content& content)
@@ -68,7 +68,9 @@ std::unique_ptr<DataSource> DataSourceFactory::create(const Content& content)
 #endif
 
     case ContentType::pixel_stream:
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT
     case ContentType::webbrowser:
+#endif
         return std::make_unique<PixelStreamUpdater>(content.getUri());
     case ContentType::svg:
         return std::make_unique<SVGTiler>(content.getUri(),

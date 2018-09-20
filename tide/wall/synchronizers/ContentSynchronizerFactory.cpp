@@ -72,7 +72,9 @@ std::unique_ptr<ContentSynchronizer> ContentSynchronizerFactory::create(
     }
 #endif
     case ContentType::pixel_stream:
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT
     case ContentType::webbrowser:
+#endif
     {
         const auto channel =
             static_cast<const MultiChannelContent&>(content).getChannel();

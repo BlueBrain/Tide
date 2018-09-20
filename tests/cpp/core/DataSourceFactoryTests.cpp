@@ -41,6 +41,8 @@
 
 #include <boost/test/unit_test.hpp>
 
+#include "config.h"
+
 #include "datasources/DataSource.h"
 #include "datasources/DataSourceFactory.h"
 
@@ -50,13 +52,22 @@ namespace
 {
 const QSize contentSize(800, 600);
 const QRectF contentArea(QRectF(QPointF(), contentSize));
-const std::vector<ContentType> contentTypes{ContentType::movie,
-                                            ContentType::pixel_stream,
-                                            ContentType::svg,
-                                            ContentType::image,
-                                            ContentType::pdf,
-                                            ContentType::webbrowser,
-                                            ContentType::image_pyramid};
+const std::vector<ContentType> contentTypes
+{
+#if TIDE_ENABLE_MOVIE_SUPPORT
+    ContentType::movie,
+#endif
+#if TIDE_ENABLE_PDF_SUPPORT
+        ContentType::pdf,
+#endif
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT
+        ContentType::webbrowser,
+#endif
+#if TIDE_USE_TIFF
+        ContentType::image_pyramid,
+#endif
+        ContentType::pixel_stream, ContentType::svg, ContentType::image
+};
 const std::vector<ContentType> unsupportedContentTypes{
     ContentType::invalid, ContentType::dynamic_texture};
 
