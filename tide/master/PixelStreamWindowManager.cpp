@@ -89,11 +89,6 @@ const QUuid& _findWindowIdForChannel(const Windows& windows, const uint channel)
     }
     throw window_not_found_error("");
 }
-
-bool _isStreamType(const ContentType type)
-{
-    return type == ContentType::pixel_stream || type == ContentType::webbrowser;
-}
 }
 
 PixelStreamWindowManager::PixelStreamWindowManager(Scene& scene)
@@ -357,22 +352,21 @@ void PixelStreamWindowManager::_focus(const Window& window)
 void PixelStreamWindowManager::_onWindowAdded(WindowPtr window,
                                               const uint surfaceIndex)
 {
-    if (!_isStreamType(window->getContent().getType()))
-        return;
-
-    // Do the mapping here to include streamers restored from a session (for
-    // which openWindow is not called).
-    const auto& content =
-        static_cast<const PixelStreamContent&>(window->getContent());
-    auto& windows = _streams[content.getUri()].windows;
-    windows.emplace(surfaceIndex,
-                    WindowInfo{window->getID(), content.getChannel()});
+    if (auto content =
+            dynamic_cast<const PixelStreamContent*>(window->getContentPtr()))
+    {
+        // Do the mapping here to include streamers restored from a session (for
+        // which openWindow is not called).
+        auto& windows = _streams[content->getUri()].windows;
+        windows.emplace(surfaceIndex,
+                        WindowInfo{window->getID(), content->getChannel()});
+    }
 }
 
 void PixelStreamWindowManager::_onWindowRemoved(WindowPtr window,
                                                 const uint surfaceIndex)
 {
-    if (!_isStreamType(window->getContent().getType()))
+    if (!dynamic_cast<const PixelStreamContent*>(window->getContentPtr()))
         return;
 
     const auto& uri = window->getContent().getUri();

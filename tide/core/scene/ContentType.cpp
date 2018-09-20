@@ -48,7 +48,9 @@ bool contentTypeIsFile(const ContentType type)
     {
     case ContentType::invalid:
     case ContentType::pixel_stream:
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT
     case ContentType::webbrowser:
+#endif
         return false;
     default:
         return true;
@@ -65,9 +67,26 @@ std::ostream& operator<<(std::ostream& str, const ContentType type)
     case ContentType::dynamic_texture:
         str << "dynamic_texture";
         break;
+#if TIDE_ENABLE_MOVIE_SUPPORT
     case ContentType::movie:
         str << "movie";
         break;
+#endif
+#if TIDE_ENABLE_PDF_SUPPORT
+    case ContentType::pdf:
+        str << "pdf";
+        break;
+#endif
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT
+    case ContentType::webbrowser:
+        str << "webbrowser";
+        break;
+#endif
+#if TIDE_USE_TIFF
+    case ContentType::image_pyramid:
+        str << "image_pyramid";
+        break;
+#endif
     case ContentType::pixel_stream:
         str << "pixel_stream";
         break;
@@ -76,15 +95,6 @@ std::ostream& operator<<(std::ostream& str, const ContentType type)
         break;
     case ContentType::image:
         str << "image";
-        break;
-    case ContentType::pdf:
-        str << "pdf";
-        break;
-    case ContentType::webbrowser:
-        str << "webbrowser";
-        break;
-    case ContentType::image_pyramid:
-        str << "image_pyramid";
         break;
     }
     return str;

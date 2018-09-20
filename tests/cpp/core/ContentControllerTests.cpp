@@ -98,19 +98,17 @@ BOOST_AUTO_TEST_CASE(factory_method)
     BOOST_CHECK(dynamic_cast<MovieController*>(controller.get()));
 #endif
 
+#if TIDE_USE_TIFF
     dummyContent.type = ContentType::image_pyramid;
     controller = ContentController::create(window);
     BOOST_CHECK(dynamic_cast<ZoomController*>(controller.get()));
-
-    dummyContent.type = ContentType::image;
-    controller = ContentController::create(window);
-    BOOST_CHECK(dynamic_cast<ZoomController*>(controller.get()));
+#endif
 
     dummyContent.type = ContentType::svg;
     controller = ContentController::create(window);
     BOOST_CHECK(dynamic_cast<ContentController*>(controller.get()));
 
-    dummyContent.type = ContentType::movie;
+    dummyContent.type = ContentType::image;
     controller = ContentController::create(window);
-    BOOST_CHECK(dynamic_cast<ContentController*>(controller.get()));
+    BOOST_CHECK(dynamic_cast<ZoomController*>(controller.get()));
 }

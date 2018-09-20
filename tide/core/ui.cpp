@@ -60,7 +60,12 @@ const qreal minWindowSpacingInFocusMode = 40;
 
 inline bool hasMovieControls(const Content& content)
 {
+#if TIDE_ENABLE_MOVIE_SUPPORT
     return content.getType() == ContentType::movie;
+#else
+    Q_UNUSED(content);
+    return false;
+#endif
 }
 }
 

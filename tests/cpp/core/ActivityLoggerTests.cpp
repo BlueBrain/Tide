@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,61 +38,20 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#define BOOST_TEST_MODULE ActivityLoggerTest
+#define BOOST_TEST_MODULE ActivityLoggerTests
 
 #include <boost/test/unit_test.hpp>
 
-#include "rest/serialization.h"
 #include "scene/DisplayGroup.h"
 #include "tools/ActivityLogger.h"
-#include "json/serialization.h"
-// include last
-#include "json/templates.h"
 
 #include "DummyContent.h"
 
 #include <QObject>
-#include <QRegularExpression>
 
 namespace
 {
 const QSize wallSize(1000, 1000);
-const std::string defaultJson{
-    R"({
-    "event": {
-        "count": 0,
-        "last_event": "",
-        "last_event_date": ""
-    },
-    "screens": {
-        "last_change": "",
-        "state": "UNDEF"
-    },
-    "window": {
-        "accumulated_count": 0,
-        "count": 0,
-        "date_set": ""
-    }
-}
-)"};
-const QString regexJson{
-    R"(\{
-    "event": \{
-        "count": 2,
-        "last_event": "contentWindowAdded",
-        "last_event_date": "\d{4}-\d{2}-\d{2}[A-Z]\d{2}:\d{2}:\d{2}.\d{6}"
-    \},
-    "screens": {
-        "last_change": "",
-        "state": "UNDEF"
-    },
-    "window": \{
-        "accumulated_count": 2,
-        "count": 2,
-        "date_set": "\d{4}-\d{2}-\d{2}[A-Z]\d{2}:\d{2}:\d{2}.\d{6}"
-    \}
-\}
-)"};
 
 WindowPtr makeDummyWindow()
 {
@@ -105,14 +65,25 @@ struct Fixture
     WindowPtr window1 = makeDummyWindow();
     WindowPtr window2 = makeDummyWindow();
     ActivityLogger logger;
+
+    void connectWindowAddedSignal()
+    {
+        QObject::connect(displayGroup.get(), &DisplayGroup::windowAdded,
+                         &logger, &ActivityLogger::logWindowAdded);
+    }
+
+    void connectWindowRemovedSignal()
+    {
+        QObject::connect(displayGroup.get(), &DisplayGroup::windowRemoved,
+                         &logger, &ActivityLogger::logWindowRemoved);
+    }
 };
 
 BOOST_FIXTURE_TEST_CASE(testAccumulatedWindowCount, Fixture)
 {
-    QObject::connect(displayGroup.get(), &DisplayGroup::windowAdded, &logger,
-                     &ActivityLogger::logWindowAdded);
+    connectWindowAddedSignal();
 
-    BOOST_CHECK_EQUAL(logger.getAccumulatedWindowCount(), 0);
+    BOOST_REQUIRE_EQUAL(logger.getAccumulatedWindowCount(), 0);
 
     displayGroup->add(window1);
     BOOST_CHECK_EQUAL(logger.getAccumulatedWindowCount(), 1);
@@ -123,11 +94,10 @@ BOOST_FIXTURE_TEST_CASE(testAccumulatedWindowCount, Fixture)
 
 BOOST_FIXTURE_TEST_CASE(testWindowCount, Fixture)
 {
-    QObject::connect(displayGroup.get(), &DisplayGroup::windowAdded, &logger,
-                     &ActivityLogger::logWindowAdded);
-    QObject::connect(displayGroup.get(), &DisplayGroup::windowRemoved, &logger,
-                     &ActivityLogger::logWindowRemoved);
-    BOOST_CHECK_EQUAL(logger.getWindowCount(), 0);
+    connectWindowAddedSignal();
+    connectWindowRemovedSignal();
+
+    BOOST_REQUIRE_EQUAL(logger.getWindowCount(), 0);
     displayGroup->add(window1);
     BOOST_CHECK_EQUAL(logger.getWindowCount(), 1);
     displayGroup->remove(window1);
@@ -136,20 +106,18 @@ BOOST_FIXTURE_TEST_CASE(testWindowCount, Fixture)
 
 BOOST_FIXTURE_TEST_CASE(testWindowCountCannotGetBelow0, Fixture)
 {
-    BOOST_CHECK_EQUAL(logger.getWindowCount(), 0);
+    connectWindowRemovedSignal();
+
+    BOOST_REQUIRE_EQUAL(logger.getWindowCount(), 0);
     displayGroup->add(window1);
-    QObject::connect(displayGroup.get(), &DisplayGroup::windowRemoved, &logger,
-                     &ActivityLogger::logWindowRemoved);
     displayGroup->remove(window1);
     BOOST_CHECK_EQUAL(logger.getWindowCount(), 0);
 }
 
 BOOST_FIXTURE_TEST_CASE(testWindowCountDoesNotIncludeHiddenWindows, Fixture)
 {
-    QObject::connect(displayGroup.get(), &DisplayGroup::windowAdded, &logger,
-                     &ActivityLogger::logWindowAdded);
-    QObject::connect(displayGroup.get(), &DisplayGroup::windowRemoved, &logger,
-                     &ActivityLogger::logWindowRemoved);
+    connectWindowAddedSignal();
+    connectWindowRemovedSignal();
 
     BOOST_REQUIRE_EQUAL(logger.getWindowCount(), 0);
 
@@ -173,10 +141,9 @@ BOOST_FIXTURE_TEST_CASE(testWindowCountDoesNotIncludeHiddenWindows, Fixture)
 
 BOOST_FIXTURE_TEST_CASE(testInteractionCounter, Fixture)
 {
-    BOOST_CHECK_EQUAL(logger.getInteractionCount(), 0);
+    connectWindowAddedSignal();
 
-    QObject::connect(displayGroup.get(), &DisplayGroup::windowAdded, &logger,
-                     &ActivityLogger::logWindowAdded);
+    BOOST_REQUIRE_EQUAL(logger.getInteractionCount(), 0);
 
     displayGroup->add(window1);
     displayGroup->addFocusedWindow(window1);
@@ -185,10 +152,9 @@ BOOST_FIXTURE_TEST_CASE(testInteractionCounter, Fixture)
 
 BOOST_FIXTURE_TEST_CASE(testLastInteractionName, Fixture)
 {
-    BOOST_CHECK_EQUAL(logger.getLastInteractionName(), "");
+    connectWindowAddedSignal();
 
-    QObject::connect(displayGroup.get(), &DisplayGroup::windowAdded, &logger,
-                     &ActivityLogger::logWindowAdded);
+    BOOST_REQUIRE_EQUAL(logger.getLastInteractionName(), "");
 
     displayGroup->add(window1);
     displayGroup->addFocusedWindow(window1);
@@ -197,8 +163,7 @@ BOOST_FIXTURE_TEST_CASE(testLastInteractionName, Fixture)
 
 BOOST_FIXTURE_TEST_CASE(hideLauncher, Fixture)
 {
-    QObject::connect(displayGroup.get(), &DisplayGroup::windowAdded, &logger,
-                     &ActivityLogger::logWindowAdded);
+    connectWindowAddedSignal();
 
     displayGroup->add(window1);
     BOOST_CHECK_EQUAL(logger.getWindowCount(), 1);
@@ -210,19 +175,4 @@ BOOST_FIXTURE_TEST_CASE(hideLauncher, Fixture)
     BOOST_CHECK_EQUAL(logger.getWindowCount(), 1);
     window1->setState(Window::MOVING);
     BOOST_CHECK_EQUAL(logger.getWindowCount(), 1);
-}
-
-BOOST_FIXTURE_TEST_CASE(testJsonOutput, Fixture)
-{
-    BOOST_CHECK_EQUAL(json::dump(logger), defaultJson);
-
-    QObject::connect(displayGroup.get(), &DisplayGroup::windowAdded, &logger,
-                     &ActivityLogger::logWindowAdded);
-    displayGroup->add(window1);
-    displayGroup->add(window2);
-
-    const auto regex = QRegularExpression(regexJson);
-    const auto json = QString::fromStdString(json::dump(logger));
-    const auto matchedJson = regex.match(json).captured();
-    BOOST_CHECK_EQUAL(json, matchedJson);
 }

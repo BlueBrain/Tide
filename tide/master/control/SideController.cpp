@@ -39,11 +39,16 @@
 
 #include "SideController.h"
 
+#include "config.h"
+
 #include "control/DisplayGroupController.h"
 #include "control/KeyboardController.h"
-#include "control/MovieController.h"
 #include "scene/DisplayGroup.h"
+
+#if TIDE_ENABLE_MOVIE_SUPPORT
+#include "control/MovieController.h"
 #include "scene/MovieContent.h"
+#endif
 
 SideController::SideController(DisplayGroup& group)
     : _group{group}
@@ -69,9 +74,11 @@ void SideController::toggleKeyboard()
 
 void SideController::togglePlay()
 {
+#if TIDE_ENABLE_MOVIE_SUPPORT
     if (auto window = _group.getFullscreenWindow())
     {
         if (dynamic_cast<MovieContent*>(window->getContentPtr()))
             MovieController{*window}.togglePlay();
     }
+#endif
 }
