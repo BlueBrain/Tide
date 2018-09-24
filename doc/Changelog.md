@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [275](https://github.com/BlueBrain/Tide/pull/275):
+  Fix a crash that could occur when resizing large pixel streams.
 * [272](https://github.com/BlueBrain/Tide/pull/272):
   - Smooth transitions between resolution levels for opaque contents (PDFs,
     regular TIFF pyramids).

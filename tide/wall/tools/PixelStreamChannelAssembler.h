@@ -78,8 +78,8 @@ public:
     Indices computeVisibleSet(const QRectF& visibleArea,
                               uint channel) const final;
 
-    /** @return the number of tiles in the assembled image. */
-    uint getTilesCount() const;
+    /** @copydoc PixelStreamProcessor::getTilesCount */
+    size_t getTilesCount() const final;
 
 private:
     deflect::server::FramePtr _frame;
