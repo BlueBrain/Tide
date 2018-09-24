@@ -91,24 +91,28 @@ const QString& PixelStreamUpdater::getUri() const
 ImagePtr PixelStreamUpdater::getTileImage(const uint tileIndex,
                                           const deflect::View view) const
 {
-    if (!_frameLeftOrMono)
-    {
-        print_log(LOG_ERROR, LOG_STREAM, "No frames yet");
-        return ImagePtr();
-    }
-
     // guard against frame swap during asynchronous readings
     const QReadLocker frameLock(&_frameMutex);
 
-    const bool rightEye = view == deflect::View::right_eye;
-    const bool rightFrame = rightEye && !_frameRight->tiles.empty();
-    const auto& processor = rightFrame ? _processRight : _processorLeft;
-
-    // turbojpeg handles need to be per thread, and this function may be
-    // called from multiple threads
-    static QThreadStorage<deflect::server::TileDecoder> tileDecoders;
     try
     {
+        if (!_frameLeftOrMono)
+            throw std::runtime_error("No frames yet");
+
+        if (tileIndex >= _perTileLock->size())
+            throw std::runtime_error("Tile index is invalid");
+
+        // prevent double-decoding of a tile that could occur unexpectedly when
+        // resizing the stream window
+        std::lock_guard<std::mutex> lock{_perTileLock->at(tileIndex)};
+
+        const bool rightEye = view == deflect::View::right_eye;
+        const bool rightFrame = rightEye && !_frameRight->tiles.empty();
+        const auto& processor = rightFrame ? _processRight : _processorLeft;
+
+        // turbojpeg handles need to be per thread, and this function may be
+        // called from multiple threads
+        static QThreadStorage<deflect::server::TileDecoder> tileDecoders;
         return processor->getTileImage(tileIndex, tileDecoders.localData());
     }
     catch (const std::runtime_error& e)
@@ -140,10 +144,8 @@ Indices PixelStreamUpdater::computeVisibleSet(const QRectF& visibleTilesArea,
                                               const uint channel) const
 {
     Q_UNUSED(lod);
-
     if (!_frameLeftOrMono || visibleTilesArea.isEmpty())
         return Indices{};
-
     return _processorLeft->computeVisibleSet(visibleTilesArea, channel);
 }
 
@@ -190,6 +192,7 @@ void PixelStreamUpdater::_onFrameSwapped(deflect::server::FramePtr frame)
         _frameLeftOrMono = std::move(leftOrMono);
         _frameRight = std::move(right);
         _createFrameProcessors();
+        _createPerTileMutexes();
     }
 
     emit pictureUpdated();
@@ -215,4 +218,13 @@ void PixelStreamUpdater::_createFrameProcessors()
         _processorLeft.reset(new PixelStreamPassthrough(_frameLeftOrMono));
         _processRight.reset(new PixelStreamPassthrough(_frameRight));
     }
+}
+
+void PixelStreamUpdater::_createPerTileMutexes()
+{
+    const auto tiles = (_processorLeft ? _processorLeft->getTilesCount() : 0) +
+                       (_processRight ? _processRight->getTilesCount() : 0);
+
+    if (!_perTileLock || _perTileLock->size() < tiles)
+        _perTileLock = std::make_unique<std::vector<std::mutex>>(tiles);
 }

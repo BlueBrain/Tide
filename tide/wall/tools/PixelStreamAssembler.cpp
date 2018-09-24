@@ -39,6 +39,8 @@
 
 #include "PixelStreamAssembler.h"
 
+#include <numeric> // std::accumulate
+
 namespace
 {
 Indices _mapToGlobalIndices(const Indices& perChannelIndices,
@@ -58,7 +60,7 @@ PixelStreamAssembler::PixelStreamAssembler(deflect::server::FramePtr frame)
 }
 
 ImagePtr PixelStreamAssembler::getTileImage(
-    uint tileIndex, deflect::server::TileDecoder& decoder)
+    const uint tileIndex, deflect::server::TileDecoder& decoder)
 {
     const auto& channel = _getChannel(tileIndex);
     return channel.assembler.getTileImage(tileIndex - channel.offset, decoder);
@@ -77,6 +79,14 @@ Indices PixelStreamAssembler::computeVisibleSet(const QRectF& visibleArea,
     const auto indices =
         channel.assembler.computeVisibleSet(visibleArea, channelIndex);
     return _mapToGlobalIndices(indices, channel.offset);
+}
+
+size_t PixelStreamAssembler::getTilesCount() const
+{
+    return std::accumulate(_channels.begin(), _channels.end(), 0u,
+                           [](const auto count, const Channel& channel) {
+                               return count + channel.tilesCount;
+                           });
 }
 
 bool PixelStreamAssembler::_parseChannels(deflect::server::FramePtr frame)

@@ -113,10 +113,12 @@ private:
     std::unique_ptr<PixelStreamProcessor> _processorLeft;
     std::unique_ptr<PixelStreamProcessor> _processRight;
     mutable QReadWriteLock _frameMutex;
+    mutable std::unique_ptr<std::vector<std::mutex>> _perTileLock;
     bool _readyToSwap = true;
 
     void _onFrameSwapped(deflect::server::FramePtr frame);
     void _createFrameProcessors();
+    void _createPerTileMutexes();
 };
 
 #endif

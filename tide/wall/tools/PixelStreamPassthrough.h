@@ -65,6 +65,9 @@ public:
     Indices computeVisibleSet(const QRectF& visibleArea,
                               uint channel) const final;
 
+    /** @copydoc PixelStreamProcessor::getTilesCount */
+    size_t getTilesCount() const final;
+
 private:
     deflect::server::FramePtr _frame;
 };

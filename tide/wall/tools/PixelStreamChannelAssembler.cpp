@@ -130,7 +130,7 @@ Indices PixelStreamChannelAssembler::computeVisibleSet(
     return visibleSet;
 }
 
-uint PixelStreamChannelAssembler::getTilesCount() const
+size_t PixelStreamChannelAssembler::getTilesCount() const
 {
     return _getTilesX() * _getTilesY();
 }

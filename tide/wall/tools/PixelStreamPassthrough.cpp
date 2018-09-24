@@ -45,7 +45,7 @@
 #include <deflect/server/TileDecoder.h>
 
 PixelStreamPassthrough::PixelStreamPassthrough(deflect::server::FramePtr frame)
-    : _frame(frame)
+    : _frame{std::move(frame)}
 {
 }
 
@@ -80,4 +80,9 @@ Indices PixelStreamPassthrough::computeVisibleSet(const QRectF& visibleArea,
             visibleSet.insert(i);
     }
     return visibleSet;
+}
+
+size_t PixelStreamPassthrough::getTilesCount() const
+{
+    return _frame->tiles.size();
 }

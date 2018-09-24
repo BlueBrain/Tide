@@ -69,6 +69,9 @@ public:
     virtual Indices computeVisibleSet(const QRectF& visibleArea,
                                       uint channel) const = 0;
 
+    /** @return the total number of assembled tiles. */
+    virtual size_t getTilesCount() const = 0;
+
 protected:
     /** @return the coordinates of the tile as a QRect. */
     QRect toRect(const deflect::server::Tile& tile) const;
