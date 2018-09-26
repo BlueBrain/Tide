@@ -56,6 +56,9 @@ public:
     /** Destructor. */
     ~SVGTiler();
 
+    /** @copydoc DataSource::getUri */
+    QString getUri() const final;
+
     /**
      * Override for SVG GPU images, threadsafe.
      * @sa CachedDataSource::getTileImage

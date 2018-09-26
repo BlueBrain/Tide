@@ -66,7 +66,7 @@ public:
     ~PixelStreamUpdater();
 
     /** @return the uri of the stream that was passed to the constructor. */
-    const QString& getUri() const;
+    QString getUri() const final;
 
     /** @copydoc DataSource::isDynamic */
     bool isDynamic() const final { return true; }

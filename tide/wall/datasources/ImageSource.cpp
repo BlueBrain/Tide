@@ -46,8 +46,11 @@ ImageSource::ImageSource(const QString& uri)
 {
 }
 
-ImageSource::~ImageSource()
+ImageSource::~ImageSource() = default;
+
+QString ImageSource::getUri() const
 {
+    return _reader->getUri();
 }
 
 QRect ImageSource::getTileRect(const uint tileIndex) const
@@ -71,7 +74,7 @@ QImage ImageSource::getCachableTileImage(const uint tileIndex,
     Q_UNUSED(tileIndex);
 
     // temporary reader required for thread safety
-    return ImageReader{_reader->getUri()}.getImage(view);
+    return ImageReader{getUri()}.getImage(view);
 }
 
 bool ImageSource::isStereo() const

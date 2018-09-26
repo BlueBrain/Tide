@@ -54,6 +54,9 @@ public:
     /** Destructor. */
     ~ImagePyramidDataSource();
 
+    /** @copydoc DataSource::getUri */
+    QString getUri() const final;
+
     /** @copydoc DataSource::getTileRect */
     QRect getTileRect(uint tileId) const final;
 

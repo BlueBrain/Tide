@@ -72,8 +72,11 @@ PDFTiler::PDFTiler(const QString& uri, const QSize& maxImageSize)
     _tilesPerPage = _lodTool->getTilesCount();
 }
 
-PDFTiler::~PDFTiler()
+PDFTiler::~PDFTiler() = default;
+
+QString PDFTiler::getUri() const
 {
+    return _uri;
 }
 
 void PDFTiler::update(const Content& content)
@@ -111,25 +114,12 @@ QImage PDFTiler::getCachableTileImage(const uint tileId,
 {
     Q_UNUSED(view);
 
-    const auto id = QThread::currentThreadId();
-
-    PDF* pdf = nullptr;
-    try
-    {
-        QMutexLocker lock(&_threadMapMutex);
-        if (!_perThreadPDF.count(id))
-            _perThreadPDF[id] = std::make_unique<PDF>(_uri);
-        pdf = _perThreadPDF[id].get();
-    }
-    catch (const std::runtime_error&)
-    {
-        return QImage();
-    }
-    pdf->setPage(tileId / _tilesPerPage);
+    auto& pdf = _getPdfForCurrentThread();
+    pdf.setPage(tileId / _tilesPerPage);
 
     const auto imageSize = getTileRect(tileId).size();
     const auto region = LodTiler::getNormalizedTileRect(tileId % _tilesPerPage);
-    return pdf->renderToImage(imageSize, region);
+    return pdf.renderToImage(imageSize, region);
 }
 
 uint PDFTiler::getPreviewTileId() const
@@ -140,4 +130,13 @@ uint PDFTiler::getPreviewTileId() const
 QString PDFTiler::getStatistics() const
 {
     return QString("page %1/%2").arg(_currentPage + 1).arg(_pageCount);
+}
+
+PDF& PDFTiler::_getPdfForCurrentThread() const
+{
+    const auto id = QThread::currentThreadId();
+    QMutexLocker lock(&_threadMapMutex);
+    if (!_perThreadPDF.count(id))
+        _perThreadPDF[id] = std::make_unique<PDF>(_uri);
+    return *_perThreadPDF[id];
 }

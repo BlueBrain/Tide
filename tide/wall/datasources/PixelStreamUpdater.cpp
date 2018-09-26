@@ -83,7 +83,7 @@ PixelStreamUpdater::~PixelStreamUpdater()
 {
 }
 
-const QString& PixelStreamUpdater::getUri() const
+QString PixelStreamUpdater::getUri() const
 {
     return _uri;
 }
@@ -119,7 +119,7 @@ ImagePtr PixelStreamUpdater::getTileImage(const uint tileIndex,
     {
         print_log(LOG_ERROR, LOG_STREAM, "Error decoding stream tile: '%s'",
                   e.what());
-        return ImagePtr();
+        std::rethrow_exception(std::current_exception());
     }
 }
 

@@ -55,6 +55,9 @@ class DataSource
 public:
     virtual ~DataSource() = default;
 
+    /** @return the uri of the data source. */
+    virtual QString getUri() const = 0;
+
     /** @return true if the data source produces dynamic contents. */
     virtual bool isDynamic() const { return false; }
     /** Update the state of the data source. */
@@ -62,7 +65,9 @@ public:
     /**
      * Get a tile image by its id for a given view.
      * Called asynchronously but not concurrently. threadsafe.
-     * Implementations can return nullptr or throw an exception on error.
+     * Implementations should throw if an error occured, not return nullptr
+     * which is reserved for future use.
+     * @throw std::exception on error.
      */
     virtual ImagePtr getTileImage(uint tileId, deflect::View view) const = 0;
 

@@ -61,6 +61,9 @@ public:
     /** Destructor. */
     ~PDFTiler();
 
+    /** @copydoc DataSource::getUri */
+    QString getUri() const final;
+
     /** Update this datasource according to pdf content (set page info). */
     void update(const Content& content) final;
 
@@ -85,6 +88,8 @@ private:
     QImage getCachableTileImage(uint tileId, deflect::View view) const final;
     bool isStereo() const final { return false; }
     const LodTools& _getLodTool() const final { return *_lodTool; }
+    PDF& _getPdfForCurrentThread() const;
+
     const QString _uri;
     std::unique_ptr<LodTools> _lodTool;
     uint _tilesPerPage;

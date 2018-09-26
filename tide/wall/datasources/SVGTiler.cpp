@@ -72,6 +72,11 @@ SVGTiler::~SVGTiler()
 {
 }
 
+QString SVGTiler::getUri() const
+{
+    return _svg ? _svg->getFilename() : QString();
+}
+
 ImagePtr SVGTiler::getTileImage(const uint tileId,
                                 const deflect::View view) const
 {
@@ -96,7 +101,7 @@ QImage SVGTiler::getCachableTileImage(const uint tileId,
     Q_UNUSED(view);
 
     if (!_svg)
-        return QImage();
+        throw std::runtime_error("SVG source is invalid");
 
     const auto imageSize = getTileRect(tileId).size();
     const auto zoomRect = getNormalizedTileRect(tileId);

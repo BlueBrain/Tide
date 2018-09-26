@@ -54,7 +54,7 @@ ImagePtr CachedDataSource::getTileImage(const uint tileId,
     const auto image =
         QtImage::toGlCompatibleFormat(getCachableTileImage(tileId, view));
     if (image.isNull())
-        return ImagePtr();
+        throw std::logic_error("Cachable tile images should not be null");
 
     {
         const QMutexLocker lock(&_mutex);

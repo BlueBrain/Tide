@@ -75,8 +75,11 @@ ImagePyramidDataSource::ImagePyramidDataSource(const QString& uri)
     }
 }
 
-ImagePyramidDataSource::~ImagePyramidDataSource()
+ImagePyramidDataSource::~ImagePyramidDataSource() = default;
+
+QString ImagePyramidDataSource::getUri() const
 {
+    return _uri;
 }
 
 QRect ImagePyramidDataSource::getTileRect(const uint tileId) const
@@ -98,7 +101,7 @@ QImage ImagePyramidDataSource::getCachableTileImage(
     Q_UNUSED(view);
 
     if (!_valid)
-        return QImage();
+        throw std::runtime_error("TIFF data source is invalid");
 
     TiffPyramidReader tif{_uri};
 

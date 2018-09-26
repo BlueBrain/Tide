@@ -207,9 +207,7 @@ void DataProvider::_updateTiles()
             auto source = it->second;
             source->synchronizers.updateTiles(); // may throw
 
-            // Start the asynchronous loading of images for this data source
-            // and clear the list of requests for the next data source.
-            _startTileImageRequests(source);
+            _startAsyncTileImageRequests(std::move(source));
             ++it;
         }
         catch (const std::exception& e)
@@ -224,7 +222,7 @@ void DataProvider::_updateTiles()
     }
 }
 
-void DataProvider::_startTileImageRequests(DataSourceSharedPtr source)
+void DataProvider::_startAsyncTileImageRequests(DataSourceSharedPtr source)
 {
     for (const auto& tileRequest : _tileImageRequests)
     {
@@ -234,7 +232,7 @@ void DataProvider::_startTileImageRequests(DataSourceSharedPtr source)
                 &DataProvider::_handleFinished);
         watcher->setFuture(QtConcurrent::run(
             [ this, source, tilesToUpdate = tileRequest.second ] {
-                _load(source, tilesToUpdate);
+                _load(std::move(source), tilesToUpdate);
             }));
     }
 }
@@ -248,45 +246,43 @@ void DataProvider::_handleStreamError(const QString& uri)
 }
 
 void DataProvider::_load(DataSourceSharedPtr source,
-                         const TileUpdateList& tiles)
+                         const TileUpdateList& tilesToUpdate)
 {
     // Request image only once for each view
     std::map<deflect::View, ImagePtr> image;
 
-    for (const auto& it : tiles)
+    for (const auto& it : tilesToUpdate)
     {
         if (auto tile = it.tile.lock())
         {
             const auto view = it.view;
             const auto id = tile->getId();
-            if (!image[view])
+            try
             {
-                try
+                if (!image.count(view))
                 {
                     image[view] = source->getTileImage(id, view);
+                    if (!image[view])
+                        throw std::logic_error("Unexpected empty image");
                 }
-                catch (const std::exception& e)
-                {
-                    print_log(LOG_ERROR, LOG_GENERAL,
-                              "An error occured with tile: %d - %s", id,
-                              e.what());
-                    return;
-                }
-                if (!image[view])
-                {
-                    print_log(LOG_DEBUG, LOG_GENERAL,
-                              "Empty image for tile: %d", id);
-                    return;
-                }
+                QMetaObject::invokeMethod(tile.get(), "updateBackTexture",
+                                          Qt::QueuedConnection,
+                                          Q_ARG(ImagePtr, image[view]),
+                                          Q_ARG(TilePtr, tile));
                 emit imageLoaded(); // Keep RenderController active
             }
-            QMetaObject::invokeMethod(tile.get(), "updateBackTexture",
-                                      Qt::QueuedConnection,
-                                      Q_ARG(ImagePtr, image[view]),
-                                      Q_ARG(TilePtr, tile));
+            catch (const std::exception& e)
+            {
+                print_log(LOG_ERROR, LOG_GENERAL,
+                          "An error occured for content '%s' with tile %d: %s",
+                          source->getUri().toLocal8Bit().constData(), id,
+                          e.what());
+            }
         }
         else
+        {
             print_log(LOG_DEBUG, LOG_GENERAL, "Tile expired");
+        }
     }
 }
 
