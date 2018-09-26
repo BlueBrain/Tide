@@ -230,6 +230,14 @@ uint TiffPyramidReader::findLevel(const QSize& imageSize)
     return level;
 }
 
+uint TiffPyramidReader::findLevelForImageOfMin(const QSize& imageSize)
+{
+    const auto level = findLevel(imageSize);
+    if (level > 0 && getImageSize() < imageSize)
+        return level - 1;
+    return level;
+}
+
 QImage TiffPyramidReader::readTile(const int i, const int j, const uint lod)
 {
     try
