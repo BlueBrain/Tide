@@ -103,7 +103,7 @@ void Tile::updateBackTexture(ImagePtr image, TilePtr self)
     if (_type == TextureType::static_ && _firstImageUploaded)
         throw std::logic_error("Static tiles can't be updated");
 
-    _textureSwitcher.setNextImage(image);
+    _textureSwitcher.setNextImage(std::move(image));
     _firstImageUploaded = true;
 
     // Note: readToSwap() must happen immediately and not in _updateTextureNode,
@@ -111,7 +111,7 @@ void Tile::updateBackTexture(ImagePtr image, TilePtr self)
     // could not be established. However, it was verified (using glFenceSync)
     // that textures always upload faster than they are generated in practice.
     // There is no need to check for upload completion in _updateTextureNode.
-    emit readyToSwap(self);
+    emit readyToSwap(std::move(self));
 
     QQuickItem::update();
 }

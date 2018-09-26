@@ -63,6 +63,9 @@ public:
     explicit MovieUpdater(const QString& uri);
     ~MovieUpdater();
 
+    /** @copydoc DataSource::getUri */
+    QString getUri() const final;
+
     /** @copydoc DataSource::isDynamic */
     bool isDynamic() const final { return true; }
     /** Update this datasource according to visibility and movie content. */
@@ -116,6 +119,7 @@ private:
     void _triggerFrameUpdate();
     void _exchangeSharedTimestamp(WallToWallChannel& channel, bool isCandidate);
 
+    QString _uri;
     std::unique_ptr<FFMPEGMovie> _ffmpegMovie;
     bool _paused = false;
     bool _loop = true;

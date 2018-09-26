@@ -86,6 +86,7 @@ auto _splitSideBySide(std::shared_ptr<FFMPEGPicture> image)
 }
 
 MovieUpdater::MovieUpdater(const QString& uri)
+    : _uri{uri}
 {
     try
     {
@@ -104,8 +105,11 @@ MovieUpdater::MovieUpdater(const QString& uri)
     }
 }
 
-MovieUpdater::~MovieUpdater()
+MovieUpdater::~MovieUpdater() = default;
+
+QString MovieUpdater::getUri() const
 {
+    return _uri;
 }
 
 void MovieUpdater::update(const Content& content)
@@ -158,7 +162,7 @@ ImagePtr MovieUpdater::getTileImage(const uint tileIndex,
     Q_UNUSED(tileIndex);
 
     if (!_ffmpegMovie)
-        return ImagePtr();
+        throw std::runtime_error("Movie is invalid");
 
     // WAR bug: concurrent calls to this function may occur when the movie was
     // obstruced by another window and becomes visible again, resulting in a

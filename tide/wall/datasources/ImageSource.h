@@ -57,6 +57,9 @@ public:
     explicit ImageSource(const QString& uri);
     ~ImageSource();
 
+    /** @copydoc DataSource::getUri */
+    QString getUri() const final;
+
     /** @copydoc DataSource::getTileRect */
     QRect getTileRect(uint tileIndex) const final;
 

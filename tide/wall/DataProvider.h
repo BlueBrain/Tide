@@ -129,7 +129,7 @@ private:
                                                const QUuid& id);
 
     void _updateTiles();
-    void _startTileImageRequests(DataSourceSharedPtr source);
+    void _startAsyncTileImageRequests(DataSourceSharedPtr source);
     void _handleStreamError(const QString& uri);
     void _load(DataSourceSharedPtr source, const TileUpdateList& tileList);
     void _handleFinished();

@@ -93,7 +93,9 @@ BOOST_AUTO_TEST_CASE(datasources_handle_files_access_problems_gracefully)
             BOOST_CHECK_EQUAL(datasource->getMaxLod(), 0);
             BOOST_CHECK(
                 datasource->computeVisibleSet(contentArea, 0, 0).empty());
-            BOOST_CHECK(!datasource->getTileImage(0, deflect::View::mono));
+            // only getTileImage throws (to report errors to the DataProvider)
+            BOOST_CHECK_THROW(datasource->getTileImage(0, deflect::View::mono),
+                              std::exception);
         }
         catch (...)
         {

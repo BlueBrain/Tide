@@ -98,7 +98,7 @@ public slots:
      * Upload the given image to the back texture.
      *
      * The *self* parameter is here to extend the lifetime of the Tile and
-     * prevent an unfrequent race condition. This function is called through
+     * prevent an infrequent race condition. This function is called through
      * QMetaObject::invokeMethod with a Qt::QueuedConnection from DataProvider.
      * It is therefore possible that the shared_ptr holding this Tile is
      * destroyed after the function is called by Qt (valid QObject) but before
