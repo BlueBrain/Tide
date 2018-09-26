@@ -44,13 +44,14 @@
 
 ImagePyramidThumbnailGenerator::ImagePyramidThumbnailGenerator(
     const QSize& size)
-    : ThumbnailGenerator(size)
+    : ThumbnailGenerator{size}
 {
 }
 
 QImage ImagePyramidThumbnailGenerator::generate(const QString& filename) const
 {
-    const QImage image = TiffPyramidReader{filename}.readTopLevelImage();
+    TiffPyramidReader tif{filename};
+    const auto image = tif.readImage(tif.findLevelForImageOfMin(_size));
 
     if (!image.isNull())
         return image.scaled(_size, _aspectRatioMode);

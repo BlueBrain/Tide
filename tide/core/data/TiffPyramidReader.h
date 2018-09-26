@@ -90,6 +90,12 @@ public:
      */
     uint findLevel(const QSize& imageSize);
 
+    /**
+     * Find the level of the pyramid whose dimensions are equal to or directly
+     * larger than the target image size.
+     */
+    uint findLevelForImageOfMin(const QSize& imageSize);
+
     /** Read a tile at the given indices and level of detail. */
     QImage readTile(int i, int j, uint lod);
 
