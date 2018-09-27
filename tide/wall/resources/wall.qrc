@@ -4,6 +4,7 @@
     </qresource>
     <qresource prefix="/qml/wall">
         <file>BackgroundText.qml</file>
+        <file>ContentStatistics.qml</file>
         <file>FpsCounter.qml</file>
         <file>PowerOffCountdown.qml</file>
         <file>TouchPointMarker.qml</file>

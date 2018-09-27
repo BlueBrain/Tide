@@ -86,16 +86,6 @@ BaseWindow {
         }
     }
 
-    Text {
-        id: statistics
-        text: contentsync.statistics
-        visible: options.showStatistics
-
-        anchors.bottom: parent.bottom
-        anchors.left: parent.left
-        anchors.leftMargin: Style.statisticsBorderMargin
-        anchors.bottomMargin: Style.statisticsBorderMargin
-        font.pointSize: Style.statisticsFontSize
-        color: Style.statisticsFontColor
+    ContentStatistics {
     }
 }

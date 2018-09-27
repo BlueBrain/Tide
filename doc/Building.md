@@ -125,8 +125,9 @@ Most dependencies are easily installed through either brew or macports.
 
 #### Brew
 
-Using brew on OSX 10.13:
+Using brew on OSX 10.13 / 10.14:
 
+    brew install cmake ninja pkgconfig
     brew install boost ffmpeg librsvg open-mpi poppler qt jpeg-turbo libwebsockets
     export PATH=/usr/local/opt/qt/bin:$PATH
     export PKG_CONFIG_PATH=/usr/local/opt/jpeg-turbo/lib/pkgconfig

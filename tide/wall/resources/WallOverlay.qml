@@ -23,8 +23,7 @@ Item {
         visible: options.showStatistics
         anchors.top: parent.top
         anchors.left: parent.left
-        anchors.leftMargin: Style.fpsX
-        anchors.topMargin: -parent.y + Style.fpsY
+        anchors.margins: font.pixelSize / 2
     }
 
     PowerOffCountdown {
