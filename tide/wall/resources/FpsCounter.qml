@@ -4,9 +4,9 @@ import "qrc:/qml/core/style.js" as Style
 Text {
     property int frames: 0 // incremented each frame by the C++ backend
 
-    text: timer.fps + " FPS"
-    font.pixelSize: Style.fpsFontSize
-    color: Style.fpsFontColor
+    text: timer.fps + " fps"
+    font.pixelSize: Style.wallFpsFontSize
+    color: Style.statisticsFontColor
 
     Timer {
         id: timer
