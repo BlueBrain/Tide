@@ -17,9 +17,7 @@ Item {
         visible: opacity > 0
         z: Style.focusBackgroundZorder
         Behavior on opacity {
-            NumberAnimation {
-                target: focuscontext
-                property: "opacity"
+            PropertyAnimation {
                 duration: Style.focusTransitionTime
                 easing.type: Easing.InOutQuad
             }
