@@ -1,6 +1,6 @@
+
 // Copyright (c) 2016, EPFL/Blue Brain Project
 //                     Raphael Dumusc <raphael.dumusc@epfl.ch>
-
 import QtQuick 2.0
 import QtWebEngine 1.1
 import QtQuick.Controls 1.2
@@ -43,7 +43,8 @@ Item {
             text: webengine.url
 
             onAccepted: addressBarTextEntered(text)
-            onFocusChanged: focus ? Qt.inputMethod.show() : Qt.inputMethod.hide()
+            onFocusChanged: focus ? Qt.inputMethod.show(
+                                        ) : Qt.inputMethod.hide()
 
             Rectangle {
                 color: "white"
@@ -57,8 +58,8 @@ Item {
                     anchors.fill: parent
                     anchors.margins: 0.1 * parent.height
                     image: "qrc:/img/right_arrow.svg"
-                    opacity: addressBar.text.length > 0 ? Style.buttonsEnabledOpacity :
-                                                          Style.buttonsDisabledOpacity
+                    opacity: addressBar.text.length
+                             > 0 ? Style.buttonsEnabledOpacity : Style.buttonsDisabledOpacity
                     enabled: true
                     onClicked: addressBarTextEntered(addressBar.text)
                 }
@@ -79,7 +80,8 @@ Item {
 
         // Pass javascript messages by signal to Tide's custom C++ log handler
         signal jsMessage(int level, string message, int line, string source)
-        onJavaScriptConsoleMessage: jsMessage(level, message, lineNumber, sourceID)
+        onJavaScriptConsoleMessage: jsMessage(level, message,
+                                              lineNumber, sourceID)
 
         Connections {
             target: deflectgestures
@@ -87,7 +89,9 @@ Item {
             onSwipeRight: webengine.goForward()
         }
 
-        property var replacer: ({})
+        property var replacer: ({
+
+                                })
         Component.onCompleted: replacer = new HSR.HtmlSelectReplacer(webengine)
 
         onLoadingChanged: {
@@ -102,19 +106,37 @@ Item {
         color: "black"
         opacity: addressBar.focus ? 0.5 : 0.0
         visible: opacity > 0.0
-        Behavior on opacity { NumberAnimation { easing.type: Easing.InOutQuad; duration: 150 }}
+        Behavior on opacity {
+            PropertyAnimation {
+                easing.type: Easing.InOutQuad
+                duration: 150
+            }
+        }
     }
 
     Loader {
         id: virtualKeyboard
         source: "qrc:/virtualkeyboard/InputPanel.qml"
-        width: Math.min(Style.keyboardMaxSizePx, Style.keyboardRelSize * parent.width)
+        width: Math.min(Style.keyboardMaxSizePx,
+                        Style.keyboardRelSize * parent.width)
         height: 0.25 * width
         anchors.horizontalCenter: parent.horizontalCenter
-        y: Qt.inputMethod.visible ? Math.min(0.5 * parent.height, parent.height - height) : parent.height
-        opacity:  Qt.inputMethod.visible ? 1.0 : 0.0
-        Behavior on y { NumberAnimation { easing.type: Easing.InOutQuad; duration: 150 }}
-        Behavior on opacity { NumberAnimation { easing.type: Easing.InOutQuad; duration: 150 }}
+        y: Qt.inputMethod.visible ? Math.min(
+                                        0.5 * parent.height,
+                                        parent.height - height) : parent.height
+        opacity: Qt.inputMethod.visible ? 1.0 : 0.0
+        Behavior on y {
+            PropertyAnimation {
+                easing.type: Easing.InOutQuad
+                duration: 150
+            }
+        }
+        Behavior on opacity {
+            PropertyAnimation {
+                easing.type: Easing.InOutQuad
+                duration: 150
+            }
+        }
         onStatusChanged: {
             if (status == Loader.Error)
                 source = "qrc:/qml/core/MissingVirtualKeyboard.qml"

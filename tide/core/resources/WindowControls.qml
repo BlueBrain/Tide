@@ -55,7 +55,7 @@ Item {
 
     transitions: [
         Transition {
-            NumberAnimation {
+            PropertyAnimation {
                 target: windowControls
                 property: "opacity"
                 duration: Style.focusTransitionTime

@@ -1,6 +1,6 @@
+
 // Copyright (c) 2016, EPFL/Blue Brain Project
 //                          Raphael Dumusc <raphael.dumusc@epfl.ch>
-
 import QtQuick 2.3
 import QtQuick.Controls 1.3
 import QtQuick.Controls.Styles 1.3
@@ -16,9 +16,9 @@ Item {
 
     signal saveSession(string filename)
 
-    function save()
-    {
-        saveSession(browser.currentFolder.toString().replace("file://", "")+'/'+textInput.text)
+    function save() {
+        saveSession(browser.currentFolder.toString().replace(
+                        "file://", "") + '/' + textInput.text)
         textInput.text = ""
         textInput.focus = false
     }
@@ -45,7 +45,9 @@ Item {
             height: parent.height
             anchors.left: parent.left
             anchors.right: saveButton.left
-            style: TextFieldStyle { font.pixelSize: control.height * 0.5 }
+            style: TextFieldStyle {
+                font.pixelSize: control.height * 0.5
+            }
             onFocusChanged: {
                 if (focus)
                     Qt.inputMethod.show()
@@ -60,7 +62,9 @@ Item {
                 }
             }
             selectByMouse: true
-            validator: RegExpValidator{ regExp: /[\w.]*/ }
+            validator: RegExpValidator {
+                regExp: /[\w.]*/
+            }
             onAccepted: save()
         }
 
@@ -95,6 +99,11 @@ Item {
         width: parent.width
         height: width / 4
         y: Qt.inputMethod.visible ? parent.height - height : parent.height
-        Behavior on y { NumberAnimation { easing.type: Easing.InOutQuad; duration: 150 }}
+        Behavior on y {
+            PropertyAnimation {
+                easing.type: Easing.InOutQuad
+                duration: 150
+            }
+        }
     }
 }

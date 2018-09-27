@@ -1,6 +1,6 @@
+
 // Copyright (c) 2016, EPFL/Blue Brain Project
 //                          Raphael Dumusc <raphael.dumusc@epfl.ch>
-
 import QtQuick 2.0
 import QtQuick.Controls 1.2
 import QtQuick.Controls.Styles 1.2
@@ -10,8 +10,8 @@ DefaultPanel {
     id: optionsPanel
 
     signal buttonClicked(string optionName, bool value)
-    signal exitClicked()
-    signal refreshOptions()
+    signal exitClicked
+    signal refreshOptions
 
     property int checkboxHeight: height * 0.025
 
@@ -79,7 +79,7 @@ DefaultPanel {
         width: height * Style.exitSliderRelWidth
 
         Text {
-            text : "Slide to exit"
+            text: "Slide to exit"
             anchors.centerIn: parent
             font.pointSize: checkboxHeight
             color: Style.exitSliderTextColor
@@ -106,7 +106,10 @@ DefaultPanel {
                         slider.x = 0.0
                 }
             }
-            Behavior on x { PropertyAnimation {} }
+            Behavior on x {
+                PropertyAnimation {
+                }
+            }
         }
     }
 
@@ -125,7 +128,11 @@ DefaultPanel {
                     sourceSize.width: width
                     sourceSize.height: height
                     opacity: control.checkedState === Qt.Checked ? control.enabled ? 1 : 0.5 : 0
-                    Behavior on opacity {NumberAnimation {duration: 80}}
+                    Behavior on opacity {
+                        PropertyAnimation {
+                            duration: 80
+                        }
+                    }
                 }
             }
             spacing: checkboxHeight * 0.5

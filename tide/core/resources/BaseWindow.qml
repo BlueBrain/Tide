@@ -131,13 +131,13 @@ Rectangle {
             opacity: hasKeyboard && window.content.keyboard.visible ? 1.0 : 0.0
             visible: opacity > 0.0
             Behavior on y {
-                NumberAnimation {
+                PropertyAnimation {
                     easing.type: Easing.InOutQuad
                     duration: 150
                 }
             }
             Behavior on opacity {
-                NumberAnimation {
+                PropertyAnimation {
                     easing.type: Easing.InOutQuad
                     duration: 150
                 }
@@ -153,21 +153,21 @@ Rectangle {
             id: transitionBehaviour
             enabled: window.focused || (window.fullscreen
                                         && window.state === Window.NONE)
-            NumberAnimation {
+            PropertyAnimation {
                 duration: Style.focusTransitionTime
                 easing.type: Easing.InOutQuad
             }
         }
         Behavior on posY {
             enabled: transitionBehaviour.enabled
-            NumberAnimation {
+            PropertyAnimation {
                 duration: Style.focusTransitionTime
                 easing.type: Easing.InOutQuad
             }
         }
         Behavior on width {
             enabled: transitionBehaviour.enabled
-            NumberAnimation {
+            PropertyAnimation {
                 id: widthAnimation
                 duration: Style.focusTransitionTime
                 easing.type: Easing.InOutQuad
@@ -175,7 +175,7 @@ Rectangle {
         }
         Behavior on height {
             enabled: transitionBehaviour.enabled
-            NumberAnimation {
+            PropertyAnimation {
                 id: heightAnimation
                 duration: Style.focusTransitionTime
                 easing.type: Easing.InOutQuad
@@ -314,7 +314,7 @@ Rectangle {
                     ColorAnimation {
                         duration: Style.focusTransitionTime
                     }
-                    NumberAnimation {
+                    PropertyAnimation {
                         target: contentArea
                         properties: "posX,posY,width,height"
                         duration: Style.focusTransitionTime
@@ -327,7 +327,7 @@ Rectangle {
             to: "hidden"
             id: panelAppearTransition
             reversible: true
-            NumberAnimation {
+            PropertyAnimation {
                 target: contentArea
                 properties: "posX,posY,width,height"
                 duration: Style.panelsAnimationTime
@@ -338,7 +338,7 @@ Rectangle {
             from: "*"
             to: "fullscreen"
             reversible: true
-            NumberAnimation {
+            PropertyAnimation {
                 target: contentArea
                 properties: "posX,posY,width,height"
                 duration: Style.focusTransitionTime
@@ -349,7 +349,7 @@ Rectangle {
                 property: "z"
                 value: Style.fullscreenZorder
             }
-            NumberAnimation {
+            PropertyAnimation {
                 target: windowRect
                 property: "border.width"
                 duration: Style.focusTransitionTime
@@ -364,12 +364,12 @@ Rectangle {
         }
     }
     Behavior on border.width {
-        NumberAnimation {
+        PropertyAnimation {
             duration: Style.focusTransitionTime
         }
     }
     Behavior on opacity {
-        NumberAnimation {
+        PropertyAnimation {
             duration: Style.panelsAnimationTime
             easing.type: Easing.InOutQuad
         }

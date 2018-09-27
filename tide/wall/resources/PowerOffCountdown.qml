@@ -40,7 +40,7 @@ Rectangle {
         Transition {
             from: "hidden"
             to: "visible"
-            NumberAnimation {
+            PropertyAnimation {
                 properties: "opacity"
                 easing.type: Easing.OutBack
                 duration: countdownStatus.duration
@@ -49,7 +49,7 @@ Rectangle {
         Transition {
             from: "visible"
             to: "hidden"
-            NumberAnimation {
+            PropertyAnimation {
                 properties: "opacity"
                 easing.type: Easing.OutBack
                 duration: Style.countdownTransitionTime

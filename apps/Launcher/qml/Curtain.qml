@@ -1,6 +1,6 @@
+
 // Copyright (c) 2018, EPFL/Blue Brain Project
 //                     Raphael Dumusc <raphael.dumusc@epfl.ch>
-
 import QtQuick 2.0
 
 Rectangle {
@@ -30,7 +30,7 @@ Rectangle {
         }
     ]
     Behavior on y {
-        NumberAnimation {
+        PropertyAnimation {
             easing.type: Easing.InOutQuad
         }
     }
