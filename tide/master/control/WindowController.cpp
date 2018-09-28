@@ -101,7 +101,6 @@ void WindowController::resize(const QSizeF& size, const WindowPoint fixedPoint)
         _resize(_getCoordinates().center(), newSize);
         break;
     case TOP_LEFT:
-    default:
         _resize(_getCoordinates().topLeft(), newSize);
     }
 }
@@ -149,7 +148,6 @@ void WindowController::resizeRelative(const QPointF& delta)
         newSize += QSizeF(delta.x(), delta.y());
         break;
     case Window::NOHANDLE:
-    default:
         return;
     }
 
@@ -233,9 +231,6 @@ void WindowController::adjustSize(const SizeState state)
         _apply(_getCenteredCoordinates(size));
     }
     break;
-
-    default:
-        return;
     }
 }
 
@@ -267,8 +262,6 @@ void WindowController::moveTo(const QPointF& position, const WindowPoint handle)
     case CENTER:
         coordinates.moveCenter(position);
         break;
-    default:
-        return;
     }
     _constrainPosition(coordinates);
 
@@ -417,9 +410,9 @@ const QRectF& WindowController::_getCoordinates() const
     case WindowController::Coordinates::FULLSCREEN:
         return _window.getFullscreenCoordinates();
     case WindowController::Coordinates::AUTO:
-    default:
         return _window.getDisplayCoordinates();
     }
+    throw std::logic_error("invalid _target");
 }
 
 void WindowController::_apply(const QRectF& coordinates)
