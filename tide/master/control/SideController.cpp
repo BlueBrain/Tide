@@ -43,6 +43,7 @@
 
 #include "control/DisplayGroupController.h"
 #include "control/KeyboardController.h"
+#include "control/WindowController.h"
 #include "scene/DisplayGroup.h"
 
 #if TIDE_ENABLE_MOVIE_SUPPORT
@@ -81,4 +82,16 @@ void SideController::togglePlay()
             MovieController{*window}.togglePlay();
     }
 #endif
+}
+
+void SideController::toggleResize()
+{
+    if (auto window = _group.getFullscreenWindow())
+        WindowController{*window, _group}.toogleFullscreenMaxSize();
+}
+
+void SideController::setOneToOneSize()
+{
+    if (auto window = _group.getFullscreenWindow())
+        WindowController{*window, _group}.adjustSize(SIZE_FULLSCREEN_1TO1);
 }

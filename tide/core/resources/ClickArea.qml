@@ -8,6 +8,7 @@ Item {
     property bool active: true
 
     signal clicked
+    signal tapAndHold
 
     Loader {
         active: (typeof groupcontroller !== "undefined") // only load on master
@@ -16,6 +17,10 @@ Item {
             onClicked: {
                 if (touchArea.active)
                     touchArea.clicked()
+            }
+            onPressAndHold: {
+                if (touchArea.active)
+                    touchArea.tapAndHold()
             }
         }
     }

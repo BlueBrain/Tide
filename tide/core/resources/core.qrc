@@ -5,6 +5,7 @@
         <file>close.svg</file>
         <file>copy.svg</file>
         <file>context_menu_indicator.svg</file>
+        <file>enlarge.svg</file>
         <file>error.png</file>
         <file>exit.svg</file>
         <file>focus.svg</file>
@@ -17,6 +18,7 @@
         <file>oneToOne.svg</file>
         <file>pause.svg</file>
         <file>play.svg</file>
+        <file>reduce.svg</file>
         <file>right_arrow.svg</file>
         <file>tick.svg</file>
         <file>triangle.svg</file>
@@ -65,6 +67,7 @@
         <file>OneToOneButton.qml</file>
         <file>PasteButton.qml</file>
         <file>PlayPauseButton.qml</file>
+        <file>RescaleButton.qml</file>
         <file>ResizeCircle.qml</file>
         <file>ResizeCircles.qml</file>
         <file>SideButton.qml</file>
