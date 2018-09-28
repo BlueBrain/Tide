@@ -59,6 +59,8 @@ public:
     Q_INVOKABLE void toggleLauncher();
     Q_INVOKABLE void toggleKeyboard();
     Q_INVOKABLE void togglePlay();
+    Q_INVOKABLE void toggleResize();
+    Q_INVOKABLE void setOneToOneSize();
 
 signals:
     void openLauncher();
