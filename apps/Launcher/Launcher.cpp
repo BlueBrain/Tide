@@ -48,6 +48,8 @@
 #include "tide/master/localstreamer/CommandLineOptions.h"
 #include "tide/master/localstreamer/QmlKeyInjector.h"
 
+#include <tide/core/version.h>
+
 #include <QDirModel>
 #include <QHostInfo>
 #include <QQmlContext>
@@ -57,6 +59,15 @@ namespace
 const std::string deflectHost("localhost");
 const QString deflectQmlFile("qrc:/qml/qml/main.qml");
 const QString thumbnailProviderId("thumbnail");
+
+QQuickImageProvider* _makeImageProvider()
+{
+#if TIDE_ASYNC_THUMBNAIL_PROVIDER
+    return new AsyncThumbnailProvider();
+#else
+    return new ThumbnailProvider();
+#endif
+}
 }
 
 Launcher::Launcher(int& argc, char* argv[])
@@ -76,6 +87,9 @@ Launcher::Launcher(int& argc, char* argv[])
     auto item = _qmlStreamer->getRootItem();
 
     // General setup
+    item->setProperty("tideVersion", TIDE_VERSION_STRING);
+    item->setProperty("tideRevision",
+                      QString::number(TIDE_VERSION_REVISION, 16));
     item->setProperty("restPort", options.webservicePort);
     item->setProperty("powerButtonVisible", options.showPowerButton);
     if (options.width)
@@ -90,19 +104,11 @@ Launcher::Launcher(int& argc, char* argv[])
 
     auto engine = _qmlStreamer->getQmlEngine();
     engine->rootContext()->setContextProperty("fileInfo", &_fileInfoHelper);
-#if TIDE_ASYNC_THUMBNAIL_PROVIDER
-    engine->addImageProvider(thumbnailProviderId, new AsyncThumbnailProvider);
-#else
-    engine->addImageProvider(thumbnailProviderId, new ThumbnailProvider);
-#endif
+    engine->addImageProvider(thumbnailProviderId, _makeImageProvider());
 
     // DemoLauncher setup
     item->setProperty("demoServiceUrl", options.demoServiceUrl);
     item->setProperty("demoServiceDeflectHost", QHostInfo::localHostName());
-}
-
-Launcher::~Launcher()
-{
 }
 
 bool Launcher::event(QEvent* event_)

@@ -1,21 +1,20 @@
 // Copyright (c) 2014-2016, EPFL/Blue Brain Project
 //                          Raphael Dumusc <raphael.dumusc@epfl.ch>
-
 import QtQuick 2.0
 import "style.js" as Style
 
 Rectangle {
     id: menu
 
-    signal clearSession()
-    signal showFilesPanel()
-    signal showSessionsPanel()
-    signal showSaveSessionPanel()
-    signal showOptionsPanel()
-    signal showDemosPanel()
-    signal startWebbrowser()
-    signal startWhiteboard()
-    signal poweroffScreens()
+    signal clearSession
+    signal showFilesPanel
+    signal showSessionsPanel
+    signal showSaveSessionPanel
+    signal showOptionsPanel
+    signal showDemosPanel
+    signal startWebbrowser
+    signal startWhiteboard
+    signal poweroffScreens
 
     color: Style.menuColor
 
@@ -43,8 +42,8 @@ Rectangle {
         // ListElement can't store function pointers so use eval(model.action)
         ListElement {
             action: "showFilesPanel"
-            name: "Open"
-            image: "qrc:/images/file.svg"
+            name: "Add"
+            image: "qrc:/images/add.svg"
             category: "Content"
             isPanel: true
         }
@@ -57,15 +56,15 @@ Rectangle {
         }
         ListElement {
             action: "showSessionsPanel"
-            name: "Load"
-            image: "qrc:/images/folder.svg"
+            name: "Open"
+            image: "qrc:/images/open.svg"
             category: "Session"
             isPanel: true
         }
         ListElement {
             action: "showSaveSessionPanel"
             name: "Save"
-            image: "qrc:/images/star.svg"
+            image: "qrc:/images/save.svg"
             category: "Session"
             isPanel: true
         }
@@ -114,7 +113,11 @@ Rectangle {
             width: menuListView.width
             height: menuListView.currentItem.height
             y: menuListView.currentItem.y
-            Behavior on y { SmoothedAnimation { velocity: 1000 } }
+            Behavior on y {
+                SmoothedAnimation {
+                    velocity: 1000
+                }
+            }
         }
     }
 
@@ -122,10 +125,9 @@ Rectangle {
         id: menuButtonDelegate
         Item {
             id: button
-            visible: model.category === "Control" ? menu.poweroffItemVisible :
-                     model.category === "Demos" ? menu.demoItemVisible : true
-            height: visible === true ? image.height + caption.height +
-                                       0.15 * menuListView.width : 0
+            visible: model.category === "Control" ? menu.poweroffItemVisible : model.category
+                                                    === "Demos" ? menu.demoItemVisible : true
+            height: visible === true ? image.height + caption.height + 0.15 * menuListView.width : 0
             width: menuListView.width * 0.8
             anchors.horizontalCenter: parent.horizontalCenter
             Column {
@@ -141,9 +143,9 @@ Rectangle {
                     MouseArea {
                         anchors.fill: parent
                         onClicked: {
-                            if(model.isPanel)
-                                menuListView.currentIndex = index;
-                            eval(model.action)();
+                            if (model.isPanel)
+                                menuListView.currentIndex = index
+                            eval(model.action)()
                         }
                     }
                 }
@@ -151,7 +153,6 @@ Rectangle {
                     id: caption
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: model.name
-                    font.bold: true
                     font.pixelSize: menu.textSize
                     color: Style.menuTextColor
                 }

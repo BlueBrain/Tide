@@ -1,8 +1,6 @@
 <RCC>
     <qresource prefix="/img">
         <file>add.svg</file>
-        <file>browser-icon.png</file>
-        <file>clearall-icon.png</file>
         <file>clock.svg</file>
         <file>close.svg</file>
         <file>copy.svg</file>
@@ -14,7 +12,6 @@
         <file>gear.svg</file>
         <file>keyboard.svg</file>
         <file>launch.svg</file>
-        <file>load.svg</file>
         <file>lock.svg</file>
         <file>maximize.svg</file>
         <file>oneToOne.svg</file>
