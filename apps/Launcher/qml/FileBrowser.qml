@@ -1,7 +1,6 @@
 // Copyright (c) 2015-2018, EPFL/Blue Brain Project
 //                          Raphael Dumusc <raphael.dumusc@epfl.ch>
 //                          Ahmet Bilgili <ahmet.bilgili@epfl.ch>
-
 import QtQuick 2.4
 import QtQuick.Controls 1.3
 import QtQml.Models 2.1
@@ -38,55 +37,55 @@ Rectangle {
 
     function selectFile(file) {
         if (file !== "")
-            itemSelected(file);
+            itemSelected(file)
     }
 
     function goDown(path) {
-        folders.rootFolder = path;
+        folders.rootFolder = path
     }
 
     function goUp() {
         if (folders.rootFolder !== fileBrowser.rootfolder)
-            folders.rootFolder = folders.getParentFolder();
+            folders.rootFolder = folders.getParentFolder()
     }
 
     function openItem(filePath, fileIsDir) {
         if (fileIsDir)
-            goDown(filePath);
+            goDown(filePath)
         else
-            selectFile(filePath);
+            selectFile(filePath)
     }
 
     function humanReadableFileSize(bytes, si) {
-        var thresh = si ? 1000 : 1024;
-        if(Math.abs(bytes) < thresh)
-            return bytes + ' bytes';
-        var units = si ? ['kB','MB','GB','TB','PB','EB','ZB','YB']
-                       : ['KiB','MiB','GiB','TiB','PiB','EiB','ZiB','YiB'];
-        var u = -1;
+        var thresh = si ? 1000 : 1024
+        if (Math.abs(bytes) < thresh)
+            return bytes + ' bytes'
+        var units = si ? ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'] : ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB']
+        var u = -1
         do {
-            bytes /= thresh;
-            ++u;
-        } while(Math.abs(bytes) >= thresh && u < units.length - 1);
-        return bytes.toFixed(1) + ' ' + units[u];
+            bytes /= thresh
+            ++u
+        } while (Math.abs(bytes) >= thresh && u < units.length - 1)
+        return bytes.toFixed(1) + ' ' + units[u]
     }
 
     function humanReadableModificationDate(modDate) {
-        var now = new Date();
-        var date = new Date(modDate);
-        if (now - date < 1000 * 3600 * 24) // less than one day
-            return date.toLocaleTimeString();
+        var now = new Date()
+        var date = new Date(modDate)
+        if (now - date < 1000 * 3600 * 24)
+            // less than one day
+            return date.toLocaleTimeString()
         if (date.getFullYear() == now.getFullYear())
-            return Qt.formatDate(date, "dd MMMM");
-        return Qt.formatDate(date, "dd MMM yyyy");
+            return Qt.formatDate(date, "dd MMMM")
+        return Qt.formatDate(date, "dd MMM yyyy")
     }
 
     FolderModel {
         id: folders
         rootFolder: fileBrowser.rootfolder
         function toggleSortOrder() {
-            sortOrder = (sortOrder == FolderModel.Ascending) ?
-                FolderModel.Descending : FolderModel.Ascending;
+            sortOrder = (sortOrder
+                         == FolderModel.Ascending) ? FolderModel.Descending : FolderModel.Ascending
         }
         property string sortIcon: sortOrder == FolderModel.Ascending ? "▲" : "▼"
     }
@@ -114,7 +113,6 @@ Rectangle {
                 wrapMode: Text.WrapAnywhere
                 maximumLineCount: 2
                 elide: Text.ElideRight // ElideMiddle does not work with wrapped text
-                font.bold: true
                 color: Style.fileBrowserTextColor
                 font.pixelSize: textPixelSize
             }
@@ -125,8 +123,9 @@ Rectangle {
                 onPressed: wrapper.GridView.view.currentIndex = index
                 onClicked: clickAnimation.start()
                 onPressAndHold: {
-                    if (fileBrowser.allowOpeningFolder && fileIsDir && filesInDir > 0) {
-                        curtain.showDialog(filesInDir, filePath);
+                    if (fileBrowser.allowOpeningFolder && fileIsDir
+                            && filesInDir > 0) {
+                        curtain.showDialog(filesInDir, filePath)
                     }
                 }
             }
@@ -159,7 +158,8 @@ Rectangle {
 
             Connections {
                 target: folders
-                onRootFolderChanged: rootIndex = folders.getPathIndex(folders.rootFolder)
+                onRootFolderChanged: rootIndex = folders.getPathIndex(
+                                         folders.rootFolder)
             }
 
             // Mysterious hack to prevent rootIndex from being reset
@@ -199,7 +199,6 @@ Rectangle {
                 elide: Text.ElideMiddle
 
                 anchors.verticalCenter: parent.verticalCenter
-                font.bold: true
                 font.pixelSize: textPixelSize
                 color: Style.fileBrowserTextColor
             }
@@ -211,7 +210,6 @@ Rectangle {
                 visible: !fileIsDir
 
                 anchors.verticalCenter: parent.verticalCenter
-                font.bold: true
                 font.pixelSize: textPixelSize
                 color: Style.fileBrowserTextColor
             }
@@ -224,7 +222,6 @@ Rectangle {
                 horizontalAlignment: Text.AlignRight
 
                 anchors.verticalCenter: parent.verticalCenter
-                font.bold: true
                 font.pixelSize: textPixelSize
                 color: Style.fileBrowserTextColor
             }
@@ -235,8 +232,9 @@ Rectangle {
                 onPressed: wrapper.ListView.view.currentIndex = index
                 onClicked: clickAnimation.start()
                 onPressAndHold: {
-                    if (fileBrowser.allowOpeningFolder && fileIsDir && filesInDir > 0) {
-                        curtain.showDialog(filesInDir, filePath);
+                    if (fileBrowser.allowOpeningFolder && fileIsDir
+                            && filesInDir > 0) {
+                        curtain.showDialog(filesInDir, filePath)
                     }
                 }
             }
@@ -265,7 +263,8 @@ Rectangle {
             anchors.bottom: parent.bottom
             anchors.left: parent.left
             anchors.right: parent.right
-            anchors.rightMargin: scrollBar.visible ? 0.5 * scrollBar.width + anchors.leftMargin : anchors.leftMargin
+            anchors.rightMargin: scrollBar.visible ? 0.5 * scrollBar.width
+                                                     + anchors.leftMargin : anchors.leftMargin
             anchors.leftMargin: itemSize * Style.mainPanelRelMargin
             spacing: itemSize * Style.fileBrowserListItemSpacing
             clip: true
@@ -277,7 +276,8 @@ Rectangle {
 
                 Connections {
                     target: folders
-                    onRootFolderChanged: rootIndex = folders.getPathIndex(folders.rootFolder)
+                    onRootFolderChanged: rootIndex = folders.getPathIndex(
+                                             folders.rootFolder)
                 }
 
                 // Mysterious hack to prevent rootIndex from being reset
@@ -296,7 +296,6 @@ Rectangle {
                 height: 1.5 * textPixelSize
                 Text {
                     text: section
-                    font.bold: true
                     font.capitalization: Font.Capitalize
                     font.pixelSize: textPixelSize
                 }
@@ -326,7 +325,6 @@ Rectangle {
                 anchors.right: sizeText.left
 
                 anchors.verticalCenter: parent.verticalCenter
-                font.bold: true
                 font.pixelSize: textPixelSize
                 color: Style.fileBrowserTextColor
 
@@ -334,9 +332,9 @@ Rectangle {
                     anchors.fill: parent
                     onClicked: {
                         if (parent.active)
-                            folders.toggleSortOrder();
+                            folders.toggleSortOrder()
                         else
-                            folders.sortCategory = FolderModel.Name;
+                            folders.sortCategory = FolderModel.Name
                     }
                 }
             }
@@ -349,7 +347,6 @@ Rectangle {
                 horizontalAlignment: Text.AlignRight
 
                 anchors.verticalCenter: parent.verticalCenter
-                font.bold: true
                 font.pixelSize: textPixelSize
                 color: Style.fileBrowserTextColor
 
@@ -357,9 +354,9 @@ Rectangle {
                     anchors.fill: parent
                     onClicked: {
                         if (parent.active)
-                            folders.toggleSortOrder();
+                            folders.toggleSortOrder()
                         else
-                            folders.sortCategory = FolderModel.Size;
+                            folders.sortCategory = FolderModel.Size
                     }
                 }
             }
@@ -372,7 +369,6 @@ Rectangle {
                 horizontalAlignment: Text.AlignRight
 
                 anchors.verticalCenter: parent.verticalCenter
-                font.bold: true
                 font.pixelSize: textPixelSize
                 color: Style.fileBrowserTextColor
 
@@ -380,9 +376,9 @@ Rectangle {
                     anchors.fill: parent
                     onClicked: {
                         if (parent.active)
-                            folders.toggleSortOrder();
+                            folders.toggleSortOrder()
                         else
-                            folders.sortCategory = FolderModel.Date;
+                            folders.sortCategory = FolderModel.Date
                     }
                 }
             }
@@ -433,11 +429,14 @@ Rectangle {
             anchors.right: viewButtons.left
             anchors.margins: titleBar.spacing
             color: Style.fileBrowserTextColor
-            font.pixelSize: 0.5 * height
+            font.pixelSize: 0.3 * height
             verticalAlignment: Text.AlignVCenter
-            text: folders.rootFolder.replace(fileBrowser.rootfolder+"/", "")
+            text: folders.rootFolder.replace(fileBrowser.rootfolder + "/", "")
             elide: Text.ElideMiddle
-            Behavior on color { PropertyAnimation{ }}
+            Behavior on color {
+                PropertyAnimation {
+                }
+            }
         }
         Row {
             id: viewButtons
@@ -446,7 +445,9 @@ Rectangle {
             anchors.right: titleBar.right
             anchors.margins: titleBar.spacing
             spacing: titleBar.spacing
-            ExclusiveGroup { id: viewButtonsGroup }
+            ExclusiveGroup {
+                id: viewButtonsGroup
+            }
             FileBrowserViewButton {
                 id: gridViewButton
                 exclusiveGroup: viewButtonsGroup
@@ -455,8 +456,8 @@ Rectangle {
                 icon: "qrc:/images/gridview.svg"
                 onCheckedChanged: {
                     if (checked) {
-                        folders.sortCategory = FolderModel.Name;
-                        folders.sortOrder = FolderModel.Ascending;
+                        folders.sortCategory = FolderModel.Name
+                        folders.sortOrder = FolderModel.Ascending
                     }
                 }
             }
@@ -476,7 +477,10 @@ Rectangle {
                     color: Style.fileBrowserDiscreteTextColor
                     text: folders.rootFolder.replace("file://", "")
                 }
-                AnchorChanges { target: titleText; anchors.left: titleBar.left }
+                AnchorChanges {
+                    target: titleText
+                    anchors.left: titleBar.left
+                }
                 PropertyChanges {
                     target: upButton
                     visible: false
@@ -485,7 +489,9 @@ Rectangle {
         ]
         transitions: Transition {
             // smoothly reanchor titleText and move into new position
-            AnchorAnimation { easing.type: Easing.OutQuad }
+            AnchorAnimation {
+                easing.type: Easing.OutQuad
+            }
         }
     }
 
@@ -493,9 +499,9 @@ Rectangle {
         id: curtain
 
         function showDialog(itemCount, folderToOpen) {
-            dialog.itemCount = itemCount;
-            dialog.folderToOpen = folderToOpen;
-            open = true;
+            dialog.itemCount = itemCount
+            dialog.folderToOpen = folderToOpen
+            open = true
         }
 
         CurtainDialog {
@@ -507,11 +513,11 @@ Rectangle {
             textAccept: "open " + itemCount + " items"
 
             onAccepted: {
-                fileBrowser.itemSelected(folderToOpen);
-                curtain.open = false;
+                fileBrowser.itemSelected(folderToOpen)
+                curtain.open = false
             }
             onRejected: {
-                curtain.open = false;
+                curtain.open = false
             }
         }
     }

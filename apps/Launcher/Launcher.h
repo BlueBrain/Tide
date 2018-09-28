@@ -58,7 +58,6 @@ class Launcher : public QApplication
 
 public:
     Launcher(int& argc, char* argv[]);
-    ~Launcher();
 
 private:
     bool event(QEvent* event) final;

@@ -1,6 +1,5 @@
 // Copyright (c) 2018, EPFL/Blue Brain Project
 //                     Raphael Dumusc <raphael.dumusc@epfl.ch>
-
 import QtQuick 2.0
 
 Column {
@@ -8,8 +7,8 @@ Column {
     property alias textInfo: infoText.text
     property alias textAccept: acceptText.text
 
-    signal accepted()
-    signal rejected()
+    signal accepted
+    signal rejected
 
     anchors.centerIn: parent
     spacing: curtain.width * 0.025
@@ -34,12 +33,11 @@ Column {
             anchors.centerIn: parent
             text: "OK"
             font.pixelSize: textPixelSize
-            font.bold: true
             color: "white"
         }
         MouseArea {
             anchors.fill: parent
-            onClicked: dialog.accepted();
+            onClicked: dialog.accepted()
         }
     }
     Rectangle {
@@ -58,7 +56,7 @@ Column {
         }
         MouseArea {
             anchors.fill: parent
-            onClicked: dialog.rejected();
+            onClicked: dialog.rejected()
         }
     }
 }

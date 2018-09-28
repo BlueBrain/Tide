@@ -1,3 +1,4 @@
+// style.js
 .pragma library
 
 var windowDefaultSize = Qt.size(800, 600)
@@ -7,14 +8,14 @@ var menuWidth = 0.12
 var menuColor = "lightgrey"
 var menuHighlightColor = "grey"
 var menuHighlightOpactiy = 0.5
-var menuTextColor = "white"
-var menuRelTextSize = 0.1
+var menuTextColor = "black"
+var menuRelTextSize = 0.13
 
 var defaultPanelColor = "darkgrey"
-var defaultPanelTextColor = "white"
+var defaultPanelTextColor = "black"
 
 var exitSliderBackgroundColor = menuColor
-var exitSliderColor = defaultPanelTextColor
+var exitSliderColor = "white"
 var exitSliderTextColor = defaultPanelColor
 var exitSliderRadius = 0.25
 var exitSliderRelWidth = 8.0
@@ -27,11 +28,11 @@ var fileBrowserTitleBarColor = "#757575"
 var fileBrowserTitleBarSpacing = 0.2
 var fileBrowserListItemRelSize = 0.3
 var fileBrowserListItemSpacing = 0.1
-var fileBrowserTextColor = "white"
+var fileBrowserTextColor = "black"
 var fileBrowserDiscreteTextColor = "#B0B0B0"
 var fileBrowserBlinkColor = "lightblue"
 var fileBrowserItemSizeRel = 0.2
-var fileBrowserTextSizeRelToItem = 0.1
+var fileBrowserTextSizeRelToItem = 0.09
 
 var placeholderTopColor = "darkgrey"
 var placeholderBottomColor = "lightgrey"

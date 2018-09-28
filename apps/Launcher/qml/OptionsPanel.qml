@@ -1,5 +1,4 @@
-
-// Copyright (c) 2016, EPFL/Blue Brain Project
+// Copyright (c) 2016-2018, EPFL/Blue Brain Project
 //                          Raphael Dumusc <raphael.dumusc@epfl.ch>
 import QtQuick 2.0
 import QtQuick.Controls 1.2
@@ -14,11 +13,12 @@ DefaultPanel {
     signal refreshOptions
 
     property int checkboxHeight: height * 0.025
+    property int textSize: checkboxHeight * 0.8
 
     Grid {
         id: optionsGrid
         columns: 3
-        spacing: 20
+        spacing: checkboxHeight
         anchors.bottom: parent.bottom
         anchors.bottomMargin: parent.height * 0.15
         anchors.horizontalCenter: parent.horizontalCenter
@@ -81,7 +81,7 @@ DefaultPanel {
         Text {
             text: "Slide to exit"
             anchors.centerIn: parent
-            font.pointSize: checkboxHeight
+            font.pointSize: textSize
             color: Style.exitSliderTextColor
             opacity: slider.opacity
         }
@@ -140,7 +140,7 @@ DefaultPanel {
                 renderType: Text.NativeRendering
                 verticalAlignment: Text.AlignVCenter
                 horizontalAlignment: Text.AlignHCenter
-                font.pointSize: checkboxHeight
+                font.pointSize: textSize
                 text: control.text
             }
         }

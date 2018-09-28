@@ -1,7 +1,6 @@
 // Copyright (c) 2016-2018, EPFL/Blue Brain Project
 //                          Raphael Dumusc <raphael.dumusc@epfl.ch>
 //                          Pawel Podhajski <pawel.podhajski@epfl.ch>
-
 import QtQuick 2.4
 import QtQuick.Window 2.2
 import QtWebEngine 1.1
@@ -10,6 +9,8 @@ import "style.js" as Style
 Rectangle {
     id: root
 
+    property string tideVersion: "undef"
+    property string tideRevision: "undef"
     property string restHost: "localhost"
     property int restPort: 0
     property variant filesFilter: [] // list<string>
@@ -41,7 +42,10 @@ Rectangle {
             onShowFilesPanel: centralWidget.sourceComponent = fileBrowser
             onShowSessionsPanel: centralWidget.sourceComponent = sessionsBrowser
             onShowSaveSessionPanel: centralWidget.sourceComponent = saveSessionPanel
-            onShowDemosPanel: demoLauncherWidget.visible = true
+            onShowDemosPanel: {
+                centralWidget.sourceComponent = defaultPanel
+                demoLauncherWidget.visible = true
+            }
             onShowOptionsPanel: centralWidget.sourceComponent = optionsPanel
         }
         Loader {
@@ -65,6 +69,8 @@ Rectangle {
     Component {
         id: defaultPanel
         DefaultPanel {
+            tideVersion: root.tideVersion
+            tideRevision: root.tideRevision
         }
     }
 
@@ -105,6 +111,8 @@ Rectangle {
     Component {
         id: optionsPanel
         OptionsPanel {
+            tideVersion: root.tideVersion
+            tideRevision: root.tideRevision
             onButtonClicked: sendRestOption(optionName, value)
             onExitClicked: sendJsonRpc("application", "exit")
             onRefreshOptions: getRestOptions(updateCheckboxes)
@@ -125,12 +133,12 @@ Rectangle {
 
     function sendJsonRpc(endpoint, action, uri) {
         var obj = {
-            jsonrpc: "2.0",
-            method: action
+            "jsonrpc": "2.0",
+            "method": action
         }
         if (typeof uri !== "undefined") {
             obj.params = {
-                uri: uri
+                "uri": uri
             }
         }
         sendRestData(endpoint, "POST", JSON.stringify(obj))
