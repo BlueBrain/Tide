@@ -54,7 +54,7 @@
 class SceneController : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY(SceneController);
+    Q_DISABLE_COPY(SceneController)
 
 public:
     /** Constructor */

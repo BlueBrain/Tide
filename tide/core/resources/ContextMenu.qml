@@ -29,6 +29,15 @@ Rectangle {
         }
         VerticalButtonSeparator {
             height: Style.buttonsSizeLarge
+            visible: lockButton.visible
+        }
+        LockButton {
+            id: lockButton
+            size: Style.buttonsSizeLarge
+            visible: !copyButton.visible
+        }
+        VerticalButtonSeparator {
+            height: Style.buttonsSizeLarge
             visible: copyButton.visible
         }
         CopyButton {

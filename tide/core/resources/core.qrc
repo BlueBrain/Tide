@@ -47,6 +47,7 @@
         <file>BasicSurface.qml</file>
         <file>ClickArea.qml</file>
         <file>Clock.qml</file>
+        <file>ClockButton.qml</file>
         <file>CloseButton.qml</file>
         <file>ContentActionButton.qml</file>
         <file>ContextMenu.qml</file>

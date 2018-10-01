@@ -70,6 +70,8 @@ void DisplayGroup::add(WindowPtr window)
         return;
     }
 
+    const auto empty = isEmpty();
+
     _windows.push_back(window);
     _watchChanges(*window);
 
@@ -86,6 +88,8 @@ void DisplayGroup::add(WindowPtr window)
             emit hasFocusedWindowsChanged();
     }
 
+    if (empty && !isEmpty())
+        emit isEmptyChanged();
     emit windowAdded(window);
     _sendDisplayGroup();
 }
@@ -110,6 +114,9 @@ void DisplayGroup::remove(WindowPtr window)
 
     // disconnect any existing connections with the window
     disconnect(window.get(), 0, this, 0);
+
+    if (isEmpty())
+        emit isEmptyChanged();
 
     emit windowRemoved(window);
 
@@ -138,7 +145,7 @@ void DisplayGroup::moveToFront(WindowPtr window)
 
 bool DisplayGroup::isEmpty() const
 {
-    return _windows.empty();
+    return _windows.empty() || _windows.size() == _panels.size();
 }
 
 const WindowPtrs& DisplayGroup::getWindows() const

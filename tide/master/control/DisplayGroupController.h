@@ -49,7 +49,7 @@
 class DisplayGroupController : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY(DisplayGroupController);
+    Q_DISABLE_COPY(DisplayGroupController)
 
 public:
     /** Constructor */

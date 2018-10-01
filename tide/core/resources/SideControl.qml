@@ -21,22 +21,36 @@ Item {
         id: buttons
         anchors.centerIn: buttonShape
         anchors.horizontalCenterOffset: -0.5 * buttonShape.dropShadowWidth
-        ExitButton {
-            id: exitButton
+        LaunchButton {
+            visible: !displaygroup.hasFocusedWindows
+                     && !displaygroup.hasFullscreenWindows
             size: Style.buttonsSizeLarge
         }
-        LaunchButton {
-            visible: !exitButton.visible
+        ClockButton {
+            visible: displaygroup.hasFocusedWindows
+                     && !displaygroup.hasFullscreenWindows
             size: Style.buttonsSizeLarge
+        }
+        ContentActionButton {
         }
         HorizontalButtonSeparator {
             width: Style.buttonsSizeLarge
         }
-        ContentActionButton {
-            id: contentAction
+        FocusButton {
+            id: focusButton
+            visible: !displaygroup.empty && !displaygroup.hasFocusedWindows
+                     && !displaygroup.hasFullscreenWindows
+            size: Style.buttonsSizeLarge
+            onClicked: sidecontroller.toggleFocusAll()
         }
         LockButton {
-            visible: !contentAction.visible
+            visible: displaygroup.empty
+            size: Style.buttonsSizeLarge
+        }
+        ExitButton {
+            id: exitButton
+            visible: displaygroup.hasFocusedWindows
+                     || displaygroup.hasFullscreenWindows
             size: Style.buttonsSizeLarge
         }
     }
