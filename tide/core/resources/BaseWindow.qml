@@ -1,5 +1,4 @@
 import QtQuick 2.0
-import QtGraphicalEffects 1.0
 import Tide 1.0
 import "style.js" as Style
 
@@ -13,14 +12,18 @@ Rectangle {
     property alias backgroundComponent: backgroundLoader.sourceComponent
     property alias contentComponent: contentBackgroundLoader.sourceComponent
     property alias contentArea: contentArea
-    property alias focusEffectEnabled: focusEffect.visible
     property alias resizeCirclesDelegate: resizeCircles.delegate
     property alias titleBar: titleBar
     property alias virtualKeyboard: virtualKeyboard
+    property alias rightButtonPageDelegate: rightButton.pageDelegate
+    property alias leftButtonPageDelegate: leftButton.pageDelegate
+    property alias rightButtonHandleDelegate: rightButton.handleDelegate
+    property alias leftButtonHandleDelegate: leftButton.handleDelegate
 
     border.color: Style.windowBorderDefaultColor
-    border.width: options.showWindowBorders
-                  && !isBackground ? Style.windowBorderWidth : 0
+    border.width: window.isPanel
+                  || (options.showWindowBorders
+                      && !isBackground) ? Style.windowBorderWidth : 0
 
     // The window header overlaps with the top window border (when visible)
     property real yOffset: Math.max(border.width, windowHeader.height)
@@ -83,17 +86,6 @@ Rectangle {
                 }
             }
         }
-    }
-
-    RectangularGlow {
-        id: focusEffect
-        anchors.fill: contentArea
-        cornerRadius: contentArea.radius + glowRadius
-        color: Style.windowFocusGlowColor
-        glowRadius: Style.windowFocusGlowRadius
-        spread: Style.windowFocusGlowSpread
-        visible: window.content.captureInteraction
-                 && window.state === Window.NONE
     }
 
     Rectangle {
@@ -183,32 +175,17 @@ Rectangle {
         }
     }
 
-    SideButton {
-        id: previousButton
-        anchors.verticalCenter: contentArea.verticalCenter
+    WindowSideButton {
+        id: leftButton
         anchors.left: contentArea.left
-        color: windowRect.border.color
-        delegate: TriangleButton {
-            onClicked: contentcontroller.prevPage()
-        }
-        delegateOverflow: windowRect.border.width
-        visible: (window.selected || window.focused || window.fullscreen)
-                 && window.content.page !== undefined && window.content.page > 0
+        anchors.verticalCenter: contentArea.verticalCenter
     }
 
-    SideButton {
-        id: nextButton
-        color: windowRect.border.color
-        anchors.verticalCenter: contentArea.verticalCenter
-        anchors.right: contentArea.right
-        delegate: TriangleButton {
-            onClicked: contentcontroller.nextPage()
-        }
-        delegateOverflow: windowRect.border.width
+    WindowSideButton {
+        id: rightButton
         flipRight: true
-        visible: (window.selected || window.focused || window.fullscreen)
-                 && window.content.page !== undefined
-                 && window.content.page < window.content.pageCount - 1
+        anchors.right: contentArea.right
+        anchors.verticalCenter: contentArea.verticalCenter
     }
 
     WindowControls {

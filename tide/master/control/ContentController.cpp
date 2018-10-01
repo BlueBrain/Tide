@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -128,12 +128,15 @@ void ContentController::tap(const QPointF& position, uint numPoints)
 
 void ContentController::doubleTap(const QPointF& position, uint numPoints)
 {
+    if (!getWindow().isFocused())
+        getContent().setCaptureInteraction(false);
     _doubleTap(position, numPoints);
 }
 
 void ContentController::tapAndHold(const QPointF& position, uint numPoints)
 {
-    getContent().setCaptureInteraction(false);
+    if (!getWindow().isFocused())
+        getContent().setCaptureInteraction(false);
     _tapAndHold(position, numPoints);
 }
 

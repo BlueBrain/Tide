@@ -90,7 +90,7 @@ void CanvasNode::updateWindowCoordinates() const
     if (!_isRoot && _isTerminal())
     {
         if (_window)
-            _window->setFocusedCoordinates(_removeMargins(toRect()));
+            _window->setFocusedCoordinates(_removeMargins(*this));
     }
     else
     {

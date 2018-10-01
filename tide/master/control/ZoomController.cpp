@@ -1,7 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2015, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
-/*                     Daniel.Nachbaur@epfl.ch                       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/*                          Daniel.Nachbaur@epfl.ch                  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -44,7 +44,10 @@
 #include "scene/ZoomHelper.h"
 #include "utils/geometry.h"
 
-#define MIN_ZOOM 1.0
+namespace
+{
+constexpr auto MIN_ZOOM = 1.0;
+}
 
 ZoomController::ZoomController(Window& window)
     : ContentController(window)
@@ -65,6 +68,20 @@ void ZoomController::adjustZoomToContentAspectRatio()
     _checkAndApply(zoomHelper.toZoomRect(contentRect));
 }
 
+void ZoomController::_doubleTap(const QPointF& position, uint numPoints)
+{
+    Q_UNUSED(position);
+    Q_UNUSED(numPoints);
+    _resetZoom();
+}
+
+void ZoomController::_tapAndHold(const QPointF& position, uint numPoints)
+{
+    Q_UNUSED(position);
+    Q_UNUSED(numPoints);
+    _resetZoom();
+}
+
 void ZoomController::_pan(const QPointF& position, const QPointF& delta,
                           const uint numPoints)
 {
@@ -78,9 +95,9 @@ void ZoomController::_pinch(const QPointF& position, const QPointF& pixelDelta)
     const auto zoomHelper = ZoomHelper{getWindow()};
     auto contentRect = zoomHelper.getContentRect();
 
-    const auto mode = pixelDelta.x() + pixelDelta.y() > 0
-                          ? Qt::KeepAspectRatioByExpanding
-                          : Qt::KeepAspectRatio;
+    const auto expanding = pixelDelta.x() + pixelDelta.y() >= 0;
+    const auto mode =
+        expanding ? Qt::KeepAspectRatioByExpanding : Qt::KeepAspectRatio;
 
     auto newSize = contentRect.size();
     newSize.scale(newSize + QSizeF(pixelDelta.x(), pixelDelta.y()), mode);
@@ -88,6 +105,15 @@ void ZoomController::_pinch(const QPointF& position, const QPointF& pixelDelta)
     contentRect =
         geometry::resizeAroundPosition(contentRect, position, newSize);
     _checkAndApply(zoomHelper.toZoomRect(contentRect));
+
+    if (!expanding && !getContent().isZoomed() && !getWindow().isFocused())
+        getContent().setCaptureInteraction(false);
+}
+
+void ZoomController::_resetZoom()
+{
+    getContent().resetZoom();
+    adjustZoomToContentAspectRatio();
 }
 
 void ZoomController::_checkAndApply(QRectF zoomRect)

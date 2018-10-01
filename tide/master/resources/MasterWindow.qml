@@ -7,8 +7,6 @@ BaseWindow {
     id: windowRect
     color: "#80000000"
 
-    focusEffectEnabled: false // Not useful on the master window
-
     focus: window.content.captureInteraction
     Keys.onPressed: {
         contentcontroller.keyPress(event.key, event.modifiers, event.text)
@@ -40,29 +38,55 @@ BaseWindow {
                     contentcontroller.keyboard.activateKey)
     }
 
-    backgroundComponent: MultitouchArea {
-        id: windowMoveAndResizeArea
+    Component {
+        id: windowTouchArea
 
-        anchors.fill: parent
+        MultitouchArea {
+            anchors.fill: parent
+            referenceItem: windowRect.parent
+
+            onTouchStarted: touchcontroller.onTouchStarted()
+            onTap: touchcontroller.onTap()
+            onTapAndHold: touchcontroller.onTapAndHold()
+            onDoubleTap: touchcontroller.onDoubleTap(numPoints)
+
+            onPanStarted: touchcontroller.onPanStarted()
+            onPan: touchcontroller.onPan(pos, delta, numPoints)
+            onPanEnded: touchcontroller.onPanEnded()
+
+            onPinchStarted: touchcontroller.onPinchStarted()
+            onPinch: touchcontroller.onPinch(pos, pixelDelta)
+            onPinchEnded: touchcontroller.onPinchEnded()
+
+            onSwipeLeft: contentcontroller.swipeLeft()
+            onSwipeRight: contentcontroller.swipeRight()
+            onSwipeUp: contentcontroller.swipeUp()
+            onSwipeDown: contentcontroller.swipeDown()
+        }
+    }
+
+    backgroundComponent: windowTouchArea
+    leftButtonHandleDelegate: windowTouchArea
+    rightButtonHandleDelegate: windowTouchArea
+
+    leftButtonPageDelegate: MultitouchArea {
         referenceItem: windowRect.parent
 
-        onTouchStarted: touchcontroller.onTouchStarted()
-        onTap: touchcontroller.onTap()
-        onTapAndHold: touchcontroller.onTapAndHold()
-        onDoubleTap: touchcontroller.onDoubleTap(numPoints)
+        onTap: contentcontroller.prevPage()
 
         onPanStarted: touchcontroller.onPanStarted()
         onPan: touchcontroller.onPan(pos, delta, numPoints)
         onPanEnded: touchcontroller.onPanEnded()
+    }
 
-        onPinchStarted: touchcontroller.onPinchStarted()
-        onPinch: touchcontroller.onPinch(pos, pixelDelta)
-        onPinchEnded: touchcontroller.onPinchEnded()
+    rightButtonPageDelegate: MultitouchArea {
+        referenceItem: windowRect.parent
 
-        onSwipeLeft: contentcontroller.swipeLeft()
-        onSwipeRight: contentcontroller.swipeRight()
-        onSwipeUp: contentcontroller.swipeUp()
-        onSwipeDown: contentcontroller.swipeDown()
+        onTap: contentcontroller.nextPage()
+
+        onPanStarted: touchcontroller.onPanStarted()
+        onPan: touchcontroller.onPan(pos, delta, numPoints)
+        onPanEnded: touchcontroller.onPanEnded()
     }
 
     contentComponent: MultitouchArea {

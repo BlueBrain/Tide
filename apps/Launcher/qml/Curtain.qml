@@ -1,4 +1,3 @@
-
 // Copyright (c) 2018, EPFL/Blue Brain Project
 //                     Raphael Dumusc <raphael.dumusc@epfl.ch>
 import QtQuick 2.0

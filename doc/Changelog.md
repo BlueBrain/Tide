@@ -4,7 +4,14 @@ Changelog {#changelog}
 # Release 1.5 (git master)
 
 * [276](https://github.com/BlueBrain/Tide/pull/276):
-  Improve positionning of statistics.
+  Various improvements to the user interface:
+  - Make zoom more effective, replace glow with handles for interactive windows.
+  - Fix fullscreen size when preferred size != content dimensions (webbrowser).
+  - Reorganise side controls and replace lock with focus button.
+  - Add an enlarge/reduce/1to1 button for fullscreen images.
+  - Improve Launcher UI design.
+  - Improve size and position of statistics.
+  - Improve TIFF pyramid thumbnail quality.
 * [275](https://github.com/BlueBrain/Tide/pull/275):
   Fix a crash that could occur when resizing large pixel streams.
 * [272](https://github.com/BlueBrain/Tide/pull/272):
