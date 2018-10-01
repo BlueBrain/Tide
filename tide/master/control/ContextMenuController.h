@@ -50,7 +50,7 @@
 class ContextMenuController : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY(ContextMenuController);
+    Q_DISABLE_COPY(ContextMenuController)
 
 public:
     /** Constructor */

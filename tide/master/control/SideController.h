@@ -50,7 +50,7 @@
 class SideController : public QObject
 {
     Q_OBJECT
-    Q_DISABLE_COPY(SideController);
+    Q_DISABLE_COPY(SideController)
 
 public:
     /** Constructor */
@@ -60,6 +60,7 @@ public:
     Q_INVOKABLE void toggleKeyboard();
     Q_INVOKABLE void togglePlay();
     Q_INVOKABLE void toggleResize();
+    Q_INVOKABLE void toggleFocusAll();
     Q_INVOKABLE void setOneToOneSize();
 
 signals:

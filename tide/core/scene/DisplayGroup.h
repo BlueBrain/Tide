@@ -69,6 +69,7 @@ class DisplayGroup : public Rectangle,
     Q_OBJECT
     Q_DISABLE_COPY(DisplayGroup)
 
+    Q_PROPERTY(bool empty READ isEmpty NOTIFY isEmptyChanged)
     Q_PROPERTY(bool hasFocusedWindows READ hasFocusedWindows NOTIFY
                    hasFocusedWindowsChanged)
     Q_PROPERTY(bool hasFullscreenWindows READ hasFullscreenWindows NOTIFY
@@ -185,6 +186,7 @@ signals:
 
     /** @name QProperty notifiers */
     //@{
+    void isEmptyChanged();
     void hasFocusedWindowsChanged();
     void hasFullscreenWindowsChanged();
     void hasVisiblePanelsChanged();

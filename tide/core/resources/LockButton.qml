@@ -10,4 +10,3 @@ ControlButton {
             lock.lock()
     }
 }
-

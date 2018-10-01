@@ -90,6 +90,11 @@ void SideController::toggleResize()
         WindowController{*window, _group}.toogleFullscreenMaxSize();
 }
 
+void SideController::toggleFocusAll()
+{
+    DisplayGroupController{_group}.toggleFocusAll();
+}
+
 void SideController::setOneToOneSize()
 {
     if (auto window = _group.getFullscreenWindow())

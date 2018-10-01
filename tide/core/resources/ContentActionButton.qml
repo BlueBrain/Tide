@@ -21,6 +21,7 @@ Item {
                 && buttons.model.content.keyboard !== null
         sourceComponent: KeyboardButton {
             model: buttons.model !== null ? buttons.model.content : null
+            size: Style.buttonsSizeLarge
             onClicked: sidecontroller.toggleKeyboard()
         }
     }
@@ -30,6 +31,7 @@ Item {
                 && (typeof buttons.model.content.playing !== "undefined")
         sourceComponent: PlayPauseButton {
             model: buttons.model !== null ? buttons.model.content : null
+            size: Style.buttonsSizeLarge
             onClicked: sidecontroller.togglePlay()
         }
     }
@@ -40,6 +42,7 @@ Item {
                 && !playPauseButton.active && !keyboardButton.active
         sourceComponent: RescaleButton {
             model: buttons.model
+            size: Style.buttonsSizeLarge
             onClicked: sidecontroller.toggleResize()
             onTapAndHold: sidecontroller.setOneToOneSize()
         }
