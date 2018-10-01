@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -57,11 +57,14 @@ public:
 private:
     /** @name Touch gesture handlers. */
     //@{
+    void _doubleTap(const QPointF& position, uint numPoints) override;
+    void _tapAndHold(const QPointF& position, uint numPoints) override;
     void _pan(const QPointF& position, const QPointF& delta,
               uint numPoints) override;
     void _pinch(const QPointF& position, const QPointF& pixelDelta) override;
     //@}
 
+    void _resetZoom();
     void _checkAndApply(QRectF zoomRect);
     void _moveZoomRect(const QPointF& sceneDelta);
     void _constrainZoomLevel(QRectF& zoomRect) const;

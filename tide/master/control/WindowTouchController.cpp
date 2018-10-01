@@ -54,7 +54,6 @@ WindowTouchController::WindowTouchController(Window& window,
 void WindowTouchController::onTouchStarted()
 {
     DisplayGroupController{_group}.moveWindowToFront(_window.getID());
-    _window.getContent().setCaptureInteraction(false);
 }
 
 void WindowTouchController::onTap()
@@ -65,8 +64,11 @@ void WindowTouchController::onTap()
 
 void WindowTouchController::onTapAndHold()
 {
-    _window.getContent().setCaptureInteraction(
-        !_window.getContent().getCaptureInteraction());
+    if (!_window.isFullscreen() && !_window.isFocused())
+    {
+        _window.getContent().setCaptureInteraction(
+            !_window.getContent().getCaptureInteraction());
+    }
 
     if (_window.isPanel())
         _controller.toggleSelected(); // force toggle

@@ -281,7 +281,10 @@ void DisplayGroupController::_focus(const WindowSet& windows)
     _updateFocusedCoordinates(windows);
 
     for (const auto& window : windows)
+    {
         _group.addFocusedWindow(window);
+        window->getContent().setCaptureInteraction(true);
+    }
 }
 
 void DisplayGroupController::_updateFocusedCoordinates(const WindowSet& windows)
@@ -313,6 +316,7 @@ void DisplayGroupController::_showFullscreen(WindowPtr window,
     controller.adjustSize(oneToOne ? SIZE_FULLSCREEN_1TO1 : SIZE_FULLSCREEN);
 
     window->setMode(Window::WindowMode::FULLSCREEN);
+    window->getContent().setCaptureInteraction(false);
     _group.setFullscreenWindow(window);
 }
 
@@ -331,4 +335,6 @@ qreal DisplayGroupController::_estimateAspectRatio() const
 void DisplayGroupController::_readjustToNewZoomLevel(Window& window)
 {
     WindowController{window, _group}.scale(window.center(), 0.0);
+    if (!window.getContent().isZoomed())
+        window.getContent().setCaptureInteraction(false);
 }

@@ -384,6 +384,7 @@ private:
 
     WindowMode _backupMode = WindowMode::STANDARD;
     QRectF _backupZoom;
+    bool _backupInteraction = false;
 };
 
 BOOST_CLASS_VERSION(Window, 3)

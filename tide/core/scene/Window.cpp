@@ -301,12 +301,14 @@ void Window::backupModeAndZoom()
 {
     _backupMode = getMode();
     _backupZoom = _content->getZoomRect();
+    _backupInteraction = _content->getCaptureInteraction();
 }
 
 void Window::restoreModeAndZoom()
 {
     setMode(_backupMode);
     _content->setZoomRect(_backupZoom);
+    _content->setCaptureInteraction(_backupInteraction);
 }
 
 void Window::setSelected(const bool value)
