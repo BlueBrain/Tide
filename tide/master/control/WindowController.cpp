@@ -275,11 +275,10 @@ void WindowController::moveBy(const QPointF& delta)
 
 QSizeF WindowController::getMinSize() const
 {
-    const auto wallSize = _displayGroup.size();
     if (_targetIsFullscreen())
     {
-        const auto contentSize = QSizeF{_window.getContent().getDimensions()};
-        return contentSize.scaled(wallSize, Qt::KeepAspectRatio);
+        const auto size = QSizeF{_window.getContent().getPreferredDimensions()};
+        return size.scaled(_displayGroup.size(), Qt::KeepAspectRatio);
     }
 
     const auto minContentSize = QSizeF{_window.getContent().getMinDimensions()};

@@ -335,6 +335,15 @@ BOOST_FIXTURE_TEST_CASE(testAspectRatioMinSize, TestFixture)
                       QSize(400, 300));
 }
 
+void _checkFullscreen(const QRectF& coords)
+{
+    // full screen, center on wall
+    BOOST_CHECK_EQUAL(coords.x(), 0.0);
+    BOOST_CHECK_EQUAL(coords.y(), 125.0);
+    BOOST_CHECK_EQUAL(coords.width(), wallSize.width());
+    BOOST_CHECK_EQUAL(coords.height(), wallSize.width() / CONTENT_AR);
+}
+
 BOOST_FIXTURE_TEST_CASE(testSizeHints, TestFixture)
 {
     const auto maxSize = QSize{CONTENT_SIZE * 2};
@@ -366,15 +375,24 @@ BOOST_FIXTURE_TEST_CASE(testSizeHints, TestFixture)
     // too small, clamped to minSize
     controller.resize(minSize / 2, CENTER);
     BOOST_CHECK_EQUAL(coords.size(), minSize);
-}
 
-void _checkFullscreen(const QRectF& coords)
-{
-    // full screen, center on wall
-    BOOST_CHECK_EQUAL(coords.x(), 0.0);
-    BOOST_CHECK_EQUAL(coords.y(), 125.0);
-    BOOST_CHECK_EQUAL(coords.width(), wallSize.width());
-    BOOST_CHECK_EQUAL(coords.height(), wallSize.width() / CONTENT_AR);
+    // fullscreen fits according to prefered size
+    window->setWidth(CONTENT_SIZE.width() * 4);
+    window->setWidth(CONTENT_SIZE.height() * 2);
+    controller.adjustSize(SizeState::SIZE_FULLSCREEN);
+    _checkFullscreen(coords);
+
+    // even if prefered size is different than content size
+    hints.preferredWidth = CONTENT_SIZE.width();
+    hints.preferredHeight = CONTENT_SIZE.width() * 2;
+    content.setSizeHints(hints);
+    window->setWidth(CONTENT_SIZE.width() / 4);
+    window->setWidth(CONTENT_SIZE.height() / 2);
+    controller.adjustSize(SizeState::SIZE_FULLSCREEN);
+    BOOST_CHECK_EQUAL(coords.x(), (wallSize.height() - coords.width()) / 2);
+    BOOST_CHECK_EQUAL(coords.y(), 0.0);
+    BOOST_CHECK_EQUAL(coords.width(), wallSize.height() / 2);
+    BOOST_CHECK_EQUAL(coords.height(), wallSize.height());
 }
 
 void _checkFullscreenMax(const QRectF& coords)
