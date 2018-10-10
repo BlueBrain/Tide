@@ -35,7 +35,7 @@ Rectangle {
             width: Style.menuWidth * root.width
             height: root.height
             demoItemVisible: demoServiceUrl && demoServiceDeflectHost
-            onClearSession: sendJsonRpc("controller", "clear")
+            onClearSession: sendJsonRpc("controller", "clear-all")
             onStartWebbrowser: sendJsonRpc("application", "browse", "")
             onPoweroffScreens: sendJsonRpc("application", "poweroff")
             onStartWhiteboard: sendJsonRpc("application", "whiteboard")
@@ -105,6 +105,7 @@ Rectangle {
             onSaveSession: sendJsonRpc("application", "save", filename)
             listViewMode: useListViewMode
             onListViewModeChanged: useListViewMode = listViewMode
+            onRefreshSessionName: sendRestQuery("session", updateSessionName)
         }
     }
 
@@ -115,7 +116,7 @@ Rectangle {
             tideRevision: root.tideRevision
             onButtonClicked: sendRestOption(optionName, value)
             onExitClicked: sendJsonRpc("application", "exit")
-            onRefreshOptions: getRestOptions(updateCheckboxes)
+            onRefreshOptions: sendRestQuery("options", updateCheckboxes)
         }
     }
 
@@ -171,10 +172,6 @@ Rectangle {
         } else {
             request.send()
         }
-    }
-
-    function getRestOptions(callback) {
-        sendRestQuery("options", callback)
     }
 
     function sendRestQuery(action, callback) {

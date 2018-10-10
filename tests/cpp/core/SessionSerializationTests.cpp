@@ -37,11 +37,9 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#define BOOST_TEST_MODULE StateSerializationTests
+#define BOOST_TEST_MODULE SessionSerializationTests
 #include <boost/test/unit_test.hpp>
 
-#include "State.h"
-#include "StateSerializationHelper.h"
 #include "scene/Content.h"
 #include "scene/ContentFactory.h"
 #include "scene/DisplayGroup.h"
@@ -49,6 +47,10 @@
 #include "scene/ImageContent.h"
 #include "scene/Window.h"
 #include "serialization/utils.h"
+#include "session/Session.h"
+#include "session/SessionLoader.h"
+#include "session/SessionLoaderLegacyXml.h"
+#include "session/SessionSaver.h"
 #include "types.h"
 
 #include "DummyContent.h"
@@ -99,7 +101,7 @@ ScenePtr makeTestScene()
     return Scene::create(wallSize);
 }
 
-State makeTestStateCopy()
+Session makeTestSessionCopy()
 {
     auto dummyContent = new DummyContent(CONTENT_SIZE, DUMMY_URI);
     ContentPtr content(dummyContent);
@@ -111,15 +113,15 @@ State makeTestStateCopy()
 
     const auto scene = Scene::create(displayGroup);
 
-    State state(scene);
-    return serialization::xmlCopy(state);
+    Session session(scene);
+    return serialization::xmlCopy(session);
 }
 
 BOOST_AUTO_TEST_CASE(
-    testWhenStateIsSerializedAndDeserializedThenContentPropertiesArePreserved)
+    testWhenSessionIsSerializedAndDeserializedThenContentPropertiesArePreserved)
 {
-    auto state = makeTestStateCopy();
-    auto windows = state.getScene()->getGroup(0).getWindows();
+    auto session = makeTestSessionCopy();
+    auto windows = session.getScene()->getGroup(0).getWindows();
 
     BOOST_REQUIRE_EQUAL(windows.size(), 1);
     auto& content = windows[0]->getContent();
@@ -134,39 +136,41 @@ BOOST_AUTO_TEST_CASE(
                       DUMMY_URI.toStdString());
 }
 
-BOOST_AUTO_TEST_CASE(testWhenOpeningInvalidLegacyStateThenReturnFalse)
+BOOST_AUTO_TEST_CASE(testWhenOpeningInvalidLegacySessionThenReturnFalse)
 {
-    State state;
-    BOOST_CHECK(!state.legacyLoadXML(INVALID_URI));
+    SessionLoaderLegacyXml loader;
+    BOOST_CHECK_THROW(loader.load(INVALID_URI), std::runtime_error);
 }
 
-BOOST_AUTO_TEST_CASE(testWhenOpeningValidLegacyStateThenContentIsLoaded)
+BOOST_AUTO_TEST_CASE(testWhenOpeningValidLegacySessionThenContentIsLoaded)
 {
-    State state;
-    BOOST_CHECK(state.legacyLoadXML(LEGACY_URI));
-    auto windows = state.getScene()->getGroup(0).getWindows();
+    SessionLoaderLegacyXml loader;
+    Session session;
+    BOOST_CHECK_NO_THROW(session = loader.load(LEGACY_URI));
+    auto windows = session.getScene()->getGroup(0).getWindows();
 
     BOOST_REQUIRE_EQUAL(windows.size(), 1);
 }
 
-BOOST_AUTO_TEST_CASE(testStateSerializationHelperReadingFromLegacyFile)
+BOOST_AUTO_TEST_CASE(testSessionSerializationHelperReadingFromLegacyFile)
 {
-    StateSerializationHelper helper{makeTestScene()};
-    SceneConstPtr scene;
+    SessionLoader helper{makeTestScene()};
+    ScenePtr scene;
     // cppcheck-suppress redundantAssignment
-    BOOST_CHECK_NO_THROW(scene = helper.load(LEGACY_URI).result());
+    BOOST_CHECK_NO_THROW(scene = helper.load(LEGACY_URI).result().getScene());
     BOOST_CHECK(scene);
 
     BOOST_CHECK_EQUAL(scene->getSurfaceCount(), 1);
     BOOST_CHECK_EQUAL(scene->getGroup(0).getWindows().size(), 1);
 }
 
-BOOST_AUTO_TEST_CASE(testWhenOpeningBrokenStateThenNoExceptionIsThrown)
+BOOST_AUTO_TEST_CASE(testWhenOpeningBrokenSessionThenNoExceptionIsThrown)
 {
-    StateSerializationHelper helper(makeTestScene());
-    SceneConstPtr scene;
+    SessionLoader helper(makeTestScene());
+    ScenePtr scene;
     // cppcheck-suppress redundantAssignment
-    BOOST_CHECK_NO_THROW(scene = helper.load(STATE_V0_BROKEN_URI).result());
+    BOOST_CHECK_NO_THROW(
+        scene = helper.load(STATE_V0_BROKEN_URI).result().getScene());
     BOOST_CHECK(!scene);
 }
 
@@ -241,15 +245,15 @@ void checkWindowVersion4(WindowPtr window)
     checkContent(window->getContent());
 }
 
-BOOST_AUTO_TEST_CASE(testWhenOpeningValidStateThenContentIsLoaded)
+BOOST_AUTO_TEST_CASE(testWhenOpeningValidSessionThenContentIsLoaded)
 {
-    State state;
+    Session session;
     bool success = false;
     const auto file = STATE_V0_URI.toStdString();
-    BOOST_CHECK_NO_THROW(success = serialization::fromXmlFile(state, file));
+    BOOST_CHECK_NO_THROW(success = serialization::fromXmlFile(session, file));
     BOOST_REQUIRE(success);
 
-    auto scene = state.getScene();
+    auto scene = session.getScene();
     BOOST_CHECK_EQUAL(scene->getSurfaceCount(), 1);
     const auto& windows = scene->getGroup(0).getWindows();
     BOOST_REQUIRE_EQUAL(windows.size(), 1);
@@ -257,13 +261,13 @@ BOOST_AUTO_TEST_CASE(testWhenOpeningValidStateThenContentIsLoaded)
     checkLegacyWindow(windows[0]);
 }
 
-BOOST_AUTO_TEST_CASE(testStateSerializationHelperReadingFromVersion0File)
+BOOST_AUTO_TEST_CASE(testSessionSerializationHelperReadingFromVersion0File)
 {
-    StateSerializationHelper helper(makeTestScene());
+    SessionLoader helper(makeTestScene());
 
-    SceneConstPtr scene;
+    ScenePtr scene;
     // cppcheck-suppress redundantAssignment
-    BOOST_CHECK_NO_THROW(scene = helper.load(STATE_V0_URI).result());
+    BOOST_CHECK_NO_THROW(scene = helper.load(STATE_V0_URI).result().getScene());
     BOOST_REQUIRE(scene);
 
     const auto& group = scene->getGroup(0);
@@ -275,15 +279,15 @@ BOOST_AUTO_TEST_CASE(testStateSerializationHelperReadingFromVersion0File)
     checkWindowVersion0(group.getWindows()[0]);
 }
 
-BOOST_AUTO_TEST_CASE(testWhenOpeningValidVersion3StateThenContentIsLoaded)
+BOOST_AUTO_TEST_CASE(testWhenOpeningValidVersion3SessionThenContentIsLoaded)
 {
-    State state;
+    Session session;
     bool success = false;
     const auto file = STATE_V3_URI.toStdString();
-    BOOST_CHECK_NO_THROW(success = serialization::fromXmlFile(state, file));
+    BOOST_CHECK_NO_THROW(success = serialization::fromXmlFile(session, file));
     BOOST_REQUIRE(success);
 
-    auto scene = state.getScene();
+    auto scene = session.getScene();
     const auto& group = scene->getGroup(0);
     const auto& windows = group.getWindows();
     BOOST_REQUIRE_EQUAL(windows.size(), 1);
@@ -292,13 +296,13 @@ BOOST_AUTO_TEST_CASE(testWhenOpeningValidVersion3StateThenContentIsLoaded)
     checkWindowVersion3(group.getWindows()[0]);
 }
 
-BOOST_AUTO_TEST_CASE(testStateSerializationHelperReadingFromVersion3File)
+BOOST_AUTO_TEST_CASE(testSessionSerializationHelperReadingFromVersion3File)
 {
-    StateSerializationHelper helper(makeTestScene());
+    SessionLoader helper(makeTestScene());
 
-    SceneConstPtr scene;
+    ScenePtr scene;
     // cppcheck-suppress redundantAssignment
-    BOOST_CHECK_NO_THROW(scene = helper.load(STATE_V3_URI).result());
+    BOOST_CHECK_NO_THROW(scene = helper.load(STATE_V3_URI).result().getScene());
     BOOST_REQUIRE(scene);
 
     const auto& group = scene->getGroup(0);
@@ -310,13 +314,14 @@ BOOST_AUTO_TEST_CASE(testStateSerializationHelperReadingFromVersion3File)
 }
 
 BOOST_AUTO_TEST_CASE(
-    testStateSerializationHelperReadingFromVersion3NoTitlesFile)
+    testSessionSerializationHelperReadingFromVersion3NoTitlesFile)
 {
-    StateSerializationHelper helper(makeTestScene());
+    SessionLoader helper(makeTestScene());
 
-    SceneConstPtr scene;
+    ScenePtr scene;
     // cppcheck-suppress redundantAssignment
-    BOOST_CHECK_NO_THROW(scene = helper.load(STATE_V3_NOTITLES_URI).result());
+    BOOST_CHECK_NO_THROW(
+        scene = helper.load(STATE_V3_NOTITLES_URI).result().getScene());
     BOOST_REQUIRE(scene);
 
     const auto& group = scene->getGroup(0);
@@ -327,16 +332,16 @@ BOOST_AUTO_TEST_CASE(
     checkWindowVersion3(group.getWindows()[0]);
 }
 
-BOOST_AUTO_TEST_CASE(testStateSerializationHelperReadingFromVersion4File)
+BOOST_AUTO_TEST_CASE(testSessionSerializationHelperReadingFromVersion4File)
 {
     auto testScene = makeTestScene();
     const auto& displayGroup = testScene->getGroup(0);
-    StateSerializationHelper helper(testScene);
+    SessionLoader helper(testScene);
     BOOST_CHECK_EQUAL(displayGroup.hasFocusedWindows(), false);
 
-    SceneConstPtr scene;
+    ScenePtr scene;
     // cppcheck-suppress redundantAssignment
-    BOOST_CHECK_NO_THROW(scene = helper.load(STATE_V4_URI).result());
+    BOOST_CHECK_NO_THROW(scene = helper.load(STATE_V4_URI).result().getScene());
     BOOST_REQUIRE(scene);
 
     const auto& group = scene->getGroup(0);
@@ -385,15 +390,15 @@ void cleanupTestDir()
     QDir(TEST_DIR).removeRecursively();
 }
 
-BOOST_AUTO_TEST_CASE(testStateSerializationToFile)
+BOOST_AUTO_TEST_CASE(testSessionSerializationToFile)
 {
     // 1) Setup
     setupTestDir();
 
     // 2) Test saving
     auto displayGroup = createTestDisplayGroup();
-    StateSerializationHelper helper(Scene::create(displayGroup));
-    BOOST_CHECK(helper.save(TEST_DIR + "/test.dcx").result());
+    SessionSaver saver(Scene::create(displayGroup));
+    BOOST_CHECK(saver.save(TEST_DIR + "/test.dcx").result());
 
     const auto files = listFiles(TEST_DIR);
     BOOST_CHECK_EQUAL(files.size(), 2);
@@ -407,8 +412,8 @@ BOOST_AUTO_TEST_CASE(testStateSerializationToFile)
     BOOST_CHECK_LT(previewError, 0.02f);
 
     // 4) Test restoring
-    StateSerializationHelper loader(Scene::create(displayGroup));
-    auto loadedScene = loader.load(TEST_DIR + "/test.dcx").result();
+    SessionLoader loader(Scene::create(displayGroup));
+    auto loadedScene = loader.load(TEST_DIR + "/test.dcx").result().getScene();
     BOOST_REQUIRE(loadedScene);
     const auto& loadedGroup = loadedScene->getGroup(0);
 
@@ -422,7 +427,7 @@ BOOST_AUTO_TEST_CASE(testStateSerializationToFile)
     cleanupTestDir();
 }
 
-BOOST_AUTO_TEST_CASE(testStateSerializationUploadedToFile)
+BOOST_AUTO_TEST_CASE(testSessionSerializationUploadedToFile)
 {
     const auto tempDir = QDir::tempPath();
     const auto uploadDir = QDir{TEST_DIR}.absolutePath() + "/";
@@ -440,9 +445,8 @@ BOOST_AUTO_TEST_CASE(testStateSerializationUploadedToFile)
     auto displayGroup = createTestDisplayGroup();
     auto window = makeValidTestWindow(newValidUri);
     displayGroup->add(window);
-    StateSerializationHelper helper{Scene::create(displayGroup)};
-    BOOST_CHECK(
-        helper.save(uploadDir + "test.dcx", tempDir, uploadDir).result());
+    SessionSaver saver{Scene::create(displayGroup), tempDir, uploadDir};
+    BOOST_CHECK(saver.save(uploadDir + "test.dcx").result());
     const auto savedSessionDir = uploadDir + "test/";
 
     BOOST_CHECK(!listFiles(tempDir).contains(uploadedFile));
@@ -456,8 +460,7 @@ BOOST_AUTO_TEST_CASE(testStateSerializationUploadedToFile)
     QFile::copy(VALID_IMAGE_URI, newValidUri);
     auto newWindow = makeValidTestWindow(newValidUri);
     displayGroup->add(newWindow);
-    BOOST_CHECK(
-        helper.save(uploadDir + "test.dcx", tempDir, uploadDir).result());
+    BOOST_CHECK(saver.save(uploadDir + "test.dcx").result());
 
     BOOST_CHECK(!listFiles(tempDir).contains(uploadedFile));
     BOOST_CHECK(listFiles(savedSessionDir).contains(uploadedFile));
@@ -480,11 +483,11 @@ BOOST_AUTO_TEST_CASE(testErrorContentWhenFileMissing)
     auto scene = Scene::create(group);
 
     // 2) saving session
-    BOOST_CHECK(StateSerializationHelper{scene}.save(file).result());
+    BOOST_CHECK(SessionSaver{scene}.save(file).result());
 
     // 3) check restoring session
-    auto loader = StateSerializationHelper{scene};
-    auto loadedScene = loader.load(file).result();
+    auto loader = SessionLoader{scene};
+    auto loadedScene = loader.load(file).result().getScene();
     BOOST_REQUIRE(loadedScene);
     const auto& loadedGroup = loadedScene->getGroup(0);
 
@@ -507,10 +510,10 @@ BOOST_AUTO_TEST_CASE(testErrorContentWhenFileMissing)
     BOOST_CHECK_EQUAL(validContent.getTitle(), VALID_IMAGE_URI);
 
     // 4) saving session a second time (error content is not saved)
-    BOOST_CHECK(StateSerializationHelper{loadedScene}.save(file).result());
+    BOOST_CHECK(SessionSaver{loadedScene}.save(file).result());
 
     // 5) check restoring session a second time
-    loadedScene = loader.load(file).result();
+    loadedScene = loader.load(file).result().getScene();
     BOOST_REQUIRE(loadedScene);
     const auto& loadedGroup2 = loadedScene->getGroup(0);
 

@@ -63,7 +63,6 @@ struct MetaTypeRegistration
         qRegisterMetaType<CountdownStatusPtr>("CountdownStatusPtr");
         qRegisterMetaType<DisplayGroupPtr>("DisplayGroupPtr");
         qRegisterMetaType<ScenePtr>("ScenePtr");
-        qRegisterMetaType<SceneConstPtr>("SceneConstPtr");
         qRegisterMetaType<ImagePtr>("ImagePtr");
         qRegisterMetaType<MarkersPtr>("MarkersPtr");
         qRegisterMetaType<MessageType>("MessageType");

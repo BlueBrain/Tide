@@ -71,7 +71,7 @@ Scene::Scene(const std::vector<SurfaceConfig>& surfaces)
             index++, DisplayGroup::create(surface.getTotalSize()),
             surface.background));
     }
-    _forwardSceneModifiedSignals();
+    _forwardSignals();
 }
 
 Scene::Scene(const std::vector<DisplayGroupPtr>& groups)
@@ -79,14 +79,34 @@ Scene::Scene(const std::vector<DisplayGroupPtr>& groups)
     size_t index = 0;
     for (const auto& group : groups)
         _surfaces.emplace_back(std::make_shared<Surface>(index++, group));
-
-    _forwardSceneModifiedSignals();
+    _forwardSignals();
 }
 
 Scene::~Scene()
 {
     for (auto&& surface : _surfaces)
         surface->getGroup().setParent(nullptr); // avoid double deletion
+}
+
+void Scene::assign(const Scene& other)
+{
+    const auto max = std::min(getSurfaceCount(), other.getSurfaceCount());
+    for (auto i = 0u; i < max; ++i)
+        getGroup(i).replaceWindows(other.getGroup(i).getWindows());
+}
+
+void Scene::clear()
+{
+    for (auto& surface : getSurfaces())
+        surface.getGroup().clear();
+}
+
+bool Scene::isEmpty() const
+{
+    for (const auto& surface : getSurfaces())
+        if (!surface.getGroup().isEmpty())
+            return false;
+    return true;
 }
 
 size_t Scene::getSurfaceCount() const
@@ -185,10 +205,25 @@ std::pair<WindowPtr, DisplayGroup&> Scene::findWindowPtrAndGroup(
     throw window_not_found_error("window not found");
 }
 
+void Scene::_forwardSignals()
+{
+    _forwardSceneModifiedSignals();
+    _forwardIsEmptyChangedSignals();
+}
+
 void Scene::_forwardSceneModifiedSignals()
 {
     for (auto&& surface : getSurfaces())
         connect(&surface, &Surface::modified, this, &Scene::_sendScene);
+}
+
+void Scene::_forwardIsEmptyChangedSignals()
+{
+    for (auto&& surface : getSurfaces())
+    {
+        connect(&surface.getGroup(), &DisplayGroup::isEmptyChanged, this,
+                &Scene::isEmptyChanged);
+    }
 }
 
 void Scene::_sendScene()

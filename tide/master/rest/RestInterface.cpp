@@ -49,6 +49,7 @@
 #include "rest/serialization.h"
 #include "scene/ContentFactory.h"
 #include "scene/Scene.h"
+#include "session/Session.h"
 #include "tools/ActivityLogger.h"
 #include "utils/log.h"
 #include "json/serialization.h"
@@ -137,8 +138,8 @@ public:
 };
 
 RestInterface::RestInterface(const uint16_t port, OptionsPtr options,
-                             Scene& scene, Configuration& config)
-    : _impl(new Impl(port, options, scene, config, false))
+                             Session& session, Configuration& config)
+    : _impl(new Impl(port, options, *session.getScene(), config, false))
 {
     put_log(LOG_INFO, LOG_REST, "listening to REST messages on TCP port %hu",
             _impl->server.getPort());
@@ -160,7 +161,8 @@ RestInterface::RestInterface(const uint16_t port, OptionsPtr options,
     server.handleGET("tide/size", _impl->size);
     server.handleGET("tide/options", *_impl->options);
     server.handlePUT("tide/options", *_impl->options);
-    server.handleGET("tide/windows", scene);
+    server.handleGET("tide/windows", *session.getScene());
+    server.handleGET("tide/session", session.getInfo());
 
     using namespace std::placeholders;
 
@@ -182,9 +184,7 @@ RestInterface::RestInterface(const uint16_t port, OptionsPtr options,
                   std::bind(&FileBrowser::list, &_impl->sessionBrowser, _1));
 }
 
-RestInterface::~RestInterface()
-{
-}
+RestInterface::~RestInterface() = default;
 
 void RestInterface::exposeStatistics(const ActivityLogger& logger) const
 {

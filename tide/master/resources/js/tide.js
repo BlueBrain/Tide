@@ -71,7 +71,6 @@ function bootstrapMenus() {
       $(this).hide("puff", showEffectSpeed);
       e.stopPropagation()
     });
-
     $("#fsMenu").css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed);
     $(".menuButton:not(#addButton)").removeClass("buttonPressed");
     $("#addButton").toggleClass("buttonPressed")
@@ -83,7 +82,7 @@ function bootstrapMenus() {
       $(this).hide("puff", showEffectSpeed);
       e.stopPropagation()
     });
-
+    getSessionName();
     $("#sessionMenu").css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed);
     $(".menuButton:not(#sessionButton)").removeClass("buttonPressed");
     $("#sessionButton").toggleClass("buttonPressed")
@@ -437,6 +436,17 @@ function getOptions() {
   xhr.send(null)
 }
 
+function getSessionName() {
+    var url = restUrl + "session";
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", encodeURI(url), true);
+    xhr.onload = function () {
+      var data = JSON.parse(xhr.responseText);
+      $("#sessionNameInput").val(data.filename);
+    };
+    xhr.send(null);
+}
+
 function getSessionFolderContent() {
   var url = restUrl + "sessions/";
   var xhr = new XMLHttpRequest();
@@ -660,6 +670,7 @@ function init() {
     $("#infoMenu").append("<b>Tide " + config["version"] + "</b> rev ",
       "<a style='text-decoration: underline' href=\"https://github.com/BlueBrain/Tide/commit/" + config["revision"] + "\">" + config["revision"],
       " </a><br>", "running on <b>" + config["hostname"], "</b><br>since <b>" + config["startTime"]+"</b>");
+
     getFileSystemContent("");
     getSessionFolderContent();
     updateWall();
@@ -963,7 +974,6 @@ function saveSession() {
           confirmButtonText: "OK",
           confirmButtonColor: "#014f86"
         }, function () {
-          $('#sessionNameInput').val("");
           $("#sessionMenu").toggle("puff", showEffectSpeed);
           $("#sessionButton").toggleClass("buttonPressed");
         });

@@ -40,8 +40,8 @@
 
 #include "FileReceiver.h"
 
-#include "StateSerializationHelper.h"
 #include "scene/ContentFactory.h"
+#include "session/SessionSaver.h"
 #include "utils/log.h"
 #include "json/json.h"
 
@@ -117,10 +117,9 @@ std::future<http::Response> FileReceiver::prepareUpload(
     if (!filters.contains(fileSuffix.toLower()))
         return make_ready_response(http::Code::NOT_SUPPORTED);
 
-    const auto name = QFileInfo{
-        StateSerializationHelper::findAvailableFilePath(
-            params.filename,
-            _tmpDir)}.fileName();
+    const auto path =
+        SessionSaver::findAvailableFilePath(params.filename, _tmpDir);
+    const auto name = QFileInfo{path}.fileName();
     _preparedPaths[name] = params;
     return _makeResponse(http::Code::OK, "url", _urlEncode(name));
 }

@@ -122,7 +122,7 @@ endif()
 
 list(APPEND TIDECORE_PUBLIC_HEADERS
   QmlTypeRegistration.h
-  StatePreview.h
+  SessionPreview.h
   types.h
   ui.h
   configuration/Configuration.h
@@ -190,7 +190,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   thumbnail/DefaultThumbnailGenerator.h
   thumbnail/FolderThumbnailGenerator.h
   thumbnail/ImageThumbnailGenerator.h
-  thumbnail/StateThumbnailGenerator.h
+  thumbnail/SessionThumbnailGenerator.h
   thumbnail/StreamThumbnailGenerator.h
   thumbnail/thumbnail.h
   thumbnail/ThumbnailGeneratorFactory.h
@@ -208,7 +208,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
 
 list(APPEND TIDECORE_SOURCES
   MetaTypeRegistration.cpp
-  StatePreview.cpp
+  SessionPreview.cpp
   ui.cpp
   configuration/Configuration.cpp
   configuration/ConfigurationWriter.cpp
@@ -267,7 +267,7 @@ list(APPEND TIDECORE_SOURCES
   thumbnail/DefaultThumbnailGenerator.cpp
   thumbnail/FolderThumbnailGenerator.cpp
   thumbnail/ImageThumbnailGenerator.cpp
-  thumbnail/StateThumbnailGenerator.cpp
+  thumbnail/SessionThumbnailGenerator.cpp
   thumbnail/StreamThumbnailGenerator.cpp
   thumbnail/thumbnail.cpp
   thumbnail/ThumbnailGenerator.cpp

@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,67 +37,86 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef STATEPREVIEW_H
-#define STATEPREVIEW_H
+#include "SessionController.h"
 
-#include "types.h"
+#include "ContentLoader.h"
+#include "config.h"
+#include "scene/Scene.h"
+#include "session/SessionLoader.h"
+#include "session/SessionSaver.h"
 
-#include <QImage>
-#include <QSize>
-#include <QString>
-
-class Window;
-
-/**
- * A state preview is a thumbnail image saved alongside a state file.
- * It uses the same filename but a specific file extension
- * to differenciate it from other media in the folder.
- */
-class StatePreview
-{
-public:
-    /**
-     * Constructor.
-     * @param dcxFileName The state file associated with this preview image.
-     *        Needed by loadFromFile() and saveToFile().
-     */
-    StatePreview(const QString& dcxFileName);
-
-    /** Get the file extension used for state images. */
-    static QString getFileExtension();
-
-    /**
-     * Load the thumbnail image from disk.
-     */
-    bool loadFromFile();
-
-    /**
-     * Retrieve the image loaded with loadFromFile() or generated with
-     * generateImage().
-     */
-    QImage getImage() const;
-
-    /**
-     * Generate the preview image from a list of Windows.
-     * @param wallDimensions the total dimensions of the wall in pixels, used to
-     *        position the contents.
-     * @param windows the contents to include in the preview.
-     */
-    void generateImage(const QSize& wallDimensions, const WindowPtrs& windows);
-
-    /**
-     * Save the thumbnail created by generateImage() to a file.
-     * The filename is the same as the state filename but uses a different
-     * extension.
-     * @see getFileExtension()
-     */
-    bool saveToFile() const;
-
-protected:
-    QString previewFilename() const;
-
-    QString _dcxFileName;
-    QImage _previewImage;
-};
-
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT
+#include "scene/WebbrowserContent.h"
 #endif
+
+SessionController::SessionController(Session& session_,
+                                     const Configuration::Folders& folders)
+    : _session{session_}
+    , _folders(folders)
+{
+    connect(&_loadSessionOp, &QFutureWatcher<Session>::finished, [this]() {
+        auto session = _loadSessionOp.result();
+        auto scene = session.getScene();
+        if (scene)
+        {
+            _session.assign(session);
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT
+            _restoreWebbrowsers(*_session.getScene());
+#endif
+        }
+        if (_loadSessionCallback)
+            _loadSessionCallback(scene != nullptr);
+        _loadSessionCallback = nullptr;
+    });
+
+    connect(&_saveSessionOp, &QFutureWatcher<bool>::finished, [this]() {
+        const auto success = _saveSessionOp.result();
+        if (success)
+        {
+            _session.setFilepath(_saveFilepath);
+            _session.setCurrentFileVersion();
+        }
+        if (_saveSessionCallback)
+            _saveSessionCallback(success);
+        _saveSessionCallback = nullptr;
+    });
+
+    connect(_session.getScene().get(), &Scene::isEmptyChanged, [this] {
+        if (_session.getScene()->isEmpty())
+            _session.clearInfo();
+    });
+}
+
+void SessionController::load(const QString& sessionFile, BoolCallback callback)
+{
+    _loadSessionOp.waitForFinished();
+
+    _loadSessionCallback = callback;
+    SessionLoader loader{_session.getScene()};
+    _loadSessionOp.setFuture(loader.load(sessionFile));
+}
+
+void SessionController::save(const QString& sessionFile, BoolCallback callback)
+{
+    _saveSessionOp.waitForFinished();
+
+    _saveSessionCallback = callback;
+    _saveFilepath = sessionFile;
+
+    SessionSaver saver(_session.getScene(), _folders.tmp, _folders.upload);
+    _saveSessionOp.setFuture(saver.save(sessionFile));
+}
+
+void SessionController::_restoreWebbrowsers(const Scene& scene)
+{
+#if TIDE_ENABLE_WEBBROWSER_SUPPORT
+    using WebContent = const WebbrowserContent*;
+    for (const auto& window : scene.getWindows())
+    {
+        if (auto browser = dynamic_cast<WebContent>(window->getContentPtr()))
+            emit startWebbrowser(*browser);
+    }
+#else
+    Q_UNUSED(scene);
+#endif
+}

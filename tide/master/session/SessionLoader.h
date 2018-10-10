@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,43 +37,37 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "StateThumbnailGenerator.h"
+#ifndef SESSION_LOADER_H
+#define SESSION_LOADER_H
 
-#include "StatePreview.h"
+#include "Session.h"
+#include "types.h"
 
-#include <QPainter>
+#include <QtConcurrent>
 
-StateThumbnailGenerator::StateThumbnailGenerator(const QSize& size)
-    : ThumbnailGenerator(size)
+/**
+ * Helper class to restore a session from a file.
+ */
+class SessionLoader
 {
-}
+public:
+    /**
+     * Constructor
+     *
+     * @param scene target to rescale the loaded scene to fit in.
+     */
+    SessionLoader(ScenePtr scene);
 
-QImage StateThumbnailGenerator::generate(const QString& filename) const
-{
-    QImage thumbnail = createGradientImage(Qt::darkCyan, Qt::cyan);
+    /**
+     * Load a scene from a file.
+     *
+     * @param filepath path to the file to load.
+     * @return the loaded scene on success, nullptr on failure.
+     */
+    QFuture<Session> load(const QString& filepath) const;
 
-    StatePreview filePreview(filename);
-    if (filePreview.loadFromFile())
-    {
-        const QImage preview = filePreview.getImage();
-        const QSize newSize =
-            preview.size().scaled(thumbnail.size(), Qt::KeepAspectRatio);
-        thumbnail = thumbnail.scaled(newSize);
-        QPainter painter(&thumbnail);
-        const QRect rect = _scaleRectAroundCenter(thumbnail.rect(), 0.9f);
-        painter.drawImage(rect, preview);
-    }
-    else
-        paintText(thumbnail, "session");
+private:
+    ScenePtr _scene;
+};
 
-    return thumbnail;
-}
-
-QRect StateThumbnailGenerator::_scaleRectAroundCenter(
-    const QRect& rect, const float scaleFactor) const
-{
-    const float topLeftFactor = 0.5f * (1.0f - scaleFactor);
-
-    return QRect(topLeftFactor * rect.width(), topLeftFactor * rect.height(),
-                 scaleFactor * rect.width(), scaleFactor * rect.height());
-}
+#endif

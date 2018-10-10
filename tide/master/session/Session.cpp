@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Daniel Nachbaur <daniel.nachbaur@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,70 +38,37 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "ThumbnailGeneratorFactory.h"
+#include "Session.h"
 
-#include "DefaultThumbnailGenerator.h"
-#include "FolderThumbnailGenerator.h"
-#include "ImageThumbnailGenerator.h"
-#include "SessionThumbnailGenerator.h"
-#include "config.h"
-#include "scene/ImageContent.h"
-
-#if TIDE_ENABLE_MOVIE_SUPPORT
-#include "MovieThumbnailGenerator.h"
-#include "scene/MovieContent.h"
-#endif
-#if TIDE_ENABLE_PDF_SUPPORT
-#include "PDFThumbnailGenerator.h"
-#include "scene/PDFContent.h"
-#endif
-#if TIDE_USE_TIFF
-#include "ImagePyramidThumbnailGenerator.h"
-#include "data/TiffPyramidReader.h"
-#include "scene/ImagePyramidContent.h"
-#endif
-
-#include <QDir>
-
-ThumbnailGeneratorPtr ThumbnailGeneratorFactory::getGenerator(
-    const QString& filename, const QSize& size)
+Session::Session(ScenePtr scene, QString filepath,
+                 const SessionFileVersion version)
+    : _scene{std::move(scene)}
+    , _info{std::move(filepath), version}
 {
-    if (!filename.isEmpty() && QDir(filename).exists())
-        return ThumbnailGeneratorPtr(new FolderThumbnailGenerator(size));
+}
 
-    const auto extension = QFileInfo(filename).suffix().toLower();
+void Session::assign(const Session& other)
+{
+    _scene->assign(*other._scene);
+    _info = other.getInfo();
+}
 
-    if (extension == "dcx")
-        return ThumbnailGeneratorPtr(new SessionThumbnailGenerator(size));
+const SessionInfo& Session::getInfo() const
+{
+    return _info;
+}
 
-#if TIDE_ENABLE_MOVIE_SUPPORT
-    if (MovieContent::getSupportedExtensions().contains(extension))
-        return ThumbnailGeneratorPtr(new MovieThumbnailGenerator(size));
-#endif
+void Session::clearInfo()
+{
+    _info = SessionInfo();
+}
 
-#if TIDE_USE_TIFF
-    if (ImagePyramidContent::getSupportedExtensions().contains(extension))
-    {
-        try
-        {
-            TiffPyramidReader tif{filename};
-            return ThumbnailGeneratorPtr(
-                new ImagePyramidThumbnailGenerator(size));
-        }
-        catch (...)
-        {
-            /* not a pyramid file, pass */
-        }
-    }
-#endif
+ScenePtr Session::getScene()
+{
+    return _scene;
+}
 
-    if (ImageContent::getSupportedExtensions().contains(extension))
-        return ThumbnailGeneratorPtr(new ImageThumbnailGenerator(size));
-
-#if TIDE_ENABLE_PDF_SUPPORT
-    if (PDFContent::getSupportedExtensions().contains(extension))
-        return ThumbnailGeneratorPtr(new PDFThumbnailGenerator(size));
-#endif
-
-    return ThumbnailGeneratorPtr(new DefaultThumbnailGenerator(size));
+void Session::setFilepath(const QString& filepath)
+{
+    _info.filepath = filepath;
 }

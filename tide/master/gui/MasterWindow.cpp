@@ -45,7 +45,6 @@
 #include "ContentLoader.h"
 #include "DisplayGroupListWidget.h"
 #include "MasterQuickView.h"
-#include "StateSerializationHelper.h"
 #include "configuration/Configuration.h"
 #include "scene/Background.h"
 #include "scene/ContentFactory.h"
@@ -72,16 +71,14 @@ const QSize DEFAULT_WINDOW_SIZE(810, 600);
 MasterWindow::MasterWindow(ScenePtr scene_, OptionsPtr options,
                            Configuration& config)
     : QMainWindow()
-    , _scene{scene_}
-    , _options(options)
+    , _scene{std::move(scene_)}
+    , _options{std::move(options)}
     , _backgroundWidget(new BackgroundWidget(config, this))
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
     , _webbrowserWidget(new WebbrowserWidget(config, this))
 #endif
     , _contentFolder(config.folders.contents)
     , _sessionFolder(config.folders.sessions)
-    , _tmpDir(config.folders.tmp)
-    , _uploadDir(config.folders.upload)
 {
     _backgroundWidget->setModal(true);
 
@@ -92,20 +89,6 @@ MasterWindow::MasterWindow(ScenePtr scene_, OptionsPtr options,
                                     QPointF(), debugPort);
             });
 #endif
-
-    connect(&_loadSessionOp, &QFutureWatcher<ScenePtr>::finished, [this]() {
-        if (auto scene = _loadSessionOp.result())
-            emit sessionLoaded(scene);
-        else
-            QMessageBox::warning(this, "Error", "Could not load session file.",
-                                 QMessageBox::Ok, QMessageBox::Ok);
-    });
-
-    connect(&_saveSessionOp, &QFutureWatcher<bool>::finished, [this]() {
-        if (!_saveSessionOp.result())
-            QMessageBox::warning(this, "Error", "Could not save session file.",
-                                 QMessageBox::Ok, QMessageBox::Ok);
-    });
 
     resize(DEFAULT_WINDOW_SIZE);
     setAcceptDrops(true);
@@ -492,18 +475,30 @@ void MasterWindow::_saveSession()
         return;
 
     _sessionFolder = QFileInfo(filename).absoluteDir().path();
-    _saveSessionOp.setFuture(
-        StateSerializationHelper(_scene).save(filename, _tmpDir, _uploadDir));
+
+    emit save(filename, [this](const bool result) {
+        if (!result)
+        {
+            QMessageBox::warning(this, "Error", "Could not save session file.",
+                                 QMessageBox::Ok, QMessageBox::Ok);
+        }
+    });
 }
 
 void MasterWindow::_loadSession(const QString& filename)
 {
-    _loadSessionOp.setFuture(StateSerializationHelper(_scene).load(filename));
+    emit load(filename, [this](const bool result) {
+        if (!result)
+        {
+            QMessageBox::warning(this, "Error", "Could not load session file.",
+                                 QMessageBox::Ok, QMessageBox::Ok);
+        }
+    });
 }
 
 void MasterWindow::_openAboutWidget()
 {
-    const int revision = tide::Version::getRevision();
+    const auto revision = tide::Version::getRevision();
 
     std::ostringstream aboutMsg;
     aboutMsg << "Current version: " << tide::Version::getString();
@@ -559,24 +554,23 @@ QStringList MasterWindow::_extractFolderUrls(const QMimeData* mimeData)
 
 QString MasterWindow::_extractSessionFile(const QMimeData* mimeData)
 {
-    QList<QUrl> urlList = mimeData->urls();
+    const auto urlList = mimeData->urls();
     if (urlList.size() == 1)
     {
-        QUrl url = urlList[0];
-        const QString extension =
-            QFileInfo(url.toLocalFile().toLower()).suffix();
+        const auto url = urlList[0].toLocalFile();
+        const auto extension = QFileInfo{url.toLower()}.suffix();
         if (extension == "dcx")
-            return url.toLocalFile();
+            return url;
     }
     return QString();
 }
 
 void MasterWindow::dragEnterEvent(QDragEnterEvent* dragEvent)
 {
-    const QMimeData* mimeData = dragEvent->mimeData();
-    const QStringList& pathList = _extractValidContentUrls(mimeData);
-    const QStringList& dirList = _extractFolderUrls(mimeData);
-    const QString& sessionFile = _extractSessionFile(mimeData);
+    const auto mimeData = dragEvent->mimeData();
+    const auto pathList = _extractValidContentUrls(mimeData);
+    const auto dirList = _extractFolderUrls(mimeData);
+    const auto sessionFile = _extractSessionFile(mimeData);
 
     if (!pathList.empty() || !dirList.empty() || !sessionFile.isNull())
         dragEvent->acceptProposedAction();

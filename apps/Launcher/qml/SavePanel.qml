@@ -14,6 +14,7 @@ Item {
     property alias listViewMode: browser.listViewMode
 
     signal saveSession(string filename)
+    signal refreshSessionName
 
     function save() {
         saveSession(browser.currentFolder.toString().replace(
@@ -90,6 +91,11 @@ Item {
     Component.onCompleted: {
         textInput.selectAll()
         textInput.focus = true
+        refreshSessionName()
+    }
+
+    function updateSessionName(session) {
+        textInput.text = session.filename
     }
 
     Loader {

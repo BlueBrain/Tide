@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,31 +37,24 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef STATETHUMBNAILGENERATOR_H
-#define STATETHUMBNAILGENERATOR_H
+#ifndef SESSION_PREVIEW_GENERATOR_H
+#define SESSION_PREVIEW_GENERATOR_H
 
-#include "ThumbnailGenerator.h"
+#include "types.h"
+
+#include <QImage>
 
 /**
- * Generate thumbnails for Tide session files.
+ * Generates a preview image to be saved with a session file.
  */
-class StateThumbnailGenerator : public ThumbnailGenerator
+class SessionPreviewGenerator
 {
 public:
-    /** @copydoc ThumbnailGenerator::ThumbnailGenerator */
-    StateThumbnailGenerator(const QSize& size);
-
     /**
-     * Generate a thumbnail for a saved session file.
-     *
-     * @param filename the session file.
-     * @return the session thumbnail, or a placeholder image if the session
-     *         preview image can't be found or an error occured.
+     * Generate the preview image.
+     * @param group for which to generate the preview.
      */
-    QImage generate(const QString& filename) const final;
-
-private:
-    QRect _scaleRectAroundCenter(const QRect& rect, float scaleFactor) const;
+    QImage generateImage(const DisplayGroup& group);
 };
 
 #endif

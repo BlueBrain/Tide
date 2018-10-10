@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Daniel Nachbaur <daniel.nachbaur@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,96 +38,24 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "StatePreview.h"
+#ifndef SESSION_LOADER_LEGACY_XML_H
+#define SESSION_LOADER_LEGACY_XML_H
 
-#include <QRectF>
+#include "types.h"
 
-#include "scene/Window.h"
-#include "thumbnail/thumbnail.h"
-#include "utils/log.h"
+#include "Session.h"
 
-#include <QFileInfo>
-#include <QImageReader>
-#include <QPainter>
-
-namespace
+/**
+ * A user session which can be saved and restored.
+ */
+class SessionLoaderLegacyXml
 {
-const QSize PREVIEW_IMAGE_SIZE(512, 512);
-}
+public:
+    /**
+     * @return session loaded from the given legacy XML file.
+     * @throw std::runtime_error on error.
+     */
+    Session load(const QString& filename);
+};
 
-StatePreview::StatePreview(const QString& dcxFileName)
-    : _dcxFileName(dcxFileName)
-{
-}
-
-QString StatePreview::getFileExtension()
-{
-    return QString(".dcxpreview");
-}
-
-QImage StatePreview::getImage() const
-{
-    return _previewImage;
-}
-
-QString StatePreview::previewFilename() const
-{
-    QFileInfo fileinfo(_dcxFileName);
-
-    const QString extension = fileinfo.suffix().toLower();
-    if (extension != "dcx")
-    {
-        print_log(LOG_WARN, LOG_CONTENT,
-                  "wrong state file extension: '%s' for session: '%s'"
-                  "(expected: .dcx)",
-                  extension.toLocal8Bit().constData(),
-                  _dcxFileName.toLocal8Bit().constData());
-        return QString();
-    }
-    return fileinfo.path() + "/" + fileinfo.completeBaseName() +
-           getFileExtension();
-}
-
-void StatePreview::generateImage(const QSize& wallDimensions,
-                                 const WindowPtrs& windows)
-{
-    const auto previewDimension =
-        wallDimensions.scaled(PREVIEW_IMAGE_SIZE, Qt::KeepAspectRatio);
-    // Transparent image
-    QImage preview(previewDimension, QImage::Format_ARGB32);
-    preview.fill(qRgba(0, 0, 0, 0));
-
-    // Paint all Contents at their correct location
-    QPainter painter{&preview};
-    for (const auto& window : windows)
-    {
-        const auto ratio =
-            (qreal)previewDimension.width() / (qreal)wallDimensions.width();
-        const auto area = QRectF{window->getCoordinates().topLeft() * ratio,
-                                 window->size() * ratio};
-        const auto thumbnail =
-            thumbnail::create(window->getContent(), area.size().toSize());
-        painter.drawImage(area, thumbnail);
-    }
-    painter.end();
-
-    _previewImage = preview;
-}
-
-bool StatePreview::saveToFile() const
-{
-    const bool success = _previewImage.save(previewFilename(), "PNG");
-
-    if (!success)
-        print_log(LOG_ERROR, LOG_CONTENT,
-                  "Saving StatePreview image failed: '%s'",
-                  previewFilename().toLocal8Bit().constData());
-
-    return success;
-}
-
-bool StatePreview::loadFromFile()
-{
-    QImageReader reader(previewFilename());
-    return reader.canRead() && reader.read(&_previewImage);
-}
+#endif

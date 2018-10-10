@@ -177,6 +177,8 @@ SceneRemoteController::SceneRemoteController(Scene& scene)
         }
     });
 
+    connect("clear-all", [this]() { _scene.clear(); });
+
     bind<WindowId>("close-window", [this](const auto params) {
         try
         {
