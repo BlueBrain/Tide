@@ -45,7 +45,6 @@
 #include "configuration/Configuration.h"
 #include "control/WindowController.h"
 
-#include <QFutureWatcher>
 #include <QObject>
 
 /**
@@ -57,37 +56,20 @@ class SceneController : public QObject
     Q_DISABLE_COPY(SceneController)
 
 public:
-    /** Constructor */
     SceneController(Scene& scene, const Configuration::Folders& folders);
 
     void openAll(const QStringList& uris);
-
     void open(uint surfaceIndex, const QString& uri, const QPointF& coords,
               BoolCallback callback);
-    void load(const QString& sessionFile, BoolCallback callback);
-    void save(const QString& sessionFile, BoolCallback callback);
 
-    /** Replace the contents by that of another scene. */
-    void apply(SceneConstPtr scene);
-
-    /** Hide the Launcher. */
     void hideLauncher();
 
     std::unique_ptr<WindowController> getController(const QUuid& winId);
-
-signals:
-    void startWebbrowser(const WebbrowserContent& browser);
 
 private:
     Scene& _scene;
     Configuration::Folders _folders;
 
-    QFutureWatcher<ScenePtr> _loadSessionOp;
-    QFutureWatcher<bool> _saveSessionOp;
-    BoolCallback _loadSessionCallback;
-    BoolCallback _saveSessionCallback;
-
-    void _restoreWebbrowsers(const Scene& scene);
     void _deleteTempContentFile(WindowPtr window);
 };
 

@@ -38,35 +38,20 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "State.h"
+#include "SessionLoaderLegacyXml.h"
 
 #include "configuration/XmlParser.h"
 #include "scene/ContentFactory.h"
-#include "utils/log.h"
 
 namespace
 {
 const QString query{"string(//state/ContentWindow[%1]/%2)"};
-}
 
-State::State()
-    : _scene{Scene::create(QSize())}
+SessionFileVersion _loadVersion(XmlParser& parser)
 {
-}
-
-State::State(ScenePtr scene)
-    : _scene{std::move(scene)}
-{
-}
-
-StateVersion State::getVersion() const
-{
-    return _version;
-}
-
-ScenePtr State::getScene()
-{
-    return _scene;
+    int version = INVALID_FILE_VERSION;
+    parser.get("string(/state/version)", version);
+    return SessionFileVersion(version);
 }
 
 ContentPtr _loadContent(XmlParser& parser, const QString& index)
@@ -82,10 +67,8 @@ ContentPtr _loadContent(XmlParser& parser, const QString& index)
     return content;
 }
 
-WindowPtr _loadWindow(XmlParser& parser, const int index_)
+WindowPtr _loadWindow(XmlParser& parser, const QString& index)
 {
-    const auto index = QString::number(index_);
-
     double x, y, w, h, centerX, centerY, zoom;
     x = y = w = h = centerX = centerY = zoom = -1.0;
     parser.get(query.arg(index, "x"), x);
@@ -115,42 +98,40 @@ WindowPtr _loadWindow(XmlParser& parser, const int index_)
     return window;
 }
 
-bool State::legacyLoadXML(const QString& filename)
+WindowPtrs _loadWindows(XmlParser& parser)
 {
-    try
+    auto numWindows = 0u;
+    parser.get("string(count(//state/ContentWindow))", numWindows);
+
+    auto windows = WindowPtrs();
+    windows.reserve(numWindows);
+    for (auto i = 1u; i <= numWindows; ++i)
+        windows.emplace_back(_loadWindow(parser, QString::number(i)));
+
+    return windows;
+}
+
+WindowPtrs _loadWindows(const QString& filename)
+{
+    XmlParser parser{filename};
+
+    const auto version = _loadVersion(parser);
+    if (version != LEGACY_FILE_VERSION)
     {
-        XmlParser parser{filename};
-
-        int version = INVALID_FILE_VERSION;
-        parser.get("string(/state/version)", version);
-        if (version != LEGACY_FILE_VERSION)
-        {
-            print_log(LOG_DEBUG, LOG_GENERAL,
-                      "not a legacy state file. version: %i, legacy: %i",
-                      version, LEGACY_FILE_VERSION);
-            return false;
-        }
-
-        int numWindows = 0;
-        parser.get("string(count(//state/ContentWindow))", numWindows);
-
-        WindowPtrs windows;
-        windows.reserve(numWindows);
-        for (int i = 1; i <= numWindows; ++i)
-            windows.emplace_back(_loadWindow(parser, i));
-
-        auto& group = _scene->getGroup(0);
-        group.replaceWindows(windows);
-        // Preserve appearence of legacy sessions.
-        group.setCoordinates(UNIT_RECTF);
-        _version = LEGACY_FILE_VERSION;
-
-        return true;
+        throw std::runtime_error(
+            std::string("version: ") +
+            std::to_string(static_cast<int>(version)) + " != legacy: " +
+            std::to_string(static_cast<int>(LEGACY_FILE_VERSION)));
     }
-    catch (const std::runtime_error&)
-    {
-        print_log(LOG_DEBUG, LOG_GENERAL, "Not a valid legacy session: '%s'",
-                  filename.toLocal8Bit().constData());
-    }
-    return false;
+
+    return _loadWindows(parser);
+}
+}
+
+Session SessionLoaderLegacyXml::load(const QString& filename)
+{
+    auto group = DisplayGroup::create(QSizeF(1.0, 1.0));
+    group->replaceWindows(_loadWindows(filename));
+    return Session(Scene::create(std::move(group)), filename,
+                   LEGACY_FILE_VERSION);
 }

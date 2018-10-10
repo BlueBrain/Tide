@@ -243,7 +243,7 @@ void DisplayGroupController::denormalize(const QSizeF& targetSize)
         QSizeF(aspectRatio, 1.0).scaled(targetSize, Qt::KeepAspectRatio);
     scale(scaleFactor);
     // Make sure aspect ratio is 100% correct for all windows - some may be
-    // slightly off due to numerical imprecisions in the xml state file
+    // slightly off due to numerical imprecisions in the xml session file.
     adjustWindowsAspectRatioToContent();
 }
 

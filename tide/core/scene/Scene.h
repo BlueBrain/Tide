@@ -71,6 +71,15 @@ public:
     /** Destructor. */
     ~Scene();
 
+    /** Assign a new Scene to this QObject instance. */
+    void assign(const Scene& other);
+
+    /** Close all windows on all surfaces. */
+    void clear();
+
+    /** @return true if all the surfaces are empty (no windows). */
+    bool isEmpty() const;
+
     /** @return the number of surfaces. */
     size_t getSurfaceCount() const;
 
@@ -121,6 +130,9 @@ signals:
     /** Emitted whenever an element of the scene changes. */
     void modified(ScenePtr);
 
+    /** Notifier for the isEmpty() property. */
+    void isEmptyChanged();
+
 private:
     friend class boost::serialization::access;
 
@@ -129,7 +141,9 @@ private:
     Scene(const std::vector<SurfaceConfig>& surfaces);
     Scene(const std::vector<DisplayGroupPtr>& groups);
 
+    void _forwardSignals();
     void _forwardSceneModifiedSignals();
+    void _forwardIsEmptyChangedSignals();
     void _sendScene();
 
     template <class Archive>

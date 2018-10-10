@@ -1,6 +1,5 @@
 /*********************************************************************/
 /* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
-/*                          Daniel Nachbaur <daniel.nachbaur@epfl.ch>*/
 /*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -38,97 +37,51 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef STATE_H
-#define STATE_H
+#include "SessionPreview.h"
 
-#include "types.h"
+#include "utils/log.h"
 
-#include "scene/Scene.h" // member, needed for serialization
-#include "serialization/includes.h"
+#include <QFileInfo>
 
-/**
- * The different versions of the xml State files.
- */
-enum StateVersion
+namespace
 {
-    INVALID_FILE_VERSION = -1,
-    FIRST_BOOST_FILE_VERSION = 0,
-    LEGACY_FILE_VERSION = 1,
-    FIRST_PIXEL_COORDINATES_FILE_VERSION = 2,
-    WINDOW_TITLES_VERSION = 3,
-    FOCUS_MODE_VERSION = 4,
-    SCENE_VERSION = 5
-};
+const auto previewFileExtension = ".dcxpreview";
+const auto previewFileFormat = "PNG";
+}
 
-/**
- * A state is the collection of opened contents which can be saved and
- * restored using this class. It will save positions and dimensions of each
- * content and also content-specific information which is required to restore
- * a previous state saved by the user.
- */
-class State
+SessionPreview::SessionPreview(const QString& sessionFile)
+    : _sessionFile{sessionFile}
 {
-public:
-    /** Default constructor. */
-    State();
+}
 
-    /**
-     * Constructor.
-     * @param scene to serialize.
-     */
-    State(ScenePtr scene);
+QImage SessionPreview::loadFromFile() const
+{
+    return QImage{_getPreviewFilename()};
+}
 
-    /** @return the version that was last used for loading or saving. */
-    StateVersion getVersion() const;
+bool SessionPreview::saveToFile(const QImage& image) const
+{
+    const auto success = image.save(_getPreviewFilename(), previewFileFormat);
+    if (!success)
+        print_log(LOG_ERROR, LOG_CONTENT,
+                  "Saving SessionPreview image failed: '%s'",
+                  _getPreviewFilename().toLocal8Bit().constData());
+    return success;
+}
 
-    /** @return the scene object. */
-    ScenePtr getScene();
-
-    /**
-     * Load content windows stored in the given XML file.
-     * @return success if the legacy state file could be loaded.
-     */
-    bool legacyLoadXML(const QString& filename);
-
-private:
-    StateVersion _version = INVALID_FILE_VERSION;
-    ScenePtr _scene;
-
-    friend class boost::serialization::access;
-
-    template <class Archive>
-    void serialize(Archive& ar, const unsigned int version)
+QString SessionPreview::_getPreviewFilename() const
+{
+    const auto fileinfo = QFileInfo{_sessionFile};
+    const auto extension = fileinfo.suffix().toLower();
+    if (extension != "dcx")
     {
-        _version = static_cast<StateVersion>(version);
-
-        // clang-format off
-        if (version < SCENE_VERSION)
-        {
-            auto group = DisplayGroup::create(QSize());
-            if (version < FIRST_PIXEL_COORDINATES_FILE_VERSION)
-                group->setCoordinates(UNIT_RECTF);
-
-            if (version < WINDOW_TITLES_VERSION)
-            {
-                WindowPtrs windows;
-                ar & boost::serialization::make_nvp("contentWindows",
-                                                    windows);
-                group->replaceWindows(windows);
-            }
-            else
-            {
-                ar & boost::serialization::make_nvp("displayGroup", group);
-            }
-            _scene = Scene::create(std::move(group));
-        }
-        else
-        {
-            ar & boost::serialization::make_nvp("scene", _scene);
-        }
-        // clang-format on
+        print_log(LOG_WARN, LOG_CONTENT,
+                  "wrong file extension: '%s' for session: '%s'"
+                  "(expected: .dcx)",
+                  extension.toLocal8Bit().constData(),
+                  _sessionFile.toLocal8Bit().constData());
+        return QString();
     }
-};
-
-BOOST_CLASS_VERSION(State, SCENE_VERSION)
-
-#endif
+    return fileinfo.path() + "/" + fileinfo.completeBaseName() +
+           previewFileExtension;
+}

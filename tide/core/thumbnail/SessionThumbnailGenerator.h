@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,70 +37,31 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "ThumbnailGeneratorFactory.h"
+#ifndef SESSIONTHUMBNAILGENERATOR_H
+#define SESSIONTHUMBNAILGENERATOR_H
 
-#include "DefaultThumbnailGenerator.h"
-#include "FolderThumbnailGenerator.h"
-#include "ImageThumbnailGenerator.h"
-#include "SessionThumbnailGenerator.h"
-#include "config.h"
-#include "scene/ImageContent.h"
+#include "ThumbnailGenerator.h"
 
-#if TIDE_ENABLE_MOVIE_SUPPORT
-#include "MovieThumbnailGenerator.h"
-#include "scene/MovieContent.h"
-#endif
-#if TIDE_ENABLE_PDF_SUPPORT
-#include "PDFThumbnailGenerator.h"
-#include "scene/PDFContent.h"
-#endif
-#if TIDE_USE_TIFF
-#include "ImagePyramidThumbnailGenerator.h"
-#include "data/TiffPyramidReader.h"
-#include "scene/ImagePyramidContent.h"
-#endif
-
-#include <QDir>
-
-ThumbnailGeneratorPtr ThumbnailGeneratorFactory::getGenerator(
-    const QString& filename, const QSize& size)
+/**
+ * Generate thumbnails for Tide session files.
+ */
+class SessionThumbnailGenerator : public ThumbnailGenerator
 {
-    if (!filename.isEmpty() && QDir(filename).exists())
-        return ThumbnailGeneratorPtr(new FolderThumbnailGenerator(size));
+public:
+    /** @copydoc ThumbnailGenerator::ThumbnailGenerator */
+    SessionThumbnailGenerator(const QSize& size);
 
-    const auto extension = QFileInfo(filename).suffix().toLower();
+    /**
+     * Generate a thumbnail for a saved session file.
+     *
+     * @param filename the session file.
+     * @return the session thumbnail, or a placeholder image if the session
+     *         preview image can't be found or an error occured.
+     */
+    QImage generate(const QString& filename) const final;
 
-    if (extension == "dcx")
-        return ThumbnailGeneratorPtr(new SessionThumbnailGenerator(size));
+private:
+    QRect _scaleRectAroundCenter(const QRect& rect, float scaleFactor) const;
+};
 
-#if TIDE_ENABLE_MOVIE_SUPPORT
-    if (MovieContent::getSupportedExtensions().contains(extension))
-        return ThumbnailGeneratorPtr(new MovieThumbnailGenerator(size));
 #endif
-
-#if TIDE_USE_TIFF
-    if (ImagePyramidContent::getSupportedExtensions().contains(extension))
-    {
-        try
-        {
-            TiffPyramidReader tif{filename};
-            return ThumbnailGeneratorPtr(
-                new ImagePyramidThumbnailGenerator(size));
-        }
-        catch (...)
-        {
-            /* not a pyramid file, pass */
-        }
-    }
-#endif
-
-    if (ImageContent::getSupportedExtensions().contains(extension))
-        return ThumbnailGeneratorPtr(new ImageThumbnailGenerator(size));
-
-#if TIDE_ENABLE_PDF_SUPPORT
-    if (PDFContent::getSupportedExtensions().contains(extension))
-        return ThumbnailGeneratorPtr(new PDFThumbnailGenerator(size));
-#endif
-
-    return ThumbnailGeneratorPtr(new DefaultThumbnailGenerator(size));
-}

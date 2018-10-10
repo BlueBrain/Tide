@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [277](https://github.com/BlueBrain/Tide/pull/277):
+  Show current session name in Launcher and web interface.
 * [276](https://github.com/BlueBrain/Tide/pull/276):
   Various improvements to the user interface:
   - Make zoom more effective, replace glow with handles for interactive windows.

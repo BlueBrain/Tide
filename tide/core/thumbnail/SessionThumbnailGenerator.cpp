@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,70 +37,42 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "ThumbnailGeneratorFactory.h"
-
-#include "DefaultThumbnailGenerator.h"
-#include "FolderThumbnailGenerator.h"
-#include "ImageThumbnailGenerator.h"
 #include "SessionThumbnailGenerator.h"
-#include "config.h"
-#include "scene/ImageContent.h"
 
-#if TIDE_ENABLE_MOVIE_SUPPORT
-#include "MovieThumbnailGenerator.h"
-#include "scene/MovieContent.h"
-#endif
-#if TIDE_ENABLE_PDF_SUPPORT
-#include "PDFThumbnailGenerator.h"
-#include "scene/PDFContent.h"
-#endif
-#if TIDE_USE_TIFF
-#include "ImagePyramidThumbnailGenerator.h"
-#include "data/TiffPyramidReader.h"
-#include "scene/ImagePyramidContent.h"
-#endif
+#include "SessionPreview.h"
 
-#include <QDir>
+#include <QPainter>
 
-ThumbnailGeneratorPtr ThumbnailGeneratorFactory::getGenerator(
-    const QString& filename, const QSize& size)
+SessionThumbnailGenerator::SessionThumbnailGenerator(const QSize& size)
+    : ThumbnailGenerator{size}
 {
-    if (!filename.isEmpty() && QDir(filename).exists())
-        return ThumbnailGeneratorPtr(new FolderThumbnailGenerator(size));
+}
 
-    const auto extension = QFileInfo(filename).suffix().toLower();
+QImage SessionThumbnailGenerator::generate(const QString& filename) const
+{
+    auto thumbnail = createGradientImage(Qt::darkCyan, Qt::cyan);
 
-    if (extension == "dcx")
-        return ThumbnailGeneratorPtr(new SessionThumbnailGenerator(size));
-
-#if TIDE_ENABLE_MOVIE_SUPPORT
-    if (MovieContent::getSupportedExtensions().contains(extension))
-        return ThumbnailGeneratorPtr(new MovieThumbnailGenerator(size));
-#endif
-
-#if TIDE_USE_TIFF
-    if (ImagePyramidContent::getSupportedExtensions().contains(extension))
+    const auto preview = SessionPreview{filename}.loadFromFile();
+    if (!preview.isNull())
     {
-        try
-        {
-            TiffPyramidReader tif{filename};
-            return ThumbnailGeneratorPtr(
-                new ImagePyramidThumbnailGenerator(size));
-        }
-        catch (...)
-        {
-            /* not a pyramid file, pass */
-        }
+        const auto newSize =
+            preview.size().scaled(thumbnail.size(), Qt::KeepAspectRatio);
+        thumbnail = thumbnail.scaled(newSize);
+        QPainter painter(&thumbnail);
+        const auto rect = _scaleRectAroundCenter(thumbnail.rect(), 0.9f);
+        painter.drawImage(rect, preview);
     }
-#endif
+    else
+        paintText(thumbnail, "session");
 
-    if (ImageContent::getSupportedExtensions().contains(extension))
-        return ThumbnailGeneratorPtr(new ImageThumbnailGenerator(size));
+    return thumbnail;
+}
 
-#if TIDE_ENABLE_PDF_SUPPORT
-    if (PDFContent::getSupportedExtensions().contains(extension))
-        return ThumbnailGeneratorPtr(new PDFThumbnailGenerator(size));
-#endif
+QRect SessionThumbnailGenerator::_scaleRectAroundCenter(
+    const QRect& rect, const float scaleFactor) const
+{
+    const auto topLeftFactor = 0.5f * (1.0f - scaleFactor);
 
-    return ThumbnailGeneratorPtr(new DefaultThumbnailGenerator(size));
+    return QRect(topLeftFactor * rect.width(), topLeftFactor * rect.height(),
+                 scaleFactor * rect.width(), scaleFactor * rect.height());
 }

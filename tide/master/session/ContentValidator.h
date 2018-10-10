@@ -37,61 +37,22 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef STATESERIALIZATIONHELPER_H
-#define STATESERIALIZATIONHELPER_H
-
-#include <QString>
-#include <QtConcurrent>
+#ifndef CONTENT_VALIDATOR_H
+#define CONTENT_VALIDATOR_H
 
 #include "types.h"
 
 /**
- * Helper class to save a scene to a file and restore it later.
+ * Helper class to validate contents restored from a session file.
  */
-class StateSerializationHelper
+class ContentValidator
 {
 public:
     /**
-     * Constructor
-     *
-     * @param scene The scene to be saved, or used as a reference for loading.
+     * Validate all scene contents replacing them by an error content as needed.
+     * @param scene to validate.
      */
-    StateSerializationHelper(ScenePtr scene);
-
-    /**
-     * Save the scene to a file.
-     *
-     * @param filename The .dcx file to save the scene. The extension will be
-     *        automatically added if it is missing.
-     * @param tmpDir The folder where temporary documents are stored, used for
-     *        relocating them to the uploadDir
-     * @param uploadDir folder to move content to (uploaded via web interface.)
-     * @param generatePreview Also generate a .dcxpreview thumbnail image.
-     */
-    QFuture<bool> save(QString filename, const QString& tmpDir = QString(),
-                       const QString& uploadDir = QString(),
-                       bool generatePreview = true);
-
-    /**
-     * Load a scene from a file.
-     *
-     * @return the loaded scene on success, nullptr on failure.
-     */
-    QFuture<ScenePtr> load(const QString& filename) const;
-
-    /**
-     * Find an available filename by appending "_[n]" if needed to the filename.
-     *
-     * @param filename the desired filename.
-     * @param dstDir the target directory.
-     * @return the full path to the next filename that is available.
-     */
-    static QString findAvailableFilePath(const QString& filename,
-                                         const QString& dstDir);
-
-private:
-    ScenePtr _scene;
-    QString _uploadDir;
+    void validateContents(Scene& scene);
 };
 
 #endif

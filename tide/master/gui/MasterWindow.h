@@ -67,6 +67,12 @@ public:
     std::vector<MasterQuickView*> getQuickViews();
 
 signals:
+    /** Load a session. */
+    void load(QString uri, BoolCallback callback);
+
+    /** Save a session to the given file. */
+    void save(QString uri, BoolCallback callback);
+
     /** Emitted when users want to open a webbrowser. */
     void openWebBrowser(uint surfaceIndex, QString url, QSize size, QPointF pos,
                         ushort debugPort);
@@ -74,17 +80,13 @@ signals:
     /** Emitted when users want to open a whiteboard. */
     void openWhiteboard(uint surfaceIndex);
 
-    /** Emitted when a session has been successfully loaded. */
-    void sessionLoaded(ScenePtr group);
-
-protected:
+private:
     /** @name Drag events re-implemented from QMainWindow */
     //@{
     void dragEnterEvent(QDragEnterEvent* event) final;
     void dropEvent(QDropEvent* event) final;
     //@}
 
-private:
     void _setupMasterWindowUI();
     void _addSurfacesTabViews(const Configuration& config);
     void _addDisplayGroupTabView(std::unique_ptr<MasterQuickView> quickView,
@@ -111,17 +113,12 @@ private:
     ScenePtr _scene;
     OptionsPtr _options;
 
-    QFutureWatcher<ScenePtr> _loadSessionOp;
-    QFutureWatcher<bool> _saveSessionOp;
-
     BackgroundWidget* _backgroundWidget;       // child QObject
     WebbrowserWidget* _webbrowserWidget;       // child QObject
     std::vector<MasterQuickView*> _quickViews; // child QObjects
 
     QString _contentFolder;
     QString _sessionFolder;
-    QString _tmpDir;
-    QString _uploadDir;
 };
 
 #endif

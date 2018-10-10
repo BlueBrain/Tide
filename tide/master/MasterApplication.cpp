@@ -45,6 +45,7 @@
 #include "configuration/Configuration.h"
 #include "configuration/SurfaceConfigValidator.h"
 #include "control/SceneController.h"
+#include "control/SessionController.h"
 #include "gui/MasterQuickView.h"
 #include "gui/MasterWindow.h"
 #include "localstreamer/PixelStreamerLauncher.h"
@@ -136,7 +137,7 @@ MasterApplication::~MasterApplication()
 
 void MasterApplication::load(const QString& sessionFile)
 {
-    _sceneController->load(sessionFile, BoolCallback());
+    _sessionController->load(sessionFile, BoolCallback());
 }
 
 void MasterApplication::_validateConfig()
@@ -158,10 +159,13 @@ void MasterApplication::_validateConfig()
 void MasterApplication::_init()
 {
     _scene = Scene::create(_config->surfaces);
+    _session = Session{_scene};
+    _sessionController =
+        std::make_unique<SessionController>(_session, _config->folders);
     _sceneController =
         std::make_unique<SceneController>(*_scene, _config->folders);
 
-    connect(_sceneController.get(), &SceneController::startWebbrowser,
+    connect(_sessionController.get(), &SessionController::startWebbrowser,
             [this](const auto& webbrowser) {
                 _pixelStreamerLauncher->launch(webbrowser);
             });
@@ -201,6 +205,12 @@ void MasterApplication::_initGUIWindow()
 {
     _masterWindow.reset(new MasterWindow(_scene, _options, *_config));
 
+    connect(_masterWindow.get(), &MasterWindow::load, _sessionController.get(),
+            &SessionController::load);
+
+    connect(_masterWindow.get(), &MasterWindow::save, _sessionController.get(),
+            &SessionController::save);
+
     connect(_masterWindow.get(), &MasterWindow::openWebBrowser,
             _pixelStreamerLauncher.get(),
             &PixelStreamerLauncher::openWebbrowser);
@@ -208,9 +218,6 @@ void MasterApplication::_initGUIWindow()
     connect(_masterWindow.get(), &MasterWindow::openWhiteboard,
             _pixelStreamerLauncher.get(),
             &PixelStreamerLauncher::openWhiteboard);
-
-    connect(_masterWindow.get(), &MasterWindow::sessionLoaded,
-            _sceneController.get(), &SceneController::apply);
 
     _createGUISurfaceRenderers();
 }
@@ -413,7 +420,7 @@ void MasterApplication::_initRestInterface()
 
     _restInterface =
         std::make_unique<RestInterface>(_config->master.webservicePort,
-                                        _options, *_scene, *_config);
+                                        _options, _session, *_config);
     _restInterface->exposeStatistics(*_logger);
 
     connect(_lock.get(), &ScreenLock::lockChanged,
@@ -424,11 +431,11 @@ void MasterApplication::_initRestInterface()
     connect(&appController, &AppRemoteController::open, _sceneController.get(),
             &SceneController::open);
 
-    connect(&appController, &AppRemoteController::load, _sceneController.get(),
-            &SceneController::load);
+    connect(&appController, &AppRemoteController::load,
+            _sessionController.get(), &SessionController::load);
 
-    connect(&appController, &AppRemoteController::save, _sceneController.get(),
-            &SceneController::save);
+    connect(&appController, &AppRemoteController::save,
+            _sessionController.get(), &SessionController::save);
 
     connect(&appController, &AppRemoteController::browse,
             _pixelStreamerLauncher.get(),
@@ -547,6 +554,7 @@ bool MasterApplication::notify(QObject* receiver, QEvent* event)
     case QEvent::TouchCancel:
     {
         _handle(static_cast<const QTouchEvent*>(event));
+        break;
     }
     default:
         break;

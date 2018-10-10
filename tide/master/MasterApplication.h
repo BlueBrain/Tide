@@ -41,6 +41,7 @@
 #define MASTERAPPLICATION_H
 
 #include "config.h"
+#include "session/Session.h"
 #include "types.h"
 
 #include <deflect/qt/OffscreenQuickView.h>
@@ -58,6 +59,7 @@ class PixelStreamerLauncher;
 class PixelStreamWindowManager;
 class RestInterface;
 class SceneController;
+class SessionController;
 class ScreenController;
 class ScreenshotAssembler;
 /**
@@ -102,12 +104,14 @@ private:
     QThread _mpiSendThread;
     QThread _mpiReceiveThread;
 
+    Session _session;
     ScenePtr _scene;
     ScreenLockPtr _lock;
     MarkersPtr _markers;
     OptionsPtr _options;
     std::unique_ptr<InactivityTimer> _inactivityTimer;
     std::unique_ptr<SceneController> _sceneController;
+    std::unique_ptr<SessionController> _sessionController;
 
     std::unique_ptr<MasterWindow> _masterWindow;
     std::unique_ptr<deflect::qt::OffscreenQuickView> _offscreenQuickView;

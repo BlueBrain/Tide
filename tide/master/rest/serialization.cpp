@@ -45,6 +45,7 @@
 #include "scene/ContentFactory.h"
 #include "scene/DisplayGroup.h"
 #include "scene/Scene.h"
+#include "session/Session.h"
 #include "tools/ActivityLogger.h"
 #include "json/json.h"
 #include "json/serialization.h"
@@ -53,6 +54,7 @@
 #include <tide/master/version.h>
 
 #include <QDateTime>
+#include <QFileInfo>
 #include <QHostInfo>
 
 namespace
@@ -129,6 +131,32 @@ QJsonArray serialize(const Scene& scene)
     return serialize(scene.getSurfaces());
 }
 
+QJsonObject serialize(const ActivityLogger& logger)
+{
+    const QJsonObject event{{"last_event", logger.getLastInteractionName()},
+                            {"last_event_date",
+                             logger.getLastInteractionTime()},
+                            {"count", logger.getInteractionCount()}};
+    const QJsonObject window{{"count", int(logger.getWindowCount())},
+                             {"date_set",
+                              logger.getWindowCountModificationTime()},
+                             {"accumulated_count",
+                              int(logger.getAccumulatedWindowCount())}};
+    const QJsonObject screens{{"state", to_qstring(logger.getScreenState())},
+                              {"last_change",
+                               logger.getScreenStateModificationTime()}};
+    return QJsonObject{{"event", event},
+                       {"window", window},
+                       {"screens", screens}};
+}
+
+QJsonObject serialize(const SessionInfo& info)
+{
+    return QJsonObject{{"filename", QFileInfo{info.filepath}.baseName()},
+                       {"filepath", info.filepath},
+                       {"version", info.version}};
+}
+
 QJsonObject serializeForRest(const Configuration& config)
 {
     std::vector<QSize> surfaceSizes;
@@ -148,24 +176,5 @@ QJsonObject serializeForRest(const Configuration& config)
         {"filters", QJsonArray::fromStringList(
                         ContentFactory::getSupportedFilesFilter())}};
     return QJsonObject{{"config", configObject}};
-}
-
-QJsonObject serialize(const ActivityLogger& logger)
-{
-    const QJsonObject event{{"last_event", logger.getLastInteractionName()},
-                            {"last_event_date",
-                             logger.getLastInteractionTime()},
-                            {"count", logger.getInteractionCount()}};
-    const QJsonObject window{{"count", int(logger.getWindowCount())},
-                             {"date_set",
-                              logger.getWindowCountModificationTime()},
-                             {"accumulated_count",
-                              int(logger.getAccumulatedWindowCount())}};
-    const QJsonObject screens{{"state", to_qstring(logger.getScreenState())},
-                              {"last_change",
-                               logger.getScreenStateModificationTime()}};
-    return QJsonObject{{"event", event},
-                       {"window", window},
-                       {"screens", screens}};
 }
 }

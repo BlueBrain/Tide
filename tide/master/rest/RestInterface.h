@@ -62,12 +62,12 @@ public:
      *
      * @param port for listening to REST requests
      * @param options the application's options to expose in the interface
-     * @param scene Scene exposed via the interface
+     * @param session Session exposed via the interface
      * @param config the application's configuration
      * @throw std::runtime_error if the port is already in use or a connection
      *        issue occured.
      */
-    RestInterface(uint16_t port, OptionsPtr options, Scene& scene,
+    RestInterface(uint16_t port, OptionsPtr options, Session& session,
                   Configuration& config);
 
     /** Out-of-line destructor. */

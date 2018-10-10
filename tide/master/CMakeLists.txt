@@ -22,7 +22,8 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   control/MultiChannelWindowController.h
   control/PixelStreamController.h
   control/SceneController.h
-  control/SideController.cpp
+  control/SessionController.h
+  control/SideController.h
   control/WindowController.h
   control/WindowTouchController.h
   control/ZoomController.h
@@ -49,8 +50,12 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   qml/FileInfoHelper.h
   qml/MasterDisplayGroupRenderer.h
   qml/MasterSurfaceRenderer.h
-  State.h
-  StateSerializationHelper.h
+  session/ContentValidator.h
+  session/Session.h
+  session/SessionLoader.h
+  session/SessionLoaderLegacyXml.h
+  session/SessionPreviewGenerator.h
+  session/SessionSaver.h
   tools/ActivityLogger.h
   tools/InactivityTimer.h
   tools/ScreenshotAssembler.h
@@ -66,6 +71,7 @@ list(APPEND TIDEMASTER_SOURCES
   control/MultiChannelWindowController.cpp
   control/PixelStreamController.cpp
   control/SceneController.cpp
+  control/SessionController.cpp
   control/SideController.cpp
   control/WindowController.cpp
   control/WindowTouchController.cpp
@@ -93,8 +99,12 @@ list(APPEND TIDEMASTER_SOURCES
   qml/MasterDisplayGroupRenderer.cpp
   qml/MasterSurfaceRenderer.cpp
   resources/master.qrc
-  State.cpp
-  StateSerializationHelper.cpp
+  session/ContentValidator.cpp
+  session/Session.cpp
+  session/SessionLoader.cpp
+  session/SessionLoaderLegacyXml.cpp
+  session/SessionPreviewGenerator.cpp
+  session/SessionSaver.cpp
   tools/ActivityLogger.cpp
   tools/InactivityTimer.cpp
   tools/ScreenshotAssembler.cpp

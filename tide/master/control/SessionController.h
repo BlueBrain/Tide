@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
@@ -37,70 +37,45 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "ThumbnailGeneratorFactory.h"
+#ifndef SESSION_CONTROLLER_H
+#define SESSION_CONTROLLER_H
 
-#include "DefaultThumbnailGenerator.h"
-#include "FolderThumbnailGenerator.h"
-#include "ImageThumbnailGenerator.h"
-#include "SessionThumbnailGenerator.h"
-#include "config.h"
-#include "scene/ImageContent.h"
+#include "types.h"
 
-#if TIDE_ENABLE_MOVIE_SUPPORT
-#include "MovieThumbnailGenerator.h"
-#include "scene/MovieContent.h"
-#endif
-#if TIDE_ENABLE_PDF_SUPPORT
-#include "PDFThumbnailGenerator.h"
-#include "scene/PDFContent.h"
-#endif
-#if TIDE_USE_TIFF
-#include "ImagePyramidThumbnailGenerator.h"
-#include "data/TiffPyramidReader.h"
-#include "scene/ImagePyramidContent.h"
-#endif
+#include "configuration/Configuration.h"
+#include "session/Session.h"
 
-#include <QDir>
+#include <QFutureWatcher>
+#include <QObject>
 
-ThumbnailGeneratorPtr ThumbnailGeneratorFactory::getGenerator(
-    const QString& filename, const QSize& size)
+/**
+ * Controller for all Scene operations.
+ */
+class SessionController : public QObject
 {
-    if (!filename.isEmpty() && QDir(filename).exists())
-        return ThumbnailGeneratorPtr(new FolderThumbnailGenerator(size));
+    Q_OBJECT
+    Q_DISABLE_COPY(SessionController)
 
-    const auto extension = QFileInfo(filename).suffix().toLower();
+public:
+    SessionController(Session& session, const Configuration::Folders& folders);
 
-    if (extension == "dcx")
-        return ThumbnailGeneratorPtr(new SessionThumbnailGenerator(size));
+    void load(const QString& sessionFile, BoolCallback callback);
+    void save(const QString& sessionFile, BoolCallback callback);
 
-#if TIDE_ENABLE_MOVIE_SUPPORT
-    if (MovieContent::getSupportedExtensions().contains(extension))
-        return ThumbnailGeneratorPtr(new MovieThumbnailGenerator(size));
+signals:
+    void startWebbrowser(const WebbrowserContent& browser);
+
+private:
+    Session& _session;
+    Configuration::Folders _folders;
+
+    QFutureWatcher<Session> _loadSessionOp;
+    QFutureWatcher<bool> _saveSessionOp;
+    BoolCallback _loadSessionCallback;
+    BoolCallback _saveSessionCallback;
+    QString _saveFilepath;
+
+    void _restoreWebbrowsers(const Scene& scene);
+};
+
 #endif
-
-#if TIDE_USE_TIFF
-    if (ImagePyramidContent::getSupportedExtensions().contains(extension))
-    {
-        try
-        {
-            TiffPyramidReader tif{filename};
-            return ThumbnailGeneratorPtr(
-                new ImagePyramidThumbnailGenerator(size));
-        }
-        catch (...)
-        {
-            /* not a pyramid file, pass */
-        }
-    }
-#endif
-
-    if (ImageContent::getSupportedExtensions().contains(extension))
-        return ThumbnailGeneratorPtr(new ImageThumbnailGenerator(size));
-
-#if TIDE_ENABLE_PDF_SUPPORT
-    if (PDFContent::getSupportedExtensions().contains(extension))
-        return ThumbnailGeneratorPtr(new PDFThumbnailGenerator(size));
-#endif
-
-    return ThumbnailGeneratorPtr(new DefaultThumbnailGenerator(size));
-}

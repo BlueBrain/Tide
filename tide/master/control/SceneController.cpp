@@ -40,14 +40,11 @@
 #include "SceneController.h"
 
 #include "ContentLoader.h"
-#include "StateSerializationHelper.h"
-#include "config.h"
 #include "control/DisplayGroupController.h"
 #include "scene/Scene.h"
 
-#if TIDE_ENABLE_WEBBROWSER_SUPPORT
-#include "scene/WebbrowserContent.h"
-#endif
+#include <QDir>
+#include <QFileInfo>
 
 namespace
 {
@@ -64,22 +61,6 @@ SceneController::SceneController(Scene& scene_,
         connect(&surface.getGroup(), &DisplayGroup::windowRemoved, this,
                 &SceneController::_deleteTempContentFile);
     }
-
-    connect(&_loadSessionOp, &QFutureWatcher<ScenePtr>::finished, [this]() {
-        auto scene = _loadSessionOp.result();
-        if (scene)
-            apply(scene);
-
-        if (_loadSessionCallback)
-            _loadSessionCallback(scene != nullptr);
-        _loadSessionCallback = nullptr;
-    });
-
-    connect(&_saveSessionOp, &QFutureWatcher<bool>::finished, [this]() {
-        if (_saveSessionCallback)
-            _saveSessionCallback(_saveSessionOp.result());
-        _saveSessionCallback = nullptr;
-    });
 }
 
 void SceneController::openAll(const QStringList& uris)
@@ -105,24 +86,6 @@ void SceneController::open(const uint surfaceIndex, const QString& uri,
         callback(success);
 }
 
-void SceneController::load(const QString& sessionFile, BoolCallback callback)
-{
-    _loadSessionOp.waitForFinished();
-    _loadSessionCallback = callback;
-    StateSerializationHelper helper(_scene.shared_from_this());
-    _loadSessionOp.setFuture(helper.load(sessionFile));
-}
-
-void SceneController::save(const QString& sessionFile, BoolCallback callback)
-{
-    _saveSessionOp.waitForFinished();
-    _saveSessionCallback = callback;
-
-    StateSerializationHelper helper(_scene.shared_from_this());
-    _saveSessionOp.setFuture(
-        helper.save(sessionFile, _folders.tmp, _folders.upload));
-}
-
 void SceneController::hideLauncher()
 {
     DisplayGroupController{_scene.getGroup(0)}.hidePanels();
@@ -133,36 +96,6 @@ std::unique_ptr<WindowController> SceneController::getController(
 {
     auto res = _scene.findWindowAndGroup(winId);
     return std::make_unique<WindowController>(res.first, res.second);
-}
-
-void SceneController::apply(SceneConstPtr scene)
-{
-    const auto max =
-        std::min(scene->getSurfaceCount(), _scene.getSurfaceCount());
-
-    for (auto i = 0u; i < max; ++i)
-    {
-        const auto& sourceGroup = scene->getGroup(i);
-        _scene.getGroup(i).replaceWindows(sourceGroup.getWindows());
-    }
-
-#if TIDE_ENABLE_WEBBROWSER_SUPPORT
-    _restoreWebbrowsers(_scene);
-#endif
-}
-
-void SceneController::_restoreWebbrowsers(const Scene& scene)
-{
-#if TIDE_ENABLE_WEBBROWSER_SUPPORT
-    using WebContent = const WebbrowserContent*;
-    for (const auto& window : scene.getWindows())
-    {
-        if (auto browser = dynamic_cast<WebContent>(window->getContentPtr()))
-            emit startWebbrowser(*browser);
-    }
-#else
-    Q_UNUSED(scene);
-#endif
 }
 
 void SceneController::_deleteTempContentFile(WindowPtr window)

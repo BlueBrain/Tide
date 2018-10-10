@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2013-2016, EPFL/Blue Brain Project                  */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,70 +37,54 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "ThumbnailGeneratorFactory.h"
+#ifndef SESSION_SAVER_H
+#define SESSION_SAVER_H
 
-#include "DefaultThumbnailGenerator.h"
-#include "FolderThumbnailGenerator.h"
-#include "ImageThumbnailGenerator.h"
-#include "SessionThumbnailGenerator.h"
-#include "config.h"
-#include "scene/ImageContent.h"
+#include <QString>
+#include <QtConcurrent>
 
-#if TIDE_ENABLE_MOVIE_SUPPORT
-#include "MovieThumbnailGenerator.h"
-#include "scene/MovieContent.h"
-#endif
-#if TIDE_ENABLE_PDF_SUPPORT
-#include "PDFThumbnailGenerator.h"
-#include "scene/PDFContent.h"
-#endif
-#if TIDE_USE_TIFF
-#include "ImagePyramidThumbnailGenerator.h"
-#include "data/TiffPyramidReader.h"
-#include "scene/ImagePyramidContent.h"
-#endif
+#include "types.h"
 
-#include <QDir>
-
-ThumbnailGeneratorPtr ThumbnailGeneratorFactory::getGenerator(
-    const QString& filename, const QSize& size)
+/**
+ * Helper class to save a scene to a file.
+ */
+class SessionSaver
 {
-    if (!filename.isEmpty() && QDir(filename).exists())
-        return ThumbnailGeneratorPtr(new FolderThumbnailGenerator(size));
+public:
+    /**
+     * Constructor
+     *
+     * @param scene The scene to be saved.
+     * @param tmpDir The folder where temporary documents (uploaded via web
+     *        interface) are stored, used for relocating them to the uploadDir.
+     * @param uploadDir folder to move temporary documents to.
+     */
+    SessionSaver(ScenePtr scene, const QString& tmpDir = QString(),
+                 const QString& uploadDir = QString());
 
-    const auto extension = QFileInfo(filename).suffix().toLower();
+    /**
+     * Save the scene to a file.
+     *
+     * @param filename The .dcx file to save the scene. The extension will be
+     *        automatically added if it is missing.
+     * @param generatePreview Also generate a .dcxpreview thumbnail image.
+     */
+    QFuture<bool> save(QString filename, bool generatePreview = true);
 
-    if (extension == "dcx")
-        return ThumbnailGeneratorPtr(new SessionThumbnailGenerator(size));
+    /**
+     * Find an available filename by appending "_[n]" if needed to the filename.
+     *
+     * @param filename the desired filename.
+     * @param dstDir the target directory.
+     * @return the full path to the next filename that is available.
+     */
+    static QString findAvailableFilePath(const QString& filename,
+                                         const QString& dstDir);
 
-#if TIDE_ENABLE_MOVIE_SUPPORT
-    if (MovieContent::getSupportedExtensions().contains(extension))
-        return ThumbnailGeneratorPtr(new MovieThumbnailGenerator(size));
+private:
+    ScenePtr _scene;
+    QString _tmpDir;
+    QString _uploadDir;
+};
+
 #endif
-
-#if TIDE_USE_TIFF
-    if (ImagePyramidContent::getSupportedExtensions().contains(extension))
-    {
-        try
-        {
-            TiffPyramidReader tif{filename};
-            return ThumbnailGeneratorPtr(
-                new ImagePyramidThumbnailGenerator(size));
-        }
-        catch (...)
-        {
-            /* not a pyramid file, pass */
-        }
-    }
-#endif
-
-    if (ImageContent::getSupportedExtensions().contains(extension))
-        return ThumbnailGeneratorPtr(new ImageThumbnailGenerator(size));
-
-#if TIDE_ENABLE_PDF_SUPPORT
-    if (PDFContent::getSupportedExtensions().contains(extension))
-        return ThumbnailGeneratorPtr(new PDFThumbnailGenerator(size));
-#endif
-
-    return ThumbnailGeneratorPtr(new DefaultThumbnailGenerator(size));
-}
