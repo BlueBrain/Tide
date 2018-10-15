@@ -43,7 +43,6 @@
 #include "control/ContentController.h"
 #include "control/DisplayGroupController.h"
 #include "control/WindowController.h"
-#include "localstreamer/PixelStreamerLauncher.h"
 #include "scene/ContentFactory.h"
 #include "scene/ContentType.h"
 #include "scene/DisplayGroup.h"

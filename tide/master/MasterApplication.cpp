@@ -40,10 +40,10 @@
 
 #include "MasterApplication.h"
 
-#include "PixelStreamWindowManager.h"
 #include "QmlTypeRegistration.h"
 #include "configuration/Configuration.h"
 #include "configuration/SurfaceConfigValidator.h"
+#include "control/PixelStreamWindowManager.h"
 #include "control/SceneController.h"
 #include "control/SessionController.h"
 #include "gui/MasterQuickView.h"
