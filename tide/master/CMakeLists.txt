@@ -14,13 +14,14 @@ set(TIDEMASTER_LINK_LIBRARIES
 
 list(APPEND TIDEMASTER_PUBLIC_HEADERS
   CommandLineParameters.h
-  ContentLoader.h
   control/ContentController.h
+  control/ContentLoader.h
   control/ContextMenuController.h
   control/DisplayGroupController.h
   control/KeyboardController.h
   control/MultiChannelWindowController.h
   control/PixelStreamController.h
+  control/PixelStreamWindowManager.h
   control/SceneController.h
   control/SessionController.h
   control/SideController.h
@@ -46,7 +47,6 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   network/MasterFromWallChannel.h
   network/MasterToForkerChannel.h
   network/MasterToWallChannel.h
-  PixelStreamWindowManager.h
   qml/FileInfoHelper.h
   qml/MasterDisplayGroupRenderer.h
   qml/MasterSurfaceRenderer.h
@@ -63,13 +63,14 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
 
 list(APPEND TIDEMASTER_SOURCES
   CommandLineParameters.cpp
-  ContentLoader.cpp
   control/ContentController.cpp
+  control/ContentLoader.cpp
   control/ContextMenuController.cpp
   control/DisplayGroupController.cpp
   control/KeyboardController.cpp
   control/MultiChannelWindowController.cpp
   control/PixelStreamController.cpp
+  control/PixelStreamWindowManager.cpp
   control/SceneController.cpp
   control/SessionController.cpp
   control/SideController.cpp
@@ -95,7 +96,6 @@ list(APPEND TIDEMASTER_SOURCES
   network/MasterFromWallChannel.cpp
   network/MasterToForkerChannel.cpp
   network/MasterToWallChannel.cpp
-  PixelStreamWindowManager.cpp
   qml/MasterDisplayGroupRenderer.cpp
   qml/MasterSurfaceRenderer.cpp
   resources/master.qrc

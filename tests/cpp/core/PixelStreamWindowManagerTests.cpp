@@ -44,10 +44,10 @@
 #include <deflect/server/EventReceiver.h>
 #include <deflect/server/Frame.h>
 
-#include "PixelStreamWindowManager.h"
 #include "config.h"
 #include "control/DisplayGroupController.h"
 #include "control/PixelStreamController.h"
+#include "control/PixelStreamWindowManager.h"
 #include "scene/Options.h"
 #include "scene/PixelStreamContent.h"
 #include "scene/Scene.h"

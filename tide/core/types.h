@@ -182,8 +182,8 @@ typedef std::vector<QPointF> Positions;
 
 using BoolCallback = std::function<void(bool)>;
 
-static const QRectF UNIT_RECTF(0.0, 0.0, 1.0, 1.0);
-static const QSize UNDEFINED_SIZE(-1, -1);
+static constexpr QRectF UNIT_RECTF(0.0, 0.0, 1.0, 1.0);
+static constexpr QSize UNDEFINED_SIZE(-1, -1);
 
 inline bool operator<(const QSizeF& a, const QSizeF& b)
 {

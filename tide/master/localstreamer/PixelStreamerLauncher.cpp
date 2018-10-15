@@ -43,8 +43,8 @@
 
 #include "CommandLineOptions.h"
 #include "LauncherPlacer.h"
-#include "PixelStreamWindowManager.h"
 #include "configuration/Configuration.h"
+#include "control/PixelStreamWindowManager.h"
 #include "scene/ContentType.h"
 #include "scene/Window.h"
 #include "utils/log.h"
