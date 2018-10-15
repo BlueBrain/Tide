@@ -86,6 +86,18 @@ void SceneController::open(const uint surfaceIndex, const QString& uri,
         callback(success);
 }
 
+void SceneController::clear(const uint surfaceIndex)
+{
+    try
+    {
+        _scene.getGroup(surfaceIndex).clear();
+    }
+    catch (const invalid_surface_index_error& e)
+    {
+        put_log(LOG_DEBUG, "%s: %d", e.what(), surfaceIndex);
+    }
+}
+
 void SceneController::hideLauncher()
 {
     DisplayGroupController{_scene.getGroup(0)}.hidePanels();

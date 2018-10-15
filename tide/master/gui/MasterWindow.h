@@ -67,6 +67,10 @@ public:
     std::vector<MasterQuickView*> getQuickViews();
 
 signals:
+    /** Open a content. */
+    void open(uint surfaceIndex, QString uri, QPointF coords,
+              BoolCallback callback);
+
     /** Load a session. */
     void load(QString uri, BoolCallback callback);
 
@@ -79,6 +83,9 @@ signals:
 
     /** Emitted when users want to open a whiteboard. */
     void openWhiteboard(uint surfaceIndex);
+
+    /** Close all contents on a surface. */
+    void clear(uint surfaceIndex);
 
 private:
     /** @name Drag events re-implemented from QMainWindow */
@@ -93,22 +100,20 @@ private:
                                  const QString& title);
 
     void _openContent();
-    void _addContentDirectory(const QString& directoryName,
-                              const QSize& gridSize = QSize());
+    void _addContent(const QString& filename);
     void _openContentsDirectory();
+    void _addContentsDirectory(const QString& directoryName);
 
     void _openSession();
     void _saveSession();
     void _loadSession(const QString& filename);
 
     void _openAboutWidget();
+    void _openInfoBox(const QString& msg);
+    void _openErrorBox(const QString& message);
+    bool _getConfirmation(const QString& msg);
 
     uint _getActiveSceneIndex() const;
-    DisplayGroup& _getActiveGroup();
-
-    QStringList _extractValidContentUrls(const QMimeData* mimeData);
-    QStringList _extractFolderUrls(const QMimeData* mimeData);
-    QString _extractSessionFile(const QMimeData* mimeData);
 
     ScenePtr _scene;
     OptionsPtr _options;
