@@ -42,7 +42,6 @@
 #include "config.h"
 
 #include "BackgroundWidget.h"
-#include "ContentLoader.h"
 #include "DisplayGroupListWidget.h"
 #include "MasterQuickView.h"
 #include "configuration/Configuration.h"
@@ -64,8 +63,60 @@
 
 namespace
 {
-const QString SESSION_FILES_FILTER("Session files (*.dcx)");
-const QSize DEFAULT_WINDOW_SIZE(810, 600);
+const QString SESSION_FILE_EXTENSION{"dcx"};
+const QString SESSION_FILES_FILTER{"Session files (*.dcx)"};
+const QSize DEFAULT_WINDOW_SIZE{810, 600};
+
+int _countSupportedContentsInDir(const QString& directoryName)
+{
+    QDir dir(directoryName);
+    dir.setFilter(QDir::Files);
+    dir.setNameFilters(ContentFactory::getSupportedFilesFilter());
+    return dir.entryInfoList().size();
+}
+
+QStringList _extractSupportedContents(const QMimeData* mimeData)
+{
+    QStringList pathList;
+    if (mimeData->hasUrls())
+    {
+        for (const auto& url : mimeData->urls())
+        {
+            const auto extension =
+                QFileInfo(url.toLocalFile().toLower()).suffix();
+            if (ContentFactory::getSupportedExtensions().contains(extension))
+                pathList.append(url.toLocalFile());
+        }
+    }
+    return pathList;
+}
+
+QStringList _extractFolders(const QMimeData* mimeData)
+{
+    QStringList pathList;
+    if (mimeData->hasUrls())
+    {
+        for (const auto& url : mimeData->urls())
+        {
+            if (QDir(url.toLocalFile()).exists())
+                pathList.append(url.toLocalFile());
+        }
+    }
+    return pathList;
+}
+
+QString _extractSessionFile(const QMimeData* mimeData)
+{
+    const auto urlList = mimeData->urls();
+    if (urlList.size() == 1)
+    {
+        const auto url = urlList[0].toLocalFile();
+        const auto extension = QFileInfo{url.toLower()}.suffix();
+        if (extension == SESSION_FILE_EXTENSION)
+            return url;
+    }
+    return QString();
+}
 }
 
 MasterWindow::MasterWindow(ScenePtr scene_, OptionsPtr options,
@@ -104,6 +155,33 @@ std::vector<MasterQuickView*> MasterWindow::getQuickViews()
     return _quickViews;
 }
 
+void MasterWindow::dragEnterEvent(QDragEnterEvent* dragEvent)
+{
+    const auto mimeData = dragEvent->mimeData();
+    const auto contents = _extractSupportedContents(mimeData);
+    const auto folders = _extractFolders(mimeData);
+    const auto sessionFile = _extractSessionFile(mimeData);
+
+    if (!contents.empty() || !folders.empty() || !sessionFile.isNull())
+        dragEvent->acceptProposedAction();
+}
+
+void MasterWindow::dropEvent(QDropEvent* dropEvt)
+{
+    for (const auto& url : _extractSupportedContents(dropEvt->mimeData()))
+        _addContent(url);
+
+    const auto folders = _extractFolders(dropEvt->mimeData());
+    if (!folders.isEmpty())
+        _addContentsDirectory(folders[0]); // Only one directory at a time
+
+    const auto sessionFile = _extractSessionFile(dropEvt->mimeData());
+    if (!sessionFile.isNull())
+        _loadSession(sessionFile);
+
+    dropEvt->acceptProposedAction();
+}
+
 void MasterWindow::_setupMasterWindowUI()
 {
     // add main tab widget
@@ -136,7 +214,7 @@ void MasterWindow::_setupMasterWindowUI()
     auto clearContentsAction = new QAction("Clear", this);
     clearContentsAction->setStatusTip("Clear all contents");
     connect(clearContentsAction, &QAction::triggered,
-            [this]() { _getActiveGroup().clear(); });
+            [this]() { emit clear(_getActiveSceneIndex()); });
 
     // save session action
     auto saveSessionAction = new QAction("Save Session", this);
@@ -390,51 +468,31 @@ void MasterWindow::_addDisplayGroupTabView(
 
 void MasterWindow::_openContent()
 {
-    const auto filter = ContentFactory::getSupportedFilesFilterAsString();
+    const auto filename = QFileDialog::getOpenFileName(
+        this, tr("Choose content"), _contentFolder,
+        ContentFactory::getSupportedFilesFilterAsString());
 
-    const auto filename =
-        QFileDialog::getOpenFileName(this, tr("Choose content"), _contentFolder,
-                                     filter);
     if (filename.isEmpty())
         return;
 
-    _contentFolder = QFileInfo(filename).absoluteDir().path();
+    _contentFolder = QFileInfo{filename}.absoluteDir().path();
 
-    ContentLoader loader(_getActiveGroup());
-    if (!loader.load(filename))
-    {
-        QMessageBox messageBox;
-        messageBox.setText(loader.isAlreadyOpen(filename)
-                               ? "File already open."
-                               : "Unsupported file.");
-        messageBox.exec();
-    }
+    _addContent(filename);
 }
 
-void MasterWindow::_addContentDirectory(const QString& directoryName,
-                                        const QSize& gridSize)
+void MasterWindow::_addContent(const QString& filename)
 {
-    QDir directory(directoryName);
-    directory.setFilter(QDir::Files);
-    directory.setNameFilters(ContentFactory::getSupportedFilesFilter());
-
-    const auto list = directory.entryInfoList();
-
-    // Prevent opening of folders with an excessively large number of items
-    if (list.size() > 16)
+    if (_scene->getGroup(_getActiveSceneIndex()).findWindow(filename))
     {
-        QString msg = "Opening this folder will create " +
-                      QString::number(list.size()) +
-                      " content elements. Are you sure you want to continue?";
-
-        const auto reply =
-            QMessageBox::question(this, "Warning", msg,
-                                  QMessageBox::Yes | QMessageBox::No);
-        if (reply != QMessageBox::Yes)
-            return;
+        _openInfoBox("File already open.");
+        return;
     }
 
-    ContentLoader{_getActiveGroup()}.loadDir(directoryName, gridSize);
+    emit open(_getActiveSceneIndex(), filename, QPointF(),
+              [this](const bool result) {
+                  if (!result)
+                      _openInfoBox("Unsupported file.");
+              });
 }
 
 void MasterWindow::_openContentsDirectory()
@@ -446,11 +504,28 @@ void MasterWindow::_openContentsDirectory()
 
     _contentFolder = dirName;
 
-    const auto gridX = QInputDialog::getInt(this, "Grid X dimension",
-                                            "Grid X dimension", 0, 0);
-    const auto gridY = QInputDialog::getInt(this, "Grid Y dimension",
-                                            "Grid Y dimension", 0, 0);
-    _addContentDirectory(dirName, {gridX, gridY});
+    _addContentsDirectory(dirName);
+}
+
+void MasterWindow::_addContentsDirectory(const QString& directoryName)
+{
+    const auto items = _countSupportedContentsInDir(directoryName);
+
+    // Prevent opening of folders with an excessively large number of items
+    if (items > 16)
+    {
+        const auto msg = "Opening this folder will open " +
+                         QString::number(items) +
+                         " contents. Are you sure you want to continue?";
+        if (!_getConfirmation(msg))
+            return;
+    }
+
+    emit open(_getActiveSceneIndex(), directoryName, QPointF(),
+              [this](const bool result) {
+                  if (!result)
+                      _openInfoBox("No files could be open.");
+              });
 }
 
 void MasterWindow::_openSession()
@@ -478,10 +553,7 @@ void MasterWindow::_saveSession()
 
     emit save(filename, [this](const bool result) {
         if (!result)
-        {
-            QMessageBox::warning(this, "Error", "Could not save session file.",
-                                 QMessageBox::Ok, QMessageBox::Ok);
-        }
+            _openErrorBox("Could not save session file.");
     });
 }
 
@@ -489,107 +561,42 @@ void MasterWindow::_loadSession(const QString& filename)
 {
     emit load(filename, [this](const bool result) {
         if (!result)
-        {
-            QMessageBox::warning(this, "Error", "Could not load session file.",
-                                 QMessageBox::Ok, QMessageBox::Ok);
-        }
+            _openErrorBox("Could not load session file.");
     });
 }
 
 void MasterWindow::_openAboutWidget()
 {
-    const auto revision = tide::Version::getRevision();
-
     std::ostringstream aboutMsg;
     aboutMsg << "Current version: " << tide::Version::getString();
     aboutMsg << std::endl;
-    aboutMsg << "SCM revision: " << std::hex << revision << std::dec;
+    aboutMsg << "SCM revision: " << std::hex << tide::Version::getRevision()
+             << std::dec;
 
     QMessageBox::about(this, "About Tide", aboutMsg.str().c_str());
+}
+
+void MasterWindow::_openInfoBox(const QString& msg)
+{
+    QMessageBox messageBox;
+    messageBox.setText(msg);
+    messageBox.exec();
+}
+
+void MasterWindow::_openErrorBox(const QString& msg)
+{
+    QMessageBox::warning(this, "Error", msg, QMessageBox::Ok, QMessageBox::Ok);
+}
+
+bool MasterWindow::_getConfirmation(const QString& msg)
+{
+    const auto reply =
+        QMessageBox::question(this, "Warning", msg,
+                              QMessageBox::Yes | QMessageBox::No);
+    return reply == QMessageBox::Yes;
 }
 
 uint MasterWindow::_getActiveSceneIndex() const
 {
     return static_cast<QTabWidget*>(centralWidget())->currentIndex();
-}
-
-DisplayGroup& MasterWindow::_getActiveGroup()
-{
-    return _scene->getGroup(_getActiveSceneIndex());
-}
-
-QStringList MasterWindow::_extractValidContentUrls(const QMimeData* mimeData)
-{
-    QStringList pathList;
-
-    if (mimeData->hasUrls())
-    {
-        for (const auto& url : mimeData->urls())
-        {
-            const auto extension =
-                QFileInfo(url.toLocalFile().toLower()).suffix();
-            if (ContentFactory::getSupportedExtensions().contains(extension))
-                pathList.append(url.toLocalFile());
-        }
-    }
-
-    return pathList;
-}
-
-QStringList MasterWindow::_extractFolderUrls(const QMimeData* mimeData)
-{
-    QStringList pathList;
-
-    if (mimeData->hasUrls())
-    {
-        for (const auto& url : mimeData->urls())
-        {
-            if (QDir(url.toLocalFile()).exists())
-                pathList.append(url.toLocalFile());
-        }
-    }
-
-    return pathList;
-}
-
-QString MasterWindow::_extractSessionFile(const QMimeData* mimeData)
-{
-    const auto urlList = mimeData->urls();
-    if (urlList.size() == 1)
-    {
-        const auto url = urlList[0].toLocalFile();
-        const auto extension = QFileInfo{url.toLower()}.suffix();
-        if (extension == "dcx")
-            return url;
-    }
-    return QString();
-}
-
-void MasterWindow::dragEnterEvent(QDragEnterEvent* dragEvent)
-{
-    const auto mimeData = dragEvent->mimeData();
-    const auto pathList = _extractValidContentUrls(mimeData);
-    const auto dirList = _extractFolderUrls(mimeData);
-    const auto sessionFile = _extractSessionFile(mimeData);
-
-    if (!pathList.empty() || !dirList.empty() || !sessionFile.isNull())
-        dragEvent->acceptProposedAction();
-}
-
-void MasterWindow::dropEvent(QDropEvent* dropEvt)
-{
-    const auto urls = _extractValidContentUrls(dropEvt->mimeData());
-    ContentLoader loader(_getActiveGroup());
-    for (const auto& url : urls)
-        loader.load(url);
-
-    const auto folders = _extractFolderUrls(dropEvt->mimeData());
-    if (!folders.isEmpty())
-        _addContentDirectory(folders[0]); // Only one directory at a time
-
-    const auto sessionFile = _extractSessionFile(dropEvt->mimeData());
-    if (!sessionFile.isNull())
-        _loadSession(sessionFile);
-
-    dropEvt->acceptProposedAction();
 }

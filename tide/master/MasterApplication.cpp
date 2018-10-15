@@ -205,6 +205,9 @@ void MasterApplication::_initGUIWindow()
 {
     _masterWindow.reset(new MasterWindow(_scene, _options, *_config));
 
+    connect(_masterWindow.get(), &MasterWindow::open, _sceneController.get(),
+            &SceneController::open);
+
     connect(_masterWindow.get(), &MasterWindow::load, _sessionController.get(),
             &SessionController::load);
 
@@ -218,6 +221,9 @@ void MasterApplication::_initGUIWindow()
     connect(_masterWindow.get(), &MasterWindow::openWhiteboard,
             _pixelStreamerLauncher.get(),
             &PixelStreamerLauncher::openWhiteboard);
+
+    connect(_masterWindow.get(), &MasterWindow::clear, _sceneController.get(),
+            &SceneController::clear);
 
     _createGUISurfaceRenderers();
 }
