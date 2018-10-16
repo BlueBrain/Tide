@@ -33,6 +33,7 @@ var fileBrowserDiscreteTextColor = "#B0B0B0"
 var fileBrowserBlinkColor = "lightblue"
 var fileBrowserItemSizeRel = 0.2
 var fileBrowserTextSizeRelToItem = 0.09
+var fileBrowserGridSectionTextRelSize = 0.35
 
 var placeholderTopColor = "darkgrey"
 var placeholderBottomColor = "lightgrey"

@@ -1,4 +1,4 @@
-// Copyright (c) 2016, EPFL/Blue Brain Project
+// Copyright (c) 2016-2018, EPFL/Blue Brain Project
 //                          Raphael Dumusc <raphael.dumusc@epfl.ch>
 import QtQuick 2.3
 import QtQuick.Controls 1.3
@@ -12,6 +12,8 @@ Item {
     property alias rootfolder: browser.rootfolder
     property alias nameFilters: browser.nameFilters
     property alias listViewMode: browser.listViewMode
+    property alias gridViewSortByDate: browser.gridViewSortByDate
+    property alias hideExtensions: browser.hideExtensions
 
     signal saveSession(string filename)
     signal refreshSessionName

@@ -6,7 +6,12 @@
         <file>qml/CurtainDialog.qml</file>
         <file>qml/DefaultPanel.qml</file>
         <file>qml/FileBrowser.qml</file>
+        <file>qml/FileBrowserGridItem.qml</file>
+        <file>qml/FileBrowserGridSection.qml</file>
+        <file>qml/FileBrowserGridView.qml</file>
         <file>qml/FileBrowserImage.qml</file>
+        <file>qml/FileBrowserListItem.qml</file>
+        <file>qml/FileBrowserListView.qml</file>
         <file>qml/FileBrowserViewButton.qml</file>
         <file>qml/LaunchMenu.qml</file>
         <file>qml/OptionsPanel.qml</file>

@@ -1,9 +1,7 @@
 // Copyright (c) 2018, EPFL/Blue Brain Project
 //                     Raphael Dumusc <raphael.dumusc@epfl.ch>
-//
 // Note: a ScrollBar QML Type is available in Qt Quick Controls 2 starting from
 // Qt 5.7. TODO deprectate this component when upgrading the minimum Qt version.
-
 import QtQuick 2.0
 
 Rectangle {
@@ -22,7 +20,8 @@ Rectangle {
     Rectangle {
         id: handle
         width: parent.width
-        height: Math.max(20, flickable.visibleArea.heightRatio * scrollbar.height)
+        height: Math.max(20,
+                         flickable.visibleArea.heightRatio * scrollbar.height)
         color: "black"
         opacity: clicker.drag.active ? 0.7 : 0.4
         radius: 0.5 * width
@@ -43,10 +42,12 @@ Rectangle {
             axis: Drag.YAxis
         }
         onMouseYChanged: {
-            flickable.contentY = handle.y / drag.maximumY * (flickable.contentHeight - flickable.height);
+            flickable.contentY = handle.y / drag.maximumY
+                    * (flickable.contentHeight - flickable.height)
         }
         onClicked: {
-            flickable.contentY = mouse.y / scrollbar.height * (flickable.contentHeight - flickable.height);
+            flickable.contentY = mouse.y / scrollbar.height
+                    * (flickable.contentHeight - flickable.height)
         }
     }
 }

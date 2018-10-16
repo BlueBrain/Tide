@@ -5,12 +5,14 @@
 set(TIDELAUNCHER_HEADERS
   FolderModel.h
   Launcher.h
+  ModelFilter.h
 )
 
 set(TIDELAUNCHER_SOURCES
   FolderModel.cpp
   Launcher.cpp
   main.cpp
+  ModelFilter.cpp
   resources.qrc
 )
 
