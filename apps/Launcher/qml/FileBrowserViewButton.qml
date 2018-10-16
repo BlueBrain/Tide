@@ -1,6 +1,5 @@
 // Copyright (c) 2015-2016, EPFL/Blue Brain Project
 //                          Raphael Dumusc <raphael.dumusc@epfl.ch>
-
 import QtQuick 2.0
 import QtQuick.Controls 1.2
 import "style.js" as Style

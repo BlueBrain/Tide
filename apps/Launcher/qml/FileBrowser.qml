@@ -19,7 +19,9 @@ Rectangle {
     property string rootfolder: ""
     property alias nameFilters: folders.nameFilters // list<string>
     property alias listViewMode: listViewButton.checked
+    property alias hideExtensions: folders.hideExtensions
     property bool allowOpeningFolder: false
+    property bool gridViewSortByDate: false
 
     // infos
     property alias currentFolder: folders.rootFolder
@@ -28,7 +30,6 @@ Rectangle {
     // internal
     property int itemSize: height * Style.fileBrowserItemSizeRel
     property real textPixelSize: itemSize * Style.fileBrowserTextSizeRelToItem
-    property real textColumnSize: textPixelSize * 10
 
     Connections {
         target: deflectgestures
@@ -69,9 +70,8 @@ Rectangle {
         return bytes.toFixed(1) + ' ' + units[u]
     }
 
-    function humanReadableModificationDate(modDate) {
+    function humanReadableModificationDate(date) {
         var now = new Date()
-        var date = new Date(modDate)
         if (now - date < 1000 * 3600 * 24)
             // less than one day
             return date.toLocaleTimeString()
@@ -83,304 +83,54 @@ Rectangle {
     FolderModel {
         id: folders
         rootFolder: fileBrowser.rootfolder
-        function toggleSortOrder() {
-            sortOrder = (sortOrder
-                         == FolderModel.Ascending) ? FolderModel.Descending : FolderModel.Ascending
-        }
         property string sortIcon: sortOrder == FolderModel.Ascending ? "▲" : "▼"
-    }
-
-    Component {
-        id: gridFileDelegate
-        Rectangle {
-            id: wrapper
-            width: itemSize
-            height: itemSize
-            color: "transparent"
-
-            FileBrowserImage {
-                anchors.fill: parent
-                anchors.margins: 0.05 * wrapper.width
-                file: filePath
-            }
-
-            Text {
-                id: nameText
-                text: fileName
-                anchors.top: parent.bottom
-                width: parent.width
-                horizontalAlignment: Text.AlignHCenter
-                wrapMode: Text.WrapAnywhere
-                maximumLineCount: 2
-                elide: Text.ElideRight // ElideMiddle does not work with wrapped text
-                color: Style.fileBrowserTextColor
-                font.pixelSize: textPixelSize
-            }
-
-            MouseArea {
-                id: mouseRegion
-                anchors.fill: parent
-                onPressed: wrapper.GridView.view.currentIndex = index
-                onClicked: clickAnimation.start()
-                onPressAndHold: {
-                    if (fileBrowser.allowOpeningFolder && fileIsDir
-                            && filesInDir > 0) {
-                        curtain.showDialog(filesInDir, filePath)
-                    }
-                }
-            }
-
-            ColorAnimation on color {
-                id: clickAnimation
-                running: false
-                from: Style.fileBrowserBlinkColor
-                to: "transparent"
-                onStopped: fileBrowser.openItem(filePath, fileIsDir)
+        function setGridSortOrder() {
+            if (fileBrowser.gridViewSortByDate) {
+                sortCategory = FolderModel.Date
+                sortOrder = FolderModel.Descending
+            } else {
+                sortCategory = FolderModel.Name
+                sortOrder = FolderModel.Ascending
             }
         }
     }
 
-    GridView {
-        id: gridview
+    FileBrowserGridView {
+        visible: gridViewButton.checked
+
         anchors.top: titleBar.bottom
         anchors.bottom: parent.bottom
         anchors.left: parent.left
         anchors.right: parent.right
         anchors.leftMargin: itemSize * Style.mainPanelRelMargin
-        visible: gridViewButton.checked
 
-        cellWidth: itemSize * 1.33
-        cellHeight: cellWidth
-        model: DelegateModel {
-            id: gridDelegateModel
-            model: folders
-            rootIndex: folders.getPathIndex(folders.rootFolder)
+        foldersModel: folders
+        sectionModel: gridViewSortByDate ? folders.years : undefined
+        gridItemSize: itemSize
 
-            Connections {
-                target: folders
-                onRootFolderChanged: rootIndex = folders.getPathIndex(
-                                         folders.rootFolder)
-            }
-
-            // Mysterious hack to prevent rootIndex from being reset
-            // asynchronously when using a QFileSystemModel:
-            // http://lists.qt-project.org/pipermail/interest/2015-August/018369.html
-            onRootIndexChanged: {
-                rootIndex = folders.getPathIndex(folders.rootFolder)
-            }
-            delegate: gridFileDelegate
-        }
-
-        ScrollBar {
-        }
-    }
-
-    Component {
-        id: listFileDelegate
-        Rectangle {
-            id: wrapper
-            width: parent.width
-            height: itemSize * Style.fileBrowserListItemRelSize
-            color: "transparent"
-
-            FileBrowserImage {
-                id: fileimage
-                height: parent.height
-                width: height
-                file: filePath
-            }
-
-            Text {
-                id: nameText
-                text: fileName
-                anchors.left: fileimage.right
-                anchors.leftMargin: font.pixelSize
-                anchors.right: sizeText.left
-                elide: Text.ElideMiddle
-
-                anchors.verticalCenter: parent.verticalCenter
-                font.pixelSize: textPixelSize
-                color: Style.fileBrowserTextColor
-            }
-
-            Text {
-                id: sizeText
-                text: humanReadableFileSize(fileSize, true)
-                anchors.right: modifiedText.left
-                visible: !fileIsDir
-
-                anchors.verticalCenter: parent.verticalCenter
-                font.pixelSize: textPixelSize
-                color: Style.fileBrowserTextColor
-            }
-
-            Text {
-                id: modifiedText
-                text: humanReadableModificationDate(fileModified)
-                anchors.right: wrapper.right
-                width: textColumnSize
-                horizontalAlignment: Text.AlignRight
-
-                anchors.verticalCenter: parent.verticalCenter
-                font.pixelSize: textPixelSize
-                color: Style.fileBrowserTextColor
-            }
-
-            MouseArea {
-                id: mouseRegion
-                anchors.fill: parent
-                onPressed: wrapper.ListView.view.currentIndex = index
-                onClicked: clickAnimation.start()
-                onPressAndHold: {
-                    if (fileBrowser.allowOpeningFolder && fileIsDir
-                            && filesInDir > 0) {
-                        curtain.showDialog(filesInDir, filePath)
-                    }
-                }
-            }
-
-            ColorAnimation on color {
-                id: clickAnimation
-                running: false
-                from: Style.fileBrowserBlinkColor
-                to: "transparent"
-                onStopped: fileBrowser.openItem(filePath, fileIsDir)
+        onOpenItem: fileBrowser.openItem(filePath, fileIsDir)
+        onFolderAction: {
+            if (fileBrowser.allowOpeningFolder) {
+                curtain.showDialog(filesInDir, filePath)
             }
         }
     }
 
-    Item {
-        id: listviewTable
+    FileBrowserListView {
+        visible: listViewButton.checked
+
         anchors.top: titleBar.bottom
         anchors.bottom: parent.bottom
         anchors.left: parent.left
         anchors.right: parent.right
-        visible: listViewButton.checked
 
-        ListView {
-            id: listview
-            anchors.top: sortBar.bottom
-            anchors.bottom: parent.bottom
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.rightMargin: scrollBar.visible ? 0.5 * scrollBar.width
-                                                     + anchors.leftMargin : anchors.leftMargin
-            anchors.leftMargin: itemSize * Style.mainPanelRelMargin
-            spacing: itemSize * Style.fileBrowserListItemSpacing
-            clip: true
+        foldersModel: folders
+        listItemSize: itemSize
 
-            model: DelegateModel {
-                id: listDelegateModel
-                model: folders
-                rootIndex: folders.getPathIndex(folders.rootFolder)
-
-                Connections {
-                    target: folders
-                    onRootFolderChanged: rootIndex = folders.getPathIndex(
-                                             folders.rootFolder)
-                }
-
-                // Mysterious hack to prevent rootIndex from being reset
-                // asynchronously when using a QFileSystemModel:
-                // http://lists.qt-project.org/pipermail/interest/2015-August/018369.html
-                onRootIndexChanged: {
-                    rootIndex = folders.getPathIndex(folders.rootFolder)
-                }
-                delegate: listFileDelegate
-            }
-
-            section.property: folders.sortCategory == FolderModel.Name ? "fileName" : ""
-            section.criteria: ViewSection.FirstCharacter
-            section.delegate: Item {
-                width: parent.width
-                height: 1.5 * textPixelSize
-                Text {
-                    text: section
-                    font.capitalization: Font.Capitalize
-                    font.pixelSize: textPixelSize
-                }
-            }
-        }
-
-        ScrollBar {
-            id: scrollBar
-            anchors.top: listview.top
-            anchors.right: parent.right
-            flickable: listview
-        }
-
-        Rectangle {
-            id: sortBar
-            height: titleBar.height / 2
-            anchors.left: listview.left
-            anchors.right: listview.right
-            color: Style.fileBrowserBackgroundColor
-
-            Text {
-                id: nameText
-                property bool active: folders.sortCategory == FolderModel.Name
-                text: (active ? folders.sortIcon + " " : "") + "name"
-                horizontalAlignment: Text.AlignHCenter
-                anchors.left: sortBar.left
-                anchors.right: sizeText.left
-
-                anchors.verticalCenter: parent.verticalCenter
-                font.pixelSize: textPixelSize
-                color: Style.fileBrowserTextColor
-
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        if (parent.active)
-                            folders.toggleSortOrder()
-                        else
-                            folders.sortCategory = FolderModel.Name
-                    }
-                }
-            }
-            Text {
-                id: sizeText
-                property bool active: folders.sortCategory == FolderModel.Size
-                text: (active ? folders.sortIcon + " " : "") + "size"
-                anchors.right: modifiedText.left
-                width: textColumnSize
-                horizontalAlignment: Text.AlignRight
-
-                anchors.verticalCenter: parent.verticalCenter
-                font.pixelSize: textPixelSize
-                color: Style.fileBrowserTextColor
-
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        if (parent.active)
-                            folders.toggleSortOrder()
-                        else
-                            folders.sortCategory = FolderModel.Size
-                    }
-                }
-            }
-            Text {
-                id: modifiedText
-                property bool active: folders.sortCategory == FolderModel.Date
-                text: (active ? folders.sortIcon + " " : "") + "modified"
-                anchors.right: sortBar.right
-                width: textColumnSize
-                horizontalAlignment: Text.AlignRight
-
-                anchors.verticalCenter: parent.verticalCenter
-                font.pixelSize: textPixelSize
-                color: Style.fileBrowserTextColor
-
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: {
-                        if (parent.active)
-                            folders.toggleSortOrder()
-                        else
-                            folders.sortCategory = FolderModel.Date
-                    }
-                }
+        onOpenItem: fileBrowser.openItem(filePath, fileIsDir)
+        onFolderAction: {
+            if (fileBrowser.allowOpeningFolder) {
+                curtain.showDialog(filesInDir, filePath)
             }
         }
     }
@@ -456,8 +206,7 @@ Rectangle {
                 icon: "qrc:/images/gridview.svg"
                 onCheckedChanged: {
                     if (checked) {
-                        folders.sortCategory = FolderModel.Name
-                        folders.sortOrder = FolderModel.Ascending
+                        folders.setGridSortOrder()
                     }
                 }
             }

@@ -41,35 +41,56 @@
 
 #include <QDateTime>
 
+#include <set>
+
+namespace
+{
+template <typename T>
+QStringList _toQStringList(const T& set, const FolderModel::SortOrder sortOrder)
+{
+    QStringList list;
+    auto listInserter = std::back_inserter(list);
+    auto numberToString = [](const auto& i) { return QString::number(i); };
+    if (sortOrder == FolderModel::SortOrder::Descending)
+        std::transform(set.rbegin(), set.rend(), listInserter, numberToString);
+    else
+        std::transform(set.begin(), set.end(), listInserter, numberToString);
+    return list;
+}
+}
+
 FolderModel::FolderModel()
 {
     setReadOnly(true);
     setFilter(QDir::AllDirs | QDir::Files | QDir::NoDotAndDotDot);
     setNameFilterDisables(false);
+    connect(this, &QFileSystemModel::directoryLoaded, this,
+            &FolderModel::yearsChanged);
 }
 
 QHash<int, QByteArray> FolderModel::roleNames() const
 {
-    return {{fileName, "fileName"},   {filePath, "filePath"},
-            {fileSize, "fileSize"},   {fileModified, "fileModified"},
-            {fileIsDir, "fileIsDir"}, {filesInDir, "filesInDir"}};
+    return {{FileName, "fileName"},   {FilePath, "filePath"},
+            {FileSize, "fileSize"},   {FileModified, "fileModified"},
+            {FileIsDir, "fileIsDir"}, {FilesInDir, "filesInDir"}};
 }
 
 QVariant FolderModel::data(const QModelIndex& index, const int role) const
 {
     switch (role)
     {
-    case fileName:
-        return fileInfo(index).fileName();
-    case filePath:
+    case FileName:
+        return _hideExtensions ? fileInfo(index).baseName()
+                               : fileInfo(index).fileName();
+    case FilePath:
         return QFileSystemModel::filePath(index);
-    case fileSize:
+    case FileSize:
         return fileInfo(index).size();
-    case fileModified:
-        return fileInfo(index).lastModified().toString();
-    case fileIsDir:
+    case FileModified:
+        return fileInfo(index).lastModified();
+    case FileIsDir:
         return isDir(index);
-    case filesInDir:
+    case FilesInDir:
     {
         const auto info = fileInfo(index);
         if (!info.isDir())
@@ -82,6 +103,11 @@ QVariant FolderModel::data(const QModelIndex& index, const int role) const
     }
     }
     return QVariant();
+}
+
+QModelIndex FolderModel::getRootIndex() const
+{
+    return getPathIndex(getRootFolder());
 }
 
 QModelIndex FolderModel::getPathIndex(const QString& path) const
@@ -114,6 +140,32 @@ FolderModel::SortCategory FolderModel::getSortCategory() const
 FolderModel::SortOrder FolderModel::getSortOrder() const
 {
     return _sortOrder;
+}
+
+QStringList FolderModel::getYears() const
+{
+    std::set<int> years;
+    const auto parent = getPathIndex(getRootFolder());
+    const auto numRows = rowCount(parent);
+    for (auto i = 0; i < numRows; ++i)
+    {
+        const auto idx = index(i, 0, parent);
+        const auto dateTime = idx.data(FileModified).toDateTime();
+        const auto year = dateTime.date().year();
+        years.insert(year);
+    }
+    return _toQStringList(years, getSortOrder());
+}
+
+void FolderModel::toggleSortOrder()
+{
+    setSortOrder((_sortOrder == SortOrder::Ascending) ? SortOrder::Descending
+                                                      : SortOrder::Ascending);
+}
+
+bool FolderModel::getHideExtensions() const
+{
+    return _hideExtensions;
 }
 
 void FolderModel::setRootFolder(QString rootfolder)
@@ -154,6 +206,15 @@ void FolderModel::setSortOrder(FolderModel::SortOrder sortOrder)
     emit sortOrderChanged(sortOrder);
 }
 
+void FolderModel::setHideExtensions(const bool hideExtensions)
+{
+    if (_hideExtensions == hideExtensions)
+        return;
+
+    _hideExtensions = hideExtensions;
+    emit hideExtensionsChanged(_hideExtensions);
+}
+
 void FolderModel::_updateSorting()
 {
     sort(_getQtSortCategory(), _getQtSortOrder());
@@ -163,11 +224,11 @@ int FolderModel::_getQtSortCategory() const
 {
     switch (_sortCategory)
     {
-    case FolderModel::SortCategory::Name:
+    case SortCategory::Name:
         return 0;
-    case FolderModel::SortCategory::Size:
+    case SortCategory::Size:
         return 1;
-    case FolderModel::SortCategory::Date:
+    case SortCategory::Date:
         return 3;
     default:
         throw std::logic_error("Not implemented");
@@ -178,9 +239,9 @@ Qt::SortOrder FolderModel::_getQtSortOrder() const
 {
     switch (_sortOrder)
     {
-    case FolderModel::SortOrder::Ascending:
+    case SortOrder::Ascending:
         return Qt::AscendingOrder;
-    case FolderModel::SortOrder::Descending:
+    case SortOrder::Descending:
         return Qt::DescendingOrder;
     default:
         throw std::logic_error("Not implemented");

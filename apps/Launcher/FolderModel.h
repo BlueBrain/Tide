@@ -41,9 +41,10 @@
 #define FOLDERMODEL_H
 
 #include <QFileSystemModel>
+#include <QList>
 
 /**
- * Expose the files of a folder to Qml.
+ * Expose a filesystem model to Qml.
  *
  * This is a replacement for Qt.labs.folderlistmodel for which the caseSensitive
  * property is not working.
@@ -62,6 +63,9 @@ class FolderModel : public QFileSystemModel
                    setSortCategory NOTIFY sortCategoryChanged)
     Q_PROPERTY(SortOrder sortOrder READ getSortOrder WRITE setSortOrder NOTIFY
                    sortOrderChanged)
+    Q_PROPERTY(bool hideExtensions READ getHideExtensions WRITE
+                   setHideExtensions NOTIFY hideExtensionsChanged)
+    Q_PROPERTY(QStringList years READ getYears NOTIFY yearsChanged)
 
 public:
     FolderModel();
@@ -83,16 +87,19 @@ public:
 
     enum FolderModelRoles
     {
-        fileName = Qt::UserRole,
-        filePath,
-        fileSize,
-        fileModified,
-        fileIsDir,
-        filesInDir
+        FileName = Qt::UserRole + 5,
+        FilePath,
+        FileSize,
+        FileModified,
+        FileIsDir,
+        FilesInDir
     };
+    Q_ENUMS(FolderModelRoles)
+
     QHash<int, QByteArray> roleNames() const override;
     QVariant data(const QModelIndex& index, const int role) const override;
 
+    Q_INVOKABLE QModelIndex getRootIndex() const;
     Q_INVOKABLE QModelIndex getPathIndex(const QString& path) const;
     Q_INVOKABLE QString getParentFolder() const;
 
@@ -100,18 +107,26 @@ public:
     QStringList getNameFilters() const;
     SortCategory getSortCategory() const;
     SortOrder getSortOrder() const;
+    bool getHideExtensions() const;
+
+    QStringList getYears() const;
+
+    Q_INVOKABLE void toggleSortOrder();
 
 public slots:
     void setRootFolder(QString rootfolder);
     void setNameFilters(QStringList nameFilters);
     void setSortCategory(SortCategory sortCategory);
     void setSortOrder(SortOrder sortOrder);
+    void setHideExtensions(bool hideExtensions);
 
 signals:
     void rootFolderChanged(QString rootfolder);
     void nameFiltersChanged(QStringList nameFilters);
     void sortCategoryChanged(SortCategory sortCategory);
     void sortOrderChanged(SortOrder sortOrder);
+    void hideExtensionsChanged(bool hideExtensions);
+    void yearsChanged();
 
 private:
     void _updateSorting();
@@ -120,6 +135,7 @@ private:
 
     SortCategory _sortCategory = FolderModel::SortCategory::Name;
     SortOrder _sortOrder = FolderModel::SortOrder::Ascending;
+    bool _hideExtensions = false;
 };
 
 #endif

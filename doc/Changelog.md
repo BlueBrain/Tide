@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [278](https://github.com/BlueBrain/Tide/pull/278):
+  Launcher: sort sessions by modification date.
 * [277](https://github.com/BlueBrain/Tide/pull/277):
   Show current session name in Launcher and web interface.
 * [276](https://github.com/BlueBrain/Tide/pull/276):

@@ -93,6 +93,8 @@ Rectangle {
             rootfolder: rootSessionsFolder
             nameFilters: ["*.dcx"]
             listViewMode: useListViewMode
+            gridViewSortByDate: true
+            hideExtensions: true
             onListViewModeChanged: useListViewMode = listViewMode
         }
     }
@@ -104,6 +106,8 @@ Rectangle {
             nameFilters: ["*.dcx"]
             onSaveSession: sendJsonRpc("application", "save", filename)
             listViewMode: useListViewMode
+            gridViewSortByDate: true
+            hideExtensions: true
             onListViewModeChanged: useListViewMode = listViewMode
             onRefreshSessionName: sendRestQuery("session", updateSessionName)
         }

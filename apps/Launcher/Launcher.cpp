@@ -41,6 +41,7 @@
 #include "Launcher.h"
 
 #include "FolderModel.h"
+#include "ModelFilter.h"
 
 #include "tide/core/scene/ContentFactory.h"
 #include "tide/core/thumbnail/ThumbnailProvider.h"
@@ -74,6 +75,7 @@ Launcher::Launcher(int& argc, char* argv[])
     : QApplication(argc, argv)
 {
     qmlRegisterType<FolderModel>("Launcher", 1, 0, "FolderModel");
+    qmlRegisterType<ModelFilter>("Launcher", 1, 0, "ModelFilter");
 
     const CommandLineOptions options(argc, argv);
 
