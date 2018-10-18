@@ -36,21 +36,21 @@ Item {
         HorizontalButtonSeparator {
             width: Style.buttonsSizeLarge
         }
-        FocusButton {
-            id: focusButton
-            visible: !displaygroup.empty && !displaygroup.hasFocusedWindows
-                     && !displaygroup.hasFullscreenWindows
-            size: Style.buttonsSizeLarge
-            onClicked: sidecontroller.toggleFocusAll()
-        }
-        LockButton {
-            visible: displaygroup.empty
-            size: Style.buttonsSizeLarge
-        }
         ExitButton {
             id: exitButton
             visible: displaygroup.hasFocusedWindows
                      || displaygroup.hasFullscreenWindows
+            size: Style.buttonsSizeLarge
+        }
+        FocusButton {
+            id: focusButton
+            visible: !exitButton.visible && !displaygroup.empty
+                     && !displaygroup.hasVisiblePanels
+            size: Style.buttonsSizeLarge
+            onClicked: sidecontroller.toggleFocusAll()
+        }
+        LockButton {
+            visible: !exitButton.visible && !focusButton.visible
             size: Style.buttonsSizeLarge
         }
     }
