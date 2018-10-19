@@ -57,15 +57,9 @@
 
 namespace
 {
-#ifdef _WIN32
-const QString LAUNCHER_BIN("tideLauncher.exe");
-const QString WEBBROWSER_BIN("tideWebbrowser.exe");
-const QString WHITEBOARD_BIN("tideWhiteboard.exe");
-#else
 const QString LAUNCHER_BIN("tideLauncher");
 const QString WEBBROWSER_BIN("tideWebbrowser");
 const QString WHITEBOARD_BIN("tideWhiteboard");
-#endif
 }
 
 QString _getLauncherCommand(const QString& args)

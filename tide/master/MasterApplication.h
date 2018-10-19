@@ -49,18 +49,14 @@
 #include <QApplication>
 #include <QThread>
 
+class AppController;
 class MasterSurfaceRenderer;
 class MasterQuickView;
 class MasterToWallChannel;
 class MasterToForkerChannel;
 class MasterFromWallChannel;
 class MasterWindow;
-class PixelStreamerLauncher;
-class PixelStreamWindowManager;
 class RestInterface;
-class SceneController;
-class SessionController;
-class ScreenController;
 class ScreenshotAssembler;
 /**
  * The main application for the Master process.
@@ -104,37 +100,25 @@ private:
     QThread _mpiSendThread;
     QThread _mpiReceiveThread;
 
-    Session _session;
     ScenePtr _scene;
+    Session _session;
     ScreenLockPtr _lock;
     MarkersPtr _markers;
     OptionsPtr _options;
-    std::unique_ptr<InactivityTimer> _inactivityTimer;
-    std::unique_ptr<SceneController> _sceneController;
-    std::unique_ptr<SessionController> _sessionController;
 
     std::unique_ptr<MasterWindow> _masterWindow;
     std::unique_ptr<deflect::qt::OffscreenQuickView> _offscreenQuickView;
     std::vector<std::unique_ptr<MasterSurfaceRenderer>> _surfaceRenderers;
 
     std::unique_ptr<deflect::server::Server> _deflectServer;
-    std::unique_ptr<PixelStreamerLauncher> _pixelStreamerLauncher;
-    std::unique_ptr<PixelStreamWindowManager> _pixelStreamWindowManager;
-
 #if TIDE_ENABLE_REST_INTERFACE
     std::unique_ptr<RestInterface> _restInterface;
     std::unique_ptr<ActivityLogger> _logger;
 #endif
-
-#if TIDE_ENABLE_PLANAR_CONTROLLER
-    std::unique_ptr<ScreenController> _screenController;
-#endif
-
+    std::unique_ptr<AppController> _appController;
     std::unique_ptr<ScreenshotAssembler> _screenshotAssembler;
 
     void _validateConfig();
-
-    void _init();
     void _initView();
     void _initGUIWindow();
     void _createGUISurfaceRenderers();
@@ -142,17 +126,11 @@ private:
     void _initOffscreenView();
     void _createNextSurfaceRenderer(QQmlEngine& engine, QQuickItem& parentItem);
     void _setContextProperties(QQmlContext& context);
-
-    void _startDeflectServer();
-    void _setupMPIConnections();
 #if TIDE_ENABLE_REST_INTERFACE
     void _initRestInterface();
+    void _connectRestInterface();
 #endif
-#if TIDE_ENABLE_PLANAR_CONTROLLER
-    void _initScreenController();
-#endif
-    void _suspend();
-    void _resume();
+    void _setupMPIConnections();
 
     void _takeScreenshot(uint surfaceIndex, QString filename);
 

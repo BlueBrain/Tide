@@ -1,7 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
-/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -38,37 +37,42 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef APP_REMOTE_CONTROLLER_H
-#define APP_REMOTE_CONTROLLER_H
+#ifndef APP_CONTROLLER_H
+#define APP_CONTROLLER_H
 
 #include "types.h"
 
-#include <rockets/jsonrpc/asyncReceiver.h>
+#include "config.h"
 
 #include <QObject>
 
+class PixelStreamerLauncher;
+class SceneController;
+class SessionController;
+class ScreenController;
+
 /**
- * Remote controller for the application using JSON-RPC.
+ * The application's main controller.
  */
-class AppRemoteController : public QObject,
-                            private rockets::jsonrpc::AsyncReceiver
+class AppController : public QObject
 {
     Q_OBJECT
 
 public:
-    /**
-     * Construct an application controller.
-     *
-     * @param config the application configuration.
-     */
-    AppRemoteController(const Configuration& config);
+    AppController(Session& session, ScreenLock& lock,
+                  deflect::server::Server& deflectServer, Options& options,
+                  const Configuration& config);
+    ~AppController();
 
-    using rockets::jsonrpc::AsyncReceiver::process;
-
-signals:
     /** Open a content. */
     void open(uint surfaceIndex, QString uri, QPointF coords,
               BoolCallback callback);
+
+    /** Open a list of contents. */
+    void openAll(const QStringList& uris);
+
+    /** Clear all contents from a surface. */
+    void clear(uint surfaceIndex);
 
     /** Load a session. */
     void load(QString uri, BoolCallback callback);
@@ -76,21 +80,67 @@ signals:
     /** Save a session to the given file. */
     void save(QString uri, BoolCallback callback);
 
-    /** Browse a website. */
-    void browse(uint surfaceIndex, QString url, QSize size, QPointF pos,
-                ushort debugPort);
+    /** Open the launcher. */
+    void openLauncher();
+
+    /**
+     * Open a Webbrowser.
+     *
+     * @param surfaceIndex The surface on which to open the window.
+     * @param url The webpage to open.
+     * @param size The initial size of the viewport of the webbrowser in pixels.
+     * @param pos The position of the center of the browser window.
+     *        If pos.isNull(), the window is centered on the DisplayWall.
+     * @param debugPort Optional port to enable Chromium's remote debugging.
+     */
+    void openWebbrowser(uint surfaceIndex, QString url, QSize size, QPointF pos,
+                        ushort debugPort);
 
     /** Open a whiteboard. */
     void openWhiteboard(uint surfaceIndex);
 
-    /** Take a screenshot. */
-    void takeScreenshot(uint surfaceIndex, QString filename);
+    /** Terminate a pixel stream. */
+    void terminateStream(const QString& uri);
 
-    /** Power off the screens. */
-    void powerOff();
+    /** Suspend activity (turn off screens). */
+    void suspend();
 
-    /** Exit the application. */
-    void exit();
+    /** Resumue activity (turn on screens). */
+    void resume();
+
+    /** Resume activity when a touch occurs. */
+    void handleTouchEvent(uint numTouchPoints);
+
+signals:
+    /** Emitted when the power state of the displays changes. */
+    void screenStateChanged(ScreenState state);
+
+    /** Emitted when the state of the countdown is modified. */
+    void countdownUpdated(CountdownStatusPtr);
+
+    /** Request the launch of a command in a working directory and given ENV. */
+    void start(QString command, QString workingDir, QStringList env);
+
+private:
+    std::unique_ptr<SceneController> _sceneController;
+    std::unique_ptr<SessionController> _sessionController;
+    std::unique_ptr<PixelStreamWindowManager> _pixelStreamWindowManager;
+    std::unique_ptr<PixelStreamerLauncher> _pixelStreamerLauncher;
+    ScreenLock& _lock;
+    const Configuration& _config;
+
+    std::unique_ptr<InactivityTimer> _inactivityTimer;
+#if TIDE_ENABLE_PLANAR_CONTROLLER
+    std::unique_ptr<ScreenController> _screenController;
+#endif
+
+    void _initScreenController(const Configuration& config);
+    void _connect(ScreenLock& lock,
+                  PixelStreamWindowManager& pixelStreamWindowManager);
+    void _connect(deflect::server::Server& deflectServer,
+                  PixelStreamWindowManager& pixelStreamWindowManager);
+    void _connect(Options& options,
+                  PixelStreamWindowManager& pixelStreamWindowManager);
 };
 
 #endif

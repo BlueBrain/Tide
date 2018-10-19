@@ -45,9 +45,7 @@
 #include "serialization/includes.h"
 
 #include <QAbstractListModel>
-#include <QObject>
 #include <QPointF>
-#include <map>
 
 /**
  * Store Markers to display user interaction.
@@ -75,7 +73,6 @@ public:
     int rowCount(const QModelIndex& parent = QModelIndex()) const override;
     QHash<int, QByteArray> roleNames() const override;
 
-public slots:
     void addMarker(int id, const QPointF& position);
     void updateMarker(int id, const QPointF& position);
     void removeMarker(int id);

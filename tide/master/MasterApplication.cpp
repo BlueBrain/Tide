@@ -43,12 +43,9 @@
 #include "QmlTypeRegistration.h"
 #include "configuration/Configuration.h"
 #include "configuration/SurfaceConfigValidator.h"
-#include "control/PixelStreamWindowManager.h"
-#include "control/SceneController.h"
-#include "control/SessionController.h"
+#include "control/AppController.h"
 #include "gui/MasterQuickView.h"
 #include "gui/MasterWindow.h"
-#include "localstreamer/PixelStreamerLauncher.h"
 #include "network/MasterFromWallChannel.h"
 #include "network/MasterToForkerChannel.h"
 #include "network/MasterToWallChannel.h"
@@ -61,7 +58,6 @@
 #include "scene/Scene.h"
 #include "scene/ScreenLock.h"
 #include "scene/VectorialContent.h"
-#include "tools/InactivityTimer.h"
 #include "tools/ScreenshotAssembler.h"
 #include "utils/log.h"
 
@@ -70,12 +66,7 @@
 #include "tools/ActivityLogger.h"
 #endif
 
-#if TIDE_ENABLE_PLANAR_CONTROLLER
-#include "hardware/ScreenControllerFactory.h"
-#endif
-
 #include <deflect/qt/QuickRenderer.h>
-#include <deflect/server/EventReceiver.h>
 #include <deflect/server/Server.h>
 
 #include <QQuickRenderControl>
@@ -85,6 +76,19 @@ namespace
 {
 const int MOUSE_MARKER_ID = INT_MAX; // TUIO touch point IDs start at 0
 const QUrl QML_OFFSCREEN_ROOT_COMPONENT("qrc:/qml/master/OffscreenRoot.qml");
+
+std::unique_ptr<deflect::server::Server> _createDeflectServer()
+{
+    try
+    {
+        return std::make_unique<deflect::server::Server>();
+    }
+    catch (const std::runtime_error& e)
+    {
+        throw std::runtime_error(std::string("Deflect server error: ") +
+                                 e.what());
+    }
+}
 }
 
 MasterApplication::MasterApplication(int& argc_, char** argv_,
@@ -92,14 +96,24 @@ MasterApplication::MasterApplication(int& argc_, char** argv_,
                                      MPICommunicator& wallSendComm,
                                      MPICommunicator& wallRecvComm,
                                      MPICommunicator& forkerSendComm)
-    : QApplication(argc_, argv_)
-    , _config(new Configuration(config))
-    , _masterToForkerChannel(new MasterToForkerChannel(forkerSendComm))
-    , _masterToWallChannel(new MasterToWallChannel(wallSendComm))
-    , _masterFromWallChannel(new MasterFromWallChannel(wallRecvComm))
-    , _lock(ScreenLock::create())
-    , _markers(Markers::create(0))
-    , _options(Options::create())
+    : QApplication{argc_, argv_}
+    , _config{new Configuration{config}}
+    , _masterToForkerChannel{new MasterToForkerChannel{forkerSendComm}}
+    , _masterToWallChannel{new MasterToWallChannel{wallSendComm}}
+    , _masterFromWallChannel{new MasterFromWallChannel{wallRecvComm}}
+    , _scene{Scene::create(_config->surfaces)}
+    , _session{_scene}
+    , _lock{ScreenLock::create()}
+    , _markers{Markers::create(0)}
+    , _options{Options::create()} // clang-format off
+    , _deflectServer{_createDeflectServer()}
+#if TIDE_ENABLE_REST_INTERFACE
+    , _restInterface{new RestInterface{_config->master.webservicePort, _options,
+                                       _session, *_config}}
+    , _logger{new ActivityLogger}
+#endif
+    , _appController{new AppController{_session, *_lock, *_deflectServer,
+                                       *_options, *_config}} // clang-format on
 {
     qml::registerTypes();
     Content::setMaxScale(_config->settings.contentMaxScale);
@@ -110,15 +124,17 @@ MasterApplication::MasterApplication(int& argc_, char** argv_,
     setAttribute(Qt::AA_SynthesizeMouseForUnhandledTouchEvents, false);
 
     _validateConfig();
-    _init();
-
+    _initView();
+#if TIDE_ENABLE_REST_INTERFACE
+    _connectRestInterface();
+#endif
+    _setupMPIConnections();
     _masterToWallChannel->send(*_config);
 }
 
 MasterApplication::~MasterApplication()
 {
     _deflectServer.reset();
-    _pixelStreamerLauncher.reset();
 
     // Make sure the send quit happens after any pending send operation;
     // If a send operation is not matched by a receive, the MPI connection
@@ -137,7 +153,7 @@ MasterApplication::~MasterApplication()
 
 void MasterApplication::load(const QString& sessionFile)
 {
-    _sessionController->load(sessionFile, BoolCallback());
+    _appController->load(sessionFile, BoolCallback());
 }
 
 void MasterApplication::_validateConfig()
@@ -156,43 +172,6 @@ void MasterApplication::_validateConfig()
     }
 }
 
-void MasterApplication::_init()
-{
-    _scene = Scene::create(_config->surfaces);
-    _session = Session{_scene};
-    _sessionController =
-        std::make_unique<SessionController>(_session, _config->folders);
-    _sceneController =
-        std::make_unique<SceneController>(*_scene, _config->folders);
-
-    connect(_sessionController.get(), &SessionController::startWebbrowser,
-            [this](const auto& webbrowser) {
-                _pixelStreamerLauncher->launch(webbrowser);
-            });
-
-    _pixelStreamWindowManager.reset(new PixelStreamWindowManager(*_scene));
-    _pixelStreamWindowManager->setAutoFocusNewWindows(
-        _options->getAutoFocusPixelStreams());
-    connect(_options.get(), &Options::autoFocusPixelStreamsChanged,
-            _pixelStreamWindowManager.get(),
-            &PixelStreamWindowManager::setAutoFocusNewWindows);
-
-    _pixelStreamerLauncher.reset(
-        new PixelStreamerLauncher(*_pixelStreamWindowManager, *_config));
-
-    _initView();
-
-#if TIDE_ENABLE_REST_INTERFACE
-    _initRestInterface();
-#endif
-#if TIDE_ENABLE_PLANAR_CONTROLLER
-    if (!_config->master.planarSerialPort.isEmpty())
-        _initScreenController();
-#endif
-    _startDeflectServer();
-    _setupMPIConnections();
-}
-
 void MasterApplication::_initView()
 {
     if (_config->master.headless)
@@ -205,25 +184,23 @@ void MasterApplication::_initGUIWindow()
 {
     _masterWindow.reset(new MasterWindow(_scene, _options, *_config));
 
-    connect(_masterWindow.get(), &MasterWindow::open, _sceneController.get(),
-            &SceneController::open);
+    connect(_masterWindow.get(), &MasterWindow::open, _appController.get(),
+            &AppController::open);
 
-    connect(_masterWindow.get(), &MasterWindow::load, _sessionController.get(),
-            &SessionController::load);
+    connect(_masterWindow.get(), &MasterWindow::load, _appController.get(),
+            &AppController::load);
 
-    connect(_masterWindow.get(), &MasterWindow::save, _sessionController.get(),
-            &SessionController::save);
+    connect(_masterWindow.get(), &MasterWindow::save, _appController.get(),
+            &AppController::save);
 
     connect(_masterWindow.get(), &MasterWindow::openWebBrowser,
-            _pixelStreamerLauncher.get(),
-            &PixelStreamerLauncher::openWebbrowser);
+            _appController.get(), &AppController::openWebbrowser);
 
     connect(_masterWindow.get(), &MasterWindow::openWhiteboard,
-            _pixelStreamerLauncher.get(),
-            &PixelStreamerLauncher::openWhiteboard);
+            _appController.get(), &AppController::openWhiteboard);
 
-    connect(_masterWindow.get(), &MasterWindow::clear, _sceneController.get(),
-            &SceneController::clear);
+    connect(_masterWindow.get(), &MasterWindow::clear, _appController.get(),
+            &AppController::clear);
 
     _createGUISurfaceRenderers();
 }
@@ -271,9 +248,9 @@ void MasterApplication::_createNextSurfaceRenderer(QQmlEngine& engine,
         _scene->getSurface(_surfaceRenderers.size()), engine, parentItem);
 
     connect(renderer.get(), &MasterSurfaceRenderer::openLauncher,
-            _pixelStreamerLauncher.get(), &PixelStreamerLauncher::openLauncher);
-    connect(renderer.get(), &MasterSurfaceRenderer::open,
-            _sceneController.get(), &SceneController::openAll);
+            _appController.get(), &AppController::openLauncher);
+    connect(renderer.get(), &MasterSurfaceRenderer::open, _appController.get(),
+            &AppController::openAll);
 
     _surfaceRenderers.emplace_back(std::move(renderer));
 }
@@ -284,62 +261,45 @@ void MasterApplication::_setContextProperties(QQmlContext& context)
     context.setContextProperty("lock", _lock.get());
 }
 
-void MasterApplication::_startDeflectServer()
+#if TIDE_ENABLE_REST_INTERFACE
+void MasterApplication::_connectRestInterface()
 {
-    if (_deflectServer)
-        return;
-    try
-    {
-        _deflectServer.reset(new deflect::server::Server);
-    }
-    catch (const std::runtime_error& e)
-    {
-        print_log(LOG_FATAL, LOG_STREAM, "Could not start Deflect server: '%s'",
-                  e.what());
-        return;
-    }
+    _logger->monitor(*_scene);
+    _restInterface->exposeStatistics(*_logger);
 
-    connect(_deflectServer.get(), &deflect::server::Server::pixelStreamOpened,
-            _pixelStreamWindowManager.get(),
-            &PixelStreamWindowManager::handleStreamStart);
+    connect(_lock.get(), &ScreenLock::lockChanged,
+            [this](const bool locked) { _restInterface->lock(locked); });
 
-    connect(_deflectServer.get(),
-            &deflect::server::Server::pixelStreamException,
-            [](const QString uri, const QString what) {
-                print_log(LOG_WARN, LOG_STREAM,
-                          "Stream '%s' encountered an exception: '%s'",
-                          uri.toLocal8Bit().constData(),
-                          what.toLocal8Bit().constData());
-            });
+    connect(_appController.get(), &AppController::screenStateChanged,
+            _logger.get(), &ActivityLogger::logScreenStateChanged);
 
-    connect(_deflectServer.get(), &deflect::server::Server::pixelStreamClosed,
-            _pixelStreamWindowManager.get(),
-            &PixelStreamWindowManager::handleStreamEnd);
+    const auto& appRemoteController = _restInterface->getAppRemoteController();
 
-    connect(_pixelStreamWindowManager.get(),
-            &PixelStreamWindowManager::streamWindowClosed, _deflectServer.get(),
-            &deflect::server::Server::closePixelStream);
+    connect(&appRemoteController, &AppRemoteController::open,
+            _appController.get(), &AppController::open);
 
-    connect(_deflectServer.get(), &deflect::server::Server::receivedFrame,
-            _pixelStreamWindowManager.get(),
-            &PixelStreamWindowManager::updateStreamWindows);
+    connect(&appRemoteController, &AppRemoteController::load,
+            _appController.get(), &AppController::load);
 
-    connect(_pixelStreamWindowManager.get(),
-            &PixelStreamWindowManager::requestFirstFrame, _deflectServer.get(),
-            &deflect::server::Server::requestFrame);
+    connect(&appRemoteController, &AppRemoteController::save,
+            _appController.get(), &AppController::save);
 
-    connect(_deflectServer.get(), &deflect::server::Server::registerToEvents,
-            _pixelStreamWindowManager.get(),
-            &PixelStreamWindowManager::registerEventReceiver);
+    connect(&appRemoteController, &AppRemoteController::browse,
+            _appController.get(), &AppController::openWebbrowser);
 
-    connect(_deflectServer.get(), &deflect::server::Server::receivedSizeHints,
-            _pixelStreamWindowManager.get(),
-            &PixelStreamWindowManager::updateSizeHints);
+    connect(&appRemoteController, &AppRemoteController::openWhiteboard,
+            _appController.get(), &AppController::openWhiteboard);
 
-    connect(_deflectServer.get(), &deflect::server::Server::receivedData,
-            _pixelStreamWindowManager.get(),
-            &PixelStreamWindowManager::sendDataToWindow);
+    connect(&appRemoteController, &AppRemoteController::takeScreenshot, this,
+            &MasterApplication::_takeScreenshot);
+
+    connect(&appRemoteController, &AppRemoteController::powerOff,
+            _appController.get(), &AppController::suspend);
+
+    connect(&appRemoteController, &AppRemoteController::exit, this,
+            &QCoreApplication::quit);
 }
+#endif
 
 void MasterApplication::_setupMPIConnections()
 {
@@ -347,183 +307,54 @@ void MasterApplication::_setupMPIConnections()
     _masterToWallChannel->moveToThread(&_mpiSendThread);
     _masterFromWallChannel->moveToThread(&_mpiReceiveThread);
 
-    connect(_pixelStreamerLauncher.get(), &PixelStreamerLauncher::start,
+    connect(_appController.get(), &AppController::start,
             _masterToForkerChannel.get(), &MasterToForkerChannel::sendStart);
 
     connect(_scene.get(), &Scene::modified, _masterToWallChannel.get(),
-            [this](ScenePtr scene) { _masterToWallChannel->sendAsync(scene); },
+            [this](ScenePtr scene) {
+                _masterToWallChannel->sendAsync(std::move(scene));
+            },
             Qt::DirectConnection);
 
     connect(_options.get(), &Options::updated, _masterToWallChannel.get(),
             [this](OptionsPtr options) {
-                _masterToWallChannel->sendAsync(options);
+                _masterToWallChannel->sendAsync(std::move(options));
             },
             Qt::DirectConnection);
 
-    if (_inactivityTimer)
-    {
-        connect(_inactivityTimer.get(), &InactivityTimer::countdownUpdated,
-                _masterToWallChannel.get(),
-                [this](CountdownStatusPtr status) {
-                    _masterToWallChannel->sendAsync(status);
-                },
-                Qt::DirectConnection);
-    }
+    connect(_appController.get(), &AppController::countdownUpdated,
+            _masterToWallChannel.get(),
+            [this](CountdownStatusPtr status) {
+                _masterToWallChannel->sendAsync(std::move(status));
+            },
+            Qt::DirectConnection);
 
     connect(_lock.get(), &ScreenLock::modified, [this](ScreenLockPtr lock) {
-        _masterToWallChannel->sendAsync(lock);
+        _masterToWallChannel->sendAsync(std::move(lock));
     });
-
-    connect(_pixelStreamWindowManager.get(),
-            &PixelStreamWindowManager::streamWindowClosed, _lock.get(),
-            &ScreenLock::cancelStreamAcceptance);
-
-    connect(_pixelStreamWindowManager.get(),
-            &PixelStreamWindowManager::externalStreamOpening, _lock.get(),
-            &ScreenLock::requestStreamAcceptance);
-
-    connect(_lock.get(), &ScreenLock::streamAccepted,
-            _pixelStreamWindowManager.get(),
-            &PixelStreamWindowManager::showWindows);
-
-    connect(_lock.get(), &ScreenLock::streamRejected,
-            _pixelStreamWindowManager.get(),
-            &PixelStreamWindowManager::handleStreamEnd);
 
     connect(_markers.get(), &Markers::updated, _masterToWallChannel.get(),
             [this](MarkersPtr markers) {
-                _masterToWallChannel->sendAsync(markers);
+                _masterToWallChannel->sendAsync(std::move(markers));
             },
             Qt::DirectConnection);
 
-    if (_deflectServer)
-    {
-        connect(_masterFromWallChannel.get(),
-                &MasterFromWallChannel::receivedRequestFrame,
-                _deflectServer.get(), &deflect::server::Server::requestFrame);
+    connect(_masterFromWallChannel.get(),
+            &MasterFromWallChannel::receivedRequestFrame, _deflectServer.get(),
+            &deflect::server::Server::requestFrame);
 
-        connect(_deflectServer.get(), &deflect::server::Server::receivedFrame,
-                _masterToWallChannel.get(), &MasterToWallChannel::sendFrame);
-    }
+    connect(_deflectServer.get(), &deflect::server::Server::receivedFrame,
+            _masterToWallChannel.get(), &MasterToWallChannel::sendFrame);
 
     connect(_masterFromWallChannel.get(),
-            &MasterFromWallChannel::pixelStreamClose,
-            _pixelStreamWindowManager.get(),
-            &PixelStreamWindowManager::handleStreamEnd);
+            &MasterFromWallChannel::pixelStreamClose, _appController.get(),
+            &AppController::terminateStream);
 
     connect(&_mpiReceiveThread, &QThread::started, _masterFromWallChannel.get(),
             &MasterFromWallChannel::processMessages);
 
     _mpiSendThread.start();
     _mpiReceiveThread.start();
-}
-
-#if TIDE_ENABLE_REST_INTERFACE
-void MasterApplication::_initRestInterface()
-{
-    _logger = std::make_unique<ActivityLogger>();
-    _logger->monitor(*_scene);
-
-    _restInterface =
-        std::make_unique<RestInterface>(_config->master.webservicePort,
-                                        _options, _session, *_config);
-    _restInterface->exposeStatistics(*_logger);
-
-    connect(_lock.get(), &ScreenLock::lockChanged,
-            [this](const bool locked) { _restInterface->lock(locked); });
-
-    const auto& appController = _restInterface->getAppRemoteController();
-
-    connect(&appController, &AppRemoteController::open, _sceneController.get(),
-            &SceneController::open);
-
-    connect(&appController, &AppRemoteController::load,
-            _sessionController.get(), &SessionController::load);
-
-    connect(&appController, &AppRemoteController::save,
-            _sessionController.get(), &SessionController::save);
-
-    connect(&appController, &AppRemoteController::browse,
-            _pixelStreamerLauncher.get(),
-            &PixelStreamerLauncher::openWebbrowser);
-
-    connect(&appController, &AppRemoteController::openWhiteboard,
-            _pixelStreamerLauncher.get(),
-            &PixelStreamerLauncher::openWhiteboard);
-
-    connect(&appController, &AppRemoteController::takeScreenshot, this,
-            &MasterApplication::_takeScreenshot);
-
-    connect(&appController, &AppRemoteController::powerOff, this,
-            &MasterApplication::_suspend);
-
-    connect(&appController, &AppRemoteController::exit, this,
-            &QCoreApplication::quit);
-}
-#endif
-
-#if TIDE_ENABLE_PLANAR_CONTROLLER
-void MasterApplication::_initScreenController()
-{
-    _screenController =
-        ScreenControllerFactory::create(_config->master.planarSerialPort);
-
-    _inactivityTimer =
-        std::make_unique<InactivityTimer>(_config->settings.inactivityTimeout);
-
-    connect(_inactivityTimer.get(), &InactivityTimer::poweroff, [this]() {
-        _screenController->powerOff();
-        print_log(LOG_INFO, LOG_POWER,
-                  "Powering off the screens on inactivity timeout");
-    });
-
-    connect(_screenController.get(), &ScreenController::powerStateChanged,
-            [this](const ScreenState state) {
-                if (state == ScreenState::on)
-                    _inactivityTimer->restart();
-                else
-                    _inactivityTimer->stop();
-            });
-
-    connect(_screenController.get(), &ScreenController::powerStateChanged,
-            [this](const ScreenState state) {
-                if (state == ScreenState::off)
-                    _lock->unlock();
-            });
-
-#if TIDE_ENABLE_REST_INTERFACE
-    connect(_screenController.get(), &ScreenController::powerStateChanged,
-            _logger.get(), &ActivityLogger::logScreenStateChanged);
-#endif
-}
-#endif
-
-void MasterApplication::_suspend()
-{
-#if TIDE_ENABLE_PLANAR_CONTROLLER
-    if (_screenController && _screenController->getState() == ScreenState::on)
-    {
-        if (_screenController->powerOff())
-            _sceneController->hideLauncher();
-        else
-            print_log(LOG_ERROR, LOG_POWER, "Could not power off the screens");
-    }
-#endif
-}
-
-void MasterApplication::_resume()
-{
-#if TIDE_ENABLE_PLANAR_CONTROLLER
-    if (_screenController && _screenController->getState() == ScreenState::off)
-    {
-        if (_screenController->powerOn())
-            print_log(LOG_INFO, LOG_POWER,
-                      "Powered on the screens by touching the wall");
-        else
-            print_log(LOG_ERROR, LOG_POWER,
-                      "Could not power on the screens by touching the wall");
-    }
-#endif
 }
 
 void MasterApplication::_takeScreenshot(const uint surfaceIndex,
@@ -570,14 +401,8 @@ bool MasterApplication::notify(QObject* receiver, QEvent* event)
 
 void MasterApplication::_handle(const QTouchEvent* event)
 {
-    if (_inactivityTimer)
-        _inactivityTimer->restart();
-
-    if ((uint)event->touchPoints().length() >=
-        _config->settings.touchpointsToWakeup)
-    {
-        _resume();
-    }
+    _appController->handleTouchEvent(
+        static_cast<uint>(event->touchPoints().length()));
 
     const auto wallSize = _config->surfaces[0].getTotalSize();
     auto getWallPos = [wallSize](const QPointF& normalizedPos) {

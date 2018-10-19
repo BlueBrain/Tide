@@ -14,6 +14,7 @@ set(TIDEMASTER_LINK_LIBRARIES
 
 list(APPEND TIDEMASTER_PUBLIC_HEADERS
   CommandLineParameters.h
+  control/AppController.h
   control/ContentController.h
   control/ContentLoader.h
   control/ContextMenuController.h
@@ -63,6 +64,7 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
 
 list(APPEND TIDEMASTER_SOURCES
   CommandLineParameters.cpp
+  control/AppController.cpp
   control/ContentController.cpp
   control/ContentLoader.cpp
   control/ContextMenuController.cpp
