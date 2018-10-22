@@ -59,6 +59,7 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   session/SessionSaver.h
   tools/ActivityLogger.h
   tools/InactivityTimer.h
+  tools/MarkersUpdater.h
   tools/ScreenshotAssembler.h
 )
 
@@ -109,6 +110,7 @@ list(APPEND TIDEMASTER_SOURCES
   session/SessionSaver.cpp
   tools/ActivityLogger.cpp
   tools/InactivityTimer.cpp
+  tools/MarkersUpdater.cpp
   tools/ScreenshotAssembler.cpp
 )
 
