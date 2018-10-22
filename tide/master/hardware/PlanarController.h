@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -74,17 +75,17 @@ public:
      */
     PlanarController(const QString& serialport, const Type type);
 
-    /** Get the power state of Planar displays. */
+    /** @copydoc ScreenController::getState */
     ScreenState getState() const final;
 
-    /** Refresh the power state of Planar displays */
-    void checkPowerState() final;
+    /** @copydoc ScreenController::checkState */
+    void checkState(ScreenStateCallback callback) final;
 
-    /** Power on the displays. */
-    bool powerOn() final;
+    /** @copydoc ScreenController::powerOn */
+    void powerOn(BoolCallback callback) final;
 
-    /** Power off the displays. */
-    bool powerOff() final;
+    /** @copydoc ScreenController::powerOff */
+    void powerOff(BoolCallback callback) final;
 
 private:
     struct PlanarConfig
@@ -97,9 +98,15 @@ private:
     PlanarConfig _config;
     ScreenState _state;
     QSerialPort _serial;
-    QTimer _timer;
+    QTimer _refreshTimer;
+    QTimer _readingTimeoutTimer;
+    std::vector<ScreenStateCallback> _callbacks;
 
-    PlanarConfig _getConfig(Type type) const;
+    void _updateState(ScreenState state);
+    void _handleReadTimeout();
+    void _handleError(const QSerialPort::SerialPortError error);
+
+    static PlanarConfig _getConfig(Type type);
 };
 
 #endif

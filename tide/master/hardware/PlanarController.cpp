@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,14 +40,16 @@
 
 #include "PlanarController.h"
 
+#include "utils/log.h"
+
 namespace
 {
-const int serialTimeout = 1000;    // in ms
-const int powerStateTimer = 60000; // in ms
+constexpr int readTimeoutMs = 1000;
+constexpr int refreshTimeMs = 60000;
 }
 
 PlanarController::PlanarController(const QString& serialport, const Type type)
-    : _config(_getConfig(type))
+    : _config{_getConfig(type)}
 {
     _serial.setPortName(serialport);
     _serial.setBaudRate(_config.baudrate, QSerialPort::AllDirections);
@@ -60,54 +63,103 @@ PlanarController::PlanarController(const QString& serialport, const Type type)
     connect(&_serial, &QSerialPort::readyRead, [this, type]() {
         if (_serial.canReadLine())
         {
-            QString output(_serial.readLine());
-            output = output.trimmed();
+            _readingTimeoutTimer.stop();
+
+            auto output = QString{_serial.readLine()}.trimmed();
             // TV_UR9850 returns "(0;PWR=0)"
-            // Others return DISPLAY.POWER=O or DISPLAY.POWER=OFF
+            // Others return "DISPLAY.POWER=O" or "DISPLAY.POWER=OFF"
             if (type == Type::TV_UR9850)
                 output.remove(")");
-            ScreenState previousState = _state;
-            if (output.endsWith("OFF") || output.endsWith("0"))
-                _state = ScreenState::off;
-            else if (output.endsWith("ON") || output.endsWith("1"))
-                _state = ScreenState::on;
-            else
-                _state = ScreenState::undefined;
 
-            if (_state != previousState)
-                emit powerStateChanged(_state);
+            if (output.endsWith("OFF") || output.endsWith("0"))
+                _updateState(ScreenState::off);
+            else if (output.endsWith("ON") || output.endsWith("1"))
+                _updateState(ScreenState::on);
+            else
+                _updateState(ScreenState::undefined);
         }
     });
 
-    checkPowerState();
-    connect(&_timer, &QTimer::timeout, [this]() { checkPowerState(); });
-    _timer.start(powerStateTimer);
-}
+#if QT_VERSION >= 0x050800
+    constexpr auto errorSignal = &QSerialPort::errorOccurred;
+#else
+    constexpr auto errorSignal =
+        static_cast<void (QSerialPort::*)(QSerialPort::SerialPortError)>(
+            &QSerialPort::error);
+#endif
+    connect(&_serial, errorSignal, this, &PlanarController::_handleError);
 
-bool PlanarController::powerOn()
-{
-    _serial.write(_config.powerOn);
-    return _serial.waitForBytesWritten(serialTimeout);
-}
+    _readingTimeoutTimer.setSingleShot(true);
+    connect(&_readingTimeoutTimer, &QTimer::timeout, this,
+            &PlanarController::_handleReadTimeout);
 
-bool PlanarController::powerOff()
-{
-    _serial.write(_config.powerOff);
-    return _serial.waitForBytesWritten(serialTimeout);
+    connect(&_refreshTimer, &QTimer::timeout,
+            [this] { checkState(ScreenStateCallback()); });
+    _refreshTimer.start(refreshTimeMs);
+    checkState(ScreenStateCallback());
 }
 
 ScreenState PlanarController::getState() const
 {
     return _state;
 }
-void PlanarController::checkPowerState()
+
+void PlanarController::checkState(ScreenStateCallback callback)
 {
+    _callbacks.push_back(std::move(callback));
     _serial.write(_config.powerState);
-    _serial.waitForBytesWritten(serialTimeout);
+    if (!_readingTimeoutTimer.isActive())
+        _readingTimeoutTimer.start(readTimeoutMs);
 }
 
-PlanarController::PlanarConfig PlanarController::_getConfig(
-    const Type type) const
+void PlanarController::powerOn(BoolCallback callback)
+{
+    _serial.write(_config.powerOn);
+    checkState([callback](const ScreenState state) {
+        if (callback)
+            callback(state == ScreenState::on);
+    });
+}
+
+void PlanarController::powerOff(BoolCallback callback)
+{
+    _serial.write(_config.powerOff);
+    checkState([callback](const ScreenState state) {
+        if (callback)
+            callback(state == ScreenState::off);
+    });
+}
+
+void PlanarController::_updateState(const ScreenState state)
+{
+    const auto previousState = _state;
+    _state = state;
+
+    if (_state != previousState)
+        emit powerStateChanged(_state);
+
+    for (const auto& callback : _callbacks)
+    {
+        if (callback)
+            callback(_state);
+    }
+    _callbacks.clear();
+}
+
+void PlanarController::_handleReadTimeout()
+{
+    _updateState(ScreenState::undefined);
+}
+
+void PlanarController::_handleError(const QSerialPort::SerialPortError error)
+{
+    put_log(LOG_ERROR, LOG_POWER,
+            "An error (%d) occurred with serial port '%s': %s", error,
+            _serial.portName().toLocal8Bit().constData(),
+            _serial.errorString().toLocal8Bit().constData());
+}
+
+PlanarController::PlanarConfig PlanarController::_getConfig(const Type type)
 {
     switch (type)
     {

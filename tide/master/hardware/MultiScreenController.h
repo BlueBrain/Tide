@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,8 +38,8 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef MultiScreenController_H
-#define MultiScreenController_H
+#ifndef MULTI_SCREEN_CONTROLLER_H
+#define MULTI_SCREEN_CONTROLLER_H
 
 #include "PlanarController.h"
 #include "types.h"
@@ -61,17 +62,17 @@ public:
     MultiScreenController(
         std::vector<std::unique_ptr<ScreenController>>&& controllers);
 
-    /** Get the power state of controlled displays. */
+    /** @copydoc ScreenController::getState */
     ScreenState getState() const final;
 
-    /** Refresh the power state of controlled displays */
-    void checkPowerState() final;
+    /** @copydoc ScreenController::checkState */
+    void checkState(ScreenStateCallback callback) final;
 
-    /** Power on the controlled displays. */
-    bool powerOn() final;
+    /** @copydoc ScreenController::powerOn */
+    void powerOn(BoolCallback callback) final;
 
-    /** Power off the controlled displays. */
-    bool powerOff() final;
+    /** @copydoc ScreenController::powerOff */
+    void powerOff(BoolCallback callback) final;
 
 private:
     std::vector<std::unique_ptr<ScreenController>> _controllers;

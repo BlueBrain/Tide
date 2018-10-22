@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -42,6 +43,37 @@
 #include "PlanarController.h"
 #include "configuration/Configuration.h"
 
+namespace
+{
+ScreenState _getResult(const std::vector<ScreenState>& results)
+{
+    const auto state = results.empty() ? ScreenState::undefined : results[0];
+    for (const auto& result : results)
+    {
+        if (result != state)
+            return ScreenState::undefined;
+    }
+    return state;
+}
+
+bool _getResult(const std::vector<bool>& results)
+{
+    return std::find(results.begin(), results.end(), false) == results.end();
+}
+
+template <typename T>
+std::function<void(T)> _makeSharedCallback(std::function<void(T)> callback,
+                                           const size_t resultsCount)
+{
+    auto results = std::make_shared<std::vector<T>>();
+    return [=](const T result) {
+        results->push_back(result);
+        if (results->size() == resultsCount && callback)
+            callback(_getResult(*results));
+    };
+}
+}
+
 MultiScreenController::MultiScreenController(
     std::vector<std::unique_ptr<ScreenController>>&& controllers)
     : _controllers{std::move(controllers)}
@@ -62,30 +94,23 @@ ScreenState MultiScreenController::getState() const
     return state;
 }
 
-void MultiScreenController::checkPowerState()
+void MultiScreenController::checkState(ScreenStateCallback callback)
 {
+    auto sharedCallback = _makeSharedCallback(callback, _controllers.size());
     for (const auto& controller : _controllers)
-        controller->checkPowerState();
+        controller->checkState(sharedCallback);
 }
 
-bool MultiScreenController::powerOn()
+void MultiScreenController::powerOn(BoolCallback callback)
 {
-    bool success = true;
-    for (auto& controller : _controllers)
-    {
-        if (!controller->powerOn())
-            success = false;
-    }
-    return success;
+    auto sharedCallback = _makeSharedCallback(callback, _controllers.size());
+    for (const auto& controller : _controllers)
+        controller->powerOn(sharedCallback);
 }
 
-bool MultiScreenController::powerOff()
+void MultiScreenController::powerOff(BoolCallback callback)
 {
-    bool success = true;
-    for (auto& controller : _controllers)
-    {
-        if (!controller->powerOff())
-            success = false;
-    }
-    return success;
+    auto sharedCallback = _makeSharedCallback(callback, _controllers.size());
+    for (const auto& controller : _controllers)
+        controller->powerOff(sharedCallback);
 }

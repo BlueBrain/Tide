@@ -599,6 +599,7 @@ function handleUpload(evt) {
 function init() {
   bootstrapUpload();
   bootstrapMenus();
+  initScreenIcon();
 
   var xhr = new XMLHttpRequest();
   xhr.open("GET", restUrl + "config", true);
@@ -689,6 +690,33 @@ function init() {
   });
 
   bootstrapContentsDialog();
+}
+
+function initScreenIcon() {
+  $("#screenIcon").click(function(){
+    var screenIsOn = $("#screenIcon").attr("src") === screenOnImageUrl;
+    var onOffText = screenIsOn ? "OFF" : "ON";
+    swal({
+        type: "warning",
+        title: "Turn screen " + onOffText + "?",
+        text: "Are you sure you want to turn the screen " + onOffText + "?",
+        confirmButtonColor: "#DD6B55",
+        confirmButtonText: "Yes",
+        cancelButtonText: "No",
+        closeOnConfirm: true,
+        closeOnCancel: true,
+        showCancelButton: true
+      },
+      function (isConfirm) {
+        if (isConfirm) {
+          if (screenIsOn) {
+            sendAppJsonRpc("poweroff", {}, updateScreenIcon);
+          } else {
+            sendAppJsonRpc("poweron", {}, updateScreenIcon);
+          }
+        }
+      });
+  });
 }
 
 function isBezelVisible(){
@@ -1405,6 +1433,11 @@ function updateWall() {
     alertPopup("Something went wrong.", "Tide REST interface not accessible at: " + restUrl);
   };
 
+  updateLock();
+  updateScreenIcon();
+}
+
+function updateLock() {
   var lockCheck = new XMLHttpRequest();
   lockCheck.open("GET", restUrl + "lock", true);
   lockCheck.onload = function () {
@@ -1429,7 +1462,9 @@ function updateWall() {
       updateWindow(windowList[i]);
   };
   lockCheck.send(null);
+}
 
+function updateScreenIcon() {
   var screenCheck = new XMLHttpRequest();
   screenCheck.open("GET", restUrl + "stats", true);
   screenCheck.onload = function () {
@@ -1441,8 +1476,9 @@ function updateWall() {
     else if (monitorState === "OFF") {
       $("#screenIcon").attr("src", screenOffImageUrl);
     }
-    else
+    else {
       $("#screenIcon").removeAttr("src");
+    }
   };
   screenCheck.send(null);
 }

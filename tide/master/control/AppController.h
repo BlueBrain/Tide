@@ -103,10 +103,10 @@ public:
     void terminateStream(const QString& uri);
 
     /** Suspend activity (turn off screens). */
-    void suspend();
+    void suspend(BoolCallback callback);
 
     /** Resumue activity (turn on screens). */
-    void resume();
+    void resume(BoolCallback callback);
 
     /** Resume activity when a touch occurs. */
     void handleTouchEvent(uint numTouchPoints);

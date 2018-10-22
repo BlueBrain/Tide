@@ -87,7 +87,10 @@ signals:
     void takeScreenshot(uint surfaceIndex, QString filename);
 
     /** Power off the screens. */
-    void powerOff();
+    void powerOff(BoolCallback callback);
+
+    /** Power on the screens. */
+    void powerOn(BoolCallback callback);
 
     /** Exit the application. */
     void exit();

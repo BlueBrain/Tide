@@ -134,30 +134,53 @@ void AppController::terminateStream(const QString& uri)
     _pixelStreamWindowManager->handleStreamEnd(uri);
 }
 
-void AppController::suspend()
+void AppController::suspend(BoolCallback callback)
 {
 #if TIDE_ENABLE_PLANAR_CONTROLLER
-    if (_screenController && _screenController->getState() == ScreenState::on)
+    if (_screenController && _screenController->getState() != ScreenState::off)
     {
-        if (_screenController->powerOff())
-            _sceneController->hideLauncher();
-        else
-            print_log(LOG_ERROR, LOG_POWER, "Could not power off the screens");
+        auto cb = [this, callback](const bool success) {
+            if (success)
+            {
+                print_log(LOG_INFO, LOG_POWER, "Powered off the screens");
+                _sceneController->hideLauncher();
+            }
+            else
+                print_log(LOG_ERROR, LOG_POWER,
+                          "Could not power off the screens");
+
+            if (callback)
+                callback(success);
+        };
+        _screenController->powerOff(cb);
+        return;
     }
 #endif
+    if (callback)
+        callback(false);
 }
 
-void AppController::resume()
+void AppController::resume(BoolCallback callback)
 {
 #if TIDE_ENABLE_PLANAR_CONTROLLER
-    if (_screenController && _screenController->getState() == ScreenState::off)
+    if (_screenController && _screenController->getState() != ScreenState::on)
     {
-        if (_screenController->powerOn())
-            print_log(LOG_INFO, LOG_POWER, "Powered on the screens");
-        else
-            print_log(LOG_ERROR, LOG_POWER, "Could not power on the screens");
+        auto cb = [callback](const bool success) {
+            if (success)
+                print_log(LOG_INFO, LOG_POWER, "Powered on the screens");
+            else
+                print_log(LOG_ERROR, LOG_POWER,
+                          "Could not power on the screens");
+
+            if (callback)
+                callback(success);
+        };
+        _screenController->powerOn(cb);
+        return;
     }
 #endif
+    if (callback)
+        callback(false);
 }
 
 void AppController::handleTouchEvent(const uint numTouchPoints)
@@ -166,7 +189,7 @@ void AppController::handleTouchEvent(const uint numTouchPoints)
         _inactivityTimer->restart();
 
     if (numTouchPoints >= _config.settings.touchpointsToWakeup)
-        resume();
+        resume(BoolCallback());
 }
 
 void AppController::_initScreenController(const Configuration& config)
@@ -179,9 +202,9 @@ void AppController::_initScreenController(const Configuration& config)
         std::make_unique<InactivityTimer>(config.settings.inactivityTimeout);
 
     connect(_inactivityTimer.get(), &InactivityTimer::poweroff, [this]() {
-        suspend();
         print_log(LOG_INFO, LOG_POWER,
                   "Powering off the screens on inactivity timeout");
+        suspend(BoolCallback());
     });
 
     connect(_inactivityTimer.get(), &InactivityTimer::countdownUpdated, this,
@@ -203,6 +226,11 @@ void AppController::_initScreenController(const Configuration& config)
 
     connect(_screenController.get(), &ScreenController::powerStateChanged, this,
             &AppController::screenStateChanged);
+#else
+    put_log(LOG_WARN, LOG_POWER,
+            "Can't init screen controller for '%s': Tide was not compiled with "
+            "planar controller support",
+            config.master.planarSerialPort.toLocal8Bit().constData());
 #endif
 }
 void AppController::_connect(ScreenLock& lock,

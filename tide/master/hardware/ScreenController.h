@@ -1,6 +1,7 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
-/*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,8 +38,8 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef ScreenController_H
-#define ScreenController_H
+#ifndef SCREEN_CONTROLLER_H
+#define SCREEN_CONTROLLER_H
 
 #include "types.h"
 
@@ -53,20 +54,20 @@ class ScreenController : public QObject
     Q_OBJECT
 
 public:
-    /** Get the power state of Planar displays. */
+    /** Get the latest available state of the displays. */
     virtual ScreenState getState() const = 0;
 
-    /** Refresh the power state of Planar displays */
-    virtual void checkPowerState() = 0;
+    /** Refresh the state of the displays. */
+    virtual void checkState(ScreenStateCallback callback) = 0;
 
     /** Power on the displays. */
-    virtual bool powerOn() = 0;
+    virtual void powerOn(BoolCallback callback) = 0;
 
     /** Power off the displays. */
-    virtual bool powerOff() = 0;
+    virtual void powerOff(BoolCallback callback) = 0;
 
 signals:
-    /** Emitted when the power state of a display changes. */
+    /** Emitted when the state of a display changes. */
     void powerStateChanged(ScreenState state);
 };
 

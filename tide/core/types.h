@@ -181,6 +181,7 @@ typedef std::set<size_t> Indices;
 typedef std::vector<QPointF> Positions;
 
 using BoolCallback = std::function<void(bool)>;
+using ScreenStateCallback = std::function<void(ScreenState)>;
 
 static constexpr QRectF UNIT_RECTF(0.0, 0.0, 1.0, 1.0);
 static constexpr QSize UNDEFINED_SIZE(-1, -1);
