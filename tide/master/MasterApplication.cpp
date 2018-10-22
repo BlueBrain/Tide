@@ -58,6 +58,7 @@
 #include "scene/Scene.h"
 #include "scene/ScreenLock.h"
 #include "scene/VectorialContent.h"
+#include "tools/MarkersUpdater.h"
 #include "tools/ScreenshotAssembler.h"
 #include "utils/log.h"
 
@@ -74,7 +75,6 @@
 
 namespace
 {
-const int MOUSE_MARKER_ID = INT_MAX; // TUIO touch point IDs start at 0
 const QUrl QML_OFFSCREEN_ROOT_COMPONENT("qrc:/qml/master/OffscreenRoot.qml");
 
 std::unique_ptr<deflect::server::Server> _createDeflectServer()
@@ -113,7 +113,10 @@ MasterApplication::MasterApplication(int& argc_, char** argv_,
     , _logger{new ActivityLogger}
 #endif
     , _appController{new AppController{_session, *_lock, *_deflectServer,
-                                       *_options, *_config}} // clang-format on
+                                       *_options, *_config}}
+    , _markersUpdater{new MarkersUpdater{*_markers,
+                                         _config->surfaces[0].getTotalSize()}}
+// clang-format on
 {
     qml::registerTypes();
     Content::setMaxScale(_config->settings.contentMaxScale);
@@ -215,14 +218,12 @@ void MasterApplication::_createGUISurfaceRenderers()
 
 void MasterApplication::_connectGUIMouseEventsToMarkers(MasterQuickView& view)
 {
-    connect(&view, &MasterQuickView::mousePressed, [this](const QPointF pos) {
-        _markers->addMarker(MOUSE_MARKER_ID, pos);
-    });
-    connect(&view, &MasterQuickView::mouseMoved, [this](const QPointF pos) {
-        _markers->updateMarker(MOUSE_MARKER_ID, pos);
-    });
+    connect(&view, &MasterQuickView::mousePressed,
+            [this](const auto& pos) { _markersUpdater->mousePressed(pos); });
+    connect(&view, &MasterQuickView::mouseMoved,
+            [this](const auto& pos) { _markersUpdater->mouseMoved(pos); });
     connect(&view, &MasterQuickView::mouseReleased,
-            [this](const QPointF) { _markers->removeMarker(MOUSE_MARKER_ID); });
+            [this](const auto& pos) { _markersUpdater->mouseReleased(pos); });
 }
 
 void MasterApplication::_initOffscreenView()
@@ -403,29 +404,5 @@ void MasterApplication::_handle(const QTouchEvent* event)
 {
     _appController->handleTouchEvent(
         static_cast<uint>(event->touchPoints().length()));
-
-    const auto wallSize = _config->surfaces[0].getTotalSize();
-    auto getWallPos = [wallSize](const QPointF& normalizedPos) {
-        return QPointF{normalizedPos.x() * wallSize.width(),
-                       normalizedPos.y() * wallSize.height()};
-    };
-
-    for (const auto& point : event->touchPoints())
-    {
-        switch (point.state())
-        {
-        case Qt::TouchPointPressed:
-            _markers->addMarker(point.id(), getWallPos(point.normalizedPos()));
-            break;
-        case Qt::TouchPointMoved:
-            _markers->updateMarker(point.id(),
-                                   getWallPos(point.normalizedPos()));
-            break;
-        case Qt::TouchPointReleased:
-            _markers->removeMarker(point.id());
-            break;
-        case Qt::TouchPointStationary:
-            break;
-        }
-    }
+    _markersUpdater->update(event);
 }

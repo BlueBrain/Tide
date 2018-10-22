@@ -50,6 +50,7 @@
 #include <QThread>
 
 class AppController;
+class MarkersUpdater;
 class MasterSurfaceRenderer;
 class MasterQuickView;
 class MasterToWallChannel;
@@ -58,6 +59,7 @@ class MasterFromWallChannel;
 class MasterWindow;
 class RestInterface;
 class ScreenshotAssembler;
+
 /**
  * The main application for the Master process.
  */
@@ -117,6 +119,7 @@ private:
 #endif
     std::unique_ptr<AppController> _appController;
     std::unique_ptr<ScreenshotAssembler> _screenshotAssembler;
+    std::unique_ptr<MarkersUpdater> _markersUpdater;
 
     void _validateConfig();
     void _initView();
