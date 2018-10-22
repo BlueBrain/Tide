@@ -1,6 +1,7 @@
 /*********************************************************************/
 /* Copyright (c) 2018, EPFL/Blue Brain Project                       */
 /*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -53,9 +54,9 @@ public:
     MockScreenController(ScreenState state);
 
     ScreenState getState() const final;
-    void checkPowerState() final;
-    bool powerOn() final;
-    bool powerOff() final;
+    void checkState(ScreenStateCallback callback) final;
+    void powerOn(BoolCallback callback) final;
+    void powerOff(BoolCallback callback) final;
 
     bool powerOffCalled = false;
     bool powerOnCalled = false;

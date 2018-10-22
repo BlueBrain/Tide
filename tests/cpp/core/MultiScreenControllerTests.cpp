@@ -54,23 +54,29 @@ BOOST_AUTO_TEST_CASE(testUniformScreenStates)
 
     BOOST_CHECK_EQUAL(multiController.getState(), ScreenState::undefined);
 
-    multiController.powerOn();
+    bool success = false;
+    auto successCb = [&success](const auto result) { success = result; };
+
+    multiController.powerOn(successCb);
 
     for (auto& controller : controllers)
     {
         BOOST_CHECK(
             static_cast<MockScreenController&>(*controller).powerOnCalled);
     }
-
+    BOOST_CHECK(success);
     BOOST_CHECK_EQUAL(multiController.getState(), ScreenState::on);
 
-    multiController.powerOff();
+    success = false;
+
+    multiController.powerOff(successCb);
 
     for (auto& controller : controllers)
     {
         BOOST_CHECK(
             static_cast<MockScreenController&>(*controller).powerOffCalled);
     }
+    BOOST_CHECK(success);
     BOOST_CHECK_EQUAL(multiController.getState(), ScreenState::off);
 }
 
@@ -98,15 +104,21 @@ BOOST_AUTO_TEST_CASE(testSignal)
                      &MultiScreenController::powerStateChanged,
                      [&emitted]() { emitted = true; });
 
-    multiController.checkPowerState();
+    multiController.checkState(ScreenStateCallback());
     BOOST_CHECK(emitted);
 
-    emitted = false;
-    multiController.powerOff();
-    BOOST_CHECK(emitted);
+    bool success = false;
+    auto successCb = [&success](const auto result) { success = result; };
 
     emitted = false;
-    multiController.powerOn();
+    multiController.powerOff(successCb);
+    BOOST_CHECK(emitted);
+    BOOST_CHECK(success);
+
+    emitted = false;
+    success = false;
+    multiController.powerOn(successCb);
     BOOST_CHECK_EQUAL(multiController.getState(), ScreenState::on);
     BOOST_CHECK(emitted);
+    BOOST_CHECK(success);
 }

@@ -158,6 +158,19 @@ AppRemoteController::AppRemoteController(const Configuration& config)
     });
     rpc::connect("exit", [this] { emit this->exit(); });
 #if TIDE_ENABLE_PLANAR_CONTROLLER
-    rpc::connect("poweroff", [this] { emit this->powerOff(); });
+    bindAsync("poweroff",
+              [this](const jsonrpc::Request&, jsonrpc::AsyncResponse respond) {
+                  auto boolCallback = [respond](const bool result) {
+                      respond(makeJsonRpcResponse(result));
+                  };
+                  emit this->powerOff(boolCallback);
+              });
+    bindAsync("poweron",
+              [this](const jsonrpc::Request&, jsonrpc::AsyncResponse respond) {
+                  auto boolCallback = [respond](const bool result) {
+                      respond(makeJsonRpcResponse(result));
+                  };
+                  emit this->powerOn(boolCallback);
+              });
 #endif
 }

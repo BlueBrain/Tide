@@ -37,8 +37,8 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef ScreenControllerFactory_H
-#define ScreenControllerFactory_H
+#ifndef SCREEN_CONTROLLER_FACTORY_H
+#define SCREEN_CONTROLLER_FACTORY_H
 
 #include "PlanarController.h"
 #include "ScreenController.h"

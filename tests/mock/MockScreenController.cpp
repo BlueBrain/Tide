@@ -1,6 +1,7 @@
 /*********************************************************************/
 /* Copyright (c) 2018, EPFL/Blue Brain Project                       */
 /*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -49,23 +50,27 @@ ScreenState MockScreenController::getState() const
     return _state;
 }
 
-void MockScreenController::checkPowerState()
+void MockScreenController::checkState(ScreenStateCallback callback)
 {
     emit powerStateChanged(_state);
+    if (callback)
+        callback(_state);
 }
 
-bool MockScreenController::powerOn()
+void MockScreenController::powerOn(BoolCallback callback)
 {
     _state = ScreenState::on;
     emit powerStateChanged(_state);
     powerOnCalled = true;
-    return true;
+    if (callback)
+        callback(true);
 }
 
-bool MockScreenController::powerOff()
+void MockScreenController::powerOff(BoolCallback callback)
 {
     _state = ScreenState::off;
     emit powerStateChanged(_state);
     powerOffCalled = true;
-    return true;
+    if (callback)
+        callback(true);
 }

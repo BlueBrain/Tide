@@ -3,6 +3,9 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [279](https://github.com/BlueBrain/Tide/pull/279):
+  Screens can be powered on/off from the web interface by clicking the screen
+  status icon.
 * [278](https://github.com/BlueBrain/Tide/pull/278):
   Launcher: sort sessions by modification date.
 * [277](https://github.com/BlueBrain/Tide/pull/277):

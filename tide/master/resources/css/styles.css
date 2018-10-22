@@ -53,7 +53,7 @@ iframe{
 }
 
 .display {
-  position: relative; 
+  position: relative;
   outline: solid black;
 }
 
@@ -252,22 +252,10 @@ iframe{
   font-weight: normal;
 }
 
-#infoContainer {
-  margin: 0 auto;
-  position: relative;
-  text-align: center;
-  margin-top: 5px;
-  border: 0px solid;
-  width: 100%;
-  z-index: 0;
-  font-family: Arial;
-  font-size: 14px;
-  text-decoration: none;
-}
-
 #infoBox{
   top: 0;
   width: 75px;
+  z-index: 101;
   display: block;
   text-align: right;
   margin-top: 0;
@@ -310,7 +298,6 @@ iframe{
    position: absolute;
    width: 100%;
    height: 100%;
-   
 }
 
 #wall {

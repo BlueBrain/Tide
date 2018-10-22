@@ -297,6 +297,9 @@ void MasterApplication::_connectRestInterface()
     connect(&appRemoteController, &AppRemoteController::powerOff,
             _appController.get(), &AppController::suspend);
 
+    connect(&appRemoteController, &AppRemoteController::powerOn,
+            _appController.get(), &AppController::resume);
+
     connect(&appRemoteController, &AppRemoteController::exit, this,
             &QCoreApplication::quit);
 }
