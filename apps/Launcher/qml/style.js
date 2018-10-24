@@ -1,7 +1,7 @@
 // style.js
 .pragma library
 
-var windowDefaultSize = Qt.size(800, 600)
+var windowDefaultSize = Qt.size(800, 750)
 var windowBackgroundColor = "black"
 
 var menuWidth = 0.12

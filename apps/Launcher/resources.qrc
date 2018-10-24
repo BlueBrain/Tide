@@ -20,10 +20,8 @@
     </qresource>
     <qresource prefix="/">
         <file>images/add.svg</file>
-        <file>images/book.svg</file>
         <file>images/check.svg</file>
         <file>images/close.svg</file>
-        <file>images/cloud.svg</file>
         <file>images/gridview.svg</file>
         <file>images/left.svg</file>
         <file>images/listview.svg</file>
@@ -31,6 +29,8 @@
         <file>images/poweroff.svg</file>
         <file>images/save.svg</file>
         <file>images/settings.svg</file>
+        <file>images/visualisation.svg</file>
+        <file>images/webbrowser.svg</file>
         <file>images/whiteboard.svg</file>
     </qresource>
 </RCC>

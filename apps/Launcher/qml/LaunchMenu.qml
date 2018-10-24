@@ -85,14 +85,14 @@ Rectangle {
         ListElement {
             action: "startWebbrowser"
             name: "Webbrowser"
-            image: "qrc:/images/cloud.svg"
+            image: "qrc:/images/webbrowser.svg"
             category: "Applications"
             isPanel: false
         }
         ListElement {
             action: "showDemosPanel"
             name: "Visualization"
-            image: "qrc:/images/book.svg"
+            image: "qrc:/images/visualisation.svg"
             category: "Demos"
             isPanel: true
         }
