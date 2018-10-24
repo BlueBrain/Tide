@@ -44,7 +44,7 @@
 
 namespace
 {
-const auto dimensionsInMeters = QSizeF{0.8, 0.72};
+const auto dimensionsInMeters = QSizeF{0.8, 0.75};
 const auto aspectRatio =
     dimensionsInMeters.width() / dimensionsInMeters.height();
 const auto minSizePx = QSize{256, 256};

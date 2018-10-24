@@ -48,9 +48,11 @@
 
 namespace
 {
-const auto maxSizePixels = QSize{1920, 1728};
-const auto minSizePixels = QSize{284, 256};
-const auto targetSizeMeters = QSizeF{0.8, 0.72};
+constexpr auto targetSizeMeters = QSizeF{0.8, 0.75};
+constexpr auto aspectRatio =
+    targetSizeMeters.width() / targetSizeMeters.height();
+constexpr auto maxSizePixels = QSize{1920, (int)(1920 / aspectRatio)};
+constexpr auto minSizePixels = QSize{(int)(256 * aspectRatio), 256};
 
 SurfaceConfig smallSurface()
 {
@@ -95,7 +97,8 @@ void checkVerticalPosition(const QRect& window, const SurfaceConfig& surface)
 {
     // centered vertically on walls that likely don't start from the floor
     if (surface.dimensions.isValid() && surface.dimensions.height() < 1.6)
-        BOOST_CHECK_EQUAL(window.center().y(), surface.getTotalHeight() * 0.5);
+        BOOST_CHECK_CLOSE(window.center().y(), surface.getTotalHeight() * 0.5,
+                          1);
     // otherwise placed somewhere above the middle of the screen
     else
         BOOST_CHECK_GE(window.center().y(), surface.getTotalHeight() * 0.3);
@@ -112,22 +115,22 @@ void testPlacement(const SurfaceConfig& surface, const QSize& expectedSize)
 
 BOOST_AUTO_TEST_CASE(place_launcher_on_standard_wall)
 {
-    testPlacement(standardWall(), QSize{1813, 1632});
+    testPlacement(standardWall(), QSize{1740, 1632});
 }
 
 BOOST_AUTO_TEST_CASE(place_launcher_on_narrow_wall)
 {
-    testPlacement(narrowWall(), QSize{1813, 1632});
+    testPlacement(narrowWall(), QSize{1740, 1632});
 }
 
 BOOST_AUTO_TEST_CASE(place_launcher_on_wide_thin_wall)
 {
-    testPlacement(wideThinWall(), QSize{1200, 1080});
+    testPlacement(wideThinWall(), QSize{1152, 1080});
 }
 
 BOOST_AUTO_TEST_CASE(place_launcher_on_large_surface)
 {
-    testPlacement(largeProjectionSurface(), QSize{1902, 1712});
+    testPlacement(largeProjectionSurface(), QSize{1826, 1712});
 }
 
 BOOST_AUTO_TEST_CASE(place_launcher_on_small_surface)
