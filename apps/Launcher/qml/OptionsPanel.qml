@@ -12,8 +12,7 @@ DefaultPanel {
     signal exitClicked
     signal refreshOptions
 
-    property int checkboxHeight: height * 0.025
-    property int textSize: checkboxHeight * 0.8
+    property int checkboxHeight: standardTextPixelSize
 
     Grid {
         id: optionsGrid
@@ -75,13 +74,14 @@ DefaultPanel {
         anchors.topMargin: height
         anchors.horizontalCenter: parent.horizontalCenter
 
-        height: checkboxHeight * 2
+        height: sliderText.font.pixelSize * Style.sliderHeightRelToTextHeight
         width: height * Style.exitSliderRelWidth
 
         Text {
+            id: sliderText
             text: "Slide to exit"
             anchors.centerIn: parent
-            font.pointSize: textSize
+            font.pixelSize: standardTextPixelSize
             color: Style.exitSliderTextColor
             opacity: slider.opacity
         }
@@ -117,7 +117,7 @@ DefaultPanel {
         id: checkboxScalingStyle
         CheckBoxStyle {
             indicator: Rectangle {
-                implicitHeight: checkboxHeight * 1.2
+                implicitHeight: checkboxHeight
                 implicitWidth: implicitHeight
                 border.width: 0.05 * checkboxHeight
                 radius: 0.1 * checkboxHeight
@@ -140,7 +140,7 @@ DefaultPanel {
                 renderType: Text.NativeRendering
                 verticalAlignment: Text.AlignVCenter
                 horizontalAlignment: Text.AlignHCenter
-                font.pointSize: textSize
+                font.pixelSize: standardTextPixelSize
                 text: control.text
             }
         }

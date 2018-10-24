@@ -29,7 +29,6 @@ Rectangle {
 
     // internal
     property int itemSize: height * Style.fileBrowserItemSizeRel
-    property real textPixelSize: itemSize * Style.fileBrowserTextSizeRelToItem
 
     Connections {
         target: deflectgestures
@@ -179,7 +178,7 @@ Rectangle {
             anchors.right: viewButtons.left
             anchors.margins: titleBar.spacing
             color: Style.fileBrowserTextColor
-            font.pixelSize: 0.3 * height
+            font.pixelSize: standardTextPixelSize
             verticalAlignment: Text.AlignVCenter
             text: folders.rootFolder.replace(fileBrowser.rootfolder + "/", "")
             elide: Text.ElideMiddle
@@ -259,7 +258,7 @@ Rectangle {
             property string folderToOpen: ""
 
             textInfo: "Do you want to open all the supported files in this folder?"
-            textAccept: "open " + itemCount + " items"
+            textAccept: "open " + itemCount + " item" + (itemCount > 1 ? "s" : "")
 
             onAccepted: {
                 fileBrowser.itemSelected(folderToOpen)

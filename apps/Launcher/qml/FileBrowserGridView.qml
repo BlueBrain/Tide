@@ -31,7 +31,7 @@ Loader {
                     text: section
                     anchors.left: parent.left
                     anchors.right: parent.right
-                    font.pixelSize: gridItemSize * Style.fileBrowserGridSectionTextRelSize
+                    font.pixelSize: headerTextPixelSize
                     height: 2 * font.pixelSize
                     verticalAlignment: Text.AlignBottom
                 }

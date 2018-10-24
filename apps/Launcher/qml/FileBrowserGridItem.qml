@@ -30,7 +30,7 @@ Rectangle {
         maximumLineCount: 2
         elide: Text.ElideRight // ElideMiddle does not work with wrapped text
         color: Style.fileBrowserTextColor
-        font.pixelSize: textPixelSize
+        font.pixelSize: smallTextPixelSize
     }
 
     Text {
@@ -42,7 +42,7 @@ Rectangle {
         width: parent.width
         horizontalAlignment: Text.AlignHCenter
         color: Style.fileBrowserTextColor
-        font.pixelSize: textPixelSize
+        font.pixelSize: smallTextPixelSize
     }
 
     MouseArea {
