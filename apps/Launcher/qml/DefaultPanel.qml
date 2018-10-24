@@ -17,7 +17,7 @@ Rectangle {
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.bottom: smallText.top
         anchors.bottomMargin: 0.5 * smallText.height
-        font.pixelSize: 0.12 * parent.height
+        font.pixelSize: 2 * headerTextPixelSize
         text: "Tide"
         color: Style.defaultPanelTextColor
     }
@@ -25,7 +25,7 @@ Rectangle {
         id: smallText
         anchors.baseline: parent.verticalCenter
         anchors.horizontalCenter: parent.horizontalCenter
-        font.pixelSize: 0.3 * bigText.font.pixelSize
+        font.pixelSize: standardTextPixelSize
         text: "Tiled Interactive Displaywall Environment"
         color: Style.defaultPanelTextColor
     }
@@ -34,7 +34,7 @@ Rectangle {
         anchors.top: smallText.bottom
         anchors.topMargin: 0.5 * smallText.height
         anchors.horizontalCenter: parent.horizontalCenter
-        font.pixelSize: smallText.font.pixelSize
+        font.pixelSize: standardTextPixelSize
         text: "version " + tideVersion
         color: Style.defaultPanelTextColor
     }
@@ -42,7 +42,7 @@ Rectangle {
         id: revision
         anchors.top: version.bottom
         anchors.horizontalCenter: parent.horizontalCenter
-        font.pixelSize: smallText.font.pixelSize
+        font.pixelSize: standardTextPixelSize
         text: "rev. " + tideRevision
         color: Style.defaultPanelTextColor
     }

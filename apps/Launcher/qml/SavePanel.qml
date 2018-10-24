@@ -48,7 +48,7 @@ Item {
             anchors.left: parent.left
             anchors.right: saveButton.left
             style: TextFieldStyle {
-                font.pixelSize: control.height * 0.5
+                font.pixelSize: standardTextPixelSize
             }
             onFocusChanged: {
                 if (focus)
@@ -80,7 +80,7 @@ Item {
                     renderType: Text.NativeRendering
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
-                    font.pointSize: control.height * 0.4
+                    font.pixelSize: standardTextPixelSize
                     text: control.text
                     color: control.enabled ? "black" : "gray"
                 }

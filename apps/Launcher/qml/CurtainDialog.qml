@@ -1,6 +1,7 @@
 // Copyright (c) 2018, EPFL/Blue Brain Project
 //                     Raphael Dumusc <raphael.dumusc@epfl.ch>
 import QtQuick 2.0
+import "style.js" as Style
 
 Column {
     id: dialog
@@ -12,10 +13,14 @@ Column {
 
     anchors.centerIn: parent
     spacing: curtain.width * 0.025
+
+    property real buttonHeight: standardTextPixelSize * Style.buttonHeightRelToTextHeight
+    property real buttonWidth: curtain.width * 0.25
+
     Text {
         id: infoText
         text: "Do you want to proceed?"
-        font.pixelSize: textPixelSize
+        font.pixelSize: standardTextPixelSize
         color: "white"
     }
     Rectangle {
@@ -23,8 +28,8 @@ Column {
         color: "red"
         border.color: "white"
         border.width: 0.012 * width
-        width: curtain.width * 0.2
-        height: width * 0.35
+        width: buttonWidth
+        height: buttonHeight
         radius: height * 0.15
         anchors.horizontalCenter: parent.horizontalCenter
 
@@ -32,7 +37,7 @@ Column {
             id: acceptText
             anchors.centerIn: parent
             text: "OK"
-            font.pixelSize: textPixelSize
+            font.pixelSize: standardTextPixelSize
             color: "white"
         }
         MouseArea {
@@ -45,14 +50,14 @@ Column {
         color: "darkgrey"
         border.color: "white"
         border.width: 0.012 * width
-        width: curtain.width * 0.2
-        height: width * 0.35
+        width: buttonWidth
+        height: buttonHeight
         radius: height * 0.15
         anchors.horizontalCenter: parent.horizontalCenter
         Text {
             anchors.centerIn: parent
             text: "cancel"
-            font.pixelSize: textPixelSize
+            font.pixelSize: standardTextPixelSize
         }
         MouseArea {
             anchors.fill: parent

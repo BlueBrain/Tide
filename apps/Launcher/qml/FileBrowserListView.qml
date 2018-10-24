@@ -16,7 +16,7 @@ Item {
     property variant foldersModel
     property int listItemSize
 
-    property real textColumnSize: textPixelSize * 10
+    property real textColumnSize: smallTextPixelSize * 10
 
     ListView {
         id: listview
@@ -63,11 +63,11 @@ Item {
         section.criteria: ViewSection.FirstCharacter
         section.delegate: Item {
             width: parent.width
-            height: 1.5 * textPixelSize
+            height: 1.5 * smallTextPixelSize
             Text {
                 text: section
                 font.capitalization: Font.Capitalize
-                font.pixelSize: textPixelSize
+                font.pixelSize: smallTextPixelSize
             }
         }
     }
@@ -95,7 +95,7 @@ Item {
             anchors.right: sizeText.left
 
             anchors.verticalCenter: parent.verticalCenter
-            font.pixelSize: textPixelSize
+            font.pixelSize: smallTextPixelSize
             color: Style.fileBrowserTextColor
 
             MouseArea {
@@ -117,7 +117,7 @@ Item {
             horizontalAlignment: Text.AlignRight
 
             anchors.verticalCenter: parent.verticalCenter
-            font.pixelSize: textPixelSize
+            font.pixelSize: smallTextPixelSize
             color: Style.fileBrowserTextColor
 
             MouseArea {
@@ -139,7 +139,7 @@ Item {
             horizontalAlignment: Text.AlignRight
 
             anchors.verticalCenter: parent.verticalCenter
-            font.pixelSize: textPixelSize
+            font.pixelSize: smallTextPixelSize
             color: Style.fileBrowserTextColor
 
             MouseArea {

@@ -21,8 +21,6 @@ Rectangle {
     property bool demoItemVisible: false
     property bool poweroffItemVisible: false
 
-    property real textSize: Style.menuRelTextSize * menu.width
-
     ListView {
         id: menuListView
         anchors.fill: parent
@@ -153,7 +151,7 @@ Rectangle {
                     id: caption
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: model.name
-                    font.pixelSize: menu.textSize
+                    font.pixelSize: smallTextPixelSize
                     color: Style.menuTextColor
                 }
             }

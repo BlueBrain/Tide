@@ -30,7 +30,7 @@ Rectangle {
         elide: Text.ElideMiddle
 
         anchors.verticalCenter: parent.verticalCenter
-        font.pixelSize: textPixelSize
+        font.pixelSize: smallTextPixelSize
         color: Style.fileBrowserTextColor
     }
 
@@ -41,7 +41,7 @@ Rectangle {
         visible: !fileIsDir
 
         anchors.verticalCenter: parent.verticalCenter
-        font.pixelSize: textPixelSize
+        font.pixelSize: smallTextPixelSize
         color: Style.fileBrowserTextColor
     }
 
@@ -53,7 +53,7 @@ Rectangle {
         horizontalAlignment: Text.AlignRight
 
         anchors.verticalCenter: parent.verticalCenter
-        font.pixelSize: textPixelSize
+        font.pixelSize: smallTextPixelSize
         color: Style.fileBrowserTextColor
     }
 

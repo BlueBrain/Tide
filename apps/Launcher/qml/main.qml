@@ -29,6 +29,10 @@ Rectangle {
 
     color: Style.windowBackgroundColor
 
+    property real headerTextPixelSize: Style.headerRelTextSize * menu.width
+    property real standardTextPixelSize: Style.sectionRelTextSize * menu.width
+    property real smallTextPixelSize: Style.menuRelTextSize * menu.width
+
     Row {
         LaunchMenu {
             id: menu
