@@ -178,7 +178,9 @@ void PixelStreamerLauncher::openLauncher()
     options.sessionsDir = _config.folders.sessions;
     options.webservicePort = _config.master.webservicePort;
     options.demoServiceUrl = _config.launcher.demoServiceUrl;
+#if TIDE_ENABLE_PLANAR_CONTROLLER
     options.showPowerButton = !_config.master.planarSerialPort.isEmpty();
+#endif
 
     const auto command = _getLauncherCommand(options.getCommandLine());
 
