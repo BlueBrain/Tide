@@ -16,7 +16,7 @@ Loader {
     property variant foldersModel
     property variant sectionModel
     property real gridItemSize
-    property bool showModificationDate: sectionModel
+    property bool showModificationDate: typeof sectionModel !== "undefined"
 
     Component {
         id: gridViewWithSections
