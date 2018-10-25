@@ -22,16 +22,17 @@ Item {
         anchors.centerIn: buttonShape
         anchors.horizontalCenterOffset: -0.5 * buttonShape.dropShadowWidth
         LaunchButton {
+            id: launchButton
             visible: !displaygroup.hasFocusedWindows
                      && !displaygroup.hasFullscreenWindows
             size: Style.buttonsSizeLarge
         }
-        ClockButton {
-            visible: displaygroup.hasFocusedWindows
-                     && !displaygroup.hasFullscreenWindows
-            size: Style.buttonsSizeLarge
-        }
         ContentActionButton {
+            id: contentActionButton
+        }
+        ClockButton {
+            visible: !launchButton.visible && !contentActionButton.visible
+            size: Style.buttonsSizeLarge
         }
         HorizontalButtonSeparator {
             width: Style.buttonsSizeLarge
