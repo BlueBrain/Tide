@@ -196,8 +196,6 @@ void DisplayGroup::clear()
             removeSet.push_back(window);
     }
 
-    print_log(LOG_INFO, LOG_CONTENT, "removing %i windows", removeSet.size());
-
     // Do this before remove because removeFocusedWindow() resets
     // the state of the focused windows which interfers with xml session loading
     if (!_focusedWindows.empty())
@@ -208,6 +206,8 @@ void DisplayGroup::clear()
 
     for (auto window : removeSet)
         remove(window);
+
+    emit cleared(removeSet.size());
 }
 
 int DisplayGroup::getZindex(const QUuid& id) const
