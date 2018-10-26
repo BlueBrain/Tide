@@ -41,6 +41,7 @@
 
 #include "control/ContentController.h"
 #include "control/DisplayGroupController.h"
+#include "control/WindowResizeHandlesController.h"
 #include "control/WindowTouchController.h"
 #include "scene/DisplayGroup.h"
 #include "scene/Window.h"
@@ -109,9 +110,9 @@ void MasterDisplayGroupRenderer::_add(WindowPtr window)
     auto windowContext = new QQmlContext(_qmlContext.get());
     windowContext->setContextProperty("window", window.get());
 
-    auto controller = new WindowController(*window, *_displayGroup);
+    auto controller = new WindowResizeHandlesController(*window, *_displayGroup);
     controller->setParent(windowContext);
-    windowContext->setContextProperty("controller", controller);
+    windowContext->setContextProperty("resizehandlescontroller", controller);
 
     auto touchController = new WindowTouchController(*window, *_displayGroup);
     touchController->setParent(windowContext);

@@ -41,9 +41,10 @@
 
 #include "scene/PixelStreamContent.h"
 #include "scene/Window.h"
+#include "utils/geometry.h"
 
 PixelStreamController::PixelStreamController(Window& window)
-    : ContentController(window)
+    : ContentController{window}
     , _keyboardController{*_getPixelStreamContent().getKeyboardState()}
 {
     connect(&window, &Window::coordinatesChanged, this,
@@ -239,12 +240,14 @@ void PixelStreamController::_keyRelease(const int key, const int modifiers,
 
 void PixelStreamController::_sendSizeChangedEvent()
 {
-    const auto win = getWindowSize();
+    const auto min = getContent().getSizeHintsMin();
+    const auto max = getContent().getSizeHintsMax();
+    const auto size = geometry::constrain(getWindowSize(), min, max);
 
     deflect::Event deflectEvent;
     deflectEvent.type = deflect::Event::EVT_VIEW_SIZE_CHANGED;
-    deflectEvent.dx = win.width();
-    deflectEvent.dy = win.height();
+    deflectEvent.dx = size.width();
+    deflectEvent.dy = size.height();
 
     emit notify(deflectEvent);
 }

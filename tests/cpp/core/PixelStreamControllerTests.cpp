@@ -127,3 +127,29 @@ BOOST_FIXTURE_TEST_CASE(pan_event, PixelStreamFixture)
     BOOST_CHECK_EQUAL(eventPosition(), QPointF(0.5, 0.25));
     BOOST_CHECK_EQUAL(eventDelta(), _normalize(delta));
 }
+
+BOOST_FIXTURE_TEST_CASE(resize_event, PixelStreamFixture)
+{
+    window.setCoordinates(QRectF{QPointF(), QSizeF{100, 150}});
+    BOOST_CHECK_EQUAL(event.type, deflect::Event::EVT_VIEW_SIZE_CHANGED);
+    BOOST_CHECK_EQUAL(eventDelta(), QPointF(100, 150));
+
+    window.setCoordinates(QRectF{QPointF(), QSizeF{2000, 1500}});
+    BOOST_CHECK_EQUAL(eventDelta(), QPointF(2000, 1500));
+
+    deflect::SizeHints hints;
+    hints.minWidth = 200;
+    hints.minHeight = 200;
+    hints.maxWidth = 1000;
+    hints.maxHeight = 1000;
+    window.getContent().setSizeHints(hints);
+
+    window.setCoordinates(QRectF{QPointF(), QSizeF{500, 500}});
+    BOOST_CHECK_EQUAL(eventDelta(), QPointF(500, 500));
+
+    window.setCoordinates(QRectF{QPointF(), QSizeF{100, 150}});
+    BOOST_CHECK_EQUAL(eventDelta(), QPointF(200, 300));
+
+    window.setCoordinates(QRectF{QPointF(), QSizeF{2000, 1500}});
+    BOOST_CHECK_EQUAL(eventDelta(), QPointF(1000, 750));
+}

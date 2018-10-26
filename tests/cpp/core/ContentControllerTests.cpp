@@ -67,14 +67,20 @@ BOOST_AUTO_TEST_CASE(factory_method)
 
     auto& dummyContent = dynamic_cast<DummyContent&>(window.getContent());
 
+    // Check DummyContent (used for unit testing other components)
     auto controller = ContentController::create(window);
-    BOOST_CHECK(dynamic_cast<ContentController*>(controller.get()));
+    BOOST_CHECK(dynamic_cast<ZoomController*>(controller.get()));
+
+    dummyContent.zoomable = false;
+    controller = ContentController::create(window);
+    BOOST_CHECK(!dynamic_cast<ZoomController*>(controller.get()));
 
     dummyContent.type = ContentType::pixel_stream;
     BOOST_CHECK_THROW(ContentController::create(window), std::bad_cast);
     Window streamWin(ContentFactory::getPixelStreamContent("xyz", QSize()));
     BOOST_CHECK_NO_THROW(controller = ContentController::create(streamWin));
     BOOST_CHECK(dynamic_cast<PixelStreamController*>(controller.get()));
+    BOOST_CHECK(!dynamic_cast<ZoomController*>(controller.get()));
 
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
     dummyContent.type = ContentType::webbrowser;
@@ -84,18 +90,23 @@ BOOST_AUTO_TEST_CASE(factory_method)
                                               StreamType::WEBBROWSER));
     BOOST_CHECK_NO_THROW(controller = ContentController::create(webWindow));
     BOOST_CHECK(dynamic_cast<PixelStreamController*>(controller.get()));
-#endif
-
-#if TIDE_ENABLE_PDF_SUPPORT
-    dummyContent.type = ContentType::pdf;
-    controller = ContentController::create(window);
-    BOOST_CHECK(dynamic_cast<PDFController*>(controller.get()));
+    BOOST_CHECK(!dynamic_cast<ZoomController*>(controller.get()));
 #endif
 
 #if TIDE_ENABLE_MOVIE_SUPPORT
     dummyContent.type = ContentType::movie;
     controller = ContentController::create(window);
     BOOST_CHECK(dynamic_cast<MovieController*>(controller.get()));
+    BOOST_CHECK(!dynamic_cast<ZoomController*>(controller.get()));
+#endif
+
+    dummyContent.zoomable = true;
+
+#if TIDE_ENABLE_PDF_SUPPORT
+    dummyContent.type = ContentType::pdf;
+    controller = ContentController::create(window);
+    BOOST_CHECK(dynamic_cast<ZoomController*>(controller.get()));
+    BOOST_CHECK(dynamic_cast<PDFController*>(controller.get()));
 #endif
 
 #if TIDE_USE_TIFF
@@ -106,7 +117,7 @@ BOOST_AUTO_TEST_CASE(factory_method)
 
     dummyContent.type = ContentType::svg;
     controller = ContentController::create(window);
-    BOOST_CHECK(dynamic_cast<ContentController*>(controller.get()));
+    BOOST_CHECK(dynamic_cast<ZoomController*>(controller.get()));
 
     dummyContent.type = ContentType::image;
     controller = ContentController::create(window);

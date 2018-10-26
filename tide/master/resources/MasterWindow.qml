@@ -130,10 +130,10 @@ BaseWindow {
             referenceItem: windowRect.parent
             panThreshold: 10
 
-            onTouchStarted: controller.startResizing(parent.handle)
-            onTapAndHold: controller.toggleResizeMode()
-            onPan: controller.resizeRelative(delta)
-            onTouchEnded: controller.stopResizing()
+            onTouchStarted: resizehandlescontroller.startResizing(parent.handle)
+            onTapAndHold: resizehandlescontroller.toggleResizeMode()
+            onPan: resizehandlescontroller.resizeRelative(delta)
+            onTouchEnded: resizehandlescontroller.stopResizing()
         }
     }
 

@@ -50,19 +50,19 @@ class VectorialContent : public Content
     Q_OBJECT
 
 public:
-    /** Constructor **/
+    /** Constructor. **/
     VectorialContent(const QString& uri);
 
     /** @return the max dimensions, used to constrain resize/scale. */
     QSize getMaxDimensions() const override;
 
-    /** @return true */
+    /** @return true. */
     bool canBeZoomed() const final;
 
-    /** Set the maximum factor for zoom and resize; value times base size */
+    /** Set the maximum factor for zoom and resize; value times base size. */
     static void setMaxScale(qreal value);
 
-    /** @return the maxium scale factor for zoom and resize */
+    /** @return the maxium scale factor for zoom and resize. */
     static qreal getMaxScale();
 
 protected:

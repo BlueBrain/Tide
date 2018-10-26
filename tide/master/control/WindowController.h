@@ -44,8 +44,6 @@
 
 #include "scene/Window.h"
 
-#include <QObject>
-
 /** Common window size states. */
 enum SizeState
 {
@@ -66,11 +64,8 @@ enum WindowPoint
 /**
  * Controller for moving and resizing windows.
  */
-class WindowController : public QObject
+class WindowController
 {
-    Q_OBJECT
-    Q_DISABLE_COPY(WindowController)
-
 public:
     /**
      * The set of window coordinates that the controller acts upon.
@@ -92,36 +87,29 @@ public:
     WindowController(Window& window, const DisplayGroup& group,
                      Coordinates target = Coordinates::AUTO);
 
-    /** @name UI resize handle events. */
-    //@{
-    Q_INVOKABLE void startResizing(const Window::ResizeHandle handle);
-    Q_INVOKABLE void toggleResizeMode();
-    Q_INVOKABLE void stopResizing();
-    //@}
-
     /** Resize the window. */
-    Q_INVOKABLE void resize(const QSizeF& size,
-                            WindowPoint fixedPoint = TOP_LEFT);
-
-    /** Resize the window relative to the current active window border */
-    Q_INVOKABLE void resizeRelative(const QPointF& delta);
+    void resize(
+        const QSizeF& size, WindowPoint fixedPoint = TOP_LEFT,
+        Window::ResizePolicy policy = Window::ResizePolicy::KEEP_ASPECT_RATIO);
+    void resize(
+        const QPointF& center, QSizeF size,
+        Window::ResizePolicy policy = Window::ResizePolicy::KEEP_ASPECT_RATIO);
 
     /** Scale the window by the given pixel delta (around the given center). */
-    Q_INVOKABLE void scale(const QPointF& center, double pixelDelta);
-    Q_INVOKABLE void scale(const QPointF& center, const QPointF& pixelDelta);
+    void scale(const QPointF& center, double pixelDelta);
+    void scale(const QPointF& center, const QPointF& pixelDelta);
 
     /** Adjust the window coordinates to match the desired state. */
     void adjustSize(const SizeState state);
 
     /** Toggle between SIZE_FULLSCREEN and SIZE_FULLSCREEN_MAX. */
-    Q_INVOKABLE void toogleFullscreenMaxSize();
+    void toogleFullscreenMaxSize();
 
     /** Toggle the selected state of the window. */
-    Q_INVOKABLE void toggleSelected();
+    void toggleSelected();
 
     /** Move the window to the desired position. */
-    Q_INVOKABLE void moveTo(const QPointF& position,
-                            WindowPoint handle = TOP_LEFT);
+    void moveTo(const QPointF& position, WindowPoint handle = TOP_LEFT);
 
     /** Move the center of the window to the desired position. */
     inline void moveCenterTo(const QPointF& position)
@@ -130,41 +118,45 @@ public:
     }
 
     /** Move the window by the given delta. */
-    Q_INVOKABLE void moveBy(const QPointF& delta);
+    void moveBy(const QPointF& delta);
 
-    /** @return the minimum size of the window, 5% of wall size or 300px. */
+    /** @return the minimum size of the window. */
     QSizeF getMinSize() const;
 
     /** @return the maximum size of the window, considering max size of content,
      *          wall size and current content zoom. */
     QSizeF getMaxSize() const;
 
-    /** Constrain the given size between getMinSize() and getMaxSize(). */
-    void constrainSize(QSizeF& windowSize) const;
-
     /** @return the minimum size of the window respecting its aspect ratio. */
     QSizeF getMinSizeAspectRatioCorrect() const;
 
-private:
-    /**
-     * Resize the window around a given center point.
-     * @param center the center of scaling
-     * @param size the new desired size
-     */
-    void _resize(const QPointF& center, QSizeF size);
+    /** Constrain the given size between getMinSize() and getMaxSize(). */
+    void constrainSize(QSizeF& windowSize, Window::ResizePolicy policy) const;
 
-    void _constrainAspectRatio(QSizeF& windowSize) const;
+private:
+    void _constrainAspectRatio(QSizeF& newSize) const;
+    void _constrainPosition(QRectF& window) const;
+    void _adjustZoom() const;
+
+    bool _mustKeepAspectRatio(const QSizeF& newSize) const;
+    bool _contentZoomCanBeAdjusted() const;
+    bool _contentSourceCanBeResized(const QSizeF& newSize) const;
     bool _isCloseToContentAspectRatio(const QSizeF& windowSize) const;
     void _snapToContentAspectRatio(QSizeF& windowSize) const;
-    void _constrainPosition(QRectF& window) const;
-    QRectF _getCenteredCoordinates(const QSizeF& size) const;
 
     bool _targetIsFullscreen() const;
+    QSizeF _getAspectRatioSize() const;
+    qreal _getContentAspectRatio() const;
+    QSizeF _getPreferredDimensions() const;
+    QRectF _getCenteredCoordinates(const QSizeF& size) const;
     const QRectF& _getCoordinates() const;
+    QSizeF _getSize() const;
+    QSizeF _getContentSize() const;
+
     void _apply(const QRectF& coordinates);
 
     Window& _window;
-    const DisplayGroup& _displayGroup;
+    const DisplayGroup& _group;
     Coordinates _target;
 };
 

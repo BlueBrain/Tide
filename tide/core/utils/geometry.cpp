@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -43,9 +43,10 @@
 
 #include <QTransform>
 
-QRectF geometry::resizeAroundPosition(const QRectF& rect,
-                                      const QPointF& position,
-                                      const QSizeF& size)
+namespace geometry
+{
+QRectF resizeAroundPosition(const QRectF& rect, const QPointF& position,
+                            const QSizeF& size)
 {
     QTransform transform;
     transform.translate(position.x(), position.y());
@@ -55,7 +56,7 @@ QRectF geometry::resizeAroundPosition(const QRectF& rect,
     return transform.mapRect(rect);
 }
 
-QRectF geometry::scaleAroundCenter(const QRectF& rect, const qreal factor)
+QRectF scaleAroundCenter(const QRectF& rect, const qreal factor)
 {
     QTransform transform;
     transform.translate(rect.center().x(), rect.center().y());
@@ -65,14 +66,31 @@ QRectF geometry::scaleAroundCenter(const QRectF& rect, const qreal factor)
     return transform.mapRect(rect);
 }
 
-QSizeF geometry::constrain(const QSizeF& size, const QSizeF& min,
-                           const QSizeF& max)
+QSizeF adjustAspectRatio(const QSizeF& size, const QSizeF& referenceSize)
 {
-    if (max.isValid() && (min > max || size > max))
-        return size.scaled(max, Qt::KeepAspectRatio);
+    const auto mode = size < referenceSize ? Qt::KeepAspectRatio
+                                           : Qt::KeepAspectRatioByExpanding;
+    return referenceSize.scaled(size, mode);
+}
 
-    if (min.isValid() && size < min)
-        return size.scaled(min, Qt::KeepAspectRatioByExpanding);
+QSizeF constrain(const QSizeF& size, const QSizeF& min, const QSizeF& max,
+                 const bool keepAspectRatio)
+{
+    if (keepAspectRatio)
+    {
+        if (size < min)
+            return size.scaled(min, Qt::KeepAspectRatioByExpanding);
 
+        if (max.isValid() && size > max)
+            return size.scaled(max, Qt::KeepAspectRatio);
+    }
+    else if (size < min || (max.isValid() && size > max))
+    {
+        return QSizeF{std::max(min.width(),
+                               std::min(size.width(), max.width())),
+                      std::max(min.height(),
+                               std::min(size.height(), max.height()))};
+    }
     return size;
+}
 }

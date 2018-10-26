@@ -27,6 +27,7 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   control/SessionController.h
   control/SideController.h
   control/WindowController.h
+  control/WindowResizeHandlesController.h
   control/WindowTouchController.h
   control/ZoomController.h
   gui/BackgroundWidget.h
@@ -78,6 +79,7 @@ list(APPEND TIDEMASTER_SOURCES
   control/SessionController.cpp
   control/SideController.cpp
   control/WindowController.cpp
+  control/WindowResizeHandlesController.cpp
   control/WindowTouchController.cpp
   control/ZoomController.cpp
   gui/BackgroundWidget.cpp

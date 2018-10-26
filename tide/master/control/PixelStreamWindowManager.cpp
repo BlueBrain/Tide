@@ -67,7 +67,10 @@ WindowPtr _makeStreamWindow(const QString& uri, const QSize& size,
     const auto windowType =
         (type == StreamType::LAUNCHER) ? Window::PANEL : Window::DEFAULT;
     static_cast<PixelStreamContent&>(*content).setChannel(channel);
-    return std::make_shared<Window>(std::move(content), windowType);
+    auto window = std::make_shared<Window>(std::move(content), windowType);
+    if (size.isEmpty())
+        window->setCoordinates(QRectF{QPointF(), EMPTY_STREAM_SIZE});
+    return window;
 }
 
 std::set<uint8_t> _findAllChannels(const deflect::server::Frame& frame)
@@ -148,8 +151,9 @@ void PixelStreamWindowManager::openWindow(const uint surfaceIndex,
     auto& group = _scene.getGroup(surfaceIndex);
 
     WindowController controller{*window, group};
-    controller.resize(size.isValid() ? size : EMPTY_STREAM_SIZE);
     controller.moveCenterTo(!pos.isNull() ? pos : group.center());
+    if (!size.isEmpty())
+        controller.adjustSize(SizeState::SIZE_1TO1_FITTING);
 
     window->setState(Window::HIDDEN);
     group.add(window); // triggers _onWindowAdded()
@@ -404,7 +408,7 @@ void PixelStreamWindowManager::_updateWindowSize(Window& window,
     content.setDimensions(size);
 
     if (externalStreamIsOpening)
-        _resizeInPlace(window, group, size);
+        _resizeInPlace(window, group);
 
     // Must come after window resize; window size is used by focus algorithm
     if (window.isFocused())
@@ -416,10 +420,9 @@ void PixelStreamWindowManager::_updateWindowSize(Window& window,
 }
 
 void PixelStreamWindowManager::_resizeInPlace(Window& window,
-                                              const DisplayGroup& group,
-                                              const QSize& size)
+                                              const DisplayGroup& group)
 {
-    const auto target = WindowController::Coordinates::STANDARD;
-    WindowController controller{window, group, target};
-    controller.resize(size, CENTER);
+    WindowController controller{window, group,
+                                WindowController::Coordinates::STANDARD};
+    controller.adjustSize(SizeState::SIZE_1TO1_FITTING);
 }

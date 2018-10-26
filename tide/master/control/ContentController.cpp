@@ -76,6 +76,10 @@ std::unique_ptr<ContentController> ContentController::create(Window& window)
         return std::make_unique<MovieController>(window);
 #endif
     case ContentType::invalid:
+        // For unit-testing purposes
+        return window.getContent().canBeZoomed()
+                   ? std::make_unique<ZoomController>(window)
+                   : std::make_unique<ContentController>(window);
     default:
         return std::make_unique<ContentController>(window);
     }
