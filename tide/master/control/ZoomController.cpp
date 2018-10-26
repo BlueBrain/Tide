@@ -164,9 +164,9 @@ void ZoomController::_constraintPosition(QRectF& zoomRect) const
 QSizeF ZoomController::_getMaxZoom() const
 {
     const auto window = getWindowSize();
-    const auto content = QSizeF(getContent().getMaxDimensions());
-    return QSizeF(window.width() / content.width(),
-                  window.height() / content.height());
+    const auto content = getContent().getMaxUpscaledDimensions();
+    return QSizeF{window.width() / content.width(),
+                  window.height() / content.height()};
 }
 
 QSizeF ZoomController::_getMinZoom() const

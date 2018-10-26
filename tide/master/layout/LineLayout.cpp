@@ -144,7 +144,7 @@ WindowCoordinates LineLayout::_getNominalCoord(const Window& window) const
 
     WindowController(const_cast<Window&>(window), _group,
                      WindowController::Coordinates::STANDARD)
-        .constrainSize(size);
+        .constrainSize(size, Window::ResizePolicy::KEEP_ASPECT_RATIO);
 
     auto coord = QRectF(QPointF(), size);
     coord.moveCenter(QPointF(window.center().x(), surface.center().y()));

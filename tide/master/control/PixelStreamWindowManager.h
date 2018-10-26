@@ -224,8 +224,7 @@ private:
                                       const std::set<uint8_t>& channels);
     void _updateWindowSize(Window& window, DisplayGroup& group,
                            const QSize& size);
-    void _resizeInPlace(Window& window, const DisplayGroup& group,
-                        const QSize& size);
+    void _resizeInPlace(Window& window, const DisplayGroup& group);
 };
 
 #endif

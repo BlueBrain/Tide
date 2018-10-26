@@ -47,9 +47,44 @@ IMPLEMENT_SERIALIZE_FOR_XML(Content)
 
 namespace
 {
-int _clampToInt(const unsigned int n)
+int _clampToInt(const uint n)
 {
-    return std::min((unsigned int)std::numeric_limits<int>::max(), n);
+    return static_cast<int>(
+        std::min(static_cast<uint>(std::numeric_limits<int>::max()), n));
+}
+
+bool _isMinSizeSpecified(const deflect::SizeHints& hints)
+{
+    return hints.minWidth != deflect::SizeHints::UNSPECIFIED_SIZE &&
+           hints.minHeight != deflect::SizeHints::UNSPECIFIED_SIZE;
+}
+
+bool _isPreferedSizeSpecified(const deflect::SizeHints& hints)
+{
+    return hints.preferredWidth != deflect::SizeHints::UNSPECIFIED_SIZE &&
+           hints.preferredHeight != deflect::SizeHints::UNSPECIFIED_SIZE;
+}
+
+bool _isMaxSizeSpecified(const deflect::SizeHints& hints)
+{
+    return hints.maxWidth != deflect::SizeHints::UNSPECIFIED_SIZE &&
+           hints.maxHeight != deflect::SizeHints::UNSPECIFIED_SIZE;
+}
+
+QSize _getMinSize(const deflect::SizeHints& hints)
+{
+    return QSize{_clampToInt(hints.minWidth), _clampToInt(hints.minHeight)};
+}
+
+QSize _getPreferedSize(const deflect::SizeHints& hints)
+{
+    return QSize{_clampToInt(hints.preferredWidth),
+                 _clampToInt(hints.preferredHeight)};
+}
+
+QSize _getMaxSize(const deflect::SizeHints& hints)
+{
+    return QSize{_clampToInt(hints.maxWidth), _clampToInt(hints.maxHeight)};
 }
 }
 
@@ -114,34 +149,42 @@ int Content::height() const
 
 QSize Content::getMinDimensions() const
 {
-    if (_sizeHints.minWidth == deflect::SizeHints::UNSPECIFIED_SIZE ||
-        _sizeHints.minHeight == deflect::SizeHints::UNSPECIFIED_SIZE)
-    {
-        return UNDEFINED_SIZE;
-    }
-    return QSize(_sizeHints.minWidth, _sizeHints.minHeight);
+    return getSizeHintsMin();
 }
 
 QSize Content::getPreferredDimensions() const
 {
-    if (_sizeHints.preferredWidth == deflect::SizeHints::UNSPECIFIED_SIZE ||
-        _sizeHints.preferredHeight == deflect::SizeHints::UNSPECIFIED_SIZE)
-    {
-        return getDimensions();
-    }
-    return QSize(_sizeHints.preferredWidth, _sizeHints.preferredHeight);
+    if (_isPreferedSizeSpecified(_sizeHints))
+        return _getPreferedSize(_sizeHints);
+
+    return getDimensions();
 }
 
 QSize Content::getMaxDimensions() const
 {
-    if (_sizeHints.maxWidth == deflect::SizeHints::UNSPECIFIED_SIZE ||
-        _sizeHints.maxHeight == deflect::SizeHints::UNSPECIFIED_SIZE)
-    {
-        return getDimensions().isValid() ? getDimensions() * getMaxScale()
-                                         : UNDEFINED_SIZE;
-    }
-    return QSize{_clampToInt(_sizeHints.maxWidth),
-                 _clampToInt(_sizeHints.maxHeight)};
+    if (_isMaxSizeSpecified(_sizeHints))
+        return _getMaxSize(_sizeHints);
+
+    const auto dimensions = getDimensions();
+    return dimensions.isValid() ? dimensions : UNDEFINED_SIZE;
+}
+
+QSizeF Content::getMaxUpscaledDimensions() const
+{
+    const auto dimensions = getMaxDimensions();
+    return dimensions.isValid() ? dimensions * getMaxScale() : UNDEFINED_SIZE;
+}
+
+QSize Content::getSizeHintsMin() const
+{
+    return _isMinSizeSpecified(_sizeHints) ? _getMinSize(_sizeHints)
+                                           : UNDEFINED_SIZE;
+}
+
+QSize Content::getSizeHintsMax() const
+{
+    return _isMaxSizeSpecified(_sizeHints) ? _getMaxSize(_sizeHints)
+                                           : UNDEFINED_SIZE;
 }
 
 void Content::setSizeHints(const deflect::SizeHints& sizeHints)
@@ -155,7 +198,7 @@ void Content::setSizeHints(const deflect::SizeHints& sizeHints)
 
 void Content::setMaxScale(const qreal value)
 {
-    if (value > 0.0)
+    if (value >= 1.0)
         _maxScale = value;
 }
 

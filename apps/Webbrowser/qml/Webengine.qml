@@ -1,6 +1,7 @@
-// Copyright (c) 2016, EPFL/Blue Brain Project
-//                     Raphael Dumusc <raphael.dumusc@epfl.ch>
-import QtQuick 2.0
+// Copyright (c) 2016-2018, EPFL/Blue Brain Project
+//                          Raphael Dumusc <raphael.dumusc@epfl.ch>
+import QtQuick 2.4
+import QtQuick.Window 2.2
 import QtWebEngine 1.1
 import QtQuick.Controls 1.2
 import QtQuick.Controls.Styles 1.2
@@ -13,6 +14,14 @@ import "HtmlSelectReplacer.js" as HSR
 Item {
     width: 640
     height: 480
+
+    onWindowChanged: {
+        // size constraints for the stream window
+        window.minimumWidth = 640
+        window.minimumHeight = 480
+        window.maximumWidth = 3840
+        window.maximumHeight = 2160
+    }
 
     signal addressBarTextEntered(string url)
 

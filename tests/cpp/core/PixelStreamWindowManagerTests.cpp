@@ -240,7 +240,6 @@ BOOST_AUTO_TEST_CASE(testImplicitWindowCreation)
     const auto& uri = CONTENT_URI;
     // window will be positioned centered
     const auto pos = QPointF(wallSize.width() * 0.5, wallSize.height() * 0.5);
-    const auto size = QSize(defaultPixelStreamWindowSize);
 
     windowManager.handleStreamStart(uri);
     BOOST_REQUIRE(windowManager.getWindows(uri).size() == 1);
@@ -254,7 +253,7 @@ BOOST_AUTO_TEST_CASE(testImplicitWindowCreation)
 
     const auto& coords = window->getCoordinates();
     BOOST_CHECK_EQUAL(coords.center(), pos);
-    BOOST_CHECK_EQUAL(coords.size(), size);
+    BOOST_CHECK_EQUAL(coords.size(), defaultPixelStreamWindowSize);
 
     // Check that the window is resized to the first frame dimensions
     windowManager.updateStreamWindows(createTestFrame(testFrameSize));
@@ -459,6 +458,22 @@ BOOST_FIXTURE_TEST_CASE(local_streams_open_without_validation_signal,
     BOOST_CHECK(!windowManager.getWindows(PANEL_URI).at(0)->isHidden());
     BOOST_CHECK(!windowManager.getWindows(webbrowserUri).at(0)->isHidden());
     BOOST_CHECK(!windowManager.getWindows(whiteboardUri).at(0)->isHidden());
+}
+
+BOOST_FIXTURE_TEST_CASE(large_stream_is_sized_to_fit_displaygroup_when_opening,
+                        SingleSurface)
+{
+    windowManager.handleStreamStart(CONTENT_URI);
+    const auto frame = createTestFrame(2 * wallSize);
+    windowManager.updateStreamWindows(frame);
+
+    BOOST_REQUIRE(externalStreamOpened);
+
+    const auto window = windowManager.getWindows(CONTENT_URI)[0];
+
+    BOOST_CHECK_EQUAL(window->getContent().getDimensions(), 2 * wallSize);
+    BOOST_CHECK(
+        scene->getGroup(0).getCoordinates().contains(window->getCoordinates()));
 }
 
 BOOST_FIXTURE_TEST_CASE(

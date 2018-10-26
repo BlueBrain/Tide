@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2015, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2015-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -42,7 +42,7 @@
 #include "scene/Window.h"
 
 ZoomHelper::ZoomHelper(const Window& window)
-    : _window(window)
+    : _window{window}
 {
 }
 
@@ -53,44 +53,61 @@ QRectF ZoomHelper::getContentRect() const
 
 QRectF ZoomHelper::toContentRect(const QRectF& zoomRect) const
 {
-    const QRectF& window = _window.getDisplayCoordinates();
+    const auto& window = _window.getDisplayCoordinates();
 
-    const qreal w = window.width() / zoomRect.width();
-    const qreal h = window.height() / zoomRect.height();
+    const auto w = window.width() / zoomRect.width();
+    const auto h = window.height() / zoomRect.height();
 
-    const qreal posX = -zoomRect.x() * w;
-    const qreal posY = -zoomRect.y() * h;
+    const auto posX = -zoomRect.x() * w;
+    const auto posY = -zoomRect.y() * h;
 
-    return QRectF(posX, posY, w, h);
+    return QRectF{posX, posY, w, h};
 }
 
 QRectF ZoomHelper::toZoomRect(const QRectF& contentRect) const
 {
-    const QRectF& window = _window.getDisplayCoordinates();
+    const auto& window = _window.getDisplayCoordinates();
 
-    const qreal w = window.width() / contentRect.width();
-    const qreal h = window.height() / contentRect.height();
+    const auto w = window.width() / contentRect.width();
+    const auto h = window.height() / contentRect.height();
 
-    const qreal posX = -contentRect.x() / contentRect.width();
-    const qreal posY = -contentRect.y() / contentRect.height();
+    const auto posX = -contentRect.x() / contentRect.width();
+    const auto posY = -contentRect.y() / contentRect.height();
 
-    return QRectF(posX, posY, w, h);
+    return QRectF{posX, posY, w, h};
 }
 
 QRectF ZoomHelper::toTilesArea(const QRectF& windowArea,
                                const QSize& tilesSurface) const
 {
-    const QRectF contentRect = getContentRect();
+    const auto contentRect = getContentRect();
 
     // Map window visibleArea to content space for tiles origin at (0,0)
-    const QRectF visibleContentArea =
+    const auto visibleContentArea =
         windowArea.translated(-contentRect.x(), -contentRect.y());
     // Scale content area to tiles area size
-    const qreal xScale = tilesSurface.width() / contentRect.width();
-    const qreal yScale = tilesSurface.height() / contentRect.height();
-    const QRectF visibleTilesArea(visibleContentArea.x() * xScale,
-                                  visibleContentArea.y() * yScale,
-                                  visibleContentArea.width() * xScale,
-                                  visibleContentArea.height() * yScale);
+    const auto xScale = tilesSurface.width() / contentRect.width();
+    const auto yScale = tilesSurface.height() / contentRect.height();
+    const auto visibleTilesArea =
+        QRectF{visibleContentArea.x() * xScale, visibleContentArea.y() * yScale,
+               visibleContentArea.width() * xScale,
+               visibleContentArea.height() * yScale};
     return visibleTilesArea;
+}
+
+QSizeF ZoomHelper::getMaxWindowSizeUpscaled() const
+{
+    return _applyZoom(_window.getContent().getMaxUpscaledDimensions());
+}
+
+QSizeF ZoomHelper::getMaxWindowSizeAtNativeResolution() const
+{
+    return _applyZoom(_window.getContent().getMaxDimensions());
+}
+
+QSizeF ZoomHelper::_applyZoom(const QSizeF& size) const
+{
+    const auto& zoomRect = _window.getContent().getZoomRect();
+    return QSizeF{size.width() * zoomRect.width(),
+                  size.height() * zoomRect.height()};
 }

@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2014-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,32 +37,42 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "VectorialContent.h"
+#ifndef WINDOW_RESIZE_HANDLES_CONTROLLER_H
+#define WINDOW_RESIZE_HANDLES_CONTROLLER_H
 
-qreal VectorialContent::_maxScale = 6.0;
+#include "types.h"
 
-VectorialContent::VectorialContent(const QString& uri)
-    : Content{uri}
+#include "scene/Window.h"
+
+#include <QObject>
+
+/**
+ * Controller for resizing windows using handles on the sides and corners.
+ */
+class WindowResizeHandlesController : public QObject
 {
-}
+    Q_OBJECT
+    Q_DISABLE_COPY(WindowResizeHandlesController)
 
-QSize VectorialContent::getMaxDimensions() const
-{
-    return getDimensions() * getMaxScale();
-}
+public:
+    /**
+     * Create a controller for the resize handles of a window.
+     * @param window the target window.
+     * @param group the group to which the window belongs.
+     */
+    WindowResizeHandlesController(Window& window, const DisplayGroup& group);
 
-bool VectorialContent::canBeZoomed() const
-{
-    return true;
-}
+    /** @name UI resize handle events. */
+    //@{
+    Q_INVOKABLE void startResizing(Window::ResizeHandle handle);
+    Q_INVOKABLE void toggleResizeMode();
+    Q_INVOKABLE void resizeRelative(const QPointF& delta);
+    Q_INVOKABLE void stopResizing();
+    //@}
 
-qreal VectorialContent::getMaxScale()
-{
-    return _maxScale;
-}
+private:
+    Window& _window;
+    const DisplayGroup& _displayGroup;
+};
 
-void VectorialContent::setMaxScale(const qreal value)
-{
-    if (value >= 1.0)
-        _maxScale = value;
-}
+#endif

@@ -1,6 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2016, EPFL/Blue Brain Project                       */
-/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
+/* Copyright (c) 2016-2018, EPFL/Blue Brain Project                  */
+/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -108,13 +108,23 @@ QRectF resizeAroundPosition(const QRectF& rect, const QPointF& position,
 QRectF scaleAroundCenter(const QRectF& rect, const qreal factor);
 
 /**
+ * Adjust the aspect ratio to another reference size.
+ * @param size to adjust
+ * @param referenceSize for the reference aspect ratio
+ * @return size with adjusted aspect ratio
+ */
+QSizeF adjustAspectRatio(const QSizeF& size, const QSizeF& referenceSize);
+
+/**
  * Constrain a size between min and max values.
  * @param size the size to constrain
  * @param min the minimum size (ignored if not valid)
  * @param max the maximum size (ignored if not valid)
+ * @param keepAspectRatio if the aspect ratio of the size must be preserved
  * @return the size comprised between min and max
  */
-QSizeF constrain(const QSizeF& size, const QSizeF& min, const QSizeF& max);
+QSizeF constrain(const QSizeF& size, const QSizeF& min, const QSizeF& max,
+                 bool keepAspectRatio = true);
 }
 
 #endif

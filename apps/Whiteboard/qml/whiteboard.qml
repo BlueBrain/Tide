@@ -1,5 +1,6 @@
-// Copyright (c) 2016, EPFL/Blue Brain Project
-//                     Pawel Podhajski <pawel.podhajski@epfl.ch>
+// Copyright (c) 2016-2018, EPFL/Blue Brain Project
+//                          Pawel Podhajski <pawel.podhajski@epfl.ch>
+//                          Raphael Dumusc <raphael.dumusc@epfl.ch>
 
 import QtQuick 2.4
 import QtQuick.Window 2.2
@@ -13,6 +14,14 @@ Item {
 
     width: 1920
     height: 1080
+
+    onWindowChanged: {
+        // size constraints for the stream window
+        window.minimumWidth = 640
+        window.minimumHeight = 480
+        window.maximumWidth = 3840
+        window.maximumHeight = 2160
+    }
 
     property int headerHeight: 100
     property int oldWidth: width

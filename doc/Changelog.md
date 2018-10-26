@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [282](https://github.com/BlueBrain/Tide/pull/282):
+  Improve resizing of webbrowsers and whiteboards.
 * [279](https://github.com/BlueBrain/Tide/pull/279):
   Screens can be powered on/off from the web interface by clicking the screen
   status icon.
