@@ -60,6 +60,8 @@ SceneController::SceneController(Scene& scene_,
     {
         connect(&surface.getGroup(), &DisplayGroup::windowRemoved, this,
                 &SceneController::_deleteTempContentFile);
+        connect(&surface.getGroup(), &DisplayGroup::cleared, this,
+                &SceneController::_onGroupCleared);
     }
 }
 
@@ -108,6 +110,12 @@ std::unique_ptr<WindowController> SceneController::getController(
 {
     auto res = _scene.findWindowAndGroup(winId);
     return std::make_unique<WindowController>(res.first, res.second);
+}
+
+void SceneController::_onGroupCleared(const uint windowCount)
+{
+    if (windowCount)
+        print_log(LOG_INFO, LOG_CONTENT, "closed %i windows", windowCount);
 }
 
 void SceneController::_deleteTempContentFile(WindowPtr window)

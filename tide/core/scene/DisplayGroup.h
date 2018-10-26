@@ -184,6 +184,9 @@ signals:
     /** Emitted when a content window is moved to the front. */
     void windowMovedToFront(WindowPtr window);
 
+    /** Emitted when the DisplayGroup is cleared. */
+    void cleared(uint windowCount);
+
     /** @name QProperty notifiers */
     //@{
     void isEmptyChanged();

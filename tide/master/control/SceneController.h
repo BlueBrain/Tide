@@ -71,6 +71,7 @@ private:
     Scene& _scene;
     Configuration::Folders _folders;
 
+    void _onGroupCleared(uint windowCount);
     void _deleteTempContentFile(WindowPtr window);
 };
 
