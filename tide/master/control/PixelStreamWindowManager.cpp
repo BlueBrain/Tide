@@ -121,7 +121,7 @@ void PixelStreamWindowManager::hideWindows(const QString& uri)
 void PixelStreamWindowManager::showWindows(const QString& uri)
 {
     for (auto&& window : getWindows(uri))
-        _show(*window);
+        _show(*window, false);
 }
 
 void PixelStreamWindowManager::openWindow(const uint surfaceIndex,
@@ -155,7 +155,7 @@ void PixelStreamWindowManager::openWindow(const uint surfaceIndex,
     group.add(window); // triggers _onWindowAdded()
 
     if (isLocalStream || _isStreamVisible(uri))
-        _show(*window);
+        _show(*window, isLocalStream);
 }
 
 void PixelStreamWindowManager::handleStreamStart(const QString uri)
@@ -330,10 +330,10 @@ bool PixelStreamWindowManager::_isStreamVisible(const QString& uri) const
     return false;
 }
 
-void PixelStreamWindowManager::_show(Window& window)
+void PixelStreamWindowManager::_show(Window& window, const bool isLocalStream)
 {
     window.setState(Window::NONE);
-    if (getAutoFocusNewWindows())
+    if (!isLocalStream && getAutoFocusNewWindows())
         _focus(window);
 }
 

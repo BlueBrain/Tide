@@ -213,7 +213,7 @@ private:
     bool _autoFocusNewWindows = true;
 
     void _monitor(const DisplayGroup& group, uint surfaceIndex);
-    void _show(Window& window);
+    void _show(Window& window, bool isLocalStream);
     bool _isWindowOpen(const QString& uri, uint surfaceIndex) const;
     bool _isStreamVisible(const QString& uri) const;
     bool _isValid(const uint surfaceIndex) const;
