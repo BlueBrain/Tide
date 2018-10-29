@@ -307,6 +307,9 @@ void MasterApplication::_connectRestInterface()
 
 void MasterApplication::_setupMPIConnections()
 {
+    _mpiReceiveThread.setObjectName("Recv");
+    _mpiSendThread.setObjectName("Send");
+
     _masterToForkerChannel->moveToThread(&_mpiSendThread);
     _masterToWallChannel->moveToThread(&_mpiSendThread);
     _masterFromWallChannel->moveToThread(&_mpiReceiveThread);

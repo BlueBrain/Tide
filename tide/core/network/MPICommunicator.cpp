@@ -44,6 +44,11 @@
 
 #include "utils/log.h"
 
+// WAR some deadlocks receiving MPI_IBcast with OpenMPI (version 1.10.2)
+#ifdef OPEN_MPI
+#define DISBALE_MPI_IBCAST
+#endif
+
 // #define instead of a function so that print_log prints the correct reference
 #define MPI_CHECK(func)                                                 \
     {                                                                   \
@@ -53,20 +58,17 @@
     }
 
 MPICommunicator::MPICommunicator(int argc, char* argv[])
-    : _mpiContext(new MPIContext(argc, argv))
-    , _mpiComm(MPI_COMM_WORLD)
+    : _mpiContext{new MPIContext{argc, argv}}
+    , _mpiComm{MPI_COMM_WORLD}
 {
-    MPI_Comm_rank(MPI_COMM_WORLD, &_mpiRank);
-    MPI_Comm_size(MPI_COMM_WORLD, &_mpiSize);
+    _initRankAndSize();
 }
 
 MPICommunicator::MPICommunicator(const MPICommunicator& parent, const int color)
-    : _mpiContext(parent._mpiContext)
-    , _mpiComm(MPI_COMM_NULL)
+    : _mpiContext{parent._mpiContext}
 {
     MPI_Comm_split(parent._mpiComm, color, parent.getRank(), &_mpiComm);
-    MPI_Comm_rank(_mpiComm, &_mpiRank);
-    MPI_Comm_size(_mpiComm, &_mpiSize);
+    _initRankAndSize();
 }
 
 MPICommunicator::~MPICommunicator()
@@ -105,6 +107,12 @@ std::vector<uint64_t> MPICommunicator::gatherAll(const uint64_t value)
                             (void*)results.data(), 1, MPI_LONG_LONG_INT,
                             _mpiComm));
     return results;
+}
+
+void MPICommunicator::_initRankAndSize()
+{
+    MPI_Comm_rank(_mpiComm, &_mpiRank);
+    MPI_Comm_size(_mpiComm, &_mpiSize);
 }
 
 void MPICommunicator::send(const MessageType type,
@@ -165,8 +173,13 @@ MessageHeader MPICommunicator::receiveBroadcastHeader(const int src)
     // No-spin so that waiting for a message in a thread does not burn 100% CPU.
     // This does not reduce broadcast performance (tideBenchmarkMPI).
     MessageHeader mh;
+#ifdef DISBALE_MPI_IBCAST
+    MPI_CHECK(MPI_Recv_Nospin((void*)&mh, sizeof(MessageHeader), MPI_BYTE, src,
+                              0, _mpiComm, MPI_STATUS_IGNORE));
+#else
     MPI_CHECK(MPI_Bcast_Nospin((void*)&mh, sizeof(MessageHeader), MPI_BYTE, src,
                                _mpiComm));
+#endif
     return mh;
 }
 
@@ -182,8 +195,19 @@ void MPICommunicator::receiveBroadcast(const int src, char* dataBuffer,
 
 void MPICommunicator::_broadcast(const MessageHeader& mh)
 {
+#ifdef DISBALE_MPI_IBCAST
+    for (auto i = 0; i < getSize(); ++i)
+    {
+        if (_isValidAndNotSelf(i))
+        {
+            MPI_CHECK(MPI_Send_Nospin((void*)&mh, sizeof(MessageHeader),
+                                      MPI_BYTE, i, 0, _mpiComm));
+        }
+    }
+#else
     MPI_CHECK(MPI_Bcast_Nospin((void*)&mh, sizeof(MessageHeader), MPI_BYTE,
                                _mpiRank, _mpiComm));
+#endif
 }
 
 void MPICommunicator::_broadcast(const char* data, const size_t size)

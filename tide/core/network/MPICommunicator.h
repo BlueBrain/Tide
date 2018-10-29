@@ -196,10 +196,11 @@ public:
 
 private:
     std::shared_ptr<MPIContext> _mpiContext;
-    MPI_Comm _mpiComm;
+    MPI_Comm _mpiComm{MPI_COMM_NULL};
     int _mpiRank = -1;
     int _mpiSize = -1;
 
+    void _initRankAndSize();
     void _broadcast(const MessageHeader& mh);
     void _broadcast(const char* data, const size_t size);
     bool _isValidAndNotSelf(const int dest) const;
