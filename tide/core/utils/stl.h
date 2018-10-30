@@ -1,7 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2017-2018, EPFL/Blue Brain Project                  */
-/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2018, EPFL/Blue Brain Project                       */
+/*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -38,80 +37,47 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "MultiScreenController.h"
+#ifndef STLUTILS_H
+#define STLUTILS_H
 
-#include "PlanarController.h"
-#include "configuration/Configuration.h"
-#include "utils/stl.h"
+#include <algorithm>
 
-namespace
+/**
+ * A collection of STL utility functions.
+ */
+
+/**
+ * @return a copy of the elements from the first (sorted) container which are
+ *         not found in the second (sorted) container.
+ */
+template <class T>
+T set_difference(const T& v1, const T& v2)
 {
-ScreenState _getResult(const std::vector<ScreenState>& results)
-{
-    const auto state = results.empty() ? ScreenState::undefined : results[0];
-    for (const auto& result : results)
-    {
-        if (result != state)
-            return ScreenState::undefined;
-    }
-    return state;
+    T diff;
+    std::set_difference(v1.begin(), v1.end(), v2.begin(), v2.end(),
+                        std::inserter(diff, diff.begin()));
+    return diff;
 }
 
-bool _getResult(const std::vector<bool>& results)
+/**
+ * Optimal implementation of bool contains(container, value).
+ * Uses container.find() if available, else uses generic std::find().
+ */
+template <class C, typename T>
+inline auto _contains_impl(const C& c, const T& v, int)
+    -> decltype(c.find(v), true)
 {
-    return !contains(results, false);
+    return c.find(v) != end(c);
+}
+template <class C, typename T>
+inline bool _contains_impl(const C& c, const T& v, long)
+{
+    return std::find(begin(c), end(c), v) != end(c);
+}
+template <class C, typename T>
+auto contains(const C& c, const T& v) -> decltype(end(c), true)
+{
+    return _contains_impl(c, v, 0);
 }
 
-template <typename T>
-std::function<void(T)> _makeSharedCallback(std::function<void(T)> callback,
-                                           const size_t resultsCount)
-{
-    auto results = std::make_shared<std::vector<T>>();
-    return [=](const T result) {
-        results->push_back(result);
-        if (results->size() == resultsCount && callback)
-            callback(_getResult(*results));
-    };
-}
-}
-
-MultiScreenController::MultiScreenController(
-    std::vector<std::unique_ptr<ScreenController>>&& controllers)
-    : _controllers{std::move(controllers)}
-{
-    for (auto& controller : _controllers)
-        connect(controller.get(), &ScreenController::powerStateChanged,
-                [this]() { emit powerStateChanged(getState()); });
-}
-
-ScreenState MultiScreenController::getState() const
-{
-    const auto state = _controllers[0]->getState();
-    for (const auto& controller : _controllers)
-    {
-        if (controller->getState() != state)
-            return ScreenState::undefined;
-    }
-    return state;
-}
-
-void MultiScreenController::checkState(ScreenStateCallback callback)
-{
-    auto sharedCallback = _makeSharedCallback(callback, _controllers.size());
-    for (const auto& controller : _controllers)
-        controller->checkState(sharedCallback);
-}
-
-void MultiScreenController::powerOn(BoolCallback callback)
-{
-    auto sharedCallback = _makeSharedCallback(callback, _controllers.size());
-    for (const auto& controller : _controllers)
-        controller->powerOn(sharedCallback);
-}
-
-void MultiScreenController::powerOff(BoolCallback callback)
-{
-    auto sharedCallback = _makeSharedCallback(callback, _controllers.size());
-    for (const auto& controller : _controllers)
-        controller->powerOff(sharedCallback);
-}
+#endif

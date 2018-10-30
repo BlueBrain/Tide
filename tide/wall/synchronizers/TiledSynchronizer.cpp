@@ -41,6 +41,7 @@
 
 #include "datasources/DataSource.h"
 #include "qml/Tile.h"
+#include "utils/stl.h"
 
 TiledSynchronizer::TiledSynchronizer(const TileSwapPolicy policy)
     : _policy{policy}

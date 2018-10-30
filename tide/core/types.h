@@ -247,19 +247,4 @@ inline std::ostream& operator<<(std::ostream& str, const QString& s)
     return str;
 }
 
-template <typename R>
-bool is_ready(std::future<R> const& f)
-{
-    return f.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
-}
-
-template <typename T>
-T set_difference(const T& v1, const T& v2)
-{
-    T diff;
-    std::set_difference(v1.begin(), v1.end(), v2.begin(), v2.end(),
-                        std::inserter(diff, diff.begin()));
-    return diff;
-}
-
 #endif

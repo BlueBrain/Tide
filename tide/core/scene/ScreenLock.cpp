@@ -39,6 +39,8 @@
 
 #include "ScreenLock.h"
 
+#include "utils/stl.h"
+
 ScreenLockPtr ScreenLock::create()
 {
     return ScreenLockPtr(new ScreenLock);
@@ -130,7 +132,7 @@ void ScreenLock::_remove(const QString& uri)
 
 bool ScreenLock::_isPending(const QString& uri) const
 {
-    return std::find(_streams.begin(), _streams.end(), uri) != _streams.end();
+    return contains(_streams, uri);
 }
 
 void ScreenLock::_acceptAllStreams()
