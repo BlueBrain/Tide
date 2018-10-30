@@ -201,6 +201,7 @@ list(APPEND TIDECORE_PUBLIC_HEADERS
   utils/geometry.h
   utils/IterableSmartPtrCollection.h
   utils/stereoimage.h
+  utils/stl.h
   utils/log.h
   utils/qml.h
   utils/yuv.h
