@@ -71,19 +71,14 @@ const QMap<std::string, QStringList> resources {
         }
     },
     {
-        "image/png",
-        {
-            "img/screenOn.png",
-            "img/screenOff.png"
-        }
-    },
-    {
         "image/svg+xml",
         {
             "img/close.svg",
             "img/focus.svg",
             "img/lock.svg",
             "img/maximize.svg",
+            "img/screenOff.svg",
+            "img/screenOn.svg",
             "img/unlock.svg"
         }
     },
