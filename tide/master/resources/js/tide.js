@@ -694,6 +694,10 @@ function init() {
 
 function initScreenIcon() {
   $("#screenIcon").click(function(){
+    if (locked) {
+      displayWallLock();
+      return;
+    }
     var screenIsOn = $("#screenIcon").attr("src") === screenOnImageUrl;
     var onOffText = screenIsOn ? "OFF" : "ON";
     swal({
