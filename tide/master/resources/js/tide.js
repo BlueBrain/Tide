@@ -42,10 +42,12 @@ function autoRefresh() {
     clearInterval(timer);
     timer = 0;
     $("#autoRefreshButton").removeClass("buttonPressed");
+    $("#refreshButton").prop("disabled", false);
   }
   else {
     timer = setInterval(updateWall, refreshInterval);
     $("#autoRefreshButton").addClass("buttonPressed");
+    $("#refreshButton").prop("disabled", true);
   }
 }
 
@@ -670,9 +672,14 @@ function init() {
     alertPopup("Something went wrong.", "Tide REST interface not accessible at: " + restUrl);
   };
   xhr.send(null);
-  $("#exitFullscreenButton").on("click", function () {
-    sendSceneJsonRpc("exit-fullscreen", getSurfaceParams(), updateWall);
-    removeCurtain(fullscreenCurtain);
+  $("#presentationButton").on("click", function () {
+    if (fullscreen) {
+      sendSceneJsonRpc("exit-fullscreen", getSurfaceParams(), updateWall);
+    } else if (focus) {
+      sendSceneJsonRpc("unfocus-windows", getSurfaceParams(), updateWall);
+    } else {
+      sendSceneJsonRpc("focus-all-windows", getSurfaceParams(), updateWall);
+    }
   });
   $("#closeAllButton").on("click", function () {
     sendSceneJsonRpc("clear", getSurfaceParams(), updateWall);
@@ -1409,6 +1416,27 @@ function updateWall() {
         setCurtain(focusCurtain);
       else
         removeCurtain(focusCurtain);
+
+      if (fullscreen) {
+        $("#presentationButton").html("EXIT FULLSCREEN");
+      } else if (focus) {
+        $("#presentationButton").html("UNFOCUS WINDOWS");
+      } else {
+        $("#presentationButton").html("FOCUS ALL WINDOWS");
+      }
+
+      if (windowList.length === 0) {
+        $("#closeAllButton").addClass("disabledButton");
+        $("#presentationButton").addClass("disabledButton");
+        $("#contentsButton").addClass("disabledButton");
+        $(".disabledButton").prop("disabled", true);
+      } else {
+        $(".disabledButton").prop("disabled", false);
+        $(".lockedButton").prop("disabled", true);
+        $("#closeAllButton").removeClass("disabledButton");
+        $("#presentationButton").removeClass("disabledButton");
+        $("#contentsButton").removeClass("disabledButton");
+      }
     }
 
     function closeRemovedWindows(jsonUuids, windowUuids) {
@@ -1444,12 +1472,15 @@ function updateLock() {
     if (locked) {
       $('#wallLock').show();
       $("#lockIcon").attr("src", lockImageUrl);
-      $(".menuButton").prop("disabled", true);
+      $(".lockableButton").addClass("lockedButton");
+      $(".lockableButton").prop("disabled", true);
     }
     else {
       $('#wallLock').hide();
       $("#lockIcon").attr("src", unlockImageUrl);
-      $(".menuButton").prop("disabled", false);
+      $(".lockableButton").prop("disabled", false);
+      $(".disabledButton").prop("disabled", true);
+      $(".lockableButton").removeClass("lockedButton");
     }
     // update all windows to disable or re-enable the draggable / resizable behaviour
     for (var i = 0; i < windowList.length; ++i)

@@ -65,18 +65,18 @@
 
 <div id="wallWrapper">
   <div id="buttonContainer">
-    <button class="menuButton" id="appsButton">APPS</button>
-    <button class="menuButton" id="addButton">OPEN</button>
-    <button class="menuButton" id="sessionButton">SESSION</button>
-    <button class="menuButton" id="uploadButton">UPLOAD</button>
-    <button class="menuButton" id="closeAllButton">CLOSE ALL</button>
-    <button class="menuButton" id="exitFullscreenButton">EXIT FULLSCREEN</button>
-    <button class="menuButton" id="optionsButton">OPTIONS</button>
-    <button id="refreshButton" onclick="updateWall()">REFRESH</button>
+    <button class="menuButton lockableButton" id="appsButton">APPS</button>
+    <button class="menuButton lockableButton" id="addButton">OPEN</button>
+    <button class="menuButton lockableButton" id="sessionButton">SESSION</button>
+    <button class="menuButton lockableButton" id="uploadButton">UPLOAD</button>
+    <button class="menuButton lockableButton" id="closeAllButton">CLOSE ALL</button>
+    <button class="menuButton lockableButton" id="presentationButton">EXIT FULLSCREEN</button>
+    <button class="menuButton lockableButton" id="optionsButton">OPTIONS</button>
+    <button class="menuButton" id="refreshButton" onclick="updateWall()">REFRESH</button>
     <button id="autoRefreshButton" onclick="autoRefresh()">AUTO-REFRESH</button>
     <button id="showBezelButton" onclick="showBezels()">BEZELS</button>
-    <button id="infoButton">INFO</button>
-    <button id="contentsButton">CONTENTS</button>
+    <button class="menuButton" id="infoButton">INFO</button>
+    <button class="menuButton" id="contentsButton">CONTENTS</button>
   </div>
 
   <div id="wall">
