@@ -156,6 +156,17 @@ SceneRemoteController::SceneRemoteController(Scene& scene)
         }
     });
 
+    connect<SurfaceIndex>("focus-all-windows", [this](const auto params) {
+        try
+        {
+            auto& group = _scene.getGroup(params.surfaceIndex);
+            DisplayGroupController{group}.focusAll();
+        }
+        catch (const invalid_surface_index_error&)
+        {
+        }
+    });
+
     connect<SurfaceIndex>("unfocus-windows", [this](const auto params) {
         try
         {

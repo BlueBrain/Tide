@@ -31,7 +31,7 @@ button:active {
   background-color: #0096d3;
 }
 
-iframe{
+iframe {
   display: none;
 }
 
@@ -85,15 +85,15 @@ iframe{
   padding: 10px;
   text-align: left;
   background-color: white;
-  width: auto!important
+  width: auto!important;
 }
 
-.infoIcon{
+.infoIcon {
  margin-top: 5px;
  margin-left: 5px
 }
 
-.menuButton:disabled{
+.menuButton:disabled {
   background-color: lightsteelblue;
 }
 
@@ -137,11 +137,10 @@ iframe{
 
 .optionInput {
   float: left;
-  margin: 0px
+  margin: 0px;
 }
 
-.optionLabel
-{
+.optionLabel {
   height: 1em;
   font-weight: normal;
   white-space: nowrap;
@@ -153,7 +152,7 @@ iframe{
   background-color: white;
   width: auto;
   padding: 5px;
-  overflow: hidden
+  overflow: hidden;
 }
 
 .textInput {
@@ -208,7 +207,6 @@ iframe{
 
 .windowControl.focusButtonVisible {
   visibility: visible;
-
 }
 
 .windowDiv {
@@ -224,7 +222,6 @@ iframe{
   -moz-box-shadow: 0 0 40px rgba(255, 255, 0, 6);
   -webkit-box-shadow: 0 0 40px rgba(255, 255, 0, 6);
   -o-box-shadow: 0 0 40px rgba(255, 255, 0, 6);
-
 }
 
 .windowDiv.windowFullscreen {
@@ -248,22 +245,22 @@ iframe{
   font-weight: normal;
 }
 
-#infoBox{
+#infoBox {
   top: 0;
   width: 75px;
   z-index: 101;
   display: block;
   text-align: right;
   margin-top: 0;
-  position: absolute
+  position: absolute;
 }
 
-#lock{
+#lock {
   height: 50%;
   margin: 0 auto;
   position: relative;
   display: block;
-  top: 25%
+  top: 25%;
 }
 
 #uploadsList {
@@ -278,7 +275,7 @@ iframe{
   opacity: 0.5;
   z-index: 102;
   position: fixed;
-  display: none
+  display: none;
 }
 
 #wall, #wallLock, #wallOutline {
