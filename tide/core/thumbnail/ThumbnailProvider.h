@@ -78,7 +78,7 @@ private:
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 6, 3)) && \
     (QT_VERSION != QT_VERSION_CHECK(5, 7, 0))
 #define TIDE_ASYNC_THUMBNAIL_PROVIDER 1
-#include <mutex>
+#include <QReadWriteLock>
 
 /**
  * Provide thumbnails for files and folders to the Qml FileBrowser.
@@ -89,6 +89,7 @@ class AsyncThumbnailProvider : public QQuickAsyncImageProvider
 {
 public:
     AsyncThumbnailProvider(const QSize defaultSize = QSize(512, 512));
+    ~AsyncThumbnailProvider();
 
     QQuickImageResponse* requestImageResponse(const QString& filename,
                                               const QSize& size) final;
@@ -96,7 +97,7 @@ public:
 private:
     const QSize _defaultSize;
     std::unique_ptr<ImageCache> _cache;
-    std::mutex _mutex;
+    QReadWriteLock _mutex;
 };
 
 #endif
