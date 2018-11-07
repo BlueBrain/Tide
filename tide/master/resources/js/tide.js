@@ -112,7 +112,7 @@ function bootstrapMenus() {
     $(".menuButton:not(#optionsButton)").removeClass("buttonPressed");
     $("#optionsButton").toggleClass("buttonPressed");
     updateOptions();
-    e.stopPropagation()
+    e.stopPropagation();
   });
 
   $("#appsButton").click(function (e) {
@@ -123,23 +123,35 @@ function bootstrapMenus() {
     $("#appsMenu").css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed);
     $(".menuButton:not(#appsButton)").removeClass("buttonPressed");
     $("#appsButton").toggleClass("buttonPressed");
-    e.stopPropagation()
+    e.stopPropagation();
   });
 
   $("#browseUrlInput").on("click", function (e) {
-    e.stopPropagation()
+    e.stopPropagation();
   });
 
   $("#infoButton").click(function (e) {
     $("#uploadMenu,#fsMenu,#optionsMenu,#appsMenu,#sessionMenu").each(function () {
       $(this).hide("puff", showEffectSpeed);
-      e.stopPropagation()
+      e.stopPropagation();
     });
 
     $("#infoMenu").css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed);
     $(".menuButton:not(#infoButton)").removeClass("buttonPressed");
-    $("#infoButton").toggleClass("buttonPressed")
-    e.stopPropagation()
+    $("#infoButton").toggleClass("buttonPressed");
+    e.stopPropagation();
+  });
+
+  $("#surfacesButton").click(function (e) {
+    $("#uploadMenu,#fsMenu,#optionsMenu,#appsMenu,#sessionMenu").each(function () {
+      $(this).hide("puff", showEffectSpeed);
+      e.stopPropagation();
+    });
+
+    $("#surfacesMenu").css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed);
+    $(".menuButton:not(#surfacesButton)").removeClass("buttonPressed");
+    $("#surfacesButton").toggleClass("buttonPressed");
+    e.stopPropagation();
   });
 
   getOptions();
@@ -603,6 +615,7 @@ function init() {
              "Surface 0 will be shown instead");
         activeSurfaceIndex = 0;
     }
+    initSurfacesSwitcher(config["surfaceSizes"].length);
 
     var surfaceSize = config["surfaceSizes"][activeSurfaceIndex];
     wallWidth = surfaceSize[0];
@@ -686,6 +699,20 @@ function init() {
   });
 
   bootstrapContentsDialog();
+}
+
+function initSurfacesSwitcher(surfaceCount) {
+  if (surfaceCount > 1) {
+    for (var surfaceIndex = 0; surfaceIndex < surfaceCount; surfaceIndex++) {
+      if (surfaceIndex !== activeSurfaceIndex) {
+        $("#surfacesMenu").append("<a href='?surface=" + surfaceIndex + "'>surface " + surfaceIndex + "</a><br/>");
+      } else {
+        $("#surfacesMenu").append("<b>surface " + surfaceIndex + "</b><br/>");
+      }
+    }
+  } else {
+    $("#surfacesButton").css("visibility", "hidden");
+  }
 }
 
 function initScreenIcon() {
