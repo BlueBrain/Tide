@@ -130,7 +130,7 @@ class AsyncImageResponse : public QQuickImageResponse, public QRunnable
 {
 public:
     AsyncImageResponse(std::function<QImage()> getImageFunc)
-        : _getImageFunc(getImageFunc)
+        : _getImageFunc{std::move(getImageFunc)}
     {
         setAutoDelete(false);
     }
@@ -155,9 +155,14 @@ private:
 };
 
 AsyncThumbnailProvider::AsyncThumbnailProvider(const QSize defaultSize)
-    : _defaultSize(defaultSize)
-    , _cache(new ImageCache)
+    : _defaultSize{defaultSize}
+    , _cache{new ImageCache}
 {
+}
+
+AsyncThumbnailProvider::~AsyncThumbnailProvider()
+{
+    QThreadPool::globalInstance()->waitForDone();
 }
 
 QQuickImageResponse* AsyncThumbnailProvider::requestImageResponse(
@@ -170,7 +175,7 @@ QQuickImageResponse* AsyncThumbnailProvider::requestImageResponse(
 
     auto response = new AsyncImageResponse([this, filename, size]() {
         {
-            const std::lock_guard<std::mutex> lock{_mutex};
+            const QReadLocker lock(&_mutex);
             if (_cache->hasValidImage(filename))
                 return *_cache->object(filename);
         }
@@ -179,7 +184,7 @@ QQuickImageResponse* AsyncThumbnailProvider::requestImageResponse(
         if (image.isNull()) // should never happen
             return _getPlaceholderImage(filename);
 
-        const std::lock_guard<std::mutex> lock{_mutex};
+        const QWriteLocker lock(&_mutex);
         _cache->insertImage(image, filename);
         return image;
     });
