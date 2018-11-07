@@ -22,7 +22,7 @@
 <div id="appsMenu" class="topMenu">
   <div>
     <ul style="padding-left: 0;">
-      <li class="list-group-item" style="cursor: pointer;" onClick="browse()" >
+      <li class="list-group-item" style="cursor: pointer;" onClick="browse()">
         <span class="icon node-icon glyphicon glyphicon-globe" style="margin-right: 2px"></span>
         Web browser
         <input id="browseUrlInput" class="textInput" style="width:100%" type="text" placeholder="Type URL or leave blank">
@@ -37,7 +37,7 @@
 
 <div id="fsMenu" class="topMenu"></div>
 
-<div id="sessionMenu" class="topMenu" >
+<div id="sessionMenu" class="topMenu">
   <div style="padding: 10px; background-color: white">
     <input id="sessionNameInput" type="text" placeholder="New session name">
     <button type="submit" onclick="saveSession()" style=" margin: 0px; margin-left: 5%; width: 30%">Save session</button>
@@ -48,17 +48,15 @@
 
 <div id="uploadMenu" class="topMenu uploadMenu">
   <div style="padding-top: 5px; padding-left: 10px; padding-bottom: 0px; overflow: hidden;">
-    <form id="file-form" target="frame" >
-      <label class="file-input">
-        <input type="file" id="file-select" multiple />
+    <form id="uploadFileForm">
+      <label id="uploadFileInput">
+        <input type="file" id="uploadFileSelector" multiple />
       </label>
-      <button type="submit" id="submitButton" class="formButton">UPLOAD</button>
-      <button type="reset" class="formButton" onclick="clearUploadList()">CLEAR</button>
-
+      <button type="reset" id="uploadsClearButton" onclick="clearUploadList()">CLEAR FINISHED TRANSFERS</button>
     </form>
-  </div >
+  </div>
   <div style="clear: both">
-    <ul id="outputList"></ul>
+    <ul id="uploadsList"></ul>
   </div>
 </div>
 
@@ -66,13 +64,13 @@
 <div id="infoMenu" class="topMenu infoMenu"></div>
 
 <div id="wallWrapper">
-  <div id="buttonContainer" >
+  <div id="buttonContainer">
     <button class="menuButton" id="appsButton">APPS</button>
     <button class="menuButton" id="addButton">OPEN</button>
     <button class="menuButton" id="sessionButton">SESSION</button>
     <button class="menuButton" id="uploadButton">UPLOAD</button>
     <button class="menuButton" id="closeAllButton">CLOSE ALL</button>
-    <button class="menuButton" id="exitFullscreenButton" >EXIT FULLSCREEN</button>
+    <button class="menuButton" id="exitFullscreenButton">EXIT FULLSCREEN</button>
     <button class="menuButton" id="optionsButton">OPTIONS</button>
     <button id="refreshButton" onclick="updateWall()">REFRESH</button>
     <button id="autoRefreshButton" onclick="autoRefresh()">AUTO-REFRESH</button>

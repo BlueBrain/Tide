@@ -55,6 +55,10 @@ using namespace rockets;
 
 namespace
 {
+constexpr auto JSON_TYPE = "application/json";
+constexpr auto INFO_KEY = "info";
+constexpr auto URL_KEY = "url";
+
 inline QString _urlEncode(const QString& filename)
 {
     return QUrl(filename).fileName(QUrl::FullyEncoded);
@@ -65,12 +69,22 @@ inline QString _urlDecode(const QString& filename)
     return QUrl(filename).fileName(QUrl::FullyDecoded);
 }
 
-std::future<http::Response> _makeResponse(const http::Code code,
-                                          const QString& key,
-                                          const QString& info)
+std::string _toJson(const QString& key, const QString& value)
 {
-    const auto body = json::dump(QJsonObject{{key, info}});
-    return make_ready_response(code, body, "application/json");
+    return json::dump(QJsonObject{{key, value}});
+}
+
+http::Response _makeResponse(const http::Code code, const QString& key,
+                             const QString& info)
+{
+    return http::Response{code, _toJson(key, info), JSON_TYPE};
+}
+
+std::future<http::Response> _makeReadyResponse(const http::Code code,
+                                               const QString& key,
+                                               const QString& info)
+{
+    return make_ready_response(_makeResponse(code, key, info));
 }
 }
 
@@ -121,7 +135,7 @@ std::future<http::Response> FileReceiver::prepareUpload(
         SessionSaver::findAvailableFilePath(params.filename, _tmpDir);
     const auto name = QFileInfo{path}.fileName();
     _preparedPaths[name] = params;
-    return _makeResponse(http::Code::OK, "url", _urlEncode(name));
+    return _makeReadyResponse(http::Code::OK, URL_KEY, _urlEncode(name));
 }
 
 std::future<http::Response> FileReceiver::handleUpload(
@@ -129,8 +143,8 @@ std::future<http::Response> FileReceiver::handleUpload(
 {
     const auto name = _urlDecode(QString::fromStdString(request.path));
     if (!_preparedPaths.count(name))
-        return _makeResponse(http::Code::FORBIDDEN, "info",
-                             "upload not prepared");
+        return _makeReadyResponse(http::Code::FORBIDDEN, INFO_KEY,
+                                  "upload not prepared");
 
     const auto filePath = _tmpDir + "/" + name;
 
@@ -143,8 +157,8 @@ std::future<http::Response> FileReceiver::handleUpload(
     {
         print_log(LOG_ERROR, LOG_REST, "file not created as %s",
                   filePath.toLocal8Bit().constData());
-        return _makeResponse(http::Code::INTERNAL_SERVER_ERROR, "info",
-                             "could not upload");
+        return _makeReadyResponse(http::Code::INTERNAL_SERVER_ERROR, INFO_KEY,
+                                  "could not upload");
     }
     file.close();
 
@@ -152,24 +166,26 @@ std::future<http::Response> FileReceiver::handleUpload(
               filePath.toLocal8Bit().constData());
 
     auto promise = std::make_shared<std::promise<Response>>();
-    emit open(
-        params.surfaceIndex, filePath, params.position,
-        [promise, filePath](const bool success) {
-            if (success)
-            {
-                print_log(LOG_INFO, LOG_REST, "file uploaded and saved as: %s",
-                          filePath.toLocal8Bit().constData());
-                promise->set_value(Response{http::Code::CREATED, "info", "OK"});
-                return;
-            }
+    emit open(params.surfaceIndex, filePath, params.position,
+              [promise, filePath](const bool success) {
+                  if (success)
+                  {
+                      print_log(LOG_INFO, LOG_REST,
+                                "file uploaded and saved as: %s",
+                                filePath.toLocal8Bit().constData());
+                      promise->set_value(
+                          _makeResponse(http::Code::CREATED, INFO_KEY, "OK"));
+                      return;
+                  }
 
-            QFile(filePath).remove();
+                  QFile(filePath).remove();
 
-            print_log(LOG_ERROR, LOG_REST,
-                      "file uploaded but could not be opened: %s",
-                      filePath.toLocal8Bit().constData());
-            promise->set_value(Response{http::Code::NOT_SUPPORTED, "info",
-                                        "file could not be opened"});
-        });
+                  print_log(LOG_ERROR, LOG_REST,
+                            "file uploaded but could not be opened: %s",
+                            filePath.toLocal8Bit().constData());
+                  promise->set_value(_makeResponse(http::Code::NOT_SUPPORTED,
+                                                   INFO_KEY,
+                                                   "file could not be opened"));
+              });
     return promise->get_future();
 }
