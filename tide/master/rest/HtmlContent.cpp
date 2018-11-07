@@ -48,7 +48,11 @@ using namespace rockets;
 
 namespace
 {
+constexpr auto HTML_TYPE = "text/html";
+constexpr auto INDEX_PAGE = "index.html";
+
 const QString resourcePath = ":///html/";
+
 // clang-format off
 const QMap<std::string, QStringList> resources {
     {
@@ -92,9 +96,9 @@ const QMap<std::string, QStringList> resources {
         }
     },
     {
-        "text/html",
+        HTML_TYPE,
         {
-            "index.html"
+            INDEX_PAGE
         }
     }
 };
@@ -121,7 +125,7 @@ std::future<http::Response> _makeResponse(const QString& file,
 HtmlContent::HtmlContent(rockets::Server& server)
 {
     server.handle(http::Method::GET, "", [](const http::Request&) {
-        return _makeResponse("index.html", "text/html");
+        return _makeResponse(INDEX_PAGE, HTML_TYPE);
     });
 
     for (auto it = resources.begin(); it != resources.end(); ++it)

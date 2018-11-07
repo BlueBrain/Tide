@@ -57,14 +57,14 @@ iframe{
   outline: solid black;
 }
 
-.file-input input {
+#uploadFileInput input {
   visibility: hidden;
-  width: 80px;
+  width: 100px;
   float:left;
 }
 
-.file-input:before {
-  content: 'BROWSE';
+#uploadFileInput:before {
+  content: 'CHOOSE FILES';
   border: 1px solid #007dc1;
   cursor: pointer;
   background-color: #014f86;
@@ -79,10 +79,6 @@ iframe{
   text-align: center;
   position: relative;
   height: 19px;
-}
-
-.formButton {
-  width: 70px;
 }
 
 .infoMenu {
@@ -270,7 +266,7 @@ iframe{
   top: 25%
 }
 
-#outputList {
+#uploadsList {
   padding-left: 10px;
   padding-right: 10px;
   list-style-type:none;
@@ -283,10 +279,6 @@ iframe{
   z-index: 102;
   position: fixed;
   display: none
-}
-
-#submitButton {
-  display: none;
 }
 
 #wall, #wallLock, #wallOutline {

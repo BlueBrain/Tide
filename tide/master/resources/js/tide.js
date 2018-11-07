@@ -17,7 +17,7 @@ var wallWidth;
 var wallHeight;
 var windowList = [];
 var zoomScale;
-var output = [];
+var uploads = [];
 var filters = [];
 var timer;
 window.onresize = setScale;
@@ -148,11 +148,12 @@ function bootstrapUpload() {
   wall.addEventListener('dragover', handleDragOver, false);
   wall.addEventListener('dragleave', handleDragLeave, false);
   wall.addEventListener('drop', handleUpload, false);
-  document.getElementById('file-select').addEventListener('change', handleUpload, false);
-  $(".file-input").mousedown(function () {
+  document.getElementById('uploadFileSelector').addEventListener('change', handleUpload, false);
+  $("#uploadFileInput").mousedown(function () {
     $(this).addClass("buttonPressed");
   }).mouseup(function () {
     $(this).removeClass("buttonPressed")});
+  $('#uploadsClearButton').hide();
 }
 
 function browse() {
@@ -177,15 +178,15 @@ function checkIfEqual(tile1, tile2) {
 }
 
 function clearUploadList() {
-  for (var i = output.length - 1; i >= 0; i--) {
-    // if (output[i].finished === true || output[i].started !== true) {
-    if (output[i].started === false || output[i].finished === true) {
-      $('#' + output[i].id).remove();
-      output.splice(i, 1);
+  for (var i = uploads.length - 1; i >= 0; i--) {
+    if (uploads[i].started === false || uploads[i].finished === true) {
+      $('#' + uploads[i].id).remove();
+      uploads.splice(i, 1);
     }
   }
-  $('#file-form').find("input[type=file]").val("");
-  $('#upload-button').hide();
+  if (uploads.length === 0) {
+    $('#uploadsClearButton').hide();
+  }
 }
 
 function copy(jsonWindow, tile) {
@@ -518,10 +519,12 @@ function handleDragOver(evt) {
 function handleUpload(evt) {
   evt.stopPropagation();
   evt.preventDefault();
-  var coords = {};
+
   $("#wall").css("opacity", 1);
+
   var data;
-  if (evt.type == "drop") {
+  var coords = {};
+  if (evt.type === "drop") {
     data = evt.dataTransfer.files;
     var offset = $("#wall").offset();
     coords["x"] = (evt.clientX-offset["left"]) / zoomScale;
@@ -529,14 +532,6 @@ function handleUpload(evt) {
   }
   else if (evt.type === "change") {
     data = evt.target.files;
-    $('#submitButton').show();
-    //remove finished uploads and added but not transfered ones
-    for (var i = output.length - 1; i >= 0; i--) {
-      if (output[i].started === false || output[i].finished === true) {
-        $('#' + output[i].id).remove();
-        output.splice(i, 1);
-      }
-    }
   }
 
   data = Array.from(data);
@@ -546,53 +541,47 @@ function handleUpload(evt) {
     });
   });
 
-  var notUploaded = data.length - files.length;
-  if (notUploaded > 0)
+  var filesNotUploaded = data.length - files.length;
+  if (filesNotUploaded > 0) {
     swal({
       type: "warning",
-      title: (notUploaded > 1) ? notUploaded + " unsupported files" : notUploaded + " unsupported file",
+      title: filesNotUploaded + " unsupported file" + (filesNotUploaded > 1) ? "s" : "",
       text: "Supported files are: " + filters.join(" "),
       confirmButtonColor: "#014f86",
       confirmButtonText: "OK",
       closeOnConfirm: true
     });
-  if (files.length > 0)
-    $('.formButton').removeAttr('disabled');
-  for (var i = 0; i < files.length; i++) {
-    var f = files[i];
-    f.id = "file_" + parseInt(Math.random() * 100000);
-    var transfer = {};
-    transfer.finished = false;
-    transfer.text = '<strong>' + f.name + '</strong>: ' + (f.size / MBtoB).toFixed(2) + ' MB';
-    transfer.id = f.id;
-    transfer.started = false;
-    output.push(transfer);
-    var li = document.createElement("li");
-    li.id = f.id;
-    var span = document.createElement("span");
-    span.innerHTML = transfer.text;
-    li.appendChild(span);
-    document.getElementById('outputList').appendChild(li);
   }
 
-  if (evt.type == "change") {
-    var form = document.getElementById('file-form');
-    form.onsubmit = (function (files) {
-      return function () {
-        $('#submitButton').hide();
-        preuploadCheck(files, coords);
-      }
-    })(files);
+  if (files.length > 0) {
+    $('#uploadsClearButton').show();
   }
-  else if (evt.type == "drop") {
-    preuploadCheck(files, coords);
-    if (!$('#uploadMenu').is(':visible') && files.length > 0)
-    {
-      $('#uploadButton').notify("Upload started", {
-        className: "info",
-        autoHideDelay: 3000
-      }).effect("pulsate", {times: 2}, 3000);
-    }
+
+  for (var i = 0; i < files.length; i++) {
+    var file = files[i];
+    file.id = "file_" + parseInt(Math.random() * 100000);
+    var upload = {};
+    upload.finished = false;
+    upload.text = '<strong>' + file.name + '</strong>: ' + (file.size / MBtoB).toFixed(2) + ' MB';
+    upload.id = file.id;
+    upload.started = false;
+    uploads.push(upload);
+
+    var li = document.createElement("li");
+    li.id = upload.id;
+    var span = document.createElement("span");
+    span.innerHTML = upload.text;
+    li.appendChild(span);
+    document.getElementById('uploadsList').appendChild(li);
+  }
+
+  preuploadCheck(files, coords);
+
+  if (!$('#uploadMenu').is(':visible') && files.length > 0) {
+    $('#uploadButton').notify("Upload started", {
+      className: "info",
+      autoHideDelay: 3000
+    }).effect("pulsate", {times: 2}, 3000);
   }
 }
 
@@ -636,7 +625,7 @@ function init() {
     filters = config["filters"];
     for (var i = 0; i < filters.length; i++)
       filters[i] = filters[i].replace(/\*/g, "");
-    $("#file-select").attr("accept", filters);
+    $("#uploadFileSelector").attr("accept", filters);
     var wall = $("#wall");
     wall.css("background-color", backgroundColor);
     wall.css("width", wallWidth).css("height", wallHeight);
@@ -850,10 +839,10 @@ function queryThumbnail(tile) {
     retryLimit: 10,
     success: function (resp, textStatus, xhr) {
       var that = this;
-      if (xhr.status == 200) {
+      if (xhr.status === 200) {
         $('#img' + tile.uuid).attr("src", resp)
       }
-      else if (xhr.status == 204) {
+      else if (xhr.status === 204) {
         setTimeout(function () {
           $.ajax(that);
         }, 1000)
@@ -905,7 +894,7 @@ function request(method, command, parameters, callback)
   var xhr = new XMLHttpRequest();
   xhr.open(method, restUrl + command, true);
   xhr.responseType = "json";
-  if(parameters == null)
+  if(parameters === null)
     xhr.send(null)
   else
     xhr.send(parameters);
@@ -971,14 +960,14 @@ function resizeOnWheelEvent(event, tile) {
 function saveSession() {
   var uri = $('#sessionNameInput').val();
 
-  if (uri.length == 0)
+  if (uri.length === 0)
     return;
   if (!uri.endsWith(".dcx"))
     uri = uri + ".dcx";
   var params = {"uri": uri};
   var exist = false;
   for (var i = 0; i < sessionFiles.length; i++) {
-    if (sessionFiles[i].text == uri)
+    if (sessionFiles[i].text === uri)
       exist = true;
   }
   swal({
@@ -1021,7 +1010,7 @@ function setBezels() {
     return;
   }
   stickyBezelSize = (stickyBezelSize / zoomScale);
-  $('#wall').css("grid-template-columns", "repeat("+screenCountX +", 1fr)").
+  $("#wall").css("grid-template-columns", "repeat("+screenCountX +", 1fr)").
   css("grid-template-rows", "repeat("+screenCountY+", 1fr)").
   css("grid-column-gap", bezelWidth).css("grid-row-gap", bezelHeight);
 
@@ -1032,35 +1021,36 @@ function setBezels() {
     screen.css("grid-template-rows", "repeat(" + displaysPerScreenY +", 1fr)");
     screen.css("grid-template-columns", "repeat(" + displaysPerScreenX +", 1fr)");
     screen.css("grid-column-gap", displaysPerScreenX > 1 ? bezelWidth : 0);
-    screen.css("grid-row-gap", displaysPerScreenY > 1 ? bezelHeight : 0)
+    screen.css("grid-row-gap", displaysPerScreenY > 1 ? bezelHeight : 0);
 
     var totalDisplaysPerScreen = displaysPerScreenX * displaysPerScreenY;
 
     for (var j = 0; j < totalDisplaysPerScreen; j++) {
-      let display = $("<div class='display'> </div>");
+      let display = $("<div class='display'></div>");
       display.css("outline-width", bezelHeight/2);
-      screen.append(display)
+      screen.append(display);
 
      var bezels = [{name: 'N', type: 'horizontal'},{name: 'S', type: 'horizontal'},
         {name: 'E', type: 'vertical'},{name: 'W', type: 'vertical'}];
       for (var k = 0; k < bezels.length; k++) {
-        let edge = $("<div class='screenbezel' id='" + bezels[k].name + "' > </div>");
+        let edge = $("<div class='screenbezel' id='" + bezels[k].name + "'></div>");
         if (bezels[k].type === 'horizontal')
         {
           edge.css("width", "100%");
           edge.css("height", stickyBezelSize);
-          if (bezels[k].name == 'S')
+          if (bezels[k].name === 'S')
             edge.css("top", displayHeight - stickyBezelSize);
         }
-        else {
+        else
+        {
           edge.css("width", stickyBezelSize);
           edge.css("height", "100%");
-          if (bezels[k].name == 'E')
+          if (bezels[k].name === 'E')
             edge.css("left", displayWidth - stickyBezelSize);
         }
         display.append(edge);
       }
-     }
+    }
   }
   $("#showBezelButton").addClass("buttonPressed");
 }
@@ -1122,7 +1112,7 @@ function setHandles(tile) {
       ui.position.top = newTop;
     },
     stop: function (event) {
-      if ($('.screenbezel').css("opacity") != 0)
+      if ($('.screenbezel').css("opacity") !== 0)
         $('.screenbezel').fadeTo('fast', 0).css("pointer-events", "none").css("zIndex", 50);
       var stickToOverlay = $("#stickToOverlay");
       if (stickToOverlay.length>0) {
@@ -1276,38 +1266,38 @@ function stickToBezel(event, bezel) {
   var dir = bezel.id;
 
   if (vertical) {
-    if (dir == 'E') {
+    if (dir === 'E') {
       $div.css("left", right);
       $div.css("top", top);
     }
-    else if (dir == 'W') {
+    else if (dir === 'W') {
       $div.css("left", left);
       $div.css("top", top);
     }
-    else if (dir == 'N' || dir == 'S') {
+    else if (dir === 'N' || dir === 'S') {
       $div.css("left", centerH);
       $div.css("top", top);
     }
   }
   else {
-    if (dir == 'N') {
+    if (dir === 'N') {
       $div.css("left", centerH);
       $div.css("top", top);
     }
-    else if (dir == 'S') {
+    else if (dir === 'S') {
       $div.css("top", bottom);
       $div.css("left", centerH);
     }
-    else if (dir == 'E') {
+    else if (dir === 'E') {
       $div.css("top", centerV);
       $div.css("left", right);
     }
-    else if (dir == 'W') {
+    else if (dir === 'W') {
       $div.css("top", centerV);
       $div.css("left", left);
     }
     // Align a window exceeding a screen to the left
-    if ((dir == 'N' || dir == 'S') && newWidth > displayWidth)
+    if ((dir === 'N' || dir === 'S') && newWidth > displayWidth)
       $div.css("left", left);
   }
 }
@@ -1498,23 +1488,23 @@ function uploadFiles(files, coords) {
       requests[i].onload = function () {
         if (requests[i].readyState === XMLHttpRequest.DONE && requests[i].status === 200) {
           var xhr2 = new XMLHttpRequest();
-          var index = output.findIndex(function (element) {
-            return element.id == file.id
+          var index = uploads.findIndex(function (element) {
+            return element.id === file.id
           });
-          output[index].started = true;
+          uploads[index].started = true;
 
           var cancelIcon = document.createElement("span");
-          cancelIcon.innerHTML = "<font color='red' >&#x2718; </font>";
+          cancelIcon.innerHTML = "<font color='red'>&#x2718;</font>";
           cancelIcon.class = "cancelUploadSpan";
           var loadingGif = document.createElement("img");
           loadingGif.src = loadingGifUrl;
           $('#' + file.id).append(loadingGif).append(cancelIcon);
 
           cancelIcon.addEventListener("click", function () {
-            index = output.findIndex(function (element) {
-              return element.id == file.id
+            index = uploads.findIndex(function (element) {
+              return element.id === file.id
             });
-            output[index].finished = true;
+            uploads[index].finished = true;
             xhr2.abort();
             var fileLi = $('#' + file.id);
             fileLi.find('img:first').remove();
@@ -1527,24 +1517,23 @@ function uploadFiles(files, coords) {
           xhr2.onload = function () {
             var fileLi = $('#' + file.id);
             if (xhr2.readyState === XMLHttpRequest.DONE && xhr2.status === 201) {
-              index = output.findIndex(function (element) {
-                return element.id == file.id
+              index = uploads.findIndex(function (element) {
+                return element.id === file.id
               });
-              output[index].finished = true;
+              uploads[index].finished = true;
               var success = JSON.parse(xhr2.responseText)["info"];
               fileLi.find('img:first').remove();
               fileLi.find('span:last').remove();
-              fileLi.append("<font color='green'> &#10004;" + success + "</font>");
+              fileLi.append("<font color='green'>&#10004;" + success + "</font>");
               updateWall();
             }
             else {
-              output[index].finished = true;
+              uploads[index].finished = true;
               var error = JSON.parse(xhr2.responseText)["info"];
               fileLi.find('img:first').remove();
               fileLi.find('span:last').remove();
               fileLi.append("<font color='red'> &#x2716;" + error + "</font>");
             }
-            $('#file-form').find("input[type=file]").val("");
           };
           xhr2.send(file);
         }
