@@ -3,6 +3,12 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [283](https://github.com/BlueBrain/Tide/pull/283):
+  Web interface improvements:
+  - Add surface switcher in the menu.
+  - Exit fullscreen button can also focus/unfocus windows.
+  - Fix and simplify the file upload procedure.
+  - Update screen on/off icons and disable them when interface is locked.
 * [282](https://github.com/BlueBrain/Tide/pull/282):
   Improve resizing of webbrowsers and whiteboards.
 * [279](https://github.com/BlueBrain/Tide/pull/279):

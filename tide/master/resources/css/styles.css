@@ -278,7 +278,7 @@ iframe {
   display: none;
 }
 
-#wall, #wallLock, #wallOutline {
+#wall, #wallLock, #wallOutline, #wallBezels {
   -moz-box-sizing: border-box;
   -webkit-box-sizing: border-box;
   -moz-transform-origin: 0 0;
@@ -289,10 +289,8 @@ iframe {
    height: 100%;
 }
 
-#wall {
-  z-index: 0;
+#wallBezels {
   display: grid;
-  opacity: 1;
 }
 
 #wallLock {

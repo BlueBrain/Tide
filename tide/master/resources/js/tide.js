@@ -1043,15 +1043,18 @@ function setBezels() {
     $("#showBezelButton").remove();
     return;
   }
-  stickyBezelSize = (stickyBezelSize / zoomScale);
-  $("#wall").css("grid-template-columns", "repeat("+screenCountX +", 1fr)").
-  css("grid-template-rows", "repeat("+screenCountY+", 1fr)").
-  css("grid-column-gap", bezelWidth).css("grid-row-gap", bezelHeight);
 
+  var bezelsDiv = $("#wallBezels");
+  bezelsDiv.css("grid-template-columns", "repeat("+screenCountX +", 1fr)");
+  bezelsDiv.css("grid-template-rows", "repeat("+screenCountY+", 1fr)");
+  bezelsDiv.css("grid-column-gap", bezelWidth);
+  bezelsDiv.css("grid-row-gap", bezelHeight);
+
+  var stickyBezelSize = (stickyBezelDefaultSize / zoomScale);
   var totalScreens = screenCountX * screenCountY;
+
   for (var i = 0; i < totalScreens; i++) {
     let screen = $("<div class=screen id=b" + i + "></div>");
-    $("#wall").append(screen);
     screen.css("grid-template-rows", "repeat(" + displaysPerScreenY +", 1fr)");
     screen.css("grid-template-columns", "repeat(" + displaysPerScreenX +", 1fr)");
     screen.css("grid-column-gap", displaysPerScreenX > 1 ? bezelWidth : 0);
@@ -1062,29 +1065,31 @@ function setBezels() {
     for (var j = 0; j < totalDisplaysPerScreen; j++) {
       let display = $("<div class='display'></div>");
       display.css("outline-width", bezelHeight/2);
-      screen.append(display);
 
-     var bezels = [{name: 'N', type: 'horizontal'},{name: 'S', type: 'horizontal'},
-        {name: 'E', type: 'vertical'},{name: 'W', type: 'vertical'}];
+      var bezels = [{name: 'N', type: 'horizontal'},
+                    {name: 'S', type: 'horizontal'},
+                    {name: 'E', type: 'vertical'},
+                    {name: 'W', type: 'vertical'}];
       for (var k = 0; k < bezels.length; k++) {
         let edge = $("<div class='screenbezel' id='" + bezels[k].name + "'></div>");
-        if (bezels[k].type === 'horizontal')
-        {
+        if (bezels[k].type === 'horizontal') {
           edge.css("width", "100%");
           edge.css("height", stickyBezelSize);
-          if (bezels[k].name === 'S')
+          if (bezels[k].name === 'S') {
             edge.css("top", displayHeight - stickyBezelSize);
-        }
-        else
-        {
+          }
+        } else {
           edge.css("width", stickyBezelSize);
           edge.css("height", "100%");
-          if (bezels[k].name === 'E')
+          if (bezels[k].name === 'E') {
             edge.css("left", displayWidth - stickyBezelSize);
+          }
         }
         display.append(edge);
       }
+      screen.append(display);
     }
+    bezelsDiv.append(screen);
   }
   $("#showBezelButton").addClass("buttonPressed");
 }
@@ -1443,6 +1448,8 @@ function updateWall() {
         setCurtain(focusCurtain);
       else
         removeCurtain(focusCurtain);
+
+      $("#wallBezels").css("visibility", fullscreen ? "hidden" : "visible");
 
       if (fullscreen) {
         $("#presentationButton").html("EXIT FULLSCREEN");
