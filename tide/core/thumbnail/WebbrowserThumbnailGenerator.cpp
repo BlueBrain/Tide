@@ -52,6 +52,6 @@ QImage WebbrowserThumbnailGenerator::generate(const QString& url) const
     auto host = QUrl{url}.host();
     if (host.startsWith("www."))
         host.remove(0, 4);
-    paintText(image, host.isEmpty() ? "Webbrowser" : host);
+    paintText(image, host.isEmpty() ? "Web browser" : host);
     return image;
 }

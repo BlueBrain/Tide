@@ -10,7 +10,7 @@ Changelog {#changelog}
   - Fix and simplify the file upload procedure.
   - Update screen on/off icons and disable them when interface is locked.
 * [282](https://github.com/BlueBrain/Tide/pull/282):
-  Improve resizing of webbrowsers and whiteboards.
+  Improve resizing of web browsers and whiteboards.
 * [279](https://github.com/BlueBrain/Tide/pull/279):
   Screens can be powered on/off from the web interface by clicking the screen
   status icon.
@@ -283,8 +283,8 @@ Changelog {#changelog}
 * [100](https://github.com/BlueBrain/Tide/pull/100):
   The Launcher can generate thumbnails much faster (requires Qt 5.6.3 or 5.7.1).
 * [97](https://github.com/BlueBrain/Tide/pull/97):
-  Webbrowsers can be saved and restored from sessions and display the page title
-  in their title bar.
+  Web browsers can be saved and restored from sessions and display the page
+  title in their title bar.
 * [96](https://github.com/BlueBrain/Tide/pull/96):
   Bug fixes in Whiteboard application.
 * [95](https://github.com/BlueBrain/Tide/pull/95):
@@ -312,7 +312,7 @@ Changelog {#changelog}
   - Movies can be played/paused from the side control bar
   - The keyboard can be opened from the side control bar for streamed contents
   Also, the keyboard icon is no longer shown for the new WebEngine-based
-  webbrowsers who use their own integrated keyboard.
+  web browsers who use their own integrated keyboard.
 * [85](https://github.com/BlueBrain/Tide/pull/85):
   Fix issues affecting Qt 5.7 caused by a conflict with Tide's virtual keyboard.
 * [84](https://github.com/BlueBrain/Tide/pull/84):
@@ -438,7 +438,8 @@ Changelog {#changelog}
   - A glow effect highlights windows which have the focus (capture touch
     events).
   - Regular windows always move by default; tapAndHold to get focus and zoom in.
-  - Webbrowsers and interactive streamers always have focus; move using borders.
+  - Web browsers and interactive streamers always have focus; move using
+    borders.
   - Resizing always preserves aspect ratio by default; tapAndHold any resize
     handle to change the aspect ratio of compatible contents (images
     and webbbrowsers).

@@ -74,19 +74,19 @@ public:
 
 public slots:
     /**
-     * Open a Webbrowser.
+     * Open a web browser.
      *
      * @param surfaceIndex The surface on which to open the window.
      * @param url The webpage to open.
-     * @param size The initial size of the viewport of the webbrowser in pixels.
-     * @param pos The position of the center of the browser window.
+     * @param size The initial size of the viewport in pixels.
+     * @param pos The position of the center of the window.
      *        If pos.isNull(), the window is centered on the DisplayWall.
      * @param debugPort Optional port to enable Chromium's remote debugging.
      */
     void openWebbrowser(uint surfaceIndex, QString url, QSize size, QPointF pos,
                         ushort debugPort);
 
-    /** Start a webbrowser for an existing window. */
+    /** Start a web browser for an existing window. */
     void launch(const WebbrowserContent& webbrowser, ushort debugPort = 0u);
 
     /** Open the Qml launcher. */

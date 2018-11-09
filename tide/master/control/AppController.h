@@ -84,11 +84,11 @@ public:
     void openLauncher();
 
     /**
-     * Open a Webbrowser.
+     * Open a web browser.
      *
      * @param surfaceIndex The surface on which to open the window.
      * @param url The webpage to open.
-     * @param size The initial size of the viewport of the webbrowser in pixels.
+     * @param size The initial size of the viewport in pixels.
      * @param pos The position of the center of the browser window.
      *        If pos.isNull(), the window is centered on the DisplayWall.
      * @param debugPort Optional port to enable Chromium's remote debugging.
