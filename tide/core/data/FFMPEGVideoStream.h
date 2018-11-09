@@ -139,16 +139,17 @@ public:
 private:
     AVFormatContext& _avFormatContext;
 
-    AVCodecContext* _videoCodecContext;
-    AVStream* _videoStream;
+    AVCodecContext* _videoCodecContext = nullptr;
+    // ptr to _avFormatContext->streams[i]; don't free
+    AVStream* _videoStream = nullptr;
 
     std::unique_ptr<FFMPEGFrame> _frame;
     std::unique_ptr<FFMPEGVideoFrameConverter> _frameConverter;
 
     // used for seeking
-    int64_t _numFrames;
-    double _frameDuration;
-    double _frameDurationInSeconds;
+    int64_t _numFrames = 0;
+    double _frameDuration = 0.0;
+    double _frameDurationInSeconds = 0.0;
 
     void _findVideoStream();
     void _openVideoStreamDecoder();

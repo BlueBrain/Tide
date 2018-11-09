@@ -202,12 +202,14 @@ PicturePtr FFMPEGMovie::getFrame(double posInSeconds)
             return PicturePtr();
     }
 
-    PicturePtr picture;
     const auto targetTimestamp = _videoStream->getTimestamp(posInSeconds);
+    if (targetTimestamp == AV_NOPTS_VALUE)
+        return PicturePtr();
 
     AVPacket packet;
     av_init_packet(&packet);
 
+    PicturePtr picture;
     int avReadStatus = 0;
     while ((avReadStatus = av_read_frame(_avFormatContext.get(), &packet)) >= 0)
     {

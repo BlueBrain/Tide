@@ -62,20 +62,13 @@ extern "C" {
 #endif
 
 FFMPEGVideoStream::FFMPEGVideoStream(AVFormatContext& avFormatContext)
-    : _avFormatContext(avFormatContext)
-    , _videoCodecContext(nullptr)
-    , _videoStream(nullptr) // ptr to _avFormatContext->streams[i]; don't free
-    // Seeking parameters
-    , _numFrames(0)
-    , _frameDuration(0.0)
-    , _frameDurationInSeconds(0.0)
+    : _avFormatContext{avFormatContext}
+    , _frame{new FFMPEGFrame}
+    , _frameConverter{new FFMPEGVideoFrameConverter}
 {
     _findVideoStream();
     _openVideoStreamDecoder();
     _generateSeekingParameters();
-
-    _frame.reset(new FFMPEGFrame);
-    _frameConverter.reset(new FFMPEGVideoFrameConverter);
 }
 
 FFMPEGVideoStream::~FFMPEGVideoStream()
@@ -224,8 +217,7 @@ AVPixelFormat FFMPEGVideoStream::getAVFormat() const
 
 int64_t FFMPEGVideoStream::getFrameIndex(const double timePositionInSec) const
 {
-    const int64_t index = timePositionInSec / _frameDurationInSeconds;
-    return index;
+    return static_cast<int64_t>(timePositionInSec / _frameDurationInSeconds);
 }
 
 int64_t FFMPEGVideoStream::getTimestamp(const double timePositionInSec) const
@@ -243,7 +235,7 @@ int64_t FFMPEGVideoStream::getTimestamp(int64_t frameIndex) const
     }
     frameIndex = std::max(int64_t(0), std::min(frameIndex, _numFrames - 1));
 
-    int64_t timestamp = frameIndex * _frameDuration;
+    auto timestamp = static_cast<int64_t>(frameIndex * _frameDuration);
 
     if (_videoStream->start_time != (int64_t)AV_NOPTS_VALUE)
         timestamp += _videoStream->start_time;
@@ -256,9 +248,7 @@ int64_t FFMPEGVideoStream::getFrameIndex(int64_t timestamp) const
     if (_videoStream->start_time != (int64_t)AV_NOPTS_VALUE)
         timestamp -= _videoStream->start_time;
 
-    const int64_t frameIndex = timestamp / _frameDuration;
-
-    return frameIndex;
+    return static_cast<int64_t>(timestamp / _frameDuration);
 }
 
 double FFMPEGVideoStream::getPositionInSec(const int64_t timestamp) const
@@ -375,7 +365,8 @@ void FFMPEGVideoStream::_generateSeekingParameters()
     if (_numFrames <= 0)
         throw std::runtime_error("cannot determine number of frames");
 
-    _frameDuration = double(duration) / double(_numFrames - 1);
+    _frameDuration = _numFrames > 1 ? double(duration) / double(_numFrames - 1)
+                                    : double(duration);
 
     const auto frameDurationUnits = double(timeBase.num) / double(timeBase.den);
     _frameDurationInSeconds = _frameDuration * frameDurationUnits;
