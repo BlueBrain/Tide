@@ -82,7 +82,7 @@ Rectangle {
         }
         ListElement {
             action: "startWebbrowser"
-            name: "Webbrowser"
+            name: "Web browser"
             image: "qrc:/images/webbrowser.svg"
             category: "Applications"
             isPanel: false

@@ -44,7 +44,7 @@
 #include "WebbrowserHistory.h"  // Member
 
 /**
- * The Webbrowser is a PixelStream extended with history navigation.
+ * An extended PixelStream with navigation history.
  */
 class WebbrowserContent : public PixelStreamContent
 {
@@ -66,7 +66,7 @@ public:
     /** Get the title for the web page. **/
     QString getTitle() const final;
 
-    /** @return false, webbrowsers can adjust their aspect ratio. */
+    /** @return false, web browsers can adjust their aspect ratio. */
     bool hasFixedAspectRatio() const final;
 
     /** Get the index of the page navigation history. */
@@ -89,7 +89,7 @@ public:
     void parseData(QByteArray data) final;
 
     /**
-     * Serialize webbrowser data for sending through the deflect::Stream.
+     * Serialize web browser data for sending through the deflect::Stream.
      *
      * @param history the navigation history
      * @param pageTitle the title of the current web page

@@ -48,7 +48,7 @@ class QLineEdit;
 class QSpinBox;
 
 /**
- * Dialog for opening a new webbrowser window.
+ * Dialog for opening a new web browser window.
  */
 class WebbrowserWidget : public QDialog
 {
@@ -59,7 +59,7 @@ public:
     WebbrowserWidget(const Configuration& config, QWidget* parent = 0);
 
 signals:
-    /** Emitted when users want to open a webbrowser. */
+    /** Emitted when users want to open a web browser. */
     void openWebBrowser(QString url, QSize size, ushort debugPort);
 
 public slots:

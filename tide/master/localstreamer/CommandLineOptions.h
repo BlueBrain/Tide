@@ -73,7 +73,7 @@ public:
     uint width = 0;
     uint height = 0;
 
-    // Webbrowser only
+    // Web browser only
     QString url;
 
     // Launcher only
@@ -83,7 +83,7 @@ public:
     QString demoServiceUrl;
     bool showPowerButton = false;
 
-    // whiteboard only
+    // Whiteboard only
     QString saveDir;
 
 private:

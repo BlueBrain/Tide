@@ -84,7 +84,7 @@ void CommandLineOptions::_fillDesc()
         ("height", po::value<unsigned int>()->default_value(0),
          "height of the stream in pixels")
         ("url", po::value<std::string>()->default_value(""),
-         "webbrowser only: url to open")
+         "web browser only: url to open")
         ("config", po::value<std::string>()->default_value(""),
          "launcher & whiteboard: Tide configuation file for extra settings")
         ("contentsDir", po::value<std::string>()->default_value(""),

@@ -43,7 +43,7 @@
 #include "ThumbnailGenerator.h"
 
 /**
- * Generate placeholder images for webbrowser windows.
+ * Generate placeholder images for web browser windows.
  */
 class WebbrowserThumbnailGenerator : public ThumbnailGenerator
 {
@@ -52,7 +52,7 @@ public:
     WebbrowserThumbnailGenerator(const QSize& size);
 
     /**
-     * Generate a thumbnail for a webbrowser window.
+     * Generate a thumbnail for a web browser window.
      *
      * @param url the url of the web page.
      * @return a placeholder image showing the host part of the url, for example

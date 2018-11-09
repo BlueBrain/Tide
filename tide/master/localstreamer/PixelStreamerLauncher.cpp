@@ -138,7 +138,7 @@ void PixelStreamerLauncher::openWebbrowser(const uint surfaceIndex,
     Q_UNUSED(debugPort);
     print_log(
         LOG_INFO, LOG_GENERAL,
-        "Can't browse url '%s', Tide was compiled without webbrowser support",
+        "Can't browse url '%s', Tide was compiled without web browser support",
         url.toLocal8Bit().constData());
 #endif
 }

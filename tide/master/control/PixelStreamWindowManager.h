@@ -182,7 +182,7 @@ signals:
 
     /**
      * Emitted when handleStreamStart is called for a stream which already has a
-     * window, such as the Launcher or a Webbrowser.
+     * window, such as the Launcher or a web browser.
      *
      * For external streamers, the requestFrame signal comes from the Wall
      * processes when the window has been opened. For local streamers, however,

@@ -77,7 +77,7 @@ signals:
     /** Save a session to the given file. */
     void save(QString uri, BoolCallback callback);
 
-    /** Emitted when users want to open a webbrowser. */
+    /** Emitted when users want to open a web browser. */
     void openWebBrowser(uint surfaceIndex, QString url, QSize size, QPointF pos,
                         ushort debugPort);
 
