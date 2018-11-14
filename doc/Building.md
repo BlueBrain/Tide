@@ -21,7 +21,7 @@ communication. These dependencies are:
 * Boost 1.56 or later
 * MPI with MPI_THREAD_MULTIPLE support (OpenMPI >= 1.6.5, or IntelMPI for
   InfiniBand networks)
-* Qt 5.4 or later (5.8 or later recommended)
+* Qt 5.4 or later (5.9 or later recommended)
 
 In addition, it also depends on some external projects that are automatically
 cloned by CMake during the configure step. They come with their own additional
@@ -51,7 +51,7 @@ Currently, only Ubuntu (via apt-get) and OSX (via macports) are supported.
 To run the automatic install, do the following:
 
     cd Tide/build
-    cmake .. -DINSTALL_PACKAGES=1
+    cmake .. -DINSTALL_PACKAGES=ON
 
 Alternatively, look directly at the TIDE_DEB_DEPENDS and TIDE_PORT_DEPENDS
 entries in the top-level CMakeLists.txt of each (sub)project and install the
@@ -59,22 +59,42 @@ packages manually.
 
 ## Supported Platforms
 
-This section gives more detailed information on building the software on some
-popular platforms.
+This section gives more detailed information on building the software on popular
+platforms.
 
-Unfortunately, many Linux distributions lack at least one of the required
-components which must be installed manually. New users are advised to consider
-Ubuntu 16.04 which is one of the simplest option overall.
+The current (Dec. 2018) reference platform at BBP is Ubuntu 16.04 with a custom
+install of [Qt 5.9.7](https://download.qt.io/archive/qt/5.9/5.9.7/) and openmpi
+(see below).
+
+### Ubuntu 18.04
+
+Tide compiles out of the box on Ubuntu 18.04 as all the dependencies are
+available as system packages but it hasn't been tested extensively. There are
+also some troubles with the system Qt (see below).
+
+To compile Tide from scratch on a fresh system, installing all its dependencies,
+do:
+
+    sudo apt install git cmake build-essential
+    git clone --recursive https://github.com/BlueBrain/Tide.git
+    mkdir Tide/build
+    cd Tide/build
+    cmake .. -DCLONE_SUBPROJECTS=ON -DINSTALL_PACKAGES=ON
+    make -j8
+
+Known issue: at the time of writing (Dec. 2018) the webbrowser is crashing when
+using the system Qt packages. Using a custom install of Qt downloaded from the
+official website solves that problem.
 
 ### Ubuntu 16.04
 
-Tide works almost out of the box on Ubuntu 16.04. The only issue is that the
-openmpi / mpich packages are either buggy or lack support for
-MPI_THREAD_MULTIPLE.
+Tide works almost out of the box on Ubuntu 16.04. The main issue is that the
+openmpi and mpich packages are either buggy or lack support for
+MPI_THREAD_MULTIPLE. A more recent Qt version is also recommeneded.
 
 To boostrap the installation of Tide a on fresh install, do:
 
-    sudo apt install git cmake
+    sudo apt install git cmake build-essential
     git clone --recursive https://github.com/BlueBrain/Tide.git
     mkdir Tide/build
     cd Tide/build

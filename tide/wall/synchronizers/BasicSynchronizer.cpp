@@ -87,16 +87,11 @@ void BasicSynchronizer::swapTiles()
     // Swap not synchronized, done directly in onSwapReady()
 }
 
-QSize BasicSynchronizer::_getTilesArea(const uint lod) const
-{
-    return getDataSource().getTilesArea(lod, 0);
-}
-
 QString BasicSynchronizer::getStatistics() const
 {
     QString stats;
     QTextStream stream(&stats);
-    const auto area = _getTilesArea(getLod());
+    const auto area = getTilesArea(getLod());
     stream << "  res: " << area.width() << "x" << area.height();
     return stats;
 }
@@ -121,6 +116,11 @@ deflect::View BasicSynchronizer::getView() const
     return _view;
 }
 
+QSize BasicSynchronizer::_getTilesArea(const uint lod) const
+{
+    return getDataSource().getTilesArea(lod, 0);
+}
+
 void BasicSynchronizer::_createTile()
 {
     if (_tileAdded)
@@ -128,7 +128,7 @@ void BasicSynchronizer::_createTile()
 
     _tileAdded = true;
     _addTile = false;
-    emit addTile(Tile::create(0, QRect{QPoint(), _getTilesArea(0)}), 0);
+    emit addTile(Tile::create(0, QRect{QPoint(), getTilesArea(0)}), 0);
 }
 
 const DataSource& BasicSynchronizer::getDataSource() const

@@ -88,12 +88,6 @@ void PixelStreamSynchronizer::swapTiles()
     _setTilesArea(_updater->getTilesArea(0, getChannel()));
 }
 
-QSize PixelStreamSynchronizer::_getTilesArea(const uint lod) const
-{
-    Q_UNUSED(lod);
-    return _tilesArea;
-}
-
 QString PixelStreamSynchronizer::getStatistics() const
 {
     return _fpsCounter.toString() + " fps";
@@ -118,6 +112,12 @@ QRectF PixelStreamSynchronizer::getVisibleTilesArea(const uint lod) const
 {
     Q_UNUSED(lod);
     return _visibleTilesArea;
+}
+
+QSize PixelStreamSynchronizer::_getTilesArea(const uint lod) const
+{
+    Q_UNUSED(lod);
+    return _tilesArea;
 }
 
 void PixelStreamSynchronizer::_setTilesArea(const QSize& tilesArea)

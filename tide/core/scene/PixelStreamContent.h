@@ -47,6 +47,9 @@
 
 #include <deflect/Event.h>
 
+/**
+ * A tiled image stream received through the deflect protocol.
+ */
 class PixelStreamContent : public MultiChannelContent
 {
     Q_OBJECT

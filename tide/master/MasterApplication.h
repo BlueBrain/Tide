@@ -89,7 +89,6 @@ public:
     /**
      * Load a session.
      * @param sessionFile a .dcx session file
-     * @param callback an optional callback to return the result of the action
      */
     void load(const QString& sessionFile);
 

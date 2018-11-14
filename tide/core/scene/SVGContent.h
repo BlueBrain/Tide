@@ -44,6 +44,9 @@
 
 #include "VectorialContent.h"
 
+/**
+ * An SVG image with transparency.
+ */
 class SVGContent : public VectorialContent
 {
     Q_OBJECT

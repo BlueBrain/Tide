@@ -52,7 +52,7 @@
 #include <QUuid>
 
 /**
- * A window for displaying Content on the Wall.
+ * A window for displaying a Content on the Wall.
  *
  * Can be serialized and distributed to the Wall applications.
  */

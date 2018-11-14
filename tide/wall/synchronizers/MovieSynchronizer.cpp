@@ -90,11 +90,6 @@ void MovieSynchronizer::swapTiles()
     }
 }
 
-QSize MovieSynchronizer::_getTilesArea(const uint lod) const
-{
-    return getDataSource().getTilesArea(lod, 0);
-}
-
 QString MovieSynchronizer::getStatistics() const
 {
     return QString("%1 / %2").arg(_fpsCounter.toString(),
@@ -122,6 +117,11 @@ QRectF MovieSynchronizer::getVisibleTilesArea(const uint lod) const
 {
     Q_UNUSED(lod);
     return _visibleTilesArea;
+}
+
+QSize MovieSynchronizer::_getTilesArea(const uint lod) const
+{
+    return getDataSource().getTilesArea(lod, 0);
 }
 
 void MovieSynchronizer::_onPictureUpdated()

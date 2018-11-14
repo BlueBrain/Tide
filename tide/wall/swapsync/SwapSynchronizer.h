@@ -59,6 +59,9 @@ public:
     virtual void exitBarrier(const QWindow& window) = 0;
 };
 
+/**
+ * Abstract factory for creating SwapSynchronizer objects.
+ */
 class SwapSynchronizerFactory
 {
 public:

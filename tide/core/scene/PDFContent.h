@@ -42,6 +42,9 @@
 
 #include "VectorialContent.h"
 
+/**
+ * A multi-page PDF document.
+ */
 class PDFContent : public VectorialContent
 {
     Q_OBJECT

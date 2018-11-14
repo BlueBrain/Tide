@@ -25,11 +25,11 @@ Tide helps users with:
 * Interacting with content streamed from remote sources such as high-performance
   visualisation machines through the
   [Deflect](https://github.com/BlueBrain/Deflect.git) protocol. In particular
-  all [Equalizer](https://github.com/Eyescale/Equalizer.git)-based applications
-  as well as [Brayns](https://github.com/BlueBrain/Brayns.git) ray-tracing
-  engine have built-in support.
-* Viewing high-resolution [stereo 3D streams](https://github.com/BlueBrain/Deflect/blob/master/doc/StereoStreaming.md)
-  on compatible displays (under development).
+  all [Equalizer](https://github.com/Eyescale/Equalizer)-based applications
+  as well as [Brayns](https://github.com/BlueBrain/Brayns) ray-tracing engine
+  have built-in support.
+* Viewing high-resolution, immersive [stereo 3D streams](https://git.io/fpsoQ)
+  on compatible hardware.
 
 ## Usage
 
@@ -47,7 +47,7 @@ application or download any client from [TUIO](http://www.tuio.org/?software).
 On a smartphone, search for *TuioPad* app.
 
 For more detailed information refer to the
-[User Guide](http://bluebrain.github.io/Tide-1.4/user_guide.html).
+[User Guide](http://bluebrain.github.io/Tide-1.5/user_guide.html).
 
 ## Web Interface
 
@@ -66,21 +66,21 @@ Basic procedure on Linux / OSX:
     cmake -GNinja -DCLONE_SUBPROJECTS=ON ..
     ninja
 
-The master branch always contains the latest development features (see
-[Changelog](https://github.com/BlueBrain/Tide/blob/master/doc/Changelog.md)).
+The master branch always contains the latest development features; see
+[Changelog](https://git.io/fpsK1).
 To build a stable [release](https://github.com/BlueBrain/Tide/releases)
 checkout its tag:
 
-    git checkout 1.2.2
+    git checkout 1.5.0
 
 Tide uses a set of [common CMake modules](https://github.com/Eyescale/CMake) to
 help with the configuration and handling of dependencies. To install required
 system packages on Ubuntu (apt-get) or OSX (macports) run:
 
-    cmake .. -DINSTALL_PACKAGES=1
+    cmake .. -DINSTALL_PACKAGES=ON
 
 For detailed instructions on how to build Tide on a specific platform refer to
-[Building Tide](http://bluebrain.github.io/Tide-1.4/building.html).
+[Building Tide](http://bluebrain.github.io/Tide-1.5/building.html).
 
 ## Similar Projects
 
@@ -90,9 +90,9 @@ the code has been rewritten based on Qt's Qml2 engine and multithreaded
 operations for greatly optimized performance and stability.
 
 It offers a modern alternative to [Sage/Sage2](http://sagecommons.org) built on
-proven and efficient technologies (C++11, Qt5, MPI).
+proven and efficient technologies (C++14, Qt5, MPI).
 
 ## Documentation
 
 The full documentation is available at
-[bluebrain.github.io](http://bluebrain.github.io/Tide-1.4)
+[bluebrain.github.io](http://bluebrain.github.io/Tide-1.5)

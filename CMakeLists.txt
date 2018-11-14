@@ -10,7 +10,7 @@ if(NOT EXISTS ${CMAKE_SOURCE_DIR}/CMake/common/Common.cmake)
   message(FATAL_ERROR "CMake/common missing, run: git submodule update --init")
 endif()
 
-set(TIDE_DESCRIPTION "Tiled Interactive DisplayWall Environment")
+set(TIDE_DESCRIPTION "Tiled Interactive Display Environment")
 set(TIDE_MAINTAINER "Blue Brain Project <bbp-open-source@googlegroups.com>")
 set(TIDE_VENDOR "Blue Brain Project")
 set(TIDE_LICENSE BSD)
@@ -18,15 +18,20 @@ set(TIDE_DEB_DEPENDS python imagemagick libopenmpi-dev openmpi-bin
   libboost-program-options-dev libboost-serialization-dev libboost-test-dev
   qtbase5-private-dev qtdeclarative5-dev libqt5serialport5-dev libqt5svg5-dev
   libqt5webkit5-dev libqt5xmlpatterns5-dev libqt5x11extras5-dev
-  qml-module-qtquick-controls
+  qml-module-qtquick-controls qml-module-qtqml-models2
   libpoppler-glib-dev libcairo2-dev libpoppler-qt5-dev librsvg2-dev libtiff5-dev
-  libavutil-dev libavformat-dev libavcodec-dev libswscale-dev)
+  libavutil-dev libavformat-dev libavcodec-dev libswscale-dev
+)
+include(LSBInfo)
+if(LSB_DISTRIBUTOR_ID STREQUAL "Ubuntu" AND LSB_RELEASE VERSION_GREATER 16.04)
+  list(APPEND TIDE_DEB_DEPENDS qtwebengine5-dev qml-module-qtwebengine)
+endif()
 set(TIDE_PORT_DEPENDS boost ffmpeg mpich-devel qt5)
 set(TIDE_BREW_DEPENDS boost ffmpeg librsvg open-mpi poppler qt)
 
 include(Common)
 
-set(_deflect_min_version 1.0)
+set(_deflect_min_version 1.0.1)
 set(_rockets_min_version 0.1)
 
 common_find_package(Boost 1.56 REQUIRED COMPONENTS program_options serialization
@@ -37,7 +42,7 @@ common_find_package(Qt5Concurrent REQUIRED)
 common_find_package(Qt5Core REQUIRED)
 common_find_package(Qt5Gui REQUIRED COMPONENTS Private)
 if(NOT TARGET Qt5::QTuioTouchPlugin)
-  message(WARNING "Qt5::QTuioTouchPlugin not found, touch may be unavailable")
+  message(WARNING "Qt5::QTuioTouchPlugin not detected, touch may be unavailable")
 endif()
 common_find_package(Qt5Network REQUIRED)
 common_find_package(Qt5Qml REQUIRED)
@@ -104,4 +109,6 @@ include(CommonCPack) # also includes CommonPackageConfig
 
 # Documentation
 set(COMMON_PROJECT_DOMAIN ch.epfl.bluebrain)
+set(DOXYGEN_MAINPAGE_MD README.md)
+set(DOXYGEN_EXTRA_INPUT ${PROJECT_SOURCE_DIR}/README.md)
 include(DoxygenRule)

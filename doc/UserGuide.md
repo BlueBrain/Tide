@@ -19,10 +19,19 @@ A single json configuration file is required to launch the application. It
 defines the number of processes to launch, the hosts on which they have to run
 and the list of windows that each one of them will display.
 
+On real installations it is often desireable to hide the master control window
+entirely. This is achieved by setting "headless": true in the "master" section.
+
+Here is a simple example of the 1x3 setup used by default when launching Tide:
+
 \include examples/configuration_1x3.json
 
 More examples can be found in the examples folder of the source directory, or
 installed under ${install_prefix}/share/Tide/examples.
+
+To examine all possible options, a useful trick is to use tideConverter:
+
+> tideConverter --full examples/configuration_1x1.json configuration_full.json
 
 ## TIFF image pyramids
 
@@ -34,6 +43,12 @@ For more convenience, use the *pyramidify* tool provided by Tide:
 Which is equivalent to calling manually the *pyramidmaker* script (also provided
 by Tide) for each image:
 > pyramidmaker myimage.xyz myimage.tif
+
+## Stereo 3D images
+
+Tide displays side-by-side
+[.jps](https://en.wikipedia.org/wiki/JPEG#JPEG_Stereoscopic) stereo jpeg images
+in 3D.
 
 ## Stereo 3D movies
 
@@ -81,7 +96,3 @@ The following steps might be required to run the application on OSX.
   # Add to /etc/hosts:
   127.0.0.1    bluebrain077.epfl.ch
   ~~~~~~~~~~~~~
-
-Multiple windows are not supported, only the basic single-window configuation
-works:
-> bin/tide --config $PWD/../examples/configuration_1x1.json

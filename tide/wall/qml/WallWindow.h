@@ -49,6 +49,9 @@
 class QQuickRenderControl;
 class QQmlEngine;
 
+/**
+ * An OpenGL window in which the Qml scene is rendered.
+ */
 class WallWindow : public QQuickWindow
 {
     Q_OBJECT

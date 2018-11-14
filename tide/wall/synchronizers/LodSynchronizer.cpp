@@ -77,17 +77,12 @@ void LodSynchronizer::updateTiles()
     }
 }
 
-QSize LodSynchronizer::_getTilesArea(const uint lod) const
-{
-    return getDataSource().getTilesArea(lod, getChannel());
-}
-
 QString LodSynchronizer::getStatistics() const
 {
     auto stats = QString();
     QTextStream stream{&stats};
     stream << "LOD:  " << getLod() << "/" << getLodCount() - 1;
-    const auto& area = _getTilesArea(getLod());
+    const auto area = getTilesArea(getLod());
     stream << "  res: " << area.width() << "x" << area.height();
     return stats;
 }
@@ -134,6 +129,11 @@ const DataSource& LodSynchronizer::getDataSource() const
 QRectF LodSynchronizer::getVisibleTilesArea(const uint lod) const
 {
     return _visibleTilesArea.at(lod);
+}
+
+QSize LodSynchronizer::_getTilesArea(const uint lod) const
+{
+    return getDataSource().getTilesArea(lod, getChannel());
 }
 
 void LodSynchronizer::_updateLod(const uint lod)

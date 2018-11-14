@@ -92,7 +92,7 @@ Launcher::Launcher(int& argc, char* argv[])
     item->setProperty("tideVersion", TIDE_VERSION_STRING);
     item->setProperty("tideRevision",
                       QString::number(TIDE_VERSION_REVISION, 16));
-    item->setProperty("restPort", options.webservicePort);
+    item->setProperty("restPort", static_cast<int>(options.webservicePort));
     item->setProperty("powerButtonVisible", options.showPowerButton);
     if (options.width)
         item->setProperty("width", options.width);

@@ -69,9 +69,6 @@ public:
     /** @copydoc ContentSynchronizer::swapTiles */
     void swapTiles() final;
 
-    /** @copydoc ContentSynchronizer::_getTilesArea */
-    QSize _getTilesArea(uint lod) const override;
-
     /** @copydoc ContentSynchronizer::getStatistics */
     QString getStatistics() const override;
 
@@ -86,6 +83,7 @@ public:
 
 private:
     QRectF getVisibleTilesArea(uint lod) const final;
+    QSize _getTilesArea(uint lod) const final;
 
     void _setTilesArea(const QSize& tilesArea);
     void _onPictureUpdated();

@@ -61,12 +61,6 @@ public:
     /** @copydoc ContentSynchronizer::updateTiles */
     void updateTiles() override;
 
-    /**
-     * @return the total area covered by the tiles for a given LOD (depends on
-     *         current channel).
-     */
-    QSize _getTilesArea(uint lod) const override;
-
     /** @copydoc ContentSynchronizer::getStatistics */
     QString getStatistics() const override;
 
@@ -93,6 +87,7 @@ protected:
 private:
     const DataSource& getDataSource() const final;
     QRectF getVisibleTilesArea(uint lod) const final;
+    QSize _getTilesArea(uint lod) const final;
 
     void _updateLod(const uint lod);
     void _updateVisibleTileAreas(const Window& window,

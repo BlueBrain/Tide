@@ -73,6 +73,7 @@ public:
 
     /**
      * @return image in a suitable format for rendering:
+     *
      * - ARGB32_Premultiplied for images with alpha channel (transparent).
      * - RGB32 for others (opaque).
 .    */

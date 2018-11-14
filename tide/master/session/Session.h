@@ -82,6 +82,7 @@ public:
      * Constructor.
      * @param scene to serialize.
      * @param filepath where the session was last saved or loaded.
+     * @param version of the session file (for use with legacy files only).
      */
     Session(ScenePtr scene, QString filepath = QString(),
             SessionFileVersion version = INVALID_FILE_VERSION);
