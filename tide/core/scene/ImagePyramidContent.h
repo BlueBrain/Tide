@@ -42,6 +42,9 @@
 
 #include "Content.h"
 
+/**
+ * A multi-resolution tiled image.
+ */
 class ImagePyramidContent : public Content
 {
 public:

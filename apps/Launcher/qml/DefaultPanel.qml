@@ -26,7 +26,7 @@ Rectangle {
         anchors.baseline: parent.verticalCenter
         anchors.horizontalCenter: parent.horizontalCenter
         font.pixelSize: standardTextPixelSize
-        text: "Tiled Interactive Displaywall Environment"
+        text: "Tiled Interactive Display Environment"
         color: Style.defaultPanelTextColor
     }
     Text {

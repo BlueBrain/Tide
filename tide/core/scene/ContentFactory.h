@@ -46,6 +46,9 @@
 
 #include <QStringList>
 
+/**
+ * Factory for creating Content objects.
+ */
 class ContentFactory
 {
 public:

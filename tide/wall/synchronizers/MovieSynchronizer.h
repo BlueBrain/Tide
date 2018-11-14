@@ -70,9 +70,6 @@ public:
     /** @copydoc ContentSynchronizer::swapTiles */
     void swapTiles() final;
 
-    /** @copydoc ContentSynchronizer::_getTilesArea */
-    QSize _getTilesArea(uint lod) const final;
-
     /** @copydoc ContentSynchronizer::getStatistics */
     QString getStatistics() const final;
 
@@ -91,6 +88,7 @@ signals:
 private:
     const DataSource& getDataSource() const final;
     QRectF getVisibleTilesArea(uint lod) const final;
+    QSize _getTilesArea(uint lod) const final;
 
     void _onPictureUpdated();
 

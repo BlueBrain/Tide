@@ -50,6 +50,9 @@ enum ControlState
     STATE_LOOP = 1 << 1
 };
 
+/**
+ * A 2D or stereo 3D movie.
+ */
 class MovieContent : public Content
 {
     Q_OBJECT

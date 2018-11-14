@@ -88,7 +88,7 @@ public:
 
     /**
      * @return the total area covered by the tiles for a given LOD.
-     * @note has to be a method + notifier instead of Q_PROPERTY because there
+     * @note has to be a method + notifier instead of a Q_PROPERTY because there
      *       is no support for QList<QSize> in Qml.
      */
     Q_INVOKABLE QSize getTilesArea(const uint lod) const

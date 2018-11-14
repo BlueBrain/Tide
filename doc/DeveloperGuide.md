@@ -30,9 +30,10 @@ pointers to auxilary documentation.
   * Launcher: The application which streams the Qml control panel for browsing
               documents, sessions and launching applications.
   * Webbrowser: The application which streams a Qml WebEngine-based web browser.
-  * pyramidmaker: A script that generates a TIFF image pyramid from a big
-                  source image using ImageMagick's convert tool. %Image pyramids
-                  can be loaded and rendered by Tide more efficently.
+  * pyramidify: A script for converting big image(s) to TIFF image pyramid(s).
+                %Image pyramids can be loaded and rendered more efficently than
+                standard image formats.
+  * pyramidmaker: Script used by pyramidify (calls ImageMagick's convert tool).
 
 * tests: Unit tests.
 * doc: Doxygen and other documentation.

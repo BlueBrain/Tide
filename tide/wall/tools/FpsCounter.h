@@ -45,6 +45,9 @@
 
 #include <QString>
 
+/**
+ * Counts the rendering speed of dynamic Contents in frames per second.
+ */
 class FpsCounter
 {
 public:
