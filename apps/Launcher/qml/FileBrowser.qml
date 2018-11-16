@@ -153,7 +153,7 @@ Rectangle {
             color: "transparent"
             Image {
                 anchors.fill: parent
-                source: "qrc:/images/left.svg"
+                source: "qrc:/launcher/images/left.svg"
             }
             MouseArea {
                 id: upRegion
@@ -202,7 +202,7 @@ Rectangle {
                 exclusiveGroup: viewButtonsGroup
                 checked: !listViewMode
                 height: parent.height
-                icon: "qrc:/images/gridview.svg"
+                icon: "qrc:/launcher/images/gridview.svg"
                 onCheckedChanged: {
                     if (checked) {
                         folders.setGridSortOrder()
@@ -213,7 +213,7 @@ Rectangle {
                 id: listViewButton
                 exclusiveGroup: viewButtonsGroup
                 height: parent.height
-                icon: "qrc:/images/listview.svg"
+                icon: "qrc:/launcher/images/listview.svg"
             }
         }
         states: [

@@ -1,7 +1,6 @@
 // Copyright (c) 2016-2018, EPFL/Blue Brain Project
 //                          Pawel Podhajski <pawel.podhajski@epfl.ch>
 //                          Raphael Dumusc <raphael.dumusc@epfl.ch>
-
 import QtQuick 2.4
 import QtQuick.Window 2.2
 import QtQml 2.0
@@ -197,7 +196,7 @@ Item {
             Image {
                 id: imgSave
                 opacity: 1
-                source: "qrc:/images/save.png"
+                source: "qrc:/whiteboard/images/save.png"
                 width: 75
                 height: 75
                 anchors.leftMargin: 75
@@ -254,7 +253,7 @@ Item {
             }
 
             Button {
-                iconSource: pressed ? "qrc:/images/full.png" : "qrc:/images/clear.png"
+                iconSource: pressed ? "qrc:/whiteboard/images/full.png" : "qrc:/whiteboard/images/clear.png"
                 height: 75
                 onClicked: {
                     allCurves = []
@@ -335,7 +334,6 @@ Item {
                 enabled: !savePanelBackground.enabled
                 anchors.fill: parent
                 property var paths: []
-
 
                 touchPoints: [
                     TouchPoint {
@@ -460,9 +458,9 @@ Item {
                     regExp: /[\w.]*/
                 }
                 onAccepted: {
-                   checkFileExists()
-                   if (textInput.text == "")
-                   Qt.inputMethod.show()
+                    checkFileExists()
+                    if (textInput.text == "")
+                        Qt.inputMethod.show()
                 }
                 Button {
                     anchors.left: textInput.right

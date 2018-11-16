@@ -58,7 +58,7 @@
 namespace
 {
 const std::string deflectHost("localhost");
-const QString deflectQmlFile("qrc:/qml/qml/main.qml");
+const QString deflectQmlFile("qrc:/launcher/qml/main.qml");
 const QString thumbnailProviderId("thumbnail");
 
 QQuickImageProvider* _makeImageProvider()

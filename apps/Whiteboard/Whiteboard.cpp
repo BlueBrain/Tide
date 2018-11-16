@@ -47,7 +47,7 @@
 namespace
 {
 const std::string deflectHost("localhost");
-const QString deflectQmlFile("qrc:/qml/qml/whiteboard.qml");
+const QString deflectQmlFile("qrc:/whiteboard/qml/Whiteboard.qml");
 }
 
 Whiteboard::Whiteboard(int& argc, char* argv[])

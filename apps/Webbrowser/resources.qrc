@@ -1,6 +1,6 @@
 <RCC>
-    <qresource prefix="/qml">
+    <qresource prefix="/webbrowser">
+        <file>images/right_arrow.svg</file>
         <file>qml/Webengine.qml</file>
-        <file>qml/HtmlSelectReplacer.js</file>
     </qresource>
 </RCC>

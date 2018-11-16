@@ -2,14 +2,13 @@
 //                          Raphael Dumusc <raphael.dumusc@epfl.ch>
 import QtQuick 2.4
 import QtQuick.Window 2.2
-import QtWebEngine 1.1
 import QtQuick.Controls 1.2
 import QtQuick.Controls.Styles 1.2
 import QtGraphicalEffects 1.0
 
 import "qrc:/qml/core/."
 import "qrc:/qml/core/style.js" as Style
-import "HtmlSelectReplacer.js" as HSR
+import "qrc:/web/qml/."
 
 Item {
     width: 640
@@ -48,7 +47,7 @@ Item {
             font.pixelSize: 0.5 * (parent.height - 2 * Style.windowBorderWidth)
 
             placeholderText: "enter url or search terms"
-            text: webengine.url
+            text: webbrowser.url
 
             onAccepted: addressBarTextEntered(text)
             onFocusChanged: focus ? Qt.inputMethod.show(
@@ -65,7 +64,7 @@ Item {
                     id: goButton
                     anchors.fill: parent
                     anchors.margins: 0.1 * parent.height
-                    image: "qrc:/img/right_arrow.svg"
+                    image: "qrc:/webbrowser/images/right_arrow.svg"
                     opacity: addressBar.text.length
                              > 0 ? Style.buttonsEnabledOpacity : Style.buttonsDisabledOpacity
                     enabled: true
@@ -75,42 +74,23 @@ Item {
         }
     }
 
-    WebEngineView {
-        id: webengine
-        objectName: "webengineview"
+    WebBrowser {
+        id: webbrowser
         anchors.top: controlBar.bottom
         anchors.bottom: parent.bottom
         anchors.left: parent.left
         anchors.right: parent.right
 
-        settings.localContentCanAccessRemoteUrls: true
-        settings.pluginsEnabled: true
-
-        // Pass javascript messages by signal to Tide's custom C++ log handler
-        signal jsMessage(int level, string message, int line, string source)
-        onJavaScriptConsoleMessage: jsMessage(level, message,
-                                              lineNumber, sourceID)
-
         Connections {
             target: deflectgestures
-            onSwipeLeft: webengine.goBack()
-            onSwipeRight: webengine.goForward()
-        }
-
-        property var replacer: ({
-
-                                })
-        Component.onCompleted: replacer = new HSR.HtmlSelectReplacer(webengine)
-
-        onLoadingChanged: {
-            if (loadRequest.status === WebEngineView.LoadSucceededStatus)
-                webengine.replacer.process()
+            onSwipeLeft: webbrowser.goBack()
+            onSwipeRight: webbrowser.goForward()
         }
     }
 
     Rectangle {
         id: addressBarFocusContext
-        anchors.fill: webengine
+        anchors.fill: webbrowser
         color: "black"
         opacity: addressBar.focus ? 0.5 : 0.0
         visible: opacity > 0.0

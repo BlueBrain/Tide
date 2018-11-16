@@ -41,63 +41,63 @@ Rectangle {
         ListElement {
             action: "showFilesPanel"
             name: "Add"
-            image: "qrc:/images/add.svg"
+            image: "qrc:/launcher/images/add.svg"
             category: "Content"
             isPanel: true
         }
         ListElement {
             action: "clearSession"
             name: "Close all"
-            image: "qrc:///img/close.svg"
+            image: "qrc:/launcher/images/close.svg"
             category: "Content"
             isPanel: false
         }
         ListElement {
             action: "showSessionsPanel"
             name: "Open"
-            image: "qrc:/images/open.svg"
+            image: "qrc:/launcher/images/open.svg"
             category: "Session"
             isPanel: true
         }
         ListElement {
             action: "showSaveSessionPanel"
             name: "Save"
-            image: "qrc:/images/save.svg"
+            image: "qrc:/launcher/images/save.svg"
             category: "Session"
             isPanel: true
         }
         ListElement {
             action: "showOptionsPanel"
             name: "Settings"
-            image: "qrc:/images/settings.svg"
+            image: "qrc:/launcher/images/settings.svg"
             category: "Options"
             isPanel: true
         }
         ListElement {
             action: "startWhiteboard"
             name: "Whiteboard"
-            image: "qrc:/images/whiteboard.svg"
+            image: "qrc:/launcher/images/whiteboard.svg"
             category: "Applications"
             isPanel: false
         }
         ListElement {
             action: "startWebbrowser"
             name: "Web browser"
-            image: "qrc:/images/webbrowser.svg"
+            image: "qrc:/launcher/images/webbrowser.svg"
             category: "Applications"
             isPanel: false
         }
         ListElement {
             action: "showDemosPanel"
             name: "Visualization"
-            image: "qrc:/images/visualisation.svg"
+            image: "qrc:/launcher/images/visualisation.svg"
             category: "Demos"
             isPanel: true
         }
         ListElement {
             action: "poweroffScreens"
             name: "Power off"
-            image: "qrc:/images/poweroff.svg"
+            image: "qrc:/launcher/images/poweroff.svg"
             category: "Control"
             isPanel: false
         }

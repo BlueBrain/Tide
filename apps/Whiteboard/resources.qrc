@@ -1,10 +1,8 @@
 <RCC>
-    <qresource prefix="/qml">
-        <file>qml/whiteboard.qml</file>
-    </qresource>
-    <qresource prefix="/">
+    <qresource prefix="/whiteboard">
         <file>images/clear.png</file>
         <file>images/save.png</file>
         <file>images/full.png</file>
+        <file>qml/Whiteboard.qml</file>
     </qresource>
 </RCC>

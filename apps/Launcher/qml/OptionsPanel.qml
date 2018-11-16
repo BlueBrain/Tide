@@ -122,7 +122,7 @@ DefaultPanel {
                 border.width: 0.05 * checkboxHeight
                 radius: 0.1 * checkboxHeight
                 Image {
-                    source: "qrc:/images/check.svg"
+                    source: "qrc:/launcher/images/check.svg"
                     anchors.fill: parent
                     anchors.margins: 0.15 * parent.width
                     sourceSize.width: width
