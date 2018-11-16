@@ -44,10 +44,11 @@
 
 namespace
 {
-const QString JQUERY_FILE = {":/selectboxit/jquery.min.js"};
-const QString JQUERY_UI_FILE = {":/selectboxit/jquery-ui.min.js"};
-const QString SELECTBOXIT_JS_FILE = {":/selectboxit/jquery.selectBoxIt.min.js"};
-const QString SELECTBOXIT_CSS_FILE = {":/selectboxit/selectboxit.css"};
+const QString JQUERY_FILE = {":/web/js/selectboxit/jquery.min.js"};
+const QString JQUERY_UI_FILE = {":/web/js/selectboxit/jquery-ui.min.js"};
+const QString SELECTBOXIT_JS_FILE = {
+    ":/web/js/selectboxit/jquery.selectBoxIt.min.js"};
+const QString SELECTBOXIT_CSS_FILE = {":/web/js/selectboxit/selectboxit.css"};
 const QString SELECTBOXIT_REPLACE = {
     "var selectBox = $(\"select\").selectBoxIt();"};
 }

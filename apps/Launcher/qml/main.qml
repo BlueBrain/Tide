@@ -3,7 +3,6 @@
 //                          Pawel Podhajski <pawel.podhajski@epfl.ch>
 import QtQuick 2.4
 import QtQuick.Window 2.2
-import QtWebEngine 1.1
 import "style.js" as Style
 
 Rectangle {
@@ -48,6 +47,7 @@ Rectangle {
             onShowSaveSessionPanel: centralWidget.sourceComponent = saveSessionPanel
             onShowDemosPanel: {
                 centralWidget.sourceComponent = defaultPanel
+                demoLauncherWidget.active = true
                 demoLauncherWidget.visible = true
             }
             onShowOptionsPanel: centralWidget.sourceComponent = optionsPanel
@@ -56,9 +56,11 @@ Rectangle {
             id: demoLauncherWidget
             width: root.width - menu.width
             height: root.height
-            sourceComponent: demoLauncher
+            source: "qrc:/web/qml/WebBrowser.qml"
+            active: false
             visible: false
             focus: true // let loaded components get focus
+            onLoaded: item.url = demoServiceUrl + demoServiceDeflectHost
         }
         Loader {
             id: centralWidget
@@ -125,18 +127,6 @@ Rectangle {
             onButtonClicked: sendRestOption(optionName, value)
             onExitClicked: sendJsonRpc("application", "exit")
             onRefreshOptions: sendRestQuery("options", updateCheckboxes)
-        }
-    }
-
-    Component {
-        id: demoLauncher
-        WebEngineView {
-            id: webview
-            url: demoServiceUrl + demoServiceDeflectHost
-            anchors.fill: parent
-            onCertificateError: {
-                error.ignoreCertificateError()
-            }
         }
     }
 

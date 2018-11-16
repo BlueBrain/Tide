@@ -21,7 +21,6 @@
         <file>pause.svg</file>
         <file>play.svg</file>
         <file>reduce.svg</file>
-        <file>right_arrow.svg</file>
         <file>tick.svg</file>
         <file>triangle.svg</file>
         <file>unfocus.svg</file>
@@ -38,10 +37,15 @@
         <file>Gotham-Book.otf</file>
     </qresource>
     <qresource prefix="/">
-        <file>selectboxit/jquery-ui.min.js</file>
-        <file>selectboxit/jquery.min.js</file>
-        <file>selectboxit/jquery.selectBoxIt.min.js</file>
-        <file>selectboxit/selectboxit.css</file>
+        <file>web/qml/WebBrowser.qml</file>
+        <file>web/qml/WebBrowserLegacy.qml</file>
+        <file>web/qml/WebBrowserMissing.qml</file>
+        <file>web/qml/WebBrowserOffscreen.qml</file>
+        <file>web/js/HtmlSelectReplacer.js</file>
+        <file>web/js/selectboxit/jquery-ui.min.js</file>
+        <file>web/js/selectboxit/jquery.min.js</file>
+        <file>web/js/selectboxit/jquery.selectBoxIt.min.js</file>
+        <file>web/js/selectboxit/selectboxit.css</file>
     </qresource>
     <qresource prefix="/qml/core">
         <file>style.js</file>

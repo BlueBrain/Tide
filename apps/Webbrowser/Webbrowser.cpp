@@ -53,7 +53,7 @@
 namespace
 {
 const std::string deflectHost("localhost");
-const QString deflectQmlFile("qrc:/qml/qml/Webengine.qml");
+const QString deflectQmlFile("qrc:/webbrowser/qml/Webengine.qml");
 const QString webengineviewItemName("webengineview");
 const QString searchUrl("https://www.google.com/search?q=%1");
 
@@ -107,7 +107,8 @@ Webbrowser::Webbrowser(int& argc, char* argv[])
     connect(_webengine, SIGNAL(urlChanged()), this, SLOT(_sendData()));
     connect(_webengine, SIGNAL(titleChanged()), this, SLOT(_sendData()));
 
-    connect(_webengine, SIGNAL(jsMessage(int, QString, int, QString)), this,
+    connect(_webengine->parentItem(),
+            SIGNAL(jsMessage(int, QString, int, QString)), this,
             SLOT(_logJsMessage(int, QString, int, QString)));
 }
 
@@ -120,7 +121,7 @@ bool Webbrowser::event(QEvent* event_)
     // Work around missing key event support in Qt for offscreen windows
     if (auto inputEvent = dynamic_cast<QInputMethodEvent*>(event_))
     {
-        if (_webengine->hasFocus())
+        if (_webengine->parentItem()->hasFocus())
             return QmlKeyInjector::sendToWebengine(inputEvent, _webengine);
         return QmlKeyInjector::send(inputEvent, _qmlStreamer->getRootItem());
     }
