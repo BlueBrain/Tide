@@ -93,13 +93,13 @@ struct FileReceiver::UploadParameters
     UploadParameters() = default;
     UploadParameters(const QJsonObject& obj)
         : filename{obj["filename"].toString()}
-        , surfaceIndex{static_cast<uint>(obj["surfaceIndex"].toInt())}
         , position{obj["x"].toDouble(), obj["y"].toDouble()}
+        , surfaceIndex{static_cast<uint>(obj["surfaceIndex"].toInt())}
     {
     }
     QString filename;
-    uint surfaceIndex = 0;
     QPointF position;
+    uint surfaceIndex = 0;
 };
 
 FileReceiver::FileReceiver(const QString& tmpDir)
