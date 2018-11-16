@@ -1605,7 +1605,12 @@ function uploadFiles(files, coords) {
         else
           console.log('ENDPOINT REGISTRATION: An error occurred!');
       };
-      var body = { "filename": (file.name), "x": coords["x"], "y": coords["y"] };
+      var body = {
+        "filename": (file.name),
+        "x": coords["x"],
+        "y": coords["y"],
+        "surfaceIndex": activeSurfaceIndex
+      };
       requests[i].send(JSON.stringify(body));
     })(i)
   }
