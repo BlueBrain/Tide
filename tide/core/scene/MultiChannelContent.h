@@ -52,9 +52,10 @@ class MultiChannelContent : public Content
 public:
     /**
      * Constructor.
-     * @param uri The content identifier.
+     * @param uri The content uri.
+     * @param uuid A unique identifier.
      */
-    MultiChannelContent(const QString& uri);
+    MultiChannelContent(const QString& uri, const QUuid& uuid);
 
     /** @return the channel of the derived content to render. */
     uint getChannel() const;

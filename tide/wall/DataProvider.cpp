@@ -45,6 +45,7 @@
 #include "network/WallToWallChannel.h"
 #include "qml/Tile.h"
 #include "scene/Background.h"
+#include "scene/PixelStreamContent.h"
 #include "scene/Scene.h"
 #include "scene/Window.h"
 #include "synchronizers/ContentSynchronizerFactory.h"
@@ -98,15 +99,17 @@ void DataProvider::updateDataSources(const Scene& scene)
     {
         const auto& background = surface.getBackground();
         if (auto content = background.getContent())
-            _createOrUpdateDataSource(*content, background.getContentUUID());
-        updatedSources.insert(background.getContentUUID());
+        {
+            _createOrUpdateDataSource(*content);
+            updatedSources.insert(content->getId());
+        }
     }
 
     for (const auto& window : scene.getWindows())
     {
         const auto& content = window->getContent();
-        _createOrUpdateDataSource(content, window->getID());
-        updatedSources.insert(window->getID());
+        _createOrUpdateDataSource(content);
+        updatedSources.insert(content.getId());
     }
 
     remove_unused(_dataSources, updatedSources);
@@ -115,7 +118,7 @@ void DataProvider::updateDataSources(const Scene& scene)
 std::unique_ptr<ContentSynchronizer> DataProvider::createSynchronizer(
     const Window& window, const deflect::View view)
 {
-    auto source = _dataSources.at(window.getID());
+    auto source = _dataSources.at(window.getContent().getId());
     auto synchronizer =
         ContentSynchronizerFactory::create(window.getContent(), view, source);
 
@@ -158,7 +161,7 @@ void DataProvider::loadAsync(TilePtr tile, deflect::View view)
 
 void DataProvider::setNewFrame(deflect::server::FramePtr frame)
 {
-    const auto id = _streamSources[frame->uri];
+    const auto id = PixelStreamContent::getStreamId(frame->uri);
     if (!_dataSources.count(id))
         return;
 
@@ -166,21 +169,19 @@ void DataProvider::setNewFrame(deflect::server::FramePtr frame)
         stream->setNextFrame(frame);
 }
 
-void DataProvider::_createOrUpdateDataSource(const Content& content,
-                                             const QUuid& id)
+void DataProvider::_createOrUpdateDataSource(const Content& content)
 {
-    _getOrCreateDataSource(content, id)->update(content);
+    _getOrCreateDataSource(content)->update(content);
 }
 
-DataSourceSharedPtr DataProvider::_getOrCreateDataSource(const Content& content,
-                                                         const QUuid& id)
+DataSourceSharedPtr DataProvider::_getOrCreateDataSource(const Content& content)
 {
+    const auto& id = content.getId();
     if (!_dataSources.count(id))
     {
         _dataSources[id] = DataSourceFactory::create(content);
         if (auto stream = cast_to_stream_source(_dataSources[id]))
         {
-            _streamSources[content.getUri()] = id;
             connect(stream.get(), &PixelStreamUpdater::requestFrame, this,
                     &DataProvider::requestPixelStreamFrame);
 
@@ -241,7 +242,6 @@ void DataProvider::_handleStreamError(const QString& uri)
 {
     print_log(LOG_ERROR, LOG_STREAM, "closing pixel stream %s",
               uri.toLocal8Bit().constData());
-    _streamSources.erase(uri);
     emit closePixelStream(uri);
 }
 

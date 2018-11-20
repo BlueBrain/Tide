@@ -43,8 +43,8 @@ BOOST_CLASS_EXPORT_IMPLEMENT(MultiChannelContent)
 
 IMPLEMENT_SERIALIZE_FOR_XML(MultiChannelContent)
 
-MultiChannelContent::MultiChannelContent(const QString& uri)
-    : Content{uri}
+MultiChannelContent::MultiChannelContent(const QString& uri, const QUuid& uuid)
+    : Content{uri, uuid}
 {
 }
 

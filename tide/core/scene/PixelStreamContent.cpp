@@ -48,11 +48,17 @@ IMPLEMENT_SERIALIZE_FOR_XML(PixelStreamContent)
 namespace
 {
 const QString ICON_KEYBOARD("qrc:///img/keyboard.svg");
+const QUuid UUID_NAMESPACE{"{11111111-1111-1111-1111-111111111111}"};
+}
+
+QUuid PixelStreamContent::getStreamId(const QString& uri)
+{
+    return QUuid::createUuidV3(UUID_NAMESPACE, uri);
 }
 
 PixelStreamContent::PixelStreamContent(const QString& uri, const QSize& size,
                                        const bool keyboard)
-    : MultiChannelContent{uri}
+    : MultiChannelContent{uri, getStreamId(uri)}
 {
     setDimensions(size);
     if (keyboard)
