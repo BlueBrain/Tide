@@ -91,7 +91,14 @@ QSize _getMaxSize(const deflect::SizeHints& hints)
 qreal Content::_maxScale = 3.0;
 
 Content::Content(const QString& uri)
-    : _uri(uri)
+    : _uri{uri}
+{
+    _init();
+}
+
+Content::Content(const QString& uri, const QUuid& uuid)
+    : _uri{uri}
+    , _uuid{uuid}
 {
     _init();
 }
@@ -104,6 +111,11 @@ Content::Content()
 ContentPtr Content::clone() const
 {
     return ContentPtr{const_cast<Content*>(serialization::binaryCopy(this))};
+}
+
+const QUuid& Content::getId() const
+{
+    return _uuid;
 }
 
 void Content::_init()

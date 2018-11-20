@@ -81,9 +81,13 @@ class Content : public QObject
 public:
     /** Constructor **/
     Content(const QString& uri);
+    Content(const QString& uri, const QUuid& uuid);
 
     /** Make a clone of this Content using binary serialization. */
     ContentPtr clone() const;
+
+    /** @return the unique identifier for this content. */
+    const QUuid& getId() const;
 
     /** Get the content URI **/
     const QString& getUri() const;
@@ -201,6 +205,8 @@ protected:
         off      // never interact with content
     };
 
+    /** Set the unique identifier (e.g. after deserializing xml). */
+    void setId(const QUuid& uuid) { _uuid = uuid; }
 private:
     /** Get the interaction policy (default: AUTO). */
     virtual Interaction _getInteractionPolicy() const;
@@ -212,6 +218,7 @@ private:
     void serialize(Archive& ar, const unsigned int /*version*/)
     {
         // clang-format off
+        ar & _uuid;
         ar & _uri;
         ar & _size.rwidth();
         ar & _size.rheight();
@@ -254,6 +261,7 @@ private:
     void _init();
 
     QString _uri;
+    QUuid _uuid = QUuid::createUuid();
     QSize _size;
     QRectF _zoomRect{UNIT_RECTF};
     deflect::SizeHints _sizeHints;

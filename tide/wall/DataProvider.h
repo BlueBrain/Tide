@@ -114,7 +114,6 @@ private:
     QList<Watcher*> _watchers;
 
     std::map<QUuid, DataSourceSharedPtr> _dataSources;
-    std::map<QString, QUuid> _streamSources;
 
     struct TileUpdateInfo
     {
@@ -124,9 +123,8 @@ private:
     using TileUpdateList = std::vector<TileUpdateInfo>;
     std::map<uint, TileUpdateList> _tileImageRequests;
 
-    void _createOrUpdateDataSource(const Content& content, const QUuid& id);
-    DataSourceSharedPtr _getOrCreateDataSource(const Content& content,
-                                               const QUuid& id);
+    void _createOrUpdateDataSource(const Content& content);
+    DataSourceSharedPtr _getOrCreateDataSource(const Content& content);
 
     void _updateTiles();
     void _startAsyncTileImageRequests(DataSourceSharedPtr source);

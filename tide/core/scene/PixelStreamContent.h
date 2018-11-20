@@ -52,6 +52,9 @@ class PixelStreamContent : public MultiChannelContent
     Q_OBJECT
 
 public:
+    /** @return the unique content id associated with a given stream uri. */
+    static QUuid getStreamId(const QString& uri);
+
     /**
      * Constructor.
      * @param uri The unique stream identifier.
@@ -66,7 +69,7 @@ public:
     /**
      * Content method overload, not used for PixelStreams.
      * @return always returns true
-    **/
+     */
     bool readMetadata() override;
 
     /** Get the keyboard state from QML. */
@@ -124,6 +127,7 @@ private:
                            const unsigned int version)
     {
         serialize_members_xml(ar, version);
+        setId(getStreamId(getUri()));
     }
 
     /** Saving to xml. */
