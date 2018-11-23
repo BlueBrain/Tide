@@ -40,3 +40,7 @@ file(
   COPY ${PROJECT_SOURCE_DIR}/examples/configuration_1x3.json
   DESTINATION ${PROJECT_BINARY_DIR}/share/Tide/examples
 )
+
+if(NOT APPLE AND NOT MSVC)
+  install(FILES tide.desktop DESTINATION share/applications COMPONENT apps)
+endif()

@@ -28,5 +28,6 @@
         <file>img/screenOn.svg</file>
         <file>img/unlock.svg</file>
         <file>index.html</file>
+        <file>favicon.ico</file>
     </qresource>
 </RCC>

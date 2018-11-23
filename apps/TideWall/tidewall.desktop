@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=TideWall
+Comment=Tiled Interactive Display Environment
+Exec=tideWall
+Icon=tidewall
+Type=Application
+NoDisplay=true

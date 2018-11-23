@@ -60,19 +60,26 @@ namespace
 const QString LAUNCHER_BIN("tideLauncher");
 const QString WEBBROWSER_BIN("tideWebbrowser");
 const QString WHITEBOARD_BIN("tideWhiteboard");
+
+QString _getAppsDir()
+{
+#ifdef __APPLE__
+    return QCoreApplication::applicationDirPath() + "/../../.."; // app bundle
+#else
+    return QCoreApplication::applicationDirPath();
+#endif
+}
 }
 
 QString _getLauncherCommand(const QString& args)
 {
-    const auto appDir = QCoreApplication::applicationDirPath();
-    return QString("%1/%2 %3").arg(appDir, LAUNCHER_BIN, args);
+    return QString("%1/%2 %3").arg(_getAppsDir(), LAUNCHER_BIN, args);
 }
 
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
 QString _getWebbrowserCommand(const QString& args)
 {
-    const auto appDir = QCoreApplication::applicationDirPath();
-    return QString("%1/%2 %3").arg(appDir, WEBBROWSER_BIN, args);
+    return QString("%1/%2 %3").arg(_getAppsDir(), WEBBROWSER_BIN, args);
 }
 
 QString _getWebbrowserCommand(const WebbrowserContent& webbrowser)
@@ -97,8 +104,7 @@ QStringList _getWebbrowserEnv(const ushort debugPort)
 
 QString _getWhiteboardCommand(const QString& args)
 {
-    const auto appDir = QCoreApplication::applicationDirPath();
-    return QString("%1/%2 %3").arg(appDir, WHITEBOARD_BIN, args);
+    return QString("%1/%2 %3").arg(_getAppsDir(), WHITEBOARD_BIN, args);
 }
 
 const QString PixelStreamerLauncher::launcherUri = QString("Launcher");

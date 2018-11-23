@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Tide
+Comment=Tiled Interactive Display Environment
+Keywords=displaywall;touch;wall;
+Exec=tide
+Icon=tidewall
+Type=Application
+Categories=Graphics;Viewer;
