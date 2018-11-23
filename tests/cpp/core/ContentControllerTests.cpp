@@ -77,7 +77,7 @@ BOOST_AUTO_TEST_CASE(factory_method)
 
     dummyContent.type = ContentType::pixel_stream;
     BOOST_CHECK_THROW(ContentController::create(window), std::bad_cast);
-    Window streamWin(ContentFactory::getPixelStreamContent("xyz", QSize()));
+    Window streamWin(ContentFactory::createPixelStreamContent("xyz", QSize()));
     BOOST_CHECK_NO_THROW(controller = ContentController::create(streamWin));
     BOOST_CHECK(dynamic_cast<PixelStreamController*>(controller.get()));
     BOOST_CHECK(!dynamic_cast<ZoomController*>(controller.get()));
@@ -86,8 +86,8 @@ BOOST_AUTO_TEST_CASE(factory_method)
     dummyContent.type = ContentType::webbrowser;
     BOOST_CHECK_THROW(ContentController::create(window), std::bad_cast);
     Window webWindow(
-        ContentFactory::getPixelStreamContent("abc", QSize(),
-                                              StreamType::WEBBROWSER));
+        ContentFactory::createPixelStreamContent("abc", QSize(),
+                                                 StreamType::WEBBROWSER));
     BOOST_CHECK_NO_THROW(controller = ContentController::create(webWindow));
     BOOST_CHECK(dynamic_cast<PixelStreamController*>(controller.get()));
     BOOST_CHECK(!dynamic_cast<ZoomController*>(controller.get()));

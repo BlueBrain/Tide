@@ -84,7 +84,7 @@ const QSize VALID_IMAGE_SIZE(256, 128);
 
 WindowPtr makeValidTestWindow(const QString& uri)
 {
-    auto content = ContentFactory::getContent(uri);
+    auto content = ContentFactory::createContent(uri);
     BOOST_REQUIRE(content);
     BOOST_REQUIRE_EQUAL(content->getDimensions(), VALID_IMAGE_SIZE);
     return std::make_shared<Window>(std::move(content));

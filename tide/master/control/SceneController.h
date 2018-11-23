@@ -60,7 +60,7 @@ public:
 
     void openAll(const QStringList& uris);
     void open(uint surfaceIndex, const QString& uri, const QPointF& coords,
-              BoolCallback callback);
+              BoolMsgCallback callback);
     void clear(uint surfaceIndex);
 
     void hideLauncher();

@@ -68,24 +68,33 @@ SceneController::SceneController(Scene& scene_,
 void SceneController::openAll(const QStringList& uris)
 {
     for (const auto& uri : uris)
-        open(surface0, uri, QPointF(), BoolCallback());
+        open(surface0, uri, QPointF(), BoolMsgCallback());
 }
 
 void SceneController::open(const uint surfaceIndex, const QString& uri,
-                           const QPointF& coords, BoolCallback callback)
+                           const QPointF& coords, BoolMsgCallback callback)
 {
     auto success = false;
+    auto message = QString();
     try
     {
         auto loader = ContentLoader{_scene.getGroup(surfaceIndex)};
-        success = loader.loadOrMoveToFront(uri, coords);
+        loader.loadOrMoveToFront(uri, coords);
+        success = true;
+    }
+    catch (const load_error& e)
+    {
+        put_log(LOG_INFO, LOG_CONTENT, "Could not open: '%s'. Reason: '%s'",
+                uri.toLocal8Bit().constData(), e.what());
+        message = e.what();
     }
     catch (const invalid_surface_index_error& e)
     {
-        put_log(LOG_DEBUG, "%s: %d", e.what(), surfaceIndex);
+        put_log(LOG_DEBUG, LOG_CONTENT, "%s: %d", e.what(), surfaceIndex);
+        message = e.what();
     }
     if (callback)
-        callback(success);
+        callback(success, message);
 }
 
 void SceneController::clear(const uint surfaceIndex)

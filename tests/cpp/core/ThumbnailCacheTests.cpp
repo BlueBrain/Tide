@@ -77,7 +77,7 @@ BOOST_AUTO_TEST_CASE(testWindowInfo)
 
     ThumbnailCache cache{*scene};
 
-    auto content = ContentFactory::getContent(imageUri);
+    auto content = ContentFactory::createContent(imageUri);
     auto window = std::make_shared<Window>(std::move(content));
     group->add(window);
 

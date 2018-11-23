@@ -40,7 +40,6 @@
 #include "ContentFactory.h"
 
 #include "config.h"
-#include "utils/log.h"
 
 #include "Content.h"
 #include "ErrorContent.h"
@@ -70,33 +69,7 @@ namespace
 {
 const QSize maxTextureSize(16384, 16384);
 
-ContentPtr _makeContent(const QString& uri)
-{
-    switch (ContentFactory::getContentTypeForFile(uri))
-    {
-    case ContentType::svg:
-        return std::make_unique<SVGContent>(uri);
-#if TIDE_USE_TIFF
-    case ContentType::image_pyramid:
-        return std::make_unique<ImagePyramidContent>(uri);
-#endif
-#if TIDE_ENABLE_MOVIE_SUPPORT
-    case ContentType::movie:
-        return std::make_unique<MovieContent>(uri);
-#endif
-#if TIDE_ENABLE_PDF_SUPPORT
-    case ContentType::pdf:
-        return std::make_unique<PDFContent>(uri);
-#endif
-    case ContentType::image:
-        return std::make_unique<ImageContent>(uri);
-    default:
-        return nullptr;
-    }
-}
-}
-
-ContentType ContentFactory::getContentTypeForFile(const QString& uri)
+ContentType _getContentTypeForFile(const QString& uri)
 {
     const auto extension = QFileInfo(uri).suffix().toLower();
 
@@ -137,43 +110,61 @@ ContentType ContentFactory::getContentTypeForFile(const QString& uri)
             size.height() <= maxTextureSize.height())
             return ContentType::image;
 
-        print_log(LOG_WARN, LOG_CONTENT,
-                  "Image too big to open. Try converting it to an "
-                  "image pyramid: '%s'",
-                  uri.toLocal8Bit().constData());
-        return ContentType::invalid;
+        throw load_error(
+            "Image is too big to open. Try converting it to a TIFF image "
+            "pyramid using Tide's 'pyramidify' tool.");
     }
 
-    return ContentType::invalid;
+    throw load_error("Unsupported content type.");
 }
 
-ContentPtr ContentFactory::getContent(const QString& uri)
+ContentPtr _makeContent(const QString& uri)
+{
+    switch (_getContentTypeForFile(uri))
+    {
+    case ContentType::svg:
+        return std::make_unique<SVGContent>(uri);
+#if TIDE_USE_TIFF
+    case ContentType::image_pyramid:
+        return std::make_unique<ImagePyramidContent>(uri);
+#endif
+#if TIDE_ENABLE_MOVIE_SUPPORT
+    case ContentType::movie:
+        return std::make_unique<MovieContent>(uri);
+#endif
+#if TIDE_ENABLE_PDF_SUPPORT
+    case ContentType::pdf:
+        return std::make_unique<PDFContent>(uri);
+#endif
+    case ContentType::image:
+        return std::make_unique<ImageContent>(uri);
+    default:
+        throw load_error("Unsupported content type.");
+    }
+}
+}
+
+ContentPtr ContentFactory::createContent(const QString& uri)
 {
     auto content = _makeContent(uri);
-    if (content && content->readMetadata())
-        return content;
-
-    return ContentPtr();
+    if (!content->readMetadata())
+        throw load_error("Could not read content metadata.");
+    return content;
 }
 
-ContentPtr ContentFactory::getPixelStreamContent(const QString& uri,
-                                                 const QSize& size,
-                                                 const StreamType stream)
+ContentPtr ContentFactory::createPixelStreamContent(const QString& uri,
+                                                    const QSize& size,
+                                                    const StreamType stream)
 {
 #if TIDE_ENABLE_WEBBROWSER_SUPPORT
     if (stream == StreamType::WEBBROWSER)
-    {
         return std::make_unique<WebbrowserContent>(uri, size);
-    }
-    else
 #endif
-    {
-        const auto keyboard = stream == StreamType::EXTERNAL;
-        return std::make_unique<PixelStreamContent>(uri, size, keyboard);
-    }
+    const auto keyboard = stream == StreamType::EXTERNAL;
+    return std::make_unique<PixelStreamContent>(uri, size, keyboard);
 }
 
-ContentPtr ContentFactory::getErrorContent(const Content& content)
+ContentPtr ContentFactory::createErrorContent(const Content& content)
 {
     const auto& uri = content.getUri();
     const auto& size = content.getDimensions();
@@ -181,7 +172,18 @@ ContentPtr ContentFactory::getErrorContent(const Content& content)
     return std::make_unique<ErrorContent>(uri, size);
 }
 
-ContentPtr ContentFactory::getErrorContent(const QString& uri)
+bool ContentFactory::isValidImageFile(const QString& uri)
+{
+    const auto imageReader = ImageReader{uri};
+    if (!imageReader.isValid())
+        return false;
+
+    const auto size = imageReader.getSize();
+    return size.width() <= maxTextureSize.width() &&
+           size.height() <= maxTextureSize.height();
+}
+
+ContentPtr ContentFactory::createErrorContent(const QString& uri)
 {
     return std::make_unique<ErrorContent>(uri, QSize());
 }
@@ -212,8 +214,7 @@ const QStringList& ContentFactory::getSupportedFilesFilter()
 
     if (filters.empty())
     {
-        const QStringList& extensions = getSupportedExtensions();
-        foreach (const QString ext, extensions)
+        for (const auto& ext : getSupportedExtensions())
             filters.append("*." + ext);
     }
 
@@ -222,15 +223,13 @@ const QStringList& ContentFactory::getSupportedFilesFilter()
 
 QString ContentFactory::getSupportedFilesFilterAsString()
 {
-    const QStringList& extensions = getSupportedFilesFilter();
-
-    QString s;
-    QTextStream out(&s);
+    QString string;
+    QTextStream out(&string);
 
     out << "Content files (";
-    foreach (const QString ext, extensions)
-        out << ext << " ";
+    for (const auto& filter : getSupportedFilesFilter())
+        out << filter << " ";
     out << ")";
 
-    return s;
+    return string;
 }

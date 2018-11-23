@@ -68,9 +68,9 @@ public:
      * @param windowCenterPosition The point around which to center the window.
      *        If empty (default), the  window is automatically centered in the
      *        DisplayGroup.
-     * @return true on success.
+     * @throw load_error on failure.
      */
-    bool loadOrMoveToFront(const QString& uri,
+    void loadOrMoveToFront(const QString& uri,
                            const QPointF& windowCenterPosition = QPointF());
 
     /**
@@ -82,9 +82,9 @@ public:
      *        DisplayGroup.
      * @param windowSize The size of the window. If empty, the size of the
      *        window is automatically adjusted to its content dimensions.
-     * @return true if operation was successful, false otherwise.
+     * @throw load_error on failure.
      */
-    bool load(const QString& filename,
+    void load(const QString& filename,
               const QPointF& windowCenterPosition = QPointF(),
               const QSizeF& windowSize = QSizeF());
 
@@ -109,7 +109,7 @@ public:
     bool isAlreadyOpen(const QString& filename) const;
 
 private:
-    DisplayGroup& _displayGroup;
+    DisplayGroup& _group;
 };
 
 #endif

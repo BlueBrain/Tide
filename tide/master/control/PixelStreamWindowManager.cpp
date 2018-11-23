@@ -63,7 +63,7 @@ const uint CHANNEL0 = 0;
 WindowPtr _makeStreamWindow(const QString& uri, const QSize& size,
                             const StreamType type, const uint channel)
 {
-    auto content = ContentFactory::getPixelStreamContent(uri, size, type);
+    auto content = ContentFactory::createPixelStreamContent(uri, size, type);
     const auto windowType =
         (type == StreamType::LAUNCHER) ? Window::PANEL : Window::DEFAULT;
     static_cast<PixelStreamContent&>(*content).setChannel(channel);

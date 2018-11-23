@@ -89,7 +89,15 @@ void _relocateContent(Window& window, const QString& tmpDir,
                   newUri.toLocal8Bit().constData());
         return;
     }
-    window.setContent(ContentFactory::getContent(newUri));
+    try
+    {
+        window.setContent(ContentFactory::createContent(newUri));
+    }
+    catch (const load_error&)
+    {
+        window.setContent(
+            ContentFactory::createErrorContent(window.getContent()));
+    }
 }
 
 WindowPtrs _findWindowsToRelocate(const DisplayGroup& group,

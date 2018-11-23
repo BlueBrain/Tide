@@ -49,29 +49,32 @@
 #include <cmath>
 
 ContentLoader::ContentLoader(DisplayGroup& displayGroup)
-    : _displayGroup(displayGroup)
+    : _group(displayGroup)
 {
 }
 
-bool ContentLoader::loadOrMoveToFront(const QString& uri,
+void ContentLoader::loadOrMoveToFront(const QString& uri,
                                       const QPointF& windowCenterPosition)
 {
     if (uri.isEmpty())
-        return false;
+        throw load_error("Can't open content with empty uri.");
 
-    if (auto window = _displayGroup.findWindow(uri))
+    if (auto window = _group.findWindow(uri))
     {
-        _displayGroup.moveToFront(window);
-        return true;
+        _group.moveToFront(window);
     }
-
-    if (QDir{uri}.exists())
-        return loadDir(uri);
-
-    return load(uri, windowCenterPosition);
+    else if (QDir{uri}.exists())
+    {
+        if (loadDir(uri) == 0)
+            throw load_error("No contents could be loaded from the folder.");
+    }
+    else
+    {
+        load(uri, windowCenterPosition);
+    }
 }
 
-bool ContentLoader::load(const QString& filename,
+void ContentLoader::load(const QString& filename,
                          const QPointF& windowCenterPosition,
                          const QSizeF& windowSize)
 {
@@ -79,22 +82,11 @@ bool ContentLoader::load(const QString& filename,
               filename.toLocal8Bit().constData());
 
     if (isAlreadyOpen(filename))
-    {
-        print_log(LOG_INFO, LOG_CONTENT, "file already opened: '%s'",
-                  filename.toLocal8Bit().constData());
-        return false;
-    }
+        throw load_error("File is already open: " + filename.toStdString());
 
-    auto content = ContentFactory::getContent(filename);
-    if (!content)
-    {
-        print_log(LOG_WARN, LOG_CONTENT, "ignoring unsupported file: '%s'",
-                  filename.toLocal8Bit().constData());
-        return false;
-    }
-
+    auto content = ContentFactory::createContent(filename);
     auto window = std::make_shared<Window>(std::move(content));
-    WindowController controller(*window, _displayGroup);
+    WindowController controller(*window, _group);
 
     if (windowSize.isValid())
         controller.resize(windowSize);
@@ -102,13 +94,11 @@ bool ContentLoader::load(const QString& filename,
         controller.adjustSize(SIZE_1TO1_FITTING);
 
     if (windowCenterPosition.isNull())
-        controller.moveCenterTo(_displayGroup.getCoordinates().center());
+        controller.moveCenterTo(_group.getCoordinates().center());
     else
         controller.moveCenterTo(windowCenterPosition);
 
-    _displayGroup.add(window);
-
-    return true;
+    _group.add(window);
 }
 
 QSize _estimateGridSize(const int numElem)
@@ -136,10 +126,11 @@ size_t ContentLoader::loadDir(const QString& dirName, QSize gridSize)
     if (gridSize.isEmpty())
         gridSize = _estimateGridSize(list.size());
 
-    const QSizeF win(_displayGroup.width() / (qreal)gridSize.width(),
-                     _displayGroup.height() / (qreal)gridSize.height());
+    const auto win =
+        QSizeF{_group.width() / static_cast<qreal>(gridSize.width()),
+               _group.height() / static_cast<qreal>(gridSize.height())};
 
-    int contentIndex = 0;
+    auto contentIndex = 0;
     for (const auto& fileinfo : list)
     {
         const auto filename = fileinfo.absoluteFilePath();
@@ -147,9 +138,17 @@ size_t ContentLoader::loadDir(const QString& dirName, QSize gridSize)
         const auto y = contentIndex / gridSize.width();
         const auto position = QPointF{x * win.width() + 0.5 * win.width(),
                                       y * win.height() + 0.5 * win.height()};
-
-        if (load(filename, position, win))
+        try
+        {
+            load(filename, position, win);
             ++contentIndex;
+        }
+        catch (const load_error& e)
+        {
+            print_log(LOG_INFO, LOG_CONTENT,
+                      "could not open: '%s'. Reason: '%s'",
+                      filename.toLocal8Bit().constData(), e.what());
+        }
 
         if (contentIndex >= gridSize.width() * gridSize.height())
             break; // should not happen if grid size is correct
@@ -164,5 +163,5 @@ size_t ContentLoader::loadDir(const QString& dirName, QSize gridSize)
 
 bool ContentLoader::isAlreadyOpen(const QString& filename) const
 {
-    return !!_displayGroup.findWindow(filename);
+    return !!_group.findWindow(filename);
 }

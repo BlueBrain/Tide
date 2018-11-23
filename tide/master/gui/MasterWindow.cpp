@@ -489,9 +489,9 @@ void MasterWindow::_addContent(const QString& filename)
     }
 
     emit open(_getActiveSceneIndex(), filename, QPointF(),
-              [this](const bool result) {
+              [this](const bool result, const QString msg) {
                   if (!result)
-                      _openInfoBox("Unsupported file.");
+                      _openInfoBox(msg);
               });
 }
 
@@ -522,9 +522,9 @@ void MasterWindow::_addContentsDirectory(const QString& directoryName)
     }
 
     emit open(_getActiveSceneIndex(), directoryName, QPointF(),
-              [this](const bool result) {
+              [this](const bool result, const QString msg) {
                   if (!result)
-                      _openInfoBox("No files could be open.");
+                      _openInfoBox(msg);
               });
 }
 

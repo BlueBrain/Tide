@@ -101,8 +101,13 @@ void Background::setUri(const QString& uri)
         return;
     }
 
-    if (auto content = ContentFactory::getContent(uri))
-        _setContent(std::move(content));
+    try
+    {
+        _setContent(ContentFactory::createContent(uri));
+    }
+    catch (const load_error&)
+    {
+    }
 }
 
 void Background::_setContent(ContentPtr content)

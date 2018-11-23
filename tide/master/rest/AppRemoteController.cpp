@@ -52,6 +52,9 @@ using namespace rockets;
 
 namespace
 {
+const auto MSG_OK = "\"OK\"";
+const auto MSG_FAIL = "\"operation failed\"";
+
 QString _makeAbsPath(const QString& baseDir, const QString& uri)
 {
     return QDir::isRelativePath(uri) ? baseDir + "/" + uri : uri;
@@ -106,9 +109,16 @@ struct BrowseParams : UriAndSurface
 
 jsonrpc::Response makeJsonRpcResponse(const bool success)
 {
-    return success ? jsonrpc::Response{"\"OK\""}
-                   : jsonrpc::Response{
-                         jsonrpc::Response::Error{"operation failed", -1}};
+    return success ? jsonrpc::Response{MSG_OK}
+                   : jsonrpc::Response{jsonrpc::Response::Error{MSG_FAIL, -1}};
+}
+
+jsonrpc::Response makeJsonRpcResponse(const bool success, const QString& msg)
+{
+    return success
+               ? jsonrpc::Response{msg.isEmpty() ? MSG_OK : msg.toStdString()}
+               : jsonrpc::Response{jsonrpc::Response::Error{
+                     msg.isEmpty() ? MSG_FAIL : msg.toStdString(), -1}};
 }
 
 AppRemoteController::AppRemoteController(const Configuration& config)
@@ -121,8 +131,9 @@ AppRemoteController::AppRemoteController(const Configuration& config)
     bindAsync<UriAndSurface>(
         "open",
         [this, contentsDir](const auto params, jsonrpc::AsyncResponse respond) {
-            auto boolCallback = [respond](const bool result) {
-                respond(makeJsonRpcResponse(result));
+            auto boolCallback = [respond](const bool result,
+                                          const QString message) {
+                respond(makeJsonRpcResponse(result, message));
             };
             emit this->open(params.surfaceIndex,
                             _makeAbsPath(contentsDir, params.uri), QPointF(),

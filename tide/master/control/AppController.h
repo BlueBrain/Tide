@@ -66,7 +66,7 @@ public:
 
     /** Open a content. */
     void open(uint surfaceIndex, QString uri, QPointF coords,
-              BoolCallback callback);
+              BoolMsgCallback callback);
 
     /** Open a list of contents. */
     void openAll(const QStringList& uris);

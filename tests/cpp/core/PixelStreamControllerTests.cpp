@@ -65,7 +65,7 @@ struct PixelStreamFixture
                          [this](const auto& evt) { event = evt; });
     }
     Window window{
-        ContentFactory::getPixelStreamContent("xyz", QSize{WIDTH, HEIGHT})};
+        ContentFactory::createPixelStreamContent("xyz", QSize{WIDTH, HEIGHT})};
     PixelStreamController controller{window};
     deflect::Event event;
 

@@ -49,32 +49,37 @@
 class ContentFactory
 {
 public:
-    /** Get a Content of the appropriate type based on the given URI. */
-    static ContentPtr getContent(const QString& uri);
+    /**
+     * Create a Content of the appropriate type based on the given URI.
+     * @throw load_error if the content can't be opened.
+     */
+    static ContentPtr createContent(const QString& uri);
 
     /** Special case: PixelStreamContent type cannot be derived from its uri. */
-    static ContentPtr getPixelStreamContent(
+    static ContentPtr createPixelStreamContent(
         const QString& uri, const QSize& size,
         StreamType stream = StreamType::EXTERNAL);
 
-    /** Get a Content object representing a loading error. */
-    static ContentPtr getErrorContent(const Content& content);
+    /** Create a Content representing a loading error. */
+    static ContentPtr createErrorContent(const Content& content);
 
-    /** For legacy sessions; deprecated. */
-    static ContentPtr getErrorContent(const QString& uri);
+    /** @name For legacy sessions; deprecated */
+    //@{
+    static bool isValidImageFile(const QString& uri);
+    static ContentPtr createErrorContent(const QString& uri);
+    //@}
 
     /** Get all the supported file extensions. */
     static const QStringList& getSupportedExtensions();
 
-    /** Get all the supported file extensions prefixed with '.' for use in Qt
-     * file filters. */
+    /**
+     * Get all the supported file extensions prefixed with '.' for use in Qt
+     * file filters.
+     */
     static const QStringList& getSupportedFilesFilter();
 
     /** Get all the file extensions prefixed with '.' in one string. */
     static QString getSupportedFilesFilterAsString();
-
-    /** Get the content type for a given uri. */
-    static ContentType getContentTypeForFile(const QString& uri);
 };
 
 #endif

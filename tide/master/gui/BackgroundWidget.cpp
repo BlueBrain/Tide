@@ -178,15 +178,16 @@ void BackgroundWidget::_openBackgroundContent()
 
     _backgroundFolder = QFileInfo(filename).absoluteDir().path();
 
-    if (ContentFactory::getContent(filename))
+    try
     {
+        ContentFactory::createContent(filename);
         _backgroundLabel->setText(filename);
         _background().setUri(filename);
     }
-    else
+    catch (const load_error& e)
     {
         QMessageBox messageBox;
-        messageBox.setText(tr("Error: Unsupported file."));
+        messageBox.setText(e.what());
         messageBox.exec();
     }
 }

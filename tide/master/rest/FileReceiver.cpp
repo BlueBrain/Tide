@@ -166,26 +166,29 @@ std::future<http::Response> FileReceiver::handleUpload(
               filePath.toLocal8Bit().constData());
 
     auto promise = std::make_shared<std::promise<Response>>();
-    emit open(params.surfaceIndex, filePath, params.position,
-              [promise, filePath](const bool success) {
-                  if (success)
-                  {
-                      print_log(LOG_INFO, LOG_REST,
-                                "file uploaded and saved as: %s",
-                                filePath.toLocal8Bit().constData());
-                      promise->set_value(
-                          _makeResponse(http::Code::CREATED, INFO_KEY, "OK"));
-                      return;
-                  }
+    emit open(
+        params.surfaceIndex, filePath, params.position,
+        [promise, filePath](const bool success, const QString msg) {
+            if (success)
+            {
+                print_log(LOG_INFO, LOG_REST, "file uploaded and saved as: %s",
+                          filePath.toLocal8Bit().constData());
+                promise->set_value(
+                    _makeResponse(http::Code::CREATED, INFO_KEY, "OK"));
+            }
+            else
+            {
+                const auto message =
+                    QString{
+                        "file uploaded but could not be opened: %1. Reason: %2"}
+                        .arg(filePath, msg);
+                print_log(LOG_ERROR, LOG_REST, "%s",
+                          message.toLocal8Bit().constData());
 
-                  QFile(filePath).remove();
-
-                  print_log(LOG_ERROR, LOG_REST,
-                            "file uploaded but could not be opened: %s",
-                            filePath.toLocal8Bit().constData());
-                  promise->set_value(_makeResponse(http::Code::NOT_SUPPORTED,
-                                                   INFO_KEY,
-                                                   "file could not be opened"));
-              });
+                QFile{filePath}.remove();
+                promise->set_value(_makeResponse(http::Code::NOT_SUPPORTED,
+                                                 INFO_KEY, message));
+            }
+        });
     return promise->get_future();
 }
