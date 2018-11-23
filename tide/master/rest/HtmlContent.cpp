@@ -87,6 +87,12 @@ const QMap<std::string, QStringList> resources {
         }
     },
     {
+        "image/x-icon",
+        {
+            "favicon.ico"
+        }
+    },
+    {
         "text/css",
         {
             "css/bootstrap.min.css",

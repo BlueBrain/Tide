@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=TideMaster
+Comment=Tiled Interactive Display Environment
+Exec=tideMaster
+Icon=tidemaster
+Type=Application
+NoDisplay=true

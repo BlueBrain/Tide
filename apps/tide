@@ -44,10 +44,15 @@ def find_executable(executable, path=None):
     else:
         return executable
 
+def get_osx_path(exec_name):
+    return TIDE_PATH + "/bin/" + exec_name + ".app/Contents/MacOS/" + exec_name
+
 def locate_binary(exec_name):
     binary = find_executable(exec_name, TIDE_PATH + "/bin/")
     if binary is None:
         binary = find_executable(exec_name)
+    if binary is None:
+        binary = find_executable(get_osx_path(exec_name))
     if binary is None:
         print exec_name + " executable not found"
         exit(-4)

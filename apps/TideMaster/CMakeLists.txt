@@ -5,4 +5,4 @@ include_directories(${PROJECT_SOURCE_DIR}/tide/master)
 
 set(TIDEMASTER_SOURCES main.cpp)
 set(TIDEMASTER_LINK_LIBRARIES TideMaster)
-common_application(tideMaster NOHELP)
+common_application(tideMaster GUI NOHELP)
