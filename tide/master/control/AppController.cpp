@@ -87,7 +87,7 @@ AppController::AppController(Session& session, ScreenLock& lock,
 AppController::~AppController() = default;
 
 void AppController::open(uint surfaceIndex, QString uri, QPointF coords,
-                         BoolCallback callback)
+                         BoolMsgCallback callback)
 {
     _sceneController->open(surfaceIndex, uri, coords, callback);
 }

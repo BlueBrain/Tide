@@ -3,6 +3,8 @@ Changelog {#changelog}
 
 # Release 1.5 (git master)
 
+* [289](https://github.com/BlueBrain/Tide/pull/289):
+  Show more informative error messages when a content can't be opened.
 * [283](https://github.com/BlueBrain/Tide/pull/283):
   Web interface improvements:
   - Add surface switcher in the menu.

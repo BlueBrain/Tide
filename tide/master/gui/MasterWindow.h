@@ -69,7 +69,7 @@ public:
 signals:
     /** Open a content. */
     void open(uint surfaceIndex, QString uri, QPointF coords,
-              BoolCallback callback);
+              BoolMsgCallback callback);
 
     /** Load a session. */
     void load(QString uri, BoolCallback callback);

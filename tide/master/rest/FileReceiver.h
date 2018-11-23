@@ -91,7 +91,7 @@ public:
 signals:
     /** Open the uploaded file at the given position. */
     void open(uint surfaceIndex, QString uri, QPointF position,
-              BoolCallback callback);
+              BoolMsgCallback callback);
 
 private:
     QString _tmpDir;

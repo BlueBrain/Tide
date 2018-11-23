@@ -46,6 +46,7 @@
 #include <QRectF>
 #include <QString>
 
+#include <exception>
 #include <functional>
 #include <future>
 #include <iostream>
@@ -181,7 +182,13 @@ typedef std::set<size_t> Indices;
 typedef std::vector<QPointF> Positions;
 
 using BoolCallback = std::function<void(bool)>;
+using BoolMsgCallback = std::function<void(bool, QString)>;
 using ScreenStateCallback = std::function<void(ScreenState)>;
+
+class load_error : public std::runtime_error
+{
+    using runtime_error::runtime_error;
+};
 
 static constexpr QRectF UNIT_RECTF(0.0, 0.0, 1.0, 1.0);
 static constexpr QSize UNDEFINED_SIZE(-1, -1);

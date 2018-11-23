@@ -105,7 +105,7 @@ const QString activityLoggerRegexJson{
 BOOST_AUTO_TEST_CASE(testSerializeDisplayGroup)
 {
     auto group = DisplayGroup::create(wallSize);
-    auto content = ContentFactory::getContent(imageUri);
+    auto content = ContentFactory::createContent(imageUri);
     const auto contentSize = content->getDimensions();
     auto window = std::make_shared<Window>(std::move(content));
     window->setCoordinates({QPointF{64, 79}, contentSize});

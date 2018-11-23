@@ -114,12 +114,13 @@ struct OpenListener
     OpenListener(FileReceiver& fileReceiver)
     {
         auto openCallback = [this](const uint surfaceIndex, const QString uri,
-                                   const QPointF pos, BoolCallback callback) {
+                                   const QPointF pos,
+                                   BoolMsgCallback callback) {
             open = true;
             openSurfaceIndex = surfaceIndex;
             openUri = uri;
             openPosition = pos;
-            callback(true);
+            callback(true, "OK");
         };
         QObject::connect(&fileReceiver, &FileReceiver::open, openCallback);
     }

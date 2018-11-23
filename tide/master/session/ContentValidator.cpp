@@ -71,15 +71,14 @@ bool _validateContent(const WindowPtr& window)
     if (content->getType() == ContentType::dynamic_texture)
     {
         const auto& uri = content->getUri();
-        const auto type = ContentFactory::getContentTypeForFile(uri);
-        if (type == ContentType::image)
+        if (ContentFactory::isValidImageFile(uri))
         {
             print_log(LOG_DEBUG, LOG_CONTENT,
-                      "Try restoring legacy DynamicTexture as "
+                      "Restoring legacy DynamicTexture as "
                       "a regular image: '%s'",
                       content->getUri().toLocal8Bit().constData());
 
-            auto newContent = ContentFactory::getContent(uri);
+            auto newContent = ContentFactory::createContent(uri);
             newContent->moveToThread(window->thread());
             window->setContent(std::move(newContent));
             content = window->getContentPtr();
@@ -105,7 +104,7 @@ bool _validateContent(const WindowPtr& window)
     {
         print_log(LOG_WARN, LOG_CONTENT, "'%s' could not be restored!",
                   content->getUri().toLocal8Bit().constData());
-        auto errorContent = ContentFactory::getErrorContent(*content);
+        auto errorContent = ContentFactory::createErrorContent(*content);
         errorContent->moveToThread(window->thread());
         window->setContent(std::move(errorContent));
     }

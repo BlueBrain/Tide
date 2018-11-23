@@ -60,9 +60,17 @@ ContentPtr _loadContent(XmlParser& parser, const QString& index)
 
     QString uri;
     if (parser.get(query.arg(index, "URI"), uri))
-        content = ContentFactory::getContent(uri);
+    {
+        try
+        {
+            content = ContentFactory::createContent(uri);
+        }
+        catch (const load_error&)
+        {
+        }
+    }
     if (!content)
-        content = ContentFactory::getErrorContent(uri);
+        content = ContentFactory::createErrorContent(uri);
 
     return content;
 }
