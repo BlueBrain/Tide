@@ -31,6 +31,8 @@ Tide helps users with:
 * Viewing high-resolution, immersive [stereo 3D streams](https://git.io/fpsoQ)
   on compatible hardware.
 
+![Tide displaying immersive 3D data on BlueBrain's OpenDeck](doc/opendeck.png)
+
 ## Usage
 
 Run 'tide' from the bin folder to start the application. By default it launches
@@ -55,6 +57,26 @@ For more detailed information refer to the
 
 The application can be entirely controlled from the web interface or even using
 direct REST API calls. Simply drag and drop a file to upload it to the wall.
+
+## Getting Tide
+
+A pre-built Ubuntu 18.04 package is available from the
+[releases](https://github.com/BlueBrain/Tide/releases) page.
+Download it and install it with:
+
+    sudo apt install ./tide_1.5.0~bionic_amd64.deb
+
+Please note that there are some stability issues with the system Qt packages
+affecting notably the web browser. We recommend installing Qt 5.9.7 from the
+[official website](https://download.qt.io/archive/qt/5.9/5.9.7/). To use it,
+add the following to your .bashrc:
+
+    QT_HOME=/home/$USER/Qt5.9.7/5.9.7/gcc_64
+    export PATH=$QT_HOME/bin:$PATH
+    export LD_LIBRARY_PATH=$QT_HOME/lib:$LD_LIBRARY_PATH
+    export QML_IMPORT_PATH=$QT_HOME/qml
+
+For other platforms, see next section for building from source.
 
 ## Building from Source
 

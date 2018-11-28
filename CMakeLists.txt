@@ -29,6 +29,10 @@ endif()
 set(TIDE_PORT_DEPENDS boost ffmpeg mpich-devel qt5)
 set(TIDE_BREW_DEPENDS boost ffmpeg librsvg open-mpi poppler qt)
 
+# disable noisy warnings from ChoosePython
+set(CHOOSE_PYTHON_DONE ON)
+include(FindBoostConfig)
+
 include(Common)
 
 set(_deflect_min_version 1.0.1)
@@ -111,4 +115,5 @@ include(CommonCPack) # also includes CommonPackageConfig
 set(COMMON_PROJECT_DOMAIN ch.epfl.bluebrain)
 set(DOXYGEN_MAINPAGE_MD README.md)
 set(DOXYGEN_EXTRA_INPUT ${PROJECT_SOURCE_DIR}/README.md)
+set(DOXYGEN_PROJECT_LOGO ${PROJECT_SOURCE_DIR}/doc/logo_doxygen.png)
 include(DoxygenRule)
