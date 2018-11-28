@@ -72,8 +72,14 @@ BOOST_AUTO_TEST_CASE(testDefaultPort)
 
 BOOST_AUTO_TEST_CASE(testUnavailablePort)
 {
-    // system port (<1024)
-    BOOST_CHECK_THROW(RestServer server{80}, std::runtime_error);
+#ifndef __APPLE__
+    const auto port = 80; // privileged port (<1024)
+#else
+    // Since OSX Mojave the ports below 1024 are no longer restricted to root.
+    RestServer server;
+    const auto port = server.getPort();
+#endif
+    BOOST_CHECK_THROW(RestServer server2{port}, std::runtime_error);
 }
 
 std::pair<std::string, QNetworkReply::NetworkError> sendHttpRequest(
