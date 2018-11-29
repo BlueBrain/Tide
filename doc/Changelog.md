@@ -1,7 +1,7 @@
 Changelog {#changelog}
 ============
 
-# Release 1.5 (git master)
+# Release 1.5 (29-11-2018)
 
 * [289](https://github.com/BlueBrain/Tide/pull/289):
   Show more informative error messages when a content can't be opened.
