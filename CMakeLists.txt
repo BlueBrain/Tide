@@ -35,7 +35,7 @@ include(FindBoostConfig)
 
 include(Common)
 
-set(_deflect_min_version 1.0.1)
+set(_deflect_min_version 1.0.2)
 set(_rockets_min_version 0.1)
 
 common_find_package(Boost 1.56 REQUIRED COMPONENTS program_options serialization
