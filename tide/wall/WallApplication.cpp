@@ -122,6 +122,10 @@ void WallApplication::_initMPIConnections()
             _renderController.get(), SLOT(updateMarkers(MarkersPtr)));
 
     connect(_fromMasterChannel.get(),
+            SIGNAL(received(deflect::server::FramePtr)),
+            _renderController.get(), SLOT(requestRender()));
+
+    connect(_fromMasterChannel.get(),
             SIGNAL(received(deflect::server::FramePtr)), _provider.get(),
             SLOT(setNewFrame(deflect::server::FramePtr)));
 
