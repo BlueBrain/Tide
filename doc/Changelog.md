@@ -1,6 +1,12 @@
 Changelog {#changelog}
 ============
 
+# Release 1.5.1 (13-02-2019)
+
+* [295](https://github.com/BlueBrain/Tide/pull/295):
+  Fixed the bug causing a pixel stream not being updated on the wall or
+  getting closed after its resumption.
+
 # Release 1.5 (29-11-2018)
 
 * [289](https://github.com/BlueBrain/Tide/pull/289):

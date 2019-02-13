@@ -62,6 +62,7 @@ public:
     ~RenderController();
 
 public slots:
+    void requestRender() { _requestRender(); }
     void updateScene(ScenePtr scene);
     void updateMarkers(MarkersPtr markers);
     void updateOptions(OptionsPtr options);
