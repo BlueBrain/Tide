@@ -77,12 +77,6 @@ public:
     /** Get the duration of a frame in seconds. */
     double getFrameDuration() const;
 
-    /** @return the format of the decoded movie frames. */
-    TextureFormat getFormat() const;
-
-    /** Set the format of the decoded movie frames, overwriting the default. */
-    void setFormat(TextureFormat format);
-
     /**
      * Get a frame at the given position in seconds.
      *
@@ -95,7 +89,8 @@ public:
 private:
     AVFormatContextPtr _avFormatContext;
     std::unique_ptr<FFMPEGVideoStream> _videoStream;
-    TextureFormat _format = TextureFormat::yuv420;
+    int64_t _frameIndex = 0;
+    int64_t _frameLastDecode = 0;
     double _streamPosition = 0.0;
 };
 

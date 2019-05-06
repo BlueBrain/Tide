@@ -24,7 +24,7 @@ if(TIDE_ENABLE_MOVIE_SUPPORT)
     data/FFMPEGFrame.h
     data/FFMPEGMovie.h
     data/FFMPEGPicture.h
-    data/FFMPEGVideoFrameConverter.h
+    data/FFMPEGUtils.h
     data/FFMPEGVideoStream.h
     data/FFMPEGWrappers.h
     scene/MovieContent.h
@@ -34,7 +34,7 @@ if(TIDE_ENABLE_MOVIE_SUPPORT)
     data/FFMPEGFrame.cpp
     data/FFMPEGMovie.cpp
     data/FFMPEGPicture.cpp
-    data/FFMPEGVideoFrameConverter.cpp
+    data/FFMPEGUtils.cpp
     data/FFMPEGVideoStream.cpp
     scene/MovieContent.cpp
     thumbnail/MovieThumbnailGenerator.cpp

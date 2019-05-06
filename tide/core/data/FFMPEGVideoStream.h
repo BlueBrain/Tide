@@ -42,7 +42,8 @@
 
 #include "FFMPEGDefines.h"
 
-extern "C" {
+extern "C"
+{
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libavutil/error.h>
@@ -69,33 +70,10 @@ public:
      * Decode a video packet.
      *
      * @param packet The av packet to decode
-     * @param format The format for the decoded picture.
-     * @return The decoded picture, or nullptr if the input is not a video
-     *         packet or an error occured.
+     * @param frame The frame to store the decoded frame
+     * @return True on success
      */
-    PicturePtr decode(AVPacket& packet, TextureFormat format);
-
-    /**
-     * Partially decode a video packet to determine its timestamp.
-     *
-     * This function is intended to help reach a desired timestamp, for instance
-     * after seeking the file, without the need to decode the full picture.
-     *
-     * Only ONE of decode or decodeTimestamp must be called for a single packet,
-     * otherwise the behaviour of the stream may become undefined (wrong picture
-     * timestamp, for example).
-     *
-     * @sa getPictureForLastDecodedPacket()
-     * @return the packet timestamp, or -1 on error.
-     */
-    int64_t decodeTimestamp(AVPacket& packet);
-
-    /**
-     * Call after a successful decodeTimestamp to get the corresponding picture.
-     * @param format The format for the decoded picture.
-     * @return The decoded picture, or nullptr if an error occured.
-     */
-    PicturePtr decodePictureForLastPacket(TextureFormat format);
+    bool decode(AVPacket& packet, FFMPEGFrame& frame);
 
     /** Get the width of the video stream. */
     unsigned int getWidth() const;
@@ -121,9 +99,6 @@ public:
     /** Get the frameIndex corresponding to the given time in seconds. */
     int64_t getFrameIndex(double timePositionInSec) const;
 
-    /** Get the timestamp corresponding to the given time in seconds. */
-    int64_t getTimestamp(double timePositionInSec) const;
-
     /** Get the timestamp corresponding to the given frameIndex. */
     int64_t getTimestamp(int64_t frameIndex) const;
 
@@ -143,9 +118,6 @@ private:
     // ptr to _avFormatContext->streams[i]; don't free
     AVStream* _videoStream = nullptr;
 
-    std::unique_ptr<FFMPEGFrame> _frame;
-    std::unique_ptr<FFMPEGVideoFrameConverter> _frameConverter;
-
     // used for seeking
     int64_t _numFrames = 0;
     double _frameDuration = 0.0;
@@ -156,7 +128,7 @@ private:
     void _generateSeekingParameters();
 
     bool _isVideoPacket(const AVPacket& packet) const;
-    bool _decodeToAvFrame(AVPacket& packet);
+    bool _decodeToAvFrame(AVPacket& packet, FFMPEGFrame& frame);
 
     const char* _getFilename() const;
 };

@@ -1,6 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2014-2017, EPFL/Blue Brain Project                  */
-/*                          Raphael Dumusc <raphael.dumusc@epfl.ch>  */
+/* Copyright (c) 2019, EPFL/Blue Brain Project                       */
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -37,26 +36,61 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#include "FFMPEGVideoFrameConverter.h"
+#include "FFMPEGUtils.h"
 
 #include "FFMPEGFrame.h"
-#include "FFMPEGPicture.h"
 
-#pragma clang diagnostic ignored "-Wdeprecated"
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-
-#include "FFMPEGDefines.h"
-
-extern "C" {
+extern "C"
+{
+#include <libavcodec/avcodec.h>
+#include <libavutil/imgutils.h>
+#include <libavutil/mem.h>
 #include <libswscale/swscale.h>
 }
 
-AVPixelFormat _toAVPixelFormat(const TextureFormat format)
+namespace FFMPEGUtils
+{
+bool isSupportedOutputFormat(const AVPixelFormat format)
 {
     switch (format)
     {
-    case TextureFormat::rgba:
-        return AV_PIX_FMT_RGBA;
+    case AV_PIX_FMT_YUV420P:
+    case AV_PIX_FMT_YUVJ420P:
+    case AV_PIX_FMT_YUV422P:
+    case AV_PIX_FMT_YUVJ422P:
+    case AV_PIX_FMT_YUV444P:
+    case AV_PIX_FMT_YUVJ444P:
+        return true;
+    default:
+        break;
+    }
+
+    return false;
+}
+
+TextureFormat determineOutputFormat(const AVPixelFormat format)
+{
+    switch (format)
+    {
+    case AV_PIX_FMT_YUV420P:
+    case AV_PIX_FMT_YUVJ420P:
+        return TextureFormat::yuv420;
+    case AV_PIX_FMT_YUV422P:
+    case AV_PIX_FMT_YUVJ422P:
+        return TextureFormat::yuv422;
+    case AV_PIX_FMT_YUV444P:
+    case AV_PIX_FMT_YUVJ444P:
+        return TextureFormat::yuv444;
+    default:
+        throw std::logic_error("Unsupported pixel format '" +
+                               std::to_string(static_cast<int>(format)) + "'");
+    }
+}
+
+AVPixelFormat toAVPixelFormat(const TextureFormat format)
+{
+    switch (format)
+    {
     case TextureFormat::yuv420:
         return AV_PIX_FMT_YUV420P;
     case TextureFormat::yuv422:
@@ -68,55 +102,39 @@ AVPixelFormat _toAVPixelFormat(const TextureFormat format)
     }
 }
 
-struct FFMPEGVideoFrameConverter::Impl
+std::shared_ptr<FFMPEGFrame> convertToYUV(std::shared_ptr<FFMPEGFrame> frame)
 {
-    SwsContext* swsContext = nullptr;
-};
+    if (isSupportedOutputFormat(frame->getAVPixelFormat()))
+        return frame;
 
-FFMPEGVideoFrameConverter::FFMPEGVideoFrameConverter()
-    : _impl(new Impl)
-{
+    // Convert frame to yuv420
+    constexpr auto DEST_FORMAT = AV_PIX_FMT_YUV420P;
+
+    auto& avFrame = frame->getAVFrame();
+    auto frameConv = std::make_shared<FFMPEGFrame>();
+    auto& frameDest = frameConv->getAVFrame();
+
+    av_image_alloc(frameDest.data, frameDest.linesize, avFrame.width,
+                   avFrame.height, DEST_FORMAT, 1);
+
+    frameDest.width = avFrame.width;
+    frameDest.height = avFrame.height;
+    frameDest.format = DEST_FORMAT;
+
+    SwsContext* swsContext =
+        sws_getContext(avFrame.width, avFrame.height, frame->getAVPixelFormat(),
+                       frameDest.width, frameDest.height, DEST_FORMAT,
+                       SWS_FAST_BILINEAR, nullptr, nullptr, nullptr);
+    if (!swsContext)
+        throw std::runtime_error("Could not create swscontext");
+
+    sws_scale(swsContext, avFrame.data, avFrame.linesize, 0, avFrame.height,
+              frameDest.data, frameDest.linesize);
+
+    sws_freeContext(swsContext);
+
+    frameConv->setDeallocateDataPointers();
+    return frameConv;
 }
 
-FFMPEGVideoFrameConverter::~FFMPEGVideoFrameConverter()
-{
-    sws_freeContext(_impl->swsContext);
-}
-
-PicturePtr FFMPEGVideoFrameConverter::convert(const FFMPEGFrame& srcFrame,
-                                              const TextureFormat format)
-{
-    auto picture =
-        std::make_shared<FFMPEGPicture>(srcFrame.getWidth(),
-                                        srcFrame.getHeight(), format);
-
-    const auto avFormat = _toAVPixelFormat(format);
-
-    _impl->swsContext =
-        sws_getCachedContext(_impl->swsContext, srcFrame.getWidth(),
-                             srcFrame.getHeight(), srcFrame.getAVPixelFormat(),
-                             picture->getWidth(), picture->getHeight(),
-                             avFormat, SWS_FAST_BILINEAR, nullptr, nullptr,
-                             nullptr);
-    if (!_impl->swsContext)
-        return PicturePtr();
-
-    uint8_t* dstData[3];
-    int linesize[3];
-    for (size_t i = 0; i < 3; ++i)
-    {
-        dstData[i] = picture->getData(i);
-        // width of image plane in pixels * bytes per pixel
-        linesize[i] =
-            picture->getDataSize(i) / picture->getTextureSize(i).height();
-    }
-
-    const auto outputHeight =
-        sws_scale(_impl->swsContext, srcFrame.getAVFrame().data,
-                  srcFrame.getAVFrame().linesize, 0, srcFrame.getHeight(),
-                  dstData, linesize);
-    if (outputHeight != picture->getHeight())
-        return PicturePtr();
-
-    return picture;
-}
+} // namespace FFMPEGUtils

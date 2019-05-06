@@ -46,6 +46,16 @@
 #include <QImage>
 
 #include <array>
+#include <memory>
+
+class FFMPEGFrame;
+
+enum class StereoView
+{
+    NONE,
+    LEFT,
+    RIGHT
+};
 
 /**
  * A decoded frame of the movie stream in RGBA or YUV format.
@@ -54,13 +64,16 @@ class FFMPEGPicture : public YUVImage
 {
 public:
     /** Allocate a new picture. */
-    FFMPEGPicture(uint width, uint height, TextureFormat format);
+    FFMPEGPicture(std::shared_ptr<FFMPEGFrame> frame);
 
     /** @copydoc Image::getWidth */
     int getWidth() const final;
 
     /** @copydoc Image::getHeight */
     int getHeight() const final;
+
+    /** @copydoct Image::getViewPort */
+    QRect getViewPort() const final;
 
     /** @copydoc Image::getData */
     const uint8_t* getData(uint texture = 0) const final;
@@ -71,20 +84,21 @@ public:
     /** @copydoc Image::getColorSpace */
     ColorSpace getColorSpace() const final;
 
-    /** @return write access to fill a given image texture plane. */
-    uint8_t* getData(uint texture);
-
     /** @return data size of a given image texture plane. */
     size_t getDataSize(uint texture) const;
 
-    /** @return the picture as a QImage, or an empty one if format != rgba. */
+    /** @return the picture as a QImage */
     QImage toQImage() const;
 
+    /** Set stereo view for the picture */
+    void setStereoView(const StereoView view);
+
 private:
-    const uint _width;
-    const uint _height;
-    const TextureFormat _format;
-    std::array<QByteArray, 3> _data;
+    std::shared_ptr<FFMPEGFrame> _frame;
+    std::array<size_t, 3> _dataSize{{0, 0, 0}};
+    size_t _width{0};
+    size_t _height{0};
+    StereoView _stereoView{StereoView::NONE};
 };
 
 #endif

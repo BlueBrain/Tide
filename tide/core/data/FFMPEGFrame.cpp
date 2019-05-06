@@ -50,7 +50,10 @@ FFMPEGFrame::FFMPEGFrame()
 
 FFMPEGFrame::~FFMPEGFrame()
 {
-    av_free(_avFrame);
+    if (_deallocateDataPointers)
+        av_freep(&_avFrame->data);
+
+    av_frame_free(&_avFrame);
 }
 
 int FFMPEGFrame::getWidth() const
@@ -81,4 +84,9 @@ const AVFrame& FFMPEGFrame::getAVFrame() const
 AVPixelFormat FFMPEGFrame::getAVPixelFormat() const
 {
     return AVPixelFormat(_avFrame->format);
+}
+
+void FFMPEGFrame::setDeallocateDataPointers()
+{
+    _deallocateDataPointers = true;
 }

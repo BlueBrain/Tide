@@ -39,34 +39,40 @@
 
 #include "FFMPEGPicture.h"
 
+#include "FFMPEGFrame.h"
+#include "FFMPEGUtils.h"
+
 #pragma clang diagnostic ignored "-Wdeprecated"
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
-FFMPEGPicture::FFMPEGPicture(const uint width, const uint height,
-                             const TextureFormat format)
-    : _width{width}
-    , _height{height}
-    , _format{format}
+extern "C"
 {
-    switch (format)
-    {
-    case TextureFormat::rgba:
-        _data[0] = QByteArray{int(width * height * 4), Qt::Uninitialized};
-        break;
-    case TextureFormat::yuv420:
-    case TextureFormat::yuv422:
-    case TextureFormat::yuv444:
-    {
-        const auto uvSize = getTextureSize(1);
-        const int uvDataSize = uvSize.width() * uvSize.height();
-        _data[0] = QByteArray{int(width * height), Qt::Uninitialized};
-        _data[1] = QByteArray{uvDataSize, Qt::Uninitialized};
-        _data[2] = QByteArray{uvDataSize, Qt::Uninitialized};
-        break;
-    }
-    default:
-        throw std::logic_error("FFMPEGPicture: unsupported format");
-    }
+#include <libavcodec/avcodec.h>
+#include <libavutil/imgutils.h>
+#include <libavutil/mem.h>
+#include <libswscale/swscale.h>
+}
+
+constexpr auto MAX_CHANNELS = 3;
+
+FFMPEGPicture::FFMPEGPicture(std::shared_ptr<FFMPEGFrame> frame)
+    : _frame(frame)
+{
+    // NOTE: FFMpeg can and will often add padding at the end of every line.
+    // Therefore we use the avframes' linesize as the width so that the
+    // textures will be created with the right stride. Later, when displaying we
+    // can then clip it by using a smaller view port.
+
+    auto& avFrame = _frame->getAVFrame();
+    _width = avFrame.linesize[0];
+    _height = avFrame.height;
+
+    const auto uvSize = getTextureSize(1);
+    const int uvDataSize = uvSize.width() * uvSize.height();
+
+    _dataSize[0] = _width * _height;
+    _dataSize[1] = uvDataSize;
+    _dataSize[2] = uvDataSize;
 }
 
 int FFMPEGPicture::getWidth() const
@@ -79,17 +85,17 @@ int FFMPEGPicture::getHeight() const
     return _height;
 }
 
-const uint8_t* FFMPEGPicture::getData(const uint texture) const
+const uint8_t* FFMPEGPicture::getData(uint texture) const
 {
-    if (texture >= _data.size())
+    if (texture >= MAX_CHANNELS)
         return nullptr;
 
-    return reinterpret_cast<const uint8_t*>(_data[texture].constData());
+    return _frame->getAVFrame().data[texture];
 }
 
 TextureFormat FFMPEGPicture::getFormat() const
 {
-    return _format;
+    return FFMPEGUtils::determineOutputFormat(_frame->getAVPixelFormat());
 }
 
 ColorSpace FFMPEGPicture::getColorSpace() const
@@ -97,26 +103,61 @@ ColorSpace FFMPEGPicture::getColorSpace() const
     return ColorSpace::yCbCrVideo;
 }
 
-uint8_t* FFMPEGPicture::getData(const uint texture)
+size_t FFMPEGPicture::getDataSize(uint texture) const
 {
-    if (texture >= _data.size())
-        return nullptr;
-
-    return reinterpret_cast<uint8_t*>(_data[texture].data());
-}
-
-size_t FFMPEGPicture::getDataSize(const uint texture) const
-{
-    if (texture >= _data.size())
+    if (texture >= MAX_CHANNELS)
         return 0;
 
-    return _data[texture].size();
+    return _dataSize[texture];
 }
 
 QImage FFMPEGPicture::toQImage() const
 {
-    if (getFormat() != TextureFormat::rgba)
-        return QImage();
+    // NOTE: We use the viewport size to remove any potential line padding
+    const auto viewPort = getViewPort();
+    auto img =
+        QImage(viewPort.width(), viewPort.height(), QImage::Format_RGBA8888);
 
-    return QImage(getData(), getWidth(), getHeight(), QImage::Format_RGBA8888);
+    constexpr auto pixelSize = 4; // RGBA = 4 bytes
+    constexpr auto destAvFormat = AV_PIX_FMT_RGBA;
+
+    SwsContext* swsContext =
+        sws_getContext(viewPort.width(), viewPort.height(),
+                       _frame->getAVPixelFormat(), viewPort.width(),
+                       viewPort.height(), destAvFormat, SWS_FAST_BILINEAR,
+                       nullptr, nullptr, nullptr);
+    if (!swsContext)
+        return img;
+
+    uint8_t* dstData = reinterpret_cast<uint8_t*>(img.bits());
+    int linesize = viewPort.width() * pixelSize;
+
+    auto& avFrame = _frame->getAVFrame();
+
+    sws_scale(swsContext, avFrame.data, avFrame.linesize, 0, avFrame.height,
+              (uint8_t* const*)&dstData, &linesize);
+
+    sws_freeContext(swsContext);
+    return img;
+}
+
+QRect FFMPEGPicture::getViewPort() const
+{
+    auto& avframe = _frame->getAVFrame();
+    switch (_stereoView)
+    {
+    case StereoView::LEFT:
+        return QRect(QPoint(0, 0), QSize(avframe.width / 2, avframe.height));
+    case StereoView::RIGHT:
+        return QRect(QPoint(avframe.width / 2, 0),
+                     QSize(avframe.width / 2, avframe.height));
+    case StereoView::NONE:
+    default:
+        return QRect(QPoint(0, 0), QSize(avframe.width, avframe.height));
+    }
+}
+
+void FFMPEGPicture::setStereoView(const StereoView view)
+{
+    _stereoView = view;
 }

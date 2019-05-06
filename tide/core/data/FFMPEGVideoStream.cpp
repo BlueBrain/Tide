@@ -40,23 +40,23 @@
 #include "FFMPEGVideoStream.h"
 
 #include "FFMPEGFrame.h"
-#include "FFMPEGVideoFrameConverter.h"
+#include "FFMPEGPicture.h"
 #include "utils/log.h"
 
+#include <cstdlib>
 #include <sstream>
 #include <stdexcept>
 
 // FFMPEG 4.0
 #define HAS_FFMPEG_4_API (LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(58, 18, 100))
 
-extern "C" {
+extern "C"
+{
 #include <libavutil/stereo3d.h>
 }
 
 FFMPEGVideoStream::FFMPEGVideoStream(AVFormatContext& avFormatContext)
     : _avFormatContext{avFormatContext}
-    , _frame{new FFMPEGFrame}
-    , _frameConverter{new FFMPEGVideoFrameConverter}
 {
     _findVideoStream();
     _openVideoStreamDecoder();
@@ -68,27 +68,9 @@ FFMPEGVideoStream::~FFMPEGVideoStream()
     avcodec_free_context(&_videoCodecContext);
 }
 
-PicturePtr FFMPEGVideoStream::decode(AVPacket& packet,
-                                     const TextureFormat format)
+bool FFMPEGVideoStream::decode(AVPacket& packet, FFMPEGFrame& frame)
 {
-    if (!_decodeToAvFrame(packet))
-        return PicturePtr();
-
-    return decodePictureForLastPacket(format);
-}
-
-int64_t FFMPEGVideoStream::decodeTimestamp(AVPacket& packet)
-{
-    if (!_decodeToAvFrame(packet))
-        return AV_NOPTS_VALUE;
-
-    return _frame->getTimestamp();
-}
-
-PicturePtr FFMPEGVideoStream::decodePictureForLastPacket(
-    const TextureFormat format)
-{
-    return _frameConverter->convert(*_frame, format);
+    return _decodeToAvFrame(packet, frame);
 }
 
 bool FFMPEGVideoStream::_isVideoPacket(const AVPacket& packet) const
@@ -103,7 +85,7 @@ std::string _getAvError(const int errorCode)
     return std::string(errbuf);
 }
 
-bool FFMPEGVideoStream::_decodeToAvFrame(AVPacket& packet)
+bool FFMPEGVideoStream::_decodeToAvFrame(AVPacket& packet, FFMPEGFrame& frame)
 {
     if (!_isVideoPacket(packet))
         return false;
@@ -118,7 +100,7 @@ bool FFMPEGVideoStream::_decodeToAvFrame(AVPacket& packet)
         return false;
     }
 
-    errCode = avcodec_receive_frame(_videoCodecContext, &_frame->getAVFrame());
+    errCode = avcodec_receive_frame(_videoCodecContext, &frame.getAVFrame());
     if (errCode < 0)
     {
         print_log(LOG_ERROR, LOG_AV,
@@ -178,11 +160,6 @@ AVPixelFormat FFMPEGVideoStream::getAVFormat() const
 int64_t FFMPEGVideoStream::getFrameIndex(const double timePositionInSec) const
 {
     return static_cast<int64_t>(timePositionInSec / _frameDurationInSeconds);
-}
-
-int64_t FFMPEGVideoStream::getTimestamp(const double timePositionInSec) const
-{
-    return getTimestamp(getFrameIndex(timePositionInSec));
 }
 
 int64_t FFMPEGVideoStream::getTimestamp(int64_t frameIndex) const
@@ -265,6 +242,32 @@ void FFMPEGVideoStream::_openVideoStreamDecoder()
                                                     _videoStream->codecpar);
     if (error < 0)
         throw std::runtime_error("Could not init context from parameters");
+
+    { // Set threading from environment variable
+        const auto envStr = getenv("TIDE_FFMPEG_THREADS");
+        const std::string threadsStr = envStr != nullptr ? envStr : "";
+        size_t threadCount = 0;
+
+        if (!threadsStr.empty())
+        {
+            try
+            {
+                threadCount = std::stoi(threadsStr);
+            }
+            catch (...)
+            {
+                print_log(LOG_WARN, LOG_AV,
+                          "Could not parse TIDE_FFMPEG_THREADS: %s",
+                          threadsStr.c_str());
+            }
+        }
+
+        if (threadCount > 0)
+        {
+            _videoCodecContext->thread_count = threadCount;
+            _videoCodecContext->thread_type = FF_THREAD_FRAME;
+        }
+    }
 
     const int ret = avcodec_open2(_videoCodecContext, codec, NULL);
     if (ret < 0)

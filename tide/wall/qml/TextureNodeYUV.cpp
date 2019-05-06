@@ -73,6 +73,10 @@ uniform lowp sampler2D y_tex;
 uniform lowp sampler2D u_tex;
 uniform lowp sampler2D v_tex;
 uniform lowp int color_space;
+uniform float tex_offset_x;
+uniform float tex_offset_y;
+uniform float tex_scale_x;
+uniform float tex_scale_y;
 uniform lowp bool reverse_orientation;
 varying vec2 vTexCoord;
 // https://en.wikipedia.org/wiki/YCbCr JPEG conversion
@@ -89,6 +93,8 @@ void main() {
   vec2 texCoord = vTexCoord;
   if(reverse_orientation)
      texCoord.y = 1.0 - texCoord.y;
+  texCoord.x = (texCoord.x - tex_offset_x) * tex_scale_x;
+  texCoord.y = (texCoord.y - tex_offset_y) * tex_scale_y;
   float y = texture2D(y_tex, texCoord).r;
   float u = texture2D(u_tex, texCoord).r;
   float v = texture2D(v_tex, texCoord).r;
@@ -110,7 +116,7 @@ void main() {
   }
 }
 )";
-}
+} // namespace
 
 /**
  * The state of the QSGSimpleMaterialShader.
@@ -127,6 +133,11 @@ struct YUVState
     std::unique_ptr<QOpenGLBuffer> pboY;
     std::unique_ptr<QOpenGLBuffer> pboU;
     std::unique_ptr<QOpenGLBuffer> pboV;
+
+    float texOffsetX = 0.f;
+    float texOffsetY = 0.f;
+    float texScaleX = 1.f;
+    float texScaleY = 1.f;
 };
 
 /**
@@ -160,6 +171,11 @@ public:
 
         gl->glActiveTexture(GL_TEXTURE0);
         newState->textureY->bind();
+
+        program()->setUniformValue("tex_offset_x", newState->texOffsetX);
+        program()->setUniformValue("tex_offset_y", newState->texOffsetY);
+        program()->setUniformValue("tex_scale_x", newState->texScaleX);
+        program()->setUniformValue("tex_scale_y", newState->texScaleY);
 
         program()->setUniformValue("color_space", (int)newState->colorSpace);
         program()->setUniformValue("reverse_orientation",
@@ -237,6 +253,19 @@ void TextureNodeYUV::uploadTexture(const Image& image)
 
     _nextTextureSize = image.getTextureSize();
     _nextFormat = image.getFormat();
+
+    {
+        // Calculate viewport clipping
+        const auto viewPort = image.getViewPort();
+        const double imageWidth = image.getWidth();
+        const double imageHeight = image.getHeight();
+
+        state->texOffsetX = viewPort.x() / imageWidth;
+        state->texOffsetY = viewPort.y() / imageHeight;
+        state->texScaleX = viewPort.width() / imageWidth;
+        state->texScaleY = viewPort.height() / imageHeight;
+    }
+
     state->reverseOrientation =
         image.getRowOrder() == deflect::RowOrder::bottom_up;
     state->colorSpace = image.getColorSpace();
