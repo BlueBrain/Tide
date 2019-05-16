@@ -3,7 +3,7 @@ Changelog {#changelog}
 # Release 1.5.2 (git master)
 
 * [298](https://github.com/BlueBrain/Tide/pull/298):
-  New feature in options: a stopped movie can be auto-played when maximized.
+  New option: start/resume movie playback when window is maximized.
 
 # Release 1.5.1 (13-02-2019)
 
