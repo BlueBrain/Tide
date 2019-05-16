@@ -43,6 +43,7 @@
 #include "layout/LayoutEngine.h"
 #include "scene/DisplayGroup.h"
 #include "scene/MovieContent.h"
+#include "scene/Options.h"
 #include "scene/Window.h"
 
 #include <QTransform>
