@@ -42,7 +42,6 @@
 
 #include "types.h"
 
-#include "scene/Options.h"
 #include <QObject>
 #include <QUuid> // needed by moc compiler on Travis OSX
 
