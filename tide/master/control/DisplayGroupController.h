@@ -42,6 +42,7 @@
 
 #include "types.h"
 
+#include "scene/Options.h"
 #include <QObject>
 #include <QUuid> // needed by moc compiler on Travis OSX
 
@@ -134,6 +135,7 @@ public:
 
 private:
     DisplayGroup& _group;
+    OptionsPtr _options;
 
     void _focus(const WindowSet& windows);
     void _updateFocusedCoordinates(const WindowSet& windows);

@@ -42,6 +42,7 @@
 #include "WindowController.h"
 #include "layout/LayoutEngine.h"
 #include "scene/DisplayGroup.h"
+#include "scene/MovieContent.h"
 #include "scene/Window.h"
 
 #include <QTransform>
@@ -55,6 +56,7 @@ static auto _exceeds = [](const auto& size, const auto& other) {
 
 DisplayGroupController::DisplayGroupController(DisplayGroup& group)
     : _group(group)
+    , _options(Options::create())
 {
 }
 
@@ -318,6 +320,13 @@ void DisplayGroupController::_showFullscreen(WindowPtr window,
     window->setMode(Window::WindowMode::FULLSCREEN);
     window->getContent().setCaptureInteraction(false);
     _group.setFullscreenWindow(window);
+
+    if (window->getContent().getType() == ContentType::movie &&
+        _options->getPlayOnMaximize())
+    {
+        auto& content = static_cast<MovieContent&>(window->getContent());
+        content.play();
+    }
 }
 
 qreal DisplayGroupController::_estimateAspectRatio() const

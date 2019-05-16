@@ -101,6 +101,11 @@ bool Options::getShowZoomContext() const
     return _showZoomContext;
 }
 
+bool Options::getPlayOnMaximize() const
+{
+    return _playOnMaximize;
+}
+
 void Options::enableAlphaBlending(const bool set)
 {
     if (_alphaBlendingEnabled == set)
@@ -218,5 +223,15 @@ void Options::setShowZoomContext(const bool set)
 
     _showZoomContext = set;
     emit showZoomContextChanged(set);
+    emit updated(shared_from_this());
+}
+
+void Options::setPlayOnMaximize(const bool set)
+{
+    if (_playOnMaximize == set)
+        return;
+
+    _playOnMaximize = set;
+    emit playOnMaximizeChanged(set);
     emit updated(shared_from_this());
 }

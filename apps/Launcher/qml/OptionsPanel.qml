@@ -64,6 +64,12 @@ DefaultPanel {
             onClicked: buttonClicked("alphaBlending", checked)
             style: checkboxScalingStyle
         }
+        CheckBox {
+            id: playOnMaximize
+            text: "Play video on maximize"
+            onClicked: buttonClicked("playMaximize", checked)
+            style: checkboxScalingStyle
+        }
     }
 
     Rectangle {
@@ -154,6 +160,7 @@ DefaultPanel {
         statistics.checked = options.statistics
         clock.checked = options.clock
         alphaBlending.checked = options.alphaBlending
+        playOnMaximize.checked = options.playOnMaximize
     }
     Component.onCompleted: refreshOptions()
 }
