@@ -55,6 +55,7 @@ const std::string defaultJson{
     "contentTiles": false,
     "controlArea": true,
     "filePaths": false,
+    "playOnMaximize": true,
     "statistics": false,
     "testPattern": false,
     "touchPoints": true,
@@ -79,6 +80,7 @@ const std::string allValuesChangedJson{
     "contentTiles": true,
     "controlArea": false,
     "filePaths": true,
+    "playOnMaximize": false,
     "statistics": true,
     "testPattern": true,
     "touchPoints": false,
@@ -87,7 +89,7 @@ const std::string allValuesChangedJson{
     "zoomContext": false
 }
 )"};
-}
+} // namespace
 
 struct Fixture
 {

@@ -77,6 +77,8 @@ class Options : public QObject, public std::enable_shared_from_this<Options>
                    showWindowTitlesChanged)
     Q_PROPERTY(bool showZoomContext READ getShowZoomContext NOTIFY
                    showZoomContextChanged)
+    Q_PROPERTY(
+        bool playOnMaximize READ getPlayOnMaximize NOTIFY playOnMaximizeChanged)
 
 public:
     /** Create a shared Options object. */
@@ -95,6 +97,7 @@ public:
     bool getShowWindowBorders() const;
     bool getShowWindowTitles() const;
     bool getShowZoomContext() const;
+    bool getPlayOnMaximize() const;
     //@}
 
 public slots:
@@ -112,6 +115,7 @@ public slots:
     void setShowWindowBorders(bool set);
     void setShowWindowTitles(bool set);
     void setShowZoomContext(bool set);
+    void setPlayOnMaximize(bool set);
     //@}
 
 signals:
@@ -129,6 +133,7 @@ signals:
     void showWindowBordersChanged(bool set);
     void showWindowTitlesChanged(bool set);
     void showZoomContextChanged(bool set);
+    void playOnMaximizeChanged(bool set);
     //@}
 
     /** Emitted when any value is changed by one of the setters. */
@@ -155,6 +160,7 @@ private:
         ar & _showWindowBorders;
         ar & _showWindowTitles;
         ar & _showZoomContext;
+        ar & _playOnMaximize;
         // clang-format on
     }
 
@@ -170,6 +176,7 @@ private:
     bool _showWindowBorders = true;
     bool _showWindowTitles = true;
     bool _showZoomContext = true;
+    bool _playOnMaximize = true;
 };
 
 #endif
