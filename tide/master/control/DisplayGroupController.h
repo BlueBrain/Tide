@@ -134,6 +134,7 @@ public:
 
 private:
     DisplayGroup& _group;
+    OptionsPtr _options;
 
     void _focus(const WindowSet& windows);
     void _updateFocusedCoordinates(const WindowSet& windows);
