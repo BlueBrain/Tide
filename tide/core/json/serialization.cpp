@@ -176,19 +176,20 @@ QJsonObject serialize(const Background& background)
 
 QJsonObject serialize(const Options& options)
 {
-    return QJsonObject{
-        {"alphaBlending", options.isAlphaBlendingEnabled()},
-        {"autoFocusStreamers", options.getAutoFocusPixelStreams()},
-        {"clock", options.getShowClock()},
-        {"contentTiles", options.getShowContentTiles()},
-        {"controlArea", options.getShowControlArea()},
-        {"filePaths", options.getShowFilePaths()},
-        {"statistics", options.getShowStatistics()},
-        {"testPattern", options.getShowTestPattern()},
-        {"touchPoints", options.getShowTouchPoints()},
-        {"windowBorders", options.getShowWindowBorders()},
-        {"windowTitles", options.getShowWindowTitles()},
-        {"zoomContext", options.getShowZoomContext()}};
+    return QJsonObject{{"alphaBlending", options.isAlphaBlendingEnabled()},
+                       {"autoFocusStreamers",
+                        options.getAutoFocusPixelStreams()},
+                       {"clock", options.getShowClock()},
+                       {"contentTiles", options.getShowContentTiles()},
+                       {"controlArea", options.getShowControlArea()},
+                       {"filePaths", options.getShowFilePaths()},
+                       {"statistics", options.getShowStatistics()},
+                       {"testPattern", options.getShowTestPattern()},
+                       {"touchPoints", options.getShowTouchPoints()},
+                       {"windowBorders", options.getShowWindowBorders()},
+                       {"windowTitles", options.getShowWindowTitles()},
+                       {"zoomContext", options.getShowZoomContext()},
+                       {"playOnMaximize", options.getPlayOnMaximize()}};
 }
 
 QJsonObject serialize(const Configuration& config)
@@ -402,6 +403,10 @@ bool deserialize(const QJsonObject& object, Options& options)
     if (value.isBool())
         options.setShowZoomContext(value.toBool());
 
+    value = object["playOnMaximize"];
+    if (value.isBool())
+        options.setPlayOnMaximize(value.toBool());
+
     return true;
 }
 
@@ -501,4 +506,4 @@ bool deserialize(const QJsonObject& object, SurfaceConfig& surface)
 
     return true;
 }
-}
+} // namespace json
