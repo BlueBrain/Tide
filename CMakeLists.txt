@@ -72,7 +72,7 @@ common_find_package(TIFF)
 common_find_package(VirtualKeyboard)
 common_find_package(X11) # for swap sync unit tests
 
-common_find_package(FFMPEG)
+common_find_package(FFMPEG 3.4)
 if(FFMPEG_FOUND)
   option(TIDE_ENABLE_MOVIE_SUPPORT "Enable FFMPEG movie support" ON)
 endif()

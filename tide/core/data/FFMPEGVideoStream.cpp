@@ -49,17 +49,9 @@
 // FFMPEG 4.0
 #define HAS_FFMPEG_4_API (LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(58, 18, 100))
 
-// FFMPEG 3.1
-#define HAS_FFMPEG_3_1_API (LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(57, 48, 0))
-
-// FFMPEG 2.3.x
-#define HAS_STEREO_API (LIBAVFORMAT_VERSION_INT >= AV_VERSION_INT(55, 35, 100))
-
-#if HAS_STEREO_API
 extern "C" {
 #include <libavutil/stereo3d.h>
 }
-#endif
 
 FFMPEGVideoStream::FFMPEGVideoStream(AVFormatContext& avFormatContext)
     : _avFormatContext{avFormatContext}
@@ -73,11 +65,7 @@ FFMPEGVideoStream::FFMPEGVideoStream(AVFormatContext& avFormatContext)
 
 FFMPEGVideoStream::~FFMPEGVideoStream()
 {
-#if HAS_FFMPEG_3_1_API
     avcodec_free_context(&_videoCodecContext);
-#else
-    avcodec_close(_videoCodecContext);
-#endif
 }
 
 PicturePtr FFMPEGVideoStream::decode(AVPacket& packet,
@@ -120,7 +108,6 @@ bool FFMPEGVideoStream::_decodeToAvFrame(AVPacket& packet)
     if (!_isVideoPacket(packet))
         return false;
 
-#if HAS_FFMPEG_3_1_API
     int errCode = avcodec_send_packet(_videoCodecContext, &packet);
     if (errCode < 0)
     {
@@ -140,31 +127,6 @@ bool FFMPEGVideoStream::_decodeToAvFrame(AVPacket& packet)
                   errCode, _getAvError(errCode).c_str(), _getFilename());
         return false;
     }
-#else
-    int frameDecodingComplete = 0;
-    const int errCode =
-        avcodec_decode_video2(_videoCodecContext, &_frame->getAVFrame(),
-                              &frameDecodingComplete, &packet);
-    if (errCode < 0)
-    {
-        print_log(LOG_ERROR, LOG_AV,
-                  "avcodec_decode_video2 returned error code '%i' "
-                  "in '%s'",
-                  errCode, _getFilename());
-        return false;
-    }
-
-    // make sure we got a full video frame and convert the frame from its native
-    // format to RGB
-    if (!frameDecodingComplete)
-    {
-        print_log(LOG_VERBOSE, LOG_AV,
-                  "Frame could not be decoded entirely"
-                  "(may be caused by seeking) in: '%s'",
-                  _getFilename());
-        return false;
-    }
-#endif
     return true;
 }
 
@@ -189,14 +151,12 @@ unsigned int FFMPEGVideoStream::getHeight() const
 
 bool FFMPEGVideoStream::isStereo() const
 {
-#if HAS_STEREO_API
     for (int i = 0; i < _videoStream->nb_side_data; ++i)
     {
         const auto& sideData = _videoStream->side_data[i];
         if (sideData.type == AV_PKT_DATA_STEREO3D)
             return ((AVStereo3D*)sideData.data)->type == AV_STEREO3D_SIDEBYSIDE;
     }
-#endif
     return false;
 }
 
@@ -280,11 +240,7 @@ void FFMPEGVideoStream::_findVideoStream()
     for (unsigned int i = 0; i < _avFormatContext.nb_streams; ++i)
     {
         AVStream* stream = _avFormatContext.streams[i];
-#if HAS_FFMPEG_3_1_API
         if (stream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
-#else
-        if (stream->codec->codec_type == AVMEDIA_TYPE_VIDEO)
-#endif
         {
             _videoStream = stream; // Shortcut pointer - don't free
             return;
@@ -298,7 +254,6 @@ void FFMPEGVideoStream::_openVideoStreamDecoder()
 {
     AVCodec* codec = nullptr;
 
-#if HAS_FFMPEG_3_1_API
     if (!(codec = avcodec_find_decoder(_videoStream->codecpar->codec_id)))
         throw std::runtime_error("No decoder found for video stream");
 
@@ -310,12 +265,6 @@ void FFMPEGVideoStream::_openVideoStreamDecoder()
                                                     _videoStream->codecpar);
     if (error < 0)
         throw std::runtime_error("Could not init context from parameters");
-#else
-    if (!(codec = avcodec_find_decoder(_videoStream->codec->codec_id)))
-        throw std::runtime_error("No decoder found for video stream");
-
-    _videoCodecContext = _videoStream->codec; // ptr, allocated by avcodec_open2
-#endif
 
     const int ret = avcodec_open2(_videoCodecContext, codec, NULL);
     if (ret < 0)
