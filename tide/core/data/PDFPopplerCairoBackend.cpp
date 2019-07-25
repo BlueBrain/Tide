@@ -81,9 +81,7 @@ PDFPopplerCairoBackend::PDFPopplerCairoBackend(const QString& uri)
         throw std::runtime_error("Could not open first page");
 }
 
-PDFPopplerCairoBackend::~PDFPopplerCairoBackend()
-{
-}
+PDFPopplerCairoBackend::~PDFPopplerCairoBackend() {}
 
 QSize PDFPopplerCairoBackend::getSize() const
 {
@@ -146,7 +144,14 @@ QImage PDFPopplerCairoBackend::renderToImage(const QSize& imageSize,
     // this information. Since Qt 5.9 QImage::reinterpretAsFormat could be used
     // instead.
     auto image = QImage{imageSize, QImage::Format_RGB32};
-    std::memset(image.bits(), 0u, image.byteCount());
+
+#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
+    const auto imageSizeInBytes = static_cast<size_t>(image.byteCount());
+#else
+    const auto imageSizeInBytes = image.sizeInBytes();
+#endif
+
+    std::memset(image.bits(), 0u, imageSizeInBytes);
 
     auto surface = CairoSurfacePtr{
         cairo_image_surface_create_for_data(image.bits(), CAIRO_FORMAT_ARGB32,
