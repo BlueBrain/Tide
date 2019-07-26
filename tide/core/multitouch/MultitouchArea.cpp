@@ -51,7 +51,7 @@ const qreal swipeThresholdPx = 80;
 const qreal doubleTapThresholdPx = 40;
 const uint doubleTapTimeoutMs = 750;
 const uint tapAndHoldTimeoutMs = 1000;
-}
+} // namespace
 
 MultitouchArea::MultitouchArea(QQuickItem* parent_)
     : QQuickItem(parent_)

@@ -68,7 +68,7 @@ std::string to_json(const Version& version)
 {
     return version.toJSON();
 }
-}
+} // namespace tide
 
 namespace
 {
@@ -80,7 +80,7 @@ std::string to_json(const LockState& lockState)
 {
     return json::dump(QJsonObject{{"locked", lockState.locked}});
 }
-}
+} // namespace
 
 /** Use REST-specific serialization of Configuration. */
 std::string to_json(const Configuration& config)

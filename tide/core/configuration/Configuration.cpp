@@ -165,7 +165,7 @@ Process parseProcess(XmlParser& parser, const int processIndex)
 
     return process;
 }
-}
+} // namespace
 
 Configuration::Configuration(const QString& filename)
     : _filename{filename}

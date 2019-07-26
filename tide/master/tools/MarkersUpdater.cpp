@@ -47,7 +47,7 @@ namespace
 {
 // TUIO touch point IDs start at 0
 constexpr int MOUSE_MARKER_ID = std::numeric_limits<int>::max();
-}
+} // namespace
 
 MarkersUpdater::MarkersUpdater(Markers& markers, const QSizeF& surfaceSize)
     : _markers{markers}
