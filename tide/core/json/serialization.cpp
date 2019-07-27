@@ -205,7 +205,9 @@ QJsonObject serialize(const Configuration& config)
          QJsonObject{{"swapsync", serialize(config.global.swapsync)}}},
         {"launcher",
          QJsonObject{{"display", config.launcher.display},
-                     {"demoServiceUrl", config.launcher.demoServiceUrl}}},
+                     {"demoServiceUrl", config.launcher.demoServiceUrl},
+                     {"targetFPS",
+                      static_cast<int>(config.launcher.targetFPS)}}},
         {"master",
          QJsonObject{{"host", config.master.hostname},
                      {"display", config.master.display},
@@ -443,6 +445,7 @@ bool deserialize(const QJsonObject& object, Configuration& config)
     const auto launcherObj = object["launcher"].toObject();
     deserialize(launcherObj["display"], config.launcher.display);
     deserialize(launcherObj["demoServiceUrl"], config.launcher.demoServiceUrl);
+    deserialize(launcherObj["targetFPS"], config.launcher.targetFPS);
 
     const auto masterObj = object["master"].toObject();
     deserialize(masterObj["host"], config.master.hostname);

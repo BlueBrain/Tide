@@ -80,6 +80,7 @@ public:
     QString contentsDir;
     QString sessionsDir;
     uint16_t webservicePort = 0;
+    uint targetFPS = 0;
     QString demoServiceUrl;
     bool showPowerButton = false;
 

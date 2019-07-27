@@ -165,7 +165,7 @@ Process parseProcess(XmlParser& parser, const int processIndex)
 
     return process;
 }
-}
+} // namespace
 
 Configuration::Configuration(const QString& filename)
     : _filename{filename}
@@ -218,6 +218,7 @@ void Configuration::_loadXml()
     parser.get(uri.arg("webservice", "tmpDirectory"), folders.tmp);
     parser.get(uri.arg("launcher", "display"), launcher.display);
     parser.get(uri.arg("launcher", "demoServiceUrl"), launcher.demoServiceUrl);
+    parser.get(uri.arg("launcher", "targetFPS"), launcher.targetFPS);
     parser.get(uri.arg("info", "name"), settings.infoName);
     parser.get(uri.arg("planar", "serialport"), master.planarSerialPort);
     parser.get(uri.arg("planar", "timeout"), settings.inactivityTimeout);

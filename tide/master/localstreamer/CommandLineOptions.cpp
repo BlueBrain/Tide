@@ -68,6 +68,7 @@ void CommandLineOptions::parse(const int argc, char** argv)
     contentsDir = vm["contentsDir"].as<std::string>().c_str();
     sessionsDir = vm["sessionsDir"].as<std::string>().c_str();
     webservicePort = vm["webservicePort"].as<uint16_t>();
+    targetFPS = vm["targetFPS"].as<uint>();
     demoServiceUrl = vm["demoServiceUrl"].as<std::string>().c_str();
     showPowerButton = vm["showPowerButton"].as<bool>();
     saveDir = vm["saveDir"].as<std::string>().c_str();
@@ -95,6 +96,8 @@ void CommandLineOptions::_fillDesc()
          "launcher: port where the master application's webservice is running")
         ("demoServiceUrl", po::value<std::string>()->default_value(""),
          "launcher: url for the demo service")
+        ("targetFPS", po::value<uint>()->default_value(0),
+         "launcher: maximum render FPS")
         ("showPowerButton", po::bool_switch()->default_value(false),
          "launcher: show the power button")
         ("saveDir", po::value<std::string>()->default_value(""),
@@ -141,6 +144,9 @@ QStringList CommandLineOptions::getCommandLineArguments() const
 
     if (webservicePort > 0)
         arguments << "--webservicePort" << QString::number((int)webservicePort);
+
+    if (targetFPS > 0)
+        arguments << "--targetFPS" << QString::number((int)targetFPS);
 
     if (!demoServiceUrl.isEmpty())
         arguments << "--demoServiceUrl" << demoServiceUrl;

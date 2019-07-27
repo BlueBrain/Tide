@@ -69,7 +69,7 @@ QString _getAppsDir()
     return QCoreApplication::applicationDirPath();
 #endif
 }
-}
+} // namespace
 
 QString _getLauncherCommand(const QString& args)
 {
@@ -183,6 +183,7 @@ void PixelStreamerLauncher::openLauncher()
     options.contentsDir = _config.folders.contents;
     options.sessionsDir = _config.folders.sessions;
     options.webservicePort = _config.master.webservicePort;
+    options.targetFPS = _config.launcher.targetFPS;
     options.demoServiceUrl = _config.launcher.demoServiceUrl;
 #if TIDE_ENABLE_PLANAR_CONTROLLER
     options.showPowerButton = !_config.master.planarSerialPort.isEmpty();

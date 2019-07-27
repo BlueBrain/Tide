@@ -48,7 +48,6 @@
 #include <deflect/server/TileDecoder.h>
 
 #include <QThreadStorage>
-
 namespace
 {
 void _splitByView(const deflect::server::Tiles& tiles,
@@ -70,7 +69,7 @@ void _sortByChannelAndPosition(deflect::server::Tiles& tiles)
                    : t1.channel < t2.channel;
     });
 }
-}
+} // namespace
 
 PixelStreamUpdater::PixelStreamUpdater(const QString& uri)
     : _uri{uri}
@@ -79,9 +78,7 @@ PixelStreamUpdater::PixelStreamUpdater(const QString& uri)
                                          this, std::placeholders::_1));
 }
 
-PixelStreamUpdater::~PixelStreamUpdater()
-{
-}
+PixelStreamUpdater::~PixelStreamUpdater() {}
 
 QString PixelStreamUpdater::getUri() const
 {

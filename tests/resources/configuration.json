@@ -10,7 +10,8 @@
     },
     "launcher": {
         "demoServiceUrl": "https://bbp.epfl.ch/viz/launcher/wall?host=",
-        "display": ":0"
+        "display": ":0",
+        "targetFPS": 45
     },
     "master": {
         "display": ":1",

@@ -9,6 +9,7 @@
         <file>images/open.svg</file>
         <file>images/poweroff.svg</file>
         <file>images/save.svg</file>
+        <file>images/search.svg</file>
         <file>images/settings.svg</file>
         <file>images/visualisation.svg</file>
         <file>images/webbrowser.svg</file>
@@ -29,6 +30,7 @@
         <file>qml/LaunchMenu.qml</file>
         <file>qml/OptionsPanel.qml</file>
         <file>qml/SavePanel.qml</file>
+        <file>qml/SearchPanel.qml</file>
         <file>qml/ScrollBar.qml</file>
     </qresource>
 </RCC>

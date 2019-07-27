@@ -96,6 +96,9 @@ public:
         /** URL of Rendering Resources Manager's API for the demo service. */
         QString demoServiceUrl;
 
+        /** Target render FPS of Launcher */
+        uint targetFPS = 60;
+
     } launcher;
 
     struct Master

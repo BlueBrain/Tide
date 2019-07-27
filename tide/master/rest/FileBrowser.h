@@ -76,11 +76,16 @@ public:
     std::future<rockets::http::Response> list(
         const rockets::http::Request& request);
 
+    std::future<rockets::http::Response> find(
+        const rockets::http::Request& request);
+
 private:
     const QString _baseDir;
     const QStringList _filters;
+    const QStringList& _extensions;
 
     QFileInfoList _contents(const QDir& directory) const;
+    bool _isSupported(const QFileInfo& file) const;
 };
 
 #endif

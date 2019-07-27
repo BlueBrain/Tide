@@ -31,6 +31,7 @@ Rectangle {
     property real headerTextPixelSize: Style.headerRelTextSize * menu.width
     property real standardTextPixelSize: Style.sectionRelTextSize * menu.width
     property real smallTextPixelSize: Style.menuRelTextSize * menu.width
+    property real textColumnSize: smallTextPixelSize * 10
 
     Row {
         LaunchMenu {
@@ -45,6 +46,7 @@ Rectangle {
             onShowFilesPanel: centralWidget.sourceComponent = fileBrowser
             onShowSessionsPanel: centralWidget.sourceComponent = sessionsBrowser
             onShowSaveSessionPanel: centralWidget.sourceComponent = saveSessionPanel
+            onShowSearchPanel: centralWidget.sourceComponent = searchPanel
             onShowDemosPanel: {
                 centralWidget.sourceComponent = defaultPanel
                 demoLauncherWidget.active = true
@@ -66,8 +68,7 @@ Rectangle {
             id: centralWidget
             width: root.width - menu.width
             height: root.height
-            sourceComponent: defaultPanel
-            focus: true // let loaded components get focus
+            sourceComponent: searchPanel
             onSourceComponentChanged: demoLauncherWidget.visible = false
         }
     }
@@ -116,6 +117,15 @@ Rectangle {
             hideExtensions: true
             onListViewModeChanged: useListViewMode = listViewMode
             onRefreshSessionName: sendRestQuery("session", updateSessionName)
+        }
+    }
+
+    Component {
+        id: searchPanel
+        SearchPanel {
+            onSearchFile: sendJsonRpc("application", "save", filename)
+            onItemSelected: sendJsonRpc("application", "open", file)
+            rootfolder: rootFilesFolder
         }
     }
 
@@ -184,5 +194,29 @@ Rectangle {
         }
         request.open("GET", url, true)
         request.send()
+    }
+
+    function humanReadableModificationDate(date) {
+        var now = new Date()
+
+        if (now - date < 1000 * 3600 * 24)
+            // less than one day
+            return date.toLocaleTimeString()
+        if (date.getFullYear() == now.getFullYear())
+            return Qt.formatDate(date, "dd MMMM")
+        return Qt.formatDate(date, "dd MMM yyyy")
+    }
+
+    function humanReadableFileSize(bytes, si) {
+        var thresh = si ? 1000 : 1024
+        if (Math.abs(bytes) < thresh)
+            return bytes + ' bytes'
+        var units = si ? ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'] : ['KiB', 'MiB', 'GiB', 'TiB', 'PiB', 'EiB', 'ZiB', 'YiB']
+        var u = -1
+        do {
+            bytes /= thresh
+            ++u
+        } while (Math.abs(bytes) >= thresh && u < units.length - 1)
+        return bytes.toFixed(1) + ' ' + units[u]
     }
 }
