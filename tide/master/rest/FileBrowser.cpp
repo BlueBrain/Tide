@@ -42,9 +42,11 @@
 
 #include "json/json.h"
 
+#include <QDebug>
 #include <QDir>
+#include <QDirIterator>
 #include <QUrl>
-
+#include <iostream>
 namespace
 {
 QJsonObject _toJsonObject(const QFileInfo& entry)
@@ -59,7 +61,7 @@ QJsonArray _toJsonArray(const QFileInfoList& list)
         array.append(_toJsonObject(entry));
     return array;
 }
-}
+} // namespace
 
 FileBrowser::FileBrowser(const QString& baseDir, const QStringList& filters)
     : _baseDir{baseDir}
@@ -85,6 +87,48 @@ std::future<rockets::http::Response> FileBrowser::list(
         return make_ready_response(Code::NO_CONTENT);
 
     const auto body = json::dump(_toJsonArray(_contents(fullpath)));
+    return make_ready_response(Code::OK, body, "application/json");
+}
+
+std::future<rockets::http::Response> FileBrowser::find(
+    const rockets::http::Request& request)
+{
+    using namespace rockets::http;
+    auto path = QString::fromStdString(request.path);
+    QUrl url;
+    url.setPath(path, QUrl::StrictMode);
+    path = url.path();
+    auto queryParam = request.query;
+    const QString fullpath = _baseDir + "/" + path;
+    const QDir absolutePath(fullpath);
+
+    if (!absolutePath.canonicalPath().startsWith(_baseDir))
+        return make_ready_response(Code::BAD_REQUEST);
+
+    if (!absolutePath.exists())
+        return make_ready_response(Code::NO_CONTENT);
+
+    if (queryParam.find("file") == queryParam.end())
+    {
+        return make_ready_response(Code::BAD_REQUEST);
+    }
+
+    auto fileName = queryParam.at("file");
+
+    QString fileNameRegex;
+    fileNameRegex.append("*");
+    fileNameRegex.append(QString::fromStdString((fileName)));
+    fileNameRegex.append("*");
+
+    QList<QFileInfo> list;
+    QDirIterator it(fullpath, QStringList() << fileNameRegex, QDir::Files,
+                    QDirIterator::Subdirectories);
+    while (it.hasNext())
+    {
+        QFileInfo f(it.next());
+        list << f;
+    }
+    const auto body = json::dump(_toJsonArray(list));
     return make_ready_response(Code::OK, body, "application/json");
 }
 
