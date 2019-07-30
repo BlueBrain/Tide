@@ -48,43 +48,6 @@
 
 #include <cmath>
 
-namespace
-{
-auto _splitSideBySide(const FFMPEGPicture& image)
-{
-    const auto width = image.getWidth() / 2;
-    const auto height = image.getHeight();
-    const auto format = image.getFormat();
-
-    auto left = std::make_shared<FFMPEGPicture>(width, height, format);
-    auto right = std::make_shared<FFMPEGPicture>(width, height, format);
-
-    const uint numTextures = (format == TextureFormat::rgba) ? 1 : 3 /*YUV*/;
-    for (uint texture = 0; texture < numTextures; ++texture)
-    {
-        const auto uvSize = image.getTextureSize(texture);
-        const size_t lineWidth = uvSize.width();
-        const size_t targetWidth = lineWidth / 2;
-        for (size_t y = 0; y < size_t(uvSize.height()); ++y)
-        {
-            const auto input = image.getData(texture) + y * lineWidth;
-            const auto outLeft = left->getData(texture) + y * targetWidth;
-            const auto outRight = right->getData(texture) + y * targetWidth;
-            std::copy(input, input + targetWidth, outLeft);
-            std::copy(input + targetWidth, input + lineWidth, outRight);
-        }
-    }
-    return std::make_pair(left, right);
-}
-
-auto _splitSideBySide(std::shared_ptr<FFMPEGPicture> image)
-{
-    if (!image)
-        return std::make_pair(image, image);
-    return _splitSideBySide(*image);
-}
-}
-
 MovieUpdater::MovieUpdater(const QString& uri)
     : _uri{uri}
 {
@@ -170,13 +133,15 @@ ImagePtr MovieUpdater::getTileImage(const uint tileIndex,
     // FFMPEGVideoStream::decodePictureForLastPacket() -> sws_scale().
     const QMutexLocker lockGetImage(&_getImageMutex);
 
-    if (_ffmpegMovie->isStereo() && _pictureLeftOrMono && _pictureRight)
+    if (_ffmpegMovie->isStereo() && _picture)
     {
-        return view == deflect::View::right_eye ? _pictureRight
-                                                : _pictureLeftOrMono;
+        _picture->setStereoView(view == deflect::View::right_eye
+                                    ? StereoView::RIGHT
+                                    : StereoView::LEFT);
+        return _picture;
     }
-    else if (_pictureLeftOrMono)
-        return _pictureLeftOrMono;
+    else if (_picture)
+        return _picture;
 
     double timestamp;
     {
@@ -190,7 +155,11 @@ ImagePtr MovieUpdater::getTileImage(const uint tileIndex,
     if (loopBack)
         image = _ffmpegMovie->getFrame(0.0);
 
-    // Warning: in rare cases image may still be null at this point
+    // Warning: in rare cases image may still be null at this point, then we use
+    // last picture. This will also make sure a frame is available at the
+    // end of a non-looping movie.
+    if (!image)
+        image = _pictureLast;
 
     {
         const QMutexLocker lock(&_mutex);
@@ -202,11 +171,12 @@ ImagePtr MovieUpdater::getTileImage(const uint tileIndex,
     }
     if (_ffmpegMovie->isStereo())
     {
-        std::tie(_pictureLeftOrMono, _pictureRight) = _splitSideBySide(image);
-        return view == deflect::View::right_eye ? _pictureRight
-                                                : _pictureLeftOrMono;
+        image->setStereoView(view == deflect::View::right_eye
+                                 ? StereoView::RIGHT
+                                 : StereoView::LEFT);
     }
-    _pictureLeftOrMono = image;
+
+    _picture = image;
     return image;
 }
 
@@ -312,8 +282,8 @@ void MovieUpdater::synchronizeFrameAdvance(WallToWallChannel& channel)
 void MovieUpdater::_triggerFrameUpdate()
 {
     _readyForNextFrame = false;
-    _pictureLeftOrMono.reset();
-    _pictureRight.reset();
+    _pictureLast = _picture;
+    _picture.reset();
     emit pictureUpdated();
 }
 

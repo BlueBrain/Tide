@@ -39,14 +39,17 @@
 
 #include "FFMPEGMovie.h"
 
-extern "C" {
+extern "C"
+{
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libavutil/error.h>
+#include <libavutil/pixdesc.h>
 }
 
 #include "FFMPEGFrame.h"
 #include "FFMPEGPicture.h"
+#include "FFMPEGUtils.h"
 #include "FFMPEGVideoStream.h"
 #include "utils/log.h"
 
@@ -55,10 +58,10 @@ extern "C" {
 #pragma clang diagnostic ignored "-Wdeprecated"
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 
+constexpr auto MIN_SEEK_DELTA_FRAMES = 5;
+
 namespace
 {
-const double MIN_SEEK_DELTA_SEC = 0.5;
-
 // Solve FFMPEG issue "insufficient thread locking around avcodec_open/close()"
 int ffmpegLockManagerCallback(void** mutex, enum AVLockOp op)
 {
@@ -78,31 +81,6 @@ int ffmpegLockManagerCallback(void** mutex, enum AVLockOp op)
         return 0;
     default:
         return 1;
-    }
-}
-
-TextureFormat _determineOutputFormat(const AVPixelFormat fileFormat,
-                                     const QString& uri)
-{
-    switch (fileFormat)
-    {
-    case AV_PIX_FMT_RGBA:
-        return TextureFormat::rgba;
-    case AV_PIX_FMT_YUV420P:
-    case AV_PIX_FMT_YUVJ420P:
-        return TextureFormat::yuv420;
-    case AV_PIX_FMT_YUV422P:
-    case AV_PIX_FMT_YUVJ422P:
-        return TextureFormat::yuv422;
-    case AV_PIX_FMT_YUV444P:
-    case AV_PIX_FMT_YUVJ444P:
-        return TextureFormat::yuv444;
-    default:
-        print_log(LOG_DEBUG, LOG_AV,
-                  "Performance info: AV input format '%d' for file "
-                  "'%s' will be converted in software to 'rgba'",
-                  fileFormat, uri.toLocal8Bit().constData());
-        return TextureFormat::rgba;
     }
 }
 
@@ -136,13 +114,24 @@ struct FFMPEGStaticInit
     }
 };
 static FFMPEGStaticInit instance;
-}
+} // namespace
 
 FFMPEGMovie::FFMPEGMovie(const QString& uri)
     : _avFormatContext{_createAvFormatContext(uri)}
     , _videoStream{std::make_unique<FFMPEGVideoStream>(*_avFormatContext)}
-    , _format{_determineOutputFormat(_videoStream->getAVFormat(), uri)}
 {
+    const auto format = _videoStream->getAVFormat();
+    if (!FFMPEGUtils::isSupportedOutputFormat(format))
+    {
+        constexpr auto STR_LENGTH = 1000;
+        char fmt[STR_LENGTH];
+        av_get_pix_fmt_string(fmt, STR_LENGTH, format);
+
+        print_log(LOG_WARN, LOG_AV,
+                  "'%s': unsupported pixel format '%s'. Performance will be "
+                  "non-optimal.",
+                  uri.toStdString().c_str(), fmt);
+    }
 }
 
 FFMPEGMovie::~FFMPEGMovie() = default;
@@ -177,59 +166,52 @@ double FFMPEGMovie::getFrameDuration() const
     return _videoStream->getFrameDuration();
 }
 
-TextureFormat FFMPEGMovie::getFormat() const
-{
-    return _format;
-}
-
-void FFMPEGMovie::setFormat(const TextureFormat format)
-{
-    _format = format;
-}
-
 PicturePtr FFMPEGMovie::getFrame(double posInSeconds)
 {
     posInSeconds = std::max(0.0, std::min(posInSeconds, getDuration()));
+    const auto frameDuration = _videoStream->getFrameDuration();
+    const auto target = std::max(0.0, posInSeconds - frameDuration);
+    const auto frameIndex = _videoStream->getFrameIndex(target);
+
+    _frameIndex = frameIndex;
+    _streamPosition = posInSeconds;
+    int64_t frameIndexCurr = _frameLastDecode;
+    _frameLastDecode = _frameIndex;
 
     // Seek back for loop or forward if too far away
-    const auto streamDelta = posInSeconds - _streamPosition;
-    if (streamDelta < 0 || std::abs(streamDelta) > MIN_SEEK_DELTA_SEC)
+    const auto streamDelta = frameIndex - frameIndexCurr;
+    if (streamDelta < 0 || std::abs(streamDelta) > MIN_SEEK_DELTA_FRAMES)
     {
-        const auto frameDuration = _videoStream->getFrameDuration();
-        const auto target = std::max(0.0, posInSeconds - frameDuration);
-        const auto frameIndex = _videoStream->getFrameIndex(target);
         if (!_videoStream->seekToNearestFullframe(frameIndex))
-            return PicturePtr();
+            return nullptr;
     }
 
-    const auto targetTimestamp = _videoStream->getTimestamp(posInSeconds);
+    const auto targetTimestamp = _videoStream->getTimestamp(frameIndex);
     if (targetTimestamp == AV_NOPTS_VALUE)
-        return PicturePtr();
+        return nullptr;
 
     AVPacket packet;
     av_init_packet(&packet);
 
     PicturePtr picture;
     int avReadStatus = 0;
+
+    auto frame = std::make_shared<FFMPEGFrame>();
+
     while ((avReadStatus = av_read_frame(_avFormatContext.get(), &packet)) >= 0)
     {
-        const auto timestamp = _videoStream->decodeTimestamp(packet);
-        if (timestamp >= targetTimestamp)
-        {
-            picture = _videoStream->decodePictureForLastPacket(_format);
-            // This validity check is to prevent against rare decoding errors
-            // and is not inherently part of the seeking process.
-            if (picture)
-            {
-                _streamPosition = _videoStream->getPositionInSec(timestamp);
+        bool success = _videoStream->decode(packet, *frame);
+        const auto timestamp = frame->getTimestamp();
 
-                // free the packet that was allocated by av_read_frame
-                av_free_packet(&packet);
-                break;
-            }
-        }
         // free the packet that was allocated by av_read_frame
         av_free_packet(&packet);
+
+        if (success && timestamp >= targetTimestamp)
+        {
+            picture = std::make_shared<FFMPEGPicture>(
+                FFMPEGUtils::convertToYUV(frame));
+            break;
+        }
     }
 
     // handle (rare) EOF case

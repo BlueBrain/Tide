@@ -42,7 +42,8 @@
 
 #include "FFMPEGDefines.h"
 
-extern "C" {
+extern "C"
+{
 #include <libavcodec/avcodec.h>
 #include <libavutil/mem.h>
 }
@@ -73,8 +74,12 @@ public:
     /** @return the pixel format of the FFMPEG frame. */
     AVPixelFormat getAVPixelFormat() const;
 
+    /** Enable deallocation of frame pointers on destruction */
+    void setDeallocateDataPointers();
+
 private:
     AVFrame* _avFrame;
+    bool _deallocateDataPointers = false;
 };
 
 #endif

@@ -63,6 +63,12 @@ public:
     /** @return the height of the image. */
     virtual int getHeight() const = 0;
 
+    /** @return the view port for displaying part of the image. */
+    virtual QRect getViewPort() const
+    {
+        return QRect(QPoint(0, 0), QSize(getWidth(), getHeight()));
+    }
+
     /** @return the dimensions of the given texture plane. */
     virtual QSize getTextureSize(uint texture = 0) const
     {

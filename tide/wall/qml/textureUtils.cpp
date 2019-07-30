@@ -135,4 +135,4 @@ std::unique_ptr<QOpenGLBuffer> createPbo(const bool dynamic)
                                  : QOpenGLBuffer::StaticDraw);
     return pbo;
 }
-}
+} // namespace textureUtils

@@ -141,8 +141,8 @@ private:
     mutable double _currentPosition = -1.0;
     mutable bool _loopedBack = false;
 
-    mutable PicturePtr _pictureLeftOrMono;
-    mutable PicturePtr _pictureRight;
+    mutable PicturePtr _picture;
+    mutable PicturePtr _pictureLast;
 
     mutable QMutex _getImageMutex;
 };

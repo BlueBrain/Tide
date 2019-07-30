@@ -55,20 +55,16 @@ QImage MovieThumbnailGenerator::generate(const QString& filename) const
     try
     {
         FFMPEGMovie movie{filename};
-        movie.setFormat(TextureFormat::rgba);
 
         const auto target = PREVIEW_RELATIVE_POSITION * movie.getDuration();
         const auto picture = movie.getFrame(target);
         if (!picture)
             throw std::runtime_error("rendering movie frame failed");
 
-        auto image = picture->toQImage(); // QImage wrapper; no copy
+        auto image = picture->toQImage();
 
         if (movie.isStereo())
             image = stereoimage::extract(image, deflect::View::mono);
-        // WAR: QImage::scaled doesn't make a copy if scaled size == image size
-        else if (image.size().scaled(_size, _aspectRatioMode) == image.size())
-            return image.copy();
 
         return image.scaled(_size, _aspectRatioMode);
     }

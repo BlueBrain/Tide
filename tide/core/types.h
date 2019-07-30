@@ -119,7 +119,6 @@ class DisplayGroupRenderer;
 class FFMPEGFrame;
 class FFMPEGMovie;
 class FFMPEGPicture;
-class FFMPEGVideoFrameConverter;
 class FFMPEGVideoStream;
 class Image;
 class ImageReader;
