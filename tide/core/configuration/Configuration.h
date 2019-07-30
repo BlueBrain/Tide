@@ -118,6 +118,15 @@ public:
 
     struct Settings
     {
+        /** Margins in pixels to ignore unwanted touch events */
+        struct TouchPixelMargin
+        {
+            uint top = 0;
+            uint left = 0;
+            uint bottom = 0;
+            uint right = 0;
+        } touchPixelMargin;
+
         /** Informative name of the installation. */
         QString infoName;
 

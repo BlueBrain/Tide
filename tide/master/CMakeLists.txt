@@ -58,6 +58,7 @@ list(APPEND TIDEMASTER_PUBLIC_HEADERS
   session/SessionLoaderLegacyXml.h
   session/SessionPreviewGenerator.h
   session/SessionSaver.h
+  TouchFilter.h
   tools/ActivityLogger.h
   tools/InactivityTimer.h
   tools/MarkersUpdater.h
@@ -110,6 +111,7 @@ list(APPEND TIDEMASTER_SOURCES
   session/SessionLoaderLegacyXml.cpp
   session/SessionPreviewGenerator.cpp
   session/SessionSaver.cpp
+  TouchFilter.cpp
   tools/ActivityLogger.cpp
   tools/InactivityTimer.cpp
   tools/MarkersUpdater.cpp

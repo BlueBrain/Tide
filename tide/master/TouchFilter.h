@@ -1,8 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2011-2012, The University of Texas at Austin.       */
-/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
-/*                          Raphael.Dumusc@epfl.ch                   */
-/*                          Daniel.Nachbaur@epfl.ch                  */
+/* Copyright (c) 2014-2019, EPFL/Blue Brain Project                  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,51 +37,35 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef LOG_H
-#define LOG_H
+#ifndef TouchFilter_H
+#define TouchFilter_H
 
-#include <qlogging.h>
-#include <string>
+#include <QMargins>
+#include <QObject>
+#include <QRect>
+#include <QSize>
 
-#define LOG_VERBOSE 0
-#define LOG_DEBUG 1
-#define LOG_INFO 2
-#define LOG_WARN 3
-#define LOG_ERROR 4
-#define LOG_FATAL 5
+/**
+ * Filter touch events which are oustide of a defined surface.
+ */
+class TouchFilter : public QObject
+{
+    Q_OBJECT
 
-#define LOG_AV "AV"
-#define LOG_CONTENT "CONTENT"
-#define LOG_GENERAL "GENERAL"
-#define LOG_JS "JS"
-#define LOG_MPI "MPI"
-#define LOG_PDF "PDF"
-#define LOG_POWER "POWER"
-#define LOG_QT "QT"
-#define LOG_REST "REST"
-#define LOG_STREAM "STREAM"
-#define LOG_TIFF "TIFF"
-#define LOG_TOUCH "TOUCH"
+public:
+    /**
+     * Construct a touch event filter
+     * @param margins margins applied to surfaceSize to calculate desired
+     * touch surface
+     * @param surfaceSize the size of display surface
+     */
+    TouchFilter(const QMargins& margins, const QSize& surfaceSize);
 
-extern std::string logger_id;
-extern void put_log(const int level, const std::string& facility,
-                    const char* format, ...);
+protected:
+    bool eventFilter(QObject* object, QEvent* event) final;
 
-extern void avMessageLoger(void*, int level, const char* format, va_list varg);
-extern void qtMessageLogger(QtMsgType type, const QMessageLogContext& context,
-                            const QString& msg);
-
-extern void tiffMessageLoggerWarn(const char* module, const char* fmt,
-                                  va_list ap);
-extern void tiffMessageLoggerErr(const char* module, const char* fmt,
-                                 va_list ap);
-
-#ifdef _WIN32
-#define print_log(l, facility, fmt, ...) \
-    put_log(l, facility, "%s: " fmt, __FUNCTION__, ##__VA_ARGS__)
-#else
-#define print_log(l, facility, fmt, ...) \
-    put_log(l, facility, "%s: " fmt, __PRETTY_FUNCTION__, ##__VA_ARGS__)
-#endif
+private:
+    const QRect _touchSurface;
+};
 
 #endif
