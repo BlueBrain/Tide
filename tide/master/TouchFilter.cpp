@@ -1,8 +1,6 @@
 /*********************************************************************/
-/* Copyright (c) 2011-2012, The University of Texas at Austin.       */
-/* Copyright (c) 2013-2018, EPFL/Blue Brain Project                  */
-/*                          Raphael.Dumusc@epfl.ch                   */
-/*                          Daniel.Nachbaur@epfl.ch                  */
+/* Copyright (c) 2014-2019, EPFL/Blue Brain Project                  */
+/*                          Pawel Podhajski <pawel.podhajski@epfl.ch>*/
 /* All rights reserved.                                              */
 /*                                                                   */
 /* Redistribution and use in source and binary forms, with or        */
@@ -39,51 +37,48 @@
 /* or implied, of Ecole polytechnique federale de Lausanne.          */
 /*********************************************************************/
 
-#ifndef LOG_H
-#define LOG_H
+#include "TouchFilter.h"
 
-#include <qlogging.h>
-#include <string>
+#include "utils/log.h"
 
-#define LOG_VERBOSE 0
-#define LOG_DEBUG 1
-#define LOG_INFO 2
-#define LOG_WARN 3
-#define LOG_ERROR 4
-#define LOG_FATAL 5
+#include <QDebug>
+#include <QEvent>
+#include <QQuickItem>
+#include <QTouchEvent>
 
-#define LOG_AV "AV"
-#define LOG_CONTENT "CONTENT"
-#define LOG_GENERAL "GENERAL"
-#define LOG_JS "JS"
-#define LOG_MPI "MPI"
-#define LOG_PDF "PDF"
-#define LOG_POWER "POWER"
-#define LOG_QT "QT"
-#define LOG_REST "REST"
-#define LOG_STREAM "STREAM"
-#define LOG_TIFF "TIFF"
-#define LOG_TOUCH "TOUCH"
+#include <cmath>
 
-extern std::string logger_id;
-extern void put_log(const int level, const std::string& facility,
-                    const char* format, ...);
+TouchFilter::TouchFilter(const QMargins& margins, const QSize& surfaceSize)
+    : QObject()
+    , _touchSurface(margins.left(), margins.top(),
+                    surfaceSize.width() - margins.right() - margins.left(),
+                    surfaceSize.height() - margins.top() - margins.bottom())
+{
+}
 
-extern void avMessageLoger(void*, int level, const char* format, va_list varg);
-extern void qtMessageLogger(QtMsgType type, const QMessageLogContext& context,
-                            const QString& msg);
+bool TouchFilter::eventFilter(QObject* object, QEvent* event)
+{
+    auto touchEvent = dynamic_cast<const QTouchEvent*>(event);
+    if (!touchEvent)
+        return false;
 
-extern void tiffMessageLoggerWarn(const char* module, const char* fmt,
-                                  va_list ap);
-extern void tiffMessageLoggerErr(const char* module, const char* fmt,
-                                 va_list ap);
+    auto quickitem = dynamic_cast<QQuickItem*>(object);
+    if (!quickitem)
+        return false;
 
-#ifdef _WIN32
-#define print_log(l, facility, fmt, ...) \
-    put_log(l, facility, "%s: " fmt, __FUNCTION__, ##__VA_ARGS__)
-#else
-#define print_log(l, facility, fmt, ...) \
-    put_log(l, facility, "%s: " fmt, __PRETTY_FUNCTION__, ##__VA_ARGS__)
-#endif
+    for (auto touchPoint : touchEvent->touchPoints())
+    {
+        auto globalPos = quickitem->mapToGlobal(touchPoint.pos());
+        QPoint point(int(globalPos.x()), int(globalPos.y()));
 
-#endif
+        if (!_touchSurface.contains(point))
+        {
+            qDebug() << "Point discarded: " << point
+                     << " Touch surface: " << _touchSurface;
+            put_log(LOG_DEBUG, LOG_TOUCH, "Point discarded x: %i y: %i",
+                    point.x(), point.y());
+            return true;
+        }
+    }
+    return false;
+}

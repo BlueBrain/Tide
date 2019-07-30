@@ -4,6 +4,9 @@ Changelog {#changelog}
 
 * [298](https://github.com/BlueBrain/Tide/pull/298):
   New option: start/resume movie playback when window is maximized.
+* [303](https://github.com/BlueBrain/Tide/pull/303):
+  New setting: filter out touch events outside of desired touch surface,
+  which margins can be now set.
 
 # Release 1.5.1 (13-02-2019)
 

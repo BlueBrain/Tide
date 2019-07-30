@@ -41,6 +41,7 @@
 #include "MasterApplication.h"
 
 #include "QmlTypeRegistration.h"
+#include "TouchFilter.h"
 #include "configuration/Configuration.h"
 #include "configuration/SurfaceConfigValidator.h"
 #include "control/AppController.h"
@@ -89,7 +90,7 @@ std::unique_ptr<deflect::server::Server> _createDeflectServer()
                                  e.what());
     }
 }
-}
+} // namespace
 
 MasterApplication::MasterApplication(int& argc_, char** argv_,
                                      const QString& config,
@@ -133,6 +134,12 @@ MasterApplication::MasterApplication(int& argc_, char** argv_,
 #endif
     _setupMPIConnections();
     _masterToWallChannel->send(*_config);
+    QApplication::installEventFilter(new TouchFilter(
+        QMargins(int(_config->settings.touchPixelMargin.left),
+                 int(_config->settings.touchPixelMargin.top),
+                 int(_config->settings.touchPixelMargin.right),
+                 int(_config->settings.touchPixelMargin.bottom)),
+        _config->surfaces[0].getTotalSize()));
 }
 
 MasterApplication::~MasterApplication()

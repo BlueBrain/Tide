@@ -212,15 +212,28 @@ QJsonObject serialize(const Configuration& config)
                      {"headless", config.master.headless},
                      {"webservicePort", config.master.webservicePort},
                      {"planarSerialPort", config.master.planarSerialPort}}},
-        {"settings",
-         QJsonObject{{"infoName", config.settings.infoName},
-                     {"touchpointsToWakeup",
-                      static_cast<int>(config.settings.touchpointsToWakeup)},
-                     {"inactivityTimeout",
-                      static_cast<int>(config.settings.inactivityTimeout)},
-                     {"contentMaxScale", config.settings.contentMaxScale},
-                     {"contentMaxScaleVectorial",
-                      config.settings.contentMaxScaleVectorial}}},
+        {
+            "settings",
+            QJsonObject{
+                {"infoName", config.settings.infoName},
+                {"touchpointsToWakeup",
+                 static_cast<int>(config.settings.touchpointsToWakeup)},
+                {"inactivityTimeout",
+                 static_cast<int>(config.settings.inactivityTimeout)},
+                {"contentMaxScale", config.settings.contentMaxScale},
+                {"contentMaxScaleVectorial",
+                 config.settings.contentMaxScaleVectorial},
+                {"touchPixelMargin",
+                 QJsonObject{
+                     {"top",
+                      static_cast<int>(config.settings.touchPixelMargin.top)},
+                     {"left",
+                      static_cast<int>(config.settings.touchPixelMargin.left)},
+                     {"bottom", static_cast<int>(
+                                    config.settings.touchPixelMargin.bottom)},
+                     {"right", static_cast<int>(
+                                   config.settings.touchPixelMargin.right)}}}},
+        },
         {"webbrowser", QJsonObject{{"defaultUrl", config.webbrowser.defaultUrl},
                                    {"defaultSize",
                                     serialize(config.webbrowser.defaultSize)}}},
@@ -442,6 +455,13 @@ bool deserialize(const QJsonObject& object, Configuration& config)
     deserialize(settingsObj["infoName"], config.settings.infoName);
     deserialize(settingsObj["touchpointsToWakeup"],
                 config.settings.touchpointsToWakeup);
+
+    const auto marginObj = settingsObj["touchPixelMargin"].toObject();
+    deserialize(marginObj["top"], config.settings.touchPixelMargin.top);
+    deserialize(marginObj["left"], config.settings.touchPixelMargin.left);
+    deserialize(marginObj["bottom"], config.settings.touchPixelMargin.bottom);
+    deserialize(marginObj["right"], config.settings.touchPixelMargin.right);
+
     deserialize(settingsObj["inactivityTimeout"],
                 config.settings.inactivityTimeout);
     deserialize(settingsObj["contentMaxScale"],
