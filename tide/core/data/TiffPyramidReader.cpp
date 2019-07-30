@@ -48,6 +48,15 @@
 #include <array>
 #include <cassert>
 
+size_t getSizeInBytes(const QImage& image)
+{
+#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
+    return static_cast<size_t>(image.byteCount());
+#else
+    return image.sizeInBytes();
+#endif
+}
+
 namespace
 {
 struct TiffStaticInit
@@ -92,7 +101,8 @@ QImage::Format _getQImageFormat(const int bytesPerPixel)
 void _toARGB32Image(const std::vector<uint16_t>& buffer, QImage& image)
 {
     assert(image.format() == QImage::Format_ARGB32);
-    assert((size_t)image.byteCount() == 4u * buffer.size());
+
+    assert(getSizeInBytes(image) == 4u * buffer.size());
 
     auto dst = image.bits();
     for (auto pixel = 0u; pixel < buffer.size(); ++pixel)
@@ -103,7 +113,7 @@ void _toARGB32Image(const std::vector<uint16_t>& buffer, QImage& image)
         dst[4 * pixel + 3] = buffer[pixel] >> 8; // A
     }
 }
-}
+} // namespace
 
 struct TiffPyramidReader::Impl
 {

@@ -22,11 +22,11 @@ before_install:
   - brew install ffmpeg jpeg-turbo qt5
   - brew install openmpi
   - brew install python@2 || brew link --overwrite python@2 # fix poppler dependency install
-  - brew install poppler --with-qt
+  - brew install poppler
   - brew install libwebsockets openssl
 script:
   - export CPATH=$(brew --prefix openssl)/include
   - mkdir $BUILD_TYPE
   - cd $BUILD_TYPE
-  - cmake -GNinja -DCLONE_SUBPROJECTS=ON -DCMAKE_INSTALL_PREFIX=$PWD/install -DCMAKE_BUILD_TYPE=$BUILD_TYPE ..
+  - cmake -GNinja -DCLONE_SUBPROJECTS=ON -DCMAKE_INSTALL_PREFIX=$PWD/install -DCMAKE_BUILD_TYPE=$BUILD_TYPE  ..
   - ninja all && ninja $PROJECT_NAME-tests && ninja install

@@ -42,24 +42,34 @@
 
 #include <QImage>
 
+size_t getSizeInBytes(const QImage& image)
+{
+#if QT_VERSION < QT_VERSION_CHECK(5, 10, 0)
+    return static_cast<size_t>(image.byteCount());
+#else
+    return image.sizeInBytes();
+#endif
+}
+
 float compareImages(const QImage& image1, const QImage& image2)
 {
     BOOST_REQUIRE_EQUAL(image1.size(), image2.size());
-    BOOST_REQUIRE_EQUAL(image1.byteCount(), image2.byteCount());
+
+    BOOST_REQUIRE_EQUAL(getSizeInBytes(image1), getSizeInBytes(image2));
 
     // BOOST_CHECK_EQUAL_COLLECTION is too noisy so do a silent comparison
     unsigned int errors = 0;
     const uchar* it1 = image1.bits();
     const uchar* it2 = image2.bits();
-    while (it1 < image1.bits() + image1.byteCount() &&
-           it2 < image2.bits() + image2.byteCount())
+    while (it1 < image1.bits() + getSizeInBytes(image1) &&
+           it2 < image2.bits() + getSizeInBytes(image2))
     {
         if (*it1 != *it2)
             ++errors;
         ++it1;
         ++it2;
     }
-    return (float)errors / (float)image1.byteCount();
+    return (float)errors / (float)getSizeInBytes(image1);
 }
 
 float compareImages(const QString& file1, const QString& file2)
