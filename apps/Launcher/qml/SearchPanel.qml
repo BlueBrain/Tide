@@ -12,7 +12,14 @@ Rectangle {
     color: "grey"
     id: searchPanel
     anchors.fill: parent
+    property int listItemSize: 10;
+    signal itemSelected(string file)
+    
+    function openItem(filePath) {
+        console.log(filePath)
+        itemSelected(filePath)
 
+    }
     function searchFileLocalRpc(endpointuri) {
 
         var request = new XMLHttpRequest()
@@ -41,76 +48,64 @@ Rectangle {
         textInput.text = ""
         textInput.focus = false
     }
+ 
 
-      FolderModel {
-        id: folders
-        rootFolder: '/nfs4/bbp.epfl.ch/media/DisplayWall'
-        property string sortIcon: sortOrder == FolderModel.Ascending ? "▲" : "▼"
-        function setGridSortOrder() {
-            if (fileBrowser.gridViewSortByDate) {
-                sortCategory = FolderModel.Date
-                sortOrder = FolderModel.Descending
-            } else {
-                sortCategory = FolderModel.Name
-                sortOrder = FolderModel.Ascending
-            }
-        }
-    }
-
-
- FileBrowserListView {
-        visible: true;
-
+    ListView {
+        id: demoView
         anchors.top: parent.top
         anchors.bottom: parent.bottom
         anchors.left: parent.left
         anchors.right: parent.right
+        spacing: 10
+        model: demoList
+        // delegate: demoButtonDelegate
+             delegate: FileBrowserListItem {
+                width: parent.width
+                height: 50 //* Style.fileBrowserListItemRelSize
+                filePath: filePath
+                onClicked:
+                {
 
-        foldersModel: folders
-        // listItemSize: itemSize
-
-        onOpenItem: fileBrowser.openItem(filePath, fileIsDir)
-        onFolderAction: {
-            if (fileBrowser.allowOpeningFolder) {
-                curtain.showDialog(filesInDir, filePath)
+                    console.log("filePath", filePath)
+                    openItem(filePath + fileName)
+                }
+                
+                 
+                // onPressAndHold: {
+                    // if (fileIsDir && filesInDir > 0) {
+                        // listviewTable.folderAction(filesInDir, filePath)
+                    // }
+                // }
             }
-        }
+
+
     }
 
+    ListModel {
+        id: demoList
+    }
 
-    // ListView {
-    //     id: demoView
-    //     anchors.top: parent.top
-    //     anchors.bottom: parent.bottom
-    //     anchors.left: parent.left
-    //     anchors.right: parent.right
-    //     spacing: 10
-    //     model: demoList
-    //     delegate: demoButtonDelegate
-    // }
-
-    // ListModel {
-    //     id: demoList
-    // }
-
-    // Component {
-    //     id: demoButtonDelegate
-    //     Item {
-    //         width: parent.width
-    //         height: 25
-    //         Rectangle {
-    //             color: "red"
-    //             id: placeholder
-    //             width: parent.width
-    //             height: 25
-    //             Text {
-    //                 id: caption
-    //                 text: demoName
-    //                 color: "black"
-    //             }
-    //         }
-    //     }
-    // }
+    Component {
+        id: demoButtonDelegate
+        Item {
+            width: parent.width
+            height: 25
+                Rectangle {
+                color: "red"
+                id: placeholder2
+                width: parent.width
+                height: 25
+                Text {
+                    id: url
+                    text: "demoName"
+                    color: "red"
+                }
+                
+            }
+  
+            
+        }
+    }
 
     Rectangle {
         id: textBackground
@@ -164,8 +159,9 @@ Rectangle {
                     color: control.enabled ? "black" : "gray"
                 }
             }
-            text: "save"
-            enabled: textInput.text.length > 0
+
+            text: "Search"
+            enabled: textInput.text.length > 2
             onClicked: save()
         }
     }
@@ -190,11 +186,18 @@ Rectangle {
     }
 
     function fillDemoList(demos) {
-        // folders.clear();
-        // for (var i = 0; i < demos.length; ++i) {
-        //     folders.append({
-        //         "demoName": demos[i].name
-        //     })
-        // }
+        demoList.clear();
+        for (var i = 0; i < demos.length; ++i) {
+            demoList.append({
+                "fileName": demos[i].path,
+                "filePath": demos[i].path,
+                "fileSize": demos[i].size,
+                "textColumnSize" : 30,
+                "fileModified" : demos[i].lastModified,
+                "fileIsDir" : demos[i].isDir,
+                "humanReadableModificationDate" : 10
+                 }
+            )
+        }
     }
 }

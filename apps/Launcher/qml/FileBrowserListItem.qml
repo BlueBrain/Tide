@@ -13,7 +13,7 @@ Rectangle {
 
     signal clicked
     signal pressAndHold
-
+    property string filePath
     FileBrowserImage {
         id: fileimage
         height: parent.height
@@ -36,7 +36,8 @@ Rectangle {
 
     Text {
         id: sizeText
-        text: humanReadableFileSize(fileSize, true)
+        // text: humanReadableFileSize(fileSize, true)
+        text: fileSize
         anchors.right: modifiedText.left
         visible: !fileIsDir
 
@@ -47,7 +48,7 @@ Rectangle {
 
     Text {
         id: modifiedText
-        text: humanReadableModificationDate(fileModified)
+        text: fileModified
         anchors.right: listItem.right
         width: textColumnSize
         horizontalAlignment: Text.AlignRight

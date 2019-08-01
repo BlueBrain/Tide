@@ -36,8 +36,10 @@ Rectangle {
     }
 
     function selectFile(file) {
-        if (file !== "")
+        if (file !== ""){
+        console.log(file)
             itemSelected(file)
+        }
     }
 
     function goDown(path) {

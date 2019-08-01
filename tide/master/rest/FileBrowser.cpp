@@ -42,9 +42,11 @@
 
 #include "json/json.h"
 
+#include <QDateTime>
 #include <QDebug>
 #include <QDir>
 #include <QDirIterator>
+#include <QJsonArray>
 #include <QUrl>
 #include <iostream>
 namespace
@@ -61,6 +63,21 @@ QJsonArray _toJsonArray(const QFileInfoList& list)
         array.append(_toJsonObject(entry));
     return array;
 }
+
+bool isSupported(QString fileName, QStringList filters, bool isDir)
+{
+    if (isDir)
+        return true;
+    for (auto filter : filters)
+    {
+        if (fileName.endsWith(filter.remove("*")))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 } // namespace
 
 FileBrowser::FileBrowser(const QString& baseDir, const QStringList& filters)
@@ -113,23 +130,40 @@ std::future<rockets::http::Response> FileBrowser::find(
         return make_ready_response(Code::BAD_REQUEST);
     }
 
-    auto fileName = queryParam.at("file");
+    auto fileName = QString::fromStdString(queryParam.at("file"));
+
+    if (fileName.length() < 3)
+        return make_ready_response(Code::BAD_REQUEST);
 
     QString fileNameRegex;
     fileNameRegex.append("*");
-    fileNameRegex.append(QString::fromStdString((fileName)));
+    fileNameRegex.append(fileName);
     fileNameRegex.append("*");
 
-    QList<QFileInfo> list;
-    QDirIterator it(fullpath, QStringList() << fileNameRegex, QDir::Files,
+    QJsonArray list;
+    QStringList combinedFilers;
+
+    QDirIterator it(fullpath, QStringList() << fileNameRegex, QDir::AllEntries,
                     QDirIterator::Subdirectories);
+
     while (it.hasNext())
     {
         QFileInfo f(it.next());
-        list << f;
-        //        qDebug() << f.fileName();
+        if (!isSupported(f.fileName(), _filters, f.isDir()))
+        {
+            qDebug() << f.fileName() << f.isDir();
+            continue;
+        }
+        QDir baseDir(_baseDir);
+        QJsonObject obj;
+        obj.insert("name", f.fileName());
+        obj.insert("path", baseDir.relativeFilePath(f.absoluteFilePath()));
+        obj.insert("size", f.size());
+        obj.insert("isDir", f.isDir());
+        obj.insert("lastModified", f.lastModified().toString());
+        list.append(obj);
     }
-    const auto body = json::dump(_toJsonArray(list));
+    const auto body = json::dump(list);
     return make_ready_response(Code::OK, body, "application/json");
 }
 

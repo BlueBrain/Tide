@@ -126,6 +126,8 @@ Rectangle {
             // rootfolder: rootSessionsFolder
             // nameFilters: ["*.dcx"]
             onSearchFile: sendJsonRpc("application", "save", filename)
+            onItemSelected: sendJsonRpc("application", "open", file)
+
             // listViewMode: useListViewMode
             // gridViewSortByDate: true
             // hideExtensions: true
