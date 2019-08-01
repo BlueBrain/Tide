@@ -6,37 +6,52 @@ import QtQuick.Controls.Styles 1.3
 import "style.js" as Style
 
 Item {
-    id: savePanel
+    id: searchPanel
     anchors.fill: parent
 
-    property alias rootfolder: browser.rootfolder
-    property alias nameFilters: browser.nameFilters
-    property alias listViewMode: browser.listViewMode
-    property alias gridViewSortByDate: browser.gridViewSortByDate
-    property alias hideExtensions: browser.hideExtensions
+    // property alias rootfolder: browser.rootfolder
+    // property alias nameFilters: browser.nameFilters
+    // property alias listViewMode: browser.listViewMode
+    // property alias gridViewSortByDate: browser.gridViewSortByDate
+    // property alias hideExtensions: browser.hideExtensions
 
-    signal saveSession(string filename)
+
+
+    function searchFileLocalRpc(endpoint, action, uri) {
+                console.log("dasda")
+
+        var obj = {
+            "jsonrpc": "2.0",
+            "method": action
+        }
+        if (typeof uri !== "undefined") {
+            obj.params = {
+                "uri": uri
+            }
+        }
+        sendRestData(endpoint, "POST", JSON.stringify(obj))
+    }
+
+    signal searchFile(string filename)
     signal refreshSessionName
-
-
-
     function save() {
-        saveSession(browser.currentFolder.toString().replace(
-                        "file://", "") + '/' + textInput.text)
+        // saveSession(browser.currentFolder.toString().replace(
+                        // "file://", "") + '/' + textInput.text)
+                        // searchFile()
+                        searchFileLocalRpc()
         textInput.text = ""
         textInput.focus = false
     }
 
-
-    FileBrowser {
-        id: browser
-        anchors.top: parent.top
-        anchors.bottom: textBackground.top
-        width: parent.width
-        itemSize: parent.height * Style.fileBrowserItemSizeRel
-        titleBarHeight: parent.height * Style.titleBarRelHeight
-        onItemSelected: textInput.text = fileInfo.baseNameFromPath(file)
-    }
+    // FileBrowser {
+    //     id: browser
+    //     anchors.top: parent.top
+    //     anchors.bottom: textBackground.top
+    //     width: parent.width
+    //     itemSize: parent.height * Style.fileBrowserItemSizeRel
+    //     titleBarHeight: parent.height * Style.titleBarRelHeight
+    //     onItemSelected: textInput.text = fileInfo.baseNameFromPath(file)
+    // }
     Rectangle {
         id: textBackground
         width: parent.width

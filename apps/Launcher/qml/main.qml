@@ -45,6 +45,7 @@ Rectangle {
             onShowFilesPanel: centralWidget.sourceComponent = fileBrowser
             onShowSessionsPanel: centralWidget.sourceComponent = sessionsBrowser
             onShowSaveSessionPanel: centralWidget.sourceComponent = saveSessionPanel
+            onShowSearchPanel: centralWidget.sourceComponent = searchPanel
             onShowDemosPanel: {
                 centralWidget.sourceComponent = defaultPanel
                 demoLauncherWidget.active = true
@@ -118,6 +119,22 @@ Rectangle {
             onRefreshSessionName: sendRestQuery("session", updateSessionName)
         }
     }
+
+    Component {
+        id: searchPanel
+        SearchPanel {
+            // rootfolder: rootSessionsFolder
+            // nameFilters: ["*.dcx"]
+            onSearchFile: sendJsonRpc("application", "save", filename)
+            // listViewMode: useListViewMode
+            // gridViewSortByDate: true
+            // hideExtensions: true
+            // onListViewModeChanged: useListViewMode = listViewMode
+            onRefreshSessionName: sendRestQuery("session", updateSessionName)
+        }
+    }
+
+
 
     Component {
         id: optionsPanel

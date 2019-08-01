@@ -9,6 +9,7 @@ Rectangle {
     signal clearSession
     signal showFilesPanel
     signal showSessionsPanel
+    signal showSearchPanel
     signal showSaveSessionPanel
     signal showOptionsPanel
     signal showDemosPanel
@@ -63,6 +64,13 @@ Rectangle {
             action: "showSaveSessionPanel"
             name: "Save"
             image: "qrc:/launcher/images/save.svg"
+            category: "Session"
+            isPanel: true
+        }
+        ListElement {
+            action: "showSearchPanel"
+            name: "Search"
+            image: "qrc:/launcher/images/search.svg"
             category: "Session"
             isPanel: true
         }
