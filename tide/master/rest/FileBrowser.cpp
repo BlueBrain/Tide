@@ -127,6 +127,7 @@ std::future<rockets::http::Response> FileBrowser::find(
     {
         QFileInfo f(it.next());
         list << f;
+        //        qDebug() << f.fileName();
     }
     const auto body = json::dump(_toJsonArray(list));
     return make_ready_response(Code::OK, body, "application/json");

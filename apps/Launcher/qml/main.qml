@@ -67,7 +67,7 @@ Rectangle {
             id: centralWidget
             width: root.width - menu.width
             height: root.height
-            sourceComponent: defaultPanel
+            sourceComponent: searchPanel
             focus: true // let loaded components get focus
             onSourceComponentChanged: demoLauncherWidget.visible = false
         }
@@ -130,7 +130,7 @@ Rectangle {
             // gridViewSortByDate: true
             // hideExtensions: true
             // onListViewModeChanged: useListViewMode = listViewMode
-            onRefreshSessionName: sendRestQuery("session", updateSessionName)
+            // onRefreshSessionName: sendRestQuery("session", updateSessionName)
         }
     }
 

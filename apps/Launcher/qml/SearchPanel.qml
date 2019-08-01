@@ -5,53 +5,113 @@ import QtQuick.Controls 1.3
 import QtQuick.Controls.Styles 1.3
 import "style.js" as Style
 
-Item {
+import Launcher 1.0
+
+
+Rectangle {
+    color: "grey"
     id: searchPanel
     anchors.fill: parent
 
-    // property alias rootfolder: browser.rootfolder
-    // property alias nameFilters: browser.nameFilters
-    // property alias listViewMode: browser.listViewMode
-    // property alias gridViewSortByDate: browser.gridViewSortByDate
-    // property alias hideExtensions: browser.hideExtensions
+    function searchFileLocalRpc(endpointuri) {
 
+        var request = new XMLHttpRequest()
+        var fileName = textInput.text
+        // var url = "http://" + restHost + ":" + restPort + "/tide/find/?file=" + fileName
+        var url = "http://" + 'localhost' + ":" + '8888' + "/tide/find/?file=" + fileName
 
-
-    function searchFileLocalRpc(endpoint, action, uri) {
-                console.log("dasda")
-
-        var obj = {
-            "jsonrpc": "2.0",
-            "method": action
-        }
-        if (typeof uri !== "undefined") {
-            obj.params = {
-                "uri": uri
+        request.onreadystatechange = function () {
+            if (request.readyState === XMLHttpRequest.DONE
+                    && request.status == 200) {
+                    var demos = JSON.parse(request.response)
+                    fillDemoList(demos)
             }
         }
-        sendRestData(endpoint, "POST", JSON.stringify(obj))
+        request.open('GET', url, true)
+        request.send()
     }
 
     signal searchFile(string filename)
     signal refreshSessionName
     function save() {
         // saveSession(browser.currentFolder.toString().replace(
-                        // "file://", "") + '/' + textInput.text)
-                        // searchFile()
-                        searchFileLocalRpc()
+        // "file://", "") + '/' + textInput.text)
+        // searchFile()
+        searchFileLocalRpc()
         textInput.text = ""
         textInput.focus = false
     }
 
-    // FileBrowser {
-    //     id: browser
+      FolderModel {
+        id: folders
+        rootFolder: '/nfs4/bbp.epfl.ch/media/DisplayWall'
+        property string sortIcon: sortOrder == FolderModel.Ascending ? "▲" : "▼"
+        function setGridSortOrder() {
+            if (fileBrowser.gridViewSortByDate) {
+                sortCategory = FolderModel.Date
+                sortOrder = FolderModel.Descending
+            } else {
+                sortCategory = FolderModel.Name
+                sortOrder = FolderModel.Ascending
+            }
+        }
+    }
+
+
+ FileBrowserListView {
+        visible: true;
+
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
+        anchors.right: parent.right
+
+        foldersModel: folders
+        // listItemSize: itemSize
+
+        onOpenItem: fileBrowser.openItem(filePath, fileIsDir)
+        onFolderAction: {
+            if (fileBrowser.allowOpeningFolder) {
+                curtain.showDialog(filesInDir, filePath)
+            }
+        }
+    }
+
+
+    // ListView {
+    //     id: demoView
     //     anchors.top: parent.top
-    //     anchors.bottom: textBackground.top
-    //     width: parent.width
-    //     itemSize: parent.height * Style.fileBrowserItemSizeRel
-    //     titleBarHeight: parent.height * Style.titleBarRelHeight
-    //     onItemSelected: textInput.text = fileInfo.baseNameFromPath(file)
+    //     anchors.bottom: parent.bottom
+    //     anchors.left: parent.left
+    //     anchors.right: parent.right
+    //     spacing: 10
+    //     model: demoList
+    //     delegate: demoButtonDelegate
     // }
+
+    // ListModel {
+    //     id: demoList
+    // }
+
+    // Component {
+    //     id: demoButtonDelegate
+    //     Item {
+    //         width: parent.width
+    //         height: 25
+    //         Rectangle {
+    //             color: "red"
+    //             id: placeholder
+    //             width: parent.width
+    //             height: 25
+    //             Text {
+    //                 id: caption
+    //                 text: demoName
+    //                 color: "black"
+    //             }
+    //         }
+    //     }
+    // }
+
     Rectangle {
         id: textBackground
         width: parent.width
@@ -61,7 +121,8 @@ Item {
 
         TextField {
             id: textInput
-            placeholderText: "Session name"
+            text: 'pawel'
+            placeholderText: "Search for a file"
             height: parent.height
             anchors.left: parent.left
             anchors.right: saveButton.left
@@ -114,10 +175,6 @@ Item {
         refreshSessionName()
     }
 
-    function updateSessionName(session) {
-        textInput.text = session.filename
-    }
-
     Loader {
         id: virtualKeyboard
         source: "qrc:/virtualkeyboard/InputPanel.qml"
@@ -130,5 +187,14 @@ Item {
                 duration: 150
             }
         }
+    }
+
+    function fillDemoList(demos) {
+        // folders.clear();
+        // for (var i = 0; i < demos.length; ++i) {
+        //     folders.append({
+        //         "demoName": demos[i].name
+        //     })
+        // }
     }
 }

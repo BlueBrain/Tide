@@ -10,7 +10,7 @@ import "style.js" as Style
 
 Rectangle {
     id: fileBrowser
-
+ 
     color: Style.fileBrowserBackgroundColor
 
     signal itemSelected(string file)
