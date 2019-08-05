@@ -160,7 +160,7 @@ Rectangle {
 
             text: "Search"
             enabled: textInput.text.length > 2
-            onClicked: save()
+            onClicked: search()
         }
     }
     Component.onCompleted: {
@@ -170,6 +170,7 @@ Rectangle {
 
     Loader {
         id: virtualKeyboard
+
         source: "qrc:/virtualkeyboard/InputPanel.qml"
         width: parent.width
         height: width / 4
