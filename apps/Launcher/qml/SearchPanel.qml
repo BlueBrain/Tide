@@ -114,7 +114,7 @@ Rectangle {
 
         TextField {
             id: textInput
-            text: 'pawel'
+            text: 'cyrille'
             placeholderText: "Search for a file"
             height: parent.height
             anchors.left: parent.left
