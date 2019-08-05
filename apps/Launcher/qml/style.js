@@ -42,5 +42,7 @@ var fileBrowserBlinkColor = "lightblue"
 var fileBrowserItemSizeRel = 0.2
 var fileBrowserTextSizeRelToItem = 0.09
 
+var searchListItemRelSize = 0.08
+
 var placeholderTopColor = "darkgrey"
 var placeholderBottomColor = "lightgrey"

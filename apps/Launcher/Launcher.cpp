@@ -69,7 +69,7 @@ QQuickImageProvider* _makeImageProvider()
     return new ThumbnailProvider();
 #endif
 }
-}
+} // namespace
 
 Launcher::Launcher(int& argc, char* argv[])
     : QApplication(argc, argv)
@@ -82,7 +82,7 @@ Launcher::Launcher(int& argc, char* argv[])
     const auto deflectStreamId = options.streamId.toStdString();
     _qmlStreamer.reset(new deflect::qt::QmlStreamer(deflectQmlFile, deflectHost,
                                                     deflectStreamId));
-
+    _qmlStreamer->setRenderInterval(30);
     connect(_qmlStreamer.get(), &deflect::qt::QmlStreamer::streamClosed, this,
             &QCoreApplication::quit);
 

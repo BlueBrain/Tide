@@ -132,8 +132,8 @@ std::future<rockets::http::Response> FileBrowser::find(
 
     auto fileName = QString::fromStdString(queryParam.at("file"));
 
-    if (fileName.length() < 3)
-        return make_ready_response(Code::BAD_REQUEST);
+    //    if (fileName.length() < 3)
+    //        return make_ready_response(Code::BAD_REQUEST);
 
     QString fileNameRegex;
     fileNameRegex.append("*");
@@ -151,7 +151,7 @@ std::future<rockets::http::Response> FileBrowser::find(
         QFileInfo f(it.next());
         if (!isSupported(f.fileName(), _filters, f.isDir()))
         {
-            qDebug() << f.fileName() << f.isDir();
+            //            qDebug() << f.fileName() << f.isDir();
             continue;
         }
         QDir baseDir(_baseDir);

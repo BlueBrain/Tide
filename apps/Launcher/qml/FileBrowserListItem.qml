@@ -36,11 +36,9 @@ Rectangle {
 
     Text {
         id: sizeText
-        // text: humanReadableFileSize(fileSize, true)
-        text: fileSize
+        text: humanReadableFileSize(fileSize, true)
         anchors.right: modifiedText.left
         visible: !fileIsDir
-
         anchors.verticalCenter: parent.verticalCenter
         font.pixelSize: smallTextPixelSize
         color: Style.fileBrowserTextColor
@@ -48,8 +46,8 @@ Rectangle {
 
     Text {
         id: modifiedText
-        text: fileModified
-        anchors.right: listItem.right
+        text: humanReadableModificationDate(fileModified)
+        anchors.right: parent.right
         width: textColumnSize
         horizontalAlignment: Text.AlignRight
 

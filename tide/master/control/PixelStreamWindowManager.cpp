@@ -91,7 +91,7 @@ const QUuid& _findWindowIdForChannel(const Windows& windows, const uint channel)
     }
     throw window_not_found_error("");
 }
-}
+} // namespace
 
 PixelStreamWindowManager::PixelStreamWindowManager(Scene& scene)
     : _scene(scene)
