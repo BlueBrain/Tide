@@ -68,7 +68,8 @@ Rectangle {
             id: centralWidget
             width: root.width - menu.width
             height: root.height
-            sourceComponent: searchPanel
+            sourceComponent: defaultPanel
+            focus: true // let loaded components get focus
             onSourceComponentChanged: demoLauncherWidget.visible = false
         }
     }
@@ -123,7 +124,6 @@ Rectangle {
     Component {
         id: searchPanel
         SearchPanel {
-            onSearchFile: sendJsonRpc("application", "save", filename)
             onItemSelected: sendJsonRpc("application", "open", file)
             rootfolder: rootFilesFolder
         }

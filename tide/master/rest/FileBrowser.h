@@ -82,7 +82,7 @@ public:
 private:
     const QString _baseDir;
     const QStringList _filters;
-    const QStringList& _extensions;
+    const QStringList _extensions;
 
     QFileInfoList _contents(const QDir& directory) const;
     bool _isSupported(const QFileInfo& file) const;

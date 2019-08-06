@@ -1,4 +1,4 @@
-// Copyright (c) 2016-2018, EPFL/Blue Brain Project
+// Copyright (c) 2016-2019, EPFL/Blue Brain Project
 //                     Pawel Podhajski <pawel.podhajski@epfl.ch>
 import QtQuick 2.3
 import QtQuick.Controls 1.3
@@ -18,7 +18,6 @@ Rectangle {
     property alias titleBarHeight: titleBar.height
 
     signal itemSelected(string file)
-    signal searchFile(string filename)
 
     function search() {
         searchFile()
@@ -35,7 +34,7 @@ Rectangle {
         anchors.leftMargin: listItemSize * Style.mainPanelRelMargin
         anchors.rightMargin: listItemSize * Style.mainPanelRelMargin
         spacing: 10
-        model: demoList
+        model: fileList
         delegate: FileBrowserListItem {
             width: parent.width
             height: listview.height * Style.searchListItemRelSize
@@ -45,7 +44,7 @@ Rectangle {
     }
 
     ListModel {
-        id: demoList
+        id: fileList
     }
 
     ScrollBar {
@@ -61,7 +60,7 @@ Rectangle {
         anchors.top: titleBar.bottom
         anchors.left: parent.left
         anchors.right: parent.right
-        visible: demoList.count > 0
+        visible: fileList.count > 0
         color: Style.fileBrowserBackgroundColor
 
         Text {
@@ -105,8 +104,8 @@ Rectangle {
 
         TextField {
             id: textInput
-            text: 'cyrille'
-            placeholderText: "Search for a file"
+            text: ''
+            placeholderText: "Search for a file (minimum 3 characters)"
             height: parent.height
             anchors.left: parent.left
             anchors.right: saveButton.left
@@ -174,16 +173,16 @@ Rectangle {
         }
     }
 
-    function fillDemoList(demos) {
-        demoList.clear()
-        for (; i < demos.length; ++i) {
-            demoList.append({
-                                "fileName": demos[i].path,
-                                "filePath": demos[i].path,
-                                "imageURL": rootfolder + "/" + demos[i].path,
-                                "fileSize": demos[i].size,
-                                "fileModified": new Date(demos[i].lastModified),
-                                "fileIsDir": demos[i].isDir
+    function fillFileList(files) {
+        fileList.clear()
+        for (var i = 0; i < files.length; ++i) {
+            fileList.append({
+                                "fileName": files[i].path,
+                                "filePath": files[i].path,
+                                "imageURL": rootfolder + "/" + files[i].path,
+                                "fileSize": files[i].size,
+                                "fileModified": new Date(files[i].lastModified),
+                                "fileIsDir": files[i].isDir
                             })
         }
     }
@@ -219,8 +218,8 @@ Rectangle {
         request.onreadystatechange = function () {
             if (request.readyState === XMLHttpRequest.DONE
                     && request.status == 200) {
-                var demos = JSON.parse(request.response)
-                fillDemoList(demos)
+                var files = JSON.parse(request.response)
+                fillFileList(files)
             }
         }
         request.open('GET', url, true)

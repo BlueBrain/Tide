@@ -1,5 +1,5 @@
 /*********************************************************************/
-/* Copyright (c) 2017, EPFL/Blue Brain Project                       */
+/* Copyright (c) 2017-2019, EPFL/Blue Brain Project                  */
 /*                     Pawel Podhajski <pawel.podhajski@epfl.ch>     */
 /*                     Raphael Dumusc <raphael.dumusc@epfl.ch>       */
 /* All rights reserved.                                              */
@@ -66,10 +66,7 @@ QJsonArray _toJsonArray(const QFileInfoList& list)
 
 bool compareByModificationdDate(const QFileInfo& d1, const QFileInfo& d2)
 {
-    if (d1.lastModified() > d2.lastModified())
-        return true;
-    else
-        return false;
+    return d1.lastModified() > d2.lastModified();
 }
 
 } // namespace
@@ -126,7 +123,7 @@ std::future<rockets::http::Response> FileBrowser::find(
     }
 
     auto fileName = QString::fromStdString(queryParam.at("file"));
-    if (fileName.length() < 4)
+    if (fileName.length() < 3)
         return make_ready_response(Code::BAD_REQUEST);
 
     const QString fileNameRegex = "*" + fileName + "*";
