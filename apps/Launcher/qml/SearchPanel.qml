@@ -16,13 +16,30 @@ Rectangle {
     property int listItemSize: height * Style.fileBrowserItemSizeRel
     property string rootfolder: ""
     property alias titleBarHeight: titleBar.height
+    property string info: ""
+    property bool inProgress: false
+    property string previousSearchPhase
 
     signal itemSelected(string file)
 
-    function search() {
-        searchFile()
-        textInput.text = ""
-        textInput.focus = false
+    BusyIndicator {
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: parent.width / 3
+        height: parent.height / 3
+        running: inProgress;
+    }
+
+    Text {
+        width: parent.width
+        visible: info.length > 0
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.horizontalCenter: parent.horizontalCenter
+        horizontalAlignment: Text.AlignHCenter
+        color: Style.fileBrowserTextColor
+        font.pixelSize: smallTextPixelSize
+        text: info
+
     }
 
     ListView {
@@ -149,7 +166,7 @@ Rectangle {
             }
 
             text: "Search"
-            enabled: textInput.text.length > 2
+            enabled: textInput.text.length > 2 && !inProgress
             onClicked: search()
         }
     }
@@ -175,6 +192,10 @@ Rectangle {
 
     function fillFileList(files) {
         fileList.clear()
+        if (files.length === 0) {
+            info = "No results for: " + previousSearchPhase
+            return;
+        }
         for (var i = 0; i < files.length; ++i) {
             fileList.append({
                                 "fileName": files[i].path,
@@ -211,15 +232,27 @@ Rectangle {
         itemSelected(filePath)
     }
 
-    function searchFile() {
+    function search() {
+        // In order to ignore virtualKeyboard enter press
+        if (inProgress)
+            return;
+        searchFile(textInput.text)
+        previousSearchPhase = textInput.text
+        info = ""
+        textInput.text = ""
+        textInput.focus = false
+    }
+
+    function searchFile(fileName) {
         var request = new XMLHttpRequest()
-        var fileName = textInput.text
         var url = "http://" + restHost + ":" + restPort + "/tide/find/?file=" + fileName
+        inProgress = true
         request.onreadystatechange = function () {
             if (request.readyState === XMLHttpRequest.DONE
-                    && request.status == 200) {
+                    && request.status === 200) {
                 var files = JSON.parse(request.response)
                 fillFileList(files)
+                inProgress = false;
             }
         }
         request.open('GET', url, true)
