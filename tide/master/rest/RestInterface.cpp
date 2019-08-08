@@ -68,7 +68,7 @@ std::string to_json(const Version& version)
 {
     return version.toJSON();
 }
-}
+} // namespace tide
 
 namespace
 {
@@ -80,7 +80,7 @@ std::string to_json(const LockState& lockState)
 {
     return json::dump(QJsonObject{{"locked", lockState.locked}});
 }
-}
+} // namespace
 
 /** Use REST-specific serialization of Configuration. */
 std::string to_json(const Configuration& config)
@@ -179,6 +179,9 @@ RestInterface::RestInterface(const uint16_t port, OptionsPtr options,
 
     server.handle(http::Method::GET, "tide/files/",
                   std::bind(&FileBrowser::list, &_impl->contentBrowser, _1));
+
+    server.handle(http::Method::GET, "tide/find/",
+                  std::bind(&FileBrowser::find, &_impl->contentBrowser, _1));
 
     server.handle(http::Method::GET, "tide/sessions/",
                   std::bind(&FileBrowser::list, &_impl->sessionBrowser, _1));

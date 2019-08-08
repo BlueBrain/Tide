@@ -2,7 +2,7 @@
     <dimensions fullscreen="1" numScreensX="2" numScreensY="3" displayWidth="1920" displayHeight="1080" displaysPerScreenX="2" displaysPerScreenY="1"  bezelHeight="12" bezelWidth="14" physicalWidth="3.5" physicalHeight="1.9"/>
     <dock directory="/nfs4/bbp.epfl.ch/visualization/DisplayWall/media"/>
     <sessions directory="/nfs4/bbp.epfl.ch/visualization/DisplayWall/sessions"/>
-    <launcher display=":0" demoServiceUrl="https://bbp.epfl.ch/viz/launcher/wall?host=" />
+    <launcher display=":0" demoServiceUrl="https://bbp.epfl.ch/viz/launcher/wall?host=" targetFPS="45" />
     <webservice port="10000" uploadDirectory="/nfs4/bbp.epfl.ch/media/DisplayWall/upload" tmpDirectory="/nfs4/bbp.epfl.ch/media/DisplayWall/tmp"/>
     <info name="TestWall" />
     <planar timeout="27" serialport="/dev/ttyS0" touchpointsToPower="10" />

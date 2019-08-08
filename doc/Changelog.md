@@ -2,6 +2,8 @@ Changelog {#changelog}
 ============
 # Release 1.5.2 (git master)
 
+* [307](https://github.com/BlueBrain/Tide/pull/307):
+  New feature: user can now search for a file in Launcher
 * [298](https://github.com/BlueBrain/Tide/pull/298):
   New option: start/resume movie playback when window is maximized.
 * [303](https://github.com/BlueBrain/Tide/pull/303):

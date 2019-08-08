@@ -16,7 +16,6 @@ Item {
     property variant foldersModel
     property int listItemSize
 
-    property real textColumnSize: smallTextPixelSize * 10
 
     ListView {
         id: listview

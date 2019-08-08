@@ -80,7 +80,7 @@ void checkEqual(const Screen& a, const Screen& b)
     BOOST_CHECK_EQUAL((int)a.stereoMode, (int)b.stereoMode);
     BOOST_CHECK_EQUAL(a.fullscreen, b.fullscreen);
 }
-}
+} // namespace
 
 BOOST_AUTO_TEST_CASE(test_configuration_file_empty)
 {
@@ -338,6 +338,7 @@ void testReferenceConfig(const Configuration& config)
     BOOST_CHECK_EQUAL(config.launcher.display, ":0");
     BOOST_CHECK_EQUAL(config.launcher.demoServiceUrl,
                       "https://bbp.epfl.ch/viz/launcher/wall?host=");
+    BOOST_CHECK_EQUAL(config.launcher.targetFPS, 45);
 
     BOOST_CHECK_EQUAL(config.webbrowser.defaultUrl, "http://bbp.epfl.ch");
     BOOST_CHECK_EQUAL(config.webbrowser.defaultSize, QSize(1680, 1320));
