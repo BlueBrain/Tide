@@ -128,35 +128,51 @@ std::future<rockets::http::Response> FileBrowser::find(
 
     const QString fileNameRegex = "*" + fileName + "*";
 
-    QDirIterator it(fullpath, QStringList() << fileNameRegex, QDir::Files,
-                    QDirIterator::Subdirectories);
+    auto isSupported = [extensions = _extensions](const QFileInfo& file) {
+        if (file.isDir())
+            return true;
+        for (auto extension : extensions)
+        {
+            if (file.fileName().endsWith(extension))
+                return true;
+        }
+        return false;
+    };
 
-    QFileInfoList fileInfoList;
-    while (it.hasNext())
-    {
-        QFileInfo file(it.next());
-        if (!_isSupported(file))
-            continue;
-        fileInfoList << file;
-    }
-    std::sort(fileInfoList.begin(), fileInfoList.end(),
-              compareByModificationdDate);
+    auto future =
+        std::async(std::launch::async, [isSupported, baseDir = QDir(_baseDir),
+                                        fullpath, fileNameRegex]() {
+            QDirIterator it(fullpath, QStringList() << fileNameRegex,
+                            QDir::Files, QDirIterator::Subdirectories);
 
-    QJsonArray list;
-    for (const auto& file : fileInfoList)
-    {
-        QDir baseDir(_baseDir);
-        QJsonObject obj;
-        obj.insert("name", file.fileName());
-        obj.insert("path", baseDir.relativeFilePath(file.absoluteFilePath()));
-        obj.insert("size", file.size());
-        obj.insert("isDir", file.isDir());
-        obj.insert("lastModified", file.lastModified().toString());
-        list.append(obj);
-    }
+            QFileInfoList fileInfoList;
+            while (it.hasNext())
+            {
+                QFileInfo file(it.next());
 
-    const auto body = json::dump(list);
-    return make_ready_response(Code::OK, body, "application/json");
+                if (!isSupported(file))
+                    continue;
+                fileInfoList << file;
+            }
+            std::sort(fileInfoList.begin(), fileInfoList.end(),
+                      compareByModificationdDate);
+
+            QJsonArray list;
+            for (const auto& file : fileInfoList)
+            {
+                QJsonObject obj;
+                obj.insert("name", file.fileName());
+                obj.insert("path",
+                           baseDir.relativeFilePath(file.absoluteFilePath()));
+                obj.insert("size", file.size());
+                obj.insert("isDir", file.isDir());
+                obj.insert("lastModified", file.lastModified().toString());
+                list.append(obj);
+            }
+            const auto body = json::dump(list);
+            return Response(Code::OK, body, "application/json");
+        });
+    return future;
 }
 
 QFileInfoList FileBrowser::_contents(const QDir& directory) const
@@ -164,16 +180,4 @@ QFileInfoList FileBrowser::_contents(const QDir& directory) const
     const auto filters = QDir::Files | QDir::AllDirs | QDir::NoDotAndDotDot;
     const auto sortFlags = QDir::DirsFirst | QDir::IgnoreCase;
     return directory.entryInfoList(_filters, filters, sortFlags);
-}
-
-bool FileBrowser::_isSupported(const QFileInfo& file) const
-{
-    if (file.isDir())
-        return true;
-    for (auto extension : _extensions)
-    {
-        if (file.fileName().endsWith(extension))
-            return true;
-    }
-    return false;
 }

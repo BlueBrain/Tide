@@ -85,7 +85,6 @@ private:
     const QStringList _extensions;
 
     QFileInfoList _contents(const QDir& directory) const;
-    bool _isSupported(const QFileInfo& file) const;
 };
 
 #endif
