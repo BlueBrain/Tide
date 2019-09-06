@@ -13,7 +13,6 @@ Rectangle {
 
     signal clicked
     signal pressAndHold
-    property string filePath
     FileBrowserImage {
         id: fileimage
         height: parent.height
