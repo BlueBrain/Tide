@@ -55,7 +55,6 @@ Rectangle {
         delegate: FileBrowserListItem {
             width: parent.width
             height: listview.height * Style.searchListItemRelSize
-            filePath: imageURL
             onClicked: openItem(filePath)
         }
     }
@@ -199,8 +198,7 @@ Rectangle {
         for (var i = 0; i < files.length; ++i) {
             fileList.append({
                                 "fileName": files[i].path,
-                                "filePath": files[i].path,
-                                "imageURL": rootfolder + "/" + files[i].path,
+                                "filePath": rootfolder + "/" + files[i].path,
                                 "fileSize": files[i].size,
                                 "fileModified": new Date(files[i].lastModified),
                                 "fileIsDir": files[i].isDir
