@@ -1,0 +1,33 @@
+div.tfw-view-input {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: stretch;
+    margin: .5rem;
+    transition: all .2s;
+}
+
+div.tfw-view-input.wide {
+    display: flex;
+}
+
+div.tfw-view-input label {
+    font-size: 80%;
+    padding: 2px .25rem;
+}
+
+div.tfw-view-input div.error {
+    font-size: 80%;
+    font-weight: bold;
+    padding: 2px .25rem;
+}
+
+div.tfw-view-input input {
+    width: 100%;
+    font-size: inherit;
+    font-family: inherit;
+    border: none;
+    padding: 0 .25rem;
+    line-height: 2rem;
+    transition: all .2s;
+}

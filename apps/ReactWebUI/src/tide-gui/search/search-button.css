@@ -1,0 +1,30 @@
+div.tideGui-SearchButton {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: stretch;
+    height: 48px;
+    box-shadow: 0 -1px rgba(0,0,0,.25) inset;
+    cursor: pointer;
+}
+
+div.tideGui-SearchButton > * {
+    flex: 0 0 auto;
+    margin: 0 8px;
+}
+
+div.tideGui-SearchButton > div.name {
+    line-height: normal;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+div.tideGui-SearchButton > div.info {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    opacity: .5;
+    font-size: 80%;
+}

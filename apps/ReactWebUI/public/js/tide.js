@@ -79,18 +79,6 @@ function bootstrapMenus() {
     e.stopPropagation()
   });
 
-  $("#sessionButton").click(function (e) {
-    $("#uploadMenu,#fsMenu,#optionsMenu,#appsMenu,#infoMenu").each(function () {
-      $(this).hide("puff", showEffectSpeed);
-      e.stopPropagation()
-    });
-    getSessionName();
-    $("#sessionMenu").css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed);
-    $(".menuButton:not(#sessionButton)").removeClass("buttonPressed");
-    $("#sessionButton").toggleClass("buttonPressed")
-    e.stopPropagation()
-  });
-
   $("#uploadButton").click(function (e) {
     $("#sessionMenu,#fsMenu,#optionsMenu,#appsMenu,#infoMenu").each(function () {
       $(this).hide("puff", showEffectSpeed);
@@ -495,7 +483,6 @@ function getSessionFolderContent() {
         sendAppJsonRpc("load", {"uri": data.text}, function () {
           $("#sessionNameInput").val(data.text);
           $("#sessionMenu").toggle("puff", showEffectSpeed);
-          $("#sessionButton").toggleClass("buttonPressed");
           $('#sessionTree').treeview('toggleNodeSelected', [data.nodeId, {silent: true}]);
           $("#wall").css("opacity", 1);
           updateWall();
@@ -1032,7 +1019,6 @@ function saveSession() {
           confirmButtonColor: "#014f86"
         }, function () {
           $("#sessionMenu").toggle("puff", showEffectSpeed);
-          $("#sessionButton").toggleClass("buttonPressed");
         });
         getSessionFolderContent();
         updateWall(); // contents may have been relocated changing some window UUIDs
@@ -1231,7 +1217,7 @@ function setScale() {
     zoomScale = Math.round(scaleH * 100) / 100;
 
   var wallMargin = (window.innerWidth - (wallWidth * zoomScale)) / 2;
-  $("#infoBox").css("right", wallMargin - wallOutlineWidth )
+  //$("#infoBox").css("right", wallMargin - wallOutlineWidth )
   var wall = $("#wall");
   wall.css({transform: 'scale(' + zoomScale + ')'});
   wall.css("margin-left", wallMargin);

@@ -1,0 +1,26 @@
+div.tideGuide-Files {
+    height: calc(100vh - 128px);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+}
+
+div.tideGuide-Files > header,
+div.tideGuide-Files > hr,
+div.tideGuide-Files > nav {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+div.tideGuide-Files > div {
+    flex: 1 1 auto;
+    overflow: auto;
+}
+
+div#sessionMenu.react-root {
+    overflow: visible;
+}

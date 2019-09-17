@@ -1,0 +1,31 @@
+div.tideGui-FileButton {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    height: 32px;
+    box-shadow: 0 -1px rgba(0,0,0,.25) inset;
+}
+
+div.tideGui-FileButton:focus {
+    background: var(--thm-bgSL);
+    color: var(--thm-fgSL);
+}
+
+div.tideGui-FileButton > * {
+    flex: 0 0 auto;
+    margin: 0 8px;
+}
+
+div.tideGui-FileButton > div.name {
+    width: 100%;
+    flex: 1 2 auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    cursor: pointer;
+}
+
+div.tideGui-FileButton.dir > div.name {
+    font-weight: bold;
+}

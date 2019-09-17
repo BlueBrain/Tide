@@ -1,0 +1,75 @@
+@-webkit-keyframes tfw-view-icon-rotation {
+    from {
+        -webkit-transform: rotate(0);
+        transform: rotate(0)
+    }
+
+    to {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg)
+    }
+}
+
+@-moz-keyframes tfw-view-icon-rotation {
+    from {
+        -webkit-transform: rotate(0);
+        transform: rotate(0)
+    }
+
+    to {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg)
+    }
+}
+
+@-o-keyframes tfw-view-icon-rotation {
+    from {
+        -webkit-transform: rotate(0);
+        transform: rotate(0)
+    }
+
+    to {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg)
+    }
+}
+
+@keyframes tfw-view-icon-rotation {
+    from {
+        -webkit-transform: rotate(0);
+        transform: rotate(0)
+    }
+
+    to {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg)
+    }
+}
+
+.tfw-view-icon {
+    display: inline-block;
+    transition: all .3s;
+    margin: 2px;
+    padding: 0;
+    transform: scale(1);
+    opacity: 1;
+}
+
+.tfw-view-icon.zero {
+    transform: scale(0);
+    opacity: 0;
+}
+
+.tfw-view-icon.active {
+    cursor: pointer;
+}
+
+.tfw-view-icon.animate {
+    animation: tfw-view-icon-rotation 1.1s linear infinite;
+    -webkit-animation: tfw-view-icon-rotation 1.1s linear infinite;
+}
+
+.tfw-view-icon.disabled {
+    cursor: default;
+    opacity: .5;
+}

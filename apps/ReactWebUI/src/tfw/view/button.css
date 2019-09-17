@@ -1,0 +1,120 @@
+button.tfw-view-button {
+  color          : inherit;
+  display        : inline-flex;
+  flex-direction : row;
+  justify-content: center;
+  align-items    : center;
+  margin         : .25rem;
+  height         : 2.25rem;
+  border         : none;
+  transition     : all .2s;
+  vertical-align : middle;
+  position       : relative;
+  min-height     : 2.25rem;
+  padding        : 0;
+  text-decoration: none;
+  border-radius  : 0.125rem;
+  text-shadow    : none;
+  cursor         : pointer;
+  font-family    : Roboto, josefin-sans, sans-serif;
+  font-size      : 0.875rem;
+  font-weight    : bold;
+}
+button.tfw-view-button.floating {
+  border-radius: 100%;
+  width        : 3.5rem;
+  height       : 3.5rem;
+}
+button.tfw-view-button.floating.small {
+  width     : 2.5rem;
+  min-width : 2.5rem;
+  height    : 2.5rem;
+  max-height: 2.5rem;
+}
+button.tfw-view-button.wide {
+  width  : calc(100% - 0.5rem);
+  display: flex;
+}
+button.tfw-view-button.hide,
+button.tfw-view-button.hide.wide {
+  display: none;
+}
+button.tfw-view-button.flat {
+  background-color: transparent;
+}
+button.tfw-view-button[!disabled]:hover {
+  filter: saturate(100%) brightness(120%);
+}
+button.tfw-view-button > div.text.hide {
+  display: none;
+}
+button.tfw-view-button > div.text {
+  flex-grow     : 0;
+  order         : 1;
+  text-overflow : ellipsis;
+  white-space   : nowrap;
+  overflow      : hidden;
+  text-align    : left;
+  text-transform: uppercase;
+  margin        : 0 0.5rem;
+}
+button.tfw-view-button.inverted > div.text {
+  order     : -1;
+  text-align: right;
+}
+button.tfw-view-button.no-text > div.text {
+  display: none;
+}
+button.tfw-view-button > .icon {
+  order    : 0;
+  flex-grow: 0;
+  margin   : 0 0.5rem 0 0.25rem;
+  padding  : 0;
+}
+button.tfw-view-button[disabled],
+button.tfw-view-button[disabled]:hover {
+  pointer-events : none;
+  text-decoration: none;
+  cursor         : default;
+  filter: saturate(0);
+  text-shadow    : none;
+  box-shadow     : none;
+}
+button.tfw-view-button[disabled] > *,
+button.tfw-view-button[disabled]:hover > * {
+  opacity: .5;
+}
+button.tfw-view-button:focus {
+  text-decoration      : underline;
+  text-decoration-style: dotted;
+}
+/* On small screen, responsive mode hides the text when there is an icon. */
+@media (max-width: 480px) {
+  button.tfw-view-button.responsive > div.text {
+    display: none;
+  }
+  button.tfw-view-button.responsive {
+    max-width    : 2rem;
+    min-width    : 2rem;
+    width        : 2rem;
+    height       : 2rem;
+    margin       : 0;
+    border-radius: 100%;
+    overflow     : hidden;
+  }
+}
+/* Small version */
+button.tfw-view-button.small {
+  min-height : 2rem;
+  max-height : 2rem;
+  height     : 2rem;
+  margin     : 0.125rem 0.25rem;
+  font-size  : 0.625rem;
+  font-weight: normal;
+}
+button.tfw-view-button.small > div.text {
+  text-align: left;
+}
+button.tfw-view-button.smal > .tfw-view-icon {
+  margin: 0 0.25rem 0 0.125rem;
+}

@@ -1,0 +1,12 @@
+label.tfw-view-Label {
+    width: 100%;
+    line-height: 1.2rem;
+    font-size: 80%;
+    font-weight: normal;
+    padding: 0 .5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    background: transparent;
+    text-align: left;
+}

@@ -1,0 +1,43 @@
+div.tfw-view-color-button-list {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: space-between;
+    margin: 2px;
+    padding: .25rem;
+    background-image: url("../gfx/checker.jpg");
+    background-repeat: repeat;
+    border-radius: 1rem;
+    overflow: hidden;
+    box-shadow: 0 0 2px rgba(0,0,0,.5);
+}
+
+div.tfw-view-color-button-list > div {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+div.tfw-view-color-button-list > div > div {
+    margin: .25rem;
+    box-shadow: 0 .25rem transparent;
+    transition: box-shadow .2s;
+}
+
+div.tfw-view-color-button-list > div > div.selected {
+    box-shadow: 0 .25rem var(--thm-color-S);
+}
+
+div.tfw-view-color-button-list > header {
+    margin: -.25rem -.25rem 0 -.25rem;
+    padding: 2px .25rem;
+    font-size: 80%;
+    font-weight: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: center;
+}

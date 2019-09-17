@@ -1,4 +1,4 @@
-var restUrl = "http://localhost:8888/tide/";
+var restUrl = "tide/";
 var closeImageUrl = "img/close.svg";
 var focusCurtain = "focusCurtain";
 var focusImageUrl = "img/focus.svg";

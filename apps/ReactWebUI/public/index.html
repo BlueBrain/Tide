@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Tide web interface</title>
+    <script src="js/jquery-3.1.1.min.js"></script>
+    <script src="js/jquery-ui.min.js"></script>
+    <script src="js/bootstrap-treeview.min.js"></script>
+    <script src="js/sweetalert.min.js"></script>
+    <script src="js/underscore-min.js"></script>
+    <script src="js/tide.js"></script>
+    <script src="js/tideVars.js"></script>
+    <script src="js/notify.min.js"></script>
+    <link rel="stylesheet" href="css/sweetalert.min.css">
+    <link rel="stylesheet" href="css/jquery-ui.css">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <meta charset="utf-8" />
+</head>
+
+<body>
+
+    <div id="appsMenu" class="topMenu">
+        <div>
+            <ul style="padding-left: 0;">
+                <li class="list-group-item" style="cursor: pointer;" onClick="browse()">
+                    <span class="icon node-icon glyphicon glyphicon-globe" style="margin-right: 2px"></span>
+                    Web browser
+                    <input id="browseUrlInput" class="textInput" style="width:100%" type="text" placeholder="Type URL or leave blank">
+                </li>
+                <li class="list-group-item" style="cursor: pointer;" onclick="openWhiteboard()">
+                    <span class="icon node-icon glyphicon glyphicon-blackboard" style="margin-right: 2px"></span>
+                    Whiteboard
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="fsMenu" class="topMenu"></div>
+
+    <div id="sessionMenu2" class="topMenu react-root"></div>
+
+    <div id="sessionMenu" class="topMenu">
+        <div style="padding: 10px; background-color: white">
+            <input id="sessionNameInput" type="text" placeholder="New session name">
+            <button type="submit" onclick="saveSession()" style=" margin: 0px; margin-left: 5%; width: 30%">Save session</button>
+        </div>
+        <div id="sessionTree">
+        </div>
+    </div>
+
+    <div id="uploadMenu" class="topMenu uploadMenu">
+        <div style="padding-top: 5px; padding-left: 10px; padding-bottom: 0px; overflow: hidden;">
+            <form id="uploadFileForm">
+                <label id="uploadFileInput">
+                    <input type="file" id="uploadFileSelector" multiple />
+                </label>
+                <button type="reset" id="uploadsClearButton" onclick="clearUploadList()">CLEAR FINISHED TRANSFERS</button>
+            </form>
+        </div>
+        <div style="clear: both">
+            <ul id="uploadsList"></ul>
+        </div>
+    </div>
+
+    <div id="optionsMenu" class="topMenu optionsMenu"></div>
+    <div id="infoMenu" class="topMenu infoMenu"></div>
+    <div id="surfacesMenu" class="topMenu infoMenu"></div>
+
+    <div id="wallWrapper">
+        <div>
+            <div id="buttonContainer">
+                <button class="menuButton lockableButton" id="appsButton2">APPS</button>
+                <button class="menuButton lockableButton" id="fileButton">FILE</button>
+                <button class="menuButton lockableButton" id="sessionButton2">SESSION</button>
+                <button class="menuButton lockableButton" id="searchButton">SEARCH</button>
+                <button class="menuButton lockableButton" id="uploadButton">UPLOAD</button>
+                <button class="menuButton lockableButton" id="closeAllButton">CLOSE ALL</button>
+                <button class="menuButton lockableButton" id="presentationButton">EXIT FULLSCREEN</button>
+                <button class="menuButton lockableButton" id="optionsButton">OPTIONS</button>
+                <button class="menuButton" id="refreshButton" onclick="updateWall()">REFRESH</button>
+                <button id="autoRefreshButton" onclick="autoRefresh()">AUTO-REFRESH</button>
+                <button id="showBezelButton" onclick="showBezels()">BEZELS</button>
+                <button class="menuButton" id="infoButton">INFO</button>
+                <button class="menuButton" id="clipboardButton">CLIPBOARD</button>
+                <button class="menuButton" id="contentsButton">CONTENTS</button>
+                <button class="menuButton" id="surfacesButton">SURFACES</button>
+            </div>
+            <div id="infoBox">
+                <img id="screenIcon" class="infoIcon" height="25" />
+                <img id="lockIcon" class="infoIcon" height="20" />
+            </div>
+        </div>
+        <div>
+            <div id="wall">
+                <div id="wallOutline"></div>
+                <div id="wallLock">
+                    <img src="img/lock.svg" height="50%" id="wallLockImg">
+                </div>
+                <div id="wallBezels"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="contentsDialog" title="Contents">
+    </div>
+
+</body>
+
+</html>

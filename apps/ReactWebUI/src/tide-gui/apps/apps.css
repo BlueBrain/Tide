@@ -1,0 +1,15 @@
+div.tideGui-Apps > div.input-row {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+div.tideGui-Apps > div.input-row > * {
+    flex: 1 1 auto;
+}
+
+div.tideGui-Apps > div.input-row > *:last-child {
+    flex: 0 0 auto;
+}

@@ -1,0 +1,28 @@
+div.tfw-view-pane {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: space-between;
+    margin: .5rem;
+    border: 1px solid rgba(0,0,0,.4);
+    border-radius: 4px;
+    padding: 1rem 1rem 1rem 1rem;
+}
+
+div.tfw-view-pane > div {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+div.tfw-view-pane > header {
+    margin: -1rem 0 0 0;
+    line-height: 2rem;
+    font-weight: bold;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

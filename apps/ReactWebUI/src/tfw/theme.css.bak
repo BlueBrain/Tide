@@ -1,0 +1,616 @@
+html {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+*, *:before, *:after {
+    -webkit-box-sizing: inherit;
+    -moz-box-sizing: inherit;
+    box-sizing: inherit;
+}
+
+a, b, i, em, code, span {
+    display: inline;
+    margin: .25em;
+    padding: 0;
+}
+
+a {
+    display: inline-block;
+    text-decoration: none;
+    text-transform: uppercase;
+    line-height: 2rem;
+    font-size: 1rem;
+    padding: 0 .5rem;
+    cursor: pointer;
+    color: var(--thm-color-P);
+    font-family: Roboto, josefin-sans, sans-serif;
+    font-weight: bold;
+}
+
+.dom.wide {
+    display: block;
+    width: 100%;
+    margin-right: 0;
+    margin-left: 0;
+}
+
+.dom.wide-flex {
+    display: flex;
+    width: 100%;
+    margin-right: 0;
+    margin-left: 0;
+}
+
+.dom.hide {
+    display: none;
+}
+
+/*********************/
+/* Responsive Design */
+@media (max-width: 319px) {
+    .dom-hide-if-lt-320 {
+        display: none
+    }
+}
+
+@media (min-width: 320px) {
+    .dom-hide-if-gt-320 {
+        display: none
+    }
+}
+
+@media (max-width: 479px) {
+    .dom-hide-if-lt-480 {
+        display: none
+    }
+}
+
+@media (min-width: 480px) {
+    .dom-hide-if-gt-480 {
+        display: none
+    }
+}
+
+@media (max-width: 639px) {
+    .dom-hide-if-lt-640 {
+        display: none
+    }
+}
+
+@media (min-width: 640px) {
+    .dom-hide-if-gt-640 {
+        display: none
+    }
+}
+
+@media (max-width: 799px) {
+    .dom-hide-if-lt-800 {
+        display: none
+    }
+}
+
+@media (min-width: 800px) {
+    .dom-hide-if-gt-800 {
+        display: none
+    }
+}
+
+/*****************/
+/* Default theme */
+input:placeholder-shown {
+    color: rgba(50, 75, 120, .5);
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+hr {
+    border: none;
+    height: 1px;
+    background-image: -webkit-linear-gradient(to right, transparent, rgba(0, 0, 0, .5) 50%, transparent);
+    background-image: linear-gradient(to right, transparent, rgba(0, 0, 0, .5) 50%, transparent);
+}
+
+/****************************/
+/** Material Design Themes **/
+/****************************/
+h1, h2, h3 {
+    font-weight: bold
+}
+
+h1 {
+    font-size: 120%;
+}
+
+h2 {
+    font-size: 110%;
+}
+
+h3 {
+    font-size: 100%;
+}
+
+/* Background color for Background. */
+.TMP-thm-bg0 {
+    background-color: #F0F0F0;
+    background-color: var(--thm-color-0);
+    color: #000;
+    color: var(--thm-fg-0);
+}
+
+.TMP-thm-fg0 {
+    color: #000;
+    color: var(--thm-fg-0);
+}
+
+/* Background color for App bar. */
+.TMP-thm-bg1 {
+    background-color: #E0E0E0;
+    background-color: var(--thm-color-1);
+    color: #000;
+    color: var(--thm-fg-1);
+}
+
+.TMP-thm-fg1 {
+    color: #000;
+    color: var(--thm-fg-1);
+}
+
+/* Background color for Status bar. */
+.TMP-thm-bg2 {
+    background-color: #D0D0D0;
+    background-color: var(--thm-color-2);
+    color: #000;
+    color: var(--thm-fg-2);
+}
+
+.TMP-thm-fg2 {
+    color: #000;
+    color: var(--thm-fg-2);
+}
+
+/* Background color for Cards/Dialogs. */
+.TMP-thm-bg3 {
+    background-color: #FFF;
+    background-color: var(--thm-color-3);
+    color: #000;
+    color: var(--thm-fg-3);
+}
+
+.TMP-thm-fg3 {
+    color: #000;
+    color: var(--thm-fg-3);
+}
+
+/* SVG */
+svg .stroke0 {
+    stroke: #000
+}
+
+svg .fill0 {
+    fill: #000
+}
+
+svg .stroke1 {
+    stroke: #fff
+}
+
+svg .fill1 {
+    fill: #fff
+}
+
+/* Primary color. */
+.TMP-thm-bgP {
+    background-color: #2CA600;
+    background-color: var(--thm-color-P);
+    color: #fff;
+    color: var(--thm-fg-P);
+}
+
+.TMP-thm-fgP {
+    color: #2CA600;
+    color: var(--thm-color-P);
+}
+
+.TMP-thm-bgP>div {
+    color: #fff;
+    color: var(--thm-fg-P);
+}
+
+.TMP-thm-bgPL {
+    background-color: #36CD00;
+    background-color: var(--thm-color-PL);
+    color: #fff;
+    color: var(--thm-fg-PL);
+}
+
+.TMP-thm-bfPL {
+    color: #36CD00;
+    color: var(--thm-color-PL);
+}
+
+.TMP-thm-bgPL>div {
+    color: #fff;
+    color: var(--thm-fg-PL);
+}
+
+.TMP-thm-bgPD {
+    background-color: #218000;
+    background-color: var(--thm-color-PD);
+    color: #fff;
+    color: var(--thm-fg-PD);
+}
+
+.TMP-thm-bfPD {
+    color: #218000;
+    color: var(--thm-color-PD);
+}
+
+.TMP-thm-bgPD>div {
+    color: #fff;
+    color: var(--thm-fg-PD);
+}
+
+.TMP-thm-bgP svg .stroke0, .TMP-thm-bgPD svg .stroke0 {
+    stroke: #fff
+}
+
+.TMP-thm-bgP svg .fill0, .TMP-thm-bgPD svg .fill0 {
+    fill: #fff
+}
+
+.TMP-thm-bgP svg .stroke1, .TMP-thm-bgPD svg .stroke1 {
+    stroke: #000
+}
+
+.TMP-thm-bgP svg .fill1, .TMP-thm-bgPD svg .fill1 {
+    fill: #000
+}
+
+.TMP-thm-bgPL svg .stroke0,
+.TMP-thm-bg0 svg .stroke0, .TMP-thm-bg1 svg .stroke0, .TMP-thm-bg2 svg .stroke0, .TMP-thm-bg3 svg .stroke0,
+.TMP-thm-bgS svg .stroke0, .TMP-thm-bgSL svg .stroke0, .TMP-thm-bgSD svg .stroke0 {
+    stroke: #000
+}
+
+.TMP-thm-bgPL svg .fill0,
+.TMP-thm-bg0 svg .fill0, .TMP-thm-bg1 svg .fill0, .TMP-thm-bg2 svg .fill0, .TMP-thm-bg3 svg .fill0,
+.TMP-thm-bgS svg .fill0, .TMP-thm-bgSL svg .fill0, .TMP-thm-bgSD svg .fill0 {
+    fill: #000
+}
+
+.TMP-thm-bgPL svg .stroke1,
+.TMP-thm-bg0 svg .stroke1, .TMP-thm-bg1 svg .stroke1, .TMP-thm-bg2 svg .stroke1, .TMP-thm-bg3 svg .stroke1,
+.TMP-thm-bgS svg .stroke1, .TMP-thm-bgSL svg .stroke1, .TMP-thm-bgSD svg .stroke1 {
+    stroke: #fff
+}
+
+.TMP-thm-bgPL svg .fill1,
+.TMP-thm-bg0 svg .fill1, .TMP-thm-bg1 svg .fill1, .TMP-thm-bg2 svg .fill1, .TMP-thm-bg3 svg .fill1,
+.TMP-thm-bgS svg .fill1, .TMP-thm-bgSL svg .fill1, .TMP-thm-bgSD svg .fill1 {
+    fill: #fff
+}
+
+.TMP-thm-bgP>svg .stroke0, .TMP-thm-bgPD>svg .stroke0 {
+    stroke: #fff
+}
+
+.TMP-thm-bgP>svg .fill0, .TMP-thm-bgPD>svg .fill0 {
+    fill: #fff
+}
+
+.TMP-thm-bgP>svg .stroke1, .TMP-thm-bgPD>svg .stroke1 {
+    stroke: #000
+}
+
+.TMP-thm-bgP>svg .fill1, .TMP-thm-bgPD>svg .fill1 {
+    fill: #000
+}
+
+.TMP-thm-bgPL>svg .stroke0,
+.TMP-thm-bg0>svg .stroke0, .TMP-thm-bg1>svg .stroke0, .TMP-thm-bg2>svg .stroke0, .TMP-thm-bg3>svg .stroke0,
+.TMP-thm-bgS>svg .stroke0, .TMP-thm-bgSL>svg .stroke0, .TMP-thm-bgSD>svg .stroke0 {
+    stroke: #000
+}
+
+.TMP-thm-bgPL>svg .fill0,
+.TMP-thm-bg0>svg .fill0, .TMP-thm-bg1>svg .fill0, .TMP-thm-bg2>svg .fill0, .TMP-thm-bg3>svg .fill0,
+.TMP-thm-bgS>svg .fill0, .TMP-thm-bgSL>svg .fill0, .TMP-thm-bgSD>svg .fill0 {
+    fill: #000
+}
+
+.TMP-thm-bgPL>svg .stroke1,
+.TMP-thm-bg0>svg .stroke1, .TMP-thm-bg1>svg .stroke1, .TMP-thm-bg2>svg .stroke1, .TMP-thm-bg3>svg .stroke1,
+.TMP-thm-bgS>svg .stroke1, .TMP-thm-bgSL>svg .stroke1, .TMP-thm-bgSD>svg .stroke1 {
+    stroke: #fff
+}
+
+.TMP-thm-bgPL>svg .fill1,
+.TMP-thm-bg0>svg .fill1, .TMP-thm-bg1>svg .fill1, .TMP-thm-bg2>svg .fill1, .TMP-thm-bg3>svg .fill1,
+.TMP-thm-bgS>svg .fill1, .TMP-thm-bgSL>svg .fill1, .TMP-thm-bgSD>svg .fill1 {
+    fill: #fff
+}
+
+/* Secondary */
+.TMP-thm-bgS {
+    background-color: #FFA000;
+    background-color: var(--thm-color-S);
+    color: #000;
+    color: var(--thm-fg-S);
+}
+
+.TMP-thm-fgS {
+    color: #FFA000;
+    color: var(--thm-color-S);
+}
+
+.TMP-thm-bgS>div {
+    color: #000;
+    color: var(--thm-fg-S);
+}
+
+.TMP-thm-bgSL {
+    background-color: #FFD149;
+    background-color: var(--thm-color-SL);
+    color: #000;
+    color: var(--thm-fg-SL);
+}
+
+.TMP-thm-bfSL {
+    color: #FFD149;
+    color: var(--thm-color-SL);
+}
+
+.TMP-thm-bgSL>div {
+    color: #000;
+    color: var(--thm-fg-SL);
+}
+
+.TMP-thm-bgSD {
+    background-color: #C67100;
+    background-color: var(--thm-color-SD);
+    color: #000;
+    color: var(--thm-fg-SD);
+}
+
+.TMP-thm-bfSD {
+    color: #C67100;
+    color: var(--thm-color-SD);
+}
+
+.TMP-thm-bgSD>div {
+    color: #000;
+    color: var(--thm-fg-SD);
+}
+
+.TMP-thm-bgSD svg .stroke0 {
+    stroke: #fff
+}
+
+.TMP-thm-bgSD svg .fill0 {
+    fill: #fff
+}
+
+.TMP-thm-bgSD svg .stroke1 {
+    stroke: #000
+}
+
+.TMP-thm-bgSD svg .fill1 {
+    fill: #000
+}
+
+/* SVG fill and stroke */
+.TMP-thm-svg-fill-P {
+    fill: var(--thm-color-P)
+}
+
+.TMP-thm-svg-stroke-P {
+    stroke: var(--thm-color-P)
+}
+
+.TMP-thm-svg-fill-PL {
+    fill: var(--thm-color-PL)
+}
+
+.TMP-thm-svg-stroke-PL {
+    stroke: var(--thm-color-PL)
+}
+
+.TMP-thm-svg-fill-PD {
+    fill: var(--thm-color-PD)
+}
+
+.TMP-thm-svg-stroke-PD {
+    stroke: var(--thm-color-PD)
+}
+
+.TMP-thm-svg-fill-S {
+    fill: var(--thm-color-S)
+}
+
+.TMP-thm-svg-stroke-S {
+    stroke: var(--thm-color-S)
+}
+
+.TMP-thm-svg-fill-SL {
+    fill: var(--thm-color-SL)
+}
+
+.TMP-thm-svg-stroke-SL {
+    stroke: var(--thm-color-SL)
+}
+
+.TMP-thm-svg-fill-SD {
+    fill: var(--thm-color-SD)
+}
+
+.TMP-thm-svg-stroke-SD {
+    stroke: var(--thm-color-SD)
+}
+
+/* Toolbar size */
+.TMP-thm-sz-toolbar {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 16px;
+    height: 56px;
+}
+
+/* Elevations. See https://material.io/design/environment/elevation.html#default-elevations */
+.TMP-thm-ele-none {
+    z-index: 0;
+    box-shadow: none
+}
+
+/* Card (resting), Raised button (resting), Quick entry / Search bar (resting) */
+.TMP-thm-ele-button, .TMP-thm-ele-card {
+    z-index: 2;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .4)
+}
+
+.TMP-thm-ele-button:active, .TMP-thm-ele-button-raised, .TMP-thm-ele-card-raised {
+    z-index: 8;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, .4)
+}
+
+/* App bar */
+.TMP-thm-ele-bar {
+    z-index: 4;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, .4)
+}
+
+/* Floating action button (FAB - resting) */
+.TMP-thm-ele-floating {
+    z-index: 6;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, .4)
+}
+
+.TMP-thm-ele-floating:active {
+    z-index: 12;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, .4)
+}
+
+/* Bottom navigation bar, Menu, Card (when picked up), Raised button (pressed state) */
+/* Sub menus */
+.TMP-thm-ele-submenu-0 {
+    z-index: 9;
+    box-shadow: 0 4px 9px rgba(0, 0, 0, .4)
+}
+
+.TMP-thm-ele-submenu-1 {
+    z-index: 10;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, .4)
+}
+
+.TMP-thm-ele-submenu-2 {
+    z-index: 11;
+    box-shadow: 0 5px 11px rgba(0, 0, 0, .4)
+}
+
+/* Nav drawer, Right drawer, Modal bottom sheet */
+.TMP-thm-ele-nav {
+    z-index: 16;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, .4)
+}
+
+/* Dialog, Picker */
+.TMP-thm-ele-dialog {
+    z-index: 24;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, .4)
+}
+
+/* Flex */
+.flex-grow0 {
+    flex-grow: 0
+}
+
+.flex-grow1 {
+    flex-grow: 1
+}
+
+.flex-grow2 {
+    flex-grow: 2
+}
+
+.flex-grow3 {
+    flex-grow: 3
+}
+
+.flex-grow4 {
+    flex-grow: 4
+}
+
+.flex-grow5 {
+    flex-grow: 5
+}
+
+.flex-grow6 {
+    flex-grow: 6
+}
+
+.flex-grow7 {
+    flex-grow: 7
+}
+
+.flex-grow8 {
+    flex-grow: 8
+}
+
+.flex-grow9 {
+    flex-grow: 9
+}
+
+.flex-grow10 {
+    flex-grow: 10
+}
+
+.flex-shrink0 {
+    flex-shrink: 0
+}
+
+.flex-shrink1 {
+    flex-shrink: 1
+}
+
+.flex-shrink2 {
+    flex-shrink: 2
+}
+
+.flex-shrink3 {
+    flex-shrink: 3
+}
+
+.flex-shrink4 {
+    flex-shrink: 4
+}
+
+.flex-shrink5 {
+    flex-shrink: 5
+}
+
+.flex-shrink6 {
+    flex-shrink: 6
+}
+
+.flex-shrink7 {
+    flex-shrink: 7
+}
+
+.flex-shrink8 {
+    flex-shrink: 8
+}
+
+.flex-shrink9 {
+    flex-shrink: 9
+}
+
+.flex-shrink10 {
+    flex-shrink: 10
+}

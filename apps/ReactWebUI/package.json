@@ -1,0 +1,41 @@
+{
+  "name": "react-js",
+  "version": "0.1.0",
+  "private": true,
+  "proxy": "http://localhost:8888/",
+  "dependencies": {
+    "@types/jest": "24.0.18",
+    "@types/node": "12.7.5",
+    "@types/react": "16.9.2",
+    "@types/react-dom": "16.9.0",
+    "react": "^16.9.0",
+    "react-dom": "^16.9.0",
+    "react-scripts": "3.1.1",
+    "typescript": "3.6.3"
+  },
+  "scripts": {
+    "start": "PORT=9999 react-app-rewired start",
+    "build": "react-app-rewired build",
+    "test": "react-app-rewired test",
+    "eject": "react-app-rewired eject"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "react-app-rewire-yaml": "^1.1.0",
+    "react-app-rewired": "^2.1.3"
+  }
+}

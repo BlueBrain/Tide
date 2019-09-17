@@ -1,0 +1,76 @@
+div.tfw-layout-sidemenu {
+  position    : absolute;
+  margin      : 0;
+  padding     : 0;
+  left        : 0;
+  top         : 0;
+  width       : 100%;
+  height      : 100%;
+  overflow    : hidden;
+  --menu-width: 312px;
+}
+div.tfw-layout-sidemenu > * {
+  position: absolute;
+  top     : 0;
+  margin  : 0;
+  padding : 0;
+}
+div.tfw-layout-sidemenu > div.icon {
+  left           : 0;
+  top            : 0;
+  width          : 32px;
+  height         : 32px;
+  display        : flex;
+  justify-content: center;
+  align-items    : center;
+  border-radius  : 0 0 8px 0;
+}
+div.tfw-layout-sidemenu > div.menu {
+  left      : 0;
+  bottom    : 0;
+  width     : var(--menu-width);
+  transform : translateX(-100%);
+  transition: transform .2s;
+}
+div.tfw-layout-sidemenu.show > div.menu {
+  transform : translateX(0);
+  transition: transform .2s;
+}
+div.tfw-layout-sidemenu > div.menu > header {
+  position       : absolute;
+  left           : 0;
+  top            : 0;
+  right          : 0;
+  height         : 32px;
+  display        : flex;
+  justify-content: center;
+  align-items    : center;
+  overflow       : hidden;
+  padding        : 0 0 0 32px;
+}
+div.tfw-layout-sidemenu > div.menu > menu {
+  position: absolute;
+  left    : 0;
+  top     : 32px;
+  right   : 0;
+  bottom  : 0;
+  overflow: auto;
+  display : block;
+  padding : 8px;
+}
+div.tfw-layout-sidemenu > div.body {
+  position  : absolute;
+  left      : 0;
+  top       : 0;
+  right     : 0;
+  bottom    : 0;
+  transition: left .2s steps(1,jump-start);
+}
+div.tfw-layout-sidemenu.show > div.body {
+  position  : absolute;
+  left      : var(--menu-width);
+  top       : 0;
+  right     : 0;
+  bottom    : 0;
+  transition: left .2s steps(1,jump-end);
+}

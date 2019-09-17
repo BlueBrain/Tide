@@ -1,0 +1,85 @@
+div.tfw-factory-dialog {
+    z-index: 99999;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, .2);
+    padding: 0;
+    overflow: hidden;
+    display: flex !important;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: not-allowed;
+}
+
+div.tfw-factory-dialog.menu {
+    background: transparent;
+}
+
+
+div.tfw-factory-dialog>div {
+    cursor: default;
+    transition: all .2s;
+    transform: scale(0);
+    opacity: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: stretch;
+    max-height: calc(100vh - 16px);
+    max-width: calc(100vw - 16px);
+}
+div.tfw-factory-dialog.show>div {
+    transition: all .2s;
+    transform: scale(1);
+    opacity: 1;
+}
+div.tfw-factory-dialog.menu>div {
+    transform: scale(1);
+}
+div.tfw-factory-dialog.show.menu>div {
+    transform-origin: left top;
+}
+div.tfw-factory-dialog.show>div>div {
+    padding: .5rem;
+    flex: 1 1 auto;
+    overflow: auto;
+    overflow-wrap: anywhere;
+}
+
+div.tfw-factory-dialog>div>footer {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+div.tfw-factory-dialog>div>header {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    font-weight: bold;
+    min-height: 2rem;
+    max-height: 2rem;
+}
+
+div.tfw-factory-dialog>div>header>* {
+    margin: .5em;
+}
+
+div.tfw-factory-dialog>div>footer,
+div.tfw-factory-dialog>div>header,
+div.tfw-factory-dialog>div>hr {
+    flex: 0;
+}
+
+
+div.tfw-factory-dialog.menu>div.thm-ele-dialog {
+    position: absolute;
+    left: 0;
+    top: 0;
+}

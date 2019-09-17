@@ -1,0 +1,24 @@
+div.tfw-behavior-touchable {
+  position      : absolute;
+  overflow      : hidden;
+  z-index       : 999999;
+  pointer-events: none;
+  background    : transparent;
+}
+div.tfw-behavior-touchable > div {
+  position        : absolute;
+  border-radius   : 100%;
+  opacity         : .7;
+  transform       : scale(0);
+  background-color: #000;
+}
+div.tfw-behavior-touchable > div.open {
+  opacity                   : .1;
+  transform                 : scale(1);
+  transition                : all .5s ease;
+  transition-timing-function: cubic-bezier(0.7, 1, .5, -.5);
+}
+div.tfw-behavior-touchable > div.show {
+  transform : scale(1);
+  transition: all .2s ease;
+}
