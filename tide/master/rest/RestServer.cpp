@@ -50,7 +50,7 @@ std::string _getHostname(const std::string& source)
     else
         return source;
 }
-}
+} // namespace
 
 RestServer::RestServer()
 {
@@ -91,12 +91,13 @@ void RestServer::_init()
 
 bool RestServer::_isWhitelisted(const std::string& source) const
 {
-    return _getHostname(source) == "127.0.0.1";
+    return (_getHostname(source) == "127.0.0.1" ||
+            _getHostname(source) == "localhost");
 }
 
 bool RestServer::filter(const http::Request& request) const
 {
-    return _isBlocked(request.method) && !_isWhitelisted(request.origin);
+    return _isBlocked(request.method) && !_isWhitelisted(request.host);
 }
 
 http::Response RestServer::getResponse(const http::Request&) const
