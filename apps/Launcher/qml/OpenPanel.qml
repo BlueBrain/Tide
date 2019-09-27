@@ -1,5 +1,6 @@
-// Copyright (c) 2016-2018, EPFL/Blue Brain Project
-//                          Raphael Dumusc <raphael.dumusc@epfl.ch>
+// Copyright (c) 2019, EPFL/Blue Brain Project
+//                     Pawel Podhajski <pawel.podhajski@epfl.ch>
+
 import QtQuick 2.3
 import QtQuick.Controls 1.3
 import QtQuick.Controls.Styles 1.3
@@ -15,16 +16,15 @@ Item {
     property alias gridViewSortByDate: browser.gridViewSortByDate
     property alias hideExtensions: browser.hideExtensions
 
-    signal saveSession(string filename)
-    signal refreshSessionName
-
-    function search() {
+    function filter() {
         gridViewSortByDate =  false
+        browser.hideFolders(true);
         nameFilters = ["*" + textInput.text + "*.dcx"]
     }
 
-    function clearSearch()
+    function clearFilter()
     {
+        browser.hideFolders(false);
         textInput.text = ""
         textInput.focus = false
         nameFilters = ["*.dcx"]
@@ -38,7 +38,8 @@ Item {
         itemSize: parent.height * Style.fileBrowserItemSizeRel
         onItemSelected: sendJsonRpc("application", "load", file)
         titleBarHeight: parent.height * Style.titleBarRelHeight
-     }
+    }
+
     Rectangle {
         id: textBackground
         width: parent.width
@@ -48,10 +49,10 @@ Item {
 
         TextField {
             id: textInput
-            placeholderText: "Session name"
+            placeholderText: "Search for a session"
             height: parent.height
             anchors.left: parent.left
-            anchors.right: saveButton.left
+            anchors.right: searchButton.left
             style: TextFieldStyle {
                 font.pixelSize: standardTextPixelSize
             }
@@ -72,7 +73,7 @@ Item {
             validator: RegExpValidator {
                 regExp: /[\w.]*/
             }
-            onAccepted: search()
+            onAccepted: filter()
         }
         Button {
             id: clearButton
@@ -94,14 +95,13 @@ Item {
             enabled: {
                 return nameFilters != "*.dcx"
             }
-            onClicked: clearSearch()
+            onClicked: clearFilter()
         }
         Button {
-            id: saveButton
+            id: searchButton
             height: parent.height
             width: parent.width * 0.15
             anchors.right: clearButton.left
-
             style: ButtonStyle {
                 label: Text {
                     renderType: Text.NativeRendering
@@ -112,21 +112,16 @@ Item {
                     color: control.enabled ? "black" : "gray"
                 }
             }
-            text: "search"
+            text: "Search"
             enabled: textInput.text.length > 0
-            onClicked: search()
+            onClicked: filter()
         }
 
     }
     Component.onCompleted: {
         textInput.selectAll()
-        textInput.focus = false
+        textInput.focus = true
         Qt.inputMethod.hide()
-        refreshSessionName()
-    }
-
-    function updateSessionName(session) {
-        textInput.text = session.filename
     }
 
     Loader {

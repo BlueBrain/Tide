@@ -57,7 +57,7 @@ QStringList _toQStringList(const T& set, const FolderModel::SortOrder sortOrder)
         std::transform(set.begin(), set.end(), listInserter, numberToString);
     return list;
 }
-}
+} // namespace
 
 FolderModel::FolderModel()
 {
@@ -166,6 +166,14 @@ void FolderModel::toggleSortOrder()
 bool FolderModel::getHideExtensions() const
 {
     return _hideExtensions;
+}
+
+void FolderModel::hideFolders(bool hide)
+{
+    if (hide)
+        setFilter(QDir::Files | QDir::NoDotAndDotDot);
+    else
+        setFilter(QDir::AllDirs | QDir::Files | QDir::NoDotAndDotDot);
 }
 
 void FolderModel::setRootFolder(QString rootfolder)

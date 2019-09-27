@@ -50,7 +50,7 @@ std::string _getHostname(const std::string& source)
     else
         return source;
 }
-}
+} // namespace
 
 RestServer::RestServer()
 {

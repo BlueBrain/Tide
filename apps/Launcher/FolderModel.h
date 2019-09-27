@@ -112,6 +112,7 @@ public:
     QStringList getYears() const;
 
     Q_INVOKABLE void toggleSortOrder();
+    Q_INVOKABLE void hideFolders(bool hide);
 
 public slots:
     void setRootFolder(QString rootfolder);
