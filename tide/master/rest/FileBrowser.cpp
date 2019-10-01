@@ -84,7 +84,7 @@ std::future<rockets::http::Response> FileBrowser::list(
     using namespace rockets::http;
     auto path = QString::fromStdString(request.path);
     QUrl url;
-    url.setPath(path, QUrl::StrictMode);
+    url.setPath(path, QUrl::TolerantMode);
     path = url.path();
 
     const QString fullpath = _baseDir + "/" + path;
@@ -105,7 +105,7 @@ std::future<rockets::http::Response> FileBrowser::find(
     using namespace rockets::http;
     auto path = QString::fromStdString(request.path);
     QUrl url;
-    url.setPath(path, QUrl::StrictMode);
+    url.setPath(path, QUrl::TolerantMode);
     path = url.path();
     auto queryParam = request.query;
     const QString fullpath = _baseDir + "/" + path;

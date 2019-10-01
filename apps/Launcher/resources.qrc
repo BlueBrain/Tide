@@ -28,6 +28,7 @@
         <file>qml/FileBrowserListView.qml</file>
         <file>qml/FileBrowserViewButton.qml</file>
         <file>qml/LaunchMenu.qml</file>
+        <file>qml/OpenPanel.qml</file>
         <file>qml/OptionsPanel.qml</file>
         <file>qml/SavePanel.qml</file>
         <file>qml/SearchPanel.qml</file>

@@ -48,6 +48,10 @@ Rectangle {
             folders.rootFolder = folders.getParentFolder()
     }
 
+    function hideFolders(hide) {
+             folders.hideFolders(hide);
+    }
+
     function openItem(filePath, fileIsDir) {
         if (fileIsDir)
             goDown(filePath)

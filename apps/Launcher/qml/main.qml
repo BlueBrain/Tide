@@ -96,8 +96,7 @@ Rectangle {
 
     Component {
         id: sessionsBrowser
-        FileBrowser {
-            onItemSelected: sendJsonRpc("application", "load", file)
+        OpenPanel {
             rootfolder: rootSessionsFolder
             nameFilters: ["*.dcx"]
             listViewMode: useListViewMode
