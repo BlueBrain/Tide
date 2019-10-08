@@ -10,8 +10,8 @@
     "@types/react-dom": "16.9.0",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
-    "react-scripts": "3.1.1",
-    "typescript": "3.6.3"
+    "react-scripts": "3.2.0",
+    "typescript": "3.2.1"
   },
   "scripts": {
     "start": "PORT=9999 react-app-rewired start",
