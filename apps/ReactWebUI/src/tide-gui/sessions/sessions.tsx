@@ -48,7 +48,7 @@ export default class Sessions extends React.Component<ISessionsProps, ISessionsS
 
     private async refresh() {
         const response: ISessionReponse[] =
-            await Util.loadJsonFromURL("tide/sessions/")
+            await Util.loadJsonFromURL(`${restUrl}sessions/`)
         const sessionNames = response
             .filter((session: ISessionReponse) => session.dir === false)
             .map((session: ISessionReponse) => session.name)

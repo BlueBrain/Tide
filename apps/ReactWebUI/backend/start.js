@@ -28,4 +28,6 @@ levels.forEach( level => {
         }
     })
 })
+console.log("|   5   |      |   5th floor")
+console.log("|   6   |      |   Open Deck")
 console.log("+-------+------+")

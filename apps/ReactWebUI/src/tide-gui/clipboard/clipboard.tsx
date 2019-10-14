@@ -55,7 +55,7 @@ export default class Apps extends React.Component<IAppsProps, IAppsState> {
 
     async componentDidMount() {
         const response: {windows: IWindow[]}[] =
-            await Util.loadJsonFromURL("tide/windows")
+            await Util.loadJsonFromURL(`${restUrl}windows`)
         if (!response || response.length === 0) return
         const windows = response[0].windows
         if (!windows) return
@@ -84,7 +84,7 @@ export default class Apps extends React.Component<IAppsProps, IAppsState> {
         this.setState({ items }, this.save)
 
         // Loading preview image.
-        const response = await fetch(`tide/windows/${newItem.id}/thumbnail`)
+        const response = await fetch(`${restUrl}windows/${newItem.id}/thumbnail`)
         const img = new Image()
         img.src = await response.text()
         img.onload = () => {

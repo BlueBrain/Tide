@@ -45,7 +45,7 @@ export default class Files extends React.Component<IFilesProps, IFilesState> {
     private refresh = async (): Promise<IFile[]> => {
         const { path } = this
         const response: IFileReponse[] =
-            await Util.loadJsonFromURL("tide/files/" + path.join("/"))
+            await Util.loadJsonFromURL(`${restUrl}files/` + path.join("/"))
         const files = response
             .map((file: IFileReponse): IFile => ({ ...file } as IFile))
             .sort((a: IFile, b: IFile) => {

@@ -53,7 +53,7 @@ export default class Searchs extends React.Component<ISearchsProps, ISearchsStat
         this.setState({ searching: true, files: [] })
         const encodedFilter = encodeURIComponent(filter)
         const response: ISearchResponse[] =
-            (await Util.loadJsonFromURL(`tide/find/?file=${encodedFilter}`)) || []
+            (await Util.loadJsonFromURL(`${restUrl}find/?file=${encodedFilter}`)) || []
         const files = response
             .filter((file: ISearchResponse) => !file.idDir)
             .sort((a: ISearchResponse, b: ISearchResponse) => {

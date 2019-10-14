@@ -1,25 +1,56 @@
-var restUrl = "tide/";
-var closeImageUrl = "img/close.svg";
-var focusCurtain = "focusCurtain";
-var focusImageUrl = "img/focus.svg";
-var fullscreenImageUrl = "img/maximize.svg";
-var loadingGifUrl = "img/loading.gif";
-var fullscreenCurtain = "fullscreenCurtain";
-var lockImageUrl = "img/lock.svg"
-var unlockImageUrl = "img/unlock.svg"
-var screenOffImageUrl = "img/screenOff.svg"
-var screenOnImageUrl = "img/screenOn.svg"
-var stickyBezelDefaultSize = 12;
-var wallOutlineWidth = 12;
-var modeFocus = 1;
-var modeFullscreen = 2;
-var refreshInterval = 1000;
-var zIndexFullscreenCurtain = 99;
-var zIndexFocusCurtain = 97;
-var zIndexFocus = 98;
-var zIndexFullscreen = 100;
-var zoomInterval = 50;
-var showEffectSpeed = 200;
-var maxUploadSizeMBWithoutWarning = 200;
-var maxUploadSizeMB = 1024;
-var MBtoB = 1048576;
+const tideVarsTools = {
+    parse() {
+        const args = {},
+            t = window.location.search;
+
+        if (t.length < 2) return args;
+        const items = t.substring(1).split('&');
+        items.forEach((item, index) => {
+            const itemWithSpacesInsteadOfPlus = item.split("+").join(" ");
+            const indexOfEqual = itemWithSpacesInsteadOfPlus.indexOf("=");
+            if (indexOfEqual === -1) {
+                args[`${index}`] = itemWithSpacesInsteadOfPlus;
+            } else {
+                const key = itemWithSpacesInsteadOfPlus.substr(0, indexOfEqual);
+                const val = itemWithSpacesInsteadOfPlus.substr(indexOfEqual + 1);
+                args[key] = decodeURIComponent(val);
+            }
+        });
+
+        return args;
+    },
+
+    pad(txt) {
+        if (!txt) return ""
+        while (txt.length < 2) txt = '0' + txt
+        return txt + '/'
+    }
+}
+
+const args = tideVarsTools.parse()
+
+const restUrl = `tide/${tideVarsTools.pad(args.wall)}`;
+const closeImageUrl = "img/close.svg";
+const focusCurtain = "focusCurtain";
+const focusImageUrl = "img/focus.svg";
+const fullscreenImageUrl = "img/maximize.svg";
+const loadingGifUrl = "img/loading.gif";
+const fullscreenCurtain = "fullscreenCurtain";
+const lockImageUrl = "img/lock.svg"
+const unlockImageUrl = "img/unlock.svg"
+const screenOffImageUrl = "img/screenOff.svg"
+const screenOnImageUrl = "img/screenOn.svg"
+const stickyBezelDefaultSize = 12;
+const wallOutlineWidth = 12;
+const modeFocus = 1;
+const modeFullscreen = 2;
+const refreshInterval = 1000;
+const zIndexFullscreenCurtain = 99;
+const zIndexFocusCurtain = 97;
+const zIndexFocus = 98;
+const zIndexFullscreen = 100;
+const zoomInterval = 50;
+const showEffectSpeed = 200;
+const maxUploadSizeMBWithoutWarning = 200;
+const maxUploadSizeMB = 1024;
+const MBtoB = 1048576;

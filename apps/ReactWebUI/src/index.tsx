@@ -1,6 +1,7 @@
 import React from 'react';
-import FilesView, { IFile } from './tide-gui/files'
+import FilesView from './tide-gui/files'
 import AppsView from './tide-gui/apps'
+import WallView from './tide-gui/wall'
 import SearchView from './tide-gui/search'
 import SessionsView from './tide-gui/sessions'
 import ClipboardView from './tide-gui/clipboard'
@@ -8,10 +9,13 @@ import Theme from './tfw/theme'
 import Dialog from './tfw/factory/dialog'
 import Button from './tfw/view/button'
 import Gesture from './tfw/gesture'
+import Args from './tfw/url-args'
 
 import * as serviceWorker from './serviceWorker';
 
 import './index.css'
+
+const wallIndex = parseInt(Args.parse().wall)
 
 
 Theme.register("default", {
@@ -23,12 +27,19 @@ Theme.register("default", {
 Theme.apply("default");
 
 const appsButton = document.getElementById('appsButton2')
+const wallButton = document.getElementById('wallButton')
 const fileButton = document.getElementById('fileButton')
 const searchButton = document.getElementById('searchButton')
 const sessionButton = document.getElementById('sessionButton2')
 const clipboardButton = document.getElementById('clipboardButton')
 
 function start() {
+    if (wallButton) {
+        Gesture(wallButton).on({
+            tap: showWallMenu
+        })
+    }
+
     if (appsButton) {
         Gesture(appsButton).on({
             tap: showAppMenu
@@ -134,6 +145,22 @@ function showFileMenu() {
 }
 
 
+function showWallMenu() {
+
+    const dialog = Dialog.show({
+        closeOnEscape: true,
+        target: wallButton,
+        width: 480,
+        maxWidth: 480,
+        content: <WallView
+                    wall={wallIndex}
+                    onClick={(wall: number) => window.location = `?wall=${wall}`} />,
+        footer: <Button flat={true}
+                    label="Close (you can also press ESC)" icon="close"
+                    onClick={() => dialog.hide()} />
+    })
+}
+
 function showSearchMenu() {
     const onOpen = (uri: string) => {
         dialog.hide()
@@ -192,5 +219,18 @@ function showClipboardMenu() {
         footer: <Button flat={true}
                     label="Close (you can also press ESC)" icon="close"
                     onClick={() => dialog.hide()} />
+    })
+}
+
+
+// Check if the "wall" argument has been set correctly.
+if (wallIndex !== 0 && wallIndex !== 5 && wallIndex !== 6) {
+    Dialog.show({
+        closeOnEscape: false,
+        target: wallButton,
+        width: 480,
+        maxWidth: 480,
+        content: <WallView onClick={(wall: number) => window.location = `?wall=${wall}`} />,
+        footer: <div/>
     })
 }

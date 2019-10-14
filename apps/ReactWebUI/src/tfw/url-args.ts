@@ -6,7 +6,7 @@ const UrlArgs = {
     parse(): IMap {
         const
             args: IMap = {},
-            t = location.search;
+            t = window.location.search;
 
         if (t.length < 2) return args;
         const items = t.substring(1).split('&');

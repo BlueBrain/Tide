@@ -1,0 +1,19 @@
+div.tideGui-Wall > div {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    margin: 1rem;
+}
+
+div.tideGui-Wall > div img.wall {
+    width: 320px;
+    border: .5rem solid #fff;
+    margin: .5rem;
+}
+
+div.tideGui-Wall > div img.wall.disabled {
+    filter: grayscale(100%);
+    border: .5rem solid #000;
+    transform: scale(.8);
+}
