@@ -22,8 +22,7 @@ const tideVarsTools = {
 
     pad(txt) {
         if (!txt) return ""
-        while (txt.length < 2) txt = '0' + txt
-        return txt + '/'
+        return `${txt}/`
     }
 }
 
