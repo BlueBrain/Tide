@@ -19,6 +19,7 @@ export interface IWallInfo {
     name: string,
     locked: boolean,
     power: boolean,
+    powerIsUndef: boolean,
     width: number,
     height: number
 }
@@ -54,7 +55,8 @@ async function getWallsStatus(): Promise<IWallInfo[]> {
             width: surfaceSize[0],
             height: surfaceSize[1],
             locked: locked !== 0,
-            power: power === 2
+            power: power === 1,
+            powerIsUndef: power === 2
         })
     })
 

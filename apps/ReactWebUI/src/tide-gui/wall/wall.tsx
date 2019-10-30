@@ -37,7 +37,7 @@ export default class Wall extends React.Component<IWallProps, {}> {
                         <Icon content="tv" size={28}/>
                     </div>
                 </div>
-                <div className={wall.power ? 'on' : 'off'}>{wall.power ? 'ON' : 'OFF'}</div>
+                <div className={wall.power ? 'on' : 'off'}>{getPowerLabel(wall)}</div>
             </div>
             <div>
                 <div>{wall.name}</div>
@@ -67,4 +67,15 @@ export default class Wall extends React.Component<IWallProps, {}> {
             </div>
         )
     }
+}
+
+
+/**
+ * Power can be ON, OFF or undefined.
+ * In the later case, we want to display a question mark.
+ */
+function getPowerLabel(wall: IWallInfo): string {
+    if (wall.power) return 'ON'
+    if (wall.powerIsUndef) return '?'
+    return 'OFF'
 }
