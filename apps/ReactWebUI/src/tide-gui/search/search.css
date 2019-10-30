@@ -31,3 +31,7 @@ div.tideGuide-Searchs > div.wait {
     align-items: center;
     flex: 1 1 auto;
 }
+
+div.tideGuide-Searchs div.wide {
+    flex: 1 1 auto;
+}

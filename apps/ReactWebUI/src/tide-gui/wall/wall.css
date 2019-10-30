@@ -6,6 +6,44 @@ div.tideGui-Wall > div {
     margin: 1rem;
 }
 
+div.tideGui-Wall > div > div.wait {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+div.tideGui-Wall div.power-status {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    flex: 0 0 auto;
+}
+
+div.tideGui-Wall div.power-status div.on,
+div.tideGui-Wall div.power-status div.off {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    left: 3px;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    text-align: center;
+    font-size: 60%;
+}
+
+div.tideGui-Wall div.power-status div.on {
+    font-weight: bold;
+}
+
+div.tideGui-Wall div.power-status div.off {
+    opacity: .6;
+}
+
 div.tideGui-Wall > div > div.wall-button {
     width: 320px;
     margin: .5rem;
@@ -26,7 +64,11 @@ div.tideGui-Wall > div > div.wall-button > div {
     flex: 1 1 auto;
 }
 
-div.tideGui-Wall > div > div.wall-button > div.icon {
+div.tideGui-Wall > div > div.wall-button > div.power-status {
+    flex: 0 0 auto;
+}
+
+div.tideGui-Wall > div > div.wall-button div.icon {
     position: relative;
     flex: 0 0 auto;
     width: 28px;
@@ -35,7 +77,7 @@ div.tideGui-Wall > div > div.wall-button > div.icon {
     overflow: visible;
 }
 
-div.tideGui-Wall > div > div.wall-button > div.icon > div {
+div.tideGui-Wall > div > div.wall-button div.icon > div {
     position: absolute;
     left: 0;
     top: 0;
@@ -45,13 +87,13 @@ div.tideGui-Wall > div > div.wall-button > div.icon > div {
     pading: 0;
 }
 
-div.tideGui-Wall > div > div.wall-button > div.icon > div.power-on {
+div.tideGui-Wall > div > div.wall-button div.icon > div.power-on {
     filter: blur(2px);
     opacity: 1;
     transition: all .3s;
 }
 
-div.tideGui-Wall > div > div.wall-button > div.icon > div.power-off {
+div.tideGui-Wall > div > div.wall-button div.icon > div.power-off {
     filter: blur(0);
     opacity: 0.5;
     transition: all .3s;

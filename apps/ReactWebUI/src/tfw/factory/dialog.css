@@ -14,7 +14,6 @@ div.tfw-factory-dialog {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    cursor: not-allowed;
 }
 
 div.tfw-factory-dialog.menu {

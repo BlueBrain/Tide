@@ -40,19 +40,14 @@ async function getWallsStatus(): Promise<IWallInfo[]> {
         return []
     }
     const sources = json.hits.hits.map((hit: any) => hit._source)
-        .sort((s1: {time: string}, s2: {time: string}) => {
-            const d1 = s1.time
-            const d2 = s2.time
-            if (d1 < d2) return -1
-            if (d1 > d2) return +1
-            return 0
-        })
+        .sort(sortByDecreasingTime)
     const wallNames: Set<string> = new Set()
     const walls: IWallInfo[] = []
     sources.forEach((source: ISource) => {
         const { name, proxy_endpoint, locked, power, surfaceSize } = source
         if (typeof name !== 'string') return
         if (wallNames.has(name)) return
+        console.info("source=", source);
         wallNames.add(name)
         walls.push({
             name,
@@ -60,7 +55,7 @@ async function getWallsStatus(): Promise<IWallInfo[]> {
             width: surfaceSize[0],
             height: surfaceSize[1],
             locked: locked !== 0,
-            power: power !== 0
+            power: power === 1
         })
     })
 
@@ -85,5 +80,14 @@ function sortByName(w1: IWallInfo, w2: IWallInfo) {
     const n2 = w2.name
     if (n1 < n2) return -1
     if (n1 > n2) return +1
+    return 0
+}
+
+
+function sortByDecreasingTime(s1: {time: string}, s2: {time: string}) {
+    const d1 = s1.time
+    const d2 = s2.time
+    if (d1 > d2) return -1
+    if (d1 < d2) return +1
     return 0
 }

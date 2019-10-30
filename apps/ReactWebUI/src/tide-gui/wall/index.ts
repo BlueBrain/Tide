@@ -1,1 +1,1 @@
-export { default } from './wall'
+export { default } from './wall.container'

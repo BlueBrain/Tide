@@ -24,3 +24,7 @@ div.tideGuide-Files > div {
 div#sessionMenu.react-root {
     overflow: visible;
 }
+
+div.tideGuide-Files div.wide {
+    flex: 1 1 auto;
+}

@@ -1,3 +1,12 @@
+/**
+ * Here is a React strapping on a vanilla JS app.
+ * All the vanilla JS stands in "/public/js" folder.
+ *
+ * Here, we add events on few menu buttons.
+ * We also start a pulling on walls status.
+ * This status is pushed to the global App State (in Redux way).
+ */
+
 import React from 'react';
 import FilesView from './tide-gui/files'
 import AppsView from './tide-gui/apps'
@@ -9,13 +18,17 @@ import Theme from './tfw/theme'
 import Dialog from './tfw/factory/dialog'
 import Button from './tfw/view/button'
 import Gesture from './tfw/gesture'
+import castInteger from './tfw/converter/integer'
 import Args from './tfw/url-args'
+import { Provider } from 'react-redux'
+import State from './tide-gui/state'
+import QueryService from './tide-gui/service/query'
 
 import * as serviceWorker from './serviceWorker';
 
 import './index.css'
 
-const wallIndex = parseInt(Args.parse().wall)
+const wallIndex = castInteger(Args.parse().wall, -1)
 
 
 Theme.register("default", {
@@ -34,39 +47,41 @@ const sessionButton = document.getElementById('sessionButton2')
 const clipboardButton = document.getElementById('clipboardButton')
 
 function start() {
+    window.setInterval(startWallInfoPulling, 1000)
+
     if (wallButton) {
         Gesture(wallButton).on({
-            tap: showWallMenu
+            down: showWallMenu
         })
     }
 
     if (appsButton) {
         Gesture(appsButton).on({
-            tap: showAppMenu
+            down: showAppMenu
         })
     }
 
     if (sessionButton) {
         Gesture(sessionButton).on({
-            tap: showSessionMenu
+            down: showSessionMenu
         })
     }
 
     if (fileButton) {
         Gesture(fileButton).on({
-            tap: showFileMenu
+            down: showFileMenu
         })
     }
 
     if (searchButton) {
         Gesture(searchButton).on({
-            tap: showSearchMenu
+            down: showSearchMenu
         })
     }
 
     if (clipboardButton) {
         Gesture(clipboardButton).on({
-            tap: showClipboardMenu
+            down: showClipboardMenu
         })
     }
 }
@@ -126,7 +141,6 @@ function showSessionMenu() {
     })
 }
 
-
 function showFileMenu() {
     const onOpen = (uri: string) => {
         sendAppJsonRpc("open", { uri }, updateWall)
@@ -144,17 +158,23 @@ function showFileMenu() {
     })
 }
 
-
+/**
+ * Button WALL
+ */
 function showWallMenu() {
-
+    const view = (
+        <Provider store={State.store}>
+            <WallView
+                wall={wallIndex}
+                onClick={(wall: number) => window.location = `?wall=${wall}`} />
+        </Provider>
+    )
     const dialog = Dialog.show({
         closeOnEscape: true,
         target: wallButton,
         width: 480,
         maxWidth: 480,
-        content: <WallView
-                    wall={wallIndex}
-                    onClick={(wall: number) => window.location = `?wall=${wall}`} />,
+        content: view,
         footer: <Button flat={true}
                     label="Close (you can also press ESC)" icon="close"
                     onClick={() => dialog.hide()} />
@@ -178,7 +198,6 @@ function showSearchMenu() {
                     onClick={() => dialog.hide()} />
     })
 }
-
 
 function showAppMenu() {
     const onOpenBrowser = (uri: string) => {
@@ -204,7 +223,6 @@ function showAppMenu() {
     })
 }
 
-
 function showClipboardMenu() {
     const onOpenFile = (uri: string) => {
         sendAppJsonRpc("open", { uri }, updateWall)
@@ -222,9 +240,8 @@ function showClipboardMenu() {
     })
 }
 
-
 // Check if the "wall" argument has been set correctly.
-if (wallIndex !== 0 && wallIndex !== 5 && wallIndex !== 6) {
+if (wallIndex === -1) {
     Dialog.show({
         closeOnEscape: false,
         target: wallButton,
@@ -233,4 +250,10 @@ if (wallIndex !== 0 && wallIndex !== 5 && wallIndex !== 6) {
         content: <WallView onClick={(wall: number) => window.location = `?wall=${wall}`} />,
         footer: <div/>
     })
+}
+
+
+async function startWallInfoPulling() {
+    const walls = await QueryService.getWallsStatus()
+    State.dispatch(State.Walls.reset(walls))
 }

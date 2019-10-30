@@ -1,43 +1,17 @@
 import React from "react"
 import Icon from '../../tfw/view/icon'
 import Touchable from '../../tfw/view/touchable'
-import QueryService, { IWallInfo } from '../service/query'
+import { IWallInfo } from '../service/query'
 
 import "./wall.css"
 
 interface IWallProps {
     wall?: number,
+    walls: IWallInfo[],
     onClick: (wallNumber: number) => void
 }
 
-interface IWallState {
-    walls: IWallInfo[]
-}
-
-export default class Wall extends React.Component<IWallProps, IWallState> {
-    private intervalId: number = 0
-
-    constructor(props: IWallProps) {
-        super(props)
-        this.state = {
-            walls: []
-        }
-    }
-
-    componentDidMount() {
-        this.intervalId = window.setInterval(this.refreshWallsInfo, 1000)
-    }
-
-    componentWillUnmount() {
-        window.clearInterval(this.intervalId)
-        this.intervalId = 0
-    }
-
-    private refreshWallsInfo = async () => {
-        const walls = await QueryService.getWallsStatus()
-        this.setState({ walls })
-    }
-
+export default class Wall extends React.Component<IWallProps, {}> {
     renderWall = (wall: IWallInfo) => {
         const enabled = wall.id !== this.props.wall
         const classes = ["wall-button"]
@@ -51,16 +25,19 @@ export default class Wall extends React.Component<IWallProps, IWallState> {
                     classNames={classes}
                     enabled={enabled}
                     onClick={() => this.props.onClick(wall.id)}>
-            <div className="icon">
-                <div className={wall.power ? 'power-on' : 'power-off'}>
-                    <Icon content="tv" size={28} pen0="#0f0"/>
+            <div className="power-status">
+                <div className="icon">
+                    <div className={wall.power ? 'power-on' : 'power-off'}>
+                        <Icon content="tv" size={28} pen0="#ff0"/>
+                    </div>
+                    <div className={wall.power ? 'power-on' : 'power-off'}>
+                        <Icon content="tv" size={28} pen0="#ff0"/>
+                    </div>
+                    <div>
+                        <Icon content="tv" size={28}/>
+                    </div>
                 </div>
-                <div className={wall.power ? 'power-on' : 'power-off'}>
-                    <Icon content="tv" size={28} pen0="#0f0"/>
-                </div>
-                <div>
-                    <Icon content="tv" size={28}/>
-                </div>
+                <div className={wall.power ? 'on' : 'off'}>{wall.power ? 'ON' : 'OFF'}</div>
             </div>
             <div>
                 <div>{wall.name}</div>
@@ -75,11 +52,19 @@ export default class Wall extends React.Component<IWallProps, IWallState> {
     }
 
     render() {
-        return (<div className="tideGui-Wall">
-            <h1>Please select a display wall</h1>
-            <div>{
-                this.state.walls.map(this.renderWall)
-            }</div>
-        </div>)
+        return (
+            <div className="tideGui-Wall">
+                <h1>Please select a display wall</h1>
+                <div>{
+                    this.props.walls.length === 0 ?
+                    <div className="wait">
+                        <Icon content="wait" animate={true}/>
+                        <div>Checking wall screens status...</div>
+                    </div>
+                    :
+                    this.props.walls.map(this.renderWall)
+                }</div>
+            </div>
+        )
     }
 }

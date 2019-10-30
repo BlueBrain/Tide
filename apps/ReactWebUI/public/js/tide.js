@@ -1,4 +1,5 @@
 "use strict";
+
 var activeSurfaceIndex = 0;
 var bezelWidth;
 var bezelHeight;
@@ -23,7 +24,7 @@ var timer;
 window.onresize = setScale;
 
 $(init);
-rest
+
 function alertPopup(title, text) {
   swal({
       title: title,

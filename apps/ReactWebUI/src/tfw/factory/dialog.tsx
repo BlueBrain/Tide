@@ -67,12 +67,16 @@ class Dialog {
         this.hide = this.hide.bind(this);
         if (this._options.closeOnEscape) {
             EscapeHandler.add(() => this._hide());
-            const hideIfScreenIsTapped = (evt) => {
+            const hideIfScreenIsTapped = (evt: MouseEvent | TouchEvent) => {
                 if (evt.target !== screen) return
                 this.hide()
+                window.setTimeout(() => {
+                    document.dispatchEvent(evt)
+                }, 500)
+
             }
-            screen.addEventListener("mousedown", hideIfScreenIsTapped)
-            screen.addEventListener("touchstart", hideIfScreenIsTapped)
+            screen.addEventListener("mousedown", hideIfScreenIsTapped, false)
+            screen.addEventListener("touchstart", hideIfScreenIsTapped, false)
         }
         if (options.target) {
             screen.classList.add("menu")
