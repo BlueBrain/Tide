@@ -47,7 +47,6 @@ async function getWallsStatus(): Promise<IWallInfo[]> {
         const { name, proxy_endpoint, locked, power, surfaceSize } = source
         if (typeof name !== 'string') return
         if (wallNames.has(name)) return
-        console.info("source=", source);
         wallNames.add(name)
         walls.push({
             name,
@@ -55,7 +54,7 @@ async function getWallsStatus(): Promise<IWallInfo[]> {
             width: surfaceSize[0],
             height: surfaceSize[1],
             locked: locked !== 0,
-            power: power === 1
+            power: power === 2
         })
     })
 
