@@ -46,18 +46,18 @@ div.tideGui-Wall div.power-status div.off {
 
 div.tideGui-Wall > div > div.wall-button {
     width: 320px;
-    margin: .5rem;
+    margin: .25rem;
     height: 64px;
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
     align-items: center;
-    opacity: .5;
+    border: none;
 }
 
-div.tideGui-Wall > div > div.wall-button.enabled {
-    opacity: 1;
+div.tideGui-Wall > div > div.wall-button.active {
     border: 1px solid var(--thm-black-5);
+    margin: .5rem;
 }
 
 div.tideGui-Wall > div > div.wall-button > div {
@@ -97,4 +97,9 @@ div.tideGui-Wall > div > div.wall-button div.icon > div.power-off {
     filter: blur(0);
     opacity: 0.5;
     transition: all .3s;
+}
+
+div.tideGui-Wall div.date {
+    font-size: 70%;
+    opacity: .5;
 }

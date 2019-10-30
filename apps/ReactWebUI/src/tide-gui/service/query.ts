@@ -11,7 +11,8 @@ interface ISource {
     locked: number,
     status: number,
     surfaceSize: [number, number],
-    proxy_endpoint: string
+    proxy_endpoint: string,
+    last_event_date: string
 }
 
 export interface IWallInfo {
@@ -21,7 +22,8 @@ export interface IWallInfo {
     power: boolean,
     powerIsUndef: boolean,
     width: number,
-    height: number
+    height: number,
+    lastInteraction: Date
 }
 
 
@@ -56,7 +58,8 @@ async function getWallsStatus(): Promise<IWallInfo[]> {
             height: surfaceSize[1],
             locked: locked !== 0,
             power: power === 1,
-            powerIsUndef: power === 2
+            powerIsUndef: power === 2,
+            lastInteraction: new Date(`${source.last_event_date}Z`)
         })
     })
 

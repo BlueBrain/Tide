@@ -46,9 +46,7 @@ const searchButton = document.getElementById('searchButton')
 const sessionButton = document.getElementById('sessionButton2')
 const clipboardButton = document.getElementById('clipboardButton')
 
-function start() {
-    window.setInterval(startWallInfoPulling, 1000)
-
+async function start() {
     if (wallButton) {
         Gesture(wallButton).on({
             down: showWallMenu
@@ -84,6 +82,13 @@ function start() {
             down: showClipboardMenu
         })
     }
+
+    await refreshWalls()
+}
+
+async function refreshWalls() {
+    const walls = await QueryService.getWallsStatus()
+    State.dispatch(State.Walls.reset(walls))
 }
 
 start()
@@ -162,6 +167,8 @@ function showFileMenu() {
  * Button WALL
  */
 function showWallMenu() {
+    const intervalId = window.setInterval(refreshWalls, 1000)
+
     const view = (
         <Provider store={State.store}>
             <WallView
@@ -171,6 +178,10 @@ function showWallMenu() {
     )
     const dialog = Dialog.show({
         closeOnEscape: true,
+        onClose: () => {
+            console.log("CLOSE!!!")
+            window.clearInterval(intervalId)
+        },
         target: wallButton,
         width: 480,
         maxWidth: 480,
@@ -250,10 +261,4 @@ if (wallIndex === -1) {
         content: <WallView onClick={(wall: number) => window.location = `?wall=${wall}`} />,
         footer: <div/>
     })
-}
-
-
-async function startWallInfoPulling() {
-    const walls = await QueryService.getWallsStatus()
-    State.dispatch(State.Walls.reset(walls))
 }

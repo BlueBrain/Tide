@@ -16,14 +16,14 @@ export default class Wall extends React.Component<IWallProps, {}> {
         const enabled = wall.id !== this.props.wall
         const classes = ["wall-button"]
         if (enabled) {
-            classes.push("thm-ele-button thm-bg2")
+            classes.push("thm-ele-button", "thm-bg2")
         } else {
-            classes.push("disabled")
+            // "active" means that this is the currently active Wall.
+            classes.push("active", "thm-ele-nav", "thm-bg3")
         }
         return <Touchable
                     key={wall.name}
                     classNames={classes}
-                    enabled={enabled}
                     onClick={() => this.props.onClick(wall.id)}>
             <div className="power-status">
                 <div className="icon">
@@ -41,6 +41,8 @@ export default class Wall extends React.Component<IWallProps, {}> {
             </div>
             <div>
                 <div>{wall.name}</div>
+                <div className="date">{`Last interaction ${
+                    getSmartDate(wall.lastInteraction)}`}</div>
             </div>
             <div className="icon">
                 <div>
@@ -78,4 +80,38 @@ function getPowerLabel(wall: IWallInfo): string {
     if (wall.power) return 'ON'
     if (wall.powerIsUndef) return '?'
     return 'OFF'
+}
+
+
+/**
+ * Return stuff like "3 min. ago",
+ * or "at 11:42 AM"
+ * or "on Feb 13 2019 at 8:12 PM"
+ */
+function getSmartDate(date: Date): string {
+    const now = new Date()
+    const ss = (now.getTime() - date.getTime()) * 0.001
+    const mm = Math.ceil(ss / 60)
+
+    if (mm < 60) return `${mm} min. ago`
+    if (now.getFullYear() === date.getFullYear()
+            && now.getMonth() === date.getMonth()
+            && now.getDate() === date.getDate()) {
+        if (date.getHours() < 13) {
+            return `at ${date.getHours()}:${pad(date.getMinutes())} AM`
+        }
+        else {
+            return `at ${date.getHours() - 12}:${pad(date.getMinutes())} PM`
+        }
+    }
+    return `on ${date.toLocaleString()}`
+}
+
+
+function pad(num: number, length: number = 2): string {
+    let txt = `${num}`
+    while (txt.length < length) {
+        txt = `0${txt}`
+    }
+    return txt
 }
