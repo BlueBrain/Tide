@@ -54,7 +54,7 @@ async function start() {
 
     if (wallButton) {
         Gesture(wallButton).on({
-            down: showWallMenu
+            down: () => showWallMenu(true)
         })
     }
 
@@ -171,7 +171,7 @@ function showFileMenu() {
 /**
  * Button WALL
  */
-function showWallMenu(closable: boolean = true) {
+function showWallMenu(closable: boolean) {
     const intervalId = window.setInterval(refreshWalls, 1000)
 
     const view = (
@@ -181,6 +181,7 @@ function showWallMenu(closable: boolean = true) {
                 onClick={(wall: number) => window.location.href = `?wall=${wall}`} />
         </Provider>
     )
+    console.info("closable=", closable);
     const dialog = Dialog.show({
         closeOnEscape: closable,
         onClose: () => {
