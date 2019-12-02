@@ -28,17 +28,6 @@ import * as serviceWorker from './serviceWorker';
 
 import './index.css'
 
-const wallIndex = castInteger(Args.parse().wall, -1)
-
-
-Theme.register("default", {
-    white: "#eef", black: "#000",
-    bg0: "#ccc", bg3: "#fff",
-    bgP: "#014f86",
-    bgS: "#ff8800"
-});
-Theme.apply("default");
-
 const appsButton = document.getElementById('appsButton2')
 const wallButton = document.getElementById('wallButton')
 const fileButton = document.getElementById('fileButton')
@@ -46,7 +35,23 @@ const searchButton = document.getElementById('searchButton')
 const sessionButton = document.getElementById('sessionButton2')
 const clipboardButton = document.getElementById('clipboardButton')
 
+const wallIndex = castInteger(Args.parse().wall, -1)
+
 async function start() {
+    Theme.register("default", {
+        white: "#eef", black: "#000",
+        bg0: "#ccc", bg3: "#fff",
+        bgP: "#014f86",
+        bgS: "#ff8800"
+    });
+    Theme.apply("default");
+
+    // Check if the "wall" argument has been set correctly.
+    if (wallIndex === -1) {
+        showWallMenu(false)
+        return
+    }
+
     if (wallButton) {
         Gesture(wallButton).on({
             down: showWallMenu
@@ -86,12 +91,12 @@ async function start() {
     await refreshWalls()
 }
 
+start()
+
 async function refreshWalls() {
     const walls = await QueryService.getWallsStatus()
     State.dispatch(State.Walls.reset(walls))
 }
-
-start()
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.
@@ -166,29 +171,28 @@ function showFileMenu() {
 /**
  * Button WALL
  */
-function showWallMenu() {
+function showWallMenu(closable: boolean = true) {
     const intervalId = window.setInterval(refreshWalls, 1000)
 
     const view = (
         <Provider store={State.store}>
             <WallView
                 wall={wallIndex}
-                onClick={(wall: number) => window.location = `?wall=${wall}`} />
+                onClick={(wall: number) => window.location.href = `?wall=${wall}`} />
         </Provider>
     )
     const dialog = Dialog.show({
-        closeOnEscape: true,
+        closeOnEscape: closable,
         onClose: () => {
-            console.log("CLOSE!!!")
             window.clearInterval(intervalId)
         },
-        target: wallButton,
+        target: wallButton || undefined,
         width: 480,
         maxWidth: 480,
         content: view,
-        footer: <Button flat={true}
+        footer: closable ? <Button flat={true}
                     label="Close (you can also press ESC)" icon="close"
-                    onClick={() => dialog.hide()} />
+                    onClick={() => dialog.hide()} /> : null
     })
 }
 
@@ -200,7 +204,7 @@ function showSearchMenu() {
 
     const dialog = Dialog.show({
         closeOnEscape: true,
-        target: searchButton,
+        target: searchButton || undefined,
         width: 480,
         maxWidth: 480,
         content: <SearchView onOpen={onOpen} />,
@@ -241,24 +245,12 @@ function showClipboardMenu() {
 
     const dialog = Dialog.show({
         closeOnEscape: true,
-        target: clipboardButton,
+        target: clipboardButton || undefined,
         width: 480,
         maxWidth: 480,
         content: <ClipboardView onOpenFile={onOpenFile}/>,
         footer: <Button flat={true}
                     label="Close (you can also press ESC)" icon="close"
                     onClick={() => dialog.hide()} />
-    })
-}
-
-// Check if the "wall" argument has been set correctly.
-if (wallIndex === -1) {
-    Dialog.show({
-        closeOnEscape: false,
-        target: wallButton,
-        width: 480,
-        maxWidth: 480,
-        content: <WallView onClick={(wall: number) => window.location = `?wall=${wall}`} />,
-        footer: <div/>
     })
 }

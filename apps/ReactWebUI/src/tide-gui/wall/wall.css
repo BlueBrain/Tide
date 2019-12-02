@@ -58,6 +58,7 @@ div.tideGui-Wall > div > div.wall-button {
 div.tideGui-Wall > div > div.wall-button.active {
     border: 1px solid var(--thm-black-5);
     margin: .5rem;
+    box-shadow: 0 0 1px 3px #FF0;
 }
 
 div.tideGui-Wall > div > div.wall-button > div {

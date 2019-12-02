@@ -23,13 +23,20 @@ export interface IWallInfo {
     powerIsUndef: boolean,
     width: number,
     height: number,
-    lastInteraction: Date
+    lastInteraction?: Date
 }
 
 
 async function getWallsStatus(): Promise<IWallInfo[]> {
     const now = new Date()
-    const date = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1)
+    const date = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        now.getHours(),
+        now.getMinutes() - 1,
+        0 // Seconds will not be used in Kibana query string.
+    )
     const q = `{"range":{"time":{"gte":"${getKibanaFormattedDate(date)}","lte":"now"}}}`
     const sq = `"${q}"`
 
@@ -72,10 +79,12 @@ async function getWallsStatus(): Promise<IWallInfo[]> {
 function getKibanaFormattedDate(d: Date): string {
     // It looks like an ISO format.
     const iso = d.toISOString()
-    // But without seconds and without trailing "Z".
-    const kibanaDate = iso.substr(0, iso.length - ":00:00.000Z".length)
+    // But without seconds, milliseconds and trailing "Z".
+    const kibanaDateWithoutSeconds = iso.substr(0, iso.length - ":00.000Z".length)
+    const kibanaDateWithoutMinutes = kibanaDateWithoutSeconds.substr(0, kibanaDateWithoutSeconds.length - ':00'.length)
+    const minutes = kibanaDateWithoutSeconds.substr(kibanaDateWithoutSeconds.length - '00'.length)
     // And a wierd escaped colon.
-    return kibanaDate + "\\:00"
+    return `${kibanaDateWithoutMinutes}\\:${minutes}`
 }
 
 

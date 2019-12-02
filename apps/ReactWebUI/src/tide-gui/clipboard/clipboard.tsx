@@ -161,9 +161,11 @@ export default class Apps extends React.Component<IAppsProps, IAppsState> {
                             key={item.url}
                             title={item.name}
                             onClick={() => this.handlePreviewClick(item.url)}>
-                        <img src={item.image} style={{
-                            width: `${item.width}px`,
-                            height: `${item.height}px`
+                        <img src={item.image}
+                             alt=""
+                             style={{
+                                width: `${item.width}px`,
+                                height: `${item.height}px`
                         }}/>
                         <Button
                             icon="close"

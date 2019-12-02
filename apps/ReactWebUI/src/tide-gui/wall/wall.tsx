@@ -11,15 +11,64 @@ interface IWallProps {
     onClick: (wallNumber: number) => void
 }
 
+const DEFAULT_WALLS: IWallInfo[] = [
+  {
+    "name": "B1.00 Ground Floor",
+    "id": 0,
+    "width": 7716,
+    "height": 3264,
+    "locked": false,
+    "power": false,
+    "powerIsUndef": false
+  },
+  {
+    "name": "B1.03 Third Floor (coffee area)",
+    "id": 3,
+    "width": 7720,
+    "height": 2160,
+    "locked": false,
+    "power": false,
+    "powerIsUndef": false
+  },
+  {
+    "name": "B1.04 OpenDeck",
+    "id": 4,
+    "width": 11940,
+    "height": 3424,
+    "locked": false,
+    "power": false,
+    "powerIsUndef": false
+  },
+  {
+    "name": "B1.05 Fifth Floor",
+    "id": 5,
+    "width": 5784,
+    "height": 3264,
+    "locked": false,
+    "power": false,
+    "powerIsUndef": false
+  },
+  {
+    "name": "B1.06 Sixth Floor",
+    "id": 6,
+    "width": 7716,
+    "height": 3264,
+    "locked": false,
+    "power": false,
+    "powerIsUndef": false
+  }
+]
+
+
 export default class Wall extends React.Component<IWallProps, {}> {
     renderWall = (wall: IWallInfo) => {
         const enabled = wall.id !== this.props.wall
         const classes = ["wall-button"]
         if (enabled) {
-            classes.push("thm-ele-button", "thm-bg2")
+            classes.push("thm-ele-nav", "thm-bg3")
         } else {
             // "active" means that this is the currently active Wall.
-            classes.push("active", "thm-ele-nav", "thm-bg3")
+            classes.push("active", "thm-bg1")
         }
         return <Touchable
                     key={wall.name}
@@ -41,8 +90,11 @@ export default class Wall extends React.Component<IWallProps, {}> {
             </div>
             <div>
                 <div>{wall.name}</div>
-                <div className="date">{`Last interaction ${
-                    getSmartDate(wall.lastInteraction)}`}</div>
+                {
+                    wall.lastInteraction &&
+                    <div className="date">{`Last interaction ${
+                        getSmartDate(wall.lastInteraction)}`}</div>
+                }
             </div>
             <div className="icon">
                 <div>
@@ -54,17 +106,12 @@ export default class Wall extends React.Component<IWallProps, {}> {
     }
 
     render() {
+        const walls = this.props.walls.length === 0 ? DEFAULT_WALLS : this.props.walls
         return (
             <div className="tideGui-Wall">
                 <h1>Please select a display wall</h1>
                 <div>{
-                    this.props.walls.length === 0 ?
-                    <div className="wait">
-                        <Icon content="wait" animate={true}/>
-                        <div>Checking wall screens status...</div>
-                    </div>
-                    :
-                    this.props.walls.map(this.renderWall)
+                    walls.map(this.renderWall)
                 }</div>
             </div>
         )
