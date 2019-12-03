@@ -26,51 +26,104 @@ export interface IWallInfo {
     lastInteraction?: Date
 }
 
+let currentWallInfoFromKibana: IWallInfo[] | null = null
+
 
 async function getWallsStatus(): Promise<IWallInfo[]> {
-    const now = new Date()
-    const date = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        now.getHours(),
-        now.getMinutes() - 1,
-        0 // Seconds will not be used in Kibana query string.
-    )
-    const q = `{"range":{"time":{"gte":"${getKibanaFormattedDate(date)}","lte":"now"}}}`
-    const sq = `"${q}"`
-
-    // "kibana" is redirected by the proxy to the search service.
-    const url = `kibana/_search?_source=last_event_date,name,deflect_port,locked,power,server,status,time,surfaceSize&q=${sq}&size=1200`
-    const response = await fetch(url)
-    const text = await response.text()
-    const json = JSON.parse(text)
-    if (json.error) {
-        console.log(json.error.caused_by.reason)
-        return []
+    const base = await getWallsStatusFromKibana()
+    const extension: IWallInfo[] = []
+    for (const status of base) {
+        try {
+            const update: Partial<IWallInfo> = await getWallStatus(status.id)
+            extension.push({ ...status, ...update })
+        }
+        catch (ex) {
+            console.error(`Unable to get status of wall #${status.id}!`, ex)
+        }
     }
-    const sources = json.hits.hits.map((hit: any) => hit._source)
-        .sort(sortByDecreasingTime)
-    const wallNames: Set<string> = new Set()
-    const walls: IWallInfo[] = []
-    sources.forEach((source: ISource) => {
-        const { name, proxy_endpoint, locked, power, surfaceSize } = source
-        if (typeof name !== 'string') return
-        if (wallNames.has(name)) return
-        wallNames.add(name)
-        walls.push({
-            name,
-            id: castInteger(proxy_endpoint || `${name.charAt(4)}`, -1),
-            width: surfaceSize[0],
-            height: surfaceSize[1],
-            locked: locked !== 0,
-            power: power === 1,
-            powerIsUndef: power === 2,
-            lastInteraction: new Date(`${source.last_event_date}Z`)
-        })
-    })
+    return extension
+}
 
-    return walls.sort(sortByName)
+async function getWallStatus(wallId: number): Promise<Partial<IWallInfo>> {
+    const response = await fetch(`tide/${wallId}/stats`)
+    if (!response.ok) {
+        throw Error(`Got error ${response.status} (${response.statusText
+            }) while calling "/stats" REST entry point for wall #${wallId}!`)
+    }
+    const json = await response.json()
+    console.info("json=", json);
+    return {
+        powerIsUndef: json.screens.state,
+        power: json.screens.state === 'ON',
+        lastInteraction: new Date(json.event["last_event_date"])
+    }
+}
+
+/*{
+    "event": {
+        "count": 6878,
+        "last_event": "contentWindowMovedToFront",
+        "last_event_date": "2019-12-03T14:26:01.270693"
+    },
+    "screens": {
+        "last_change": "",
+        "state": "UNDEF"
+    },
+    "window": {
+        "accumulated_count": 690,
+        "count": 23,
+        "date_set": "2019-12-02T14:27:54.304641"
+    }
+}*/
+
+async function getWallsStatusFromKibana(): Promise<IWallInfo[]> {
+    // If we already have the data from Kibana, we just get the last recorded one.
+    if (!currentWallInfoFromKibana) {
+        const now = new Date()
+        const date = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate(),
+            now.getHours(),
+            now.getMinutes() - 1,
+            0 // Seconds will not be used in Kibana query string.
+        )
+        const q = `{"range":{"time":{"gte":"${getKibanaFormattedDate(date)}","lte":"now"}}}`
+        const sq = `"${q}"`
+
+        // "kibana" is redirected by the proxy to the search service.
+        const url = `kibana/_search?_source=last_event_date,name,deflect_port,locked,power,server,status,time,surfaceSize&q=${sq}&size=1200`
+        const response = await fetch(url)
+        const text = await response.text()
+        const json = JSON.parse(text)
+        if (json.error) {
+            console.log(json.error.caused_by.reason)
+            return []
+        }
+        const sources = json.hits.hits
+            .map((hit: any) => hit._source)
+            .sort(sortByDecreasingTime)
+        const wallNames: Set<string> = new Set()
+        const walls: IWallInfo[] = []
+        sources.forEach((source: ISource) => {
+            const { name, proxy_endpoint, locked, power, surfaceSize } = source
+            if (typeof name !== 'string') return
+            if (wallNames.has(name)) return
+            wallNames.add(name)
+            walls.push({
+                name,
+                id: castInteger(proxy_endpoint || `${name.charAt(4)}`, -1),
+                width: surfaceSize[0],
+                height: surfaceSize[1],
+                locked: locked !== 0,
+                power: power === 1,
+                powerIsUndef: power === 2,
+                lastInteraction: new Date(`${source.last_event_date}Z`)
+            })
+        })
+        currentWallInfoFromKibana = walls.sort(sortByName)
+    }
+    return currentWallInfoFromKibana
 }
 
 /**
