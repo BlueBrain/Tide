@@ -23,8 +23,6 @@ var filters = [];
 var timer;
 window.onresize = setScale;
 
-$(init);
-
 function alertPopup(title, text) {
   swal({
       title: title,
@@ -1483,12 +1481,10 @@ function updateWall() {
 }
 
 function updateLock() {
-    console.warn("UPDATE")
   var lockCheck = new XMLHttpRequest();
   lockCheck.open("GET", restUrl + "lock", true);
   lockCheck.onload = function () {
     var lock = JSON.parse(lockCheck.responseText);
-    console.info("lock=", lock, restUrl)
     var newLockStatus = lock["locked"];
     if (newLockStatus === locked)
       return;
@@ -1594,7 +1590,7 @@ function uploadFiles(files, coords) {
           xhr2.send(file);
         }
         else
-          console.log('ENDPOINT REGISTRATION: An error occurred!');
+          console.error('ENDPOINT REGISTRATION: An error occurred!');
       };
       var body = {
         "filename": (file.name),

@@ -104,7 +104,6 @@ export default class Apps extends React.Component<IAppsProps, IAppsState> {
     }
 
     updateItem(id: string, dataURL: string) {
-        console.info("id, dataURL=", id, dataURL);
         const items = this.state.items.slice()
         const item = items.find((i: IClipboardItem) => i.id === id)
         if (!item) return

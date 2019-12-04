@@ -54,6 +54,11 @@ async function start() {
         return
     }
 
+    // Function from "tide.js" file.
+    // It was called like this: "$(init);"
+    // But we don't want it to be called unless a wall has been selected.
+    init()
+
     if (wallButton) {
         Gesture(wallButton).on({
             down: () => showWallMenu(true)
