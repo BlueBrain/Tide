@@ -53,7 +53,7 @@ async function getWallStatus(wallId: number): Promise<Partial<IWallInfo>> {
     const json = await response.json()
     console.info("json=", json);
     return {
-        powerIsUndef: json.screens.state,
+        powerIsUndef: json.screens.state === 'UNDEF',
         power: json.screens.state === 'ON',
         lastInteraction: new Date(json.event["last_event_date"])
     }
