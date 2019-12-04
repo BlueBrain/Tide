@@ -172,7 +172,7 @@ function showFileMenu() {
  * Button WALL
  */
 function showWallMenu(closable: boolean) {
-    const intervalId = window.setInterval(refreshWalls, 1000)
+    const intervalId = window.setInterval(refreshWalls, 3000)
 
     const view = (
         <Provider store={State.store}>
