@@ -29,8 +29,7 @@ a:link {
     transition: all .3s;
 }
 
-#buttonContainer > button:active,
-#buttonContainer > button:focus {
+#buttonContainer > button:active {
     border: none;
     background-color: #0096d3;
     box-shadow: 0 1px 2px rgba(0,0,0,.5);
@@ -100,7 +99,9 @@ iframe {
     margin-left: 5px
 }
 
-.menuButton:disabled {
+
+#buttonContainer button.menuButton.lockableButton.disabledButton {
+    opacity: .5;
     background-color: lightsteelblue;
 }
 

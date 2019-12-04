@@ -34,8 +34,9 @@ async function getWallsStatus(): Promise<IWallInfo[]> {
     const extension: IWallInfo[] = []
     for (const status of base) {
         try {
-            const update: Partial<IWallInfo> = await getWallStatus(status.id)
-            extension.push({ ...status, ...update })
+            const updatePowerAndLastEvent: Partial<IWallInfo> = await getWallStatusForPowerAndLastEvent(status.id)
+            const updateLock: Partial<IWallInfo> = await getWallStatusForLock(status.id)
+            extension.push({ ...status, ...updatePowerAndLastEvent, ...updateLock })
         }
         catch (ex) {
             console.error(`Unable to get status of wall #${status.id}!`, ex)
@@ -44,19 +45,28 @@ async function getWallsStatus(): Promise<IWallInfo[]> {
     return extension
 }
 
-async function getWallStatus(wallId: number): Promise<Partial<IWallInfo>> {
+async function getWallStatusForPowerAndLastEvent(wallId: number): Promise<Partial<IWallInfo>> {
     const response = await fetch(`tide/${wallId}/stats`)
     if (!response.ok) {
         throw Error(`Got error ${response.status} (${response.statusText
             }) while calling "/stats" REST entry point for wall #${wallId}!`)
     }
     const json = await response.json()
-    console.info("json=", json);
     return {
         powerIsUndef: json.screens.state === 'UNDEF',
         power: json.screens.state === 'ON',
         lastInteraction: new Date(json.event["last_event_date"])
     }
+}
+
+async function getWallStatusForLock(wallId: number): Promise<Partial<IWallInfo>> {
+    const response = await fetch(`tide/${wallId}/lock`)
+    if (!response.ok) {
+        throw Error(`Got error ${response.status} (${response.statusText
+            }) while calling "/stats" REST entry point for wall #${wallId}!`)
+    }
+    const json = await response.json()
+    return { locked: json.locked }
 }
 
 /*{
@@ -97,7 +107,7 @@ async function getWallsStatusFromKibana(): Promise<IWallInfo[]> {
         const text = await response.text()
         const json = JSON.parse(text)
         if (json.error) {
-            console.log(json.error.caused_by.reason)
+            console.error(json.error.caused_by.reason)
             return []
         }
         const sources = json.hits.hits

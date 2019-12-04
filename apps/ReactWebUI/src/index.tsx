@@ -28,6 +28,8 @@ import * as serviceWorker from './serviceWorker';
 
 import './index.css'
 
+const WALL_REFRESH_INTERVAL = 5000
+
 const appsButton = document.getElementById('appsButton2')
 const wallButton = document.getElementById('wallButton')
 const fileButton = document.getElementById('fileButton')
@@ -172,7 +174,7 @@ function showFileMenu() {
  * Button WALL
  */
 function showWallMenu(closable: boolean) {
-    const intervalId = window.setInterval(refreshWalls, 3000)
+    const intervalId = window.setInterval(refreshWalls, WALL_REFRESH_INTERVAL)
 
     const view = (
         <Provider store={State.store}>

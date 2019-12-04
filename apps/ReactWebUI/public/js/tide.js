@@ -1483,10 +1483,12 @@ function updateWall() {
 }
 
 function updateLock() {
+    console.warn("UPDATE")
   var lockCheck = new XMLHttpRequest();
   lockCheck.open("GET", restUrl + "lock", true);
   lockCheck.onload = function () {
     var lock = JSON.parse(lockCheck.responseText);
+    console.info("lock=", lock, restUrl)
     var newLockStatus = lock["locked"];
     if (newLockStatus === locked)
       return;

@@ -79,7 +79,6 @@ export default class Sessions extends React.Component<ISessionsProps, ISessionsS
         let name = this.state.nameOfSessionToSave
         if (!name.endsWith('.dcx')) name += '.dcx'
         const sessionNames = await this.refresh()
-        console.info("sessionNames, name=", sessionNames, name);
         const overwrite = sessionNames.indexOf(name) !== -1
         this.props.onSave(name, overwrite)
     }
