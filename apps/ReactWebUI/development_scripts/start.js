@@ -5,7 +5,7 @@ const cwd = process.cwd()
 const pos = cwd.indexOf('/Tide/')
 const root = Path.resolve(cwd.substr(0, pos))
 const tidePath = Path.join(root, 'Tide/Build/bin/tide')
-const configPath = Path.join(root, 'Tide/apps/ReactWebUI/backend')
+const configPath = Path.join(root, 'Tide/apps/ReactWebUI/development_scripts')
 
 console.info("tidePath=", tidePath)
 console.info("configPath=", configPath)

@@ -20,7 +20,7 @@
     "start": "PORT=9999 react-app-rewired start",
     "build": "react-app-rewired build",
     "test": "react-app-rewired test",
-    "tide": "node ./backend/start.js"
+    "tide": "node ./development_scripts/start.js"
   },
   "eslintConfig": {
     "extends": "react-app"

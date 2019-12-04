@@ -23,7 +23,7 @@ var timer;
 window.onresize = setScale;
 
 $(init);
-rest
+
 function alertPopup(title, text) {
   swal({
       title: title,
@@ -168,8 +168,6 @@ function bootstrapUpload() {
   }).mouseup(function () {
     $(this).removeClass("buttonPressed")});
   $('#uploadsClearButton').hide();
-
-
 }
 
 function browse() {
