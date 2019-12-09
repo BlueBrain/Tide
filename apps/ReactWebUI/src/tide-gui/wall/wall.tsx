@@ -19,7 +19,7 @@ const DEFAULT_WALLS: IWallInfo[] = [
     "height": 3264,
     "locked": false,
     "power": false,
-    "powerIsUndef": false
+    "powerIsUndef": true
   },
   {
     "name": "B1.03 Third Floor (coffee area)",
@@ -28,7 +28,7 @@ const DEFAULT_WALLS: IWallInfo[] = [
     "height": 2160,
     "locked": false,
     "power": false,
-    "powerIsUndef": false
+    "powerIsUndef": true
   },
   {
     "name": "B1.04 OpenDeck",
@@ -37,7 +37,7 @@ const DEFAULT_WALLS: IWallInfo[] = [
     "height": 3424,
     "locked": false,
     "power": false,
-    "powerIsUndef": false
+    "powerIsUndef": true
   },
   {
     "name": "B1.05 Fifth Floor",
@@ -46,7 +46,7 @@ const DEFAULT_WALLS: IWallInfo[] = [
     "height": 3264,
     "locked": false,
     "power": false,
-    "powerIsUndef": false
+    "powerIsUndef": true
   },
   {
     "name": "B1.06 Sixth Floor",
@@ -55,7 +55,7 @@ const DEFAULT_WALLS: IWallInfo[] = [
     "height": 3264,
     "locked": false,
     "power": false,
-    "powerIsUndef": false
+    "powerIsUndef": true
   }
 ]
 
