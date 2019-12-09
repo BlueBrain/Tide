@@ -14,36 +14,6 @@ div.tideGui-Wall > div > div.wait {
     width: 100%;
 }
 
-div.tideGui-Wall div.power-status {
-    position: relative;
-    width: 48px;
-    height: 48px;
-    flex: 0 0 auto;
-}
-
-div.tideGui-Wall div.power-status div.on,
-div.tideGui-Wall div.power-status div.off {
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    left: 3px;
-    right: 0;
-    top: 0;
-    bottom: 0;
-    text-align: center;
-    font-size: 60%;
-}
-
-div.tideGui-Wall div.power-status div.on {
-    font-weight: bold;
-}
-
-div.tideGui-Wall div.power-status div.off {
-    opacity: .6;
-}
-
 div.tideGui-Wall > div > div.wall-button {
     width: 320px;
     margin: .25rem;

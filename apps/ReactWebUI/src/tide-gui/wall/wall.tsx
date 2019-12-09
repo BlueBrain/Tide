@@ -2,7 +2,7 @@ import React from "react"
 import Icon from '../../tfw/view/icon'
 import Touchable from '../../tfw/view/touchable'
 import { IWallInfo } from '../service/query'
-
+import PowerButton from '../power-button'
 import "./wall.css"
 
 interface IWallProps {
@@ -28,7 +28,7 @@ const DEFAULT_WALLS: IWallInfo[] = [
     "height": 2160,
     "locked": false,
     "power": false,
-    "powerIsUndef": true
+    "powerIsUndef": false
   },
   {
     "name": "B1.04 OpenDeck",
@@ -36,8 +36,8 @@ const DEFAULT_WALLS: IWallInfo[] = [
     "width": 11940,
     "height": 3424,
     "locked": false,
-    "power": false,
-    "powerIsUndef": true
+    "power": true,
+    "powerIsUndef": false
   },
   {
     "name": "B1.05 Fifth Floor",
@@ -74,20 +74,7 @@ export default class Wall extends React.Component<IWallProps, {}> {
                     key={wall.name}
                     classNames={classes}
                     onClick={() => this.props.onClick(wall.id)}>
-            <div className="power-status">
-                <div className="icon">
-                    <div className={wall.power ? 'power-on' : 'power-off'}>
-                        <Icon content="tv" size={28} pen0="#ff0"/>
-                    </div>
-                    <div className={wall.power ? 'power-on' : 'power-off'}>
-                        <Icon content="tv" size={28} pen0="#ff0"/>
-                    </div>
-                    <div>
-                        <Icon content="tv" size={28}/>
-                    </div>
-                </div>
-                <div className={wall.power ? 'on' : 'off'}>{getPowerLabel(wall)}</div>
-            </div>
+            <PowerButton status={getPowerLabel(wall)} />
             <div>
                 <div>{wall.name}</div>
                 {
