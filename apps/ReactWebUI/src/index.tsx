@@ -179,6 +179,7 @@ function showFileMenu() {
  * Button WALL
  */
 function showWallMenu(closable: boolean) {
+    refreshWalls()
     const intervalId = window.setInterval(refreshWalls, WALL_REFRESH_INTERVAL)
 
     const view = (
@@ -188,7 +189,6 @@ function showWallMenu(closable: boolean) {
                 onClick={(wall: number) => window.location.href = `?wall=${wall}`} />
         </Provider>
     )
-    console.info("closable=", closable);
     const dialog = Dialog.show({
         closeOnEscape: closable,
         onClose: () => {
