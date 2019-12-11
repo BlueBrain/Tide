@@ -135,7 +135,8 @@ function bootstrapMenus() {
       e.stopPropagation();
     });
 
-    $("#surfacesMenu").css("left", e.pageX - 50 + 'px').css("top", 25).toggle("puff", showEffectSpeed);
+    $("#surfacesMenu").css("left", e.pageX - 50 + 'px').css("top", 25)
+        .toggle("puff", showEffectSpeed);
     $(".menuButton:not(#surfacesButton)").removeClass("buttonPressed");
     $("#surfacesButton").toggleClass("buttonPressed");
     e.stopPropagation();
