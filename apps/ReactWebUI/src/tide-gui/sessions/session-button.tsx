@@ -1,3 +1,7 @@
+/**
+ * A button that is an item in the sessions list.
+ */
+
 import React from "react"
 import Icon from '../../tfw/view/icon'
 

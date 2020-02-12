@@ -118,6 +118,21 @@ function showSessionMenu() {
     }
 
     const onSave = async (name: string, overwrite: boolean) => {
+        console.info("overwrite=", overwrite);
+
+        const save = () => {
+            dialog.hide()
+            sendAppJsonRpc("save", { uri: name }, () => {
+                swal({
+                    type: "success",
+                    title: "Saved!",
+                    text: "Your session has been saved as: " + name,
+                    confirmButtonText: "OK",
+                    confirmButtonColor: "#014f86"
+                })
+            })
+        }
+
         if (overwrite) {
             swal({
                 type: "warning",
@@ -131,19 +146,12 @@ function showSessionMenu() {
                 showCancelButton: true
             }, function(isConfirm) {
                 if (isConfirm) {
-                    dialog.hide()
-                    sendAppJsonRpc("save", { uri: name }, () => {
-                        swal({
-                            type: "success",
-                            title: "Saved!",
-                            text: "Your session has been saved as: " + name,
-                            confirmButtonText: "OK",
-                            confirmButtonColor: "#014f86"
-                        })
-                    })
+                    save()
                 }
             });
-        }
+        } else {
+            save()
+        }        
     }
 
     const dialog = Dialog.show({
