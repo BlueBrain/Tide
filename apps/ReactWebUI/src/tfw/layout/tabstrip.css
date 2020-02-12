@@ -1,0 +1,57 @@
+div.tfw-layout-tabstrip {
+  position       : relative;
+  display        : flex;
+  flex-direction : column;
+  justify-content: flex-start;
+  align-items    : stretch;
+}
+div.tfw-layout-tabstrip > header {
+  flex           : 0 0 auto;
+  display        : flex;
+  flex-direction : row;
+  justify-content: flex-start;
+  align-items    : stretch;
+  margin         : 0 0 -1px;
+  z-index        : 1;
+}
+div.tfw-layout-tabstrip > header > div.void {
+  flex         : 1 1 auto;
+  border-bottom: 1px solid var(--thm-black);
+}
+div.tfw-layout-tabstrip > header > button {
+  cursor          : pointer;
+  color           : var(--thm-bgP);
+  font-variant    : small-caps;
+  font-weight     : bold;
+  background-color: transparent;
+  display         : flex;
+  justify-content : center;
+  align-items     : center;
+  border          : none;
+  min-height      : 2em;
+  max-height      : 2em;
+  height          : 2em;
+  border-bottom   : 1px solid var(--thm-black);
+  margin          : 0;
+  padding         : 0 .5em;
+}
+div.tfw-layout-tabstrip > header > button:active,
+div.tfw-layout-tabstrip > header > button:hover {
+  color: var(--thm-bgPL);
+}
+div.tfw-layout-tabstrip > header > button.selected {
+  border       : 1px solid var(--thm-black);
+  border-bottom: 1px solid var(--thm-bg2);
+  z-index      : 2;
+  overflow     : hidden;
+  border-radius: 2px 2px 0 0;
+}
+div.tfw-layout-tabstrip > div {
+  position  : relative;
+  flex      : 1 1 auto;
+  margin    : 0;
+  padding   : .5em;
+  border    : 1px solid var(--thm-black);
+  border-top: none;
+  z-index   : 0;
+}

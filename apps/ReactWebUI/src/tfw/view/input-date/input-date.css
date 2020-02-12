@@ -1,0 +1,58 @@
+div.tfw-view-input-date {
+  display        : inline-flex;
+  flex-direction : column;
+  justify-content: space-between;
+  align-items    : stretch;
+  margin         : .25rem;
+  transition     : all .2s;
+}
+div.tfw-view-input-date.wide {
+  display: flex;
+}
+div.tfw-view-input-date label {
+  font-size: 80%;
+  padding  : 2px .25rem;
+}
+div.tfw-view-input-date div.error {
+  font-size  : 80%;
+  font-weight: bold;
+  padding    : 2px .25rem;
+}
+div.tfw-view-input-date input {
+  font-size  : inherit;
+  font-family: inherit;
+  border     : none;
+  padding    : 0 .25rem;
+  line-height: 2rem;
+  transition : all .2s;
+  flex       : 0 0 auto;
+  text-align : center;
+}
+div.tfw-view-input-date select {
+  flex: 1 0 auto;
+}
+div.tfw-view-input-date input,
+div.tfw-view-input-date select {
+  border    : none;
+  background: var(--thm-bg3);
+}
+div.tfw-view-input-date input:focus,
+div.tfw-view-input-date select:focus {
+  background: var(--thm-bgSL);
+}
+div.tfw-view-input-date > div.inputs {
+  display        : flex;
+  flex-direction : row;
+  justify-content: flex-start;
+  align-items    : stretch;
+  padding        : 0;
+  margin         : 0;
+}
+div.tfw-view-input-date input.day {
+  max-width: 3em;
+  min-width: 3em;
+}
+div.tfw-view-input-date input.year {
+  max-width: 4em;
+  min-width: 4em;
+}

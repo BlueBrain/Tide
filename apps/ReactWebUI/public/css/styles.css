@@ -1,0 +1,362 @@
+html {
+    height: 100%;
+}
+
+body {
+    height: 100%;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    background-color: #f0fafb;
+}
+
+a:link {
+    text-decoration: none;
+    color: black;
+}
+
+#buttonContainer > button {
+    margin: 2px 1px;
+    border: none;
+    cursor: pointer;
+    background-color: #014f86;
+    color: white;
+    font-family: Arial;
+    font-size: 11px;
+    text-decoration: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,.5);
+    transform: translateY(0);
+    transition: all .3s;
+}
+
+#buttonContainer > button:active {
+    border: none;
+    background-color: #0096d3;
+    box-shadow: 0 1px 2px rgba(0,0,0,.5);
+    transform: translateY(2px);
+    transition: all .3s;
+}
+
+iframe {
+    display: none;
+}
+
+.buttonPressed {
+    background-color: #0096d3;
+}
+
+.cancelUploadSpan {
+    cursor: pointer;
+}
+
+.controlIcon {
+    margin: 15px;
+}
+
+.curtain {
+    background-color: black;
+    position: absolute;
+}
+
+.display {
+    position: relative;
+    outline: solid black;
+}
+
+#uploadFileInput input {
+    visibility: hidden;
+    width: 100px;
+    float: left;
+}
+
+#uploadFileInput:before {
+    content: 'CHOOSE FILES';
+    border: 1px solid #007dc1;
+    cursor: pointer;
+    background-color: #014f86;
+    color: white;
+    font-family: Arial;
+    font-size: 11px;
+    text-decoration: none;
+    padding: 1px;
+    display: block;
+    outline: none;
+    font-weight: normal;
+    text-align: center;
+    position: relative;
+    height: 19px;
+}
+
+.infoMenu {
+    padding: 10px;
+    text-align: left;
+    background-color: white;
+    width: auto !important;
+}
+
+.infoIcon {
+    margin-top: 5px;
+    margin-left: 5px
+}
+
+
+#buttonContainer button.menuButton.lockableButton.disabledButton {
+    opacity: .5;
+    background-color: lightsteelblue;
+}
+
+.screen {
+    pointer-events: none;
+    outline: 0px solid black;
+    height: auto;
+    display: grid;
+    position: relative;
+}
+
+.screenbezel {
+    pointer-events: none;
+    background-color: orange;
+    position: absolute;
+    opacity: 0;
+}
+
+.sessionTree {
+    position: relative;
+    background-color: transparent;
+    width: 100%;
+}
+
+.thumbnail {
+    width: 100%;
+    height: 100%;
+    margin-bottom: 0px;
+}
+
+.topMenu {
+    display: none;
+    position: absolute;
+    margin: 0 auto;
+    width: 400px;
+    height: auto;
+    max-height: 768px;
+    overflow-y: auto;
+    z-index: 100;
+}
+
+.optionInput {
+    float: left;
+    margin: 0px;
+}
+
+.optionLabel {
+    height: 1em;
+    font-weight: normal;
+    white-space: nowrap;
+    clear: both;
+    float: left;
+}
+
+.optionsMenu {
+    background-color: white;
+    width: auto;
+    padding: 5px;
+    overflow: hidden;
+}
+
+.textInput {
+    width: 60%;
+    height: 25px;
+    margin-top: 3px;
+}
+
+.ui-resizable-se {
+    background-image: none;
+}
+
+.ui-resizable-e {
+    margin: 0px;
+    width: 50px;
+}
+
+.ui-resizable-s {
+    margin: 0px;
+    height: 20px;
+}
+
+.uploadMenu {
+    background-color: white;
+    min-height: 20px;
+    position: absolute;
+    overflow-y: auto;
+    border-color: lightgrey;
+    border-style: solid;
+    border-width: 0px 1px 1px 1px;
+}
+
+.windowControl {
+    background: yellow;
+    left: -80px;
+    position: relative;
+    width: 75px;
+    height: 75px;
+    cursor: pointer;
+}
+
+.windowControls {
+    top: 0px;
+    position: absolute;
+    width: 75px;
+    height: 300px;
+}
+
+.windowControl.focusButtonHidden {
+    visibility: hidden;
+}
+
+.windowControl.focusButtonVisible {
+    visibility: visible;
+}
+
+.windowDiv {
+    position: absolute;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 6);
+    -moz-box-shadow: 0 0 40px rgba(0, 0, 0, 6);
+    -webkit-box-shadow: 0 0 40px rgba(0, 0, 0, 6);
+    -o-box-shadow: 0 0 40px rgba(0, 0, 0, 6);
+}
+
+.windowDiv.windowSelected {
+    box-shadow: 0 0 40px rgba(255, 255, 0, 6);
+    -moz-box-shadow: 0 0 40px rgba(255, 255, 0, 6);
+    -webkit-box-shadow: 0 0 40px rgba(255, 255, 0, 6);
+    -o-box-shadow: 0 0 40px rgba(255, 255, 0, 6);
+}
+
+.windowDiv.windowFullscreen {
+    box-shadow: none;
+    -moz-box-shadow: none;
+    -webkit-box-shadow: none;
+    -o-box-shadow: none;
+}
+
+#buttonContainer {
+    margin: 0 auto;
+    position: relative;
+    text-align: center;
+    margin-top: 5px;
+    border: 0px solid;
+    width: calc(100% - 75px);
+    z-index: 100;
+    font-family: Arial;
+    font-size: 11px;
+    text-decoration: none;
+    font-weight: normal;
+}
+
+#infoBox {
+    position: absolute;
+    right: 0;
+    top: 0;
+    width: 75px;
+    z-index: 101;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    margin: 0;
+}
+
+#lock {
+    height: 50%;
+    margin: 0 auto;
+    position: relative;
+    display: block;
+    top: 25%;
+}
+
+#uploadsList {
+    padding-left: 10px;
+    padding-right: 10px;
+    list-style-type: none;
+}
+
+#stickToOverlay {
+    background-color: orange;
+    border: 10px solid darkorange;
+    opacity: 0.5;
+    z-index: 102;
+    position: fixed;
+    display: none;
+}
+
+#wall, #wallLock, #wallOutline, #wallBezels {
+    -moz-box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-transform-origin: 0 0;
+    -webkit-transform-origin: 0 0;
+    box-sizing: border-box;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+#wallBezels {
+    display: grid;
+}
+
+#wallLock {
+    z-index: 101;
+    opacity: 0;
+    display: none;
+}
+
+#wallLockImg {
+    margin: 0 auto;
+    position: relative;
+    top: 25%;
+    display: block;
+}
+
+#wallOutline {
+    outline: 0px solid black;
+    z-index: 0;
+    display: grid;
+    opacity: 1;
+}
+
+#wallWrapper {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+#wallWrapper > div:first-child {
+    flex: 0 0 auto;
+}
+
+#wallWrapper > div:last-child {
+    flex: 1 1 auto;
+}
+
+
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-thumb {
+    width: 8px;
+    background-image: -webkit-linear-gradient(#014f86, #0096d3);
+}
+
+::-webkit-scrollbar-track {
+    display: none;
+}

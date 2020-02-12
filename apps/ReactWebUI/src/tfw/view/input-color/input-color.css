@@ -1,0 +1,42 @@
+div.tfw-view-InputColor {
+    display: inline-flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    margin: .5rem;
+}
+div.tfw-view-InputColor.wide {
+    display: flex;
+}
+div.tfw-view-InputColor > div > div {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: stretch;
+}
+div.tfw-view-InputColor > div > div > div {
+    max-height: 2rem;
+    min-height: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+div.tfw-view-InputColor > div > div > input {
+    line-height: 2rem;
+    font-size: 1rem;
+    font-family: monospace;
+    font-weight: bold;
+    padding: 0 .5rem;
+    border: 0;
+    outline: 0;
+    width: 6rem;
+    max-width: 6rem;
+    min-width: 6rem;
+    max-height: 2rem;
+    min-height: 2rem;
+    text-transform: uppercase;
+}
+div.tfw-view-InputColor > div > div > input.invalid {
+    font-weight: normal;
+    text-decoration: line-through;
+}

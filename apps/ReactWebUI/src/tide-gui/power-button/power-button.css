@@ -1,0 +1,21 @@
+div.tideGui-PowerButton {
+    position: relative;
+    width: 48px;
+    max-width: 48px;
+    height: 48px;
+    flex: 0 0 auto;
+}
+
+div.tideGui-PowerButton div.label {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    left: 3px;
+    right: 0;
+    top: 2px;
+    bottom: 0;
+    text-align: center;
+    font-size: 60%;
+}

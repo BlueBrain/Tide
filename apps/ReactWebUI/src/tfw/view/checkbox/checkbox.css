@@ -1,0 +1,78 @@
+button.tfw-view-checkbox {
+    padding: 0;
+    margin: .5rem;
+    border: none;
+    background: transparent;
+    display: inline-flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    cursor: pointer;
+}
+
+button.tfw-view-checkbox.wide {
+    display: flex;
+    width: 100%;
+}
+
+button.tfw-view-checkbox>label {
+    order: 1;
+    opacity: .6;
+    white-space: nowrap;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 1;
+    text-align: left;
+    transition: opacity .2s;
+    cursor: pointer;
+}
+
+button.tfw-view-checkbox.reverse>label {
+    order: -1;
+}
+
+button.tfw-view-checkbox>div.pin {
+    position: relative;
+    width: 34px;
+    height: 20px;
+    overflow: visible;
+    flex-grow: 0;
+    margin: 2px 8px 2px 2px;
+    order: 0;
+}
+
+button.tfw-view-checkbox>div.pin>div.bar {
+    content: ".";
+    font-size: 0;
+    position: absolute;
+    left: 0;
+    top: 3px;
+    width: 34px;
+    height: 14px;
+    border-radius: 7px;
+}
+
+button.tfw-view-checkbox>div.pin>div.btn {
+    content: ".";
+    font-size: 0;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 10px;
+    transform: translateX(0);
+    transition: transform .2s, opacity .2s;
+}
+
+button.tfw-view-checkbox.ok>label {
+    opacity: 1;
+}
+
+button.tfw-view-checkbox.ok>div.pin>div.btn {
+    transform: translateX(14px);
+}
+
+button.tfw-view-checkbox>header.hide {
+    display: none;
+}

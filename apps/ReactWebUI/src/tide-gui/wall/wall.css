@@ -1,0 +1,76 @@
+div.tideGui-Wall > div {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+    margin: 1rem;
+}
+
+div.tideGui-Wall > div > div.wait {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+div.tideGui-Wall > div > div.wall-button {
+    width: 320px;
+    margin: .25rem;
+    height: 64px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    border: none;
+}
+
+div.tideGui-Wall > div > div.wall-button.active {
+    border: 1px solid var(--thm-black-5);
+    margin: .5rem;
+    box-shadow: 0 0 1px 3px #FF0;
+}
+
+div.tideGui-Wall > div > div.wall-button > div {
+    flex: 1 1 auto;
+}
+
+div.tideGui-Wall > div > div.wall-button > div.power-status {
+    flex: 0 0 auto;
+}
+
+div.tideGui-Wall > div > div.wall-button div.icon {
+    position: relative;
+    flex: 0 0 auto;
+    width: 28px;
+    height: 28px;
+    margin: 1rem;
+    overflow: visible;
+}
+
+div.tideGui-Wall > div > div.wall-button div.icon > div {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    pading: 0;
+}
+
+div.tideGui-Wall > div > div.wall-button div.icon > div.power-on {
+    filter: blur(2px);
+    opacity: 1;
+    transition: all .3s;
+}
+
+div.tideGui-Wall > div > div.wall-button div.icon > div.power-off {
+    filter: blur(0);
+    opacity: 0.5;
+    transition: all .3s;
+}
+
+div.tideGui-Wall div.date {
+    font-size: 70%;
+    opacity: .5;
+}

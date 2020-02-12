@@ -1,0 +1,28 @@
+div.tideGuide-Sessions {
+    height: calc(100vh - 128px);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+}
+
+div.tideGuide-Sessions > header,
+div.tideGuide-Sessions > footer {
+    flex: 0 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+div.tideGuide-Sessions > div {
+    flex: 1 1 auto;
+    overflow: auto;
+}
+
+div#sessionMenu.react-root {
+    overflow: visible;
+}
+
+div.tideGuide-Sessions div.wide {
+    flex: 1 1 auto;
+}

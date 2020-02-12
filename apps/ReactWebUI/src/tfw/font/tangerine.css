@@ -1,0 +1,13 @@
+@font-face {
+    font-family: tangerine;
+    font-style: normal;
+    font-weight: 700;
+    src: url(./tangerine/tangerine-700.woff2) format('woff2');
+}
+
+@font-face {
+    font-family: tangerine;
+    font-style: normal;
+    font-weight: 400;
+    src: url(./tangerine/tangerine-400.woff2) format('woff2');
+}

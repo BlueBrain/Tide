@@ -1,0 +1,11 @@
+div.tfw-view-InputFile {
+    padding: 0;
+    margin: .25rem;
+    display: inline-block;
+}
+div.tfw-view-InputFile.wide {
+    display: block;
+}
+div.tfw-view-InputFile > input {
+    display: none;
+}

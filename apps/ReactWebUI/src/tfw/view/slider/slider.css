@@ -1,0 +1,25 @@
+div.tfw-view-Slider > div {
+    position: relative;
+    margin: 18px 16px;
+    height: 8px;
+    overflow: visible;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+div.tfw-view-Slider > div > div {
+    top: 4px;
+    left: 0%;
+    position: absolute;
+    display: block;
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    text-align: center;
+    border-radius: 100%;
+    margin: -16px;
+    cursor: pointer;
+    font-size: 12px;
+    overflow: hidden;
+    transition: none;
+}

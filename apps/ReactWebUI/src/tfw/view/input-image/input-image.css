@@ -1,0 +1,63 @@
+div.tfw-view-InputImage {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    margin: 0.25rem;
+}
+div.tfw-view-InputImage > * {
+    flex: 0 0 auto;
+}
+
+div.tfw-view-InputImage > label {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    font-size: 80%;
+    height: 1rem;
+    max-height: 1rem;
+    min-height: 1rem;
+    padding: 0 .5rem;
+    white-space: nowrap;
+    overflow: hidden;
+    margin: 0;
+}
+div.tfw-view-InputImage > div.image {
+    margin: 0;
+    background-repeat: repeat;
+    background-image: url(./back.jpg);
+    overflow: hidden;
+}
+div.tfw-view-InputImage > div.image > canvas {
+    opacity: 0;
+    transition: opacity .2s
+}
+div.tfw-view-InputImage > div.image > canvas.show {
+    opacity: 1;
+    transition: opacity .4s
+}
+div.tfw-view-InputImage-item {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}
+div.tfw-view-InputImage-item > div.icon {
+    content: "";
+    width: 30px;
+    height: 30px;
+    margin: 0 0 0 .5rem;
+}
+div.tfw-view-InputImage-item > div.icon.fill {
+    background-image: url(./resize.png);
+}
+div.tfw-view-InputImage-item > div.icon.contain {
+    background-image: url(./contain.png);
+}
+div.tfw-view-InputImage-item > div.icon.cover {
+    background-image: url(./cover.png);
+}
