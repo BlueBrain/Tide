@@ -118,3 +118,9 @@ proven and efficient technologies (C++14, Qt5, MPI).
 
 The full documentation is available at
 [bluebrain.github.io](http://bluebrain.github.io/Tide-1.5)
+
+## Funding & Acknowledgment
+
+The development of this software was supported by funding to the Blue Brain Project,
+a research center of the École polytechnique fédérale de Lausanne (EPFL), from the
+Swiss government’s ETH Board of the Swiss Federal Institutes of Technology.
