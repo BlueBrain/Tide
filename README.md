@@ -128,12 +128,14 @@ Swiss government’s ETH Board of the Swiss Federal Institutes of Technology.
 ## License
 
 Copyright (c) 2013-2018 Blue Brain Project/EPFL,
+
               2013-2015 King Abdullah University of Science and Technology,
                         Saudi Arabia
+
               2011-2012 The University of Texas at Austin.
+
 All rights reserved.
 
 The views and conclusions contained in the software and documentation are those of
 the authors and should not be interpreted as representing official policies, either
 expressed or implied, of École polytechnique fédérale de Lausanne de Lausanne.
-
