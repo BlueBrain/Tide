@@ -129,10 +129,10 @@ Swiss government’s ETH Board of the Swiss Federal Institutes of Technology.
 
 Copyright (c) 2013-2018 Blue Brain Project/EPFL,
 
-              2013-2015 King Abdullah University of Science and Technology,
+Copyright (c) 2013-2015 King Abdullah University of Science and Technology,
                         Saudi Arabia
 
-              2011-2012 The University of Texas at Austin.
+Copyright (c) 2011-2012 The University of Texas at Austin.
 
 All rights reserved.
 
