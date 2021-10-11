@@ -125,4 +125,17 @@ The development of this software was supported by funding to the Blue Brain Proj
 a research center of the École polytechnique fédérale de Lausanne (EPFL), from the
 Swiss government’s ETH Board of the Swiss Federal Institutes of Technology.
 
-Copyright (c) 2021 Blue Brain Project/EPFL
+## License
+
+Copyright (c) 2013-2018 Blue Brain Project/EPFL,
+
+Copyright (c) 2013-2015 King Abdullah University of Science and Technology,
+                        Saudi Arabia
+
+Copyright (c) 2011-2012 The University of Texas at Austin.
+
+All rights reserved.
+
+The views and conclusions contained in the software and documentation are those of
+the authors and should not be interpreted as representing official policies, either
+expressed or implied, of École polytechnique fédérale de Lausanne de Lausanne.
