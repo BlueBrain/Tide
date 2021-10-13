@@ -127,7 +127,7 @@ Swiss government’s ETH Board of the Swiss Federal Institutes of Technology.
 
 ## License
 
-Copyright (c) 2013-2018 Blue Brain Project/EPFL,
+Copyright (c) 2013-2021 Blue Brain Project/EPFL,
 
 Copyright (c) 2013-2015 King Abdullah University of Science and Technology,
                         Saudi Arabia
