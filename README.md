@@ -134,7 +134,7 @@ and Technology (KAUST) Office of Sponsored Research (OSR) under Award No. OSR-20
 
 ## License
 
-Copyright (c) 2013-2018 Blue Brain Project/EPFL,
+Copyright (c) 2013-2021 Blue Brain Project/EPFL,
 
 Copyright (c) 2013-2015 King Abdullah University of Science and Technology,
                         Saudi Arabia
